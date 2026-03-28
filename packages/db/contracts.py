@@ -1,0 +1,5 @@
+GOALS_TABLE = "goals"
+TASKS_TABLE = "tasks"
+APPROVALS_TABLE = "approvals"
+WORKER_RUNS_TABLE = "worker_runs"
+ARTIFACTS_TABLE = "artifacts"

@@ -1,0 +1,9 @@
+[
+  {
+    "id": "ai-company-os",
+    "name": "AI Company OS",
+    "source_path": ".",
+    "managed_repo_name": "ai-company-os",
+    "default_branch": "main"
+  }
+]

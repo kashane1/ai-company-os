@@ -1,0 +1,198 @@
+# ai-company-os
+
+An AI company operating system for running an AI-first or AI-only business from an always-on Mac.
+
+## Overview
+
+`ai-company-os` is a local-first, policy-driven platform for running a software business with persistent AI workers, explicit task state, approval gates, repo automation, and dedicated delivery lanes.
+
+The intended runtime is an always-on MacBook Air M1. The long-term goal is not a prompt bundle or a monolithic super-agent. It is a durable operating system for an AI-driven company with clear ownership boundaries:
+
+- The platform is the brain.
+- Codex is the engineer.
+- Postgres is memory.
+- Redis is the queue.
+- GitHub is the delivery lane.
+- OpenClaw is an optional interface, not the orchestration layer.
+
+## Architectural Rules
+
+These rules are non-negotiable:
+
+1. The platform owns orchestration.
+2. Codex writes code but does not own business logic or policy.
+3. Workers execute tasks but do not define what is allowed.
+4. Policies are explicit, shared, and versioned in code.
+5. Runtime state lives in `state/`, not in source folders.
+6. iOS engineering and App Store release handling are separate lanes.
+7. OpenClaw is optional and external to orchestration.
+
+The goal is intentionally boring architecture: readable, modular, safe to extend, and understandable without hidden prompt logic.
+
+## Why This Exists
+
+Most agent systems fail for predictable reasons:
+
+- hidden orchestration inside prompts
+- one oversized agent doing everything poorly
+- unclear ownership between planning, execution, and approval
+- unsafe repo mutations
+- weak auditability
+- runtime state mixed into source code
+- delivery workflows collapsed into a single lane
+
+This repo exists to avoid those failure modes from the start.
+
+## Lean V1
+
+The first version is intentionally small. It focuses on the smallest useful foundation:
+
+- `apps/api`
+- `apps/worker-supervisor`
+- `apps/worker-engineering`
+- `apps/worker-ios`
+- `apps/worker-appstore`
+- `packages/policies`
+- `packages/tools`
+- `packages/db`
+- `packages/queue`
+- `packages/schemas`
+- `packages/config`
+- `infra`
+- `state`
+- `docs`
+
+Two deliberate v1 choices:
+
+- The dashboard is described architecturally but not scaffolded yet. The API is enough to establish platform boundaries without adding speculative frontend code.
+- OpenClaw is documented as an optional future bridge, but there is no integration code yet. That keeps orchestration owned by this repo.
+
+## End-to-End Shape
+
+A healthy v1 should support this flow:
+
+1. A founder creates a goal such as fixing an iOS onboarding bug or preparing an App Store submission.
+2. The supervisor converts that goal into one or more typed tasks.
+3. The platform routes each task to the appropriate worker lane.
+4. The engineering or iOS worker creates a worktree, prepares a task packet, invokes Codex, validates output, and prepares a PR-ready result.
+5. The App Store worker prepares metadata and release state, then pauses at human approval before irreversible submission steps.
+6. The API exposes health, task state, approvals, and worker status.
+
+## Repository Layout
+
+```text
+ai-company-os/
+  apps/
+    api/
+    worker-supervisor/
+    worker-engineering/
+    worker-ios/
+    worker-appstore/
+  packages/
+    config/
+    db/
+    policies/
+    queue/
+    schemas/
+    tools/
+      codex_tools/
+      github_tools/
+      ios_tools/
+      appstore_tools/
+  docs/
+    architecture.md
+    operating-model.md
+    codex-worker.md
+    ios-lane.md
+    approval-policy.md
+    local-dev.md
+  infra/
+    db/
+    scripts/
+    fastlane/
+    launchd/
+  state/
+    repos/
+    worktrees/
+    artifacts/
+    checkpoints/
+    logs/
+    cache/
+```
+
+The full mock tree is a useful north star, but v1 intentionally implements only the subset that clarifies the operating model today. Support, growth, research, ops, dashboard, and OpenClaw stay documented future lanes until the core engineering and release path is real.
+
+## What Each Layer Owns
+
+### Apps
+
+Worker and API entrypoints. These are thin runtime surfaces that depend on shared contracts and shared policy.
+
+### Packages
+
+Versioned shared code for configuration, task schemas, queue contracts, policy rules, database contracts, and operational tools.
+
+Within `packages/tools/`, v1 already reserves distinct homes for Codex, GitHub, iOS, and App Store helpers. That keeps lane-specific integrations from dissolving into one generic utilities folder.
+
+### Docs
+
+Human-readable architectural anchors. `README.md` explains the system at a high level. `AGENTS.md` defines worker boundaries. `docs/architecture.md` bridges the docs to the code layout.
+
+### Infra
+
+Local infrastructure notes and future deployment helpers for Postgres, Redis, launch agents, and machine setup.
+
+### State
+
+Runtime-owned data only: repos, worktrees, artifacts, checkpoints, and logs.
+
+## Python-First V1
+
+V1 is Python-first unless a stronger reason emerges. That choice keeps the first pass easy to inspect and straightforward to run on macOS:
+
+- simple worker entrypoints
+- explicit task contracts
+- clear local tooling
+- easy process supervision
+
+Framework choices should stay lightweight until the architecture proves itself.
+
+## Current Status
+
+Early scaffold phase.
+
+The immediate priorities are:
+
+- make the architecture legible
+- lock in worker boundaries
+- encode shared policy in code
+- establish Codex integration shape
+- keep iOS and App Store responsibilities separate
+- keep the repo safe to extend without hidden orchestration
+
+## Getting Started
+
+This repo currently provides an architectural scaffold, not a full runtime.
+
+Suggested first implementation steps after this scaffold:
+
+1. Stand up the API with task and approval endpoints.
+2. Back task persistence with Postgres.
+3. Back queue routing with Redis.
+4. Replace the placeholder worker scripts with long-running worker processes.
+5. Add worktree creation and Codex invocation to the engineering and iOS lanes.
+6. Add approval persistence and enforcement at the platform layer.
+
+## Read Next
+
+- [AGENTS.md](/Users/simons/ai-company-os/AGENTS.md)
+- [docs/architecture.md](/Users/simons/ai-company-os/docs/architecture.md)
+- [docs/implementation-phases.md](/Users/simons/ai-company-os/docs/implementation-phases.md)
+- [docs/approval-policy.md](/Users/simons/ai-company-os/docs/approval-policy.md)
+- [docs/local-dev.md](/Users/simons/ai-company-os/docs/local-dev.md)
+- [docs/operating-model.md](/Users/simons/ai-company-os/docs/operating-model.md)
+- [docs/codex-worker.md](/Users/simons/ai-company-os/docs/codex-worker.md)
+- [docs/ios-lane.md](/Users/simons/ai-company-os/docs/ios-lane.md)
+- [docs/engineering-flow.md](/Users/simons/ai-company-os/docs/engineering-flow.md)
+- [docs/approval-flow.md](/Users/simons/ai-company-os/docs/approval-flow.md)
+- [docs/decisions/0001-foundation.md](/Users/simons/ai-company-os/docs/decisions/0001-foundation.md)
