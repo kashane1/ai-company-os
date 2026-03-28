@@ -1,0 +1,33 @@
+name: FishingLogbook
+options:
+  bundleIdPrefix: io.aicompanyos.products
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 0.1.0
+targets:
+  FishingLogbook:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.fishinglogbook
+        PRODUCT_NAME: Fishing Logbook
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Fishing Logbook
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Capture trip locations privately for your own fishing history.
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: Attach optional catch photos to your private fishing log.
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: Save optional catch photos for your private fishing history.
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        TARGETED_DEVICE_FAMILY: 1
+        SUPPORTS_MACCATALYST: NO
+        DEVELOPMENT_ASSET_PATHS: "\"\""
+    scheme:
+      gatherCoverageData: false

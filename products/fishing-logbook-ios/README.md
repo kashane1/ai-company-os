@@ -1,12 +1,17 @@
 # Fishing Logbook iOS
 
-This directory is the managed source root for the first product under `ai-company-os`.
+This directory contains the first managed product source tree.
 
-Current state:
+Current contents:
 
-- product path exists
-- platform registry points here
-- iOS worker can prepare managed snapshots and worktrees from this source tree
-- app implementation has not started yet
+- `project.yml` for `xcodegen`
+- a single SwiftUI iOS app target
+- local-first SwiftData models for the MVP loop
+- core trip / catch / history flow scaffolding
 
-The next pass should create the actual SwiftUI app structure here.
+The product remains private-by-default and intentionally narrow:
+
+- no social features
+- no community feed
+- no release automation
+- no CloudKit dependency for MVP
