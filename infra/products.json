@@ -1,0 +1,11 @@
+[
+  {
+    "id": "fishing-logbook",
+    "name": "Private Fishing Logbook",
+    "slug": "fishing-logbook",
+    "platform": "ios",
+    "repo_id": "fishing-logbook-ios",
+    "source_path": "products/fishing-logbook-ios",
+    "docs_root": "docs/products/fishing-logbook"
+  }
+]

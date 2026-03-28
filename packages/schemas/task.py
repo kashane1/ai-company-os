@@ -11,6 +11,7 @@ class Task:
     title: str
     summary: str
     task_type: str
+    product_id: str | None = None
     goal_id: str | None = None
     status: TaskStatus = TaskStatus.PENDING
     risk_level: RiskLevel = RiskLevel.LOW
@@ -35,6 +36,7 @@ class Task:
             title=str(payload["title"]),
             summary=str(payload["summary"]),
             task_type=str(payload["task_type"]),
+            product_id=str(payload["product_id"]) if payload.get("product_id") else None,
             goal_id=str(payload["goal_id"]) if payload.get("goal_id") else None,
             status=TaskStatus(str(payload["status"])),
             risk_level=RiskLevel(str(payload["risk_level"])),

@@ -52,6 +52,7 @@ The first version is intentionally small. It focuses on the smallest useful foun
 - `apps/worker-engineering`
 - `apps/worker-ios`
 - `apps/worker-appstore`
+- `products/`
 - `packages/policies`
 - `packages/tools`
 - `packages/db`
@@ -99,6 +100,8 @@ ai-company-os/
       github_tools/
       ios_tools/
       appstore_tools/
+  products/
+    fishing-logbook-ios/
   docs/
     architecture.md
     operating-model.md
@@ -106,6 +109,7 @@ ai-company-os/
     ios-lane.md
     approval-policy.md
     local-dev.md
+    products/
   infra/
     db/
     scripts/
@@ -121,6 +125,18 @@ ai-company-os/
 ```
 
 The full mock tree is a useful north star, but v1 intentionally implements only the subset that clarifies the operating model today. Support, growth, research, ops, dashboard, and OpenClaw stay documented future lanes until the core engineering and release path is real.
+
+## First Managed Product
+
+The first managed product is a private fishing logbook for iPhone.
+
+That product now has:
+
+- a product registry entry in `infra/products.json`
+- a managed source root in `products/fishing-logbook-ios/`
+- durable product artifacts in `docs/products/fishing-logbook/`
+- checkpoint-backed product and release records under `state/checkpoints/platform/`
+- an iOS worker path that mirrors the engineering lane
 
 ## What Each Layer Owns
 

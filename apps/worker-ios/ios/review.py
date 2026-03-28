@@ -1,6 +1,5 @@
 import json
 from datetime import UTC, datetime
-from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories
 from packages.db.approval_store import ApprovalStore
@@ -37,14 +36,14 @@ def build_summary(
 ) -> str:
     if classification is EngineeringResultClassification.SAFE_FOR_REVIEW:
         return (
-            f"Task {task.id} completed successfully and changed {len(changed_files)} file(s). "
+            f"iOS task {task.id} completed successfully and changed {len(changed_files)} file(s). "
             "The worktree is ready for manual review."
         )
     if classification is EngineeringResultClassification.NO_CHANGE:
-        return f"Task {task.id} completed but produced no tracked file changes."
+        return f"iOS task {task.id} completed but produced no tracked file changes."
     if classification is EngineeringResultClassification.VALIDATION_FAILED:
-        return f"Task {task.id} executed but did not pass validation."
-    return f"Task {task.id} failed during Codex execution."
+        return f"iOS task {task.id} executed but did not pass validation."
+    return f"iOS task {task.id} failed during Codex execution."
 
 
 def write_review_artifact(
@@ -58,11 +57,12 @@ def write_review_artifact(
     summary: str,
 ) -> str:
     paths = ensure_runtime_directories()
-    artifact_dir = paths.engineering_artifacts_root / task.id
+    artifact_dir = paths.ios_artifacts_root / task.id
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
     payload = {
         "task_id": task.id,
+        "product_id": task.product_id,
         "worktree_path": worktree_path,
         "changed_files": changed_files,
         "validator_results": [check.to_dict() for check in validation_checks],
@@ -90,12 +90,12 @@ def create_approval_record(
         task_id=task.id,
         task_run_id=task_run_id,
         status=ApprovalStatus.PENDING,
-        approval_type="engineering_review",
+        approval_type="ios_review",
         summary=summary,
         review_artifact_path=review_artifact_path,
         subject_type="task_run",
         subject_id=task_run_id,
-        action="review_engineering_task",
+        action="review_ios_task",
         created_at=datetime.now(UTC).isoformat(),
     )
     ApprovalStore().save(approval)

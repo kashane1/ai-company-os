@@ -1,0 +1,61 @@
+# iOS Architecture: Private Fishing Logbook
+
+## Implementation Baseline
+
+- UI framework: SwiftUI
+- local persistence: SwiftData
+- sync stance: CloudKit is deferred and documented, not required for first implementation
+- maps and location: MapKit and Core Location
+- photo handling: PhotosUI and camera access only where useful
+
+## Local-First Stance
+
+The app should be credible on the water even without service access.
+
+- trip and catch logging must be local-first
+- history and insights should derive from local data
+- condition capture should degrade gracefully when network-backed data is unavailable
+
+## Privacy-By-Default
+
+- all spot data is private by default
+- there is no public sharing or community surface in MVP
+- location precision should only serve the user’s own recall
+- photo use is optional and user-controlled
+
+## Data Model Direction
+
+Core entities:
+
+- Waterbody
+- Spot
+- Trip
+- Catch
+- ConditionSnapshot
+
+Derived outputs:
+
+- PersonalBest summaries
+- deterministic InsightCards
+
+## CloudKit Stance
+
+- do not depend on CloudKit for MVP readiness
+- leave room for later personal sync
+- avoid schema decisions that force multi-user or server-centric design
+
+## Deterministic Insights Boundary
+
+- insights are computed from local user data only
+- insight rules live in the product docs and schema contracts
+- output cards must be reproducible and acceptance-testable
+- no generative summarization is allowed in the MVP path
+
+## Product Source Of Truth
+
+During core implementation, engineers should treat these docs as authoritative:
+
+- `product-brief.md`
+- `mvp-spec.md`
+- `insight-rules.md`
+- `insight-acceptance-cases.md`

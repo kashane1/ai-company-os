@@ -12,6 +12,13 @@ APPROVAL_KEYWORDS = {
     "production",
 }
 
+SAFE_RELEASE_ACTIONS = {"prepare_testflight"}
+APPROVAL_REQUIRED_RELEASE_ACTIONS = {
+    "submit_testflight",
+    "submit_appstore",
+    "release_to_store",
+}
+
 
 def requires_human_approval(task: TaskPacket) -> bool:
     if task.risk_level is RiskLevel.HIGH:
@@ -22,3 +29,9 @@ def requires_human_approval(task: TaskPacket) -> bool:
         return True
 
     return task.lane is WorkerLane.APPSTORE and "submit" in summary
+
+
+def requires_release_action_approval(action: str) -> bool:
+    if action in SAFE_RELEASE_ACTIONS:
+        return False
+    return action in APPROVAL_REQUIRED_RELEASE_ACTIONS

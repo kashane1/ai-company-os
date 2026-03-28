@@ -251,6 +251,17 @@ This includes:
 
 Do not store runtime-generated state in source directories unless there is a very specific reason.
 
+## Product Workspace Rules
+
+Managed product source may live under `products/` when the platform is hosting an in-repo product.
+
+When doing this:
+
+- register the product explicitly
+- keep product planning artifacts under `docs/products/<product-id>/`
+- keep runtime execution under `state/`
+- do not hide product requirements only in prompts
+
 ## Documentation Rules
 
 When the architecture changes materially, update:

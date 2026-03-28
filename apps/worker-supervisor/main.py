@@ -15,7 +15,20 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
     if "app store" in summary or "testflight" in summary or "submission" in summary:
         lane = WorkerLane.APPSTORE
         risk = RiskLevel.HIGH
-    elif "ios" in summary or "xcode" in summary or "swift" in summary:
+    elif any(
+        keyword in summary
+        for keyword in (
+            "ios",
+            "iphone",
+            "xcode",
+            "swift",
+            "swiftui",
+            "widget",
+            "cloudkit",
+            "activitykit",
+            "app intent",
+        )
+    ):
         lane = WorkerLane.IOS
         risk = RiskLevel.MEDIUM
     else:

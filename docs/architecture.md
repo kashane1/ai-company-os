@@ -36,9 +36,10 @@ The system has five main layers:
 
 1. control plane
 2. workers
-3. shared platform packages
-4. runtime state
-5. optional interface layer
+3. managed product workspaces
+4. shared platform packages
+5. runtime state
+6. optional interface layer
 
 ### 1. Control Plane
 
@@ -75,7 +76,20 @@ Workers should not:
 - own approval policy
 - silently mutate unrelated parts of the system
 
-### 3. Shared Platform Packages
+### 3. Managed Product Workspaces
+
+The platform can manage one or more products without turning the repo into an unstructured monolith.
+
+For the current phase, product source lives under `products/` and product planning artifacts live under `docs/products/`.
+
+Each product should have:
+
+- a product registry record
+- a managed source path
+- durable founder-brief-to-spec artifacts
+- any product-specific architecture inputs needed before implementation
+
+### 4. Shared Platform Packages
 
 Shared packages provide the reusable platform foundation.
 
@@ -103,7 +117,7 @@ Likely later additions:
 
 This is the layer that prevents the platform from turning into a pile of disconnected workers.
 
-### 4. Runtime State
+### 5. Runtime State
 
 Runtime state is the live operational footprint of the company OS.
 
@@ -118,7 +132,7 @@ Examples:
 
 Runtime state belongs in `state/`, not mixed into implementation folders.
 
-### 5. Optional Interface Layer
+### 6. Optional Interface Layer
 
 An interface layer may later expose the system through chat or remote commands.
 
@@ -211,6 +225,19 @@ Responsibilities:
 - release-state tracking
 
 The App Store worker is separate from the iOS worker because building an app and shipping an app are different operational concerns.
+
+## Product Registry And Artifact Chain
+
+Products are first-class records, not implied folders.
+
+The current platform now expects:
+
+- a registry entry in `infra/products.json`
+- a checkpoint-backed product record
+- a durable artifact chain such as founder brief, product brief, MVP spec, backlog, iOS architecture, and App Store positioning
+- optional product-specific contracts such as deterministic insight rules
+
+That artifact chain is what turns founder intent into implementation-ready platform inputs.
 
 ## How Codex Fits
 

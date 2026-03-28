@@ -2,23 +2,18 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+ENGINEERING_APP = ROOT / "apps" / "worker-engineering"
+for entry in (ROOT, ENGINEERING_APP):
+    if str(entry) not in sys.path:
+        sys.path.insert(0, str(entry))
 
-from packages.schemas.task_packet import TaskPacket, TaskResult, TaskStatus
+APP_ROOT = Path(__file__).resolve().parent
+if str(APP_ROOT) not in sys.path:
+    sys.path.insert(0, str(APP_ROOT))
+
+from ios.runner import execute_task
+from packages.schemas.task_packet import TaskResult
 
 
-def execute(task: TaskPacket) -> TaskResult:
-    return TaskResult(
-        task_id=task.id,
-        status=TaskStatus.PENDING,
-        summary=(
-            "iOS worker scaffold only. Next step is Xcode-aware task execution with simulator and "
-            "build validation."
-        ),
-        next_actions=[
-            "Create a per-task worktree.",
-            "Prepare iOS-specific Codex context.",
-            "Run simulator, build, and artifact checks.",
-        ],
-    )
+def execute(task_id: str) -> TaskResult:
+    return execute_task(task_id)
