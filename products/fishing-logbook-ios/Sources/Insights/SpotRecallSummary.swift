@@ -3,8 +3,64 @@ import Foundation
 struct SpotRecallSummary {
     let recentTrips: [Trip]
     let catchCount: Int
+    let successfulTripCount: Int
     let bestTimeWindow: String?
     let mostEffectiveLure: String?
+    let similarConditionsCount: Int
+
+    var cards: [DeterministicInsightCard] {
+        var cards: [DeterministicInsightCard] = []
+
+        if let mostRecentTrip = recentTrips.first {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .lastTrips,
+                    title: "Last trips here",
+                    body: "You have \(recentTrips.count) recent trips here. The latest was on \(AppFormatters.tripDate.string(from: mostRecentTrip.startAt)).",
+                    supportingSampleCount: recentTrips.count,
+                    systemImage: "clock.arrow.circlepath"
+                )
+            )
+        }
+
+        if let bestTimeWindow {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .bestTimeWindow,
+                    title: "Best time window historically",
+                    body: "Your strongest catch window here has been \(bestTimeWindow).",
+                    supportingSampleCount: catchCount,
+                    systemImage: "clock"
+                )
+            )
+        }
+
+        if let mostEffectiveLure {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .mostEffectiveLure,
+                    title: "Most effective lure",
+                    body: "\(mostEffectiveLure) has produced best in your private history here.",
+                    supportingSampleCount: catchCount,
+                    systemImage: "bolt.horizontal"
+                )
+            )
+        }
+
+        if let bestTimeWindow, similarConditionsCount > 0 {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .similarConditions,
+                    title: "Similar conditions",
+                    body: "\(similarConditionsCount) productive trips here landed in a similar \(bestTimeWindow) window.",
+                    supportingSampleCount: similarConditionsCount,
+                    systemImage: "sparkles.rectangle.stack"
+                )
+            )
+        }
+
+        return cards
+    }
 
     static func build(for spot: Spot, trips: [Trip], catches: [CatchRecord]) -> SpotRecallSummary {
         let spotTrips = trips.filter { $0.spot?.id == spot.id }
@@ -28,11 +84,20 @@ struct SpotRecallSummary {
             lureCounts[lure, default: 0] += 1
         }
 
+        let successfulTripIDs = Set(spotCatches.compactMap { $0.trip?.id })
+        let bestTimeWindow = timeWindowCounts.max(by: { $0.value < $1.value })?.key
+        let similarConditionsCount = spotTrips.filter { trip in
+            guard successfulTripIDs.contains(trip.id), let bestTimeWindow else { return false }
+            return timeWindowLabel(for: trip.startAt) == bestTimeWindow
+        }.count
+
         return SpotRecallSummary(
             recentTrips: Array(spotTrips.prefix(3)),
             catchCount: spotCatches.count,
-            bestTimeWindow: timeWindowCounts.max(by: { $0.value < $1.value })?.key,
-            mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key
+            successfulTripCount: successfulTripIDs.count,
+            bestTimeWindow: bestTimeWindow,
+            mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
+            similarConditionsCount: similarConditionsCount
         )
     }
 }

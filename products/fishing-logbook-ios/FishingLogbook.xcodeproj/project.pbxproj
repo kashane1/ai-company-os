@@ -17,6 +17,7 @@
 		6AE9EE7831CDBC34AD5011A3 /* TripsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799825EBE3569A196BBF9F3E /* TripsView.swift */; };
 		6AFDE1DCBFC5F1B5C7C0A21E /* LocationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583218CF0704E40BB054B26 /* LocationRecorder.swift */; };
 		76E338F555D2E6020958F844 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7C6D83F8A4BF66332C3738 /* HomeView.swift */; };
+		C11D1B6ADB647DD62D36C96F /* DeterministicInsightCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11D30FF71C15A7AC5CAE55B /* DeterministicInsightCard.swift */; };
 		C5AFF1E70AA1B635A350A4B1 /* SpotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D1121E7C1D9E610844FD66 /* SpotsView.swift */; };
 		CCFE27AA6C0E97210DDB7B06 /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5743E855892E95D4C71ECA /* AppTab.swift */; };
 		CEE95CAE5784BC23C9A08A4E /* NewSpotForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0995C54CB98F03FB245982 /* NewSpotForm.swift */; };
@@ -37,6 +38,7 @@
 		85D1121E7C1D9E610844FD66 /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
 		C1F84E35100DC563530A0D6C /* FishingLogbook.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FishingLogbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0A2424AE66D45111FA0AFA1 /* SpotRecallSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRecallSummary.swift; sourceTree = "<group>"; };
+		F11D30FF71C15A7AC5CAE55B /* DeterministicInsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterministicInsightCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -112,6 +114,7 @@
 		8FDD3EBE2679F3503C41EB2F /* Insights */ = {
 			isa = PBXGroup;
 			children = (
+				F11D30FF71C15A7AC5CAE55B /* DeterministicInsightCard.swift */,
 				D0A2424AE66D45111FA0AFA1 /* SpotRecallSummary.swift */,
 			);
 			path = Insights;
@@ -220,6 +223,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CCFE27AA6C0E97210DDB7B06 /* AppTab.swift in Sources */,
+				C11D1B6ADB647DD62D36C96F /* DeterministicInsightCard.swift in Sources */,
 				362BC9689DB772BDE4CA1484 /* FishingLogbookApp.swift in Sources */,
 				1F2DD828179B87395168450C /* FishingModels.swift in Sources */,
 				32C8B84FCDE25ED15732D862 /* Formatters.swift in Sources */,

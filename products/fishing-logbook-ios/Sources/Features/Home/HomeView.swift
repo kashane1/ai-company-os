@@ -26,15 +26,8 @@ struct HomeView: View {
             List {
                 if let activeTrip {
                     Section("Trip in Progress") {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(activeTrip.title)
-                                .font(.headline)
-                            Text("Started \(AppFormatters.tripDate.string(from: activeTrip.startAt))")
-                                .foregroundStyle(.secondary)
-                            Button("Resume logging") {
-                                selectedTab = .log
-                            }
-                            .buttonStyle(.borderedProminent)
+                        ActiveTripHero(activeTrip: activeTrip) {
+                            selectedTab = .log
                         }
                     }
                 } else {
@@ -68,18 +61,9 @@ struct HomeView: View {
                 }
 
                 if let latestSpotSummary, let spot = latestCompletedTrip?.spot {
-                    Section("Private Recall") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(spot.title)
-                                .font(.headline)
-                            if let bestTimeWindow = latestSpotSummary.bestTimeWindow {
-                                Label("Best time window: \(bestTimeWindow)", systemImage: "clock")
-                            }
-                            if let lure = latestSpotSummary.mostEffectiveLure {
-                                Label("Most effective lure: \(lure)", systemImage: "bolt.horizontal")
-                            }
-                            Text("Last trips here: \(latestSpotSummary.recentTrips.count)")
-                                .foregroundStyle(.secondary)
+                    Section("Private Recall For \(spot.title)") {
+                        ForEach(latestSpotSummary.cards, id: \.id) { card in
+                            DeterministicInsightCardView(card: card)
                         }
                     }
                 }
@@ -105,5 +89,24 @@ struct HomeView: View {
         let length = record.longestLengthCm.map { "Longest \($0.formatted()) cm" }
         let weight = record.heaviestWeightKg.map { "Heaviest \($0.formatted()) kg" }
         return [length, weight].compactMap { $0 }.joined(separator: " • ")
+    }
+}
+
+private struct ActiveTripHero: View {
+    let activeTrip: Trip
+    let resume: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(activeTrip.title)
+                .font(.headline)
+            Text("Started \(AppFormatters.tripDate.string(from: activeTrip.startAt))")
+                .foregroundStyle(.secondary)
+            Button("Resume logging") {
+                resume()
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(.vertical, 6)
     }
 }

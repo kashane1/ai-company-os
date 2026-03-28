@@ -69,11 +69,13 @@ private struct SpotDetailView: View {
             Section("Private Recall") {
                 LabeledContent("Trips here", value: "\(summary.recentTrips.count)")
                 LabeledContent("Catches here", value: "\(summary.catchCount)")
-                if let bestTimeWindow = summary.bestTimeWindow {
-                    LabeledContent("Best time window", value: bestTimeWindow)
-                }
-                if let mostEffectiveLure = summary.mostEffectiveLure {
-                    LabeledContent("Most effective lure", value: mostEffectiveLure)
+                if summary.cards.isEmpty {
+                    Text("Log a few trips here to unlock private recall cards.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(summary.cards, id: \.id) { card in
+                        DeterministicInsightCardView(card: card)
+                    }
                 }
             }
 

@@ -167,6 +167,7 @@ private struct ActiveTripView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var trip: Trip
 
+    @Query(sort: \Trip.startAt, order: .reverse) private var allTrips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
 
     @State private var species = ""
@@ -176,31 +177,87 @@ private struct ActiveTripView: View {
     @State private var length = ""
     @State private var note = ""
     @State private var showingOptionalFields = false
+    @State private var didPrimeDefaults = false
 
     private var catchesForTrip: [CatchRecord] {
         allCatches.filter { $0.trip?.id == trip.id }
     }
 
+    private var catchesForSpot: [CatchRecord] {
+        guard let spotID = trip.spot?.id else { return [] }
+        return allCatches.filter { $0.trip?.spot?.id == spotID }
+    }
+
+    private var recallSummary: SpotRecallSummary? {
+        guard let spot = trip.spot else { return nil }
+        return SpotRecallSummary.build(for: spot, trips: allTrips, catches: allCatches)
+    }
+
+    private var recentSpeciesSuggestions: [String] {
+        var suggestions: [String] = []
+        if !trip.targetSpecies.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            suggestions.append(trip.targetSpecies)
+        }
+        for catchRecord in allCatches {
+            let value = catchRecord.species.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty, !suggestions.contains(value) else { continue }
+            suggestions.append(value)
+            if suggestions.count == 4 { break }
+        }
+        return suggestions
+    }
+
+    private var recentLureSuggestions: [String] {
+        var suggestions: [String] = []
+        for catchRecord in catchesForSpot + allCatches {
+            let value = catchRecord.lureOrBait.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty, !suggestions.contains(value) else { continue }
+            suggestions.append(value)
+            if suggestions.count == 4 { break }
+        }
+        return suggestions
+    }
+
     var body: some View {
         List {
-            Section("Trip in Progress") {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(trip.title)
-                        .font(.headline)
-                    Text("Started \(AppFormatters.tripDate.string(from: trip.startAt))")
-                        .foregroundStyle(.secondary)
-                    if let conditionSnapshot = trip.conditionSnapshot {
-                        Text(conditionSnapshot.displaySummary)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+            Section {
+                ActiveTripStatusCard(
+                    trip: trip,
+                    catchCount: catchesForTrip.count,
+                    elapsedText: elapsedText,
+                    contextSummary: trip.conditionSnapshot?.displaySummary
+                )
+            }
+
+            if let recallSummary, !recallSummary.cards.isEmpty {
+                Section("Recall For This Spot") {
+                    ForEach(recallSummary.cards.prefix(3), id: \.id) { card in
+                        DeterministicInsightCardView(card: card)
                     }
                 }
             }
 
             Section("Quick Catch") {
                 TextField("Species", text: $species)
+                    .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
+
+                if !recentSpeciesSuggestions.isEmpty {
+                    suggestionRow(title: "Species", values: recentSpeciesSuggestions) { value in
+                        species = value
+                    }
+                }
+
                 TextField("Lure or bait", text: $lureOrBait)
+                    .textInputAutocapitalization(.words)
+                if !recentLureSuggestions.isEmpty {
+                    suggestionRow(title: "Lure", values: recentLureSuggestions) { value in
+                        lureOrBait = value
+                    }
+                }
+
                 TextField("Method", text: $method)
+                    .textInputAutocapitalization(.words)
 
                 DisclosureGroup("Optional details", isExpanded: $showingOptionalFields) {
                     TextField("Weight (kg)", text: $weight)
@@ -215,6 +272,10 @@ private struct ActiveTripView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                Text("Time and spot are filled from the active trip.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Section("This Trip") {
@@ -245,6 +306,9 @@ private struct ActiveTripView: View {
                 .foregroundStyle(.red)
             }
         }
+        .onAppear {
+            primeDefaultsIfNeeded()
+        }
     }
 
     private func saveCatch() {
@@ -264,8 +328,6 @@ private struct ActiveTripView: View {
         try? modelContext.save()
 
         species = ""
-        lureOrBait = ""
-        method = ""
         weight = ""
         length = ""
         note = ""
@@ -276,5 +338,86 @@ private struct ActiveTripView: View {
         trip.endAt = .now
         trip.outcomeRawValue = catchesForTrip.isEmpty ? TripOutcome.skunked.rawValue : TripOutcome.caught.rawValue
         try? modelContext.save()
+    }
+
+    private var elapsedText: String {
+        AppFormatters.duration.string(from: Date().timeIntervalSince(trip.startAt)) ?? "Now"
+    }
+
+    private func primeDefaultsIfNeeded() {
+        guard !didPrimeDefaults else { return }
+        didPrimeDefaults = true
+        guard let recentCatch = catchesForSpot.first ?? allCatches.first else { return }
+        if lureOrBait.isEmpty {
+            lureOrBait = recentCatch.lureOrBait
+        }
+        if method.isEmpty {
+            method = recentCatch.method
+        }
+    }
+
+    @ViewBuilder
+    private func suggestionRow(title: String, values: [String], apply: @escaping (String) -> Void) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                ForEach(values, id: \.self) { value in
+                    Button(value) {
+                        apply(value)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+}
+
+private struct ActiveTripStatusCard: View {
+    let trip: Trip
+    let catchCount: Int
+    let elapsedText: String
+    let contextSummary: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(trip.title)
+                        .font(.headline)
+                    Text("In progress")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.teal)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("\(catchCount)")
+                        .font(.title2.bold())
+                    Text(catchCount == 1 ? "catch" : "catches")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            HStack(spacing: 16) {
+                Label(elapsedText, systemImage: "timer")
+                if let spot = trip.spot?.title {
+                    Label(spot, systemImage: "mappin")
+                }
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+
+            if let contextSummary {
+                Text(contextSummary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(14)
+        .background(.teal.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }
