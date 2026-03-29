@@ -4,9 +4,15 @@ import SwiftUI
 struct TripsView: View {
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
+    @Binding private var selectedTripID: UUID?
+    @State private var path = NavigationPath()
+
+    init(selectedTripID: Binding<UUID?> = .constant(nil)) {
+        _selectedTripID = selectedTripID
+    }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if trips.isEmpty {
                     ContentUnavailableView {
@@ -17,9 +23,7 @@ struct TripsView: View {
                 } else {
                     List {
                         ForEach(trips, id: \.id) { trip in
-                            NavigationLink {
-                                TripDetailView(trip: trip)
-                            } label: {
+                            NavigationLink(value: trip.id) {
                                 TripRow(
                                     trip: trip,
                                     catchCount: catches.filter { $0.trip?.id == trip.id }.count
@@ -30,6 +34,18 @@ struct TripsView: View {
                 }
             }
             .navigationTitle("Trips")
+        }
+        .navigationDestination(for: UUID.self) { tripID in
+            if let trip = trips.first(where: { $0.id == tripID }) {
+                TripDetailView(trip: trip)
+            } else {
+                ContentUnavailableView("Trip not found", systemImage: "exclamationmark.triangle")
+            }
+        }
+        .onChange(of: selectedTripID) { _, newValue in
+            guard let newValue, trips.contains(where: { $0.id == newValue }) else { return }
+            path.append(newValue)
+            selectedTripID = nil
         }
     }
 }
@@ -91,23 +107,32 @@ struct TripDetailView: View {
         allCatches.filter { $0.trip?.id == trip.id }
     }
 
+    private var topStats: [(value: String, label: String, icon: String)] {
+        var stats: [(value: String, label: String, icon: String)] = [
+            ("\(catches.count)", catches.count == 1 ? "Catch" : "Catches", "fish")
+        ]
+
+        if let endAt = trip.endAt,
+           let durationText = AppFormatters.duration.string(from: endAt.timeIntervalSince(trip.startAt)) {
+            stats.append((durationText, "Duration", "timer"))
+        }
+
+        if !trip.targetSpeciesList.isEmpty {
+            let targetCount = trip.targetSpeciesList.count
+            stats.append(("\(targetCount)", targetCount == 1 ? "Target" : "Targets", "scope"))
+        }
+
+        return stats
+    }
+
     var body: some View {
         List {
             // Summary Stats
             Section {
                 HStack(spacing: Spacing.xl) {
-                    TripStatPill(value: "\(catches.count)", label: catches.count == 1 ? "Catch" : "Catches", icon: "fish")
-                    if let endAt = trip.endAt {
-                        let duration = endAt.timeIntervalSince(trip.startAt)
-                        if let durationText = AppFormatters.duration.string(from: duration) {
-                            TripStatPill(value: durationText, label: "Duration", icon: "timer")
-                        }
+                    ForEach(Array(topStats.enumerated()), id: \.offset) { _, stat in
+                        TripStatPill(value: stat.value, label: stat.label, icon: stat.icon)
                     }
-                    TripStatPill(
-                        value: trip.outcomeRawValue.capitalized,
-                        label: "Outcome",
-                        icon: trip.outcomeRawValue == TripOutcome.skunked.rawValue ? "xmark.circle" : "checkmark.circle"
-                    )
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
@@ -127,8 +152,11 @@ struct TripDetailView: View {
                         AppBadge(text: "Live")
                     }
                 }
-                if !trip.targetSpecies.isEmpty {
-                    LabeledContent("Target", value: trip.targetSpecies)
+                if !trip.targetSpeciesList.isEmpty {
+                    LabeledContent(
+                        trip.targetSpeciesList.count > 1 ? "Targets" : "Target",
+                        value: trip.targetSpeciesList.joined(separator: ", ")
+                    )
                 }
                 if !trip.notes.isEmpty {
                     VStack(alignment: .leading, spacing: Spacing.xs) {

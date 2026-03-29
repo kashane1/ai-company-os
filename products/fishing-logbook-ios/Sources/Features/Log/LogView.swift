@@ -7,6 +7,8 @@ struct LogView: View {
     @Query(sort: \Spot.createdAt) private var spots: [Spot]
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
 
+    var onTripEnded: ((Trip) -> Void)?
+
     private var activeTrip: Trip? {
         trips.first(where: \.isActive)
     }
@@ -15,7 +17,7 @@ struct LogView: View {
         NavigationStack {
             Group {
                 if let activeTrip {
-                    ActiveTripView(trip: activeTrip)
+                    ActiveTripView(trip: activeTrip, onTripEnded: onTripEnded)
                 } else {
                     StartTripView(waterbodies: waterbodies, spots: spots)
                 }
@@ -109,8 +111,12 @@ private struct StartTripView: View {
                 }
 
                 Section("Optional") {
-                    TextField("Target species", text: $targetSpecies)
+                    TextField("Target species, separated by commas", text: $targetSpecies)
                         .textInputAutocapitalization(.words)
+                        .accessibilityIdentifier("startTrip.targetSpeciesField")
+                    Text("Optional. Enter one or more targets. We turn them into quick-catch suggestions.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                     TextField("Trip notes", text: $tripNotes, axis: .vertical)
                         .lineLimit(2...4)
                 }
@@ -131,6 +137,7 @@ private struct StartTripView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.appAccent)
                     .disabled(selectedWaterbody == nil)
+                    .accessibilityIdentifier("startTrip.button")
                     .listRowSeparator(.hidden)
 
                     if selectedWaterbody == nil {
@@ -230,6 +237,7 @@ private struct ConditionPreviewRow: View {
 private struct ActiveTripView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var trip: Trip
+    let onTripEnded: ((Trip) -> Void)?
 
     @Query(sort: \Trip.startAt, order: .reverse) private var allTrips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
@@ -263,8 +271,8 @@ private struct ActiveTripView: View {
 
     private var recentSpeciesSuggestions: [String] {
         var suggestions: [String] = []
-        let target = trip.targetSpecies.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !target.isEmpty {
+        for target in trip.targetSpeciesList {
+            guard !suggestions.contains(target) else { continue }
             suggestions.append(target)
         }
         for catchRecord in allCatches {
@@ -318,6 +326,14 @@ private struct ActiveTripView: View {
                     .submitLabel(.done)
 
                 if !recentSpeciesSuggestions.isEmpty && species.isEmpty {
+                    Text(
+                        trip.targetSpeciesList.isEmpty
+                            ? "Recent species appear here as quick picks."
+                            : "Trip targets appear here as quick picks."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
                     SuggestionRow(label: "Species", values: recentSpeciesSuggestions) { value in
                         species = value
                     }
@@ -363,17 +379,18 @@ private struct ActiveTripView: View {
                         }
 
                         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                            Label(photoData == nil ? "Add Photo" : "Replace Photo", systemImage: "photo")
+                            Label(photoData == nil ? "Choose from Library" : "Replace from Library", systemImage: "photo.on.rectangle")
                                 .font(.footnote.weight(.medium))
                         }
                         .buttonStyle(.bordered)
                         .tint(.appAccent)
+                        .accessibilityIdentifier("quickCatch.photoLibraryButton")
                     }
                 }
             } header: {
                 Text("Quick Catch")
             } footer: {
-                Text("Time and conditions attach automatically.")
+                Text("Time and place attach automatically. Photo is optional and currently comes from your library.")
             }
 
             Section {
@@ -388,6 +405,7 @@ private struct ActiveTripView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.appAccent)
                 .disabled(species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .accessibilityIdentifier("quickCatch.saveButton")
                 .listRowSeparator(.hidden)
                 .sensoryFeedback(.success, trigger: showingSavedConfirmation)
             }
@@ -423,6 +441,7 @@ private struct ActiveTripView: View {
                     Label("End Trip", systemImage: "stop.circle")
                         .frame(maxWidth: .infinity)
                 }
+                .accessibilityIdentifier("trip.endButton")
             }
         }
         .onAppear {
@@ -482,6 +501,7 @@ private struct ActiveTripView: View {
         trip.endAt = .now
         trip.outcomeRawValue = catchesForTrip.isEmpty ? TripOutcome.skunked.rawValue : TripOutcome.caught.rawValue
         try? modelContext.save()
+        onTripEnded?(trip)
     }
 
     private var elapsedText: String {

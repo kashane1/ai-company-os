@@ -282,6 +282,10 @@ final class Trip {
     var title: String {
         spot?.title ?? waterbody?.name ?? "Untitled trip"
     }
+
+    var targetSpeciesList: [String] {
+        normalizedSpeciesTokens(from: targetSpecies)
+    }
 }
 
 @Model
@@ -400,4 +404,22 @@ func bestAvailableCoordinate(
         return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
     return nil
+}
+
+func normalizedSpeciesTokens(from rawValue: String) -> [String] {
+    var seen: Set<String> = []
+
+    return rawValue
+        .split(whereSeparator: { character in
+            character == "," || character == "\n" || character == ";"
+        })
+        .compactMap { part -> String? in
+            let value = part.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty else { return nil }
+
+            let normalizedKey = value.lowercased()
+            guard !seen.contains(normalizedKey) else { return nil }
+            seen.insert(normalizedKey)
+            return value
+        }
 }

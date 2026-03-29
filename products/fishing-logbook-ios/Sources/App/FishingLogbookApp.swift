@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct FishingLogbookApp: App {
     @State private var selectedTab: AppTab = .home
+    @State private var selectedTripID: UUID?
 
     var body: some Scene {
         WindowGroup {
@@ -14,13 +15,16 @@ struct FishingLogbookApp: App {
                     }
                     .tag(AppTab.home)
 
-                TripsView()
+                TripsView(selectedTripID: $selectedTripID)
                     .tabItem {
                         Label("Trips", systemImage: "clock.arrow.circlepath")
                     }
                     .tag(AppTab.trips)
 
-                LogView()
+                LogView { trip in
+                    selectedTripID = trip.id
+                    selectedTab = .trips
+                }
                     .tabItem {
                         Label("Log", systemImage: "plus.circle.fill")
                     }

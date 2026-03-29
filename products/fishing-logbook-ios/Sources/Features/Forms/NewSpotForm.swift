@@ -10,6 +10,7 @@ struct NewSpotForm: View {
     @State private var title = ""
     @State private var notes = ""
     @State private var selectedWaterbodyID: UUID?
+    @State private var showingWaterbodyForm = false
 
     var preselectedWaterbodyID: UUID?
     var onSaved: ((Spot) -> Void)?
@@ -28,8 +29,17 @@ struct NewSpotForm: View {
                         SectionEmptyState(
                             icon: "water.waves",
                             title: "No waterbodies yet",
-                            subtitle: "Create a waterbody first so this spot has a home."
+                            subtitle: "Add a waterbody first, then save this spot."
                         )
+
+                        Button {
+                            showingWaterbodyForm = true
+                        } label: {
+                            Label("Add Waterbody", systemImage: "plus.circle.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.appAccent)
                     }
                 } else {
                     Section {
@@ -43,6 +53,15 @@ struct NewSpotForm: View {
                                 Text(waterbody.name).tag(Optional(waterbody.id))
                             }
                         }
+
+                        Button {
+                            showingWaterbodyForm = true
+                        } label: {
+                            Label("Add Waterbody", systemImage: "plus")
+                                .font(.footnote)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
 
                         TextField("Notes", text: $notes, axis: .vertical)
                             .lineLimit(2...4)
@@ -72,6 +91,11 @@ struct NewSpotForm: View {
             .interactiveDismissDisabled(!title.isEmpty)
         }
         .presentationDetents([.medium])
+        .sheet(isPresented: $showingWaterbodyForm) {
+            NewWaterbodyForm { waterbody in
+                selectedWaterbodyID = waterbody.id
+            }
+        }
     }
 
     private var canSave: Bool {
