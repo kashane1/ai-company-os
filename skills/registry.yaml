@@ -1,0 +1,50 @@
+# Skill Registry
+# This is the index of all canonical skills in the repo.
+# Each entry points to the canonical definition file.
+
+skills:
+
+  - id: product-artifact-chain
+    name: Product Artifact Chain
+    path: canonical/shared/product-artifact-chain.md
+    owner_agent: supervisor
+    target_runtimes: [claude, codex]
+    stage: active
+    adapters:
+      claude: adapters/claude/product-artifact-chain.md
+
+  - id: bounded-codex-implementation
+    name: Bounded Codex Implementation
+    path: canonical/shared/bounded-codex-implementation.md
+    owner_agent: engineering
+    target_runtimes: [codex]
+    stage: active
+    adapters:
+      codex: adapters/codex/bounded-codex-implementation.md
+
+  - id: codex-claude-handoff
+    name: Codex-Claude Handoff
+    path: canonical/handoffs/codex-claude-handoff.md
+    owner_agent: any
+    target_runtimes: [claude, codex]
+    stage: active
+    adapters:
+      claude: adapters/claude/codex-claude-handoff.md
+
+  - id: ios-ui-polish-review
+    name: iOS UI Polish Review
+    path: canonical/products/fishing-logbook/ios-ui-polish-review.md
+    owner_agent: ios
+    target_runtimes: [claude]
+    stage: active
+    adapters:
+      claude: adapters/claude/ios-ui-polish-review.md
+
+  - id: ios-to-appstore-handoff
+    name: iOS to App Store Handoff
+    path: canonical/handoffs/ios-to-appstore-handoff.md
+    owner_agent: ios
+    target_runtimes: [claude, codex]
+    stage: active
+    adapters:
+      claude: adapters/claude/ios-to-appstore-handoff.md
