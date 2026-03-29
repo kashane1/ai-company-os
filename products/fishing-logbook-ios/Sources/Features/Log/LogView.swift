@@ -24,6 +24,8 @@ struct LogView: View {
     }
 }
 
+// MARK: - Start Trip
+
 private struct StartTripView: View {
     @Environment(\.modelContext) private var modelContext
 
@@ -40,28 +42,27 @@ private struct StartTripView: View {
 
     var body: some View {
         List {
-            Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Start a private trip")
-                        .font(.headline)
-                    Text("Capture time, place, and optional context now. Keep the rest lightweight.")
-                        .foregroundStyle(.secondary)
-                }
-            }
-
             if waterbodies.isEmpty {
                 Section {
-                    Text("Create your first waterbody to start logging.")
-                        .foregroundStyle(.secondary)
-                    Button("Add waterbody") {
+                    SectionEmptyState(
+                        icon: "water.waves",
+                        title: "Add your first water",
+                        subtitle: "Create a waterbody to start logging trips and catches."
+                    )
+                    Button {
                         showingWaterbodyForm = true
+                    } label: {
+                        Label("Add Waterbody", systemImage: "plus.circle.fill")
+                            .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
+                    .tint(.appAccent)
+                    .listRowSeparator(.hidden)
                 }
             } else {
-                Section("Trip Setup") {
+                Section {
                     Picker("Waterbody", selection: $selectedWaterbodyID) {
-                        Text("Choose a waterbody").tag(Optional<UUID>.none)
+                        Text("Select water").tag(Optional<UUID>.none)
                         ForEach(waterbodies, id: \.id) { waterbody in
                             Text(waterbody.name).tag(Optional(waterbody.id))
                         }
@@ -74,41 +75,61 @@ private struct StartTripView: View {
                         }
                     }
 
-                    TextField("Target species (optional)", text: $targetSpecies)
-                    TextField("Trip notes (optional)", text: $tripNotes, axis: .vertical)
+                    HStack(spacing: Spacing.sm) {
+                        Button {
+                            showingWaterbodyForm = true
+                        } label: {
+                            Label("New Water", systemImage: "plus")
+                                .font(.footnote)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+
+                        Button {
+                            showingSpotForm = true
+                        } label: {
+                            Label("New Spot", systemImage: "plus")
+                                .font(.footnote)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                    .listRowSeparator(.hidden, edges: .bottom)
+                } header: {
+                    Text("Where")
                 }
 
-                Section {
-                    Button("Add waterbody") {
-                        showingWaterbodyForm = true
-                    }
-                    Button("Add spot") {
-                        showingSpotForm = true
-                    }
+                Section("Optional") {
+                    TextField("Target species", text: $targetSpecies)
+                        .textInputAutocapitalization(.words)
+                    TextField("Trip notes", text: $tripNotes, axis: .vertical)
+                        .lineLimit(2...4)
                 }
 
                 Section("Conditions") {
-                    if let location = locationRecorder.lastLocation {
-                        Label(
-                            String(
-                                format: "Location ready: %.4f, %.4f",
-                                location.coordinate.latitude,
-                                location.coordinate.longitude
-                            ),
-                            systemImage: "location"
-                        )
-                    } else {
-                        Label("Trip will still start even if location is unavailable.", systemImage: "location.slash")
-                            .foregroundStyle(.secondary)
-                    }
+                    ConditionPreviewRow(location: locationRecorder.lastLocation)
                 }
 
                 Section {
-                    Button("Start trip") {
+                    Button {
                         startTrip()
+                    } label: {
+                        Label("Start Trip", systemImage: "play.fill")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, Spacing.xs)
                     }
                     .buttonStyle(.borderedProminent)
+                    .tint(.appAccent)
                     .disabled(selectedWaterbody == nil)
+                    .listRowSeparator(.hidden)
+
+                    if selectedWaterbody == nil {
+                        Text("Select a waterbody to get started.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .listRowSeparator(.hidden)
+                    }
                 }
             }
         }
@@ -147,6 +168,7 @@ private struct StartTripView: View {
             latitude: location?.coordinate.latitude,
             longitude: location?.coordinate.longitude
         )
+
         let trip = Trip(
             waterbody: selectedWaterbody,
             spot: selectedSpot,
@@ -154,6 +176,7 @@ private struct StartTripView: View {
             targetSpecies: targetSpecies.trimmingCharacters(in: .whitespacesAndNewlines),
             notes: tripNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         )
+
         modelContext.insert(snapshot)
         modelContext.insert(trip)
         try? modelContext.save()
@@ -162,6 +185,29 @@ private struct StartTripView: View {
         tripNotes = ""
     }
 }
+
+// MARK: - Condition Preview Row
+
+private struct ConditionPreviewRow: View {
+    let location: CLLocation?
+
+    var body: some View {
+        if let location {
+            Label(
+                String(format: "Location ready: %.4f, %.4f", location.coordinate.latitude, location.coordinate.longitude),
+                systemImage: "checkmark.circle.fill"
+            )
+            .font(.subheadline)
+            .foregroundStyle(.appAccent)
+        } else {
+            Label("Trip will start even if location is unavailable.", systemImage: "location.slash")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - Active Trip
 
 private struct ActiveTripView: View {
     @Environment(\.modelContext) private var modelContext
@@ -178,6 +224,8 @@ private struct ActiveTripView: View {
     @State private var note = ""
     @State private var showingOptionalFields = false
     @State private var didPrimeDefaults = false
+    @State private var showingSavedConfirmation = false
+    @State private var showingEndConfirmation = false
 
     private var catchesForTrip: [CatchRecord] {
         allCatches.filter { $0.trip?.id == trip.id }
@@ -195,8 +243,9 @@ private struct ActiveTripView: View {
 
     private var recentSpeciesSuggestions: [String] {
         var suggestions: [String] = []
-        if !trip.targetSpecies.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            suggestions.append(trip.targetSpecies)
+        let target = trip.targetSpecies.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !target.isEmpty {
+            suggestions.append(target)
         }
         for catchRecord in allCatches {
             let value = catchRecord.species.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -220,6 +269,7 @@ private struct ActiveTripView: View {
 
     var body: some View {
         List {
+            // Trip Status
             Section {
                 ActiveTripStatusCard(
                     trip: trip,
@@ -227,31 +277,37 @@ private struct ActiveTripView: View {
                     elapsedText: elapsedText,
                     contextSummary: trip.conditionSnapshot?.displaySummary
                 )
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
             }
 
+            // Recall
             if let recallSummary, !recallSummary.cards.isEmpty {
-                Section("Recall For This Spot") {
+                Section("Spot Recall") {
                     ForEach(recallSummary.cards.prefix(3), id: \.id) { card in
                         DeterministicInsightCardView(card: card)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
                 }
             }
 
-            Section("Quick Catch") {
+            // Quick Catch Form
+            Section {
                 TextField("Species", text: $species)
                     .textInputAutocapitalization(.words)
                     .submitLabel(.done)
 
-                if !recentSpeciesSuggestions.isEmpty {
-                    suggestionRow(title: "Species", values: recentSpeciesSuggestions) { value in
+                if !recentSpeciesSuggestions.isEmpty && species.isEmpty {
+                    SuggestionRow(label: "Species", values: recentSpeciesSuggestions) { value in
                         species = value
                     }
                 }
 
                 TextField("Lure or bait", text: $lureOrBait)
                     .textInputAutocapitalization(.words)
-                if !recentLureSuggestions.isEmpty {
-                    suggestionRow(title: "Lure", values: recentLureSuggestions) { value in
+
+                if !recentLureSuggestions.isEmpty && lureOrBait.isEmpty {
+                    SuggestionRow(label: "Lure", values: recentLureSuggestions) { value in
                         lureOrBait = value
                     }
                 }
@@ -259,57 +315,86 @@ private struct ActiveTripView: View {
                 TextField("Method", text: $method)
                     .textInputAutocapitalization(.words)
 
-                DisclosureGroup("Optional details", isExpanded: $showingOptionalFields) {
+                DisclosureGroup("More details", isExpanded: $showingOptionalFields) {
                     TextField("Weight (kg)", text: $weight)
                         .keyboardType(.decimalPad)
                     TextField("Length (cm)", text: $length)
                         .keyboardType(.decimalPad)
                     TextField("Note", text: $note, axis: .vertical)
+                        .lineLimit(2...4)
                 }
-
-                Button("Save catch") {
-                    saveCatch()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-
-                Text("Time and spot are filled from the active trip.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section("This Trip") {
-                if catchesForTrip.isEmpty {
-                    Text("No catches logged yet. Keep it fast and log the next one here.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(catchesForTrip, id: \.id) { catchRecord in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(catchRecord.species)
-                                .font(.headline)
-                            Text(AppFormatters.shortTime.string(from: catchRecord.caughtAt))
-                                .foregroundStyle(.secondary)
-                            if !catchRecord.lureOrBait.isEmpty {
-                                Text(catchRecord.lureOrBait)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                }
+            } header: {
+                Text("Quick Catch")
+            } footer: {
+                Text("Time and conditions attach automatically.")
             }
 
             Section {
-                Button("End trip") {
-                    endTrip()
+                Button {
+                    saveCatch()
+                } label: {
+                    Label("Save Catch", systemImage: "checkmark.circle.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.xs)
                 }
-                .foregroundStyle(.red)
+                .buttonStyle(.borderedProminent)
+                .tint(.appAccent)
+                .disabled(species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .listRowSeparator(.hidden)
+                .sensoryFeedback(.success, trigger: showingSavedConfirmation)
+            }
+
+            // This Trip's Catches
+            Section {
+                if catchesForTrip.isEmpty {
+                    SectionEmptyState(
+                        icon: "fish",
+                        title: "No catches yet",
+                        subtitle: "Log your first catch above."
+                    )
+                } else {
+                    ForEach(catchesForTrip, id: \.id) { catchRecord in
+                        CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
+                    }
+                }
+            } header: {
+                HStack {
+                    Text("This Trip")
+                    Spacer()
+                    Text("\(catchesForTrip.count)")
+                        .font(.footnote.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            // End Trip
+            Section {
+                Button(role: .destructive) {
+                    showingEndConfirmation = true
+                } label: {
+                    Label("End Trip", systemImage: "stop.circle")
+                        .frame(maxWidth: .infinity)
+                }
             }
         }
         .onAppear {
             primeDefaultsIfNeeded()
         }
+        .confirmationDialog("End this trip?", isPresented: $showingEndConfirmation, titleVisibility: .visible) {
+            Button("End Trip", role: .destructive) {
+                endTrip()
+            }
+        } message: {
+            if catchesForTrip.isEmpty {
+                Text("This trip will be marked as skunked.")
+            } else {
+                Text("This trip has \(catchesForTrip.count) \(catchesForTrip.count == 1 ? "catch" : "catches") logged.")
+            }
+        }
     }
+
+    // MARK: - Actions
 
     private func saveCatch() {
         let catchRecord = CatchRecord(
@@ -332,6 +417,7 @@ private struct ActiveTripView: View {
         length = ""
         note = ""
         showingOptionalFields = false
+        showingSavedConfirmation.toggle()
     }
 
     private func endTrip() {
@@ -355,26 +441,9 @@ private struct ActiveTripView: View {
             method = recentCatch.method
         }
     }
-
-    @ViewBuilder
-    private func suggestionRow(title: String, values: [String], apply: @escaping (String) -> Void) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                ForEach(values, id: \.self) { value in
-                    Button(value) {
-                        apply(value)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
-            }
-            .padding(.vertical, 4)
-        }
-    }
 }
+
+// MARK: - Active Trip Status Card
 
 private struct ActiveTripStatusCard: View {
     let trip: Trip
@@ -383,27 +452,30 @@ private struct ActiveTripStatusCard: View {
     let contextSummary: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack(spacing: Spacing.sm) {
+                        AppBadge(text: "Live")
+                        Text(elapsedText)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
                     Text(trip.title)
                         .font(.headline)
-                    Text("In progress")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.teal)
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: 4) {
+                VStack(alignment: .trailing, spacing: Spacing.xxs) {
                     Text("\(catchCount)")
-                        .font(.title2.bold())
+                        .font(.title.weight(.bold).monospacedDigit())
+                        .foregroundStyle(.appAccent)
                     Text(catchCount == 1 ? "catch" : "catches")
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            HStack(spacing: 16) {
-                Label(elapsedText, systemImage: "timer")
+            HStack(spacing: Spacing.lg) {
                 if let spot = trip.spot?.title {
                     Label(spot, systemImage: "mappin")
                 }
@@ -414,10 +486,60 @@ private struct ActiveTripStatusCard: View {
             if let contextSummary {
                 Text(contextSummary)
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.tertiary)
             }
         }
-        .padding(14)
-        .background(.teal.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .appCard(prominent: true)
     }
 }
+
+// MARK: - Catch History Row
+
+struct CatchHistoryRow: View {
+    let catchRecord: CatchRecord
+    var includeTimestamp: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack {
+                Text(catchRecord.species)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                if includeTimestamp {
+                    Text(AppFormatters.shortTime.string(from: catchRecord.caughtAt))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            let secondaryParts = [catchRecord.lureOrBait, catchRecord.method]
+                .filter { !$0.isEmpty }
+            if !secondaryParts.isEmpty {
+                Text(secondaryParts.joined(separator: " · "))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            let metricParts: [String] = [
+                catchRecord.weightKg.map { "\($0.formatted()) kg" },
+                catchRecord.lengthCm.map { "\($0.formatted()) cm" },
+            ].compactMap { $0 }
+
+            if !metricParts.isEmpty {
+                Text(metricParts.joined(separator: " · "))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if !catchRecord.note.isEmpty {
+                Text(catchRecord.note)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(.vertical, Spacing.xs)
+    }
+}
+
+import CoreLocation

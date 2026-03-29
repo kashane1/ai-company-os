@@ -21,17 +21,26 @@ struct DeterministicInsightCardView: View {
     let card: DeterministicInsightCard
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(card.title, systemImage: card.systemImage)
-                .font(.headline)
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: card.systemImage)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.appAccent)
+                    .frame(width: 24, height: 24)
+                    .background(Color.appCardBackground, in: Circle())
+
+                Text(card.title)
+                    .font(.subheadline.weight(.semibold))
+            }
+
             Text(card.body)
-                .font(.subheadline)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
+
             Text("Based on \(card.supportingSampleCount) logged \(card.supportingSampleCount == 1 ? "sample" : "samples")")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
         }
-        .padding(14)
-        .background(.teal.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .appCard()
     }
 }

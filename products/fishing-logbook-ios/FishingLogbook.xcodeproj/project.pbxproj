@@ -21,6 +21,7 @@
 		C5AFF1E70AA1B635A350A4B1 /* SpotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D1121E7C1D9E610844FD66 /* SpotsView.swift */; };
 		CCFE27AA6C0E97210DDB7B06 /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5743E855892E95D4C71ECA /* AppTab.swift */; };
 		CEE95CAE5784BC23C9A08A4E /* NewSpotForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0995C54CB98F03FB245982 /* NewSpotForm.swift */; };
+		EBADC6D452CBDAD23197C396 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AB0218BE7404DC9C3E27F9 /* DesignTokens.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 		85D1121E7C1D9E610844FD66 /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
 		C1F84E35100DC563530A0D6C /* FishingLogbook.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FishingLogbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0A2424AE66D45111FA0AFA1 /* SpotRecallSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRecallSummary.swift; sourceTree = "<group>"; };
+		D3AB0218BE7404DC9C3E27F9 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		F11D30FF71C15A7AC5CAE55B /* DeterministicInsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterministicInsightCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -83,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				0AB0DE6C71C6638B79250B44 /* Formatters.swift */,
+				D9EB16DA936ED623A638C7AD /* UI */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -130,6 +133,14 @@
 				561F2B316A5E5BD2C196EB31 /* Trips */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		D9EB16DA936ED623A638C7AD /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				D3AB0218BE7404DC9C3E27F9 /* DesignTokens.swift */,
+			);
+			path = UI;
 			sourceTree = "<group>";
 		};
 		DB3744CAD09BAF80406CB542 /* App */ = {
@@ -223,6 +234,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CCFE27AA6C0E97210DDB7B06 /* AppTab.swift in Sources */,
+				EBADC6D452CBDAD23197C396 /* DesignTokens.swift in Sources */,
 				C11D1B6ADB647DD62D36C96F /* DeterministicInsightCard.swift in Sources */,
 				362BC9689DB772BDE4CA1484 /* FishingLogbookApp.swift in Sources */,
 				1F2DD828179B87395168450C /* FishingModels.swift in Sources */,
