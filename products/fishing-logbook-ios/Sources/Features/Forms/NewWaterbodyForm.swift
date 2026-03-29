@@ -13,19 +13,24 @@ struct NewWaterbodyForm: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Waterbody") {
+                Section {
                     TextField("Name", text: $name)
+                        .textInputAutocapitalization(.words)
+                        .submitLabel(.done)
+
                     Picker("Type", selection: $type) {
                         ForEach(WaterbodyType.allCases) { value in
                             Text(value.label).tag(value)
                         }
                     }
-                    Text("Private by default.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                } header: {
+                    Text("Waterbody")
+                } footer: {
+                    Text("Private by default. Only you can see your waters.")
                 }
             }
             .navigationTitle("New Water")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -36,10 +41,13 @@ struct NewWaterbodyForm: View {
                     Button("Save") {
                         save()
                     }
+                    .fontWeight(.semibold)
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
+            .interactiveDismissDisabled(!name.isEmpty)
         }
+        .presentationDetents([.medium])
     }
 
     private func save() {

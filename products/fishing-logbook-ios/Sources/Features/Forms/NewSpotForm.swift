@@ -25,22 +25,36 @@ struct NewSpotForm: View {
             Form {
                 if waterbodies.isEmpty {
                     Section {
-                        Text("Create a waterbody first so this spot has a private home.")
-                            .foregroundStyle(.secondary)
+                        SectionEmptyState(
+                            icon: "water.waves",
+                            title: "No waterbodies yet",
+                            subtitle: "Create a waterbody first so this spot has a home."
+                        )
                     }
                 } else {
-                    Section("Spot") {
+                    Section {
                         TextField("Spot name", text: $title)
+                            .textInputAutocapitalization(.words)
+                            .submitLabel(.next)
+
                         Picker("Waterbody", selection: $selectedWaterbodyID) {
+                            Text("Select water").tag(Optional<UUID>.none)
                             ForEach(waterbodies, id: \.id) { waterbody in
                                 Text(waterbody.name).tag(Optional(waterbody.id))
                             }
                         }
+
                         TextField("Notes", text: $notes, axis: .vertical)
+                            .lineLimit(2...4)
+                    } header: {
+                        Text("Spot")
+                    } footer: {
+                        Text("Private by default. Your spot stays on this device.")
                     }
                 }
             }
             .navigationTitle("New Spot")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -51,10 +65,13 @@ struct NewSpotForm: View {
                     Button("Save") {
                         save()
                     }
+                    .fontWeight(.semibold)
                     .disabled(!canSave)
                 }
             }
+            .interactiveDismissDisabled(!title.isEmpty)
         }
+        .presentationDetents([.medium])
     }
 
     private var canSave: Bool {

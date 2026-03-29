@@ -7,16 +7,24 @@ struct TripsView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            Group {
                 if trips.isEmpty {
-                    Text("Trips will appear here after you start logging.")
-                        .foregroundStyle(.secondary)
+                    ContentUnavailableView {
+                        Label("No Trips Yet", systemImage: "water.waves")
+                    } description: {
+                        Text("Start a trip from the Log tab to begin building your private fishing memory.")
+                    }
                 } else {
-                    ForEach(trips, id: \.id) { trip in
-                        NavigationLink {
-                            TripDetailView(trip: trip)
-                        } label: {
-                            TripRow(trip: trip, catchCount: catches.filter { $0.trip?.id == trip.id }.count)
+                    List {
+                        ForEach(trips, id: \.id) { trip in
+                            NavigationLink {
+                                TripDetailView(trip: trip)
+                            } label: {
+                                TripRow(
+                                    trip: trip,
+                                    catchCount: catches.filter { $0.trip?.id == trip.id }.count
+                                )
+                            }
                         }
                     }
                 }
@@ -25,6 +33,54 @@ struct TripsView: View {
         }
     }
 }
+
+// MARK: - Trip Row
+
+private struct TripRow: View {
+    let trip: Trip
+    let catchCount: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(trip.title)
+                    .font(.subheadline.weight(.semibold))
+
+                if trip.isActive {
+                    AppBadge(text: "Live")
+                }
+
+                Spacer()
+
+                Text(catchCount == 0 && !trip.isActive ? "Skunked" : "\(catchCount)")
+                    .font(.subheadline.weight(.semibold).monospacedDigit())
+                    .foregroundColor(catchCount == 0 && !trip.isActive ? .secondary : .appAccent)
+            }
+
+            HStack(spacing: Spacing.md) {
+                Label(AppFormatters.tripDate.string(from: trip.startAt), systemImage: "calendar")
+
+                if let endAt = trip.endAt {
+                    let duration = endAt.timeIntervalSince(trip.startAt)
+                    if let durationText = AppFormatters.duration.string(from: duration) {
+                        Label(durationText, systemImage: "timer")
+                    }
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            if let spot = trip.spot?.title {
+                Label(spot, systemImage: "mappin")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(.vertical, Spacing.xs)
+    }
+}
+
+// MARK: - Trip Detail
 
 struct TripDetailView: View {
     let trip: Trip
@@ -37,84 +93,105 @@ struct TripDetailView: View {
 
     var body: some View {
         List {
-            Section("Overview") {
-                LabeledContent("Waterbody", value: trip.waterbody?.name ?? "Unknown")
-                LabeledContent("Spot", value: trip.spot?.title ?? "General waterbody")
+            // Summary Stats
+            Section {
+                HStack(spacing: Spacing.xl) {
+                    TripStatPill(value: "\(catches.count)", label: catches.count == 1 ? "Catch" : "Catches", icon: "fish")
+                    if let endAt = trip.endAt {
+                        let duration = endAt.timeIntervalSince(trip.startAt)
+                        if let durationText = AppFormatters.duration.string(from: duration) {
+                            TripStatPill(value: durationText, label: "Duration", icon: "timer")
+                        }
+                    }
+                    TripStatPill(
+                        value: trip.outcomeRawValue.capitalized,
+                        label: "Outcome",
+                        icon: trip.outcomeRawValue == TripOutcome.skunked.rawValue ? "xmark.circle" : "checkmark.circle"
+                    )
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.sm)
+                .listRowBackground(Color.clear)
+            }
+
+            Section("Details") {
+                LabeledContent("Water", value: trip.waterbody?.name ?? "Unknown")
+                LabeledContent("Spot", value: trip.spot?.title ?? "General area")
                 LabeledContent("Started", value: AppFormatters.tripDate.string(from: trip.startAt))
                 if let endAt = trip.endAt {
                     LabeledContent("Ended", value: AppFormatters.tripDate.string(from: endAt))
-                    let duration = endAt.timeIntervalSince(trip.startAt)
-                    LabeledContent("Duration", value: AppFormatters.duration.string(from: duration) ?? "—")
                 } else {
-                    LabeledContent("Status", value: "In progress")
+                    HStack {
+                        Text("Status")
+                        Spacer()
+                        AppBadge(text: "Live")
+                    }
                 }
-                LabeledContent("Outcome", value: trip.outcomeRawValue.capitalized)
+                if !trip.targetSpecies.isEmpty {
+                    LabeledContent("Target", value: trip.targetSpecies)
+                }
+                if !trip.notes.isEmpty {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text("Notes")
+                            .foregroundStyle(.secondary)
+                        Text(trip.notes)
+                    }
+                }
             }
 
-            if let conditionSnapshot = trip.conditionSnapshot {
-                Section("Condition Context") {
-                    Text(conditionSnapshot.displaySummary)
-                }
-            }
-
-            Section("Catches") {
-                if catches.isEmpty {
-                    Text("No catches logged on this trip.")
+            if let snapshot = trip.conditionSnapshot {
+                Section("Conditions") {
+                    Text(snapshot.displaySummary)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
+                }
+            }
+
+            Section {
+                if catches.isEmpty {
+                    SectionEmptyState(
+                        icon: "fish",
+                        title: "No catches",
+                        subtitle: trip.outcomeRawValue == TripOutcome.skunked.rawValue
+                            ? "Tough day. They all count."
+                            : "No catches logged on this trip."
+                    )
                 } else {
                     ForEach(catches, id: \.id) { catchRecord in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(catchRecord.species)
-                                .font(.headline)
-                            Text(AppFormatters.tripDate.string(from: catchRecord.caughtAt))
-                                .foregroundStyle(.secondary)
-                            if !catchRecord.lureOrBait.isEmpty {
-                                Text("Lure: \(catchRecord.lureOrBait)")
-                                    .font(.footnote)
-                            }
-                            if let weight = catchRecord.weightKg {
-                                Text("Weight: \(weight.formatted()) kg")
-                                    .font(.footnote)
-                            }
-                            if let length = catchRecord.lengthCm {
-                                Text("Length: \(length.formatted()) cm")
-                                    .font(.footnote)
-                            }
-                            if !catchRecord.note.isEmpty {
-                                Text(catchRecord.note)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
+                        CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
                     }
+                }
+            } header: {
+                HStack {
+                    Text("Catches")
+                    Spacer()
+                    Text("\(catches.count)")
+                        .font(.footnote.monospacedDigit())
+                        .foregroundStyle(.secondary)
                 }
             }
         }
         .navigationTitle(trip.title)
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 
-private struct TripRow: View {
-    let trip: Trip
-    let catchCount: Int
+// MARK: - Trip Stat Pill
+
+private struct TripStatPill: View {
+    let value: String
+    let label: String
+    let icon: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(trip.title)
-                    .font(.headline)
-                if trip.isActive {
-                    Text("LIVE")
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.teal.opacity(0.15), in: Capsule())
-                }
-            }
-            Text(AppFormatters.tripDate.string(from: trip.startAt))
-                .foregroundStyle(.secondary)
-            Text("\(catchCount) catches")
-                .font(.footnote)
+        VStack(spacing: Spacing.xs) {
+            Image(systemName: icon)
+                .font(.caption2)
+                .foregroundStyle(.appAccent)
+            Text(value)
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+            Text(label)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
         }
     }
