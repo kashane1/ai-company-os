@@ -12,6 +12,7 @@ skills:
     stage: active
     adapters:
       claude: adapters/claude/product-artifact-chain.md
+    project_skill: .claude/skills/product-artifact-chain.md
 
   - id: bounded-codex-implementation
     name: Bounded Codex Implementation
@@ -30,6 +31,7 @@ skills:
     stage: active
     adapters:
       claude: adapters/claude/codex-claude-handoff.md
+    project_skill: .claude/skills/codex-claude-handoff.md
 
   - id: ios-ui-polish-review
     name: iOS UI Polish Review
@@ -39,6 +41,7 @@ skills:
     stage: active
     adapters:
       claude: adapters/claude/ios-ui-polish-review.md
+    project_skill: .claude/skills/ios-ui-polish-review.md
 
   - id: ios-to-appstore-handoff
     name: iOS to App Store Handoff
@@ -48,3 +51,4 @@ skills:
     stage: active
     adapters:
       claude: adapters/claude/ios-to-appstore-handoff.md
+    project_skill: .claude/skills/ios-to-appstore-handoff.md
