@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		08EF7B2E42E7EAC1FE1B13BD /* ConditionCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CBE0B2BF65E13D84E0EB863 /* ConditionCaptureService.swift */; };
 		0D013236605DD67A52FB732F /* SpotRecallSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A2424AE66D45111FA0AFA1 /* SpotRecallSummary.swift */; };
 		0DD04798AFF6AE2B885477CB /* PersonalBestService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170615576114AB69A5A4C8A2 /* PersonalBestService.swift */; };
 		1AE97ADC550D97C1F26419B7 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05ECF37EB624290D89D2B5DC /* LogView.swift */; };
 		1F2DD828179B87395168450C /* FishingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19203D874A6F2C8F9188157D /* FishingModels.swift */; };
 		32C8B84FCDE25ED15732D862 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB0DE6C71C6638B79250B44 /* Formatters.swift */; };
 		362BC9689DB772BDE4CA1484 /* FishingLogbookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700DF821FF2BEBBE201532E3 /* FishingLogbookApp.swift */; };
+		4709073BF427A5DE8A49BD48 /* CatchPhotoComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255E2CFF90A596C8A63D4439 /* CatchPhotoComponents.swift */; };
 		4BEBF2957696CBC7FB84BE71 /* NewWaterbodyForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2778FC7F6C161B5507595861 /* NewWaterbodyForm.swift */; };
 		6AE9EE7831CDBC34AD5011A3 /* TripsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799825EBE3569A196BBF9F3E /* TripsView.swift */; };
 		6AFDE1DCBFC5F1B5C7C0A21E /* LocationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583218CF0704E40BB054B26 /* LocationRecorder.swift */; };
@@ -29,6 +31,8 @@
 		0AB0DE6C71C6638B79250B44 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		170615576114AB69A5A4C8A2 /* PersonalBestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestService.swift; sourceTree = "<group>"; };
 		19203D874A6F2C8F9188157D /* FishingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingModels.swift; sourceTree = "<group>"; };
+		1CBE0B2BF65E13D84E0EB863 /* ConditionCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionCaptureService.swift; sourceTree = "<group>"; };
+		255E2CFF90A596C8A63D4439 /* CatchPhotoComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchPhotoComponents.swift; sourceTree = "<group>"; };
 		2778FC7F6C161B5507595861 /* NewWaterbodyForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWaterbodyForm.swift; sourceTree = "<group>"; };
 		2B0995C54CB98F03FB245982 /* NewSpotForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSpotForm.swift; sourceTree = "<group>"; };
 		5F7C6D83F8A4BF66332C3738 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -138,6 +142,7 @@
 		D9EB16DA936ED623A638C7AD /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				255E2CFF90A596C8A63D4439 /* CatchPhotoComponents.swift */,
 				D3AB0218BE7404DC9C3E27F9 /* DesignTokens.swift */,
 			);
 			path = UI;
@@ -172,6 +177,7 @@
 		FBD0B69C062284EF0809A219 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				1CBE0B2BF65E13D84E0EB863 /* ConditionCaptureService.swift */,
 				6583218CF0704E40BB054B26 /* LocationRecorder.swift */,
 				170615576114AB69A5A4C8A2 /* PersonalBestService.swift */,
 			);
@@ -234,6 +240,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CCFE27AA6C0E97210DDB7B06 /* AppTab.swift in Sources */,
+				4709073BF427A5DE8A49BD48 /* CatchPhotoComponents.swift in Sources */,
+				08EF7B2E42E7EAC1FE1B13BD /* ConditionCaptureService.swift in Sources */,
 				EBADC6D452CBDAD23197C396 /* DesignTokens.swift in Sources */,
 				C11D1B6ADB647DD62D36C96F /* DeterministicInsightCard.swift in Sources */,
 				362BC9689DB772BDE4CA1484 /* FishingLogbookApp.swift in Sources */,

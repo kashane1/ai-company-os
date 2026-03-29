@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftData
 import SwiftUI
 
@@ -39,6 +40,14 @@ private struct StartTripView: View {
 
     let waterbodies: [Waterbody]
     let spots: [Spot]
+
+    private var conditionPreview: ConditionCapturePreview {
+        ConditionCaptureService.preview(
+            waterbody: selectedWaterbody,
+            spot: selectedSpot,
+            location: locationRecorder.lastLocation
+        )
+    }
 
     var body: some View {
         List {
@@ -107,7 +116,7 @@ private struct StartTripView: View {
                 }
 
                 Section("Conditions") {
-                    ConditionPreviewRow(location: locationRecorder.lastLocation)
+                    ConditionPreviewRow(preview: conditionPreview)
                 }
 
                 Section {
@@ -162,11 +171,11 @@ private struct StartTripView: View {
     }
 
     private func startTrip() {
-        let location = locationRecorder.lastLocation
-        let snapshot = ConditionSnapshot(
-            capturedAt: .now,
-            latitude: location?.coordinate.latitude,
-            longitude: location?.coordinate.longitude
+        let snapshot = ConditionCaptureService.snapshot(
+            waterbody: selectedWaterbody,
+            spot: selectedSpot,
+            location: locationRecorder.lastLocation,
+            capturedAt: .now
         )
 
         let trip = Trip(
@@ -189,20 +198,29 @@ private struct StartTripView: View {
 // MARK: - Condition Preview Row
 
 private struct ConditionPreviewRow: View {
-    let location: CLLocation?
+    let preview: ConditionCapturePreview
 
     var body: some View {
-        if let location {
-            Label(
-                String(format: "Location ready: %.4f, %.4f", location.coordinate.latitude, location.coordinate.longitude),
-                systemImage: "checkmark.circle.fill"
-            )
-            .font(.subheadline)
-            .foregroundStyle(.appAccent)
-        } else {
-            Label("Trip will start even if location is unavailable.", systemImage: "location.slash")
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Label(preview.snapshot.statusLine, systemImage: preview.isLocationReady ? "checkmark.circle.fill" : "location.slash")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(preview.isLocationReady ? .appAccent : .secondary)
+
+            if let placeSummary = preview.snapshot.placeSummary {
+                Label(placeSummary, systemImage: "map")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let coordinateSummary = preview.snapshot.coordinateSummary {
+                Label(coordinateSummary, systemImage: "location")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(preview.snapshot.weatherLine)
+                .font(.footnote)
+                .foregroundStyle(.tertiary)
         }
     }
 }
@@ -226,6 +244,8 @@ private struct ActiveTripView: View {
     @State private var didPrimeDefaults = false
     @State private var showingSavedConfirmation = false
     @State private var showingEndConfirmation = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var photoData: Data?
 
     private var catchesForTrip: [CatchRecord] {
         allCatches.filter { $0.trip?.id == trip.id }
@@ -322,6 +342,33 @@ private struct ActiveTripView: View {
                         .keyboardType(.decimalPad)
                     TextField("Note", text: $note, axis: .vertical)
                         .lineLimit(2...4)
+
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        if let photoData {
+                            HStack(spacing: Spacing.md) {
+                                CatchPhotoThumbnailView(data: photoData)
+                                VStack(alignment: .leading, spacing: Spacing.xs) {
+                                    Text("Photo attached")
+                                        .font(.footnote.weight(.semibold))
+                                    Text("Optional only. Save still works without it.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Button("Remove Photo") {
+                                        self.photoData = nil
+                                        selectedPhotoItem = nil
+                                    }
+                                    .font(.caption)
+                                }
+                            }
+                        }
+
+                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            Label(photoData == nil ? "Add Photo" : "Replace Photo", systemImage: "photo")
+                                .font(.footnote.weight(.medium))
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.appAccent)
+                    }
                 }
             } header: {
                 Text("Quick Catch")
@@ -392,6 +439,12 @@ private struct ActiveTripView: View {
                 Text("This trip has \(catchesForTrip.count) \(catchesForTrip.count == 1 ? "catch" : "catches") logged.")
             }
         }
+        .onChange(of: selectedPhotoItem) { _, newValue in
+            guard let newValue else { return }
+            Task {
+                photoData = try? await newValue.loadTransferable(type: Data.self)
+            }
+        }
     }
 
     // MARK: - Actions
@@ -405,7 +458,10 @@ private struct ActiveTripView: View {
             method: method.trimmingCharacters(in: .whitespacesAndNewlines),
             weightKg: Double(weight),
             lengthCm: Double(length),
-            note: note.trimmingCharacters(in: .whitespacesAndNewlines)
+            note: note.trimmingCharacters(in: .whitespacesAndNewlines),
+            photoReference: photoData == nil ? nil : "embedded-photo",
+            photoData: photoData,
+            photoContentType: photoData == nil ? nil : "image/jpeg"
         )
 
         modelContext.insert(catchRecord)
@@ -416,6 +472,8 @@ private struct ActiveTripView: View {
         weight = ""
         length = ""
         note = ""
+        photoData = nil
+        selectedPhotoItem = nil
         showingOptionalFields = false
         showingSavedConfirmation.toggle()
     }
@@ -500,46 +558,50 @@ struct CatchHistoryRow: View {
     var includeTimestamp: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            HStack {
-                Text(catchRecord.species)
-                    .font(.subheadline.weight(.semibold))
-                Spacer()
-                if includeTimestamp {
-                    Text(AppFormatters.shortTime.string(from: catchRecord.caughtAt))
-                        .font(.caption)
+        HStack(alignment: .top, spacing: Spacing.md) {
+            if let photoData = catchRecord.photoData {
+                CatchPhotoThumbnailView(data: photoData)
+            }
+
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                HStack {
+                    Text(catchRecord.species)
+                        .font(.subheadline.weight(.semibold))
+                    Spacer()
+                    if includeTimestamp {
+                        Text(AppFormatters.shortTime.string(from: catchRecord.caughtAt))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                let secondaryParts = [catchRecord.lureOrBait, catchRecord.method]
+                    .filter { !$0.isEmpty }
+                if !secondaryParts.isEmpty {
+                    Text(secondaryParts.joined(separator: " · "))
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
-            }
 
-            let secondaryParts = [catchRecord.lureOrBait, catchRecord.method]
-                .filter { !$0.isEmpty }
-            if !secondaryParts.isEmpty {
-                Text(secondaryParts.joined(separator: " · "))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
+                let metricParts: [String] = [
+                    catchRecord.weightKg.map { "\($0.formatted()) kg" },
+                    catchRecord.lengthCm.map { "\($0.formatted()) cm" },
+                ].compactMap { $0 }
 
-            let metricParts: [String] = [
-                catchRecord.weightKg.map { "\($0.formatted()) kg" },
-                catchRecord.lengthCm.map { "\($0.formatted()) cm" },
-            ].compactMap { $0 }
+                if !metricParts.isEmpty {
+                    Text(metricParts.joined(separator: " · "))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
 
-            if !metricParts.isEmpty {
-                Text(metricParts.joined(separator: " · "))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            if !catchRecord.note.isEmpty {
-                Text(catchRecord.note)
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(2)
+                if !catchRecord.note.isEmpty {
+                    Text(catchRecord.note)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(2)
+                }
             }
         }
         .padding(.vertical, Spacing.xs)
     }
 }
-
-import CoreLocation

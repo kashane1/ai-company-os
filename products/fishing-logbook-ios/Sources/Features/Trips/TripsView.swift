@@ -141,9 +141,20 @@ struct TripDetailView: View {
 
             if let snapshot = trip.conditionSnapshot {
                 Section("Conditions") {
-                    Text(snapshot.displaySummary)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    LabeledContent("Status", value: snapshot.statusLine)
+                    if let placeSummary = snapshot.placeSummary {
+                        LabeledContent("Place", value: placeSummary)
+                    }
+                    if let timeWindowSummary = snapshot.timeWindowSummary {
+                        LabeledContent("Window", value: timeWindowSummary)
+                    }
+                    if let lightLevelSummary = snapshot.lightLevelSummary {
+                        LabeledContent("Light", value: lightLevelSummary)
+                    }
+                    LabeledContent("Weather", value: snapshot.weatherLine)
+                    if let coordinateSummary = snapshot.coordinateSummary {
+                        LabeledContent("Coordinates", value: coordinateSummary)
+                    }
                 }
             }
 

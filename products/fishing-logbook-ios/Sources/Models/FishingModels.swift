@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 import SwiftData
 
@@ -19,6 +20,18 @@ enum TripOutcome: String, Codable {
     case active
     case caught
     case skunked
+}
+
+enum ConditionCaptureStatus: String, Codable {
+    case ready
+    case fallback
+    case pending
+}
+
+enum ConditionSource: String, Codable {
+    case deviceLocation
+    case tripFallback
+    case weatherDeferred
 }
 
 @Model
@@ -101,45 +114,128 @@ final class ConditionSnapshot {
     var capturedAt: Date
     var latitude: Double?
     var longitude: Double?
+    var placeSummary: String?
+    var timeWindowSummary: String?
+    var lightLevelSummary: String?
+    var temperatureC: Double?
     var weatherSummary: String?
     var windSummary: String?
     var cloudCoverSummary: String?
     var precipitationSummary: String?
+    var captureStatusRawValue: String
+    var sourceRawValue: String
 
     init(
         capturedAt: Date = .now,
         latitude: Double? = nil,
         longitude: Double? = nil,
+        placeSummary: String? = nil,
+        timeWindowSummary: String? = nil,
+        lightLevelSummary: String? = nil,
+        temperatureC: Double? = nil,
         weatherSummary: String? = nil,
         windSummary: String? = nil,
         cloudCoverSummary: String? = nil,
-        precipitationSummary: String? = nil
+        precipitationSummary: String? = nil,
+        captureStatus: ConditionCaptureStatus = .fallback,
+        source: ConditionSource = .tripFallback
     ) {
         self.id = UUID()
         self.capturedAt = capturedAt
         self.latitude = latitude
         self.longitude = longitude
+        self.placeSummary = placeSummary
+        self.timeWindowSummary = timeWindowSummary
+        self.lightLevelSummary = lightLevelSummary
+        self.temperatureC = temperatureC
         self.weatherSummary = weatherSummary
         self.windSummary = windSummary
         self.cloudCoverSummary = cloudCoverSummary
         self.precipitationSummary = precipitationSummary
+        self.captureStatusRawValue = captureStatus.rawValue
+        self.sourceRawValue = source.rawValue
     }
 
-    var displaySummary: String {
+    var captureStatus: ConditionCaptureStatus {
+        ConditionCaptureStatus(rawValue: captureStatusRawValue) ?? .fallback
+    }
+
+    var source: ConditionSource {
+        ConditionSource(rawValue: sourceRawValue) ?? .tripFallback
+    }
+
+    var coordinateSummary: String? {
+        guard let latitude, let longitude else { return nil }
+        return String(format: "%.4f, %.4f", latitude, longitude)
+    }
+
+    var statusLine: String {
+        switch captureStatus {
+        case .ready:
+            return "Conditions captured"
+        case .fallback:
+            return "Using local fallback conditions"
+        case .pending:
+            return "Conditions pending"
+        }
+    }
+
+    var weatherLine: String {
         var parts: [String] = []
 
+        if let temperatureC {
+            parts.append("\(temperatureC.formatted(.number.precision(.fractionLength(0))))°C")
+        }
         if let weatherSummary, !weatherSummary.isEmpty {
             parts.append(weatherSummary)
         }
         if let windSummary, !windSummary.isEmpty {
             parts.append(windSummary)
         }
+        if let cloudCoverSummary, !cloudCoverSummary.isEmpty {
+            parts.append(cloudCoverSummary)
+        }
+        if let precipitationSummary, !precipitationSummary.isEmpty {
+            parts.append(precipitationSummary)
+        }
+
         if parts.isEmpty {
-            parts.append("Weather not captured")
+            return "Live weather deferred for this MVP"
         }
-        if let latitude, let longitude {
-            parts.append(String(format: "%.4f, %.4f", latitude, longitude))
+
+        return parts.joined(separator: " • ")
+    }
+
+    var similarityDescription: String {
+        let parts = [timeWindowSummary, lightLevelSummary, windSummary, precipitationSummary]
+            .compactMap { value -> String? in
+                guard let value, !value.isEmpty else { return nil }
+                return value
+            }
+
+        if parts.isEmpty {
+            return "recent trip context"
         }
+
+        return parts.joined(separator: " • ")
+    }
+
+    var displaySummary: String {
+        var parts: [String] = []
+
+        if let placeSummary, !placeSummary.isEmpty {
+            parts.append(placeSummary)
+        }
+        if let timeWindowSummary, !timeWindowSummary.isEmpty {
+            parts.append(timeWindowSummary)
+        }
+        if let lightLevelSummary, !lightLevelSummary.isEmpty {
+            parts.append(lightLevelSummary)
+        }
+        if let coordinateSummary {
+            parts.append(coordinateSummary)
+        }
+        parts.append(weatherLine)
         return parts.joined(separator: " • ")
     }
 }
@@ -199,6 +295,8 @@ final class CatchRecord {
     var lengthCm: Double?
     var note: String
     var photoReference: String?
+    @Attribute(.externalStorage) var photoData: Data?
+    var photoContentType: String?
     var trip: Trip?
 
     init(
@@ -210,7 +308,9 @@ final class CatchRecord {
         weightKg: Double? = nil,
         lengthCm: Double? = nil,
         note: String = "",
-        photoReference: String? = nil
+        photoReference: String? = nil,
+        photoData: Data? = nil,
+        photoContentType: String? = nil
     ) {
         self.id = UUID()
         self.species = species
@@ -221,7 +321,13 @@ final class CatchRecord {
         self.lengthCm = lengthCm
         self.note = note
         self.photoReference = photoReference
+        self.photoData = photoData
+        self.photoContentType = photoContentType
         self.trip = trip
+    }
+
+    var hasPhoto: Bool {
+        photoData != nil
     }
 }
 
@@ -261,4 +367,37 @@ func timeWindowLabel(for date: Date) -> String {
     default:
         return "Evening"
     }
+}
+
+func lightLevelLabel(for date: Date) -> String {
+    let hour = Calendar.current.component(.hour, from: date)
+    switch hour {
+    case 4..<6:
+        return "First light"
+    case 6..<11:
+        return "Morning light"
+    case 11..<16:
+        return "Midday light"
+    case 16..<20:
+        return "Evening light"
+    default:
+        return "Low light"
+    }
+}
+
+func bestAvailableCoordinate(
+    location: CLLocation?,
+    spot: Spot?,
+    waterbody: Waterbody?
+) -> CLLocationCoordinate2D? {
+    if let coordinate = location?.coordinate {
+        return coordinate
+    }
+    if let latitude = spot?.latitude, let longitude = spot?.longitude {
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+    if let latitude = waterbody?.latitude, let longitude = waterbody?.longitude {
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+    return nil
 }

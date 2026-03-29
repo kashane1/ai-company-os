@@ -7,6 +7,7 @@ struct SpotRecallSummary {
     let bestTimeWindow: String?
     let mostEffectiveLure: String?
     let similarConditionsCount: Int
+    let similarConditionsLabel: String?
 
     var cards: [DeterministicInsightCard] {
         var cards: [DeterministicInsightCard] = []
@@ -47,12 +48,12 @@ struct SpotRecallSummary {
             )
         }
 
-        if let bestTimeWindow, similarConditionsCount > 0 {
+        if let similarConditionsLabel, similarConditionsCount > 0 {
             cards.append(
                 DeterministicInsightCard(
                     kind: .similarConditions,
                     title: "Similar conditions",
-                    body: "\(similarConditionsCount) productive trips here landed in a similar \(bestTimeWindow) window.",
+                    body: "\(similarConditionsCount) productive trips here lined up with \(similarConditionsLabel).",
                     supportingSampleCount: similarConditionsCount,
                     systemImage: "sparkles.rectangle.stack"
                 )
@@ -86,10 +87,14 @@ struct SpotRecallSummary {
 
         let successfulTripIDs = Set(spotCatches.compactMap { $0.trip?.id })
         let bestTimeWindow = timeWindowCounts.max(by: { $0.value < $1.value })?.key
-        let similarConditionsCount = spotTrips.filter { trip in
-            guard successfulTripIDs.contains(trip.id), let bestTimeWindow else { return false }
-            return timeWindowLabel(for: trip.startAt) == bestTimeWindow
-        }.count
+
+        var similarityCounts: [String: Int] = [:]
+        for trip in spotTrips where successfulTripIDs.contains(trip.id) {
+            let signature = trip.conditionSnapshot?.similarityDescription ?? timeWindowLabel(for: trip.startAt)
+            similarityCounts[signature, default: 0] += 1
+        }
+
+        let mostCommonSimilarity = similarityCounts.max(by: { $0.value < $1.value })
 
         return SpotRecallSummary(
             recentTrips: Array(spotTrips.prefix(3)),
@@ -97,7 +102,8 @@ struct SpotRecallSummary {
             successfulTripCount: successfulTripIDs.count,
             bestTimeWindow: bestTimeWindow,
             mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
-            similarConditionsCount: similarConditionsCount
+            similarConditionsCount: mostCommonSimilarity?.value ?? 0,
+            similarConditionsLabel: mostCommonSimilarity?.key
         )
     }
 }
