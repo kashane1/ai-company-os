@@ -450,7 +450,7 @@ private struct TripEditorView: View {
     }
 }
 
-private struct CatchEditorView: View {
+struct CatchEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 

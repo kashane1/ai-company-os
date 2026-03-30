@@ -251,6 +251,7 @@ private struct ActiveTripView: View {
     @State private var showingEndConfirmation = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var photoData: Data?
+    @State private var editingCatchID: UUID?
 
     private var catchesForTrip: [CatchRecord] {
         allCatches.filter { $0.trip?.id == trip.id }
@@ -413,7 +414,12 @@ private struct ActiveTripView: View {
                     )
                 } else {
                     ForEach(catchesForTrip, id: \.id) { catchRecord in
-                        CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
+                        Button {
+                            editingCatchID = catchRecord.id
+                        } label: {
+                            CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             } header: {
@@ -423,6 +429,10 @@ private struct ActiveTripView: View {
                     Text("\(catchesForTrip.count)")
                         .font(.footnote.monospacedDigit())
                         .foregroundStyle(.secondary)
+                }
+            } footer: {
+                if !catchesForTrip.isEmpty {
+                    Text("Tap a catch to edit or delete it before ending the trip.")
                 }
             }
 
@@ -456,6 +466,23 @@ private struct ActiveTripView: View {
             guard let newValue else { return }
             Task {
                 photoData = try? await newValue.loadTransferable(type: Data.self)
+            }
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { editingCatchID != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        editingCatchID = nil
+                    }
+                }
+            )
+        ) {
+            if let editingCatchID,
+               let catchRecord = catchesForTrip.first(where: { $0.id == editingCatchID }) {
+                CatchEditorView(trip: trip, catchRecord: catchRecord)
+            } else {
+                ContentUnavailableView("Catch not found", systemImage: "exclamationmark.triangle")
             }
         }
     }
