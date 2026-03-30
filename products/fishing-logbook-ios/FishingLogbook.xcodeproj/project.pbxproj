@@ -18,6 +18,7 @@
 		32C8B84FCDE25ED15732D862 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB0DE6C71C6638B79250B44 /* Formatters.swift */; };
 		3389C3A2F3119A4C357775A4 /* SpotRecallSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50793C6A2F105F5093831BE0 /* SpotRecallSummaryTests.swift */; };
 		362BC9689DB772BDE4CA1484 /* FishingLogbookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700DF821FF2BEBBE201532E3 /* FishingLogbookApp.swift */; };
+		3885C7FC516811E54085C8C1 /* HomeDashboardLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23E97F2554FD28EB912E6170 /* HomeDashboardLogicTests.swift */; };
 		3B2E168E6CC8DD68F09CD282 /* SpotPresentationLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94F9ABD03BD61AC4558E5919 /* SpotPresentationLogicTests.swift */; };
 		4709073BF427A5DE8A49BD48 /* CatchPhotoComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255E2CFF90A596C8A63D4439 /* CatchPhotoComponents.swift */; };
 		4BEBF2957696CBC7FB84BE71 /* NewWaterbodyForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2778FC7F6C161B5507595861 /* NewWaterbodyForm.swift */; };
@@ -25,6 +26,7 @@
 		6AFDE1DCBFC5F1B5C7C0A21E /* LocationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583218CF0704E40BB054B26 /* LocationRecorder.swift */; };
 		76E338F555D2E6020958F844 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7C6D83F8A4BF66332C3738 /* HomeView.swift */; };
 		879B5EA6B08532C56114EEC6 /* PersonalBestServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848591A8214B5DE018399DA9 /* PersonalBestServiceTests.swift */; };
+		98E9DB71726D1263673D1CF6 /* HomeDashboardLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8778938633E00D2D96BA26E /* HomeDashboardLogic.swift */; };
 		AE75FCE020DE3F73E11759AF /* ModelTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F94D0FEE5DB0784BE125239 /* ModelTestSupport.swift */; };
 		AFF073C2B4A35BD81DBC78C0 /* FormLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138CB3864F4DE6549478AAF3 /* FormLogic.swift */; };
 		B56E6CFEE097762A7926D08D /* SpotPresentationLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD387B89A4861413080F76F1 /* SpotPresentationLogic.swift */; };
@@ -61,6 +63,7 @@
 		170615576114AB69A5A4C8A2 /* PersonalBestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestService.swift; sourceTree = "<group>"; };
 		19203D874A6F2C8F9188157D /* FishingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingModels.swift; sourceTree = "<group>"; };
 		1CBE0B2BF65E13D84E0EB863 /* ConditionCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionCaptureService.swift; sourceTree = "<group>"; };
+		23E97F2554FD28EB912E6170 /* HomeDashboardLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDashboardLogicTests.swift; sourceTree = "<group>"; };
 		255E2CFF90A596C8A63D4439 /* CatchPhotoComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchPhotoComponents.swift; sourceTree = "<group>"; };
 		2778FC7F6C161B5507595861 /* NewWaterbodyForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWaterbodyForm.swift; sourceTree = "<group>"; };
 		2B0995C54CB98F03FB245982 /* NewSpotForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSpotForm.swift; sourceTree = "<group>"; };
@@ -78,6 +81,7 @@
 		8F221069720E7E434EA2B711 /* TripPresentationLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripPresentationLogic.swift; sourceTree = "<group>"; };
 		94F9ABD03BD61AC4558E5919 /* SpotPresentationLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotPresentationLogicTests.swift; sourceTree = "<group>"; };
 		A5EDC06CFBC199A10258B94E /* ConditionCaptureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionCaptureServiceTests.swift; sourceTree = "<group>"; };
+		A8778938633E00D2D96BA26E /* HomeDashboardLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDashboardLogic.swift; sourceTree = "<group>"; };
 		ABB469E32BEA66F32763DB42 /* LogFeatureLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFeatureLogic.swift; sourceTree = "<group>"; };
 		AEED33D1622F6A11A16FC91D /* FormLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormLogicTests.swift; sourceTree = "<group>"; };
 		C1F84E35100DC563530A0D6C /* FishingLogbook.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FishingLogbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -139,6 +143,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		2D7B55D0A0A4CBE609224E90 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				23E97F2554FD28EB912E6170 /* HomeDashboardLogicTests.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
 		2F42DEA1C81BB03D5CC92CB4 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
@@ -152,6 +164,7 @@
 			isa = PBXGroup;
 			children = (
 				7A0CC8249D41ECC895C63797 /* Forms */,
+				2D7B55D0A0A4CBE609224E90 /* Home */,
 				5B3A475B747096161699CDE8 /* Log */,
 				990200C3C144749F16073912 /* Spots */,
 				1C08B8858B4F8A086ADA0892 /* Trips */,
@@ -296,6 +309,7 @@
 		FAEEC8B18B6BF6792B3DEE77 /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				A8778938633E00D2D96BA26E /* HomeDashboardLogic.swift */,
 				5F7C6D83F8A4BF66332C3738 /* HomeView.swift */,
 			);
 			path = Home;
@@ -415,6 +429,7 @@
 				1F2DD828179B87395168450C /* FishingModels.swift in Sources */,
 				AFF073C2B4A35BD81DBC78C0 /* FormLogic.swift in Sources */,
 				32C8B84FCDE25ED15732D862 /* Formatters.swift in Sources */,
+				98E9DB71726D1263673D1CF6 /* HomeDashboardLogic.swift in Sources */,
 				76E338F555D2E6020958F844 /* HomeView.swift in Sources */,
 				6AFDE1DCBFC5F1B5C7C0A21E /* LocationRecorder.swift in Sources */,
 				1A19F738964A39D1CBF39B6E /* LogFeatureLogic.swift in Sources */,
@@ -439,6 +454,7 @@
 				FC256931B4EFD723FA502345 /* ConditionCaptureServiceTests.swift in Sources */,
 				2C99DD0D3201079DF5D4D6DD /* FishingModelsTests.swift in Sources */,
 				E5CC91475DC58046B39B0988 /* FormLogicTests.swift in Sources */,
+				3885C7FC516811E54085C8C1 /* HomeDashboardLogicTests.swift in Sources */,
 				D5DC6DA55EE7B7EC40B860EB /* LogFeatureLogicTests.swift in Sources */,
 				AE75FCE020DE3F73E11759AF /* ModelTestSupport.swift in Sources */,
 				879B5EA6B08532C56114EEC6 /* PersonalBestServiceTests.swift in Sources */,

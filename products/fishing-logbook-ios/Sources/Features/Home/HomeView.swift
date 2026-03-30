@@ -9,11 +9,11 @@ struct HomeView: View {
     @Query(sort: \PersonalBest.updatedAt, order: .reverse) private var personalBests: [PersonalBest]
 
     private var activeTrip: Trip? {
-        trips.first(where: \.isActive)
+        HomeDashboardLogic.activeTrip(from: trips)
     }
 
     private var latestCompletedTrip: Trip? {
-        trips.first(where: { !$0.isActive })
+        HomeDashboardLogic.latestCompletedTrip(from: trips)
     }
 
     private var latestSpotSummary: SpotRecallSummary? {
@@ -21,8 +21,8 @@ struct HomeView: View {
         return SpotRecallSummary.build(for: latestSpot, trips: trips, catches: catches)
     }
 
-    private var totalCatches: Int { catches.count }
-    private var totalTrips: Int { trips.filter { !$0.isActive }.count }
+    private var totalCatches: Int { HomeDashboardLogic.totalCatchCount(from: catches) }
+    private var totalTrips: Int { HomeDashboardLogic.completedTripCount(from: trips) }
 
     var body: some View {
         NavigationStack {
@@ -30,7 +30,10 @@ struct HomeView: View {
                 VStack(spacing: Spacing.xl) {
                     // Active Trip or Start CTA
                     if let activeTrip {
-                        ActiveTripHero(activeTrip: activeTrip, catchCount: catches.filter { $0.trip?.id == activeTrip.id }.count) {
+                        ActiveTripHero(
+                            activeTrip: activeTrip,
+                            catchCount: HomeDashboardLogic.catchCount(for: activeTrip.id, catches: catches)
+                        ) {
                             selectedTab = .log
                         }
                         .padding(.horizontal)
@@ -48,7 +51,7 @@ struct HomeView: View {
                             QuickStatCard(value: "\(totalCatches)", label: "Catches", icon: "fish")
                             QuickStatCard(
                                 value: "\(personalBests.count)",
-                                label: personalBests.count == 1 ? "Best" : "Bests",
+                                label: HomeDashboardLogic.personalBestLabel(count: personalBests.count),
                                 icon: "trophy"
                             )
                         }
@@ -64,7 +67,10 @@ struct HomeView: View {
                             NavigationLink {
                                 TripDetailView(trip: latestCompletedTrip)
                             } label: {
-                                LastTripCard(trip: latestCompletedTrip, catchCount: catches.filter { $0.trip?.id == latestCompletedTrip.id }.count)
+                                LastTripCard(
+                                    trip: latestCompletedTrip,
+                                    catchCount: HomeDashboardLogic.catchCount(for: latestCompletedTrip.id, catches: catches)
+                                )
                             }
                             .buttonStyle(.plain)
                             .padding(.horizontal)
@@ -72,7 +78,14 @@ struct HomeView: View {
                     }
 
                     // Private Recall
-                    if let latestSpotSummary, !latestSpotSummary.cards.isEmpty, let spot = latestCompletedTrip?.spot {
+                    if
+                        let latestSpotSummary,
+                        HomeDashboardLogic.shouldShowRecall(
+                            latestCompletedTrip: latestCompletedTrip,
+                            summary: latestSpotSummary
+                        ),
+                        let spot = latestCompletedTrip?.spot
+                    {
                         VStack(alignment: .leading, spacing: Spacing.sm) {
                             HomeSectionHeader(title: "Recall for \(spot.title)")
                                 .padding(.horizontal)
@@ -200,7 +213,7 @@ private struct ActiveTripHero: View {
     }
 
     private var elapsedText: String {
-        AppFormatters.duration.string(from: Date().timeIntervalSince(activeTrip.startAt)) ?? "now"
+        HomeDashboardLogic.elapsedText(startAt: activeTrip.startAt)
     }
 }
 
@@ -292,11 +305,10 @@ private struct PersonalBestRow: View {
     }
 
     private var summaryText: String {
-        let parts: [String?] = [
-            record.longestLengthCm.map { "\($0.formatted()) cm" },
-            record.heaviestWeightKg.map { "\($0.formatted()) kg" },
-        ]
-        return parts.compactMap { $0 }.joined(separator: " · ")
+        HomeDashboardLogic.personalBestSummaryText(
+            longestLengthCm: record.longestLengthCm,
+            heaviestWeightKg: record.heaviestWeightKg
+        )
     }
 }
 
