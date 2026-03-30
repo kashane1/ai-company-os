@@ -52,3 +52,33 @@ skills:
     adapters:
       claude: adapters/claude/ios-to-appstore-handoff.md
     project_skill: .claude/skills/ios-to-appstore-handoff.md
+
+  - id: supervisor-goal-decomposition
+    name: Supervisor Goal Decomposition
+    path: canonical/shared/supervisor-goal-decomposition.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    adapters:
+      claude: adapters/claude/supervisor-goal-decomposition.md
+    project_skill: .claude/skills/supervisor-goal-decomposition.md
+
+  - id: codex-task-packet-library
+    name: Codex Task Packet Library
+    path: canonical/shared/codex-task-packet-library.md
+    owner_agent: engineering
+    target_runtimes: [codex]
+    stage: active
+    adapters:
+      codex: adapters/codex/codex-task-packet-library.md
+    templates: canonical/shared/codex-packet-patterns/
+
+  - id: app-store-positioning-pack
+    name: App Store Positioning Pack
+    path: canonical/shared/app-store-positioning-pack.md
+    owner_agent: appstore
+    target_runtimes: [claude]
+    stage: active
+    adapters:
+      claude: adapters/claude/app-store-positioning-pack.md
+    project_skill: .claude/skills/app-store-positioning-pack.md
