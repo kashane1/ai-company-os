@@ -56,6 +56,9 @@ struct SpotsView: View {
 
 private struct SpotRow: View {
     let spot: Spot
+    private var rowDetails: SpotRowDetails {
+        SpotPresentationLogic.rowDetails(for: spot)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -63,16 +66,16 @@ private struct SpotRow: View {
                 .font(.subheadline.weight(.semibold))
 
             HStack(spacing: Spacing.md) {
-                Label(spot.waterbody?.name ?? "Unknown water", systemImage: "water.waves")
-                if spot.latitude != nil {
+                Label(rowDetails.waterbodyName, systemImage: "water.waves")
+                if rowDetails.isPinned {
                     Label("Pinned", systemImage: "mappin")
                 }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            if !spot.notes.isEmpty {
-                Text(spot.notes)
+            if let notesPreview = rowDetails.notesPreview {
+                Text(notesPreview)
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
@@ -95,7 +98,15 @@ private struct SpotDetailView: View {
     }
 
     private var catchesHere: [CatchRecord] {
-        catches.filter { $0.trip?.spot?.id == spot.id }
+        SpotPresentationLogic.catchesHere(spotID: spot.id, catches: catches)
+    }
+
+    private var statSummary: SpotStatSummary {
+        SpotPresentationLogic.statSummary(for: summary)
+    }
+
+    private var recentTripSummaries: [SpotRecentTripSummary] {
+        SpotPresentationLogic.recentTripSummaries(trips: summary.recentTrips)
     }
 
     var body: some View {
@@ -119,12 +130,9 @@ private struct SpotDetailView: View {
             // Recall Stats
             Section {
                 HStack(spacing: Spacing.xl) {
-                    SpotStatView(value: "\(summary.recentTrips.count)", label: "Trips")
-                    SpotStatView(value: "\(summary.catchCount)", label: "Catches")
-                    SpotStatView(
-                        value: summary.successfulTripCount > 0 ? "\(summary.successfulTripCount)" : "0",
-                        label: "Productive"
-                    )
+                    SpotStatView(value: statSummary.tripCountText, label: "Trips")
+                    SpotStatView(value: statSummary.catchCountText, label: "Catches")
+                    SpotStatView(value: statSummary.productiveTripCountText, label: "Productive")
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
@@ -175,24 +183,24 @@ private struct SpotDetailView: View {
             // Trip History
             if !summary.recentTrips.isEmpty {
                 Section("Recent Trips") {
-                    ForEach(summary.recentTrips, id: \.id) { (trip: Trip) in
+                    ForEach(Array(zip(summary.recentTrips, recentTripSummaries)), id: \.0.id) { trip, tripSummary in
                         NavigationLink {
                             TripDetailView(trip: trip)
                         } label: {
                             VStack(alignment: .leading, spacing: Spacing.xs) {
                                 HStack {
-                                    Text(AppFormatters.tripDate.string(from: trip.startAt))
+                                    Text(tripSummary.dateText)
                                         .font(.subheadline)
                                     Spacer()
-                                    Text(trip.outcomeRawValue.capitalized)
+                                    Text(tripSummary.outcomeText)
                                         .font(.caption.weight(.medium))
                                         .foregroundColor(
-                                            trip.outcomeRawValue == TripOutcome.skunked.rawValue
+                                            tripSummary.isSkunked
                                                 ? .secondary : .appAccent
                                         )
                                 }
-                                if let snapshot = trip.conditionSnapshot {
-                                    Text(snapshot.displaySummary)
+                                if let conditionSummary = tripSummary.conditionSummary {
+                                    Text(conditionSummary)
                                         .font(.caption)
                                         .foregroundStyle(.tertiary)
                                 }

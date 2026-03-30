@@ -29,7 +29,15 @@ def test_render_task_packet_writes_packet_to_worktree(tmp_path: Path) -> None:
         "- Leave all file changes uncommitted for manual inspection.\n"
         "- Prefer the smallest change that satisfies the task.\n\n"
         "## Constraints\n"
-        "- Do not commit changes.\n"
+        "- Do not commit changes.\n\n"
+        "## Testing Contract\n\n"
+        "- tests_required=true\n"
+        "- test_lane=python\n"
+        "- Every logic-bearing change must ship with created or modified lane-matching tests unless a valid exception applies.\n"
+        "- Your final message must include a `## Testing` section.\n"
+        "- In that section, either list tests added or updated, or include `no_test_reason_code=<enum>` with a short reason.\n"
+        "- If you use `approved_followup_test_task`, also include `followup_task_id=<task-id>`.\n"
+        "- allowed_no_test_reason_codes=comments_only, config_no_behavior_change, approved_followup_test_task\n"
     )
 
 
@@ -135,4 +143,3 @@ def test_execute_codex_timeout_marks_execution_and_appends_timeout_note(
         "exit_code=-1",
         "timed_out=True",
     ]
-

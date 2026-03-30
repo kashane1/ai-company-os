@@ -184,6 +184,31 @@ Every worker should follow these rules:
 5. No policy ownership
 6. Observable execution with logs and audit trails
 
+## Shared Testing Contract
+
+Logic-bearing code changes must ship with tests.
+
+This rule belongs to shared schema and policy code, not only prompts.
+
+Worker task packets and task runs should carry structured testing fields such as:
+
+- whether tests are required
+- what lane owns those tests
+- allowed machine-readable no-test reason codes
+- persisted testing-policy outcome
+- persisted validation failure codes
+
+Lane matching matters:
+
+- changes under `apps/` or `packages/` require created or modified Python tests under `tests/python/`
+- changes under `products/fishing-logbook-ios/Sources/` require created or modified iOS tests under `products/fishing-logbook-ios/Tests/`
+
+One unrelated test edit must not satisfy another lane.
+
+Allowed no-test exceptions must be explicit and machine-readable. If `approved_followup_test_task` is used, the referenced follow-up task must exist in persisted task state, remain open, and match the same lane and affected area.
+
+Worker validation should fail as `VALIDATION_FAILED` when logic-bearing changes land without lane-matching tests or a valid exception. Review artifacts and task-run records should persist the specific failure code so humans can see why immediately.
+
 ## Approval Boundaries
 
 Examples usually safe to automate:

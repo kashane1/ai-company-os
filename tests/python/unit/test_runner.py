@@ -10,6 +10,11 @@ from packages.db.task_store import TaskStore
 from packages.db.worktree_store import WorktreeStore
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.task_packet import TaskStatus
+from packages.schemas.testing import (
+    TestLane as LaneEnum,
+    TestingPolicyResult as PolicyOutcome,
+    ValidationFailureCode,
+)
 from packages.schemas.task_run import (
     CodexExecutionRecord,
     EngineeringResultClassification,
@@ -35,6 +40,16 @@ def build_execution_record() -> CodexExecutionRecord:
 
 def build_git_state(*, changed_files: list[str]) -> GitStateSnapshot:
     return GitStateSnapshot(status_lines=[f"M  {path}" for path in changed_files], changed_files=changed_files, diff_summary="")
+
+
+def build_testing_policy(*, failure_code: ValidationFailureCode | None = None) -> PolicyOutcome:
+    return PolicyOutcome(
+        tests_required=True,
+        test_lane=LaneEnum.PYTHON,
+        relevant_tests_changed=failure_code is None,
+        failure_code=failure_code,
+        details="tests ok" if failure_code is None else "tests missing",
+    )
 
 
 def test_execute_task_marks_safe_for_review_runs_completed_and_creates_approval(
@@ -82,7 +97,11 @@ def test_execute_task_marks_safe_for_review_runs_completed_and_creates_approval(
     monkeypatch.setattr(
         runner,
         "validate_run",
-        lambda *args: [ValidationCheck(name="tests", passed=True, details="ok")],
+        lambda *args: (
+            [ValidationCheck(name="tests", passed=True, details="ok")],
+            build_testing_policy(),
+            "- Added tests",
+        ),
     )
     monkeypatch.setattr(
         runner, "classify_result", lambda *args: EngineeringResultClassification.SAFE_FOR_REVIEW
@@ -106,6 +125,9 @@ def test_execute_task_marks_safe_for_review_runs_completed_and_creates_approval(
     assert saved_task.status is TaskStatus.COMPLETED
     assert saved_run.classification is EngineeringResultClassification.SAFE_FOR_REVIEW
     assert saved_run.approval_id == "approval-task-safe"
+    assert saved_run.testing_policy is not None
+    assert saved_run.testing_policy.relevant_tests_changed is True
+    assert saved_run.failure_codes == []
     assert saved_run.artifacts == [
         str(worktree_root / "codex_task_packet.md"),
         str(worktree_root / "codex_last_message.md"),
@@ -152,7 +174,11 @@ def test_execute_task_marks_no_change_runs_completed_without_approval(
     monkeypatch.setattr(
         runner,
         "validate_run",
-        lambda *args: [ValidationCheck(name="tests", passed=True, details="ok")],
+        lambda *args: (
+            [ValidationCheck(name="tests", passed=True, details="ok")],
+            build_testing_policy(),
+            "- Added tests",
+        ),
     )
     monkeypatch.setattr(runner, "classify_result", lambda *args: EngineeringResultClassification.NO_CHANGE)
     monkeypatch.setattr(runner, "build_summary", lambda *args: "No tracked changes")
@@ -171,6 +197,7 @@ def test_execute_task_marks_no_change_runs_completed_without_approval(
     assert saved_task.status is TaskStatus.COMPLETED
     assert saved_run.approval_id is None
     assert saved_run.classification is EngineeringResultClassification.NO_CHANGE
+    assert saved_run.failure_codes == []
 
 
 def test_execute_task_marks_validation_failures_failed_without_approval(
@@ -208,7 +235,18 @@ def test_execute_task_marks_validation_failures_failed_without_approval(
     monkeypatch.setattr(
         runner,
         "validate_run",
-        lambda *args: [ValidationCheck(name="tests", passed=False, details="failed")],
+        lambda *args: (
+            [
+                ValidationCheck(
+                    name="tests_with_code_policy",
+                    passed=False,
+                    details="failed",
+                    code=ValidationFailureCode.MISSING_TESTS_FOR_LOGIC_CHANGE.value,
+                )
+            ],
+            build_testing_policy(failure_code=ValidationFailureCode.MISSING_TESTS_FOR_LOGIC_CHANGE),
+            "no_test_reason_code=comments_only",
+        ),
     )
     monkeypatch.setattr(
         runner, "classify_result", lambda *args: EngineeringResultClassification.VALIDATION_FAILED
@@ -229,6 +267,8 @@ def test_execute_task_marks_validation_failures_failed_without_approval(
     assert saved_task.status is TaskStatus.FAILED
     assert saved_run.status.value == "failed"
     assert saved_run.approval_id is None
+    assert saved_run.failure_codes == ["missing_tests_for_logic_change"]
+    assert result.failure_codes == ["missing_tests_for_logic_change"]
 
 
 def test_result_as_dict_serializes_enum_backed_status() -> None:
@@ -241,4 +281,3 @@ def test_result_as_dict_serializes_enum_backed_status() -> None:
     )
 
     assert payload["status"] == "completed"
-

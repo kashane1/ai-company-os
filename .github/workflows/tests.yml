@@ -8,9 +8,37 @@ on:
 
 env:
   PYTHON_COVERAGE_MIN: "55"
-  IOS_COVERAGE_MIN: ""
+  IOS_COVERAGE_MIN: "20"
 
 jobs:
+  tests-with-code:
+    runs-on: ubuntu-latest
+    env:
+      PR_BODY: ${{ github.event.pull_request.body || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build changed-file manifest
+        run: |
+          mkdir -p build/ci
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            RANGE="${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+          elif [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+            RANGE="${{ github.sha }}"
+          else
+            RANGE="${{ github.event.before }}...${{ github.sha }}"
+          fi
+          git diff --name-status "$RANGE" > build/ci/changed-files.txt
+          printf '%s' "$PR_BODY" > build/ci/testing-metadata.md
+
+      - name: Enforce tests-with-code policy
+        run: |
+          python3 ./scripts/ci/check_tests_with_code.py \
+            --changed-files build/ci/changed-files.txt \
+            --metadata-file build/ci/testing-metadata.md
+
   python-tests:
     runs-on: ubuntu-latest
     steps:

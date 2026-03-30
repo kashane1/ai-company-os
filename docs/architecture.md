@@ -117,6 +117,8 @@ Likely later additions:
 
 This is the layer that prevents the platform from turning into a pile of disconnected workers.
 
+Shared policy now also includes the tests-with-code contract. That policy is encoded in shared schema and policy modules so workers, review artifacts, and CI all evaluate the same rule instead of drifting into prompt-only enforcement.
+
 ### 5. Runtime State
 
 Runtime state is the live operational footprint of the company OS.
@@ -195,6 +197,8 @@ Responsibilities:
 
 The engineering worker is responsible for controlled software execution, not product strategy or policy.
 
+The lane also owns test execution and tests-with-code enforcement for Python-facing logic changes. That enforcement is structured, lane-aware, and persisted into task-run data.
+
 ### iOS Worker
 
 The iOS worker is the platform-specific engineering lane for iOS work.
@@ -208,6 +212,8 @@ Responsibilities:
 - hand off distribution-ready outputs to the App Store lane
 
 This lane exists separately because iOS work requires platform-specific handling that should not be buried inside a general worker.
+
+The iOS lane uses the same structured tests-with-code policy as the engineering lane, but it maps relevant code and tests to the iOS product paths instead of the Python paths.
 
 ### App Store Worker
 
@@ -258,6 +264,33 @@ Codex is not used as:
 - the policy engine
 - the memory store
 - the task router
+
+Codex is expected to respond inside a structured worker contract. In addition to code changes, worker runs now require explicit testing metadata so validators can determine whether lane-matching tests were added or whether a machine-readable no-test exception applies.
+
+## Shared Testing Policy
+
+The repo now treats testing requirements as a first-class contract.
+
+Structured task packets include:
+
+- `tests_required`
+- `test_lane`
+- `allowed_no_test_reason_codes`
+
+Structured validator and task-run outputs include:
+
+- `testing_policy`
+- `failure_codes`
+- validation checks with specific codes such as `missing_tests_for_logic_change`
+
+The shared rule is:
+
+- logic-bearing Python changes under `apps/` or `packages/` require created or modified tests under `tests/python/`
+- logic-bearing iOS changes under `products/fishing-logbook-ios/Sources/` require created or modified tests under `products/fishing-logbook-ios/Tests/`
+- docs-only, generated-file, visual-only non-logic, comments-only, and config-no-behavior-change cases must use explicit machine-readable exceptions when no tests are added
+- `approved_followup_test_task` is valid only when the referenced task already exists in persisted task state, remains open, and matches the same lane and affected area
+
+CI uses the same shared policy through a required `tests-with-code` job. That job always reports on the latest commit SHA and uses the GitHub event SHAs for pull-request and push diffs instead of path-filtered required workflows.
 - the approval owner
 
 The intended relationship is simple:

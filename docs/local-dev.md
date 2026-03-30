@@ -115,8 +115,14 @@ The staged rollout works like this:
 
 - Stage 0: test failures fail locally and in CI, coverage is reported, thresholds are advisory
 - Active now: `PYTHON_COVERAGE_MIN=55` is enforced in CI
-- Current iOS status: coverage is still advisory while the lane builds headroom above the soft floor
-- Stage 1 target: enable `IOS_COVERAGE_MIN=20` once repeated local runs show stable coverage with comfortable margin
+- Active now: `IOS_COVERAGE_MIN=20` is enforced in CI after two stable local iOS coverage runs at `25.08%`
 - Stage 2: ratchet to `PYTHON_COVERAGE_MIN=70` and `IOS_COVERAGE_MIN=35`
 
 Coverage failures should be interpreted as a signal to add tests for deterministic logic and persistence/orchestration flows first. UI-heavy snapshot and automation suites are intentionally deferred in this repo's first testing phase.
+
+The repo also enforces a shared tests-with-code policy:
+
+- logic-bearing Python changes require created or modified tests under `tests/python/`
+- logic-bearing iOS changes require created or modified tests under `products/fishing-logbook-ios/Tests/`
+- valid no-test exceptions must be declared with a machine-readable `no_test_reason_code`
+- the required CI workflow always runs a `tests-with-code` guardrail job, so avoid assuming a path-filtered workflow can stand in for that check

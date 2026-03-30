@@ -194,7 +194,7 @@ Current stage:
 
 - tests are required to pass in both lanes
 - Python coverage is enforced at `55%`
-- iOS coverage is reported but remains advisory until the lane has more headroom
+- iOS coverage is enforced at `20%`
 
 Local commands:
 
@@ -209,12 +209,17 @@ Coverage model:
 - Python coverage is measured across `apps/` and `packages/`
 - iOS coverage is measured from the `FishingLogbook` target result bundle with `xccov`
 - `PYTHON_COVERAGE_MIN` and `IOS_COVERAGE_MIN` control staged threshold enforcement without changing the scripts
+- CI enables the current Stage 1 floors with `PYTHON_COVERAGE_MIN=55` and `IOS_COVERAGE_MIN=20`
 
 Testing policy:
 
 - deterministic logic gets unit tests first
 - persistence and orchestration flows get integration tests
 - UI-heavy snapshot testing and browser-style end-to-end flows are intentionally deferred for now
+- logic-bearing Python changes under `apps/` or `packages/` must ship with created or modified tests under `tests/python/`
+- logic-bearing iOS changes under `products/fishing-logbook-ios/Sources/` must ship with created or modified tests under `products/fishing-logbook-ios/Tests/`
+- valid no-test exceptions must be declared explicitly with a machine-readable `no_test_reason_code`
+- workers persist structured `testing_policy` and `failure_codes` data so missing tests fail as `VALIDATION_FAILED` with a specific reason such as `missing_tests_for_logic_change`
 
 Runtime-state isolation:
 

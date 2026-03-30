@@ -49,6 +49,7 @@ The packet includes:
 - task objective
 - execution rules
 - explicit constraints
+- structured testing contract fields such as `tests_required`, `test_lane`, and allowed no-test reason codes
 
 This packet is the direct instruction source for the local Codex CLI invocation.
 
@@ -79,8 +80,9 @@ After execution, the worker currently validates:
 - Codex result output exists
 - Codex exit code is zero
 - diff artifact exists
+- lane-matching tests were created or modified for logic-bearing changes, or a valid machine-readable no-test exception was supplied
 
-This is still a placeholder validation pipeline, but it is explicit and persisted.
+Validation stays explicit and persisted. A missing-tests failure still classifies as `VALIDATION_FAILED`, but task-run and review records now carry a specific failure code such as `missing_tests_for_logic_change` so humans can see the reason immediately.
 
 ## Persisted Artifacts And Checkpoints
 
@@ -93,5 +95,7 @@ The main persisted outputs are:
 - rendered task packet in the worktree
 - Codex stdout and stderr logs in `state/logs/engineering/`
 - diff artifact in `state/artifacts/engineering/<task-id>/`
+- structured testing-policy outcome and failure codes in the task-run record
+- testing-policy summary in the review artifact
 
 The goal is that a human can inspect what happened without guessing.

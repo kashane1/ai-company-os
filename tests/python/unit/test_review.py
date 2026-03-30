@@ -11,6 +11,11 @@ from engineering.review import (
 )
 from packages.db.approval_store import ApprovalStore
 from packages.schemas.approval import ApprovalStatus
+from packages.schemas.testing import (
+    TestLane as LaneEnum,
+    TestingPolicyResult as PolicyOutcome,
+    ValidationFailureCode,
+)
 from packages.schemas.task_run import EngineeringResultClassification, GitStateSnapshot, ValidationCheck
 from tests.python.factories.task_data import build_task
 
@@ -63,12 +68,22 @@ def test_build_summary_returns_expected_message_for_each_classification() -> Non
 def test_write_review_artifact_writes_expected_payload_shape(isolated_repo_root: Path) -> None:
     task = build_task()
     checks = [ValidationCheck(name="tests", passed=True, details="All checks passed")]
+    testing_policy = PolicyOutcome(
+        tests_required=True,
+        test_lane=LaneEnum.PYTHON,
+        relevant_tests_changed=False,
+        failure_code=ValidationFailureCode.MISSING_TESTS_FOR_LOGIC_CHANGE,
+        details="Missing tests",
+    )
 
     review_path = write_review_artifact(
         task=task,
         worktree_path="/tmp/worktree",
         changed_files=["src/app.py"],
         validation_checks=checks,
+        testing_policy=testing_policy,
+        testing_summary="- Added no tests",
+        failure_codes=[ValidationFailureCode.MISSING_TESTS_FOR_LOGIC_CHANGE.value],
         stdout_path="/tmp/stdout.log",
         stderr_path="/tmp/stderr.log",
         diff_path="/tmp/diff.patch",
@@ -82,17 +97,23 @@ def test_write_review_artifact_writes_expected_payload_shape(isolated_repo_root:
         "created_at",
         "diff_path",
         "stderr_path",
+        "failure_codes",
         "stdout_path",
         "summary",
         "task_id",
+        "testing_policy",
+        "testing_summary",
         "validator_results",
         "worktree_path",
     }
     assert payload["task_id"] == "task-123"
     assert payload["changed_files"] == ["src/app.py"]
     assert payload["validator_results"] == [
-        {"details": "All checks passed", "name": "tests", "passed": True}
+        {"code": None, "details": "All checks passed", "name": "tests", "passed": True}
     ]
+    assert payload["testing_policy"]["failure_code"] == "missing_tests_for_logic_change"
+    assert payload["testing_summary"] == "- Added no tests"
+    assert payload["failure_codes"] == ["missing_tests_for_logic_change"]
     assert payload["stdout_path"] == "/tmp/stdout.log"
     assert payload["stderr_path"] == "/tmp/stderr.log"
     assert payload["diff_path"] == "/tmp/diff.patch"
@@ -118,4 +139,3 @@ def test_create_approval_record_persists_pending_engineering_review(
     assert approval.action == "review_engineering_task"
     assert saved.review_artifact_path == "/tmp/review.json"
     assert saved.subject_id == "run-task-123"
-

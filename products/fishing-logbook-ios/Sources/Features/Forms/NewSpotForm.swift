@@ -99,7 +99,7 @@ struct NewSpotForm: View {
     }
 
     private var canSave: Bool {
-        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedWaterbody != nil
+        SpotFormLogic.canSave(title: title, selectedWaterbodyID: selectedWaterbodyID)
     }
 
     private var selectedWaterbody: Waterbody? {
@@ -107,10 +107,11 @@ struct NewSpotForm: View {
     }
 
     private func save() {
+        let draft = SpotFormLogic.draft(title: title, notes: notes)
         let spot = Spot(
-            title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+            title: draft.title,
             waterbody: selectedWaterbody,
-            notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)
+            notes: draft.notes
         )
         modelContext.insert(spot)
         try? modelContext.save()

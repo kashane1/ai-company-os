@@ -38,6 +38,8 @@ The engineering worker should wrap Codex in a controlled sequence:
 
 The worker owns the operational wrapper. Codex owns the code-writing step.
 
+The shared worker contract now also requires a concise `Testing` section in the Codex final output. That section must either list tests added or updated, or declare a machine-readable `no_test_reason_code` and `followup_task_id` when a valid follow-up test task exception is used.
+
 ## Shared Tooling
 
 V1 should keep Codex-facing helpers under `packages/tools/codex_tools/`.
@@ -62,3 +64,5 @@ Codex should always run under explicit constraints:
 - validation requirements
 
 The system should reject unsafe plans rather than assuming the model will self-limit.
+
+That includes rejecting logic-bearing changes that do not ship with lane-matching tests. The validator persists structured `testing_policy` and `failure_codes` data so the reason for a `VALIDATION_FAILED` result is queryable instead of hidden in prose.

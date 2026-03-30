@@ -170,8 +170,7 @@ private struct StartTripView: View {
     }
 
     private var filteredSpots: [Spot] {
-        guard let selectedWaterbodyID else { return spots }
-        return spots.filter { $0.waterbody?.id == selectedWaterbodyID }
+        LogFeatureLogic.filteredSpots(spots: spots, selectedWaterbodyID: selectedWaterbodyID)
     }
 
     private func startTrip() {
@@ -182,12 +181,13 @@ private struct StartTripView: View {
             capturedAt: .now
         )
 
+        let draft = LogFeatureLogic.startTripDraft(targetSpecies: targetSpecies, notes: tripNotes)
         let trip = Trip(
             waterbody: selectedWaterbody,
             spot: selectedSpot,
             conditionSnapshot: snapshot,
-            targetSpecies: targetSpecies.trimmingCharacters(in: .whitespacesAndNewlines),
-            notes: tripNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+            targetSpecies: draft.targetSpecies,
+            notes: draft.notes
         )
 
         modelContext.insert(snapshot)
@@ -268,29 +268,14 @@ private struct ActiveTripView: View {
     }
 
     private var recentSpeciesSuggestions: [String] {
-        var suggestions: [String] = []
-        for target in trip.targetSpeciesList {
-            guard !suggestions.contains(target) else { continue }
-            suggestions.append(target)
-        }
-        for catchRecord in allCatches {
-            let value = catchRecord.species.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !value.isEmpty, !suggestions.contains(value) else { continue }
-            suggestions.append(value)
-            if suggestions.count == 4 { break }
-        }
-        return suggestions
+        LogFeatureLogic.recentSpeciesSuggestions(
+            targetSpeciesList: trip.targetSpeciesList,
+            catches: allCatches
+        )
     }
 
     private var recentLureSuggestions: [String] {
-        var suggestions: [String] = []
-        for catchRecord in catchesForSpot + allCatches {
-            let value = catchRecord.lureOrBait.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !value.isEmpty, !suggestions.contains(value) else { continue }
-            suggestions.append(value)
-            if suggestions.count == 4 { break }
-        }
-        return suggestions
+        LogFeatureLogic.recentLureSuggestions(catchesForSpot: catchesForSpot, allCatches: allCatches)
     }
 
     var body: some View {
@@ -490,18 +475,27 @@ private struct ActiveTripView: View {
     // MARK: - Actions
 
     private func saveCatch() {
+        let draft = TripEditingLogic.catchDraft(
+            species: species,
+            lureOrBait: lureOrBait,
+            method: method,
+            weight: weight,
+            length: length,
+            note: note,
+            photoData: photoData
+        )
         let catchRecord = CatchRecord(
-            species: species.trimmingCharacters(in: .whitespacesAndNewlines),
+            species: draft.species,
             trip: trip,
             caughtAt: .now,
-            lureOrBait: lureOrBait.trimmingCharacters(in: .whitespacesAndNewlines),
-            method: method.trimmingCharacters(in: .whitespacesAndNewlines),
-            weightKg: Double(weight),
-            lengthCm: Double(length),
-            note: note.trimmingCharacters(in: .whitespacesAndNewlines),
-            photoReference: photoData == nil ? nil : "embedded-photo",
+            lureOrBait: draft.lureOrBait,
+            method: draft.method,
+            weightKg: draft.weightKg,
+            lengthCm: draft.lengthCm,
+            note: draft.note,
+            photoReference: draft.photoReference,
             photoData: photoData,
-            photoContentType: photoData == nil ? nil : "image/jpeg"
+            photoContentType: draft.photoContentType
         )
 
         modelContext.insert(catchRecord)
@@ -520,7 +514,7 @@ private struct ActiveTripView: View {
 
     private func endTrip() {
         trip.endAt = .now
-        trip.outcomeRawValue = catchesForTrip.isEmpty ? TripOutcome.skunked.rawValue : TripOutcome.caught.rawValue
+        trip.outcomeRawValue = LogFeatureLogic.endTripOutcome(catchCount: catchesForTrip.count).rawValue
         try? modelContext.save()
         onTripEnded?(trip)
     }
@@ -530,15 +524,16 @@ private struct ActiveTripView: View {
     }
 
     private func primeDefaultsIfNeeded() {
-        guard !didPrimeDefaults else { return }
-        didPrimeDefaults = true
-        guard let recentCatch = catchesForSpot.first ?? allCatches.first else { return }
-        if lureOrBait.isEmpty {
-            lureOrBait = recentCatch.lureOrBait
-        }
-        if method.isEmpty {
-            method = recentCatch.method
-        }
+        let defaults = LogFeatureLogic.primeDefaultsIfNeeded(
+            didPrimeDefaults: didPrimeDefaults,
+            lureOrBait: lureOrBait,
+            method: method,
+            catchesForSpot: catchesForSpot,
+            allCatches: allCatches
+        )
+        didPrimeDefaults = defaults.didPrimeDefaults
+        lureOrBait = defaults.lureOrBait
+        method = defaults.method
     }
 }
 

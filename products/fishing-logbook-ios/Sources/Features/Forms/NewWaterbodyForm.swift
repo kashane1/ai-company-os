@@ -42,7 +42,7 @@ struct NewWaterbodyForm: View {
                         save()
                     }
                     .fontWeight(.semibold)
-                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(!WaterbodyFormLogic.canSave(name: name))
                 }
             }
             .interactiveDismissDisabled(!name.isEmpty)
@@ -51,7 +51,7 @@ struct NewWaterbodyForm: View {
     }
 
     private func save() {
-        let waterbody = Waterbody(name: name.trimmingCharacters(in: .whitespacesAndNewlines), type: type)
+        let waterbody = Waterbody(name: WaterbodyFormLogic.normalizedName(name), type: type)
         modelContext.insert(waterbody)
         try? modelContext.save()
         onSaved?(waterbody)

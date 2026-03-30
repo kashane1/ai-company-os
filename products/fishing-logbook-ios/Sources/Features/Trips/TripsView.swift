@@ -67,6 +67,9 @@ struct TripsView: View {
 private struct TripRow: View {
     let trip: Trip
     let catchCount: Int
+    private var rowSummary: TripRowSummary {
+        TripPresentationLogic.tripRowSummary(trip: trip, catchCount: catchCount)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -80,25 +83,22 @@ private struct TripRow: View {
 
                 Spacer()
 
-                Text(catchCount == 0 && !trip.isActive ? "Skunked" : "\(catchCount)")
+                Text(rowSummary.catchCountText)
                     .font(.subheadline.weight(.semibold).monospacedDigit())
-                    .foregroundColor(catchCount == 0 && !trip.isActive ? .secondary : .appAccent)
+                    .foregroundColor(rowSummary.showsSkunkedStyle ? .secondary : .appAccent)
             }
 
             HStack(spacing: Spacing.md) {
                 Label(AppFormatters.tripDate.string(from: trip.startAt), systemImage: "calendar")
 
-                if let endAt = trip.endAt {
-                    let duration = endAt.timeIntervalSince(trip.startAt)
-                    if let durationText = AppFormatters.duration.string(from: duration) {
-                        Label(durationText, systemImage: "timer")
-                    }
+                if let durationText = rowSummary.durationText {
+                    Label(durationText, systemImage: "timer")
                 }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            if let spot = trip.spot?.title {
+            if let spot = rowSummary.spotTitle {
                 Label(spot, systemImage: "mappin")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
@@ -138,21 +138,11 @@ struct TripDetailView: View {
     }
 
     private var topStats: [(value: String, label: String, icon: String)] {
-        var stats: [(value: String, label: String, icon: String)] = [
-            ("\(catches.count)", catches.count == 1 ? "Catch" : "Catches", "fish")
-        ]
-
-        if let endAt = trip.endAt,
-           let durationText = AppFormatters.duration.string(from: endAt.timeIntervalSince(trip.startAt)) {
-            stats.append((durationText, "Duration", "timer"))
-        }
-
-        if !trip.targetSpeciesList.isEmpty {
-            let targetCount = trip.targetSpeciesList.count
-            stats.append(("\(targetCount)", targetCount == 1 ? "Target" : "Targets", "scope"))
-        }
-
-        return stats
+        TripPresentationLogic.topStats(
+            catchCount: catches.count,
+            durationText: trip.endAt.flatMap { AppFormatters.duration.string(from: $0.timeIntervalSince(trip.startAt)) },
+            targetSpeciesCount: trip.targetSpeciesList.count
+        ).map { ($0.value, $0.label, $0.icon) }
     }
 
     var body: some View {
@@ -330,12 +320,16 @@ private struct TripEditorView: View {
     }
 
     private var filteredSpots: [Spot] {
-        guard let selectedWaterbodyID else { return spots }
-        return spots.filter { $0.waterbody?.id == selectedWaterbodyID }
+        TripEditingLogic.filteredSpots(spots: spots, selectedWaterbodyID: selectedWaterbodyID)
     }
 
     private var canSave: Bool {
-        selectedWaterbodyID != nil && (isTripActive || endAt >= startAt)
+        TripEditingLogic.canSave(
+            selectedWaterbodyID: selectedWaterbodyID,
+            isTripActive: isTripActive,
+            startAt: startAt,
+            endAt: endAt
+        )
     }
 
     var body: some View {
@@ -413,13 +407,11 @@ private struct TripEditorView: View {
         }
         .presentationDetents([.large])
         .onChange(of: selectedWaterbodyID) { _, newValue in
-            if filteredSpots.contains(where: { $0.id == selectedSpotID }) {
-                return
-            }
-            selectedSpotID = nil
-            if newValue == nil {
-                selectedSpotID = nil
-            }
+            selectedSpotID = TripEditingLogic.selectedSpotIDAfterWaterbodyChange(
+                selectedSpotID: selectedSpotID,
+                filteredSpots: filteredSpots
+            )
+            if newValue == nil { selectedSpotID = nil }
         }
     }
 
@@ -428,21 +420,33 @@ private struct TripEditorView: View {
         trip.spot = filteredSpots.first(where: { $0.id == selectedSpotID })
         trip.startAt = startAt
         trip.endAt = isTripActive ? nil : endAt
-        trip.targetSpecies = targetSpecies.trimmingCharacters(in: .whitespacesAndNewlines)
-        trip.notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
-        trip.outcomeRawValue = tripOutcome(for: trip.endAt, catchCount: catchCount).rawValue
+        trip.targetSpecies = TripEditingLogic.normalizedText(targetSpecies)
+        trip.notes = TripEditingLogic.normalizedText(notes)
+        trip.outcomeRawValue = TripEditingLogic.tripOutcome(endAt: trip.endAt, catchCount: catchCount).rawValue
 
         if let snapshot = trip.conditionSnapshot {
-            snapshot.placeSummary = trimmedOrNil(placeSummary)
-            snapshot.timeWindowSummary = trimmedOrNil(timeWindowSummary)
-            snapshot.lightLevelSummary = trimmedOrNil(lightLevelSummary)
-            snapshot.weatherSummary = trimmedOrNil(weatherSummary)
-            snapshot.windSummary = trimmedOrNil(windSummary)
-            snapshot.cloudCoverSummary = trimmedOrNil(cloudCoverSummary)
-            snapshot.precipitationSummary = trimmedOrNil(precipitationSummary)
-            snapshot.temperatureC = Double(temperatureC.trimmingCharacters(in: .whitespacesAndNewlines))
-            snapshot.latitude = Double(latitude.trimmingCharacters(in: .whitespacesAndNewlines))
-            snapshot.longitude = Double(longitude.trimmingCharacters(in: .whitespacesAndNewlines))
+            let draft = TripEditingLogic.conditionDraft(
+                placeSummary: placeSummary,
+                timeWindowSummary: timeWindowSummary,
+                lightLevelSummary: lightLevelSummary,
+                weatherSummary: weatherSummary,
+                windSummary: windSummary,
+                cloudCoverSummary: cloudCoverSummary,
+                precipitationSummary: precipitationSummary,
+                temperatureC: temperatureC,
+                latitude: latitude,
+                longitude: longitude
+            )
+            snapshot.placeSummary = draft.placeSummary
+            snapshot.timeWindowSummary = draft.timeWindowSummary
+            snapshot.lightLevelSummary = draft.lightLevelSummary
+            snapshot.weatherSummary = draft.weatherSummary
+            snapshot.windSummary = draft.windSummary
+            snapshot.cloudCoverSummary = draft.cloudCoverSummary
+            snapshot.precipitationSummary = draft.precipitationSummary
+            snapshot.temperatureC = draft.temperatureC
+            snapshot.latitude = draft.latitude
+            snapshot.longitude = draft.longitude
         }
 
         try? modelContext.save()
@@ -590,18 +594,27 @@ struct CatchEditorView: View {
         if catchRecord == nil {
             modelContext.insert(record)
         }
+        let draft = TripEditingLogic.catchDraft(
+            species: species,
+            lureOrBait: lureOrBait,
+            method: method,
+            weight: weight,
+            length: length,
+            note: note,
+            photoData: photoData
+        )
 
         record.trip = trip
-        record.species = species.trimmingCharacters(in: .whitespacesAndNewlines)
+        record.species = draft.species
         record.caughtAt = caughtAt
-        record.lureOrBait = lureOrBait.trimmingCharacters(in: .whitespacesAndNewlines)
-        record.method = method.trimmingCharacters(in: .whitespacesAndNewlines)
-        record.weightKg = Double(weight.trimmingCharacters(in: .whitespacesAndNewlines))
-        record.lengthCm = Double(length.trimmingCharacters(in: .whitespacesAndNewlines))
-        record.note = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        record.lureOrBait = draft.lureOrBait
+        record.method = draft.method
+        record.weightKg = draft.weightKg
+        record.lengthCm = draft.lengthCm
+        record.note = draft.note
         record.photoData = photoData
-        record.photoReference = photoData == nil ? nil : "embedded-photo"
-        record.photoContentType = photoData == nil ? nil : "image/jpeg"
+        record.photoReference = draft.photoReference
+        record.photoContentType = draft.photoContentType
 
         persistCatchChanges()
         dismiss()
@@ -641,20 +654,10 @@ private struct TripStatPill: View {
     }
 }
 
-private func trimmedOrNil(_ value: String) -> String? {
-    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-    return trimmed.isEmpty ? nil : trimmed
-}
-
-private func tripOutcome(for endAt: Date?, catchCount: Int) -> TripOutcome {
-    guard endAt != nil else { return .active }
-    return catchCount == 0 ? .skunked : .caught
-}
-
 private func syncTripOutcomeAndPersonalBests(for trip: Trip, in context: ModelContext) throws {
     let catches = try context.fetch(FetchDescriptor<CatchRecord>())
         .filter { $0.trip?.id == trip.id }
 
-    trip.outcomeRawValue = tripOutcome(for: trip.endAt, catchCount: catches.count).rawValue
+    trip.outcomeRawValue = TripEditingLogic.tripOutcome(endAt: trip.endAt, catchCount: catches.count).rawValue
     try PersonalBestService.rebuild(in: context)
 }

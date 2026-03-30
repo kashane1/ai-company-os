@@ -4,7 +4,7 @@ import subprocess
 from packages.config.settings import ensure_runtime_directories
 from packages.policies.testing import evaluate_testing_policy, parse_git_status_lines, parse_testing_metadata
 from packages.schemas.task import Task
-from packages.schemas.testing import TestLane
+from packages.schemas.testing import TestLane, TestingPolicyResult
 from packages.schemas.task_run import ValidationCheck
 from packages.schemas.worktree import WorktreeMetadata
 from packages.tools.ios_tools.xcode import detect_project_reference, default_build_command
@@ -45,7 +45,7 @@ def validate_run(
     exit_code: int,
     diff_path: str,
     status_lines: list[str],
-) -> tuple[list[ValidationCheck], object, str]:
+) -> tuple[list[ValidationCheck], TestingPolicyResult, str]:
     execution_result = Path(execution_result_path)
     testing_metadata = (
         parse_testing_metadata(execution_result.read_text()) if execution_result.exists() else None
