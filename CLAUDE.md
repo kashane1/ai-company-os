@@ -58,6 +58,8 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **codex-claude-handoff** — transfer work between Codex and Claude
 - **ios-ui-polish-review** — review iOS code for UI polish and platform conventions
 - **ios-to-appstore-handoff** — prepare handoff from iOS build to App Store release
+- **supervisor-goal-decomposition** — decompose founder goals into structured worker tasks
+- **app-store-positioning-pack** — generate App Store positioning outputs from product artifacts
 
 ## Conventions
 
