@@ -12,21 +12,38 @@
 		0DD04798AFF6AE2B885477CB /* PersonalBestService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170615576114AB69A5A4C8A2 /* PersonalBestService.swift */; };
 		1AE97ADC550D97C1F26419B7 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05ECF37EB624290D89D2B5DC /* LogView.swift */; };
 		1F2DD828179B87395168450C /* FishingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19203D874A6F2C8F9188157D /* FishingModels.swift */; };
+		2C99DD0D3201079DF5D4D6DD /* FishingModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB3E8298C6023E257C2C288 /* FishingModelsTests.swift */; };
 		32C8B84FCDE25ED15732D862 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB0DE6C71C6638B79250B44 /* Formatters.swift */; };
+		3389C3A2F3119A4C357775A4 /* SpotRecallSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50793C6A2F105F5093831BE0 /* SpotRecallSummaryTests.swift */; };
 		362BC9689DB772BDE4CA1484 /* FishingLogbookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 700DF821FF2BEBBE201532E3 /* FishingLogbookApp.swift */; };
 		4709073BF427A5DE8A49BD48 /* CatchPhotoComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255E2CFF90A596C8A63D4439 /* CatchPhotoComponents.swift */; };
 		4BEBF2957696CBC7FB84BE71 /* NewWaterbodyForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2778FC7F6C161B5507595861 /* NewWaterbodyForm.swift */; };
 		6AE9EE7831CDBC34AD5011A3 /* TripsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799825EBE3569A196BBF9F3E /* TripsView.swift */; };
 		6AFDE1DCBFC5F1B5C7C0A21E /* LocationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583218CF0704E40BB054B26 /* LocationRecorder.swift */; };
 		76E338F555D2E6020958F844 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7C6D83F8A4BF66332C3738 /* HomeView.swift */; };
+		879B5EA6B08532C56114EEC6 /* PersonalBestServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848591A8214B5DE018399DA9 /* PersonalBestServiceTests.swift */; };
+		AE75FCE020DE3F73E11759AF /* ModelTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F94D0FEE5DB0784BE125239 /* ModelTestSupport.swift */; };
 		C11D1B6ADB647DD62D36C96F /* DeterministicInsightCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11D30FF71C15A7AC5CAE55B /* DeterministicInsightCard.swift */; };
 		C5AFF1E70AA1B635A350A4B1 /* SpotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D1121E7C1D9E610844FD66 /* SpotsView.swift */; };
 		CCFE27AA6C0E97210DDB7B06 /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5743E855892E95D4C71ECA /* AppTab.swift */; };
 		CEE95CAE5784BC23C9A08A4E /* NewSpotForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0995C54CB98F03FB245982 /* NewSpotForm.swift */; };
+		E8F3E583AECBDF48138641BC /* AppFormattersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0563D0D52E8AA6E1645E272C /* AppFormattersTests.swift */; };
 		EBADC6D452CBDAD23197C396 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AB0218BE7404DC9C3E27F9 /* DesignTokens.swift */; };
+		FC256931B4EFD723FA502345 /* ConditionCaptureServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5EDC06CFBC199A10258B94E /* ConditionCaptureServiceTests.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		0C9D19771557772B38B72AE3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3B2BAE8C3740C1DF90DDE592 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 74C53A694518D99B5650A141;
+			remoteInfo = FishingLogbook;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		0563D0D52E8AA6E1645E272C /* AppFormattersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFormattersTests.swift; sourceTree = "<group>"; };
 		05ECF37EB624290D89D2B5DC /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		0AB0DE6C71C6638B79250B44 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		170615576114AB69A5A4C8A2 /* PersonalBestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestService.swift; sourceTree = "<group>"; };
@@ -35,15 +52,21 @@
 		255E2CFF90A596C8A63D4439 /* CatchPhotoComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchPhotoComponents.swift; sourceTree = "<group>"; };
 		2778FC7F6C161B5507595861 /* NewWaterbodyForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWaterbodyForm.swift; sourceTree = "<group>"; };
 		2B0995C54CB98F03FB245982 /* NewSpotForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSpotForm.swift; sourceTree = "<group>"; };
+		50793C6A2F105F5093831BE0 /* SpotRecallSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRecallSummaryTests.swift; sourceTree = "<group>"; };
 		5F7C6D83F8A4BF66332C3738 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		6583218CF0704E40BB054B26 /* LocationRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRecorder.swift; sourceTree = "<group>"; };
+		6F94D0FEE5DB0784BE125239 /* ModelTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelTestSupport.swift; sourceTree = "<group>"; };
 		700DF821FF2BEBBE201532E3 /* FishingLogbookApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingLogbookApp.swift; sourceTree = "<group>"; };
 		799825EBE3569A196BBF9F3E /* TripsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsView.swift; sourceTree = "<group>"; };
 		7F5743E855892E95D4C71ECA /* AppTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTab.swift; sourceTree = "<group>"; };
+		848591A8214B5DE018399DA9 /* PersonalBestServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestServiceTests.swift; sourceTree = "<group>"; };
 		85D1121E7C1D9E610844FD66 /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
-		C1F84E35100DC563530A0D6C /* Fishing Logbook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Fishing Logbook.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5EDC06CFBC199A10258B94E /* ConditionCaptureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionCaptureServiceTests.swift; sourceTree = "<group>"; };
+		C1F84E35100DC563530A0D6C /* FishingLogbook.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FishingLogbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0A2424AE66D45111FA0AFA1 /* SpotRecallSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRecallSummary.swift; sourceTree = "<group>"; };
 		D3AB0218BE7404DC9C3E27F9 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		DAB3E8298C6023E257C2C288 /* FishingModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingModelsTests.swift; sourceTree = "<group>"; };
+		EB638220F7B6E56BBFBD3038 /* FishingLogbookTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FishingLogbookTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F11D30FF71C15A7AC5CAE55B /* DeterministicInsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterministicInsightCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -60,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				1DD48AB72BA2EFC5C9902164 /* Sources */,
+				FE84740A778D8B2708238C4D /* Tests */,
 				23A13F3F58C3F9630F4B0E7E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -80,7 +104,8 @@
 		23A13F3F58C3F9630F4B0E7E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C1F84E35100DC563530A0D6C /* Fishing Logbook.app */,
+				C1F84E35100DC563530A0D6C /* FishingLogbook.app */,
+				EB638220F7B6E56BBFBD3038 /* FishingLogbookTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -127,6 +152,14 @@
 			path = Insights;
 			sourceTree = "<group>";
 		};
+		BD9F4F08ABBE59BFEC6F98C0 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				0563D0D52E8AA6E1645E272C /* AppFormattersTests.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		C77BC7B8C5D83BFC042C6C14 /* Features */ = {
 			isa = PBXGroup;
 			children = (
@@ -137,6 +170,14 @@
 				561F2B316A5E5BD2C196EB31 /* Trips */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		D2DFD291B4A874ADA62579CD /* Insights */ = {
+			isa = PBXGroup;
+			children = (
+				50793C6A2F105F5093831BE0 /* SpotRecallSummaryTests.swift */,
+			);
+			path = Insights;
 			sourceTree = "<group>";
 		};
 		D9EB16DA936ED623A638C7AD /* UI */ = {
@@ -157,6 +198,15 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		DF93E4321753D923839E3CA4 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A5EDC06CFBC199A10258B94E /* ConditionCaptureServiceTests.swift */,
+				848591A8214B5DE018399DA9 /* PersonalBestServiceTests.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		E31400716DB675286C543B79 /* Forms */ = {
 			isa = PBXGroup;
 			children = (
@@ -164,6 +214,14 @@
 				2778FC7F6C161B5507595861 /* NewWaterbodyForm.swift */,
 			);
 			path = Forms;
+			sourceTree = "<group>";
+		};
+		E49A09C4E216A78E94F5F2FB /* TestSupport */ = {
+			isa = PBXGroup;
+			children = (
+				6F94D0FEE5DB0784BE125239 /* ModelTestSupport.swift */,
+			);
+			path = TestSupport;
 			sourceTree = "<group>";
 		};
 		FAEEC8B18B6BF6792B3DEE77 /* Home */ = {
@@ -184,9 +242,47 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		FE0D89D08956D313E18567BE /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				DAB3E8298C6023E257C2C288 /* FishingModelsTests.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		FE84740A778D8B2708238C4D /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				D2DFD291B4A874ADA62579CD /* Insights */,
+				FE0D89D08956D313E18567BE /* Models */,
+				DF93E4321753D923839E3CA4 /* Services */,
+				BD9F4F08ABBE59BFEC6F98C0 /* Shared */,
+				E49A09C4E216A78E94F5F2FB /* TestSupport */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		6D224E8944C76EBD32375E4E /* FishingLogbookTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5832CD1CC466737B8E3ED8FB /* Build configuration list for PBXNativeTarget "FishingLogbookTests" */;
+			buildPhases = (
+				5A8921EE576474F794D93E69 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F63A78C9A635F2D590BDD6B0 /* PBXTargetDependency */,
+			);
+			name = FishingLogbookTests;
+			packageProductDependencies = (
+			);
+			productName = FishingLogbookTests;
+			productReference = EB638220F7B6E56BBFBD3038 /* FishingLogbookTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		74C53A694518D99B5650A141 /* FishingLogbook */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4C6D47DAAAA70DBDB5339569 /* Build configuration list for PBXNativeTarget "FishingLogbook" */;
@@ -201,7 +297,7 @@
 			packageProductDependencies = (
 			);
 			productName = FishingLogbook;
-			productReference = C1F84E35100DC563530A0D6C /* Fishing Logbook.app */;
+			productReference = C1F84E35100DC563530A0D6C /* FishingLogbook.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -211,7 +307,9 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2630;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = 98E05680CB2C31AC63960F60 /* Build configuration list for PBXProject "FishingLogbook" */;
 			developmentRegion = en;
@@ -228,6 +326,7 @@
 			projectRoot = "";
 			targets = (
 				74C53A694518D99B5650A141 /* FishingLogbook */,
+				6D224E8944C76EBD32375E4E /* FishingLogbookTests */,
 			);
 		};
 /* End PBXProject section */
@@ -257,7 +356,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5A8921EE576474F794D93E69 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E8F3E583AECBDF48138641BC /* AppFormattersTests.swift in Sources */,
+				FC256931B4EFD723FA502345 /* ConditionCaptureServiceTests.swift in Sources */,
+				2C99DD0D3201079DF5D4D6DD /* FishingModelsTests.swift in Sources */,
+				AE75FCE020DE3F73E11759AF /* ModelTestSupport.swift in Sources */,
+				879B5EA6B08532C56114EEC6 /* PersonalBestServiceTests.swift in Sources */,
+				3389C3A2F3119A4C357775A4 /* SpotRecallSummaryTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F63A78C9A635F2D590BDD6B0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 74C53A694518D99B5650A141 /* FishingLogbook */;
+			targetProxy = 0C9D19771557772B38B72AE3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1FE4391E408C2AD12E6CB35B /* Release */ = {
@@ -298,7 +418,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -313,7 +432,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -358,7 +476,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -380,7 +497,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -393,7 +509,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_ASSET_PATHS = "\"\"";
-				DEVELOPMENT_TEAM = 92SGDZ88FW;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Fishing Logbook";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Capture trip locations privately for your own fishing history.";
@@ -413,13 +528,29 @@
 			};
 			name = Release;
 		};
+		919360EE108E7AA122BC4AE7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.aicompanyos.products.fishinglogbookTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Fishing Logbook.app/Fishing Logbook";
+			};
+			name = Debug;
+		};
 		989FA2902201B56B76E845AB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_ASSET_PATHS = "\"\"";
-				DEVELOPMENT_TEAM = 92SGDZ88FW;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Fishing Logbook";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Capture trip locations privately for your own fishing history.";
@@ -439,6 +570,23 @@
 			};
 			name = Debug;
 		};
+		AE99F4EE0B8622B57A8B0E2D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.aicompanyos.products.fishinglogbookTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Fishing Logbook.app/Fishing Logbook";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -447,6 +595,15 @@
 			buildConfigurations = (
 				989FA2902201B56B76E845AB /* Debug */,
 				264D90B350A8BE70C9F2995D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5832CD1CC466737B8E3ED8FB /* Build configuration list for PBXNativeTarget "FishingLogbookTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				919360EE108E7AA122BC4AE7 /* Debug */,
+				AE99F4EE0B8622B57A8B0E2D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

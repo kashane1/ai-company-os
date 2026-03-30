@@ -362,8 +362,8 @@ final class PersonalBest {
     }
 }
 
-func timeWindowLabel(for date: Date) -> String {
-    let hour = Calendar.current.component(.hour, from: date)
+func timeWindowLabel(for date: Date, calendar: Calendar = .current) -> String {
+    let hour = calendar.component(.hour, from: date)
     switch hour {
     case 5..<9:
         return "6-9 AM"
@@ -378,8 +378,8 @@ func timeWindowLabel(for date: Date) -> String {
     }
 }
 
-func lightLevelLabel(for date: Date) -> String {
-    let hour = Calendar.current.component(.hour, from: date)
+func lightLevelLabel(for date: Date, calendar: Calendar = .current) -> String {
+    let hour = calendar.component(.hour, from: date)
     switch hour {
     case 4..<6:
         return "First light"

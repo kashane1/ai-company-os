@@ -30,4 +30,21 @@ targets:
         SUPPORTS_MACCATALYST: NO
         DEVELOPMENT_ASSET_PATHS: "\"\""
     scheme:
-      gatherCoverageData: false
+      gatherCoverageData: true
+      coverageTargets:
+        - FishingLogbook
+      testTargets:
+        - FishingLogbookTests
+  FishingLogbookTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: FishingLogbook
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.fishinglogbookTests
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Fishing Logbook.app/Fishing Logbook"

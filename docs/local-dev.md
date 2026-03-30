@@ -34,7 +34,16 @@ Example:
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade pip
+python3 -m pip install -e ".[test]"
 ```
+
+Run the Python test lane with:
+
+```bash
+./scripts/test_python.sh
+```
+
+The Python test harness isolates runtime state by setting `AI_COMPANY_OS_REPO_ROOT` to a temporary repo root. That keeps test writes out of the real `state/` tree while preserving production defaults.
 
 ## Postgres And Redis
 
@@ -67,6 +76,14 @@ If you are working on the iOS or App Store lanes, local tooling will eventually 
 
 Keep iOS engineering and App Store release automation as separate concerns even when both depend on Apple tooling.
 
+Run the iOS test lane with:
+
+```bash
+./scripts/test_ios.sh
+```
+
+This regenerates the Xcode project from `products/fishing-logbook-ios/project.yml`, runs `xcodebuild test`, and reports target coverage with `xccov`.
+
 ## Local State Directories
 
 Runtime state belongs under `state/`.
@@ -91,3 +108,15 @@ python3 apps/worker-supervisor/main.py
 ```
 
 These are verification hooks, not the final runtime model.
+
+## Testing And Coverage
+
+The staged rollout works like this:
+
+- Stage 0: test failures fail locally and in CI, coverage is reported, thresholds are advisory
+- Active now: `PYTHON_COVERAGE_MIN=55` is enforced in CI
+- Current iOS status: coverage is still advisory while the lane builds headroom above the soft floor
+- Stage 1 target: enable `IOS_COVERAGE_MIN=20` once repeated local runs show stable coverage with comfortable margin
+- Stage 2: ratchet to `PYTHON_COVERAGE_MIN=70` and `IOS_COVERAGE_MIN=35`
+
+Coverage failures should be interpreted as a signal to add tests for deterministic logic and persistence/orchestration flows first. UI-heavy snapshot and automation suites are intentionally deferred in this repo's first testing phase.

@@ -1,0 +1,79 @@
+from apps.api import platform
+from packages.db.approval_store import ApprovalStore
+from packages.db.product_store import ProductStore
+from packages.db.release_store import ReleaseStore
+from packages.db.task_store import TaskStore
+from packages.schemas.approval import ApprovalStatus
+from packages.schemas.product import ProductStatus
+from packages.schemas.release import BuildStatus, MetadataStatus, ReleaseStatus, ScreenshotStatus
+from packages.schemas.task_packet import RiskLevel, WorkerLane
+
+
+def test_create_engineering_and_ios_tasks_persist_to_isolated_state(
+    isolated_repo_root: Path,
+) -> None:
+    engineering_task = platform.create_engineering_task(
+        "Add tests",
+        "Create initial coverage harness.",
+        repo_id="ai-company-os",
+        task_id="task-eng-123",
+    )
+    ios_task = platform.create_ios_task(
+        "Test fishing app",
+        "Add logic tests for the app.",
+        task_id="task-ios-123",
+    )
+    store = TaskStore()
+
+    assert engineering_task.lane is WorkerLane.ENGINEERING
+    assert engineering_task.risk_level is RiskLevel.LOW
+    assert store.load("task-eng-123").title == "Add tests"
+
+    assert ios_task.lane is WorkerLane.IOS
+    assert ios_task.risk_level is RiskLevel.MEDIUM
+    assert store.load("task-ios-123").product_id == "fishing-logbook"
+
+
+def test_register_product_uses_isolated_repo_root(
+    isolated_repo_root: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(platform, "ROOT", isolated_repo_root)
+
+    product = platform.register_product("fishing-logbook")
+    stored = ProductStore().load("fishing-logbook")
+
+    assert product.status is ProductStatus.READY_FOR_IMPLEMENTATION
+    assert stored.source_path == str(isolated_repo_root / "products" / "fishing-logbook-ios")
+    assert stored.docs_root == str(isolated_repo_root / "docs" / "products" / "fishing-logbook")
+    assert stored.artifacts[0].path == str(
+        isolated_repo_root / "docs" / "products" / "fishing-logbook" / "founder-brief.md"
+    )
+
+
+def test_scaffold_release_state_and_create_release_approval_persist_records(
+    isolated_repo_root: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(platform, "ROOT", isolated_repo_root)
+
+    payload = platform.scaffold_release_state(version="1.2.0", build_number="42")
+    approval = platform.create_release_approval(
+        "release-fishing-logbook-v1.2.0",
+        "submit_appstore",
+    )
+    release_store = ReleaseStore()
+
+    build_candidate = release_store.load_build_candidate("build-fishing-logbook-1.2.0-b42")
+    metadata_draft = release_store.load_metadata_draft("metadata-fishing-logbook-en-US")
+    screenshot_set = release_store.load_screenshot_set("screenshots-fishing-logbook-iphone")
+    release_record = release_store.load_release_record("release-fishing-logbook-v1.2.0")
+    stored_approval = ApprovalStore().load(approval.id)
+
+    assert payload["release_record"]["id"] == "release-fishing-logbook-v1.2.0"
+    assert build_candidate.status is BuildStatus.DRAFT
+    assert metadata_draft.status is MetadataStatus.READY
+    assert screenshot_set.status is ScreenshotStatus.DRAFT
+    assert release_record.status is ReleaseStatus.DRAFT
+    assert stored_approval.status is ApprovalStatus.PENDING
+    assert stored_approval.action == "submit_appstore"

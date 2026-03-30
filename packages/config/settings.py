@@ -1,5 +1,9 @@
 from dataclasses import dataclass
+import os
 from pathlib import Path
+
+
+TEST_REPO_ROOT_ENV_VAR = "AI_COMPANY_OS_REPO_ROOT"
 
 
 @dataclass(frozen=True)
@@ -31,7 +35,8 @@ class RuntimePaths:
 
 
 def load_runtime_paths(repo_root: Path | None = None) -> RuntimePaths:
-    root = repo_root or Path(__file__).resolve().parents[2]
+    override_root = os.environ.get(TEST_REPO_ROOT_ENV_VAR)
+    root = repo_root or (Path(override_root).resolve() if override_root else Path(__file__).resolve().parents[2])
     state_root = root / "state"
     checkpoints_root = state_root / "checkpoints"
     platform_state_root = checkpoints_root / "platform"

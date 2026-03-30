@@ -186,6 +186,41 @@ The immediate priorities are:
 - keep iOS and App Store responsibilities separate
 - keep the repo safe to extend without hidden orchestration
 
+## Testing
+
+The repo now has a staged automated testing foundation for both the Python platform code and the iOS product.
+
+Current stage:
+
+- tests are required to pass in both lanes
+- Python coverage is enforced at `55%`
+- iOS coverage is reported but remains advisory until the lane has more headroom
+
+Local commands:
+
+```bash
+python3 -m pip install -e ".[test]"
+./scripts/test_python.sh
+./scripts/test_ios.sh
+```
+
+Coverage model:
+
+- Python coverage is measured across `apps/` and `packages/`
+- iOS coverage is measured from the `FishingLogbook` target result bundle with `xccov`
+- `PYTHON_COVERAGE_MIN` and `IOS_COVERAGE_MIN` control staged threshold enforcement without changing the scripts
+
+Testing policy:
+
+- deterministic logic gets unit tests first
+- persistence and orchestration flows get integration tests
+- UI-heavy snapshot testing and browser-style end-to-end flows are intentionally deferred for now
+
+Runtime-state isolation:
+
+- production code still writes to the repo `state/` tree by default
+- Python tests set an isolated repo-root override so stateful tests write into a temporary `state/` tree instead of the real repo runtime directories
+
 ## Getting Started
 
 This repo currently provides an architectural scaffold, not a full runtime.
