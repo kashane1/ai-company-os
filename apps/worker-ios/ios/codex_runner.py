@@ -6,41 +6,39 @@ from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories
 from packages.schemas.task import Task
+from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.task_run import CodexExecutionRecord
 from packages.schemas.worktree import WorktreeMetadata
+from packages.tools.codex_tools.task_packet import CodexTaskPacket, render_markdown
 
 CODEX_TIMEOUT_SECONDS = 120
 
 
 def render_task_packet(task: Task, worktree: WorktreeMetadata) -> str:
-    packet_lines = [
-        f"# iOS Task {task.id}",
-        "",
-        "## Objective",
-        "",
-        task.summary,
-        "",
-        "## Product Context",
-        "",
-        f"- product_id={task.product_id or 'unknown'}",
-        f"- repo_id={task.repo_id}",
-        "- lane=ios",
-        "- Treat docs/products as the product source of truth before editing code.",
-        "",
-        "## Execution Rules",
-        "",
-        "- Work only inside the provided isolated worktree.",
-        "- Keep the change scoped to the requested iOS task.",
-        "- Do not introduce release automation, TestFlight automation, or App Store Connect changes.",
-        "- Leave all file changes uncommitted for manual inspection.",
-        "- Prefer the smallest believable structural change.",
-    ]
-    if task.constraints:
-        packet_lines.extend(["", "## Constraints"])
-        packet_lines.extend(f"- {constraint}" for constraint in task.constraints)
-
+    packet = CodexTaskPacket(
+        task_id=f"iOS Task {task.id}",
+        summary=task.summary,
+        constraints=[
+            "product_id=" + (task.product_id or "unknown"),
+            f"repo_id={task.repo_id}",
+            "lane=ios",
+            "Treat docs/products as the product source of truth before editing code.",
+            "Keep the change scoped to the requested iOS task.",
+            "Do not introduce release automation, TestFlight automation, or App Store Connect changes.",
+            "Prefer the smallest believable structural change.",
+            *task.constraints,
+        ],
+        tests_required=True,
+        test_lane=TestLane.IOS,
+        allowed_no_test_reason_codes=[
+            NoTestReasonCode.COMMENTS_ONLY,
+            NoTestReasonCode.VISUAL_ONLY_NON_LOGIC,
+            NoTestReasonCode.CONFIG_NO_BEHAVIOR_CHANGE,
+            NoTestReasonCode.APPROVED_FOLLOWUP_TEST_TASK,
+        ],
+    )
     packet_path = Path(worktree.root_path) / "codex_task_packet.md"
-    packet_path.write_text("\n".join(packet_lines) + "\n")
+    packet_path.write_text(render_markdown(packet) + "\n")
     return str(packet_path)
 
 

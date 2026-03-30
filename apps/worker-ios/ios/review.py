@@ -5,6 +5,7 @@ from packages.config.settings import ensure_runtime_directories
 from packages.db.approval_store import ApprovalStore
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.task import Task
+from packages.schemas.testing import TestingPolicyResult
 from packages.schemas.task_run import (
     EngineeringResultClassification,
     GitStateSnapshot,
@@ -51,6 +52,9 @@ def write_review_artifact(
     worktree_path: str,
     changed_files: list[str],
     validation_checks: list[ValidationCheck],
+    testing_policy: TestingPolicyResult | None,
+    testing_summary: str,
+    failure_codes: list[str],
     stdout_path: str,
     stderr_path: str,
     diff_path: str,
@@ -66,6 +70,9 @@ def write_review_artifact(
         "worktree_path": worktree_path,
         "changed_files": changed_files,
         "validator_results": [check.to_dict() for check in validation_checks],
+        "testing_policy": testing_policy.to_dict() if testing_policy else None,
+        "testing_summary": testing_summary,
+        "failure_codes": failure_codes,
         "stdout_path": stdout_path,
         "stderr_path": stderr_path,
         "diff_path": diff_path,

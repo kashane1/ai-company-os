@@ -1,3 +1,4 @@
+from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.repo import RepoConfig, RepoRecord, RepoSyncStatus
 from packages.schemas.task import Task
 from packages.schemas.task_packet import RiskLevel, TaskPacket, TaskStatus, WorkerLane
@@ -20,6 +21,16 @@ def build_task_packet(
         title=title,
         summary=summary,
         risk_level=risk_level,
+        tests_required=lane in {WorkerLane.ENGINEERING, WorkerLane.IOS},
+        test_lane=(
+            TestLane.IOS
+            if lane is WorkerLane.IOS
+            else TestLane.PYTHON if lane is WorkerLane.ENGINEERING else TestLane.NONE
+        ),
+        allowed_no_test_reason_codes=[
+            NoTestReasonCode.COMMENTS_ONLY,
+            NoTestReasonCode.CONFIG_NO_BEHAVIOR_CHANGE,
+        ],
     )
 
 

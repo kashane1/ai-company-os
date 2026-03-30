@@ -2,6 +2,9 @@ import subprocess
 from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories
+from packages.policies.testing import evaluate_testing_policy, parse_git_status_lines, parse_testing_metadata
+from packages.schemas.task import Task
+from packages.schemas.testing import TestLane
 from packages.schemas.task_run import ValidationCheck
 from packages.schemas.worktree import WorktreeMetadata
 
@@ -27,12 +30,24 @@ def capture_diff(worktree: WorktreeMetadata, task_id: str) -> str:
 
 
 def validate_run(
+    task: Task,
     packet_path: str,
     worktree_path: str,
     execution_result_path: str,
     exit_code: int,
     diff_path: str,
-) -> list[ValidationCheck]:
+    status_lines: list[str],
+) -> tuple[list[ValidationCheck], object, str]:
+    execution_result = Path(execution_result_path)
+    testing_metadata = (
+        parse_testing_metadata(execution_result.read_text()) if execution_result.exists() else None
+    )
+    testing_policy = evaluate_testing_policy(
+        lane=TestLane.PYTHON,
+        changes=parse_git_status_lines(status_lines),
+        testing_metadata=testing_metadata,
+        current_task=task,
+    )
     checks = [
         ValidationCheck(
             name="worktree_exists",
@@ -59,5 +74,12 @@ def validate_run(
             passed=Path(diff_path).exists(),
             details=f"Expected diff artifact at {diff_path}.",
         ),
+        ValidationCheck(
+            name="tests_with_code_policy",
+            passed=testing_policy.failure_code is None,
+            details=testing_policy.details,
+            code=testing_policy.failure_code.value if testing_policy.failure_code else None,
+        ),
     ]
-    return checks
+    testing_summary = testing_metadata.summary if testing_metadata else ""
+    return checks, testing_policy, testing_summary

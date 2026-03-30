@@ -6,6 +6,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from packages.policies.approvals import requires_human_approval
+from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.task_packet import Goal, RiskLevel, TaskPacket, WorkerLane
 
 
@@ -47,6 +48,26 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
             "Report structured results back to the platform.",
             "Do not bypass shared policy.",
         ],
+        tests_required=lane in {WorkerLane.ENGINEERING, WorkerLane.IOS},
+        test_lane=(
+            TestLane.IOS
+            if lane is WorkerLane.IOS
+            else TestLane.PYTHON if lane is WorkerLane.ENGINEERING else TestLane.NONE
+        ),
+        allowed_no_test_reason_codes=[
+            NoTestReasonCode.COMMENTS_ONLY,
+            NoTestReasonCode.CONFIG_NO_BEHAVIOR_CHANGE,
+            NoTestReasonCode.APPROVED_FOLLOWUP_TEST_TASK,
+        ]
+        if lane is WorkerLane.ENGINEERING
+        else [
+            NoTestReasonCode.COMMENTS_ONLY,
+            NoTestReasonCode.VISUAL_ONLY_NON_LOGIC,
+            NoTestReasonCode.CONFIG_NO_BEHAVIOR_CHANGE,
+            NoTestReasonCode.APPROVED_FOLLOWUP_TEST_TASK,
+        ]
+        if lane is WorkerLane.IOS
+        else [],
     )
 
     if requires_human_approval(task):
@@ -59,6 +80,9 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
             risk_level=task.risk_level,
             requires_approval=True,
             constraints=task.constraints,
+            tests_required=task.tests_required,
+            test_lane=task.test_lane,
+            allowed_no_test_reason_codes=task.allowed_no_test_reason_codes,
         )
 
     return [task]

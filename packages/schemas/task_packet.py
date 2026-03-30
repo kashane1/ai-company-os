@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
+from packages.schemas.testing import NoTestReasonCode, TestLane
+
 
 class WorkerLane(str, Enum):
     SUPERVISOR = "supervisor"
@@ -40,6 +42,9 @@ class TaskPacket:
     risk_level: RiskLevel = RiskLevel.LOW
     requires_approval: bool = False
     constraints: list[str] = field(default_factory=list)
+    tests_required: bool = False
+    test_lane: TestLane = TestLane.NONE
+    allowed_no_test_reason_codes: list[NoTestReasonCode] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -55,4 +60,5 @@ class TaskResult:
     approval_id: str | None = None
     artifacts: list[str] = field(default_factory=list)
     validation_checks: list[str] = field(default_factory=list)
+    failure_codes: list[str] = field(default_factory=list)
     next_actions: list[str] = field(default_factory=list)

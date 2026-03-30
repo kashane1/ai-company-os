@@ -43,17 +43,21 @@ def execute_task(task_id: str) -> TaskResult:
     post_run_git_state = capture_git_state(worktree.root_path)
     diff_path = capture_diff(worktree, task.id)
     validation_checks = validate_run(
+        task,
         packet_path,
         worktree.root_path,
         execution_result_path,
         execution.exit_code,
         diff_path,
+        post_run_git_state.status_lines,
     )
+    validation_checks, testing_policy, testing_summary = validation_checks
     classification = classify_result(
         execution.exit_code,
         validation_checks,
         post_run_git_state,
     )
+    failure_codes = [check.code for check in validation_checks if not check.passed and check.code]
 
     run_status = (
         TaskRunStatus.SUCCEEDED if all(check.passed for check in validation_checks) else TaskRunStatus.FAILED
@@ -65,6 +69,9 @@ def execute_task(task_id: str) -> TaskResult:
         worktree_path=worktree.root_path,
         changed_files=post_run_git_state.changed_files,
         validation_checks=validation_checks,
+        testing_policy=testing_policy,
+        testing_summary=testing_summary,
+        failure_codes=failure_codes,
         stdout_path=execution.stdout_path,
         stderr_path=execution.stderr_path,
         diff_path=diff_path,
@@ -100,6 +107,8 @@ def execute_task(task_id: str) -> TaskResult:
         started_at=started_at,
         finished_at=finished_at,
         validation_checks=validation_checks,
+        testing_policy=testing_policy,
+        failure_codes=failure_codes,
         artifacts=[
             packet_path,
             execution_result_path,
@@ -132,6 +141,7 @@ def execute_task(task_id: str) -> TaskResult:
         approval_id=approval.id if approval else None,
         artifacts=task_run.artifacts,
         validation_checks=[check.name for check in task_run.validation_checks if check.passed],
+        failure_codes=failure_codes,
         next_actions=[
             "Inspect the iOS review artifact and diff before any git history mutation is introduced.",
             "Use the approval record as the future gate for commit, push, and PR phases.",

@@ -1,6 +1,7 @@
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 
+from packages.schemas.testing import TestingPolicyResult
 from packages.schemas.task_packet import WorkerLane
 
 
@@ -15,6 +16,7 @@ class ValidationCheck:
     name: str
     passed: bool
     details: str
+    code: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -25,6 +27,7 @@ class ValidationCheck:
             name=str(payload["name"]),
             passed=bool(payload["passed"]),
             details=str(payload["details"]),
+            code=str(payload["code"]) if payload.get("code") else None,
         )
 
 
@@ -105,6 +108,8 @@ class TaskRun:
     started_at: str
     finished_at: str
     validation_checks: list[ValidationCheck] = field(default_factory=list)
+    testing_policy: TestingPolicyResult | None = None
+    failure_codes: list[str] = field(default_factory=list)
     artifacts: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, object]:
@@ -113,6 +118,7 @@ class TaskRun:
         payload["status"] = self.status.value
         payload["classification"] = self.classification.value
         payload["validation_checks"] = [check.to_dict() for check in self.validation_checks]
+        payload["testing_policy"] = self.testing_policy.to_dict() if self.testing_policy else None
         return payload
 
     @classmethod
@@ -141,5 +147,9 @@ class TaskRun:
                 ValidationCheck.from_dict(item)
                 for item in list(payload.get("validation_checks", []))
             ],
+            testing_policy=TestingPolicyResult.from_dict(dict(payload["testing_policy"]))
+            if payload.get("testing_policy")
+            else None,
+            failure_codes=list(payload.get("failure_codes", [])),
             artifacts=list(payload.get("artifacts", [])),
         )

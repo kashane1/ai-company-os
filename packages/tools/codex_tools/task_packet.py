@@ -1,11 +1,16 @@
 from dataclasses import dataclass, field
 
+from packages.schemas.testing import NoTestReasonCode, TestLane
+
 
 @dataclass(frozen=True)
 class CodexTaskPacket:
     task_id: str
     summary: str
     constraints: list[str] = field(default_factory=list)
+    tests_required: bool = False
+    test_lane: TestLane = TestLane.NONE
+    allowed_no_test_reason_codes: list[NoTestReasonCode] = field(default_factory=list)
 
 
 def render_markdown(packet: CodexTaskPacket) -> str:
@@ -27,4 +32,20 @@ def render_markdown(packet: CodexTaskPacket) -> str:
     if packet.constraints:
         lines.extend(["", "## Constraints"])
         lines.extend(f"- {constraint}" for constraint in packet.constraints)
+    lines.extend(
+        [
+            "",
+            "## Testing Contract",
+            "",
+            f"- tests_required={'true' if packet.tests_required else 'false'}",
+            f"- test_lane={packet.test_lane.value}",
+            "- Every logic-bearing change must ship with created or modified lane-matching tests unless a valid exception applies.",
+            "- Your final message must include a `## Testing` section.",
+            "- In that section, either list tests added or updated, or include `no_test_reason_code=<enum>` with a short reason.",
+            "- If you use `approved_followup_test_task`, also include `followup_task_id=<task-id>`.",
+        ]
+    )
+    if packet.allowed_no_test_reason_codes:
+        allowed_codes = ", ".join(code.value for code in packet.allowed_no_test_reason_codes)
+        lines.append(f"- allowed_no_test_reason_codes={allowed_codes}")
     return "\n".join(lines)

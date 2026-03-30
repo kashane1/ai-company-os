@@ -6,6 +6,7 @@ from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories
 from packages.schemas.task import Task
+from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.task_run import CodexExecutionRecord
 from packages.schemas.worktree import WorktreeMetadata
 from packages.tools.codex_tools.task_packet import CodexTaskPacket, render_markdown
@@ -18,6 +19,13 @@ def render_task_packet(task: Task, worktree: WorktreeMetadata) -> str:
         task_id=task.id,
         summary=task.summary,
         constraints=task.constraints,
+        tests_required=True,
+        test_lane=TestLane.PYTHON,
+        allowed_no_test_reason_codes=[
+            NoTestReasonCode.COMMENTS_ONLY,
+            NoTestReasonCode.CONFIG_NO_BEHAVIOR_CHANGE,
+            NoTestReasonCode.APPROVED_FOLLOWUP_TEST_TASK,
+        ],
     )
     packet_path = Path(worktree.root_path) / "codex_task_packet.md"
     packet_path.write_text(render_markdown(packet) + "\n")
