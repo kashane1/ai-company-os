@@ -129,10 +129,7 @@ private struct StartTripView: View {
                     Button {
                         startTrip()
                     } label: {
-                        Label("Start Trip", systemImage: "play.fill")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Spacing.xs)
+                        PrimaryActionLabel(title: "Start Trip", systemImage: "play.fill")
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.appAccent)
@@ -321,7 +318,7 @@ private struct ActiveTripView: View {
 
             // Quick Catch Form
             Section {
-                TextField("Species", text: $species)
+                TextField("Species (optional)", text: $species)
                     .textInputAutocapitalization(.words)
                     .submitLabel(.done)
 
@@ -397,14 +394,10 @@ private struct ActiveTripView: View {
                 Button {
                     saveCatch()
                 } label: {
-                    Label("Save Catch", systemImage: "checkmark.circle.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.xs)
+                    PrimaryActionLabel(title: "Save Catch", systemImage: "checkmark.circle.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.appAccent)
-                .disabled(species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("quickCatch.saveButton")
                 .listRowSeparator(.hidden)
                 .sensoryFeedback(.success, trigger: showingSavedConfirmation)
@@ -447,7 +440,8 @@ private struct ActiveTripView: View {
         .onAppear {
             primeDefaultsIfNeeded()
         }
-        .confirmationDialog("End this trip?", isPresented: $showingEndConfirmation, titleVisibility: .visible) {
+        .alert("End this trip?", isPresented: $showingEndConfirmation) {
+            Button("Cancel", role: .cancel) {}
             Button("End Trip", role: .destructive) {
                 endTrip()
             }
@@ -571,6 +565,21 @@ private struct ActiveTripStatusCard: View {
     }
 }
 
+private struct PrimaryActionLabel: View {
+    let title: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: systemImage)
+            Text(title)
+        }
+        .font(.headline)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, Spacing.xs)
+    }
+}
+
 // MARK: - Catch History Row
 
 struct CatchHistoryRow: View {
@@ -585,7 +594,7 @@ struct CatchHistoryRow: View {
 
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack {
-                    Text(catchRecord.species)
+                    Text(catchRecord.speciesDisplayName)
                         .font(.subheadline.weight(.semibold))
                     Spacer()
                     if includeTimestamp {

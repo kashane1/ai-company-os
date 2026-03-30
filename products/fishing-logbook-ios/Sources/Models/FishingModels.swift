@@ -333,6 +333,11 @@ final class CatchRecord {
     var hasPhoto: Bool {
         photoData != nil
     }
+
+    var speciesDisplayName: String {
+        let trimmed = species.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "Species not logged" : trimmed
+    }
 }
 
 @Model

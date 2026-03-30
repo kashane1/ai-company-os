@@ -31,4 +31,26 @@ enum PersonalBestService {
             context.insert(personalBest)
         }
     }
+
+    static func rebuild(in context: ModelContext) throws {
+        let existingRecords = try context.fetch(FetchDescriptor<PersonalBest>())
+        for record in existingRecords {
+            context.delete(record)
+        }
+
+        let catches = try context.fetch(FetchDescriptor<CatchRecord>())
+        let grouped = Dictionary(grouping: catches) { catchRecord in
+            catchRecord.species.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        for (species, records) in grouped where !species.isEmpty {
+            let personalBest = PersonalBest(
+                species: species,
+                longestLengthCm: records.compactMap(\.lengthCm).max(),
+                heaviestWeightKg: records.compactMap(\.weightKg).max(),
+                updatedAt: .now
+            )
+            context.insert(personalBest)
+        }
+    }
 }
