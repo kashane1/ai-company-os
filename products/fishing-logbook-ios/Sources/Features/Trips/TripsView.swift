@@ -11,6 +11,8 @@ struct TripsView: View {
     @State private var selectedWaterbodyID: UUID?
     @State private var speciesQuery = ""
     @State private var dateFilter: TripDateFilter = .all
+    @State private var seasonFilter: TripSeasonFilter = .all
+    @State private var selectedLure: String?
 
     init(selectedTripID: Binding<UUID?> = .constant(nil)) {
         _selectedTripID = selectedTripID
@@ -26,7 +28,20 @@ struct TripsView: View {
             catches: catches,
             selectedWaterbodyID: selectedWaterbodyID,
             speciesQuery: speciesQuery,
-            dateFilter: dateFilter
+            dateFilter: dateFilter,
+            seasonFilter: seasonFilter,
+            selectedLure: selectedLure
+        )
+    }
+
+    private var availableLures: [String] {
+        TripHistoryLogic.availableLures(
+            trips: trips,
+            catches: catches,
+            selectedWaterbodyID: selectedWaterbodyID,
+            speciesQuery: speciesQuery,
+            dateFilter: dateFilter,
+            seasonFilter: seasonFilter
         )
     }
 
@@ -34,7 +49,9 @@ struct TripsView: View {
         TripHistoryLogic.hasActiveFilters(
             selectedWaterbodyID: selectedWaterbodyID,
             speciesQuery: speciesQuery,
-            dateFilter: dateFilter
+            dateFilter: dateFilter,
+            seasonFilter: seasonFilter,
+            selectedLure: selectedLure
         )
     }
 
@@ -72,15 +89,32 @@ struct TripsView: View {
                             }
                             .pickerStyle(.menu)
 
+                            Picker("Season", selection: $seasonFilter) {
+                                ForEach(TripSeasonFilter.allCases) { filter in
+                                    Text(filter.label).tag(filter)
+                                }
+                            }
+                            .pickerStyle(.menu)
+
                             TextField("Species", text: $speciesQuery)
                                 .textInputAutocapitalization(.words)
                                 .accessibilityIdentifier("trips.filter.speciesField")
+
+                            Picker("Lure", selection: $selectedLure) {
+                                Text("All lures").tag(Optional<String>.none)
+                                ForEach(availableLures, id: \.self) { lure in
+                                    Text(lure).tag(Optional(lure))
+                                }
+                            }
+                            .pickerStyle(.menu)
 
                             if hasActiveFilters {
                                 Button("Clear Filters") {
                                     selectedWaterbodyID = nil
                                     speciesQuery = ""
                                     dateFilter = .all
+                                    seasonFilter = .all
+                                    selectedLure = nil
                                 }
                                 .font(.footnote.weight(.medium))
                             }
@@ -91,7 +125,7 @@ struct TripsView: View {
                                 SectionEmptyState(
                                     icon: "line.3.horizontal.decrease.circle",
                                     title: "No trips match these filters",
-                                    subtitle: "Try a different water, species, or date window."
+                                    subtitle: "Try a different water, species, date, season, or lure."
                                 )
                             }
                         } else {
@@ -118,6 +152,9 @@ struct TripsView: View {
             .onAppear {
                 openPendingTripIfPossible()
             }
+            .onChange(of: availableLures) { _, _ in
+                clearUnavailableSelectedLure()
+            }
             .onChange(of: selectedTripID) { _, _ in
                 openPendingTripIfPossible()
             }
@@ -132,6 +169,21 @@ struct TripsView: View {
         path = NavigationPath()
         path.append(selectedTripID)
         self.selectedTripID = nil
+    }
+
+    private func clearUnavailableSelectedLure() {
+        guard let selectedLure else { return }
+
+        let normalizedSelection = selectedLure
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        let selectionIsAvailable = availableLures.contains { lure in
+            lure.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == normalizedSelection
+        }
+
+        if !selectionIsAvailable {
+            self.selectedLure = nil
+        }
     }
 }
 

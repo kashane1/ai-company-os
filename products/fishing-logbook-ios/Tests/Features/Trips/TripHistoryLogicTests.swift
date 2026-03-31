@@ -9,6 +9,10 @@ final class TripHistoryLogicTests: XCTestCase {
         return calendar
     }
 
+    private func utcDate(year: Int, month: Int, day: Int) -> Date {
+        utcCalendar().date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
     func testAvailableWaterbodiesIncludesOnlyWatersUsedByTrips() {
         let lake = Waterbody(name: "Lake", type: .lake)
         let river = Waterbody(name: "River", type: .river)
@@ -35,7 +39,9 @@ final class TripHistoryLogicTests: XCTestCase {
             catches: [],
             selectedWaterbodyID: lake.id,
             speciesQuery: "",
-            dateFilter: .all
+            dateFilter: .all,
+            seasonFilter: .all,
+            selectedLure: nil
         )
 
         XCTAssertEqual(result.map { $0.id }, [lakeTrip.id])
@@ -60,14 +66,18 @@ final class TripHistoryLogicTests: XCTestCase {
             catches: catches,
             selectedWaterbodyID: nil,
             speciesQuery: " bass ",
-            dateFilter: .all
+            dateFilter: .all,
+            seasonFilter: .all,
+            selectedLure: nil
         )
         let troutTrips = TripHistoryLogic.filteredTrips(
             trips: [unmatchedTrip, catchTrip, targetedTrip],
             catches: catches,
             selectedWaterbodyID: nil,
             speciesQuery: "trout",
-            dateFilter: .all
+            dateFilter: .all,
+            seasonFilter: .all,
+            selectedLure: nil
         )
 
         XCTAssertEqual(bassTrips.map { $0.id }, [targetedTrip.id])
@@ -88,6 +98,8 @@ final class TripHistoryLogicTests: XCTestCase {
             selectedWaterbodyID: nil,
             speciesQuery: "",
             dateFilter: .last30Days,
+            seasonFilter: .all,
+            selectedLure: nil,
             now: now,
             calendar: calendar
         )
@@ -97,6 +109,8 @@ final class TripHistoryLogicTests: XCTestCase {
             selectedWaterbodyID: nil,
             speciesQuery: "",
             dateFilter: .last90Days,
+            seasonFilter: .all,
+            selectedLure: nil,
             now: now,
             calendar: calendar
         )
@@ -106,6 +120,8 @@ final class TripHistoryLogicTests: XCTestCase {
             selectedWaterbodyID: nil,
             speciesQuery: "",
             dateFilter: .thisYear,
+            seasonFilter: .all,
+            selectedLure: nil,
             now: now,
             calendar: calendar
         )
@@ -115,33 +131,195 @@ final class TripHistoryLogicTests: XCTestCase {
         XCTAssertEqual(thisYear.map { $0.id }, [thisMonthTrip.id])
     }
 
+    func testFilteredTripsMatchesSeasonAcrossAllSeasons() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let calendar = utcCalendar()
+        let springTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 4, day: 10))
+        let summerTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 7, day: 10))
+        let fallTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 10, day: 10))
+        let winterTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 1, day: 10))
+
+        let spring = TripHistoryLogic.filteredTrips(
+            trips: [fallTrip, summerTrip, springTrip, winterTrip],
+            catches: [],
+            selectedWaterbodyID: nil,
+            speciesQuery: "",
+            dateFilter: .all,
+            seasonFilter: .spring,
+            selectedLure: nil,
+            calendar: calendar
+        )
+        let summer = TripHistoryLogic.filteredTrips(
+            trips: [fallTrip, summerTrip, springTrip, winterTrip],
+            catches: [],
+            selectedWaterbodyID: nil,
+            speciesQuery: "",
+            dateFilter: .all,
+            seasonFilter: .summer,
+            selectedLure: nil,
+            calendar: calendar
+        )
+        let fall = TripHistoryLogic.filteredTrips(
+            trips: [fallTrip, summerTrip, springTrip, winterTrip],
+            catches: [],
+            selectedWaterbodyID: nil,
+            speciesQuery: "",
+            dateFilter: .all,
+            seasonFilter: .fall,
+            selectedLure: nil,
+            calendar: calendar
+        )
+        let winter = TripHistoryLogic.filteredTrips(
+            trips: [fallTrip, summerTrip, springTrip, winterTrip],
+            catches: [],
+            selectedWaterbodyID: nil,
+            speciesQuery: "",
+            dateFilter: .all,
+            seasonFilter: .winter,
+            selectedLure: nil,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(spring.map(\.id), [springTrip.id])
+        XCTAssertEqual(summer.map(\.id), [summerTrip.id])
+        XCTAssertEqual(fall.map(\.id), [fallTrip.id])
+        XCTAssertEqual(winter.map(\.id), [winterTrip.id])
+    }
+
+    func testFilteredTripsTreatsDecemberJanuaryAndFebruaryAsWinter() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let calendar = utcCalendar()
+        let decemberTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2024, month: 12, day: 15))
+        let januaryTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 1, day: 15))
+        let februaryTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 2, day: 15))
+        let marchTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 3, day: 15))
+
+        let winterTrips = TripHistoryLogic.filteredTrips(
+            trips: [marchTrip, februaryTrip, januaryTrip, decemberTrip],
+            catches: [],
+            selectedWaterbodyID: nil,
+            speciesQuery: "",
+            dateFilter: .all,
+            seasonFilter: .winter,
+            selectedLure: nil,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(winterTrips.map(\.id), [februaryTrip.id, januaryTrip.id, decemberTrip.id])
+    }
+
+    func testFilteredTripsMatchesSelectedLureCaseInsensitivelyAndExcludesBlankValues() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let spinnerTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 5, day: 10))
+        let lowercaseSpinnerTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 5, day: 9))
+        let blankLureTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 5, day: 8))
+        let jigTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 5, day: 7))
+
+        let catches = [
+            CatchRecord(species: "Bass", trip: jigTrip, lureOrBait: "Jig"),
+            CatchRecord(species: "Bass", trip: blankLureTrip, lureOrBait: "   "),
+            CatchRecord(species: "Bass", trip: lowercaseSpinnerTrip, lureOrBait: "spinner"),
+            CatchRecord(species: "Bass", trip: spinnerTrip, lureOrBait: " Spinner "),
+        ]
+
+        let result = TripHistoryLogic.filteredTrips(
+            trips: [jigTrip, blankLureTrip, lowercaseSpinnerTrip, spinnerTrip],
+            catches: catches,
+            selectedWaterbodyID: nil,
+            speciesQuery: "",
+            dateFilter: .all,
+            seasonFilter: .all,
+            selectedLure: "  SPINNER  "
+        )
+
+        XCTAssertEqual(result.map(\.id), [lowercaseSpinnerTrip.id, spinnerTrip.id])
+    }
+
+    func testAvailableLuresUsesCurrentNonLureFiltersAndKeepsTrimmedUniqueValues() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let bassTrip = Trip(
+            waterbody: waterbody,
+            targetSpecies: "Bass",
+            startAt: utcDate(year: 2025, month: 5, day: 10)
+        )
+        let troutTrip = Trip(
+            waterbody: waterbody,
+            targetSpecies: "Trout",
+            startAt: utcDate(year: 2025, month: 5, day: 9)
+        )
+        let catches = [
+            CatchRecord(species: "Trout", trip: troutTrip, lureOrBait: "Spoon"),
+            CatchRecord(species: "Bass", trip: bassTrip, lureOrBait: " Spinner "),
+            CatchRecord(species: "Bass", trip: bassTrip, lureOrBait: "spinner"),
+            CatchRecord(species: "Bass", trip: bassTrip, lureOrBait: "Jig"),
+            CatchRecord(species: "Bass", trip: bassTrip, lureOrBait: "   "),
+        ]
+
+        let result = TripHistoryLogic.availableLures(
+            trips: [troutTrip, bassTrip],
+            catches: catches,
+            selectedWaterbodyID: nil,
+            speciesQuery: " bass ",
+            dateFilter: .all,
+            seasonFilter: .all
+        )
+
+        XCTAssertEqual(result, ["Spinner", "Jig"])
+    }
+
     func testHasActiveFiltersReflectsAnySelectedInput() {
         XCTAssertFalse(
             TripHistoryLogic.hasActiveFilters(
                 selectedWaterbodyID: nil,
                 speciesQuery: " ",
-                dateFilter: .all
+                dateFilter: .all,
+                seasonFilter: .all,
+                selectedLure: nil
             )
         )
         XCTAssertTrue(
             TripHistoryLogic.hasActiveFilters(
                 selectedWaterbodyID: UUID(),
                 speciesQuery: "",
-                dateFilter: .all
+                dateFilter: .all,
+                seasonFilter: .all,
+                selectedLure: nil
             )
         )
         XCTAssertTrue(
             TripHistoryLogic.hasActiveFilters(
                 selectedWaterbodyID: nil,
                 speciesQuery: "Bass",
-                dateFilter: .all
+                dateFilter: .all,
+                seasonFilter: .all,
+                selectedLure: nil
             )
         )
         XCTAssertTrue(
             TripHistoryLogic.hasActiveFilters(
                 selectedWaterbodyID: nil,
                 speciesQuery: "",
-                dateFilter: .last30Days
+                dateFilter: .last30Days,
+                seasonFilter: .all,
+                selectedLure: nil
+            )
+        )
+        XCTAssertTrue(
+            TripHistoryLogic.hasActiveFilters(
+                selectedWaterbodyID: nil,
+                speciesQuery: "",
+                dateFilter: .all,
+                seasonFilter: .winter,
+                selectedLure: nil
+            )
+        )
+        XCTAssertTrue(
+            TripHistoryLogic.hasActiveFilters(
+                selectedWaterbodyID: nil,
+                speciesQuery: "",
+                dateFilter: .all,
+                seasonFilter: .all,
+                selectedLure: " Spinner "
             )
         )
     }

@@ -23,7 +23,7 @@ This MVP covers one complete loop for a private fishing memory app:
 ### Trips
 
 - trip list
-- filters by water, species, date
+- filters by water, species, season, and lure
 - trip detail
 
 ### Log
