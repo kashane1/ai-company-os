@@ -82,3 +82,30 @@ skills:
     adapters:
       claude: adapters/claude/app-store-positioning-pack.md
     project_skill: .claude/skills/app-store-positioning-pack.md
+
+  - id: repo-sync
+    name: Repo Sync
+    path: canonical/shared/repo-sync.md
+    owner_agent: engineering
+    target_runtimes: [codex]
+    stage: active
+    adapters:
+      codex: adapters/codex/repo-sync.md
+
+  - id: worktree-lifecycle
+    name: Worktree Lifecycle
+    path: canonical/shared/worktree-lifecycle.md
+    owner_agent: engineering
+    target_runtimes: [codex]
+    stage: active
+    adapters:
+      codex: adapters/codex/worktree-lifecycle.md
+
+  - id: post-run-validation
+    name: Post-Run Validation and Artifact Capture
+    path: canonical/shared/post-run-validation.md
+    owner_agent: engineering
+    target_runtimes: [codex]
+    stage: active
+    adapters:
+      codex: adapters/codex/post-run-validation.md
