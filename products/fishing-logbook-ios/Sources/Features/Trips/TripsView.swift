@@ -4,12 +4,45 @@ import SwiftUI
 
 struct TripsView: View {
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
+    @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
     @Binding private var selectedTripID: UUID?
     @State private var path = NavigationPath()
+    @State private var selectedWaterbodyID: UUID?
+    @State private var speciesQuery = ""
+    @State private var dateFilter: TripDateFilter = .all
 
     init(selectedTripID: Binding<UUID?> = .constant(nil)) {
         _selectedTripID = selectedTripID
+    }
+
+    private var availableWaterbodies: [Waterbody] {
+        TripHistoryLogic.availableWaterbodies(waterbodies: waterbodies, trips: trips)
+    }
+
+    private var filteredTrips: [Trip] {
+        TripHistoryLogic.filteredTrips(
+            trips: trips,
+            catches: catches,
+            selectedWaterbodyID: selectedWaterbodyID,
+            speciesQuery: speciesQuery,
+            dateFilter: dateFilter
+        )
+    }
+
+    private var hasActiveFilters: Bool {
+        TripHistoryLogic.hasActiveFilters(
+            selectedWaterbodyID: selectedWaterbodyID,
+            speciesQuery: speciesQuery,
+            dateFilter: dateFilter
+        )
+    }
+
+    private var catchCountsByTripID: [UUID: Int] {
+        Dictionary(catches.compactMap { catchRecord in
+            guard let tripID = catchRecord.trip?.id else { return nil }
+            return (tripID, 1)
+        }, uniquingKeysWith: +)
     }
 
     var body: some View {
@@ -23,12 +56,52 @@ struct TripsView: View {
                     }
                 } else {
                     List {
-                        ForEach(trips, id: \.id) { trip in
-                            NavigationLink(value: trip.id) {
-                                TripRow(
-                                    trip: trip,
-                                    catchCount: catches.filter { $0.trip?.id == trip.id }.count
+                        Section("Filters") {
+                            Picker("Water", selection: $selectedWaterbodyID) {
+                                Text("All waters").tag(Optional<UUID>.none)
+                                ForEach(availableWaterbodies, id: \.id) { waterbody in
+                                    Text(waterbody.name).tag(Optional(waterbody.id))
+                                }
+                            }
+                            .pickerStyle(.menu)
+
+                            Picker("Date", selection: $dateFilter) {
+                                ForEach(TripDateFilter.allCases) { filter in
+                                    Text(filter.label).tag(filter)
+                                }
+                            }
+                            .pickerStyle(.menu)
+
+                            TextField("Species", text: $speciesQuery)
+                                .textInputAutocapitalization(.words)
+                                .accessibilityIdentifier("trips.filter.speciesField")
+
+                            if hasActiveFilters {
+                                Button("Clear Filters") {
+                                    selectedWaterbodyID = nil
+                                    speciesQuery = ""
+                                    dateFilter = .all
+                                }
+                                .font(.footnote.weight(.medium))
+                            }
+                        }
+
+                        if filteredTrips.isEmpty {
+                            Section {
+                                SectionEmptyState(
+                                    icon: "line.3.horizontal.decrease.circle",
+                                    title: "No trips match these filters",
+                                    subtitle: "Try a different water, species, or date window."
                                 )
+                            }
+                        } else {
+                            ForEach(filteredTrips, id: \.id) { trip in
+                                NavigationLink(value: trip.id) {
+                                    TripRow(
+                                        trip: trip,
+                                        catchCount: catchCountsByTripID[trip.id, default: 0]
+                                    )
+                                }
                             }
                         }
                     }

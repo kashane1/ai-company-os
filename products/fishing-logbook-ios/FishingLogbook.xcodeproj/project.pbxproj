@@ -14,6 +14,7 @@
 		1AE97ADC550D97C1F26419B7 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05ECF37EB624290D89D2B5DC /* LogView.swift */; };
 		1EBC8C1B8B73354154904B44 /* TripPresentationLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F221069720E7E434EA2B711 /* TripPresentationLogic.swift */; };
 		1F2DD828179B87395168450C /* FishingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19203D874A6F2C8F9188157D /* FishingModels.swift */; };
+		2636844C09085AA211D0DAF4 /* TripHistoryLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12ACFA9D63AD606D741A8BDF /* TripHistoryLogicTests.swift */; };
 		2C99DD0D3201079DF5D4D6DD /* FishingModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB3E8298C6023E257C2C288 /* FishingModelsTests.swift */; };
 		32C8B84FCDE25ED15732D862 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB0DE6C71C6638B79250B44 /* Formatters.swift */; };
 		3389C3A2F3119A4C357775A4 /* SpotRecallSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50793C6A2F105F5093831BE0 /* SpotRecallSummaryTests.swift */; };
@@ -25,6 +26,7 @@
 		6AE9EE7831CDBC34AD5011A3 /* TripsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799825EBE3569A196BBF9F3E /* TripsView.swift */; };
 		6AFDE1DCBFC5F1B5C7C0A21E /* LocationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583218CF0704E40BB054B26 /* LocationRecorder.swift */; };
 		76E338F555D2E6020958F844 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7C6D83F8A4BF66332C3738 /* HomeView.swift */; };
+		7943C09E8B59548EB01917E7 /* TripHistoryLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A158E2EC9430DF1CE75D28C /* TripHistoryLogic.swift */; };
 		879B5EA6B08532C56114EEC6 /* PersonalBestServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848591A8214B5DE018399DA9 /* PersonalBestServiceTests.swift */; };
 		98E9DB71726D1263673D1CF6 /* HomeDashboardLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8778938633E00D2D96BA26E /* HomeDashboardLogic.swift */; };
 		AE75FCE020DE3F73E11759AF /* ModelTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F94D0FEE5DB0784BE125239 /* ModelTestSupport.swift */; };
@@ -59,6 +61,7 @@
 		0563D0D52E8AA6E1645E272C /* AppFormattersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFormattersTests.swift; sourceTree = "<group>"; };
 		05ECF37EB624290D89D2B5DC /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		0AB0DE6C71C6638B79250B44 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		12ACFA9D63AD606D741A8BDF /* TripHistoryLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripHistoryLogicTests.swift; sourceTree = "<group>"; };
 		138CB3864F4DE6549478AAF3 /* FormLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormLogic.swift; sourceTree = "<group>"; };
 		170615576114AB69A5A4C8A2 /* PersonalBestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestService.swift; sourceTree = "<group>"; };
 		19203D874A6F2C8F9188157D /* FishingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingModels.swift; sourceTree = "<group>"; };
@@ -67,6 +70,7 @@
 		255E2CFF90A596C8A63D4439 /* CatchPhotoComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchPhotoComponents.swift; sourceTree = "<group>"; };
 		2778FC7F6C161B5507595861 /* NewWaterbodyForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWaterbodyForm.swift; sourceTree = "<group>"; };
 		2B0995C54CB98F03FB245982 /* NewSpotForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSpotForm.swift; sourceTree = "<group>"; };
+		4A158E2EC9430DF1CE75D28C /* TripHistoryLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripHistoryLogic.swift; sourceTree = "<group>"; };
 		50793C6A2F105F5093831BE0 /* SpotRecallSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRecallSummaryTests.swift; sourceTree = "<group>"; };
 		5F7C6D83F8A4BF66332C3738 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		6583218CF0704E40BB054B26 /* LocationRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRecorder.swift; sourceTree = "<group>"; };
@@ -116,6 +120,7 @@
 			isa = PBXGroup;
 			children = (
 				88E8AFA4F54E9CFAE4AAEF99 /* TripEditingLogicTests.swift */,
+				12ACFA9D63AD606D741A8BDF /* TripHistoryLogicTests.swift */,
 				C5C695E6D50772F54625F223 /* TripPresentationLogicTests.swift */,
 			);
 			path = Trips;
@@ -185,6 +190,7 @@
 			isa = PBXGroup;
 			children = (
 				0491D7F0F6802D9C098F67BC /* TripEditingLogic.swift */,
+				4A158E2EC9430DF1CE75D28C /* TripHistoryLogic.swift */,
 				8F221069720E7E434EA2B711 /* TripPresentationLogic.swift */,
 				799825EBE3569A196BBF9F3E /* TripsView.swift */,
 			);
@@ -441,6 +447,7 @@
 				0D013236605DD67A52FB732F /* SpotRecallSummary.swift in Sources */,
 				C5AFF1E70AA1B635A350A4B1 /* SpotsView.swift in Sources */,
 				C823A9CD1A0034B5B9A48EDE /* TripEditingLogic.swift in Sources */,
+				7943C09E8B59548EB01917E7 /* TripHistoryLogic.swift in Sources */,
 				1EBC8C1B8B73354154904B44 /* TripPresentationLogic.swift in Sources */,
 				6AE9EE7831CDBC34AD5011A3 /* TripsView.swift in Sources */,
 			);
@@ -461,6 +468,7 @@
 				3B2E168E6CC8DD68F09CD282 /* SpotPresentationLogicTests.swift in Sources */,
 				3389C3A2F3119A4C357775A4 /* SpotRecallSummaryTests.swift in Sources */,
 				F9B84325116CEF441F200EF8 /* TripEditingLogicTests.swift in Sources */,
+				2636844C09085AA211D0DAF4 /* TripHistoryLogicTests.swift in Sources */,
 				C17C61C26A4C5916502FEA25 /* TripPresentationLogicTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

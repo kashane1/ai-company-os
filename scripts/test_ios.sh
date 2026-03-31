@@ -5,11 +5,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IOS_ROOT="$ROOT/products/fishing-logbook-ios"
 BUILD_ROOT="$ROOT/build/ios"
+SUMMARY_ROOT="$ROOT/build/coverage"
 RESULT_BUNDLE="$BUILD_ROOT/FishingLogbook.xcresult"
 DERIVED_DATA="$BUILD_ROOT/DerivedData"
 SIMULATOR_ID="${IOS_SIMULATOR_ID:-}"
+SCHEME_NAME="FishingLogbook"
+SUMMARY_FILE="$SUMMARY_ROOT/ios-coverage-summary.json"
 
 mkdir -p "$BUILD_ROOT"
+mkdir -p "$SUMMARY_ROOT"
 rm -rf "$RESULT_BUNDLE" "$DERIVED_DATA"
 
 xcodegen --spec "$IOS_ROOT/project.yml" --project "$IOS_ROOT" --quiet
@@ -34,10 +38,12 @@ fi
 
 xcodebuild test \
   -project "$IOS_ROOT/FishingLogbook.xcodeproj" \
-  -scheme FishingLogbook \
+  -scheme "$SCHEME_NAME" \
   -destination "id=$SIMULATOR_ID" \
   -derivedDataPath "$DERIVED_DATA" \
   -resultBundlePath "$RESULT_BUNDLE" \
   -enableCodeCoverage YES
 
+export IOS_COVERAGE_SCHEME="$SCHEME_NAME"
+export IOS_COVERAGE_SUMMARY_FILE="$SUMMARY_FILE"
 "$ROOT/scripts/ci/check_ios_coverage.sh" "$RESULT_BUNDLE"
