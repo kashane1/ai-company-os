@@ -40,7 +40,7 @@ def test_prepare_worktree_derives_path_and_writes_managed_files(
     assert exclude_lines == [
         "codex_execution.json",
         "codex_last_message.md",
-        "codex_task_packet.md",
+        "TASK_PACKET.md",
         "workspace_context.txt",
     ]
     assert context_lines == [
@@ -51,4 +51,3 @@ def test_prepare_worktree_derives_path_and_writes_managed_files(
         "note=This is a managed isolated workspace for the engineering task flow.",
     ]
     assert saved.status.value == "prepared"
-

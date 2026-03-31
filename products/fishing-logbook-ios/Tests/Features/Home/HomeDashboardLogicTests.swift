@@ -65,6 +65,7 @@ final class HomeDashboardLogicTests: XCTestCase {
             successfulTripCount: 0,
             bestTimeWindow: nil,
             mostEffectiveLure: nil,
+            seasonalityInsight: nil,
             similarConditionsCount: 0,
             similarConditionsLabel: nil
         )
@@ -74,6 +75,7 @@ final class HomeDashboardLogicTests: XCTestCase {
             successfulTripCount: 1,
             bestTimeWindow: "6-9 AM",
             mostEffectiveLure: "Spinner",
+            seasonalityInsight: nil,
             similarConditionsCount: 1,
             similarConditionsLabel: "6-9 AM • Morning light"
         )

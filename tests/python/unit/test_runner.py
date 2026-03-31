@@ -75,7 +75,7 @@ def test_execute_task_marks_safe_for_review_runs_completed_and_creates_approval(
     monkeypatch.setattr(runner, "load_repo_configs", lambda: {"repo-safe": build_repo_config(repo_id="repo-safe")})
     monkeypatch.setattr(runner, "prepare_repo", lambda repo_config: repo_record)
     monkeypatch.setattr(runner, "prepare_worktree", lambda task_arg, repo_arg: prepare_worktree_result)
-    monkeypatch.setattr(runner, "render_task_packet", lambda task_arg, worktree_arg: str(worktree_root / "codex_task_packet.md"))
+    monkeypatch.setattr(runner, "render_task_packet", lambda task_arg, worktree_arg: str(worktree_root / "TASK_PACKET.md"))
     monkeypatch.setattr(
         runner,
         "capture_git_state",
@@ -129,7 +129,7 @@ def test_execute_task_marks_safe_for_review_runs_completed_and_creates_approval(
     assert saved_run.testing_policy.relevant_tests_changed is True
     assert saved_run.failure_codes == []
     assert saved_run.artifacts == [
-        str(worktree_root / "codex_task_packet.md"),
+        str(worktree_root / "TASK_PACKET.md"),
         str(worktree_root / "codex_last_message.md"),
         "/tmp/stdout.log",
         "/tmp/stderr.log",
@@ -138,7 +138,7 @@ def test_execute_task_marks_safe_for_review_runs_completed_and_creates_approval(
         str(isolated_repo_root / "state" / "artifacts" / task.id / "summary.txt"),
         str(worktree_root / "codex_execution.json"),
     ]
-    assert saved_worktree.packet_path == str(worktree_root / "codex_task_packet.md")
+    assert saved_worktree.packet_path == str(worktree_root / "TASK_PACKET.md")
 
 
 def test_execute_task_marks_no_change_runs_completed_without_approval(
@@ -154,7 +154,7 @@ def test_execute_task_marks_no_change_runs_completed_without_approval(
     monkeypatch.setattr(runner, "load_repo_configs", lambda: {"repo-no-change": build_repo_config(repo_id="repo-no-change")})
     monkeypatch.setattr(runner, "prepare_repo", lambda repo_config: repo_record)
     monkeypatch.setattr(runner, "prepare_worktree", lambda task_arg, repo_arg: build_worktree_metadata(str(worktree_root)))
-    monkeypatch.setattr(runner, "render_task_packet", lambda task_arg, worktree_arg: str(worktree_root / "codex_task_packet.md"))
+    monkeypatch.setattr(runner, "render_task_packet", lambda task_arg, worktree_arg: str(worktree_root / "TASK_PACKET.md"))
     monkeypatch.setattr(
         runner,
         "capture_git_state",
@@ -213,7 +213,7 @@ def test_execute_task_marks_validation_failures_failed_without_approval(
     monkeypatch.setattr(runner, "load_repo_configs", lambda: {"repo-validation": build_repo_config(repo_id="repo-validation")})
     monkeypatch.setattr(runner, "prepare_repo", lambda repo_config: repo_record)
     monkeypatch.setattr(runner, "prepare_worktree", lambda task_arg, repo_arg: build_worktree_metadata(str(worktree_root)))
-    monkeypatch.setattr(runner, "render_task_packet", lambda task_arg, worktree_arg: str(worktree_root / "codex_task_packet.md"))
+    monkeypatch.setattr(runner, "render_task_packet", lambda task_arg, worktree_arg: str(worktree_root / "TASK_PACKET.md"))
     monkeypatch.setattr(
         runner,
         "capture_git_state",

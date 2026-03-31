@@ -13,22 +13,34 @@ the canonical definition to:
    - Worktree exists at `state/worktrees/<repo-id>/<task-id>/`
    - Task packet exists at `<worktree>/TASK_PACKET.md`
 3. Capture diff artifact:
-   - Generate via `git -C <worktree> diff HEAD`
-   - Write to `state/artifacts/engineering/<task-id>/diff.patch`
+   - Generate via `git -C <worktree> diff --stat --patch`
+   - Write to `state/artifacts/engineering/<task-id>/worktree.diff`
 4. Capture logs:
-   - `state/logs/engineering/<task-id>/stdout.log`
-   - `state/logs/engineering/<task-id>/stderr.log`
-   - `state/logs/engineering/<task-id>/execution.json` (structured metadata)
+   - `state/logs/engineering/<task-id>.stdout.log`
+   - `state/logs/engineering/<task-id>.stderr.log`
+   - execution metadata currently lands in `<worktree>/codex_execution.json`
 5. Run validation checks:
    - Exit code is 0 → `codex_nonzero_exit`
-   - Diff is non-empty → `empty_diff`
-   - No boundary violations → `boundary_violation`
-   - Testing policy compliance → `missing_tests_for_logic_change`
-   - Packet integrity → `packet_tampered`
-6. Persist task run record to `state/checkpoints/platform/task_runs/<run-id>.json`
-   with validation result, failure codes, testing policy data, and artifact paths
-7. Update worktree metadata status to `completed` or `failed`
+   - Diff artifact exists
+   - Testing policy compliance
+6. Persist the richer current `TaskRun` record to `state/checkpoints/platform/task_runs/<run-id>.json`
 
 The task run record and artifact paths are handed to the supervisor for
 review routing. The engineering worker is responsible for calling this after
 every Codex execution, whether successful or not.
+
+## Current runtime status
+
+This adapter is **operational but drifting from worker reality**.
+
+- Implemented in `apps/worker-engineering/engineering/validator.py`
+- Orchestrated in `apps/worker-engineering/engineering/runner.py`
+
+Important divergence from the canonical definition:
+
+- Logs are flat files under `state/logs/<lane>/`, not per-task directories
+- Diff artifact path is `worktree.diff`, not `diff.patch`
+- No explicit packet-tamper check exists
+- No explicit boundary-violation check exists
+- Worktree metadata is not updated to `completed` or `failed` after validation
+- Execution metadata is stored in the worktree, not under `state/logs/`

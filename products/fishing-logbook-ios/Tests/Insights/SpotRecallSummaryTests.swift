@@ -70,6 +70,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.successfulTripCount, 2)
         XCTAssertEqual(summary.bestTimeWindow, "6-9 AM")
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
+        XCTAssertNil(summary.seasonalityInsight)
         XCTAssertEqual(summary.similarConditionsCount, 2)
         XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light")
         XCTAssertEqual(summary.cards.count, 4)
@@ -92,6 +93,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.successfulTripCount, 0)
         XCTAssertNil(summary.bestTimeWindow)
         XCTAssertNil(summary.mostEffectiveLure)
+        XCTAssertNil(summary.seasonalityInsight)
         XCTAssertEqual(summary.similarConditionsCount, 0)
         XCTAssertNil(summary.similarConditionsLabel)
         XCTAssertTrue(summary.cards.isEmpty)
@@ -101,10 +103,11 @@ final class SpotRecallSummaryTests: XCTestCase {
         let waterbody = Waterbody(name: "River Bend", type: .river)
         let spot = Spot(title: "Dock", waterbody: waterbody)
         let trips = (0..<4).map { offset in
-            Trip(
+            let month = offset + 1
+            return Trip(
                 waterbody: waterbody,
                 spot: spot,
-                startAt: Date(timeIntervalSince1970: 1_711_900_000 + Double(offset * 600))
+                startAt: date(year: 2025, month: month, day: 10)
             )
         }
         let catches = [
@@ -118,6 +121,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.recentTrips.count, 3)
         XCTAssertEqual(summary.recentTrips.map(\.id), [trips[3].id, trips[2].id, trips[1].id])
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
+        XCTAssertNil(summary.seasonalityInsight)
     }
 
     func testBuildPrefersConditionSimilarityDescriptionOverTimeWindowFallback() {
@@ -148,5 +152,94 @@ final class SpotRecallSummaryTests: XCTestCase {
 
         XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light • 10 kt • Dry")
         XCTAssertEqual(summary.similarConditionsCount, 1)
+    }
+
+    func testBuildAddsMonthSeasonalityCardWhenOneMonthHasClearLead() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let marchTrips = [3, 10, 17].map { day in
+            Trip(
+                waterbody: waterbody,
+                spot: spot,
+                startAt: date(year: 2025, month: 3, day: day)
+            )
+        }
+        let mayTrip = Trip(
+            waterbody: waterbody,
+            spot: spot,
+            startAt: date(year: 2025, month: 5, day: 2)
+        )
+        let catches = marchTrips.map { trip in
+            CatchRecord(species: "Bass", trip: trip, caughtAt: trip.startAt)
+        } + [
+            CatchRecord(species: "Bass", trip: mayTrip, caughtAt: mayTrip.startAt)
+        ]
+
+        let summary = SpotRecallSummary.build(
+            for: spot,
+            trips: marchTrips + [mayTrip],
+            catches: catches
+        )
+
+        XCTAssertEqual(summary.seasonalityInsight?.title, "March has been strongest here")
+        XCTAssertEqual(
+            summary.seasonalityInsight?.body,
+            "March accounts for 3 of your 4 productive trips at this spot."
+        )
+        XCTAssertEqual(summary.seasonalityInsight?.supportingSampleCount, 3)
+        XCTAssertEqual(summary.cards.first(where: { $0.kind == .seasonality })?.title, "March has been strongest here")
+    }
+
+    func testBuildFallsBackToSeasonWhenMonthSignalIsSplitButSeasonIsClear() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let productiveTrips = [
+            Trip(waterbody: waterbody, spot: spot, startAt: date(year: 2024, month: 3, day: 8)),
+            Trip(waterbody: waterbody, spot: spot, startAt: date(year: 2024, month: 4, day: 12)),
+            Trip(waterbody: waterbody, spot: spot, startAt: date(year: 2024, month: 5, day: 6)),
+            Trip(waterbody: waterbody, spot: spot, startAt: date(year: 2024, month: 8, day: 14)),
+        ]
+        let catches = productiveTrips.map { trip in
+            CatchRecord(species: "Bass", trip: trip, caughtAt: trip.startAt)
+        }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: productiveTrips, catches: catches)
+
+        XCTAssertEqual(summary.seasonalityInsight?.title, "Spring has been strongest here")
+        XCTAssertEqual(
+            summary.seasonalityInsight?.body,
+            "Spring accounts for 3 of your 4 productive trips at this spot."
+        )
+        XCTAssertEqual(summary.seasonalityInsight?.supportingSampleCount, 3)
+    }
+
+    func testBuildSuppressesSeasonalityCardWhenSupportIsThinOrTied() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            Trip(waterbody: waterbody, spot: spot, startAt: date(year: 2024, month: 3, day: 1)),
+            Trip(waterbody: waterbody, spot: spot, startAt: date(year: 2024, month: 3, day: 9)),
+            Trip(waterbody: waterbody, spot: spot, startAt: date(year: 2024, month: 6, day: 1)),
+            Trip(waterbody: waterbody, spot: spot, startAt: date(year: 2024, month: 6, day: 9)),
+        ]
+        let catches = trips.map { trip in
+            CatchRecord(species: "Bass", trip: trip, caughtAt: trip.startAt)
+        }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.seasonalityInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .seasonality }))
+    }
+
+    private func date(year: Int, month: Int, day: Int) -> Date {
+        var components = DateComponents()
+        components.calendar = Calendar(identifier: .gregorian)
+        components.timeZone = TimeZone(secondsFromGMT: 0)
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = 12
+        return components.date ?? .distantPast
     }
 }

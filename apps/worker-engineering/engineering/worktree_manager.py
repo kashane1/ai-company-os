@@ -28,7 +28,7 @@ def prepare_worktree(task: Task, repo: RepoRecord) -> WorktreeMetadata:
             [
                 "codex_execution.json",
                 "codex_last_message.md",
-                "codex_task_packet.md",
+                "TASK_PACKET.md",
                 "workspace_context.txt",
             ]
         )

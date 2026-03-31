@@ -1,11 +1,18 @@
 import Foundation
 
 struct SpotRecallSummary {
+    struct SeasonalityInsight {
+        let title: String
+        let body: String
+        let supportingSampleCount: Int
+    }
+
     let recentTrips: [Trip]
     let catchCount: Int
     let successfulTripCount: Int
     let bestTimeWindow: String?
     let mostEffectiveLure: String?
+    let seasonalityInsight: SeasonalityInsight?
     let similarConditionsCount: Int
     let similarConditionsLabel: String?
 
@@ -48,6 +55,18 @@ struct SpotRecallSummary {
             )
         }
 
+        if let seasonalityInsight {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .seasonality,
+                    title: seasonalityInsight.title,
+                    body: seasonalityInsight.body,
+                    supportingSampleCount: seasonalityInsight.supportingSampleCount,
+                    systemImage: "calendar"
+                )
+            )
+        }
+
         if let similarConditionsLabel, similarConditionsCount > 0 {
             cards.append(
                 DeterministicInsightCard(
@@ -86,6 +105,7 @@ struct SpotRecallSummary {
         }
 
         let successfulTripIDs = Set(spotCatches.compactMap { $0.trip?.id })
+        let productiveTrips = spotTrips.filter { successfulTripIDs.contains($0.id) }
         let bestTimeWindow = timeWindowCounts.max(by: { $0.value < $1.value })?.key
 
         var similarityCounts: [String: Int] = [:]
@@ -95,6 +115,7 @@ struct SpotRecallSummary {
         }
 
         let mostCommonSimilarity = similarityCounts.max(by: { $0.value < $1.value })
+        let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips)
 
         return SpotRecallSummary(
             recentTrips: Array(spotTrips.prefix(3)),
@@ -102,8 +123,69 @@ struct SpotRecallSummary {
             successfulTripCount: successfulTripIDs.count,
             bestTimeWindow: bestTimeWindow,
             mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
+            seasonalityInsight: seasonalityInsight,
             similarConditionsCount: mostCommonSimilarity?.value ?? 0,
             similarConditionsLabel: mostCommonSimilarity?.key
         )
+    }
+
+    private static func strongestSeasonalityInsight(
+        for productiveTrips: [Trip],
+        calendar: Calendar = .current
+    ) -> SeasonalityInsight? {
+        guard productiveTrips.count >= 3 else { return nil }
+
+        let productiveTripCount = productiveTrips.count
+
+        let monthCounts = Dictionary(grouping: productiveTrips) { trip in
+            calendar.component(.month, from: trip.startAt)
+        }.mapValues(\.count)
+
+        if let strongestMonth = strongestBucket(in: monthCounts) {
+            let monthLabel = calendar.monthSymbols[strongestMonth.key - 1]
+            return SeasonalityInsight(
+                title: "\(monthLabel) has been strongest here",
+                body: "\(monthLabel) accounts for \(strongestMonth.value) of your \(productiveTripCount) productive trips at this spot.",
+                supportingSampleCount: strongestMonth.value
+            )
+        }
+
+        let seasonCounts = Dictionary(grouping: productiveTrips) { trip in
+            season(for: trip.startAt, calendar: calendar)
+        }.mapValues(\.count)
+
+        guard let strongestSeason = strongestBucket(in: seasonCounts) else { return nil }
+
+        return SeasonalityInsight(
+            title: "\(strongestSeason.key.label) has been strongest here",
+            body: "\(strongestSeason.key.label) accounts for \(strongestSeason.value) of your \(productiveTripCount) productive trips at this spot.",
+            supportingSampleCount: strongestSeason.value
+        )
+    }
+
+    private static func strongestBucket<T: Hashable>(in counts: [T: Int]) -> (key: T, value: Int)? {
+        guard counts.count > 0 else { return nil }
+
+        let sortedCounts = counts.values.sorted(by: >)
+        guard let topCount = sortedCounts.first, topCount >= 3 else { return nil }
+
+        if sortedCounts.count > 1, sortedCounts[1] == topCount {
+            return nil
+        }
+
+        return counts.first { $0.value == topCount }
+    }
+
+    private static func season(for date: Date, calendar: Calendar) -> TripSeasonFilter {
+        switch calendar.component(.month, from: date) {
+        case 3 ... 5:
+            return .spring
+        case 6 ... 8:
+            return .summer
+        case 9 ... 11:
+            return .fall
+        default:
+            return .winter
+        }
     }
 }

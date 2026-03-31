@@ -37,7 +37,7 @@ def render_task_packet(task: Task, worktree: WorktreeMetadata) -> str:
             NoTestReasonCode.APPROVED_FOLLOWUP_TEST_TASK,
         ],
     )
-    packet_path = Path(worktree.root_path) / "codex_task_packet.md"
+    packet_path = Path(worktree.root_path) / "TASK_PACKET.md"
     packet_path.write_text(render_markdown(packet) + "\n")
     return str(packet_path)
 

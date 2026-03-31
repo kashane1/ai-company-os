@@ -9,20 +9,38 @@ This is a non-executable reference document. Codex does not read this file at ru
 
 The engineering worker uses this alongside the canonical definition at `skills/canonical/shared/codex-task-packet-library.md` to select and render task packets.
 
+## Current runtime status
+
+The canonical packet library is only **partially implemented** in the current worker runtime.
+
+- Current renderer: `packages/tools/codex_tools/task_packet.py`
+- Current engineering entrypoint: `apps/worker-engineering/engineering/codex_runner.py`
+- Current iOS entrypoint: `apps/worker-ios/ios/codex_runner.py`
+
+What is real today:
+
+- The worker does render a markdown packet before invoking Codex.
+- The packet now lands at `<worktree>/TASK_PACKET.md`.
+- The packet carries the objective, execution rules, task constraints, and structured testing contract fields.
+
+What is not implemented yet:
+
+- Pattern selection from `skills/canonical/shared/codex-packet-patterns/`
+- Distinct packet shapes for `implementation`, `bugfix`, `ui-polish`, `validation`, and `handoff-safe`
+- Explicit `Context`, `Target files`, `Verification`, and `Acceptance criteria` sections
+- Worker-driven file targeting based on task scope
+
+Treat the canonical library as a target contract. Treat the current renderer as the operational reality.
+
 ## How the engineering worker uses this
 
 1. Load the task record from `state/checkpoints/platform/tasks/<task-id>.json`
-2. Determine the appropriate packet pattern based on the task type:
-   - Feature work → `implementation`
-   - Review findings → `ui-polish`
-   - Defect fix → `bugfix`
-   - Test/lint/build work → `validation`
-   - Cross-lane output → `handoff-safe`
-3. Read the pattern template from `skills/canonical/shared/codex-packet-patterns/<pattern>.md`
-4. Fill in task-specific content (objective, constraints, context files, target files, acceptance)
-5. Append the standard rules block (worktree-only, no commit, no push)
-6. Write the rendered packet to `<worktree>/TASK_PACKET.md`
-7. Pass the worktree path to `bounded-codex-implementation` for execution
+2. Render the current packet shape from `packages/tools/codex_tools/task_packet.py`
+3. Include task summary, constraints, and testing contract metadata
+4. Write the packet to `<worktree>/TASK_PACKET.md`
+5. Pass the worktree path to the Codex execution step
+
+The pattern library below is the intended next shape, not the current one.
 
 ## Pattern selection guide
 
@@ -57,3 +75,5 @@ Located at `skills/canonical/shared/codex-packet-patterns/`:
 - `bugfix.md`
 - `validation.md`
 - `handoff-safe.md`
+
+These templates are not yet wired into the worker runtime.

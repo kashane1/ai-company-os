@@ -17,8 +17,8 @@ def test_render_task_packet_writes_packet_to_worktree(tmp_path: Path) -> None:
 
     packet_path = codex_runner.render_task_packet(task, worktree)
 
-    assert packet_path == str(tmp_path / "codex_task_packet.md")
-    assert (tmp_path / "codex_task_packet.md").read_text() == (
+    assert packet_path == str(tmp_path / "TASK_PACKET.md")
+    assert (tmp_path / "TASK_PACKET.md").read_text() == (
         "# Task task-123\n\n"
         "## Objective\n\n"
         "Add automation safely\n\n"
@@ -47,7 +47,7 @@ def test_execute_codex_writes_deterministic_artifact_shape(
 ) -> None:
     worktree_root = isolated_repo_root / "worktree"
     worktree_root.mkdir()
-    packet_path = worktree_root / "codex_task_packet.md"
+    packet_path = worktree_root / "TASK_PACKET.md"
     packet_path.write_text("packet body")
     task = build_task()
     worktree = build_worktree_metadata(str(worktree_root))
@@ -112,7 +112,7 @@ def test_execute_codex_timeout_marks_execution_and_appends_timeout_note(
 ) -> None:
     worktree_root = isolated_repo_root / "worktree"
     worktree_root.mkdir()
-    packet_path = worktree_root / "codex_task_packet.md"
+    packet_path = worktree_root / "TASK_PACKET.md"
     packet_path.write_text("packet body")
     task = build_task()
     worktree = build_worktree_metadata(str(worktree_root))
