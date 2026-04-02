@@ -108,4 +108,5 @@ def build_worktree_metadata(root_path: str) -> WorktreeMetadata:
         status=WorktreeStatus.PREPARED,
         created_at="2026-03-30T00:00:00+00:00",
         packet_path="packet.json",
+        validated_at="",
     )

@@ -21,6 +21,7 @@ from packages.schemas.task_run import (
     GitStateSnapshot,
     ValidationCheck,
 )
+from packages.schemas.worktree import WorktreeStatus
 from tests.python.factories.task_data import build_repo_config, build_repo_record, build_task, build_worktree_metadata
 
 
@@ -138,7 +139,13 @@ def test_execute_task_marks_safe_for_review_runs_completed_and_creates_approval(
         str(isolated_repo_root / "state" / "artifacts" / task.id / "summary.txt"),
         str(worktree_root / "codex_execution.json"),
     ]
+    assert saved_worktree.id == prepare_worktree_result.id
+    assert saved_worktree.task_id == prepare_worktree_result.task_id
+    assert saved_worktree.repo_id == prepare_worktree_result.repo_id
+    assert saved_worktree.root_path == prepare_worktree_result.root_path
     assert saved_worktree.packet_path == str(worktree_root / "TASK_PACKET.md")
+    assert saved_worktree.status is WorktreeStatus.COMPLETED
+    assert saved_worktree.validated_at != ""
 
 
 def test_execute_task_marks_no_change_runs_completed_without_approval(
@@ -191,6 +198,7 @@ def test_execute_task_marks_no_change_runs_completed_without_approval(
     result = runner.execute_task(task.id)
     saved_task = TaskStore().load(task.id)
     saved_run = TaskRunStore().load("run-task-no-change")
+    saved_worktree = WorktreeStore().load("worktree-123")
 
     assert result.status is TaskStatus.COMPLETED
     assert result.approval_id is None
@@ -198,6 +206,9 @@ def test_execute_task_marks_no_change_runs_completed_without_approval(
     assert saved_run.approval_id is None
     assert saved_run.classification is EngineeringResultClassification.NO_CHANGE
     assert saved_run.failure_codes == []
+    assert saved_worktree.status is WorktreeStatus.COMPLETED
+    assert saved_worktree.packet_path == str(worktree_root / "TASK_PACKET.md")
+    assert saved_worktree.validated_at != ""
 
 
 def test_execute_task_marks_validation_failures_failed_without_approval(
@@ -261,6 +272,7 @@ def test_execute_task_marks_validation_failures_failed_without_approval(
     result = runner.execute_task(task.id)
     saved_task = TaskStore().load(task.id)
     saved_run = TaskRunStore().load("run-task-validation-failed")
+    saved_worktree = WorktreeStore().load("worktree-123")
 
     assert result.status is TaskStatus.FAILED
     assert result.approval_id is None
@@ -269,6 +281,9 @@ def test_execute_task_marks_validation_failures_failed_without_approval(
     assert saved_run.approval_id is None
     assert saved_run.failure_codes == ["missing_tests_for_logic_change"]
     assert result.failure_codes == ["missing_tests_for_logic_change"]
+    assert saved_worktree.status is WorktreeStatus.FAILED
+    assert saved_worktree.packet_path == str(worktree_root / "TASK_PACKET.md")
+    assert saved_worktree.validated_at != ""
 
 
 def test_result_as_dict_serializes_enum_backed_status() -> None:

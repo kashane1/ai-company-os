@@ -4,6 +4,7 @@ from enum import Enum
 
 class WorktreeStatus(str, Enum):
     PREPARED = "prepared"
+    COMPLETED = "completed"
     FAILED = "failed"
 
 
@@ -16,6 +17,7 @@ class WorktreeMetadata:
     status: WorktreeStatus
     created_at: str
     packet_path: str = ""
+    validated_at: str = ""
 
     def to_dict(self) -> dict[str, object]:
         payload = asdict(self)
@@ -32,4 +34,5 @@ class WorktreeMetadata:
             status=WorktreeStatus(str(payload["status"])),
             created_at=str(payload["created_at"]),
             packet_path=str(payload.get("packet_path", "")),
+            validated_at=str(payload.get("validated_at", "")),
         )

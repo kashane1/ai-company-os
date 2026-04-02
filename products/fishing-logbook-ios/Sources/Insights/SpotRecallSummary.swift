@@ -1,6 +1,12 @@
 import Foundation
 
 struct SpotRecallSummary {
+    struct SpeciesInsight {
+        let title: String
+        let body: String
+        let supportingSampleCount: Int
+    }
+
     struct RecencyInsight {
         let title: String
         let body: String
@@ -24,6 +30,7 @@ struct SpotRecallSummary {
     let successfulTripCount: Int
     let recencyInsight: RecencyInsight?
     let productivityInsight: ProductivityInsight?
+    let speciesInsight: SpeciesInsight?
     let bestTimeWindow: String?
     let mostEffectiveLure: String?
     let seasonalityInsight: SeasonalityInsight?
@@ -65,6 +72,18 @@ struct SpotRecallSummary {
                     body: productivityInsight.body,
                     supportingSampleCount: productivityInsight.supportingSampleCount,
                     systemImage: "chart.line.uptrend.xyaxis"
+                )
+            )
+        }
+
+        if let speciesInsight {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .species,
+                    title: speciesInsight.title,
+                    body: speciesInsight.body,
+                    supportingSampleCount: speciesInsight.supportingSampleCount,
+                    systemImage: "fish"
                 )
             )
         }
@@ -160,11 +179,15 @@ struct SpotRecallSummary {
         let recencyInsight = recentActivityInsight(
             completedTrips: completedTrips,
             successfulTripIDs: successfulTripIDs,
-        catchCountsByTripID: catchCountsByTripID
+            catchCountsByTripID: catchCountsByTripID
         )
         let productivityInsight = recentProductivityInsight(
             completedTrips: completedTrips,
             successfulTripIDs: successfulTripIDs
+        )
+        let speciesInsight = mostReliableSpeciesInsight(
+            completedTrips: completedTrips,
+            catches: spotCatches
         )
         let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips)
 
@@ -174,6 +197,7 @@ struct SpotRecallSummary {
             successfulTripCount: successfulTripIDs.count,
             recencyInsight: recencyInsight,
             productivityInsight: productivityInsight,
+            speciesInsight: speciesInsight,
             bestTimeWindow: bestTimeWindow,
             mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
             seasonalityInsight: seasonalityInsight,
@@ -224,6 +248,100 @@ struct SpotRecallSummary {
             title: "Recent success here",
             body: "You caught fish on \(productiveTripCount) of your last \(completedTripCount) completed trips here.",
             supportingSampleCount: completedTripCount
+        )
+    }
+
+    private static func mostReliableSpeciesInsight(
+        completedTrips: [Trip],
+        catches: [CatchRecord]
+    ) -> SpeciesInsight? {
+        struct SpeciesStats {
+            let normalizedLabel: String
+            let displayLabel: String
+            let catchCount: Int
+            let tripCount: Int
+            let maxSingleTripCatchCount: Int
+        }
+
+        guard completedTrips.count >= 4 else { return nil }
+
+        let completedTripIDs = Set(completedTrips.map(\.id))
+        let eligibleCatches = catches.compactMap { catchRecord -> (tripID: UUID, normalizedLabel: String, displayLabel: String)? in
+            guard
+                let tripID = catchRecord.trip?.id,
+                completedTripIDs.contains(tripID)
+            else {
+                return nil
+            }
+
+            let displayLabel = catchRecord.species.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !displayLabel.isEmpty else { return nil }
+
+            return (tripID, displayLabel.lowercased(), displayLabel)
+        }
+
+        let statsBySpecies = Dictionary(grouping: eligibleCatches, by: \.normalizedLabel).compactMapValues { catchesForSpecies -> SpeciesStats? in
+            guard let first = catchesForSpecies.first else { return nil }
+
+            let catchesByTrip = Dictionary(grouping: catchesForSpecies, by: \.tripID)
+            return SpeciesStats(
+                normalizedLabel: first.normalizedLabel,
+                displayLabel: first.displayLabel,
+                catchCount: catchesForSpecies.count,
+                tripCount: catchesByTrip.count,
+                maxSingleTripCatchCount: catchesByTrip.values.map(\.count).max() ?? 0
+            )
+        }
+
+        let sortedStats = statsBySpecies.values.sorted { lhs, rhs in
+            if lhs.tripCount != rhs.tripCount {
+                return lhs.tripCount > rhs.tripCount
+            }
+            if lhs.catchCount != rhs.catchCount {
+                return lhs.catchCount > rhs.catchCount
+            }
+            return lhs.normalizedLabel < rhs.normalizedLabel
+        }
+
+        guard let winningStats = sortedStats.first else { return nil }
+        guard winningStats.tripCount >= 3, winningStats.catchCount >= 4 else { return nil }
+
+        if sortedStats.count == 1 {
+            return SpeciesInsight(
+                title: "Most reliable species here",
+                body: "\(winningStats.displayLabel) has been your most reliable species here: \(winningStats.catchCount) \(winningStats.normalizedLabel) across \(winningStats.tripCount) completed trips.",
+                supportingSampleCount: winningStats.tripCount
+            )
+        }
+
+        let runnerUp = sortedStats[1]
+
+        if winningStats.tripCount == runnerUp.tripCount {
+            guard winningStats.catchCount >= runnerUp.catchCount + 2 else { return nil }
+
+            if winningStats.maxSingleTripCatchCount >= runnerUp.catchCount {
+                return nil
+            }
+        } else {
+            guard winningStats.tripCount >= runnerUp.tripCount + 1 else { return nil }
+
+            if winningStats.tripCount == runnerUp.tripCount + 1,
+               winningStats.maxSingleTripCatchCount >= runnerUp.catchCount {
+                return nil
+            }
+        }
+
+        let body: String
+        if winningStats.tripCount >= runnerUp.tripCount + 2 {
+            body = "\(winningStats.displayLabel) has been your most reliable species here: \(winningStats.catchCount) \(winningStats.normalizedLabel) across \(winningStats.tripCount) completed trips."
+        } else {
+            body = "\(winningStats.displayLabel) shows up most often here: \(winningStats.catchCount) \(winningStats.normalizedLabel) across \(winningStats.tripCount) completed trips."
+        }
+
+        return SpeciesInsight(
+            title: "Most reliable species here",
+            body: body,
+            supportingSampleCount: winningStats.tripCount
         )
     }
 

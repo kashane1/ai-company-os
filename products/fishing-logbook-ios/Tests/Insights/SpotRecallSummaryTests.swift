@@ -70,6 +70,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.successfulTripCount, 2)
         XCTAssertNil(summary.recencyInsight)
         XCTAssertNil(summary.productivityInsight)
+        XCTAssertNil(summary.speciesInsight)
         XCTAssertEqual(summary.bestTimeWindow, "6-9 AM")
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
@@ -95,6 +96,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.successfulTripCount, 0)
         XCTAssertNil(summary.recencyInsight)
         XCTAssertNil(summary.productivityInsight)
+        XCTAssertNil(summary.speciesInsight)
         XCTAssertNil(summary.bestTimeWindow)
         XCTAssertNil(summary.mostEffectiveLure)
         XCTAssertNil(summary.seasonalityInsight)
@@ -126,6 +128,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.recentTrips.map(\.id), [trips[3].id, trips[2].id, trips[1].id])
         XCTAssertNil(summary.recencyInsight)
         XCTAssertNil(summary.productivityInsight)
+        XCTAssertNil(summary.speciesInsight)
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
     }
@@ -186,6 +189,198 @@ final class SpotRecallSummaryTests: XCTestCase {
         )
         XCTAssertEqual(summary.productivityInsight?.supportingSampleCount, 5)
         XCTAssertEqual(summary.cards.dropFirst().first?.kind, .productivity)
+    }
+
+    func testBuildAddsSpeciesCardForStrongSupportedPattern() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 22),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 15),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 8),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 1),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 5, day: 25),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(60)),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt),
+            CatchRecord(species: "Bass", trip: trips[4], caughtAt: trips[4].startAt),
+            CatchRecord(species: "Trout", trip: trips[3], caughtAt: trips[3].startAt),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(summary.speciesInsight?.title, "Most reliable species here")
+        XCTAssertEqual(
+            summary.speciesInsight?.body,
+            "Bass has been your most reliable species here: 5 bass across 4 completed trips."
+        )
+        XCTAssertEqual(summary.speciesInsight?.supportingSampleCount, 4)
+        XCTAssertEqual(summary.cards.first(where: { $0.kind == .species })?.title, "Most reliable species here")
+    }
+
+    func testBuildAddsSpeciesCardWithSofterCopyForNarrowerTripLead() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 20),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 13),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 6),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 29),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(60)),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt),
+            CatchRecord(species: "Trout", trip: trips[1], caughtAt: trips[1].startAt.addingTimeInterval(120)),
+            CatchRecord(species: "Trout", trip: trips[3], caughtAt: trips[3].startAt),
+            CatchRecord(species: "Trout", trip: trips[3], caughtAt: trips[3].startAt.addingTimeInterval(60)),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(
+            summary.speciesInsight?.body,
+            "Bass shows up most often here: 4 bass across 3 completed trips."
+        )
+        XCTAssertEqual(summary.speciesInsight?.supportingSampleCount, 3)
+    }
+
+    func testBuildSuppressesSpeciesCardWhenHistoryIsMixedOrTied() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 17),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 10),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 3),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 27),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt.addingTimeInterval(60)),
+            CatchRecord(species: "Trout", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(120)),
+            CatchRecord(species: "Trout", trip: trips[1], caughtAt: trips[1].startAt.addingTimeInterval(120)),
+            CatchRecord(species: "Trout", trip: trips[3], caughtAt: trips[3].startAt),
+            CatchRecord(species: "Trout", trip: trips[3], caughtAt: trips[3].startAt.addingTimeInterval(60)),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.speciesInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .species }))
+    }
+
+    func testBuildSuppressesSpeciesCardWhenSupportIsTooThin() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 5, day: 18),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 5, day: 11),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 5, day: 4),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt.addingTimeInterval(60)),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.speciesInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .species }))
+    }
+
+    func testBuildSuppressesSpeciesCardForSingleBannerTripSkew() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 21),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 14),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 7),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 31),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(60)),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(120)),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(180)),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "Trout", trip: trips[2], caughtAt: trips[2].startAt),
+            CatchRecord(species: "Trout", trip: trips[3], caughtAt: trips[3].startAt),
+            CatchRecord(species: "Trout", trip: trips[3], caughtAt: trips[3].startAt.addingTimeInterval(60)),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.speciesInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .species }))
+    }
+
+    func testBuildIgnoresActiveTripsForSpeciesSupport() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let activeTrip = Trip(
+            waterbody: waterbody,
+            spot: spot,
+            startAt: date(year: 2025, month: 10, day: 26)
+        )
+        let completedTrips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 19),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 12),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 5),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 28),
+        ]
+        let catches = [
+            CatchRecord(species: "Trout", trip: activeTrip, caughtAt: activeTrip.startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[0], caughtAt: completedTrips[0].startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[0], caughtAt: completedTrips[0].startAt.addingTimeInterval(60)),
+            CatchRecord(species: "Bass", trip: completedTrips[1], caughtAt: completedTrips[1].startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[2], caughtAt: completedTrips[2].startAt),
+            CatchRecord(species: "Trout", trip: completedTrips[3], caughtAt: completedTrips[3].startAt),
+        ]
+
+        let summary = SpotRecallSummary.build(
+            for: spot,
+            trips: [activeTrip] + completedTrips,
+            catches: catches
+        )
+
+        XCTAssertEqual(
+            summary.speciesInsight?.body,
+            "Bass has been your most reliable species here: 4 bass across 3 completed trips."
+        )
+        XCTAssertEqual(summary.speciesInsight?.supportingSampleCount, 3)
+    }
+
+    func testBuildNormalizesSpeciesLabelsCaseInsensitively() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 16),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 9),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 2),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 26),
+        ]
+        let catches = [
+            CatchRecord(species: " Bass ", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "BASS", trip: trips[2], caughtAt: trips[2].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt.addingTimeInterval(60)),
+            CatchRecord(species: "Trout", trip: trips[3], caughtAt: trips[3].startAt),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(
+            summary.speciesInsight?.body,
+            "Bass has been your most reliable species here: 4 bass across 3 completed trips."
+        )
     }
 
     func testBuildAddsRecencyCardForStrongRecentActivePattern() {

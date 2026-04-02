@@ -57,6 +57,7 @@ final class SpotPresentationLogicTests: XCTestCase {
             successfulTripCount: 3,
             recencyInsight: nil,
             productivityInsight: nil,
+            speciesInsight: nil,
             bestTimeWindow: nil,
             mostEffectiveLure: nil,
             seasonalityInsight: nil,

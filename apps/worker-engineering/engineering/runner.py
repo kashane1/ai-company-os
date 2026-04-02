@@ -6,7 +6,8 @@ from packages.db.task_run_store import TaskRunStore
 from packages.db.task_store import TaskStore
 from packages.db.worktree_store import WorktreeStore
 from packages.schemas.task_packet import TaskResult, TaskStatus
-from packages.schemas.task_run import TaskRun, TaskRunStatus
+from packages.schemas.task_run import EngineeringResultClassification, TaskRun, TaskRunStatus
+from packages.schemas.worktree import WorktreeStatus
 
 from engineering.codex_runner import execute_codex, render_task_packet
 from engineering.git_state import capture_git_state
@@ -14,6 +15,15 @@ from engineering.repo_manager import prepare_repo
 from engineering.review import build_summary, classify_result, create_approval_record, write_review_artifact
 from engineering.validator import capture_diff, validate_run
 from engineering.worktree_manager import prepare_worktree
+
+
+def worktree_status_for_classification(classification: EngineeringResultClassification) -> WorktreeStatus:
+    if classification in {
+        EngineeringResultClassification.SAFE_FOR_REVIEW,
+        EngineeringResultClassification.NO_CHANGE,
+    }:
+        return WorktreeStatus.COMPLETED
+    return WorktreeStatus.FAILED
 
 
 def execute_task(task_id: str) -> TaskResult:
@@ -113,6 +123,13 @@ def execute_task(task_id: str) -> TaskResult:
         ],
     )
     TaskRunStore().save(task_run)
+
+    worktree = replace(
+        worktree,
+        status=worktree_status_for_classification(classification),
+        validated_at=finished_at,
+    )
+    WorktreeStore().save(worktree)
 
     final_status = (
         TaskStatus.COMPLETED
