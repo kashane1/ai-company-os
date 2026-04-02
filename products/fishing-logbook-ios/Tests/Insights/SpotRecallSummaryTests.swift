@@ -68,6 +68,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.recentTrips.first?.id, recentTrip.id)
         XCTAssertEqual(summary.catchCount, 3)
         XCTAssertEqual(summary.successfulTripCount, 2)
+        XCTAssertNil(summary.productivityInsight)
         XCTAssertEqual(summary.bestTimeWindow, "6-9 AM")
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
@@ -91,6 +92,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertTrue(summary.recentTrips.isEmpty)
         XCTAssertEqual(summary.catchCount, 0)
         XCTAssertEqual(summary.successfulTripCount, 0)
+        XCTAssertNil(summary.productivityInsight)
         XCTAssertNil(summary.bestTimeWindow)
         XCTAssertNil(summary.mostEffectiveLure)
         XCTAssertNil(summary.seasonalityInsight)
@@ -120,6 +122,7 @@ final class SpotRecallSummaryTests: XCTestCase {
 
         XCTAssertEqual(summary.recentTrips.count, 3)
         XCTAssertEqual(summary.recentTrips.map(\.id), [trips[3].id, trips[2].id, trips[1].id])
+        XCTAssertNil(summary.productivityInsight)
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
     }
@@ -152,6 +155,145 @@ final class SpotRecallSummaryTests: XCTestCase {
 
         XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light • 10 kt • Dry")
         XCTAssertEqual(summary.similarConditionsCount, 1)
+    }
+
+    func testBuildAddsProductivityCardForStrongRecentSuccessPattern() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 10),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 5),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 5, day: 28),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 5, day: 20),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 5, day: 12),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt),
+            CatchRecord(species: "Bass", trip: trips[3], caughtAt: trips[3].startAt),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(summary.productivityInsight?.title, "Recent success here")
+        XCTAssertEqual(
+            summary.productivityInsight?.body,
+            "You caught fish on 4 of your last 5 completed trips here."
+        )
+        XCTAssertEqual(summary.productivityInsight?.supportingSampleCount, 5)
+        XCTAssertEqual(summary.cards.dropFirst().first?.kind, .productivity)
+    }
+
+    func testBuildAddsProductivityCardForAllProductiveRecentTrips() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 8),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 1),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 24),
+        ]
+        let catches = trips.map { trip in
+            CatchRecord(species: "Bass", trip: trip, caughtAt: trip.startAt)
+        }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(
+            summary.productivityInsight?.body,
+            "You caught fish on all 3 of your last 3 completed trips here."
+        )
+        XCTAssertEqual(summary.productivityInsight?.supportingSampleCount, 3)
+    }
+
+    func testBuildAddsProductivityCardForRecentSkunkPattern() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 14),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 7),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 31),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: [])
+
+        XCTAssertEqual(
+            summary.productivityInsight?.body,
+            "Your last 3 completed trips here ended without a catch."
+        )
+        XCTAssertEqual(summary.productivityInsight?.supportingSampleCount, 3)
+    }
+
+    func testBuildSuppressesProductivityCardWhenSupportIsTooThin() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 4, day: 3),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 3, day: 27),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt)
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.productivityInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .productivity }))
+    }
+
+    func testBuildSuppressesProductivityCardWhenRecentCompletedTripsAreMixed() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 9),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 2),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 25),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 18),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 11),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.productivityInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .productivity }))
+    }
+
+    func testBuildIgnoresActiveTripsForProductivityWindow() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let activeTrip = Trip(
+            waterbody: waterbody,
+            spot: spot,
+            startAt: date(year: 2025, month: 11, day: 12)
+        )
+        let completedTrips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 5),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 29),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 22),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: activeTrip, caughtAt: activeTrip.startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[0], caughtAt: completedTrips[0].startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[1], caughtAt: completedTrips[1].startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[2], caughtAt: completedTrips[2].startAt),
+        ]
+
+        let summary = SpotRecallSummary.build(
+            for: spot,
+            trips: [activeTrip] + completedTrips,
+            catches: catches
+        )
+
+        XCTAssertEqual(
+            summary.productivityInsight?.body,
+            "You caught fish on all 3 of your last 3 completed trips here."
+        )
+        XCTAssertEqual(summary.productivityInsight?.supportingSampleCount, 3)
     }
 
     func testBuildAddsMonthSeasonalityCardWhenOneMonthHasClearLead() {
@@ -241,5 +383,22 @@ final class SpotRecallSummaryTests: XCTestCase {
         components.day = day
         components.hour = 12
         return components.date ?? .distantPast
+    }
+
+    private func completedTrip(
+        waterbody: Waterbody,
+        spot: Spot,
+        year: Int,
+        month: Int,
+        day: Int
+    ) -> Trip {
+        let trip = Trip(
+            waterbody: waterbody,
+            spot: spot,
+            startAt: date(year: year, month: month, day: day)
+        )
+        trip.endAt = trip.startAt.addingTimeInterval(60 * 60)
+        trip.outcomeRawValue = TripOutcome.skunked.rawValue
+        return trip
     }
 }

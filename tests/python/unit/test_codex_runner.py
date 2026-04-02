@@ -8,37 +8,56 @@ import pytest
 
 from engineering import codex_runner
 from packages.schemas.task_run import CodexExecutionRecord
+from packages.tools.codex_tools.task_packet import PacketPattern, select_packet_pattern
 from tests.python.factories.task_data import build_task, build_worktree_metadata
 
 
-def test_render_task_packet_writes_packet_to_worktree(tmp_path: Path) -> None:
-    task = build_task(constraints=["Do not commit changes."])
+def test_render_task_packet_writes_implementation_packet_to_worktree(tmp_path: Path) -> None:
+    task = build_task(
+        title="Trace the first engineering task flow",
+        summary="Update docs/engineering-flow.md with one short sentence noting that task runs persist artifacts.",
+        constraints=["Keep the change minimal."],
+    )
     worktree = build_worktree_metadata(str(tmp_path))
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "engineering-flow.md").write_text("placeholder")
 
     packet_path = codex_runner.render_task_packet(task, worktree)
+    rendered = (tmp_path / "TASK_PACKET.md").read_text()
 
     assert packet_path == str(tmp_path / "TASK_PACKET.md")
-    assert (tmp_path / "TASK_PACKET.md").read_text() == (
-        "# Task task-123\n\n"
-        "## Objective\n\n"
-        "Add automation safely\n\n"
-        "## Execution Rules\n\n"
-        "- Work only inside the provided isolated worktree.\n"
-        "- Use the current repository contents as the source of truth.\n"
-        "- Do not create commits, rewrite history, push branches, or open PRs.\n"
-        "- Leave all file changes uncommitted for manual inspection.\n"
-        "- Prefer the smallest change that satisfies the task.\n\n"
-        "## Constraints\n"
-        "- Do not commit changes.\n\n"
-        "## Testing Contract\n\n"
-        "- tests_required=true\n"
-        "- test_lane=python\n"
-        "- Every logic-bearing change must ship with created or modified lane-matching tests unless a valid exception applies.\n"
-        "- Your final message must include a `## Testing` section.\n"
-        "- In that section, either list tests added or updated, or include `no_test_reason_code=<enum>` with a short reason.\n"
-        "- If you use `approved_followup_test_task`, also include `followup_task_id=<task-id>`.\n"
-        "- allowed_no_test_reason_codes=comments_only, config_no_behavior_change, approved_followup_test_task\n"
+    assert select_packet_pattern(task) is PacketPattern.IMPLEMENTATION
+    assert "# Task: Trace the first engineering task flow" in rendered
+    assert "- pattern=implementation" in rendered
+    assert "## Context" in rendered
+    assert "- docs/engineering-flow.md" in rendered
+    assert "## Target files" in rendered
+    assert "## Verification" in rendered
+    assert "python3 -m pytest tests/python" not in rendered
+    assert "No additional verification command required for docs-only scope." in rendered
+    assert "## Acceptance criteria" in rendered
+
+
+def test_render_task_packet_uses_validation_pattern_for_test_work(tmp_path: Path) -> None:
+    task = build_task(
+        title="Add validation coverage for engineering runner",
+        summary="Create tests for the runner flow.",
+        task_type="validation",
     )
+    worktree = build_worktree_metadata(str(tmp_path))
+    (tmp_path / "tests" / "python").mkdir(parents=True)
+    (tmp_path / "apps").mkdir()
+    (tmp_path / "packages").mkdir()
+
+    codex_runner.render_task_packet(task, worktree)
+    rendered = (tmp_path / "TASK_PACKET.md").read_text()
+
+    assert select_packet_pattern(task) is PacketPattern.VALIDATION
+    assert "- pattern=validation" in rendered
+    assert "## Coverage target" in rendered
+    assert "## Validation commands" in rendered
+    assert "- python3 -m pytest tests/python" in rendered
+    assert "- tests/python/" in rendered
 
 
 def test_execute_codex_writes_deterministic_artifact_shape(

@@ -55,6 +55,7 @@ final class SpotPresentationLogicTests: XCTestCase {
             recentTrips: [],
             catchCount: 7,
             successfulTripCount: 3,
+            productivityInsight: nil,
             bestTimeWindow: nil,
             mostEffectiveLure: nil,
             seasonalityInsight: nil,

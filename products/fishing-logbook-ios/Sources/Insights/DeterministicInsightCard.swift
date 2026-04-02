@@ -3,6 +3,7 @@ import SwiftUI
 struct DeterministicInsightCard: Identifiable {
     enum Kind: String {
         case lastTrips
+        case productivity
         case bestTimeWindow
         case mostEffectiveLure
         case seasonality

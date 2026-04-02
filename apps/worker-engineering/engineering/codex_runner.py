@@ -9,17 +9,15 @@ from packages.schemas.task import Task
 from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.task_run import CodexExecutionRecord
 from packages.schemas.worktree import WorktreeMetadata
-from packages.tools.codex_tools.task_packet import CodexTaskPacket, render_markdown
+from packages.tools.codex_tools.task_packet import build_task_packet, render_markdown
 
 CODEX_TIMEOUT_SECONDS = 120
 
 
 def render_task_packet(task: Task, worktree: WorktreeMetadata) -> str:
-    packet = CodexTaskPacket(
-        task_id=task.id,
-        summary=task.summary,
-        constraints=task.constraints,
-        tests_required=True,
+    packet = build_task_packet(
+        task,
+        worktree_root=worktree.root_path,
         test_lane=TestLane.PYTHON,
         allowed_no_test_reason_codes=[
             NoTestReasonCode.COMMENTS_ONLY,

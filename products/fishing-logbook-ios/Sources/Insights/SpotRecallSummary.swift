@@ -1,6 +1,12 @@
 import Foundation
 
 struct SpotRecallSummary {
+    struct ProductivityInsight {
+        let title: String
+        let body: String
+        let supportingSampleCount: Int
+    }
+
     struct SeasonalityInsight {
         let title: String
         let body: String
@@ -10,6 +16,7 @@ struct SpotRecallSummary {
     let recentTrips: [Trip]
     let catchCount: Int
     let successfulTripCount: Int
+    let productivityInsight: ProductivityInsight?
     let bestTimeWindow: String?
     let mostEffectiveLure: String?
     let seasonalityInsight: SeasonalityInsight?
@@ -27,6 +34,18 @@ struct SpotRecallSummary {
                     body: "You have \(recentTrips.count) recent trips here. The latest was on \(AppFormatters.tripDate.string(from: mostRecentTrip.startAt)).",
                     supportingSampleCount: recentTrips.count,
                     systemImage: "clock.arrow.circlepath"
+                )
+            )
+        }
+
+        if let productivityInsight {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .productivity,
+                    title: productivityInsight.title,
+                    body: productivityInsight.body,
+                    supportingSampleCount: productivityInsight.supportingSampleCount,
+                    systemImage: "chart.line.uptrend.xyaxis"
                 )
             )
         }
@@ -105,6 +124,7 @@ struct SpotRecallSummary {
         }
 
         let successfulTripIDs = Set(spotCatches.compactMap { $0.trip?.id })
+        let completedTrips = spotTrips.filter { $0.endAt != nil }
         let productiveTrips = spotTrips.filter { successfulTripIDs.contains($0.id) }
         let bestTimeWindow = timeWindowCounts.max(by: { $0.value < $1.value })?.key
 
@@ -115,17 +135,67 @@ struct SpotRecallSummary {
         }
 
         let mostCommonSimilarity = similarityCounts.max(by: { $0.value < $1.value })
+        let productivityInsight = recentProductivityInsight(
+            completedTrips: completedTrips,
+            successfulTripIDs: successfulTripIDs
+        )
         let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips)
 
         return SpotRecallSummary(
             recentTrips: Array(spotTrips.prefix(3)),
             catchCount: spotCatches.count,
             successfulTripCount: successfulTripIDs.count,
+            productivityInsight: productivityInsight,
             bestTimeWindow: bestTimeWindow,
             mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
             seasonalityInsight: seasonalityInsight,
             similarConditionsCount: mostCommonSimilarity?.value ?? 0,
             similarConditionsLabel: mostCommonSimilarity?.key
+        )
+    }
+
+    private static func recentProductivityInsight(
+        completedTrips: [Trip],
+        successfulTripIDs: Set<UUID>
+    ) -> ProductivityInsight? {
+        let recentCompletedTrips = Array(completedTrips.prefix(5))
+        let completedTripCount = recentCompletedTrips.count
+
+        guard completedTripCount >= 3 else { return nil }
+
+        let productiveTripCount = recentCompletedTrips.reduce(into: 0) { count, trip in
+            if successfulTripIDs.contains(trip.id) {
+                count += 1
+            }
+        }
+
+        guard productiveTripCount == completedTripCount
+            || productiveTripCount == completedTripCount - 1
+            || productiveTripCount == 0
+        else {
+            return nil
+        }
+
+        if productiveTripCount == completedTripCount {
+            return ProductivityInsight(
+                title: "Recent success here",
+                body: "You caught fish on all \(completedTripCount) of your last \(completedTripCount) completed trips here.",
+                supportingSampleCount: completedTripCount
+            )
+        }
+
+        if productiveTripCount == 0 {
+            return ProductivityInsight(
+                title: "Recent success here",
+                body: "Your last \(completedTripCount) completed trips here ended without a catch.",
+                supportingSampleCount: completedTripCount
+            )
+        }
+
+        return ProductivityInsight(
+            title: "Recent success here",
+            body: "You caught fish on \(productiveTripCount) of your last \(completedTripCount) completed trips here.",
+            supportingSampleCount: completedTripCount
         )
     }
 

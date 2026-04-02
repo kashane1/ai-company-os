@@ -19,28 +19,27 @@ The canonical packet library is only **partially implemented** in the current wo
 
 What is real today:
 
-- The worker does render a markdown packet before invoking Codex.
-- The packet now lands at `<worktree>/TASK_PACKET.md`.
-- The packet carries the objective, execution rules, task constraints, and structured testing contract fields.
+- The worker renders a markdown packet before invoking Codex.
+- The packet lands at `<worktree>/TASK_PACKET.md`.
+- Runtime selects from `implementation`, `bugfix`, `ui-polish`, `validation`, and `handoff-safe`.
+- The rendered packet includes pattern-specific sections such as `Context`, `Target files`, `Verification`, and `Acceptance criteria`.
+- The packet carries structured testing contract fields used by validation.
 
 What is not implemented yet:
 
-- Pattern selection from `skills/canonical/shared/codex-packet-patterns/`
-- Distinct packet shapes for `implementation`, `bugfix`, `ui-polish`, `validation`, and `handoff-safe`
-- Explicit `Context`, `Target files`, `Verification`, and `Acceptance criteria` sections
-- Worker-driven file targeting based on task scope
+- Rich task metadata for exact context-file and target-file selection
+- Review-document-aware UI polish packets with precise file:line findings
+- Fully structured reproduction data and output contracts from persisted task schema
 
 Treat the canonical library as a target contract. Treat the current renderer as the operational reality.
 
 ## How the engineering worker uses this
 
 1. Load the task record from `state/checkpoints/platform/tasks/<task-id>.json`
-2. Render the current packet shape from `packages/tools/codex_tools/task_packet.py`
-3. Include task summary, constraints, and testing contract metadata
+2. Select a packet pattern from `packages/tools/codex_tools/task_packet.py`
+3. Build the packet using task metadata, lane defaults, inferred context paths, and testing contract metadata
 4. Write the packet to `<worktree>/TASK_PACKET.md`
 5. Pass the worktree path to the Codex execution step
-
-The pattern library below is the intended next shape, not the current one.
 
 ## Pattern selection guide
 
@@ -76,4 +75,4 @@ Located at `skills/canonical/shared/codex-packet-patterns/`:
 - `validation.md`
 - `handoff-safe.md`
 
-These templates are not yet wired into the worker runtime.
+These templates are now reflected in runtime through a lightweight shared builder rather than a generic template engine.

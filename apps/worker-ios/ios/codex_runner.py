@@ -9,27 +9,25 @@ from packages.schemas.task import Task
 from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.task_run import CodexExecutionRecord
 from packages.schemas.worktree import WorktreeMetadata
-from packages.tools.codex_tools.task_packet import CodexTaskPacket, render_markdown
+from packages.tools.codex_tools.task_packet import build_task_packet, render_markdown
 
 CODEX_TIMEOUT_SECONDS = 120
 
 
 def render_task_packet(task: Task, worktree: WorktreeMetadata) -> str:
-    packet = CodexTaskPacket(
-        task_id=f"iOS Task {task.id}",
-        summary=task.summary,
-        constraints=[
+    packet = build_task_packet(
+        task,
+        worktree_root=worktree.root_path,
+        test_lane=TestLane.IOS,
+        lane_constraints=[
             "product_id=" + (task.product_id or "unknown"),
             f"repo_id={task.repo_id}",
             "lane=ios",
-            "Treat docs/products as the product source of truth before editing code.",
+            "Use the current iOS worktree contents as the source of truth for this pass.",
             "Keep the change scoped to the requested iOS task.",
             "Do not introduce release automation, TestFlight automation, or App Store Connect changes.",
             "Prefer the smallest believable structural change.",
-            *task.constraints,
         ],
-        tests_required=True,
-        test_lane=TestLane.IOS,
         allowed_no_test_reason_codes=[
             NoTestReasonCode.COMMENTS_ONLY,
             NoTestReasonCode.VISUAL_ONLY_NON_LOGIC,
