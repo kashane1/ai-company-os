@@ -1,6 +1,12 @@
 import Foundation
 
 struct SpotRecallSummary {
+    struct ConditionsInsight {
+        let title: String
+        let body: String
+        let supportingSampleCount: Int
+    }
+
     struct SpeciesInsight {
         let title: String
         let body: String
@@ -31,6 +37,7 @@ struct SpotRecallSummary {
     let recencyInsight: RecencyInsight?
     let productivityInsight: ProductivityInsight?
     let speciesInsight: SpeciesInsight?
+    let conditionsInsight: ConditionsInsight?
     let bestTimeWindow: String?
     let mostEffectiveLure: String?
     let seasonalityInsight: SeasonalityInsight?
@@ -84,6 +91,18 @@ struct SpotRecallSummary {
                     body: speciesInsight.body,
                     supportingSampleCount: speciesInsight.supportingSampleCount,
                     systemImage: "fish"
+                )
+            )
+        }
+
+        if let conditionsInsight {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .conditions,
+                    title: conditionsInsight.title,
+                    body: conditionsInsight.body,
+                    supportingSampleCount: conditionsInsight.supportingSampleCount,
+                    systemImage: "cloud.sun"
                 )
             )
         }
@@ -189,6 +208,10 @@ struct SpotRecallSummary {
             completedTrips: completedTrips,
             catches: spotCatches
         )
+        let conditionsInsight = strongestConditionsInsight(
+            completedTrips: completedTrips,
+            successfulTripIDs: successfulTripIDs
+        )
         let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips)
 
         return SpotRecallSummary(
@@ -198,6 +221,7 @@ struct SpotRecallSummary {
             recencyInsight: recencyInsight,
             productivityInsight: productivityInsight,
             speciesInsight: speciesInsight,
+            conditionsInsight: conditionsInsight,
             bestTimeWindow: bestTimeWindow,
             mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
             seasonalityInsight: seasonalityInsight,
@@ -248,6 +272,29 @@ struct SpotRecallSummary {
             title: "Recent success here",
             body: "You caught fish on \(productiveTripCount) of your last \(completedTripCount) completed trips here.",
             supportingSampleCount: completedTripCount
+        )
+    }
+
+    private static func strongestConditionsInsight(
+        completedTrips: [Trip],
+        successfulTripIDs: Set<UUID>
+    ) -> ConditionsInsight? {
+        let productiveCompletedTrips = completedTrips.filter { successfulTripIDs.contains($0.id) }
+        guard productiveCompletedTrips.count >= 4 else { return nil }
+
+        var timeWindowCounts: [String: Int] = [:]
+        for trip in productiveCompletedTrips {
+            let timeWindow = trip.conditionSnapshot?.timeWindowSummary?.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let timeWindow, !timeWindow.isEmpty else { continue }
+            timeWindowCounts[timeWindow, default: 0] += 1
+        }
+
+        guard let strongestWindow = strongestConditionsBucket(in: timeWindowCounts) else { return nil }
+
+        return ConditionsInsight(
+            title: "Most consistent catch window here",
+            body: "Your catches here have lined up most often in \(strongestWindow.key.lowercased()): \(strongestWindow.value) completed trips with catches.",
+            supportingSampleCount: strongestWindow.value
         )
     }
 
@@ -437,6 +484,19 @@ struct SpotRecallSummary {
         guard let topCount = sortedCounts.first, topCount >= 3 else { return nil }
 
         if sortedCounts.count > 1, sortedCounts[1] == topCount {
+            return nil
+        }
+
+        return counts.first { $0.value == topCount }
+    }
+
+    private static func strongestConditionsBucket(in counts: [String: Int]) -> (key: String, value: Int)? {
+        guard counts.count > 0 else { return nil }
+
+        let sortedCounts = counts.values.sorted(by: >)
+        guard let topCount = sortedCounts.first, topCount >= 3 else { return nil }
+
+        if sortedCounts.count > 1, sortedCounts[1] >= topCount - 1 {
             return nil
         }
 

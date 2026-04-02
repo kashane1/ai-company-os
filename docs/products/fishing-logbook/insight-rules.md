@@ -11,6 +11,14 @@ All insight cards in MVP must be:
 
 No generative summarization is in scope.
 
+These rules power the private recall layer. They should not become a separate product identity or a second insight engine.
+
+## Composition Rule
+
+- a compact Spot DNA style "what worked here" summary may combine outputs from these deterministic rules
+- the summary must remain traceable to the underlying rules and supporting trips
+- "last time here" and broader pattern replay surfaces are a next-phase consumer of these rules, not a reason to broaden the rule set prematurely
+
 ## Initial Rules
 
 ### 1. Top Species By Waterbody

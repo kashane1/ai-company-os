@@ -6,6 +6,7 @@ struct DeterministicInsightCard: Identifiable {
         case recency
         case productivity
         case species
+        case conditions
         case bestTimeWindow
         case mostEffectiveLure
         case seasonality

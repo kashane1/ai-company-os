@@ -1,42 +1,34 @@
 # Backlog: Private Fishing Logbook
 
-## Epic 1: Product Foundation
+## Build Now
 
-- `ios_feature`: create the base SwiftUI app shell in `products/fishing-logbook-ios/`
-- `ios_feature`: define SwiftData models for waterbody, spot, trip, catch, and condition snapshot
-- `ios_feature`: create seed fixtures for deterministic insight acceptance cases
+- `ios_feature`: keep the base SwiftUI shell and SwiftData model set aligned with the private-memory wedge
+- `ios_feature`: finish trip start, quick catch logging, trip end, and skunked-trip support with strong one-handed defaults
+- `ios_bugfix`: harden offline save, resume, and field-default behavior
+- `ios_feature`: implement trips list, trip detail, spots list, and spot detail as the main recall surfaces
+- `ios_feature`: implement deterministic spot-detail recall using recent trips, top lure, time window, seasonality, catch rate, and similar conditions
+- `ios_feature`: compose a compact Spot DNA style "what worked here" summary from existing deterministic rules rather than building a second insight engine
+- `ios_feature`: implement personal best summaries where they reinforce recall
+- `ios_feature`: add export-only privacy-safe share cards for a catch or personal best with coarse or omitted location detail
+- `ios_feature`: keep seeded fixtures and acceptance coverage aligned with deterministic recall rules
+- `engineering_change`: keep app-store positioning and screenshot story aligned with the updated wedge
 
-## Epic 2: Trip Logging Core Loop
+## Build Next
 
-- `ios_feature`: implement trip start flow with water / spot selection
-- `ios_feature`: implement quick catch logging with defaults
-- `ios_feature`: implement trip end and skunked-trip support
-- `ios_bugfix`: harden offline save and resume behavior
+- `ios_feature`: add pre-trip pattern replay surfaces such as "last time here" and recent outcome recall
+- `ios_feature`: add seasonal memory nudges and personal-best story moments
+- `ios_feature`: explore optional catch-scan-lite logging assist for field prefilling only
+- `ios_feature`: refine spot memory browsing if map/list switching proves necessary after the core detail view is coherent
 
-## Epic 3: History And Spot Recall
+## Later / Not Now
 
-- `ios_feature`: implement trips list and trip detail
-- `ios_feature`: implement spots list and spot detail summaries
-- `ios_feature`: implement personal best summaries
-
-## Epic 4: Deterministic Insights
-
-- `ios_feature`: implement rules engine for time window, top lure, seasonality, catch rate, and similar conditions
-- `ios_feature`: render insight cards from rule output only
-- `ios_bugfix`: validate insight output against seeded acceptance cases
-
-## Epic 5: App Store Preparation
-
-- `engineering_change`: keep app-store positioning brief aligned with the product
-- `engineering_change`: seed screenshot planning and metadata draft state
-- `engineering_change`: prepare release draft record for TestFlight and App Store review
-
-## Not In Scope For Core MVP
-
+- standalone fish ID or species-ID-led onboarding
+- social features, community feeds, or public discovery
 - widgets
 - Live Activities
 - App Intents
 - Watch support
-- social features
-- team features
-- marketplace and subscriptions plumbing beyond structural prep
+- regulations or licensing workflows
+- marketplace or team features
+- broad analytics dashboards
+- subscriptions or monetization implementation beyond doc-level planning

@@ -9,6 +9,7 @@ The product is a private performance companion:
 - capture the trip quickly
 - preserve the memory clearly
 - surface deterministic reminders before the next outing
+- optionally share the win without giving away the spot
 
 ## User And Job
 
@@ -38,10 +39,37 @@ Primary job:
 - no AI theater
 - no forced social graph
 - offline-safe core logging flow
+- sharing, if present, must be export-first and privacy-safe
 
 ## MVP Promise
 
 Remember what worked, without sharing your spots.
+
+## Expanded MVP Direction
+
+This product is still intentionally narrow. The allowed expansion is meant to strengthen the wedge, not widen the category.
+
+### Build Now
+
+- finish a coherent spot-detail recall surface that makes past trips, outcomes, and conditions easy to replay
+- add a compact deterministic "what worked here" summary for each spot
+- keep trip start and catch logging one-handed and low-friction
+- allow a privacy-safe brag/share card as an export-only surface for catches or personal bests
+
+### Build Next
+
+- add pre-trip pattern replay such as "last time here" and seasonal memory nudges
+- add personal-best story surfaces that make progress feel memorable
+- explore catch-scan-lite logging assist only as optional field prefilling, not as species-ID product identity
+
+### Later / Not Now
+
+- standalone fish identification
+- any social, feed, follow, or community product shape
+- marketplace, regulations, licensing, or team workflows
+- broad analytics or dashboard expansion
+- widgets, Live Activities, App Intents, or Apple Watch work
+- monetization implementation beyond lightweight positioning prep
 
 ## MVP Boundaries
 
@@ -53,6 +81,8 @@ Include:
 - basic history and filters
 - personal bests
 - deterministic recall cards
+- deterministic spot-detail recall and Spot DNA summary
+- privacy-safe export sharing for a catch or personal best if location privacy is preserved
 
 Exclude:
 
@@ -74,6 +104,7 @@ Exclude:
 
 - all spots are private by default
 - no public sharing model in MVP
+- if a user shares anything, it should be an explicit export with coarse or omitted location detail
 - photo capture is optional
 - location data should be stored only for the user’s own recall
 
@@ -84,4 +115,5 @@ The system is successful when a user can:
 - start a trip in seconds
 - log a catch quickly with minimal fields
 - review past performance by water or spot
-- see simple, credible pattern cards before a new trip
+- see simple, credible recall surfaces before a new trip
+- share a memorable catch without compromising a private spot

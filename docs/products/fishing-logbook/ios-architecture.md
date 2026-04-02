@@ -20,6 +20,7 @@ The app should be credible on the water even without service access.
 
 - all spot data is private by default
 - there is no public sharing or community surface in MVP
+- any share surface must be explicit export, not discovery or profile infrastructure
 - location precision should only serve the user’s own recall
 - photo use is optional and user-controlled
 
@@ -37,6 +38,8 @@ Derived outputs:
 
 - PersonalBest summaries
 - deterministic InsightCards
+- SpotRecall summaries
+- privacy-safe ShareCard exports derived from local trip or catch data
 
 ## CloudKit Stance
 
@@ -50,6 +53,14 @@ Derived outputs:
 - insight rules live in the product docs and schema contracts
 - output cards must be reproducible and acceptance-testable
 - no generative summarization is allowed in the MVP path
+- compact Spot DNA output should compose existing deterministic rules instead of introducing a separate reasoning layer
+
+## Share Card Boundary
+
+- share cards should render from already logged local data
+- share cards must default to coarse, generic, or omitted location text
+- share support must not require backend accounts, feeds, or multi-user schema
+- the share layer is a wedge enhancer, not the product center
 
 ## Product Source Of Truth
 
@@ -59,3 +70,4 @@ During core implementation, engineers should treat these docs as authoritative:
 - `mvp-spec.md`
 - `insight-rules.md`
 - `insight-acceptance-cases.md`
+- `backlog.md`

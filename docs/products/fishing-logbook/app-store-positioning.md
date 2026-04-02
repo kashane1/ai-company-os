@@ -15,6 +15,7 @@ Private Fishing Logbook is a private performance companion for anglers who want 
 - remember what worked
 - fast logging on the water
 - confidence before the next trip
+- share the catch, not the spot
 
 ## Name Direction
 
@@ -38,7 +39,7 @@ Working directions, not final names:
 3. See what worked last time
 4. Track conditions automatically
 5. Review spot-by-spot history
-6. Keep personal bests and trends
+6. Share a win without exposing the spot
 
 ## Metadata Notes
 
@@ -46,3 +47,4 @@ Working directions, not final names:
 - avoid promising AI
 - avoid promising community scale
 - emphasize determinism and trusted personal history
+- if sharing is shown, frame it as privacy-safe export sharing rather than social connection

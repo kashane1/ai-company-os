@@ -71,6 +71,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.recencyInsight)
         XCTAssertNil(summary.productivityInsight)
         XCTAssertNil(summary.speciesInsight)
+        XCTAssertNil(summary.conditionsInsight)
         XCTAssertEqual(summary.bestTimeWindow, "6-9 AM")
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
@@ -97,6 +98,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.recencyInsight)
         XCTAssertNil(summary.productivityInsight)
         XCTAssertNil(summary.speciesInsight)
+        XCTAssertNil(summary.conditionsInsight)
         XCTAssertNil(summary.bestTimeWindow)
         XCTAssertNil(summary.mostEffectiveLure)
         XCTAssertNil(summary.seasonalityInsight)
@@ -129,6 +131,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.recencyInsight)
         XCTAssertNil(summary.productivityInsight)
         XCTAssertNil(summary.speciesInsight)
+        XCTAssertNil(summary.conditionsInsight)
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
     }
@@ -381,6 +384,103 @@ final class SpotRecallSummaryTests: XCTestCase {
             summary.speciesInsight?.body,
             "Bass has been your most reliable species here: 4 bass across 3 completed trips."
         )
+    }
+
+    func testBuildAddsConditionsCardForStrongSupportedCatchWindowPattern() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning", lightLevel: "Low light", wind: "Low wind"), year: 2025, month: 11, day: 23),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning", lightLevel: "Low light", wind: "Moderate wind"), year: 2025, month: 11, day: 16),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning", lightLevel: "Bright", wind: "Low wind"), year: 2025, month: 11, day: 9),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning", lightLevel: "Low light", wind: "Low wind"), year: 2025, month: 11, day: 2),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Evening", lightLevel: "Low light", wind: "Low wind"), year: 2025, month: 10, day: 26),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt),
+            CatchRecord(species: "Bass", trip: trips[3], caughtAt: trips[3].startAt),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(summary.conditionsInsight?.title, "Most consistent catch window here")
+        XCTAssertEqual(
+            summary.conditionsInsight?.body,
+            "Your catches here have lined up most often in morning: 4 completed trips with catches."
+        )
+        XCTAssertEqual(summary.conditionsInsight?.supportingSampleCount, 4)
+        XCTAssertEqual(summary.cards.first(where: { $0.kind == .conditions })?.title, "Most consistent catch window here")
+    }
+
+    func testBuildSuppressesConditionsCardWhenHistoryIsMixedOrNoisy() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning", lightLevel: "Low light", wind: "Low wind"), year: 2025, month: 12, day: 21),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning", lightLevel: "Bright", wind: "Moderate wind"), year: 2025, month: 12, day: 14),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Evening", lightLevel: "Low light", wind: "Low wind"), year: 2025, month: 12, day: 7),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Evening", lightLevel: "Bright", wind: "High wind"), year: 2025, month: 11, day: 30),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.conditionsInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .conditions }))
+    }
+
+    func testBuildSuppressesConditionsCardWhenSupportIsTooThin() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 4, day: 20),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 4, day: 13),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 4, day: 6),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.conditionsInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .conditions }))
+    }
+
+    func testBuildIgnoresActiveTripsForConditionsSupport() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let activeTrip = Trip(
+            waterbody: waterbody,
+            spot: spot,
+            conditionSnapshot: snapshot(timeWindow: "Evening"),
+            startAt: date(year: 2025, month: 10, day: 26)
+        )
+        let completedTrips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 10, day: 19),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 10, day: 12),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 10, day: 5),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 9, day: 28),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: activeTrip, caughtAt: activeTrip.startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[0], caughtAt: completedTrips[0].startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[1], caughtAt: completedTrips[1].startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[2], caughtAt: completedTrips[2].startAt),
+            CatchRecord(species: "Bass", trip: completedTrips[3], caughtAt: completedTrips[3].startAt),
+        ]
+
+        let summary = SpotRecallSummary.build(
+            for: spot,
+            trips: [activeTrip] + completedTrips,
+            catches: catches
+        )
+
+        XCTAssertEqual(
+            summary.conditionsInsight?.body,
+            "Your catches here have lined up most often in morning: 4 completed trips with catches."
+        )
+        XCTAssertEqual(summary.conditionsInsight?.supportingSampleCount, 4)
     }
 
     func testBuildAddsRecencyCardForStrongRecentActivePattern() {
@@ -709,6 +809,7 @@ final class SpotRecallSummaryTests: XCTestCase {
     private func completedTrip(
         waterbody: Waterbody,
         spot: Spot,
+        snapshot: ConditionSnapshot? = nil,
         year: Int,
         month: Int,
         day: Int
@@ -716,10 +817,24 @@ final class SpotRecallSummaryTests: XCTestCase {
         let trip = Trip(
             waterbody: waterbody,
             spot: spot,
+            conditionSnapshot: snapshot,
             startAt: date(year: year, month: month, day: day)
         )
         trip.endAt = trip.startAt.addingTimeInterval(60 * 60)
         trip.outcomeRawValue = TripOutcome.skunked.rawValue
         return trip
+    }
+
+    private func snapshot(
+        timeWindow: String,
+        lightLevel: String? = nil,
+        wind: String? = nil
+    ) -> ConditionSnapshot {
+        ConditionSnapshot(
+            capturedAt: .now,
+            timeWindowSummary: timeWindow,
+            lightLevelSummary: lightLevel,
+            windSummary: wind
+        )
     }
 }

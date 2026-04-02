@@ -13,6 +13,12 @@ Build an iPhone-first private fishing logbook for serious hobby anglers who want
 
 The wedge is private fishing memory, fast on-the-water logging, and simple pattern recall before the next trip.
 
+This pass allows a small MVP expansion that strengthens the wedge without widening the category:
+
+- deepen spot recall and pattern replay
+- add a compact deterministic "what worked here" summary
+- allow privacy-safe shareability only where it reinforces personal memory rather than social behavior
+
 ## Product Thesis
 
 The product wins if it feels:
@@ -87,7 +93,7 @@ The MVP should solve one loop completely:
 - catch gallery
 - filters by water, species, season, lure
 - personal bests by species
-- spot detail with trip count, catch count, recent catches, successful lures, and simple condition summaries
+- spot detail with trip count, catch count, recent catches, successful lures, simple condition summaries, and a compact "what worked here" summary grounded in logged evidence
 
 ### Pre-Trip Recall
 
@@ -96,6 +102,36 @@ The MVP should solve one loop completely:
 - most effective lure here
 - simple condition patterns such as low wind / morning
 
+### Privacy-Safe Shareability
+
+- optional export-only brag card for a catch, personal best, or trip memory
+- must avoid exact spot disclosure by default
+- must not create a public profile, feed, follow graph, or community surface
+
+## Expanded MVP Feature Order
+
+### Build Now
+
+- finish coherent deterministic spot-detail recall
+- define a compact Spot DNA style "what worked here" summary without creating a second insight engine
+- keep one-handed trip and catch logging fast enough for on-the-water use
+- add a privacy-safe brag/share card only as an export surface, not a social surface
+
+### Build Next
+
+- pattern replay and "last time here" memory surfaces before a trip
+- personal-best story and seasonal memory nudges
+- optional catch-scan-lite logging assist that prefills fields but does not redefine the product as fish ID
+
+### Later / Not Now
+
+- standalone fish photo species ID
+- social or community features
+- marketplace or team workflows
+- broad analytics dashboards
+- widgets, Live Activities, App Intents, or Apple Watch work
+- regulations, licensing, or generic planning workflows
+
 ## Explicit V1 Exclusions
 
 - public social feed
@@ -103,7 +139,7 @@ The MVP should solve one loop completely:
 - chat or community
 - tournament tooling
 - sonar integration
-- fish ID
+- standalone fish ID
 - regulations database
 - marketplace
 - full web planner
@@ -129,7 +165,7 @@ The founder brief recommends a local-first iOS app using:
 - Core Location
 - PhotosUI / camera
 - WeatherKit or weather abstraction
-- WidgetKit / ActivityKit / App Intents after MVP
+- WidgetKit / ActivityKit / App Intents after the private-memory wedge is already working cleanly
 
 Why local-first:
 
@@ -145,6 +181,7 @@ Why local-first:
 - the app should be private by default
 - offline use matters on the water
 - photos are optional and should stay user-controlled
+- any sharing must default to privacy-safe exports rather than public discovery
 
 ## Deterministic Insights
 
@@ -160,6 +197,8 @@ Initial rules:
 - catch vs skunk rate
 - similar conditions retrieval based on weather/time similarity
 
+These rules should power a compact recall layer, not a separate "AI insights" identity.
+
 ## Launch And Positioning
 
 Position as a private performance companion, not a community app.
@@ -168,7 +207,7 @@ Candidate App Store framing:
 
 - primary category: Sports
 - secondary category: Reference
-- screenshot story: log fast, keep spots private, remember what worked
+- screenshot story: log fast, keep spots private, remember what worked, share a win without exposing the spot
 
 ## Success Signal
 
