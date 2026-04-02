@@ -1,6 +1,12 @@
 import Foundation
 
 struct SpotRecallSummary {
+    struct RecencyInsight {
+        let title: String
+        let body: String
+        let supportingSampleCount: Int
+    }
+
     struct ProductivityInsight {
         let title: String
         let body: String
@@ -16,6 +22,7 @@ struct SpotRecallSummary {
     let recentTrips: [Trip]
     let catchCount: Int
     let successfulTripCount: Int
+    let recencyInsight: RecencyInsight?
     let productivityInsight: ProductivityInsight?
     let bestTimeWindow: String?
     let mostEffectiveLure: String?
@@ -34,6 +41,18 @@ struct SpotRecallSummary {
                     body: "You have \(recentTrips.count) recent trips here. The latest was on \(AppFormatters.tripDate.string(from: mostRecentTrip.startAt)).",
                     supportingSampleCount: recentTrips.count,
                     systemImage: "clock.arrow.circlepath"
+                )
+            )
+        }
+
+        if let recencyInsight {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .recency,
+                    title: recencyInsight.title,
+                    body: recencyInsight.body,
+                    supportingSampleCount: recencyInsight.supportingSampleCount,
+                    systemImage: "waveform.path.ecg"
                 )
             )
         }
@@ -126,6 +145,9 @@ struct SpotRecallSummary {
         let successfulTripIDs = Set(spotCatches.compactMap { $0.trip?.id })
         let completedTrips = spotTrips.filter { $0.endAt != nil }
         let productiveTrips = spotTrips.filter { successfulTripIDs.contains($0.id) }
+        let catchCountsByTripID = Dictionary(grouping: spotCatches.compactMap { catchRecord -> UUID? in
+            catchRecord.trip?.id
+        }, by: { $0 }).mapValues(\.count)
         let bestTimeWindow = timeWindowCounts.max(by: { $0.value < $1.value })?.key
 
         var similarityCounts: [String: Int] = [:]
@@ -135,6 +157,11 @@ struct SpotRecallSummary {
         }
 
         let mostCommonSimilarity = similarityCounts.max(by: { $0.value < $1.value })
+        let recencyInsight = recentActivityInsight(
+            completedTrips: completedTrips,
+            successfulTripIDs: successfulTripIDs,
+        catchCountsByTripID: catchCountsByTripID
+        )
         let productivityInsight = recentProductivityInsight(
             completedTrips: completedTrips,
             successfulTripIDs: successfulTripIDs
@@ -145,6 +172,7 @@ struct SpotRecallSummary {
             recentTrips: Array(spotTrips.prefix(3)),
             catchCount: spotCatches.count,
             successfulTripCount: successfulTripIDs.count,
+            recencyInsight: recencyInsight,
             productivityInsight: productivityInsight,
             bestTimeWindow: bestTimeWindow,
             mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
@@ -197,6 +225,57 @@ struct SpotRecallSummary {
             body: "You caught fish on \(productiveTripCount) of your last \(completedTripCount) completed trips here.",
             supportingSampleCount: completedTripCount
         )
+    }
+
+    private static func recentActivityInsight(
+        completedTrips: [Trip],
+        successfulTripIDs: Set<UUID>,
+        catchCountsByTripID: [UUID: Int]
+    ) -> RecencyInsight? {
+        guard completedTrips.count >= 4 else { return nil }
+
+        let recentCompletedTrips = Array(completedTrips.prefix(4))
+        let latestTwoTrips = Array(recentCompletedTrips.prefix(2))
+        let previousTwoTrips = Array(recentCompletedTrips.dropFirst(2))
+        let latestThreeTrips = Array(recentCompletedTrips.prefix(3))
+
+        let latestTwoCatchCount = latestTwoTrips.reduce(into: 0) { count, trip in
+            count += catchCountsByTripID[trip.id] ?? 0
+        }
+        let previousTwoCatchCount = previousTwoTrips.reduce(into: 0) { count, trip in
+            count += catchCountsByTripID[trip.id] ?? 0
+        }
+        let latestTwoSuccessfulTripCount = latestTwoTrips.reduce(into: 0) { count, trip in
+            if successfulTripIDs.contains(trip.id) {
+                count += 1
+            }
+        }
+        let latestThreeSuccessfulTripCount = latestThreeTrips.reduce(into: 0) { count, trip in
+            if successfulTripIDs.contains(trip.id) {
+                count += 1
+            }
+        }
+        let earlierTripWasProductive = previousTwoTrips.contains { successfulTripIDs.contains($0.id) }
+
+        if latestTwoSuccessfulTripCount == 2,
+           latestTwoCatchCount >= 3,
+           previousTwoCatchCount == 0 {
+            return RecencyInsight(
+                title: "Recently active here",
+                body: "Your catches here have clustered recently: \(latestTwoCatchCount) fish across your last 2 completed trips.",
+                supportingSampleCount: recentCompletedTrips.count
+            )
+        }
+
+        if latestThreeSuccessfulTripCount == 0, earlierTripWasProductive {
+            return RecencyInsight(
+                title: "Quiet lately here",
+                body: "This spot has been quiet lately: no fish on your last 3 completed trips here.",
+                supportingSampleCount: recentCompletedTrips.count
+            )
+        }
+
+        return nil
     }
 
     private static func strongestSeasonalityInsight(
