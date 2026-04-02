@@ -12,9 +12,7 @@ inputs:
   - explicit constraints list from the task record
 outputs:
   - modified files within the task worktree
-  - diff artifact at state/artifacts/engineering/<task-id>/
-  - task run record at state/checkpoints/platform/task_runs/
-  - execution logs at state/logs/engineering/
+  - remaining outputs (artifacts, logs, task run record) produced by post-run-validation
 allowed_edit_boundaries:
   - state/worktrees/<repo-id>/<task-id>/
   - state/artifacts/engineering/<task-id>/
@@ -32,12 +30,10 @@ dependencies:
 validation_steps:
   - worktree was created at the expected path
   - task packet was rendered and written to the worktree
-  - codex CLI exited with code 0
-  - diff artifact is non-empty
-  - no files modified outside the worktree boundary
-  - task run record was persisted
+  - codex CLI completed (exit code captured)
+  - post-run-validation ran successfully (see post-run-validation skill)
 handoff_contract:
-  what_is_handed_off: task run ID, diff artifact path, validation result
+  what_is_handed_off: task run ID, classification, diff artifact path, validation result, approval ID (if applicable)
   handed_to: supervisor for review and optional approval routing
 codex_adaptation_notes: |
   This skill IS the Codex execution flow. The task packet rendered into the
@@ -91,18 +87,12 @@ Run `codex exec` with:
 
 Capture stdout, stderr, exit code, and timestamps.
 
-### 5. Capture artifacts
+### 5. Hand off to post-run-validation
 
-Generate a diff of all worktree changes.
-Write the diff to `state/artifacts/engineering/<task-id>/diff.patch`.
-Write stdout/stderr logs to `state/logs/engineering/<task-id>/`.
+Steps 5–7 (artifact capture, validation, classification, task run persistence) are delegated to the `post-run-validation` skill. See `skills/canonical/shared/post-run-validation.md` for the full procedure.
 
-### 6. Validate
-
-- Codex exit code is 0
-- Diff artifact exists and is non-empty
-- No files modified outside `state/worktrees/<repo-id>/<task-id>/`
-
-### 7. Persist the task run
-
-Write a task run record to `state/checkpoints/platform/task_runs/<run-id>.json` containing status, timestamps, artifact paths, and validation results.
+In summary, post-run-validation will:
+- Capture the diff to `state/artifacts/engineering/<task-id>/worktree.diff`
+- Run six validation checks (worktree, packet, execution result, exit code, diff, testing policy)
+- Classify the result and persist a `TaskRun` record
+- Create an approval record if the result is `safe_for_review`
