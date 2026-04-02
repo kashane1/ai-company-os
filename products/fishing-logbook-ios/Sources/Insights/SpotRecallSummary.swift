@@ -25,6 +25,12 @@ struct SpotRecallSummary {
         let supportingSampleCount: Int
     }
 
+    struct LureInsight {
+        let title: String
+        let body: String
+        let supportingSampleCount: Int
+    }
+
     struct SeasonalityInsight {
         let title: String
         let body: String
@@ -38,6 +44,7 @@ struct SpotRecallSummary {
     let productivityInsight: ProductivityInsight?
     let speciesInsight: SpeciesInsight?
     let conditionsInsight: ConditionsInsight?
+    let lureInsight: LureInsight?
     let bestTimeWindow: String?
     let mostEffectiveLure: String?
     let seasonalityInsight: SeasonalityInsight?
@@ -107,6 +114,18 @@ struct SpotRecallSummary {
             )
         }
 
+        if let lureInsight {
+            cards.append(
+                DeterministicInsightCard(
+                    kind: .lure,
+                    title: lureInsight.title,
+                    body: lureInsight.body,
+                    supportingSampleCount: lureInsight.supportingSampleCount,
+                    systemImage: "bolt.horizontal"
+                )
+            )
+        }
+
         if let bestTimeWindow {
             cards.append(
                 DeterministicInsightCard(
@@ -115,18 +134,6 @@ struct SpotRecallSummary {
                     body: "Your strongest catch window here has been \(bestTimeWindow).",
                     supportingSampleCount: catchCount,
                     systemImage: "clock"
-                )
-            )
-        }
-
-        if let mostEffectiveLure {
-            cards.append(
-                DeterministicInsightCard(
-                    kind: .mostEffectiveLure,
-                    title: "Most effective lure",
-                    body: "\(mostEffectiveLure) has produced best in your private history here.",
-                    supportingSampleCount: catchCount,
-                    systemImage: "bolt.horizontal"
                 )
             )
         }
@@ -212,6 +219,10 @@ struct SpotRecallSummary {
             completedTrips: completedTrips,
             successfulTripIDs: successfulTripIDs
         )
+        let lureInsight = strongestLureInsight(
+            completedTrips: completedTrips,
+            catches: spotCatches
+        )
         let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips)
 
         return SpotRecallSummary(
@@ -222,11 +233,75 @@ struct SpotRecallSummary {
             productivityInsight: productivityInsight,
             speciesInsight: speciesInsight,
             conditionsInsight: conditionsInsight,
+            lureInsight: lureInsight,
             bestTimeWindow: bestTimeWindow,
             mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
             seasonalityInsight: seasonalityInsight,
             similarConditionsCount: mostCommonSimilarity?.value ?? 0,
             similarConditionsLabel: mostCommonSimilarity?.key
+        )
+    }
+
+    private static func strongestLureInsight(
+        completedTrips: [Trip],
+        catches: [CatchRecord]
+    ) -> LureInsight? {
+        struct LureStats {
+            let normalizedLabel: String
+            let displayLabel: String
+            let tripCount: Int
+        }
+
+        let completedTripIDs = Set(completedTrips.map(\.id))
+        let eligibleCatches = catches.compactMap { catchRecord -> (tripID: UUID, normalizedLabel: String, displayLabel: String)? in
+            guard
+                let tripID = catchRecord.trip?.id,
+                completedTripIDs.contains(tripID)
+            else {
+                return nil
+            }
+
+            let displayLabel = catchRecord.lureOrBait.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !displayLabel.isEmpty else { return nil }
+
+            return (tripID, displayLabel.lowercased(), displayLabel)
+        }
+
+        let catchesByTrip = Dictionary(grouping: eligibleCatches, by: \.tripID)
+        let eligibleTripIDs = Set(catchesByTrip.keys)
+        guard eligibleTripIDs.count >= 4 else { return nil }
+
+        let statsByLure = Dictionary(grouping: eligibleCatches, by: \.normalizedLabel).compactMapValues { catchesForLure -> LureStats? in
+            guard let first = catchesForLure.first else { return nil }
+            let tripIDs = Set(catchesForLure.map(\.tripID))
+
+            return LureStats(
+                normalizedLabel: first.normalizedLabel,
+                displayLabel: first.displayLabel,
+                tripCount: tripIDs.count
+            )
+        }
+
+        let sortedStats = statsByLure.values.sorted { lhs, rhs in
+            if lhs.tripCount != rhs.tripCount {
+                return lhs.tripCount > rhs.tripCount
+            }
+
+            return lhs.normalizedLabel < rhs.normalizedLabel
+        }
+
+        guard let winningStats = sortedStats.first else { return nil }
+        guard winningStats.tripCount >= 3 else { return nil }
+
+        if sortedStats.count > 1 {
+            let runnerUp = sortedStats[1]
+            guard runnerUp.tripCount < winningStats.tripCount - 1 else { return nil }
+        }
+
+        return LureInsight(
+            title: "Most reliable lure here",
+            body: "\(winningStats.displayLabel) has shown up on \(winningStats.tripCount) completed trips with catches here.",
+            supportingSampleCount: winningStats.tripCount
         )
     }
 

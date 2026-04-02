@@ -72,12 +72,13 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.productivityInsight)
         XCTAssertNil(summary.speciesInsight)
         XCTAssertNil(summary.conditionsInsight)
+        XCTAssertNil(summary.lureInsight)
         XCTAssertEqual(summary.bestTimeWindow, "6-9 AM")
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
         XCTAssertEqual(summary.similarConditionsCount, 2)
         XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light")
-        XCTAssertEqual(summary.cards.count, 4)
+        XCTAssertEqual(summary.cards.count, 3)
     }
 
     func testNormalizedSpeciesTokensDeduplicatesAndTrimsValues() {
@@ -99,6 +100,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.productivityInsight)
         XCTAssertNil(summary.speciesInsight)
         XCTAssertNil(summary.conditionsInsight)
+        XCTAssertNil(summary.lureInsight)
         XCTAssertNil(summary.bestTimeWindow)
         XCTAssertNil(summary.mostEffectiveLure)
         XCTAssertNil(summary.seasonalityInsight)
@@ -132,6 +134,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.productivityInsight)
         XCTAssertNil(summary.speciesInsight)
         XCTAssertNil(summary.conditionsInsight)
+        XCTAssertNil(summary.lureInsight)
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
     }
@@ -412,6 +415,219 @@ final class SpotRecallSummaryTests: XCTestCase {
         )
         XCTAssertEqual(summary.conditionsInsight?.supportingSampleCount, 4)
         XCTAssertEqual(summary.cards.first(where: { $0.kind == .conditions })?.title, "Most consistent catch window here")
+    }
+
+    func testBuildAddsLureCardForStrongSupportedPattern() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 12, day: 28),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 12, day: 21),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 12, day: 14),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 12, day: 7),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 30),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(60), lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[3], caughtAt: trips[3].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[4], caughtAt: trips[4].startAt, lureOrBait: "Jig"),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(summary.lureInsight?.title, "Most reliable lure here")
+        XCTAssertEqual(
+            summary.lureInsight?.body,
+            "Spinner has shown up on 4 completed trips with catches here."
+        )
+        XCTAssertEqual(summary.lureInsight?.supportingSampleCount, 4)
+        XCTAssertEqual(summary.cards.first(where: { $0.kind == .lure })?.title, "Most reliable lure here")
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .mostEffectiveLure }))
+    }
+
+    func testBuildSuppressesLureCardWhenSupportIsTooThin() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 4, day: 27),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 4, day: 20),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 4, day: 13),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt, lureOrBait: "Spinner"),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.lureInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .lure }))
+    }
+
+    func testBuildSuppressesLureCardWhenTripSupportIsTied() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 31),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 24),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 17),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 10),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt, lureOrBait: "Jig"),
+            CatchRecord(species: "Bass", trip: trips[3], caughtAt: trips[3].startAt, lureOrBait: "Jig"),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.lureInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .lure }))
+    }
+
+    func testBuildSuppressesLureCardWhenTripSupportIsNearTied() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 28),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 21),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 14),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 7),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 8, day: 31),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[3], caughtAt: trips[3].startAt, lureOrBait: "Jig"),
+            CatchRecord(species: "Bass", trip: trips[4], caughtAt: trips[4].startAt, lureOrBait: "Jig"),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.lureInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .lure }))
+    }
+
+    func testBuildIgnoresActiveTripsForLureSupport() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let activeTrip = Trip(
+            waterbody: waterbody,
+            spot: spot,
+            startAt: date(year: 2025, month: 10, day: 26)
+        )
+        let completedTrips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 19),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 12),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 5),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 9, day: 28),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: activeTrip, caughtAt: activeTrip.startAt, lureOrBait: "Jig"),
+            CatchRecord(species: "Bass", trip: completedTrips[0], caughtAt: completedTrips[0].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: completedTrips[1], caughtAt: completedTrips[1].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: completedTrips[2], caughtAt: completedTrips[2].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: completedTrips[3], caughtAt: completedTrips[3].startAt, lureOrBait: "Spinner"),
+        ]
+
+        let summary = SpotRecallSummary.build(
+            for: spot,
+            trips: [activeTrip] + completedTrips,
+            catches: catches
+        )
+
+        XCTAssertEqual(
+            summary.lureInsight?.body,
+            "Spinner has shown up on 4 completed trips with catches here."
+        )
+        XCTAssertEqual(summary.lureInsight?.supportingSampleCount, 4)
+    }
+
+    func testBuildSuppressesLureCardForBannerTripAntiSkew() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 23),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 16),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 9),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 11, day: 2),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 10, day: 26),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(60), lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(120), lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(180), lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt, lureOrBait: "Jig"),
+            CatchRecord(species: "Bass", trip: trips[3], caughtAt: trips[3].startAt, lureOrBait: "Jig"),
+            CatchRecord(species: "Bass", trip: trips[4], caughtAt: trips[4].startAt, lureOrBait: "Jig"),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.lureInsight)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .lure }))
+    }
+
+    func testBuildNormalizesLureLabelsCaseAndWhitespaceInsensitively() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 12, day: 29),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 12, day: 22),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 12, day: 15),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 12, day: 8),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt, lureOrBait: " Spinner "),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt, lureOrBait: "spinner"),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt, lureOrBait: "SPINNER"),
+            CatchRecord(species: "Bass", trip: trips[3], caughtAt: trips[3].startAt, lureOrBait: "Spinner"),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(
+            summary.lureInsight?.body,
+            "Spinner has shown up on 4 completed trips with catches here."
+        )
+        XCTAssertEqual(summary.lureInsight?.supportingSampleCount, 4)
+    }
+
+    func testBuildIgnoresBlankLureValuesWhenSupportedPatternIsStillClear() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 27),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 20),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 13),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 7, day: 6),
+            completedTrip(waterbody: waterbody, spot: spot, year: 2025, month: 6, day: 29),
+        ]
+        let catches = [
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[0], caughtAt: trips[0].startAt.addingTimeInterval(60), lureOrBait: "   "),
+            CatchRecord(species: "Bass", trip: trips[1], caughtAt: trips[1].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[2], caughtAt: trips[2].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[3], caughtAt: trips[3].startAt, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trips[4], caughtAt: trips[4].startAt, lureOrBait: "Jig"),
+            CatchRecord(species: "Bass", trip: trips[4], caughtAt: trips[4].startAt.addingTimeInterval(60), lureOrBait: ""),
+        ]
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(
+            summary.lureInsight?.body,
+            "Spinner has shown up on 4 completed trips with catches here."
+        )
+        XCTAssertEqual(summary.lureInsight?.supportingSampleCount, 4)
     }
 
     func testBuildSuppressesConditionsCardWhenHistoryIsMixedOrNoisy() {
