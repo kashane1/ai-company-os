@@ -109,6 +109,10 @@ private struct SpotDetailView: View {
         SpotPresentationLogic.recentTripSummaries(trips: summary.recentTrips)
     }
 
+    private var privateRecallCards: [DeterministicInsightCard] {
+        SpotPresentationLogic.privateRecallCards(for: summary)
+    }
+
     var body: some View {
         List {
             // Overview
@@ -140,9 +144,9 @@ private struct SpotDetailView: View {
             }
 
             // Insight Cards
-            if !summary.cards.isEmpty {
+            if !privateRecallCards.isEmpty {
                 Section("Private Recall") {
-                    ForEach(summary.cards, id: \.id) { card in
+                    ForEach(privateRecallCards, id: \.id) { card in
                         DeterministicInsightCardView(card: card)
                             .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }

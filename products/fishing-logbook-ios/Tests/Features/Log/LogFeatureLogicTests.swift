@@ -143,4 +143,47 @@ final class LogFeatureLogicTests: XCTestCase {
         XCTAssertEqual(LogFeatureLogic.endTripOutcome(catchCount: 0), .skunked)
         XCTAssertEqual(LogFeatureLogic.endTripOutcome(catchCount: 2), .caught)
     }
+
+    func testSharedRecallCardsStillIncludeBestTimeWindowForLogConsumers() {
+        let summary = SpotRecallSummary(
+            recentTrips: [],
+            catchCount: 5,
+            successfulTripCount: 4,
+            recencyInsight: nil,
+            productivityInsight: nil,
+            speciesInsight: nil,
+            conditionsInsight: nil,
+            lureInsight: nil,
+            bestTimeWindow: "6-9 AM",
+            mostEffectiveLure: nil,
+            seasonalityInsight: nil,
+            similarConditionsCount: 0,
+            similarConditionsLabel: nil
+        )
+
+        XCTAssertNotNil(summary.cards.first(where: { $0.kind == .bestTimeWindow }))
+    }
+
+    func testSharedRecallCardsStillIncludeSimilarConditionsForLogConsumers() {
+        let summary = SpotRecallSummary(
+            recentTrips: [],
+            catchCount: 5,
+            successfulTripCount: 4,
+            recencyInsight: nil,
+            productivityInsight: nil,
+            speciesInsight: nil,
+            conditionsInsight: nil,
+            lureInsight: nil,
+            bestTimeWindow: nil,
+            mostEffectiveLure: nil,
+            seasonalityInsight: nil,
+            similarConditionsCount: 4,
+            similarConditionsLabel: "Morning light • Dry"
+        )
+
+        XCTAssertEqual(
+            summary.cards.first(where: { $0.kind == .similarConditions })?.body,
+            "4 completed trips with catches here lined up with Morning light • Dry."
+        )
+    }
 }

@@ -21,6 +21,10 @@ struct SpotRecentTripSummary: Identifiable {
 }
 
 enum SpotPresentationLogic {
+    static func privateRecallCards(for summary: SpotRecallSummary) -> [DeterministicInsightCard] {
+        summary.cards.filter { $0.kind != .bestTimeWindow }
+    }
+
     static func rowDetails(for spot: Spot) -> SpotRowDetails {
         let notesPreview = TripEditingLogic.normalizedOptionalText(spot.notes)
         return SpotRowDetails(

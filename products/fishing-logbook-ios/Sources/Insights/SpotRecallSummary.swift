@@ -155,7 +155,7 @@ struct SpotRecallSummary {
                 DeterministicInsightCard(
                     kind: .similarConditions,
                     title: "Similar conditions",
-                    body: "\(similarConditionsCount) productive trips here lined up with \(similarConditionsLabel).",
+                    body: "\(similarConditionsCount) completed trips with catches here lined up with \(similarConditionsLabel).",
                     supportingSampleCount: similarConditionsCount,
                     systemImage: "sparkles.rectangle.stack"
                 )
@@ -195,13 +195,6 @@ struct SpotRecallSummary {
         }, by: { $0 }).mapValues(\.count)
         let bestTimeWindow = timeWindowCounts.max(by: { $0.value < $1.value })?.key
 
-        var similarityCounts: [String: Int] = [:]
-        for trip in spotTrips where successfulTripIDs.contains(trip.id) {
-            let signature = trip.conditionSnapshot?.similarityDescription ?? timeWindowLabel(for: trip.startAt)
-            similarityCounts[signature, default: 0] += 1
-        }
-
-        let mostCommonSimilarity = similarityCounts.max(by: { $0.value < $1.value })
         let recencyInsight = recentActivityInsight(
             completedTrips: completedTrips,
             successfulTripIDs: successfulTripIDs,
@@ -223,6 +216,10 @@ struct SpotRecallSummary {
             completedTrips: completedTrips,
             catches: spotCatches
         )
+        let similarConditionsInsight = strongestSimilarConditionsInsight(
+            completedTrips: completedTrips,
+            successfulTripIDs: successfulTripIDs
+        )
         let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips)
 
         return SpotRecallSummary(
@@ -237,8 +234,8 @@ struct SpotRecallSummary {
             bestTimeWindow: bestTimeWindow,
             mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
             seasonalityInsight: seasonalityInsight,
-            similarConditionsCount: mostCommonSimilarity?.value ?? 0,
-            similarConditionsLabel: mostCommonSimilarity?.key
+            similarConditionsCount: similarConditionsInsight?.supportingSampleCount ?? 0,
+            similarConditionsLabel: similarConditionsInsight?.displayLabel
         )
     }
 
@@ -463,6 +460,85 @@ struct SpotRecallSummary {
         return SpeciesInsight(
             title: "Most reliable species here",
             body: body,
+            supportingSampleCount: winningStats.tripCount
+        )
+    }
+
+    private static func strongestSimilarConditionsInsight(
+        completedTrips: [Trip],
+        successfulTripIDs: Set<UUID>
+    ) -> (displayLabel: String, supportingSampleCount: Int)? {
+        struct SimilarityStats {
+            let normalizedLabel: String
+            let displayLabel: String
+            let tripCount: Int
+        }
+
+        let productiveCompletedTrips = completedTrips.filter { successfulTripIDs.contains($0.id) }
+        guard productiveCompletedTrips.count >= 4 else { return nil }
+
+        let eligibleTrips = productiveCompletedTrips.compactMap { trip -> (normalizedLabel: String, displayLabel: String, isOnlyTimeWindow: Bool)? in
+            guard let conditionSnapshot = trip.conditionSnapshot else {
+                return nil
+            }
+
+            let rawParts = [
+                conditionSnapshot.timeWindowSummary?.trimmingCharacters(in: .whitespacesAndNewlines),
+                conditionSnapshot.lightLevelSummary?.trimmingCharacters(in: .whitespacesAndNewlines),
+                conditionSnapshot.windSummary?.trimmingCharacters(in: .whitespacesAndNewlines),
+                conditionSnapshot.precipitationSummary?.trimmingCharacters(in: .whitespacesAndNewlines),
+            ].compactMap { value -> String? in
+                guard let value, !value.isEmpty else { return nil }
+                return value
+            }
+
+            guard !rawParts.isEmpty else { return nil }
+
+            let displayLabel = conditionSnapshot.similarityDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !displayLabel.isEmpty, displayLabel.lowercased() != "recent trip context" else { return nil }
+
+            return (
+                normalizedLabel: displayLabel.lowercased(),
+                displayLabel: displayLabel,
+                isOnlyTimeWindow: rawParts.count == 1 && rawParts.first == conditionSnapshot.timeWindowSummary?.trimmingCharacters(in: .whitespacesAndNewlines)
+            )
+        }
+
+        let eligibleTripCount = eligibleTrips.count
+        guard eligibleTripCount >= 4 else { return nil }
+
+        let statsBySignature = Dictionary(grouping: eligibleTrips, by: \.normalizedLabel).compactMapValues { tripsForSignature -> SimilarityStats? in
+            guard let first = tripsForSignature.first else { return nil }
+            return SimilarityStats(
+                normalizedLabel: first.normalizedLabel,
+                displayLabel: first.displayLabel,
+                tripCount: tripsForSignature.count
+            )
+        }
+
+        let sortedStats = statsBySignature.values.sorted { lhs, rhs in
+            if lhs.tripCount != rhs.tripCount {
+                return lhs.tripCount > rhs.tripCount
+            }
+
+            return lhs.normalizedLabel < rhs.normalizedLabel
+        }
+
+        guard let winningStats = sortedStats.first else { return nil }
+        guard winningStats.tripCount >= 3 else { return nil }
+
+        if sortedStats.count > 1 {
+            let runnerUp = sortedStats[1]
+            guard runnerUp.tripCount < winningStats.tripCount - 1 else { return nil }
+        }
+
+        let winningTrips = eligibleTrips.filter { $0.normalizedLabel == winningStats.normalizedLabel }
+        if winningTrips.allSatisfy(\.isOnlyTimeWindow) {
+            return nil
+        }
+
+        return (
+            displayLabel: winningStats.displayLabel,
             supportingSampleCount: winningStats.tripCount
         )
     }

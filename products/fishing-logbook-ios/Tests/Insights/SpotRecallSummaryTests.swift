@@ -76,9 +76,9 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.bestTimeWindow, "6-9 AM")
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertNil(summary.seasonalityInsight)
-        XCTAssertEqual(summary.similarConditionsCount, 2)
-        XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light")
-        XCTAssertEqual(summary.cards.count, 3)
+        XCTAssertEqual(summary.similarConditionsCount, 0)
+        XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertEqual(summary.cards.count, 2)
     }
 
     func testNormalizedSpeciesTokensDeduplicatesAndTrimsValues() {
@@ -139,20 +139,22 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.seasonalityInsight)
     }
 
-    func testBuildPrefersConditionSimilarityDescriptionOverTimeWindowFallback() {
+    func testBuildSuppressesSimilarConditionsWhenOnlyThinSingleTripHistoryExists() {
         let waterbody = Waterbody(name: "River Bend", type: .river)
         let spot = Spot(title: "Dock", waterbody: waterbody)
-        let trip = Trip(
+        let trip = completedTrip(
             waterbody: waterbody,
             spot: spot,
-            conditionSnapshot: ConditionSnapshot(
+            snapshot: ConditionSnapshot(
                 capturedAt: Date(timeIntervalSince1970: 1_711_900_000),
                 timeWindowSummary: "6-9 AM",
                 lightLevelSummary: "Morning light",
                 windSummary: "10 kt",
                 precipitationSummary: "Dry"
             ),
-            startAt: Date(timeIntervalSince1970: 1_711_900_000)
+            year: 2025,
+            month: 1,
+            day: 12
         )
         let catches = [
             CatchRecord(
@@ -165,8 +167,179 @@ final class SpotRecallSummaryTests: XCTestCase {
 
         let summary = SpotRecallSummary.build(for: spot, trips: [trip], catches: catches)
 
+        XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertEqual(summary.similarConditionsCount, 0)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .similarConditions }))
+    }
+
+    func testBuildAddsSimilarConditionsCardForStrongSupportedPattern() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 12, day: 21),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 12, day: 14),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 12, day: 7),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 11, day: 30),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Bright", windSummary: "Low wind", precipitationSummary: "Dry"), year: 2025, month: 11, day: 23),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
         XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light • 10 kt • Dry")
-        XCTAssertEqual(summary.similarConditionsCount, 1)
+        XCTAssertEqual(summary.similarConditionsCount, 4)
+        XCTAssertEqual(
+            summary.cards.first(where: { $0.kind == .similarConditions })?.body,
+            "4 completed trips with catches here lined up with 6-9 AM • Morning light • 10 kt • Dry."
+        )
+    }
+
+    func testBuildSuppressesSimilarConditionsWhenSupportIsTooThin() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", precipitationSummary: "Dry"), year: 2025, month: 4, day: 27),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", precipitationSummary: "Dry"), year: 2025, month: 4, day: 20),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", precipitationSummary: "Dry"), year: 2025, month: 4, day: 13),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertEqual(summary.similarConditionsCount, 0)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .similarConditions }))
+    }
+
+    func testBuildSuppressesSimilarConditionsWhenSupportIsTied() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", precipitationSummary: "Dry"), year: 2025, month: 9, day: 28),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", precipitationSummary: "Dry"), year: 2025, month: 9, day: 21),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Bright", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 9, day: 14),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Bright", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 9, day: 7),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .similarConditions }))
+    }
+
+    func testBuildSuppressesSimilarConditionsWhenSupportIsNearTied() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", precipitationSummary: "Dry"), year: 2025, month: 10, day: 26),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", precipitationSummary: "Dry"), year: 2025, month: 10, day: 19),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", precipitationSummary: "Dry"), year: 2025, month: 10, day: 12),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Bright", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 10, day: 5),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Bright", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 9, day: 28),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .similarConditions }))
+    }
+
+    func testBuildIgnoresActiveTripsForSimilarConditionsSupport() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let activeTrip = Trip(
+            waterbody: waterbody,
+            spot: spot,
+            conditionSnapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Bright", windSummary: "Low wind", precipitationSummary: "Dry"),
+            startAt: date(year: 2025, month: 11, day: 2)
+        )
+        let completedTrips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 10, day: 26),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 10, day: 19),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 10, day: 12),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 10, day: 5),
+        ]
+        let catches = [CatchRecord(species: "Bass", trip: activeTrip, caughtAt: activeTrip.startAt)] + completedTrips.map {
+            CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt)
+        }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: [activeTrip] + completedTrips, catches: catches)
+
+        XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light • 10 kt • Dry")
+        XCTAssertEqual(summary.similarConditionsCount, 4)
+    }
+
+    func testBuildNormalizesSimilarConditionsCaseAndWhitespaceInsensitively() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: " Morning light ", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 12, day: 28),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 12, day: 21),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "MORNING LIGHT", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 12, day: 14),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 12, day: 7),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light • 10 kt • Dry")
+        XCTAssertEqual(summary.similarConditionsCount, 4)
+    }
+
+    func testBuildIgnoresBlankSimilarityDescriptionValuesInsteadOfTreatingThemAsContradiction() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 8, day: 31),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 8, day: 24),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 8, day: 17),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "6-9 AM", lightLevelSummary: "Morning light", windSummary: "10 kt", precipitationSummary: "Dry"), year: 2025, month: 8, day: 10),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: ConditionSnapshot(capturedAt: .now, timeWindowSummary: "   "), year: 2025, month: 8, day: 3),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertEqual(summary.similarConditionsLabel, "6-9 AM • Morning light • 10 kt • Dry")
+        XCTAssertEqual(summary.similarConditionsCount, 4)
+    }
+
+    func testBuildSuppressesSimilarConditionsWhenNoMeaningfulSimilarityDescriptionExists() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 5, day: 25),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 5, day: 18),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 5, day: 11),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 5, day: 4),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .similarConditions }))
+    }
+
+    func testBuildSuppressesSimilarConditionsWhenItOnlyRestatesCatchWindowStory() {
+        let waterbody = Waterbody(name: "River Bend", type: .river)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trips = [
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 6, day: 29),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 6, day: 22),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 6, day: 15),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Morning"), year: 2025, month: 6, day: 8),
+            completedTrip(waterbody: waterbody, spot: spot, snapshot: snapshot(timeWindow: "Evening"), year: 2025, month: 6, day: 1),
+        ]
+        let catches = trips.map { CatchRecord(species: "Bass", trip: $0, caughtAt: $0.startAt) }
+
+        let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
+
+        XCTAssertNotNil(summary.conditionsInsight)
+        XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertNil(summary.cards.first(where: { $0.kind == .similarConditions }))
     }
 
     func testBuildAddsProductivityCardForStrongRecentSuccessPattern() {
