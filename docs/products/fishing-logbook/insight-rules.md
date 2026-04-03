@@ -15,9 +15,10 @@ These rules power the private recall layer. They should not become a separate pr
 
 ## Composition Rule
 
-- a compact Spot DNA style "what worked here" summary may combine outputs from these deterministic rules
-- the summary must remain traceable to the underlying rules and supporting trips
-- "last time here" and broader pattern replay surfaces are a next-phase consumer of these rules, not a reason to broaden the rule set prematurely
+- the current spot-detail recall stack should remain coherent enough without a second composed summary layer
+- any later Spot DNA style "what worked here" summary may combine outputs from these deterministic rules only if it is clearly additive beyond the existing card stack
+- any later composed summary must remain traceable to the underlying rules and supporting trips
+- "last time here" and broader pattern replay surfaces remain the stronger next consumer candidate for these rules, not a reason to broaden the rule set prematurely
 
 ## Initial Rules
 

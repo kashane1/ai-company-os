@@ -18,18 +18,18 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 ### Build Now
 
 - coherent deterministic spot-detail recall
-- compact Spot DNA style "what worked here" summary
 - one-handed trip and catch logging refinements
 - privacy-safe brag/share card export for catches or personal bests
 
 ### Build Next
 
-- pattern replay and "last time here" memory surfaces
+- decision pass on narrow pattern replay and "last time here" memory surfaces
 - seasonal memory nudges and personal-best story surfaces
 - optional catch-scan-lite prefilling assist
 
 ### Later / Not Now
 
+- compact Spot DNA style "what worked here" composition unless a later pass proves it adds value beyond the existing recall stack
 - standalone fish ID
 - social or community features
 - widgets, Live Activities, App Intents, or Watch work
@@ -62,7 +62,7 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 
 - saved waters and spots
 - map/list view later if helpful
-- spot detail with history, performance summary, and deterministic "what worked here" summary
+- spot detail with history, performance summary, and deterministic support-gated recall
 
 ### Insights
 
@@ -103,11 +103,11 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 - user can see trip count, catch count, recent catches, successful lures, and simple condition evidence
 - summaries are derived from personal data only
 
-### Spot DNA Summary
+### Spot Recall Summary
 
-- each spot can show a compact deterministic "what worked here" summary
-- summary output must be composed from existing logged facts such as top lure, best window, or similar conditions
-- summary must remain traceable to underlying trips and catches
+- spot detail recall should remain coherent enough without requiring a second composed summary layer
+- any later Spot DNA style summary would need to be composed from existing deterministic outputs only
+- no composed summary should ship unless it is clearly additive beyond the supported card stack
 
 ### Insights
 

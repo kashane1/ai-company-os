@@ -52,18 +52,19 @@ This product is still intentionally narrow. The allowed expansion is meant to st
 ### Build Now
 
 - finish a coherent spot-detail recall surface that makes past trips, outcomes, and conditions easy to replay
-- add a compact deterministic "what worked here" summary for each spot
 - keep trip start and catch logging one-handed and low-friction
 - allow a privacy-safe brag/share card as an export-only surface for catches or personal bests
 
 ### Build Next
 
-- add pre-trip pattern replay such as "last time here" and seasonal memory nudges
+- make a narrow product decision on pre-trip pattern replay such as "last time here" before implementation
+- add seasonal memory nudges if they clearly reinforce deterministic recall
 - add personal-best story surfaces that make progress feel memorable
 - explore catch-scan-lite logging assist only as optional field prefilling, not as species-ID product identity
 
 ### Later / Not Now
 
+- compact Spot DNA composition unless a later pass shows it adds clear value beyond the current supported card stack
 - standalone fish identification
 - any social, feed, follow, or community product shape
 - marketplace, regulations, licensing, or team workflows
@@ -81,7 +82,7 @@ Include:
 - basic history and filters
 - personal bests
 - deterministic recall cards
-- deterministic spot-detail recall and Spot DNA summary
+- deterministic spot-detail recall
 - privacy-safe export sharing for a catch or personal best if location privacy is preserved
 
 Exclude:

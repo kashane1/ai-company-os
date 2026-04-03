@@ -15,8 +15,7 @@ The wedge is private fishing memory, fast on-the-water logging, and simple patte
 
 This pass allows a small MVP expansion that strengthens the wedge without widening the category:
 
-- deepen spot recall and pattern replay
-- add a compact deterministic "what worked here" summary
+- deepen spot recall
 - allow privacy-safe shareability only where it reinforces personal memory rather than social behavior
 
 ## Product Thesis
@@ -93,7 +92,7 @@ The MVP should solve one loop completely:
 - catch gallery
 - filters by water, species, season, lure
 - personal bests by species
-- spot detail with trip count, catch count, recent catches, successful lures, simple condition summaries, and a compact "what worked here" summary grounded in logged evidence
+- spot detail with trip count, catch count, recent catches, successful lures, and support-gated deterministic condition summaries
 
 ### Pre-Trip Recall
 
@@ -113,18 +112,18 @@ The MVP should solve one loop completely:
 ### Build Now
 
 - finish coherent deterministic spot-detail recall
-- define a compact Spot DNA style "what worked here" summary without creating a second insight engine
 - keep one-handed trip and catch logging fast enough for on-the-water use
 - add a privacy-safe brag/share card only as an export surface, not a social surface
 
 ### Build Next
 
-- pattern replay and "last time here" memory surfaces before a trip
+- decide whether a narrow pattern replay and "last time here" memory surface is justified before implementation
 - personal-best story and seasonal memory nudges
 - optional catch-scan-lite logging assist that prefills fields but does not redefine the product as fish ID
 
 ### Later / Not Now
 
+- compact Spot DNA style "what worked here" composition, unless a later pass shows it is clearly additive beyond the existing recall stack
 - standalone fish photo species ID
 - social or community features
 - marketplace or team workflows
