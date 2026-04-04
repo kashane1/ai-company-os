@@ -18,8 +18,8 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 ### Build Now
 
 - coherent deterministic spot-detail recall
-- one-handed trip and catch logging refinements
-- privacy-safe brag/share card export for catches or personal bests
+- compressed trip-start and quick-catch logging paths
+- privacy-safe export-only catch share card
 
 ### Build Next
 
@@ -72,7 +72,9 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 
 ### Sharing
 
-- export-only brag/share card for a catch, trip, or personal best
+- export-only share card for a catch only
+- one fixed rendered card image
+- one entry point from the existing catch detail/editor surface in trip history
 - exact spot disclosure must remain off by default
 - no feed, comments, profiles, or discovery loops
 
@@ -84,6 +86,7 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 - app records start time and current location
 - app captures a condition snapshot when possible
 - trip can start without network connectivity
+- target species and notes may remain available behind collapsed optional details
 
 ### Catch Logging
 
@@ -117,8 +120,9 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 
 ### Sharing
 
-- user can export a catch or personal best share card without publishing data to other users
-- exported card must omit exact coordinates and should default to coarse or generic location wording
+- user can export a catch share card without publishing data to other users
+- exported card must omit spot name, waterbody name, coordinates, and any location line by default
+- exported card must use an explicit allowlist of safe catch fields only
 - share support must not become a requirement for logging or recall flows
 
 ## Offline Assumptions
@@ -127,6 +131,13 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 - condition capture may degrade gracefully if a weather provider is unavailable
 - sync is not required for MVP readiness
 - share-card generation should work from local data once the user has already logged the catch
+
+## Current State
+
+- spot-detail recall is coherent enough for the current MVP slice
+- Spot DNA is deferred
+- pattern replay / "last time here" is deferred
+- further recall or logging redesign is not currently approved
 
 ## Photo Handling
 

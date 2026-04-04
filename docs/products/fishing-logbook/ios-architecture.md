@@ -54,11 +54,16 @@ Derived outputs:
 - output cards must be reproducible and acceptance-testable
 - no generative summarization is allowed in the MVP path
 - compact Spot DNA output should compose existing deterministic rules instead of introducing a separate reasoning layer
+- the current spot-detail recall stack is coherent enough without Spot DNA in the current MVP state
 
 ## Share Card Boundary
 
 - share cards should render from already logged local data
-- share cards must default to coarse, generic, or omitted location text
+- the current share slice is one fixed catch card only
+- the current share slice has one entry point only: the existing catch detail/editor surface in trip history
+- share cards must be built from an explicit allowlist of safe fields
+- share cards must default to omitted location text
+- share-card rendering must work fully offline
 - share support must not require backend accounts, feeds, or multi-user schema
 - the share layer is a wedge enhancer, not the product center
 

@@ -71,19 +71,22 @@ The MVP should solve one loop completely:
 - start trip timer
 - capture GPS
 - capture weather snapshot
-- optional target species
-- optional notes
+- optional target species behind collapsed optional details
+- optional notes behind collapsed optional details
 
 ### Catch Logging
 
 - species
+- quick species suggestions
+- lure / bait
+- quick lure suggestions
+- save action directly in the quick-catch path
+- method behind optional details
 - optional photo
 - optional weight
 - optional length
-- lure / bait
-- method
 - auto-filled time and spot
-- optional note or voice note
+- optional note
 - support for skunked trips
 
 ### History And Spots
@@ -97,23 +100,26 @@ The MVP should solve one loop completely:
 ### Pre-Trip Recall
 
 - last 3 trips here
-- best time window historically
-- most effective lure here
-- simple condition patterns such as low wind / morning
+- support-gated spot recall for productivity, species, lure, catch window, seasonality, and similar conditions
+- no Spot DNA summary in the current MVP state
 
 ### Privacy-Safe Shareability
 
-- optional export-only brag card for a catch, personal best, or trip memory
-- must avoid exact spot disclosure by default
+- optional export-only catch share card
+- one fixed card template
+- one entry point only from the existing catch detail/editor surface in trip history
+- offline-rendered image passed to the standard iOS share sheet
+- strict allowlist content only
+- no location by default
 - must not create a public profile, feed, follow graph, or community surface
 
 ## Expanded MVP Feature Order
 
 ### Build Now
 
-- finish coherent deterministic spot-detail recall
-- keep one-handed trip and catch logging fast enough for on-the-water use
-- add a privacy-safe brag/share card only as an export surface, not a social surface
+- keep the current coherent deterministic spot-detail recall stable
+- keep the current compressed trip-start and quick-catch flows stable
+- keep the current privacy-safe export-only catch share card narrow and private by default
 
 ### Build Next
 
@@ -196,7 +202,7 @@ Initial rules:
 - catch vs skunk rate
 - similar conditions retrieval based on weather/time similarity
 
-These rules should power a compact recall layer, not a separate "AI insights" identity.
+These rules now power a coherent spot-detail recall stack. They should not be broadened into a separate "AI insights" identity.
 
 ## Launch And Positioning
 

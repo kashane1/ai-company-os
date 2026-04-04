@@ -18,6 +18,6 @@ The product remains private-by-default and intentionally narrow:
 
 Near-term product order:
 
-- build now: one-handed logging, coherent spot recall, compact Spot DNA summary, and privacy-safe share-card export
-- build next: pattern replay, seasonal or PB memory nudges, and optional catch-scan-lite prefilling
+- current state: compressed logging, coherent spot recall, and one narrow privacy-safe catch share-card export
+- build next: decision pass on pattern replay, seasonal or PB memory nudges, and optional catch-scan-lite prefilling
 - later / not now: fish-ID-led positioning, social surfaces, widgets, Watch, broad analytics, and monetization implementation

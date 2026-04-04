@@ -51,9 +51,9 @@ This product is still intentionally narrow. The allowed expansion is meant to st
 
 ### Build Now
 
-- finish a coherent spot-detail recall surface that makes past trips, outcomes, and conditions easy to replay
-- keep trip start and catch logging one-handed and low-friction
-- allow a privacy-safe brag/share card as an export-only surface for catches or personal bests
+- keep the current coherent spot-detail recall surface stable
+- keep the current compressed trip-start and quick-catch flows stable
+- keep the current privacy-safe catch share card narrow, export-only, and private by default
 
 ### Build Next
 
@@ -78,12 +78,13 @@ Include:
 
 - trip start and end
 - quick catch logging
+- compressed trip start
 - saved waters and spots
 - basic history and filters
 - personal bests
 - deterministic recall cards
 - deterministic spot-detail recall
-- privacy-safe export sharing for a catch or personal best if location privacy is preserved
+- privacy-safe export sharing for a catch only, using one fixed card with omitted location by default
 
 Exclude:
 
@@ -105,7 +106,7 @@ Exclude:
 
 - all spots are private by default
 - no public sharing model in MVP
-- if a user shares anything, it should be an explicit export with coarse or omitted location detail
+- if a user shares anything, it should be an explicit export with omitted location detail by default
 - photo capture is optional
 - location data should be stored only for the user’s own recall
 
@@ -118,3 +119,11 @@ The system is successful when a user can:
 - review past performance by water or spot
 - see simple, credible recall surfaces before a new trip
 - share a memorable catch without compromising a private spot
+
+## Current MVP State
+
+- the spot-detail recall stack is coherent enough for the current MVP
+- trip start and quick catch have both been compressed for lower-friction field use
+- Spot DNA is deferred
+- pattern replay is deferred
+- sharing currently exists only as one export-only catch card from the catch detail/editor surface
