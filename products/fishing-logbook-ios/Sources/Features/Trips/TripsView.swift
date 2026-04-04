@@ -1,6 +1,7 @@
 import PhotosUI
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct TripsView: View {
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
@@ -596,6 +597,8 @@ struct CatchEditorView: View {
     @State private var photoData: Data?
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showingDeleteConfirmation = false
+    @State private var shareImage: UIImage?
+    @State private var showingShareSheet = false
 
     init(trip: Trip, catchRecord: CatchRecord? = nil) {
         self.trip = trip
@@ -667,6 +670,12 @@ struct CatchEditorView: View {
     private var deleteSection: some View {
         if catchRecord != nil {
             Section {
+                Button {
+                    shareCatch()
+                } label: {
+                    Label("Share Catch", systemImage: "square.and.arrow.up")
+                }
+
                 Button("Delete Catch", role: .destructive) {
                     showingDeleteConfirmation = true
                 }
@@ -710,6 +719,11 @@ struct CatchEditorView: View {
             guard let newValue else { return }
             Task {
                 photoData = try? await newValue.loadTransferable(type: Data.self)
+            }
+        }
+        .sheet(isPresented: $showingShareSheet) {
+            if let shareImage {
+                ActivityShareSheet(activityItems: [shareImage])
             }
         }
     }
@@ -756,6 +770,141 @@ struct CatchEditorView: View {
         try? syncTripOutcomeAndPersonalBests(for: trip, in: modelContext)
         try? modelContext.save()
     }
+
+    private func shareCatch() {
+        guard let catchRecord else { return }
+        guard let image = CatchShareCardRenderer.renderImage(for: catchRecord) else { return }
+        shareImage = image
+        showingShareSheet = true
+    }
+}
+
+struct CatchShareCardContent {
+    let speciesName: String
+    let dateText: String
+    let lureOrBaitText: String?
+    let weightText: String?
+    let lengthText: String?
+    let photoData: Data?
+}
+
+enum CatchShareCardLogic {
+    private static let coarseDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }()
+
+    static func content(for catchRecord: CatchRecord) -> CatchShareCardContent {
+        CatchShareCardContent(
+            speciesName: catchRecord.speciesDisplayName,
+            dateText: coarseDateFormatter.string(from: catchRecord.caughtAt),
+            lureOrBaitText: normalizedOptionalText(catchRecord.lureOrBait),
+            weightText: catchRecord.weightKg.map { "\($0.formatted()) kg" },
+            lengthText: catchRecord.lengthCm.map { "\($0.formatted()) cm" },
+            photoData: catchRecord.photoData
+        )
+    }
+
+    private static func normalizedOptionalText(_ value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+enum CatchShareCardRenderer {
+    @MainActor
+    static func renderImage(for catchRecord: CatchRecord, scale: CGFloat = 3) -> UIImage? {
+        let renderer = ImageRenderer(
+            content: CatchShareCardView(content: CatchShareCardLogic.content(for: catchRecord))
+                .frame(width: 1080, height: 1350)
+                .background(Color(.systemBackground))
+        )
+        renderer.scale = scale
+        return renderer.uiImage
+    }
+}
+
+private struct CatchShareCardView: View {
+    let content: CatchShareCardContent
+
+    private var detailRows: [String] {
+        [content.lureOrBaitText, content.weightText, content.lengthText].compactMap { $0 }
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.teal.opacity(0.18), Color.blue.opacity(0.08), Color(.systemBackground)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            VStack(alignment: .leading, spacing: 32) {
+                Text(content.dateText)
+                    .font(.system(size: 42, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+
+                Text(content.speciesName)
+                    .font(.system(size: 88, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+
+                if let image = sharePhoto {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 620)
+                        .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+                } else {
+                    VStack(alignment: .leading, spacing: 20) {
+                        Image(systemName: "fish.fill")
+                            .font(.system(size: 72))
+                            .foregroundStyle(.appAccent)
+                        Text("Logged catch")
+                            .font(.system(size: 48, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 360, alignment: .leading)
+                    .padding(40)
+                    .background(.background.opacity(0.92), in: RoundedRectangle(cornerRadius: 36, style: .continuous))
+                }
+
+                if !detailRows.isEmpty {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(detailRows, id: \.self) { detail in
+                            Text(detail)
+                                .font(.system(size: 42, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(60)
+        }
+    }
+
+    private var sharePhoto: Image? {
+        guard let data = content.photoData, let uiImage = UIImage(data: data) else {
+            return nil
+        }
+        return Image(uiImage: uiImage)
+    }
+}
+
+private struct ActivityShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Trip Stat Pill

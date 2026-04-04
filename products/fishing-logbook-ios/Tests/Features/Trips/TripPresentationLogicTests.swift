@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import XCTest
 @testable import Fishing_Logbook
 
@@ -57,5 +58,65 @@ final class TripPresentationLogicTests: XCTestCase {
         XCTAssertEqual(basic.map(\.id), ["catches"])
         XCTAssertEqual(basic.first?.label, "Catch")
         XCTAssertEqual(basic.first?.value, "1")
+    }
+
+    func testCatchShareCardContentUsesOnlyApprovedFields() {
+        let waterbody = Waterbody(name: "Secret Lake", type: .lake, latitude: 45, longitude: -122)
+        let spot = Spot(title: "Hidden Dock", waterbody: waterbody, latitude: 46, longitude: -123)
+        let snapshot = ConditionSnapshot(
+            capturedAt: Date(timeIntervalSince1970: 1_700_000_000),
+            placeSummary: "Hidden Dock • Secret Lake",
+            timeWindowSummary: "6-9 AM",
+            lightLevelSummary: "Morning light",
+            windSummary: "10 kt",
+            precipitationSummary: "Dry"
+        )
+        let trip = Trip(
+            waterbody: waterbody,
+            spot: spot,
+            conditionSnapshot: snapshot,
+            targetSpecies: "Bass",
+            notes: "Do not expose this cove"
+        )
+        let catchRecord = CatchRecord(
+            species: "Bass",
+            trip: trip,
+            caughtAt: Date(timeIntervalSince1970: 1_700_000_000),
+            lureOrBait: "Spinner",
+            method: "Slow roll",
+            weightKg: 2.5,
+            lengthCm: 55,
+            note: "Near the reeds"
+        )
+
+        let content = CatchShareCardLogic.content(for: catchRecord)
+
+        XCTAssertEqual(content.speciesName, "Bass")
+        XCTAssertEqual(content.lureOrBaitText, "Spinner")
+        XCTAssertEqual(content.weightText, "2.5 kg")
+        XCTAssertEqual(content.lengthText, "55 cm")
+        XCTAssertFalse(content.dateText.contains(":"))
+        XCTAssertTrue(content.dateText.contains("2023"))
+    }
+
+    @MainActor
+    func testCatchShareCardRendererProducesSafeImageWithoutPhotoOrMetrics() {
+        let waterbody = Waterbody(name: "Secret Lake", type: .lake)
+        let spot = Spot(title: "Hidden Dock", waterbody: waterbody)
+        let trip = Trip(waterbody: waterbody, spot: spot)
+        let catchRecord = CatchRecord(
+            species: "Trout",
+            trip: trip,
+            caughtAt: Date(timeIntervalSince1970: 1_700_000_000),
+            lureOrBait: "",
+            method: "Twitch",
+            note: "Private note"
+        )
+
+        let image = CatchShareCardRenderer.renderImage(for: catchRecord, scale: 1)
+
+        XCTAssertNotNil(image)
+        XCTAssertGreaterThan(image?.size.width ?? 0, 0)
+        XCTAssertGreaterThan(image?.size.height ?? 0, 0)
     }
 }
