@@ -37,6 +37,7 @@ private struct StartTripView: View {
     @State private var selectedSpotID: UUID?
     @State private var targetSpecies = ""
     @State private var tripNotes = ""
+    @State private var showingOptionalDetails = LogFeatureLogic.startTripOptionalDetailsInitiallyExpanded
     @State private var showingWaterbodyForm = false
     @State private var showingSpotForm = false
 
@@ -110,22 +111,35 @@ private struct StartTripView: View {
                     Text("Where")
                 }
 
-                Section("Optional") {
-                    TextField("Target species, separated by commas", text: $targetSpecies)
-                        .textInputAutocapitalization(.words)
-                        .accessibilityIdentifier("startTrip.targetSpeciesField")
-                    Text("Optional. Enter one or more targets. We turn them into quick-catch suggestions.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    TextField("Trip notes", text: $tripNotes, axis: .vertical)
-                        .lineLimit(2...4)
-                }
-
                 Section("Conditions") {
                     ConditionPreviewRow(preview: conditionPreview)
                 }
 
                 Section {
+                    DisclosureGroup(
+                        isExpanded: $showingOptionalDetails,
+                        content: {
+                            TextField("Target species, separated by commas", text: $targetSpecies)
+                                .textInputAutocapitalization(.words)
+                                .accessibilityIdentifier("startTrip.targetSpeciesField")
+                            Text("Optional. Enter one or more targets. We turn them into quick-catch suggestions.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                            TextField("Trip notes", text: $tripNotes, axis: .vertical)
+                                .lineLimit(2...4)
+                        },
+                        label: {
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
+                                Text(LogFeatureLogic.startTripOptionalDetailsLabel)
+                                if !showingOptionalDetails {
+                                    Text(LogFeatureLogic.startTripOptionalDetailsHint)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    )
+
                     Button {
                         startTrip()
                     } label: {
@@ -196,6 +210,7 @@ private struct StartTripView: View {
 
         targetSpecies = ""
         tripNotes = ""
+        showingOptionalDetails = LogFeatureLogic.startTripOptionalDetailsInitiallyExpanded
     }
 }
 

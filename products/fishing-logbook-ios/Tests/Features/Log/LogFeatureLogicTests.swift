@@ -31,6 +31,12 @@ final class LogFeatureLogicTests: XCTestCase {
         XCTAssertEqual(draft.notes, "Wind picked up")
     }
 
+    func testStartTripOptionalDetailsAreCollapsedByDefault() {
+        XCTAssertFalse(LogFeatureLogic.startTripOptionalDetailsInitiallyExpanded)
+        XCTAssertEqual(LogFeatureLogic.startTripOptionalDetailsLabel, "Optional details")
+        XCTAssertEqual(LogFeatureLogic.startTripOptionalDetailsHint, "Add target species or trip notes")
+    }
+
     func testRecentSpeciesSuggestionsPutTargetsFirstAndDedupeRecentCatchValues() {
         let catches = [
             CatchRecord(species: "Bass", trip: nil),

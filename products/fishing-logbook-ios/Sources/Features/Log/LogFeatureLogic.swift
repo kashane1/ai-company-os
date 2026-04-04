@@ -34,6 +34,10 @@ struct QuickCatchResetState {
 }
 
 enum LogFeatureLogic {
+    static let startTripOptionalDetailsInitiallyExpanded = false
+    static let startTripOptionalDetailsLabel = "Optional details"
+    static let startTripOptionalDetailsHint = "Add target species or trip notes"
+
     static let quickCatchPrimaryFields: [QuickCatchField] = [
         .species,
         .lureOrBait,
