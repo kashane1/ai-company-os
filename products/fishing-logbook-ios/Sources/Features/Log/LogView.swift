@@ -331,10 +331,9 @@ private struct ActiveTripView: View {
                     }
                 }
 
-                TextField("Method", text: $method)
-                    .textInputAutocapitalization(.words)
-
                 DisclosureGroup("More details", isExpanded: $showingOptionalFields) {
+                    TextField("Method", text: $method)
+                        .textInputAutocapitalization(.words)
                     TextField("Weight (kg)", text: $weight)
                         .keyboardType(.decimalPad)
                     TextField("Length (cm)", text: $length)
@@ -370,13 +369,7 @@ private struct ActiveTripView: View {
                         .accessibilityIdentifier("quickCatch.photoLibraryButton")
                     }
                 }
-            } header: {
-                Text("Quick Catch")
-            } footer: {
-                Text("Time and place attach automatically. Photo is optional and currently comes from your library.")
-            }
 
-            Section {
                 Button {
                     saveCatch()
                 } label: {
@@ -387,6 +380,10 @@ private struct ActiveTripView: View {
                 .accessibilityIdentifier("quickCatch.saveButton")
                 .listRowSeparator(.hidden)
                 .sensoryFeedback(.success, trigger: showingSavedConfirmation)
+            } header: {
+                Text("Quick Catch")
+            } footer: {
+                Text("Time and place attach automatically. Photo is optional and currently comes from your library.")
             }
 
             // This Trip's Catches
@@ -502,13 +499,19 @@ private struct ActiveTripView: View {
         try? PersonalBestService.refresh(with: catchRecord, in: modelContext)
         try? modelContext.save()
 
-        species = ""
-        weight = ""
-        length = ""
-        note = ""
-        photoData = nil
+        let resetState = LogFeatureLogic.resetQuickCatchStateAfterSave(
+            lureOrBait: lureOrBait,
+            method: method
+        )
+        species = resetState.species
+        lureOrBait = resetState.lureOrBait
+        method = resetState.method
+        weight = resetState.weight
+        length = resetState.length
+        note = resetState.note
+        photoData = resetState.photoData
         selectedPhotoItem = nil
-        showingOptionalFields = false
+        showingOptionalFields = resetState.showingOptionalFields
         showingSavedConfirmation.toggle()
     }
 

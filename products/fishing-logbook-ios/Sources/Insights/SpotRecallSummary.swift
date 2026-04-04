@@ -494,7 +494,7 @@ struct SpotRecallSummary {
 
             guard !rawParts.isEmpty else { return nil }
 
-            let displayLabel = conditionSnapshot.similarityDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+            let displayLabel = rawParts.joined(separator: " • ")
             guard !displayLabel.isEmpty, displayLabel.lowercased() != "recent trip context" else { return nil }
 
             return (
@@ -511,7 +511,7 @@ struct SpotRecallSummary {
             guard let first = tripsForSignature.first else { return nil }
             return SimilarityStats(
                 normalizedLabel: first.normalizedLabel,
-                displayLabel: first.displayLabel,
+                displayLabel: preferredDisplayLabel(for: tripsForSignature.map(\.displayLabel)),
                 tripCount: tripsForSignature.count
             )
         }
@@ -541,6 +541,33 @@ struct SpotRecallSummary {
             displayLabel: winningStats.displayLabel,
             supportingSampleCount: winningStats.tripCount
         )
+    }
+
+    private static func preferredDisplayLabel(for labels: [String]) -> String {
+        labels.min { lhs, rhs in
+            let lhsScore = readabilityScore(for: lhs)
+            let rhsScore = readabilityScore(for: rhs)
+            if lhsScore != rhsScore {
+                return lhsScore < rhsScore
+            }
+
+            return lhs < rhs
+        } ?? ""
+    }
+
+    private static func readabilityScore(for label: String) -> Int {
+        label
+            .components(separatedBy: " • ")
+            .reduce(into: 0) { score, component in
+                let letters = component.filter(\.isLetter)
+                guard !letters.isEmpty else { return }
+
+                if letters == letters.lowercased() {
+                    score += 2
+                } else if letters == letters.uppercased() {
+                    score += 1
+                }
+            }
     }
 
     private static func recentActivityInsight(

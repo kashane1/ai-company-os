@@ -5,13 +5,49 @@ struct StartTripDraft {
     let notes: String
 }
 
+enum QuickCatchField: Equatable {
+    case species
+    case lureOrBait
+    case method
+    case weight
+    case length
+    case note
+    case photo
+    case save
+}
+
 struct QuickCatchDefaults {
     let lureOrBait: String
     let method: String
     let didPrimeDefaults: Bool
 }
 
+struct QuickCatchResetState {
+    let species: String
+    let lureOrBait: String
+    let method: String
+    let weight: String
+    let length: String
+    let note: String
+    let showingOptionalFields: Bool
+    let photoData: Data?
+}
+
 enum LogFeatureLogic {
+    static let quickCatchPrimaryFields: [QuickCatchField] = [
+        .species,
+        .lureOrBait,
+        .save,
+    ]
+
+    static let quickCatchOptionalFields: [QuickCatchField] = [
+        .method,
+        .weight,
+        .length,
+        .note,
+        .photo,
+    ]
+
     static func filteredSpots(spots: [Spot], selectedWaterbodyID: UUID?) -> [Spot] {
         guard let selectedWaterbodyID else { return spots }
         return spots.filter { $0.waterbody?.id == selectedWaterbodyID }
@@ -89,5 +125,21 @@ enum LogFeatureLogic {
 
     static func endTripOutcome(catchCount: Int) -> TripOutcome {
         catchCount == 0 ? .skunked : .caught
+    }
+
+    static func resetQuickCatchStateAfterSave(
+        lureOrBait: String,
+        method: String
+    ) -> QuickCatchResetState {
+        QuickCatchResetState(
+            species: "",
+            lureOrBait: lureOrBait,
+            method: method,
+            weight: "",
+            length: "",
+            note: "",
+            showingOptionalFields: false,
+            photoData: nil
+        )
     }
 }

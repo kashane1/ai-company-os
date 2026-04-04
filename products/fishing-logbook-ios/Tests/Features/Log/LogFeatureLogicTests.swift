@@ -139,6 +139,33 @@ final class LogFeatureLogicTests: XCTestCase {
         XCTAssertTrue(primed.didPrimeDefaults)
     }
 
+    func testQuickCatchFieldGroupingKeepsFastPathCompressed() {
+        XCTAssertEqual(
+            LogFeatureLogic.quickCatchPrimaryFields,
+            [.species, .lureOrBait, .save]
+        )
+        XCTAssertEqual(
+            LogFeatureLogic.quickCatchOptionalFields,
+            [.method, .weight, .length, .note, .photo]
+        )
+    }
+
+    func testResetQuickCatchStateAfterSaveClearsTransientFieldsAndPreservesStickyDefaults() {
+        let reset = LogFeatureLogic.resetQuickCatchStateAfterSave(
+            lureOrBait: "Spinner",
+            method: "Slow roll"
+        )
+
+        XCTAssertEqual(reset.species, "")
+        XCTAssertEqual(reset.lureOrBait, "Spinner")
+        XCTAssertEqual(reset.method, "Slow roll")
+        XCTAssertEqual(reset.weight, "")
+        XCTAssertEqual(reset.length, "")
+        XCTAssertEqual(reset.note, "")
+        XCTAssertFalse(reset.showingOptionalFields)
+        XCTAssertNil(reset.photoData)
+    }
+
     func testEndTripOutcomeReflectsCatchCount() {
         XCTAssertEqual(LogFeatureLogic.endTripOutcome(catchCount: 0), .skunked)
         XCTAssertEqual(LogFeatureLogic.endTripOutcome(catchCount: 2), .caught)
