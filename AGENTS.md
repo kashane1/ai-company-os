@@ -36,6 +36,7 @@ It owns:
 - task creation
 - routing
 - persistence
+- durable event logging
 - queueing
 - approval state
 - policies

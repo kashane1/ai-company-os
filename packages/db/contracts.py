@@ -1,6 +1,8 @@
 GOALS_TABLE = "goals"
 TASKS_TABLE = "tasks"
 APPROVALS_TABLE = "approvals"
+EVENTS_TABLE = "events"
+TASK_QUEUE_TABLE = "task_queue"
 PRODUCTS_TABLE = "products"
 RELEASES_TABLE = "releases"
 WORKER_RUNS_TABLE = "worker_runs"

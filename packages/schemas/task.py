@@ -17,6 +17,14 @@ class Task:
     risk_level: RiskLevel = RiskLevel.LOW
     requires_approval: bool = False
     constraints: list[str] = field(default_factory=list)
+    claimed_by: str | None = None
+    claimed_at: str | None = None
+    started_at: str | None = None
+    completed_at: str | None = None
+    failed_at: str | None = None
+    result_summary: str | None = None
+    error_summary: str | None = None
+    approval_id: str | None = None
     created_at: str = ""
     updated_at: str = ""
 
@@ -42,6 +50,18 @@ class Task:
             risk_level=RiskLevel(str(payload["risk_level"])),
             requires_approval=bool(payload.get("requires_approval", False)),
             constraints=list(payload.get("constraints", [])),
+            claimed_by=str(payload["claimed_by"]) if payload.get("claimed_by") else None,
+            claimed_at=str(payload["claimed_at"]) if payload.get("claimed_at") else None,
+            started_at=str(payload["started_at"]) if payload.get("started_at") else None,
+            completed_at=str(payload["completed_at"]) if payload.get("completed_at") else None,
+            failed_at=str(payload["failed_at"]) if payload.get("failed_at") else None,
+            result_summary=str(payload["result_summary"])
+            if payload.get("result_summary")
+            else None,
+            error_summary=str(payload["error_summary"])
+            if payload.get("error_summary")
+            else None,
+            approval_id=str(payload["approval_id"]) if payload.get("approval_id") else None,
             created_at=str(payload.get("created_at", "")),
             updated_at=str(payload.get("updated_at", "")),
         )

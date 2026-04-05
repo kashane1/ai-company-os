@@ -56,7 +56,7 @@ Typical components:
 - webhooks
 - dashboard
 
-This is where founder intent enters the system and where oversight happens. In v1, the API is scaffolded and the dashboard remains a documented future surface.
+This is where founder intent enters the system and where oversight happens. The current repo now includes a minimal real control-plane slice for persisted goals, tasks, approvals, events, and task claims. The dashboard remains a documented future surface.
 
 ### 2. Workers
 
@@ -383,6 +383,7 @@ Important persistent concepts include:
 - tasks
 - task runs
 - approvals
+- events
 - repos
 - worktrees
 - artifacts

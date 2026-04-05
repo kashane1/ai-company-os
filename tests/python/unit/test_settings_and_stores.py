@@ -2,9 +2,11 @@ from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories, load_runtime_paths
 from packages.db.approval_store import ApprovalStore
+from packages.db.goal_store import GoalStore
 from packages.db.json_store import JsonStore
 from packages.db.task_store import TaskStore
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
+from packages.schemas.goal import GoalRecord, GoalStatus
 from packages.schemas.task import Task
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
 
@@ -25,6 +27,7 @@ def test_ensure_runtime_directories_creates_expected_directories(
     assert paths.engineering_artifacts_root.is_dir()
     assert paths.ios_logs_root.is_dir()
     assert paths.release_records_root.is_dir()
+    assert paths.control_plane_db_path.parent.is_dir()
 
 
 def test_json_store_round_trips_payload(tmp_path: Path) -> None:
@@ -51,16 +54,36 @@ def test_task_store_saves_and_updates_status(isolated_repo_root: Path) -> None:
         updated_at="2026-03-30T00:00:00+00:00",
     )
 
-    save_path = store.save(task)
+    save_key = store.save(task)
     updated = store.set_status(
         task.id,
         TaskStatus.IN_PROGRESS,
         updated_at="2026-03-30T00:05:00+00:00",
     )
 
-    assert Path(save_path).exists()
+    assert save_key == task.id
     assert store.load(task.id).status is TaskStatus.IN_PROGRESS
     assert updated.updated_at == "2026-03-30T00:05:00+00:00"
+
+
+def test_goal_store_round_trips_sql_backed_goal_records(isolated_repo_root: Path) -> None:
+    store = GoalStore()
+    goal = GoalRecord(
+        id="goal-1",
+        title="Ship control plane",
+        summary="Persist goals and tasks.",
+        description="Narrow first pass.",
+        status=GoalStatus.OPEN,
+        created_at="2026-03-30T00:00:00+00:00",
+        updated_at="2026-03-30T00:00:00+00:00",
+    )
+
+    saved_key = store.save(goal)
+    loaded = store.load(goal.id)
+
+    assert saved_key == goal.id
+    assert loaded.title == "Ship control plane"
+    assert store.list()[0].id == goal.id
 
 
 def test_approval_store_updates_status_with_decision_notes(isolated_repo_root: Path) -> None:
@@ -78,10 +101,12 @@ def test_approval_store_updates_status_with_decision_notes(isolated_repo_root: P
     updated = store.update_status(
         record.id,
         ApprovalStatus.APPROVED,
+        decided_by="founder",
         decided_at="2026-03-30T00:10:00+00:00",
         decision_notes="Looks good.",
     )
 
     assert updated.status is ApprovalStatus.APPROVED
+    assert updated.decided_by == "founder"
     assert updated.decision_notes == "Looks good."
     assert store.load(record.id).decided_at == "2026-03-30T00:10:00+00:00"

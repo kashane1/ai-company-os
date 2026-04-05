@@ -21,6 +21,7 @@ class ApprovalRecord:
     subject_type: str = "task_run"
     subject_id: str = ""
     action: str = ""
+    decided_by: str | None = None
     decided_at: str | None = None
     decision_notes: str | None = None
 
@@ -47,6 +48,7 @@ class ApprovalRecord:
             subject_type=str(payload.get("subject_type", "task_run")),
             subject_id=str(payload.get("subject_id", "")),
             action=str(payload.get("action", "")),
+            decided_by=str(payload["decided_by"]) if payload.get("decided_by") else None,
             decided_at=str(payload["decided_at"]) if payload.get("decided_at") else None,
             decision_notes=(
                 str(payload["decision_notes"]) if payload.get("decision_notes") else None

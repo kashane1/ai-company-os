@@ -175,7 +175,7 @@ Framework choices should stay lightweight until the architecture proves itself.
 
 ## Current Status
 
-Early scaffold phase.
+Early control-plane phase.
 
 The immediate priorities are:
 
@@ -185,6 +185,7 @@ The immediate priorities are:
 - establish Codex integration shape
 - keep iOS and App Store responsibilities separate
 - keep the repo safe to extend without hidden orchestration
+- make goals, tasks, approvals, events, and worker claims real enough to support a minimal control-plane runtime
 
 ## Testing
 
@@ -228,16 +229,15 @@ Runtime-state isolation:
 
 ## Getting Started
 
-This repo currently provides an architectural scaffold, not a full runtime.
+This repo currently provides a minimal real control-plane slice plus the existing engineering and iOS/App Store scaffolds.
 
 Suggested first implementation steps after this scaffold:
 
-1. Stand up the API with task and approval endpoints.
-2. Back task persistence with Postgres.
-3. Back queue routing with Redis.
-4. Replace the placeholder worker scripts with long-running worker processes.
-5. Add worktree creation and Codex invocation to the engineering and iOS lanes.
-6. Add approval persistence and enforcement at the platform layer.
+1. Point `AI_COMPANY_OS_DATABASE_URL` at Postgres to move the control-plane records off the default local SQLite file.
+2. Replace the current durable queue table with Redis once worker daemons are running continuously.
+3. Replace the placeholder worker scripts with long-running worker processes.
+4. Add worktree creation and Codex invocation to the engineering and iOS lanes for claimed tasks.
+5. Expand approval persistence and enforcement from the current narrow task/release actions to more public workflows.
 
 ## Read Next
 

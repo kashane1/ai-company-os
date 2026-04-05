@@ -9,16 +9,23 @@ import pytest
 from packages.config.settings import TEST_REPO_ROOT_ENV_VAR, ensure_runtime_directories
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ENGINEERING_APP = REPO_ROOT / "apps" / "worker-engineering"
+IOS_APP = REPO_ROOT / "apps" / "worker-ios"
+for path in (ENGINEERING_APP, IOS_APP):
+    resolved = str(path)
+    if resolved not in sys.path:
+        sys.path.insert(0, resolved)
+
+
 @pytest.fixture
 def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+    return REPO_ROOT
 
 
 @pytest.fixture(autouse=True)
 def configure_worker_paths(repo_root: Path) -> None:
-    engineering_app = repo_root / "apps" / "worker-engineering"
-    ios_app = repo_root / "apps" / "worker-ios"
-    for path in (engineering_app, ios_app):
+    for path in (ENGINEERING_APP, IOS_APP):
         resolved = str(path)
         if resolved not in sys.path:
             sys.path.insert(0, resolved)

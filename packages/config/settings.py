@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 TEST_REPO_ROOT_ENV_VAR = "AI_COMPANY_OS_REPO_ROOT"
+DATABASE_URL_ENV_VAR = "AI_COMPANY_OS_DATABASE_URL"
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,7 @@ class RuntimePaths:
     ios_artifacts_root: Path
     engineering_logs_root: Path
     ios_logs_root: Path
+    control_plane_db_path: Path
 
 
 def load_runtime_paths(repo_root: Path | None = None) -> RuntimePaths:
@@ -67,6 +69,7 @@ def load_runtime_paths(repo_root: Path | None = None) -> RuntimePaths:
         ios_artifacts_root=artifacts_root / "ios",
         engineering_logs_root=logs_root / "engineering",
         ios_logs_root=logs_root / "ios",
+        control_plane_db_path=platform_state_root / "control_plane.sqlite3",
     )
 
 
