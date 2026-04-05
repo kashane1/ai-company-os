@@ -40,6 +40,7 @@ private struct StartTripView: View {
     @State private var showingOptionalDetails = LogFeatureLogic.startTripOptionalDetailsInitiallyExpanded
     @State private var showingWaterbodyForm = false
     @State private var showingSpotForm = false
+    @State private var persistenceErrorMessage: String?
 
     let waterbodies: [Waterbody]
     let spots: [Spot]
@@ -173,6 +174,7 @@ private struct StartTripView: View {
                 selectedSpotID = spot.id
             }
         }
+        .persistenceFailureAlert(message: $persistenceErrorMessage)
     }
 
     private var selectedWaterbody: Waterbody? {
@@ -206,11 +208,22 @@ private struct StartTripView: View {
 
         modelContext.insert(snapshot)
         modelContext.insert(trip)
-        try? modelContext.save()
-
-        targetSpecies = ""
-        tripNotes = ""
-        showingOptionalDetails = LogFeatureLogic.startTripOptionalDetailsInitiallyExpanded
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                targetSpecies = ""
+                tripNotes = ""
+                showingOptionalDetails = LogFeatureLogic.startTripOptionalDetailsInitiallyExpanded
+            },
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
+        )
     }
 }
 
@@ -267,6 +280,7 @@ private struct ActiveTripView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var photoData: Data?
     @State private var editingCatchID: UUID?
+    @State private var persistenceErrorMessage: String?
 
     private var catchesForTrip: [CatchRecord] {
         allCatches.filter { $0.trip?.id == trip.id }
@@ -482,6 +496,7 @@ private struct ActiveTripView: View {
                 ContentUnavailableView("Catch not found", systemImage: "exclamationmark.triangle")
             }
         }
+        .persistenceFailureAlert(message: $persistenceErrorMessage)
     }
 
     // MARK: - Actions
@@ -511,30 +526,53 @@ private struct ActiveTripView: View {
         )
 
         modelContext.insert(catchRecord)
-        try? PersonalBestService.refresh(with: catchRecord, in: modelContext)
-        try? modelContext.save()
-
-        let resetState = LogFeatureLogic.resetQuickCatchStateAfterSave(
-            lureOrBait: lureOrBait,
-            method: method
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                try PersonalBestService.refresh(with: catchRecord, in: modelContext)
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                let resetState = LogFeatureLogic.resetQuickCatchStateAfterSave(
+                    lureOrBait: lureOrBait,
+                    method: method
+                )
+                species = resetState.species
+                lureOrBait = resetState.lureOrBait
+                method = resetState.method
+                weight = resetState.weight
+                length = resetState.length
+                note = resetState.note
+                photoData = resetState.photoData
+                selectedPhotoItem = nil
+                showingOptionalFields = resetState.showingOptionalFields
+                showingSavedConfirmation.toggle()
+            },
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
         )
-        species = resetState.species
-        lureOrBait = resetState.lureOrBait
-        method = resetState.method
-        weight = resetState.weight
-        length = resetState.length
-        note = resetState.note
-        photoData = resetState.photoData
-        selectedPhotoItem = nil
-        showingOptionalFields = resetState.showingOptionalFields
-        showingSavedConfirmation.toggle()
     }
 
     private func endTrip() {
         trip.endAt = .now
         trip.outcomeRawValue = LogFeatureLogic.endTripOutcome(catchCount: catchesForTrip.count).rawValue
-        try? modelContext.save()
-        onTripEnded?(trip)
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                onTripEnded?(trip)
+            },
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
+        )
     }
 
     private var elapsedText: String {

@@ -11,6 +11,7 @@ struct NewSpotForm: View {
     @State private var notes = ""
     @State private var selectedWaterbodyID: UUID?
     @State private var showingWaterbodyForm = false
+    @State private var persistenceErrorMessage: String?
 
     var preselectedWaterbodyID: UUID?
     var onSaved: ((Spot) -> Void)?
@@ -96,6 +97,7 @@ struct NewSpotForm: View {
                 selectedWaterbodyID = waterbody.id
             }
         }
+        .persistenceFailureAlert(message: $persistenceErrorMessage)
     }
 
     private var canSave: Bool {
@@ -114,8 +116,20 @@ struct NewSpotForm: View {
             notes: draft.notes
         )
         modelContext.insert(spot)
-        try? modelContext.save()
-        onSaved?(spot)
-        dismiss()
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                onSaved?(spot)
+                dismiss()
+            },
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
+        )
     }
 }

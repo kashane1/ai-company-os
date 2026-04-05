@@ -422,6 +422,7 @@ private struct TripEditorView: View {
     @State private var temperatureC: String
     @State private var latitude: String
     @State private var longitude: String
+    @State private var persistenceErrorMessage: String?
 
     init(trip: Trip, catchCount: Int) {
         self.trip = trip
@@ -539,6 +540,7 @@ private struct TripEditorView: View {
             )
             if newValue == nil { selectedSpotID = nil }
         }
+        .persistenceFailureAlert(message: $persistenceErrorMessage)
     }
 
     private func save() {
@@ -575,8 +577,20 @@ private struct TripEditorView: View {
             snapshot.longitude = draft.longitude
         }
 
-        try? modelContext.save()
-        dismiss()
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                dismiss()
+            },
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
+        )
     }
 }
 
@@ -599,6 +613,7 @@ struct CatchEditorView: View {
     @State private var showingDeleteConfirmation = false
     @State private var shareImage: UIImage?
     @State private var showingShareSheet = false
+    @State private var persistenceErrorMessage: String?
 
     init(trip: Trip, catchRecord: CatchRecord? = nil) {
         self.trip = trip
@@ -726,6 +741,7 @@ struct CatchEditorView: View {
                 ActivityShareSheet(activityItems: [shareImage])
             }
         }
+        .persistenceFailureAlert(message: $persistenceErrorMessage)
     }
 
     private func save() {
@@ -755,20 +771,33 @@ struct CatchEditorView: View {
         record.photoReference = draft.photoReference
         record.photoContentType = draft.photoContentType
 
-        persistCatchChanges()
-        dismiss()
+        persistCatchChanges {
+            dismiss()
+        }
     }
 
     private func deleteCatch() {
         guard let catchRecord else { return }
         modelContext.delete(catchRecord)
-        persistCatchChanges()
-        dismiss()
+        persistCatchChanges {
+            dismiss()
+        }
     }
 
-    private func persistCatchChanges() {
-        try? syncTripOutcomeAndPersonalBests(for: trip, in: modelContext)
-        try? modelContext.save()
+    private func persistCatchChanges(onSuccess: @escaping () -> Void) {
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                try syncTripOutcomeAndPersonalBests(for: trip, in: modelContext)
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: onSuccess,
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
+        )
     }
 
     private func shareCatch() {

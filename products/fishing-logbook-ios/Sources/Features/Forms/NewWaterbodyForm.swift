@@ -7,6 +7,7 @@ struct NewWaterbodyForm: View {
 
     @State private var name = ""
     @State private var type: WaterbodyType = .lake
+    @State private var persistenceErrorMessage: String?
 
     var onSaved: ((Waterbody) -> Void)?
 
@@ -48,13 +49,26 @@ struct NewWaterbodyForm: View {
             .interactiveDismissDisabled(!name.isEmpty)
         }
         .presentationDetents([.medium])
+        .persistenceFailureAlert(message: $persistenceErrorMessage)
     }
 
     private func save() {
         let waterbody = Waterbody(name: WaterbodyFormLogic.normalizedName(name), type: type)
         modelContext.insert(waterbody)
-        try? modelContext.save()
-        onSaved?(waterbody)
-        dismiss()
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                onSaved?(waterbody)
+                dismiss()
+            },
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
+        )
     }
 }
