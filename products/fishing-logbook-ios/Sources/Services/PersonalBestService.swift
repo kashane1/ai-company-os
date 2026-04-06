@@ -15,10 +15,16 @@ enum PersonalBestService {
 
         if let existing {
             if let length = catchRecord.lengthCm {
-                existing.longestLengthCm = max(existing.longestLengthCm ?? 0, length)
+                if existing.longestLengthCm == nil || length >= (existing.longestLengthCm ?? 0) {
+                    existing.longestLengthCm = length
+                    existing.longestCatchID = catchRecord.id
+                }
             }
             if let weight = catchRecord.weightKg {
-                existing.heaviestWeightKg = max(existing.heaviestWeightKg ?? 0, weight)
+                if existing.heaviestWeightKg == nil || weight >= (existing.heaviestWeightKg ?? 0) {
+                    existing.heaviestWeightKg = weight
+                    existing.heaviestCatchID = catchRecord.id
+                }
             }
             existing.updatedAt = .now
         } else {
@@ -26,6 +32,8 @@ enum PersonalBestService {
                 species: species,
                 longestLengthCm: catchRecord.lengthCm,
                 heaviestWeightKg: catchRecord.weightKg,
+                longestCatchID: catchRecord.lengthCm == nil ? nil : catchRecord.id,
+                heaviestCatchID: catchRecord.weightKg == nil ? nil : catchRecord.id,
                 updatedAt: .now
             )
             context.insert(personalBest)
@@ -44,10 +52,32 @@ enum PersonalBestService {
         }
 
         for (species, records) in grouped where !species.isEmpty {
+            let longestRecord = records
+                .filter { $0.lengthCm != nil }
+                .max { lhs, rhs in
+                    let lhsLength = lhs.lengthCm ?? 0
+                    let rhsLength = rhs.lengthCm ?? 0
+                    if lhsLength != rhsLength {
+                        return lhsLength < rhsLength
+                    }
+                    return lhs.caughtAt < rhs.caughtAt
+                }
+            let heaviestRecord = records
+                .filter { $0.weightKg != nil }
+                .max { lhs, rhs in
+                    let lhsWeight = lhs.weightKg ?? 0
+                    let rhsWeight = rhs.weightKg ?? 0
+                    if lhsWeight != rhsWeight {
+                        return lhsWeight < rhsWeight
+                    }
+                    return lhs.caughtAt < rhs.caughtAt
+                }
             let personalBest = PersonalBest(
                 species: species,
                 longestLengthCm: records.compactMap(\.lengthCm).max(),
                 heaviestWeightKg: records.compactMap(\.weightKg).max(),
+                longestCatchID: longestRecord?.id,
+                heaviestCatchID: heaviestRecord?.id,
                 updatedAt: .now
             )
             context.insert(personalBest)

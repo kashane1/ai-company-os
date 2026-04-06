@@ -23,6 +23,8 @@ final class PersonalBestServiceTests: XCTestCase {
         XCTAssertEqual(records.first?.species, "Bass")
         XCTAssertEqual(records.first?.longestLengthCm, 45)
         XCTAssertEqual(records.first?.heaviestWeightKg, 2.3)
+        XCTAssertEqual(records.first?.longestCatchID, catchRecord.id)
+        XCTAssertEqual(records.first?.heaviestCatchID, catchRecord.id)
     }
 
     func testRefreshUpdatesLongestAndHeaviestValues() throws {
@@ -52,6 +54,8 @@ final class PersonalBestServiceTests: XCTestCase {
         XCTAssertEqual(records.count, 1)
         XCTAssertEqual(records.first?.longestLengthCm, 48)
         XCTAssertEqual(records.first?.heaviestWeightKg, 2.6)
+        XCTAssertEqual(records.first?.longestCatchID, largerCatch.id)
+        XCTAssertEqual(records.first?.heaviestCatchID, largerCatch.id)
     }
 
     func testRefreshIgnoresBlankSpecies() throws {
@@ -86,6 +90,8 @@ final class PersonalBestServiceTests: XCTestCase {
         XCTAssertEqual(records[0].species, "Bass")
         XCTAssertEqual(records[0].longestLengthCm, 44)
         XCTAssertEqual(records[0].heaviestWeightKg, 2.8)
+        XCTAssertEqual(records[0].longestCatchID, bassOne.id)
+        XCTAssertEqual(records[0].heaviestCatchID, bassTwo.id)
         XCTAssertEqual(records[1].species, "Trout")
     }
 }

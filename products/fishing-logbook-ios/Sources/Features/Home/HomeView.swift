@@ -26,6 +26,27 @@ struct HomeView: View {
         return SpotRecallSummary.build(for: latestSpot, trips: trips, catches: catches)
     }
 
+    private var latestCompletedTripCatches: [CatchRecord] {
+        guard let latestCompletedTrip else { return [] }
+        return catches.filter { $0.trip?.id == latestCompletedTrip.id }
+    }
+
+    private var lastTripSummary: HomeLastTripSummary? {
+        guard let latestCompletedTrip else { return nil }
+        return HomeDashboardLogic.lastTripSummary(
+            trip: latestCompletedTrip,
+            catches: latestCompletedTripCatches
+        )
+    }
+
+    private var suggestedMemoryCard: HomeMemoryCard? {
+        HomeDashboardLogic.suggestedMemoryCard(
+            latestCompletedTrip: latestCompletedTrip,
+            summary: latestSpotSummary,
+            totalCompletedTrips: totalTrips
+        )
+    }
+
     private var totalCatches: Int { HomeDashboardLogic.totalCatchCount(from: catches) }
     private var totalTrips: Int { HomeDashboardLogic.completedTripCount(from: trips) }
 
@@ -74,10 +95,21 @@ struct HomeView: View {
                             } label: {
                                 LastTripCard(
                                     trip: latestCompletedTrip,
-                                    catchCount: HomeDashboardLogic.catchCount(for: latestCompletedTrip.id, catches: catches)
+                                    catchCount: HomeDashboardLogic.catchCount(for: latestCompletedTrip.id, catches: catches),
+                                    summary: lastTripSummary
                                 )
                             }
                             .buttonStyle(.plain)
+                            .padding(.horizontal)
+                        }
+                    }
+
+                    if let suggestedMemoryCard {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            HomeSectionHeader(title: "Suggested Memory")
+                                .padding(.horizontal)
+
+                            SuggestedMemoryCard(card: suggestedMemoryCard)
                             .padding(.horizontal)
                         }
                     }
@@ -96,7 +128,7 @@ struct HomeView: View {
                                 .padding(.horizontal)
 
                             VStack(spacing: Spacing.sm) {
-                                ForEach(latestSpotSummary.cards, id: \.id) { card in
+                                ForEach(latestSpotSummary.cards.prefix(3), id: \.id) { card in
                                     DeterministicInsightCardView(card: card)
                                 }
                             }
@@ -104,18 +136,32 @@ struct HomeView: View {
                         }
                     }
 
-                    // Personal Bests
-                    if !personalBests.isEmpty {
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            HomeSectionHeader(title: "Personal Bests")
-                                .padding(.horizontal)
-
-                            VStack(spacing: Spacing.sm) {
-                                ForEach(personalBests.prefix(5), id: \.id) { record in
-                                    PersonalBestRow(record: record)
-                                }
-                            }
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        HomeSectionHeader(title: "Personal Bests")
                             .padding(.horizontal)
+
+                        if personalBests.isEmpty {
+                            EmptyPersonalBestsCard()
+                                .padding(.horizontal)
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: Spacing.md) {
+                                    ForEach(personalBests.prefix(6), id: \.id) { record in
+                                        let linkedTrip = sourceTrip(for: record)
+                                        if let linkedTrip {
+                                            NavigationLink {
+                                                TripDetailView(trip: linkedTrip)
+                                            } label: {
+                                                PersonalBestCard(record: record)
+                                            }
+                                            .buttonStyle(.plain)
+                                        } else {
+                                            PersonalBestCard(record: record)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
                         }
                     }
                 }
@@ -164,6 +210,12 @@ struct HomeView: View {
         } catch {
             exportPreparationError = "We couldn't prepare your backup right now."
         }
+    }
+
+    private func sourceTrip(for record: PersonalBest) -> Trip? {
+        let sourceCatchID = record.heaviestCatchID ?? record.longestCatchID
+        guard let sourceCatchID else { return nil }
+        return catches.first(where: { $0.id == sourceCatchID })?.trip
     }
 }
 
@@ -291,6 +343,7 @@ private struct QuickStatCard: View {
 private struct LastTripCard: View {
     let trip: Trip
     let catchCount: Int
+    let summary: HomeLastTripSummary?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -313,6 +366,16 @@ private struct LastTripCard: View {
             .font(.footnote)
             .foregroundStyle(.secondary)
 
+            if let durationText = summary?.durationText {
+                Text(durationText)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+
+            if let topSpeciesText = summary?.topSpeciesText {
+                AppBadge(text: "Top \(topSpeciesText)")
+            }
+
             if trip.outcomeRawValue == TripOutcome.skunked.rawValue {
                 AppBadge(text: "Skunked", color: .secondary)
             }
@@ -322,30 +385,77 @@ private struct LastTripCard: View {
     }
 }
 
+private struct SuggestedMemoryCard: View {
+    let card: HomeMemoryCard
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            AppBadge(text: "Private Memory")
+            Text(card.title)
+                .font(.headline)
+            Text(card.body)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Text(card.footer)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .appCard(prominent: true)
+    }
+}
+
+private struct EmptyPersonalBestsCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("Your best catches will show up here.")
+                .font(.subheadline.weight(.semibold))
+            Text("Once you log length or weight, the app keeps those records private and easy to find.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(Spacing.lg)
+        .background(.background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
 // MARK: - Personal Best Row
 
-private struct PersonalBestRow: View {
+private struct PersonalBestCard: View {
     let record: PersonalBest
 
     var body: some View {
-        HStack(spacing: Spacing.md) {
-            Image(systemName: "trophy.fill")
-                .font(.footnote)
-                .foregroundStyle(.orange)
-                .frame(width: 28, height: 28)
-                .background(.orange.opacity(0.10), in: Circle())
-
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                Text(record.species)
-                    .font(.subheadline.weight(.medium))
-                Text(summaryText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack {
+                Image(systemName: "trophy.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+                    .frame(width: 28, height: 28)
+                    .background(.orange.opacity(0.10), in: Circle())
+                Spacer()
+                if record.heaviestCatchID != nil || record.longestCatchID != nil {
+                    Image(systemName: "arrow.up.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
             }
 
-            Spacer()
+            Text(record.species)
+                .font(.headline)
+
+            Text(summaryText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if let heaviest = record.heaviestWeightKg {
+                StatCapsule(value: "\(heaviest.formatted()) kg", label: "Heaviest", icon: "scalemass")
+            }
+
+            if let longest = record.longestLengthCm {
+                StatCapsule(value: "\(longest.formatted()) cm", label: "Longest", icon: "ruler")
+            }
         }
-        .padding(Spacing.md)
+        .frame(width: 220, alignment: .leading)
+        .padding(Spacing.lg)
         .background(.background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 

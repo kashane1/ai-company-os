@@ -12,6 +12,13 @@ struct SpotStatSummary {
     let productiveTripCountText: String
 }
 
+struct SpotRecallDetailItem: Identifiable {
+    let id: String
+    let title: String
+    let value: String
+    let evidence: String?
+}
+
 struct SpotRecentTripSummary: Identifiable {
     let id: UUID
     let dateText: String
@@ -22,7 +29,7 @@ struct SpotRecentTripSummary: Identifiable {
 
 enum SpotPresentationLogic {
     static func privateRecallCards(for summary: SpotRecallSummary) -> [DeterministicInsightCard] {
-        summary.cards.filter { $0.kind != .bestTimeWindow }
+        summary.cards
     }
 
     static func rowDetails(for spot: Spot) -> SpotRowDetails {
@@ -40,10 +47,71 @@ enum SpotPresentationLogic {
 
     static func statSummary(for summary: SpotRecallSummary) -> SpotStatSummary {
         SpotStatSummary(
-            tripCountText: "\(summary.recentTrips.count)",
+            tripCountText: "\(summary.tripCount)",
             catchCountText: "\(summary.catchCount)",
             productiveTripCountText: "\(summary.successfulTripCount)"
         )
+    }
+
+    static func recallDetails(for summary: SpotRecallSummary) -> [SpotRecallDetailItem] {
+        var items: [SpotRecallDetailItem] = []
+
+        if let mostEffectiveLure = summary.mostEffectiveLure {
+            items.append(
+                SpotRecallDetailItem(
+                    id: "lure",
+                    title: "Most effective lure",
+                    value: mostEffectiveLure,
+                    evidence: evidenceLabel(
+                        supportCount: summary.mostEffectiveLureSupportCount,
+                        unit: "catch"
+                    )
+                )
+            )
+        }
+
+        if let bestTimeWindow = summary.bestTimeWindow {
+            items.append(
+                SpotRecallDetailItem(
+                    id: "time-window",
+                    title: "Best time window",
+                    value: bestTimeWindow,
+                    evidence: evidenceLabel(
+                        supportCount: summary.bestTimeWindowSupportCount,
+                        unit: "catch"
+                    )
+                )
+            )
+        }
+
+        if let simpleConditionSummary = summary.simpleConditionSummary {
+            items.append(
+                SpotRecallDetailItem(
+                    id: "conditions",
+                    title: "Simple condition summary",
+                    value: simpleConditionSummary,
+                    evidence: evidenceLabel(
+                        supportCount: summary.simpleConditionSupportCount,
+                        unit: "productive trip"
+                    )
+                )
+            )
+        }
+
+        return items
+    }
+
+    private static func evidenceLabel(supportCount: Int, unit: String) -> String? {
+        guard supportCount > 0 else { return nil }
+        let pluralizedUnit: String
+        if supportCount == 1 {
+            pluralizedUnit = unit
+        } else if unit == "catch" {
+            pluralizedUnit = "catches"
+        } else {
+            pluralizedUnit = "\(unit)s"
+        }
+        return "Based on \(supportCount) \(pluralizedUnit)"
     }
 
     static func recentTripSummaries(

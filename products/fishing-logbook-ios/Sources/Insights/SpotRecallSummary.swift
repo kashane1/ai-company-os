@@ -37,19 +37,78 @@ struct SpotRecallSummary {
         let supportingSampleCount: Int
     }
 
+    struct RecentCatchSummary: Identifiable {
+        let id: UUID
+        let species: String
+        let caughtAt: Date
+        let lureOrBait: String?
+        let metricSummary: String?
+    }
+
     let recentTrips: [Trip]
+    let tripCount: Int
+    let completedTripCount: Int
     let catchCount: Int
     let successfulTripCount: Int
+    let recentCatches: [RecentCatchSummary]
     let recencyInsight: RecencyInsight?
     let productivityInsight: ProductivityInsight?
     let speciesInsight: SpeciesInsight?
     let conditionsInsight: ConditionsInsight?
     let lureInsight: LureInsight?
     let bestTimeWindow: String?
+    let bestTimeWindowSupportCount: Int
     let mostEffectiveLure: String?
+    let mostEffectiveLureSupportCount: Int
     let seasonalityInsight: SeasonalityInsight?
     let similarConditionsCount: Int
     let similarConditionsLabel: String?
+    let simpleConditionSummary: String?
+    let simpleConditionSupportCount: Int
+
+    init(
+        recentTrips: [Trip],
+        tripCount: Int? = nil,
+        completedTripCount: Int? = nil,
+        catchCount: Int,
+        successfulTripCount: Int,
+        recentCatches: [RecentCatchSummary] = [],
+        recencyInsight: RecencyInsight?,
+        productivityInsight: ProductivityInsight?,
+        speciesInsight: SpeciesInsight?,
+        conditionsInsight: ConditionsInsight?,
+        lureInsight: LureInsight?,
+        bestTimeWindow: String?,
+        bestTimeWindowSupportCount: Int? = nil,
+        mostEffectiveLure: String?,
+        mostEffectiveLureSupportCount: Int? = nil,
+        seasonalityInsight: SeasonalityInsight?,
+        similarConditionsCount: Int,
+        similarConditionsLabel: String?,
+        simpleConditionSummary: String? = nil,
+        simpleConditionSupportCount: Int = 0
+    ) {
+        self.recentTrips = recentTrips
+        self.tripCount = tripCount ?? recentTrips.count
+        self.completedTripCount = completedTripCount ?? recentTrips.filter { $0.endAt != nil }.count
+        self.catchCount = catchCount
+        self.successfulTripCount = successfulTripCount
+        self.recentCatches = recentCatches
+        self.recencyInsight = recencyInsight
+        self.productivityInsight = productivityInsight
+        self.speciesInsight = speciesInsight
+        self.conditionsInsight = conditionsInsight
+        self.lureInsight = lureInsight
+        self.bestTimeWindow = bestTimeWindow
+        self.bestTimeWindowSupportCount = bestTimeWindowSupportCount ?? catchCount
+        self.mostEffectiveLure = mostEffectiveLure
+        self.mostEffectiveLureSupportCount = mostEffectiveLureSupportCount ?? 0
+        self.seasonalityInsight = seasonalityInsight
+        self.similarConditionsCount = similarConditionsCount
+        self.similarConditionsLabel = similarConditionsLabel
+        self.simpleConditionSummary = simpleConditionSummary
+        self.simpleConditionSupportCount = simpleConditionSupportCount
+    }
 
     var cards: [DeterministicInsightCard] {
         var cards: [DeterministicInsightCard] = []
@@ -59,8 +118,8 @@ struct SpotRecallSummary {
                 DeterministicInsightCard(
                     kind: .lastTrips,
                     title: "Last trips here",
-                    body: "You have \(recentTrips.count) recent trips here. The latest was on \(AppFormatters.tripDate.string(from: mostRecentTrip.startAt)).",
-                    supportingSampleCount: recentTrips.count,
+                    body: "You have \(tripCount) trips logged here. The latest was on \(AppFormatters.tripDate.string(from: mostRecentTrip.startAt)).",
+                    supportingSampleCount: tripCount,
                     systemImage: "clock.arrow.circlepath"
                 )
             )
@@ -131,8 +190,8 @@ struct SpotRecallSummary {
                 DeterministicInsightCard(
                     kind: .bestTimeWindow,
                     title: "Best time window historically",
-                    body: "Your strongest catch window here has been \(bestTimeWindow).",
-                    supportingSampleCount: catchCount,
+                    body: "Your strongest catch window here has been \(bestTimeWindow), based on \(bestTimeWindowSupportCount) logged catches.",
+                    supportingSampleCount: bestTimeWindowSupportCount,
                     systemImage: "clock"
                 )
             )
@@ -155,7 +214,7 @@ struct SpotRecallSummary {
                 DeterministicInsightCard(
                     kind: .similarConditions,
                     title: "Similar conditions",
-                    body: "\(similarConditionsCount) completed trips with catches here lined up with \(similarConditionsLabel).",
+                    body: "\(similarConditionsCount) productive trips here matched \(similarConditionsLabel).",
                     supportingSampleCount: similarConditionsCount,
                     systemImage: "sparkles.rectangle.stack"
                 )
@@ -173,6 +232,7 @@ struct SpotRecallSummary {
             guard let tripID = catchRecord.trip?.id else { return false }
             return tripIDs.contains(tripID)
         }
+        .sorted { $0.caughtAt > $1.caughtAt }
 
         var timeWindowCounts: [String: Int] = [:]
         for catchRecord in spotCatches {
@@ -193,7 +253,18 @@ struct SpotRecallSummary {
         let catchCountsByTripID = Dictionary(grouping: spotCatches.compactMap { catchRecord -> UUID? in
             catchRecord.trip?.id
         }, by: { $0 }).mapValues(\.count)
-        let bestTimeWindow = timeWindowCounts.max(by: { $0.value < $1.value })?.key
+        let strongestTimeWindow = timeWindowCounts.max { lhs, rhs in
+            if lhs.value != rhs.value {
+                return lhs.value < rhs.value
+            }
+            return lhs.key > rhs.key
+        }
+        let strongestLure = lureCounts.max { lhs, rhs in
+            if lhs.value != rhs.value {
+                return lhs.value < rhs.value
+            }
+            return lhs.key > rhs.key
+        }
 
         let recencyInsight = recentActivityInsight(
             completedTrips: completedTrips,
@@ -221,22 +292,47 @@ struct SpotRecallSummary {
             successfulTripIDs: successfulTripIDs
         )
         let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips)
+        let recentCatches = Array(spotCatches.prefix(3)).map { catchRecord in
+            RecentCatchSummary(
+                id: catchRecord.id,
+                species: catchRecord.speciesDisplayName,
+                caughtAt: catchRecord.caughtAt,
+                lureOrBait: TripEditingLogic.normalizedOptionalText(catchRecord.lureOrBait),
+                metricSummary: metricSummary(for: catchRecord)
+            )
+        }
+        let simpleConditionSummary = strongestConditionSummary(for: productiveTrips)
 
         return SpotRecallSummary(
             recentTrips: Array(spotTrips.prefix(3)),
+            tripCount: spotTrips.count,
+            completedTripCount: completedTrips.count,
             catchCount: spotCatches.count,
             successfulTripCount: successfulTripIDs.count,
+            recentCatches: recentCatches,
             recencyInsight: recencyInsight,
             productivityInsight: productivityInsight,
             speciesInsight: speciesInsight,
             conditionsInsight: conditionsInsight,
             lureInsight: lureInsight,
-            bestTimeWindow: bestTimeWindow,
-            mostEffectiveLure: lureCounts.max(by: { $0.value < $1.value })?.key,
+            bestTimeWindow: strongestTimeWindow?.key,
+            bestTimeWindowSupportCount: strongestTimeWindow?.value ?? 0,
+            mostEffectiveLure: strongestLure?.key,
+            mostEffectiveLureSupportCount: strongestLure?.value ?? 0,
             seasonalityInsight: seasonalityInsight,
             similarConditionsCount: similarConditionsInsight?.supportingSampleCount ?? 0,
-            similarConditionsLabel: similarConditionsInsight?.displayLabel
+            similarConditionsLabel: similarConditionsInsight?.displayLabel,
+            simpleConditionSummary: simpleConditionSummary?.label,
+            simpleConditionSupportCount: simpleConditionSummary?.supportCount ?? 0
         )
+    }
+
+    private static func metricSummary(for catchRecord: CatchRecord) -> String? {
+        let parts: [String] = [
+            catchRecord.lengthCm.map { "\($0.formatted()) cm" },
+            catchRecord.weightKg.map { "\($0.formatted()) kg" },
+        ].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " • ")
     }
 
     private static func strongestLureInsight(
@@ -679,6 +775,29 @@ struct SpotRecallSummary {
         }
 
         return counts.first { $0.value == topCount }
+    }
+
+    private static func strongestConditionSummary(for trips: [Trip]) -> (label: String, supportCount: Int)? {
+        var counts: [String: Int] = [:]
+
+        for trip in trips {
+            let snapshot = trip.conditionSnapshot
+            let normalizedParts = [
+                snapshot?.weatherSummary,
+                snapshot?.windSummary,
+                snapshot?.cloudCoverSummary,
+                snapshot?.precipitationSummary,
+                snapshot?.lightLevelSummary,
+            ]
+                .compactMap { TripEditingLogic.normalizedOptionalText($0 ?? "") }
+
+            guard !normalizedParts.isEmpty else { continue }
+            let label = normalizedParts.joined(separator: " • ")
+            counts[label, default: 0] += 1
+        }
+
+        guard let strongest = strongestConditionsBucket(in: counts) else { return nil }
+        return (label: strongest.key, supportCount: strongest.value)
     }
 
     private static func season(for date: Date, calendar: Calendar) -> TripSeasonFilter {

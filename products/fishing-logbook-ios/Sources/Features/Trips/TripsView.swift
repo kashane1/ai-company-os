@@ -70,7 +70,7 @@ struct TripsView: View {
                     ContentUnavailableView {
                         Label("No Trips Yet", systemImage: "water.waves")
                     } description: {
-                        Text("Start a trip from the Log tab to begin building your private fishing memory.")
+                        Text("Start a trip from the Log tab to begin building private fishing memory by water, spot, and season.")
                     }
                 } else {
                     List {
@@ -126,7 +126,7 @@ struct TripsView: View {
                                 SectionEmptyState(
                                     icon: "line.3.horizontal.decrease.circle",
                                     title: "No trips match these filters",
-                                    subtitle: "Try a different water, species, date, season, or lure."
+                                    subtitle: "Try a different water, species, lure, or season to bring your history back into view."
                                 )
                             }
                         } else {
@@ -220,6 +220,10 @@ private struct TripRow: View {
                 if let durationText = rowSummary.durationText {
                     Label(durationText, systemImage: "timer")
                 }
+
+                if let waterbodyName = trip.waterbody?.name {
+                    Label(waterbodyName, systemImage: "water.waves")
+                }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -302,6 +306,13 @@ struct TripDetailView: View {
                         trip.targetSpeciesList.count > 1 ? "Targets" : "Target",
                         value: trip.targetSpeciesList.joined(separator: ", ")
                     )
+                }
+                if let spot = trip.spot {
+                    NavigationLink {
+                        SpotDetailView(spot: spot)
+                    } label: {
+                        Label("Open spot detail", systemImage: "mappin.and.ellipse")
+                    }
                 }
                 if !trip.notes.isEmpty {
                     VStack(alignment: .leading, spacing: Spacing.xs) {

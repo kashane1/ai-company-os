@@ -66,18 +66,24 @@ final class SpotRecallSummaryTests: XCTestCase {
 
         XCTAssertEqual(summary.recentTrips.count, 2)
         XCTAssertEqual(summary.recentTrips.first?.id, recentTrip.id)
+        XCTAssertEqual(summary.tripCount, 2)
+        XCTAssertEqual(summary.completedTripCount, 0)
         XCTAssertEqual(summary.catchCount, 3)
         XCTAssertEqual(summary.successfulTripCount, 2)
+        XCTAssertEqual(summary.recentCatches.count, 3)
         XCTAssertNil(summary.recencyInsight)
         XCTAssertNil(summary.productivityInsight)
         XCTAssertNil(summary.speciesInsight)
         XCTAssertNil(summary.conditionsInsight)
         XCTAssertNil(summary.lureInsight)
         XCTAssertEqual(summary.bestTimeWindow, "6-9 AM")
+        XCTAssertEqual(summary.bestTimeWindowSupportCount, 2)
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
+        XCTAssertEqual(summary.mostEffectiveLureSupportCount, 2)
         XCTAssertNil(summary.seasonalityInsight)
         XCTAssertEqual(summary.similarConditionsCount, 0)
         XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertNil(summary.simpleConditionSummary)
         XCTAssertEqual(summary.cards.count, 2)
     }
 
@@ -94,6 +100,8 @@ final class SpotRecallSummaryTests: XCTestCase {
         let summary = SpotRecallSummary.build(for: spot, trips: [], catches: [])
 
         XCTAssertTrue(summary.recentTrips.isEmpty)
+        XCTAssertEqual(summary.tripCount, 0)
+        XCTAssertEqual(summary.completedTripCount, 0)
         XCTAssertEqual(summary.catchCount, 0)
         XCTAssertEqual(summary.successfulTripCount, 0)
         XCTAssertNil(summary.recencyInsight)
@@ -106,6 +114,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.seasonalityInsight)
         XCTAssertEqual(summary.similarConditionsCount, 0)
         XCTAssertNil(summary.similarConditionsLabel)
+        XCTAssertNil(summary.simpleConditionSummary)
         XCTAssertTrue(summary.cards.isEmpty)
     }
 
@@ -129,6 +138,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         let summary = SpotRecallSummary.build(for: spot, trips: trips, catches: catches)
 
         XCTAssertEqual(summary.recentTrips.count, 3)
+        XCTAssertEqual(summary.tripCount, 4)
         XCTAssertEqual(summary.recentTrips.map(\.id), [trips[3].id, trips[2].id, trips[1].id])
         XCTAssertNil(summary.recencyInsight)
         XCTAssertNil(summary.productivityInsight)
@@ -190,7 +200,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertEqual(summary.similarConditionsCount, 4)
         XCTAssertEqual(
             summary.cards.first(where: { $0.kind == .similarConditions })?.body,
-            "4 completed trips with catches here lined up with 6-9 AM • Morning light • 10 kt • Dry."
+            "4 productive trips here matched 6-9 AM • Morning light • 10 kt • Dry."
         )
     }
 

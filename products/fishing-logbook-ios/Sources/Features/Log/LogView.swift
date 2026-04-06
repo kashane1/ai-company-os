@@ -6,6 +6,7 @@ struct LogView: View {
     @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
     @Query(sort: \Spot.createdAt) private var spots: [Spot]
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
+    @State private var endedTripSummary: EndedTripSummary?
 
     var onTripEnded: ((Trip) -> Void)?
 
@@ -17,14 +18,31 @@ struct LogView: View {
         NavigationStack {
             Group {
                 if let activeTrip {
-                    ActiveTripView(trip: activeTrip, onTripEnded: onTripEnded)
+                    ActiveTripView(trip: activeTrip) { trip in
+                        endedTripSummary = EndedTripSummary(trip: trip)
+                    }
                 } else {
                     StartTripView(waterbodies: waterbodies, spots: spots)
                 }
             }
             .navigationTitle("Log")
         }
+        .sheet(item: $endedTripSummary) { summary in
+            TripEndedSummaryView(trip: summary.trip) {
+                endedTripSummary = nil
+            } viewHistory: {
+                let trip = summary.trip
+                endedTripSummary = nil
+                onTripEnded?(trip)
+            }
+        }
     }
+}
+
+private struct EndedTripSummary: Identifiable {
+    let trip: Trip
+
+    var id: UUID { trip.id }
 }
 
 // MARK: - Start Trip
@@ -112,8 +130,12 @@ private struct StartTripView: View {
                     Text("Where")
                 }
 
-                Section("Conditions") {
+                Section {
                     ConditionPreviewRow(preview: conditionPreview)
+                } header: {
+                    Text("Conditions")
+                } footer: {
+                    Text("Location and weather can degrade gracefully. Trip start still works offline and your spots stay yours.")
                 }
 
                 Section {
@@ -253,6 +275,18 @@ private struct ConditionPreviewRow: View {
             Text(preview.snapshot.weatherLine)
                 .font(.footnote)
                 .foregroundStyle(.tertiary)
+
+            if !preview.isLocationReady {
+                Text("Location unavailable right now. We'll fall back to your saved water or spot when possible.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if preview.snapshot.weatherSummary == nil {
+                Text("Weather unavailable for this pass. Core logging still saves locally.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
@@ -262,7 +296,7 @@ private struct ConditionPreviewRow: View {
 private struct ActiveTripView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var trip: Trip
-    let onTripEnded: ((Trip) -> Void)?
+    let onTripEnded: (Trip) -> Void
 
     @Query(sort: \Trip.startAt, order: .reverse) private var allTrips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
@@ -276,11 +310,12 @@ private struct ActiveTripView: View {
     @State private var showingOptionalFields = false
     @State private var didPrimeDefaults = false
     @State private var showingSavedConfirmation = false
-    @State private var showingEndConfirmation = false
+    @State private var showingEndReview = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var photoData: Data?
     @State private var editingCatchID: UUID?
     @State private var persistenceErrorMessage: String?
+    @FocusState private var focusedField: QuickCatchField?
 
     private var catchesForTrip: [CatchRecord] {
         allCatches.filter { $0.trip?.id == trip.id }
@@ -305,6 +340,10 @@ private struct ActiveTripView: View {
 
     private var recentLureSuggestions: [String] {
         LogFeatureLogic.recentLureSuggestions(catchesForSpot: catchesForSpot, allCatches: allCatches)
+    }
+
+    private var quickCatchContext: QuickCatchContextSummary {
+        LogFeatureLogic.quickCatchContextSummary(trip: trip)
     }
 
     var body: some View {
@@ -333,9 +372,21 @@ private struct ActiveTripView: View {
 
             // Quick Catch Form
             Section {
-                TextField("Species (optional)", text: $species)
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.md) {
+                        StatCapsule(value: quickCatchContext.timeText, label: "Time", icon: "clock")
+                        StatCapsule(value: quickCatchContext.spotText, label: "Spot", icon: "mappin")
+                    }
+                    Text(quickCatchContext.privacyText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, Spacing.xxs)
+
+                TextField("Species", text: $species)
                     .textInputAutocapitalization(.words)
                     .submitLabel(.done)
+                    .focused($focusedField, equals: .species)
 
                 if !recentSpeciesSuggestions.isEmpty && species.isEmpty {
                     Text(
@@ -353,6 +404,7 @@ private struct ActiveTripView: View {
 
                 TextField("Lure or bait", text: $lureOrBait)
                     .textInputAutocapitalization(.words)
+                    .focused($focusedField, equals: .lureOrBait)
 
                 if !recentLureSuggestions.isEmpty && lureOrBait.isEmpty {
                     SuggestionRow(label: "Lure", values: recentLureSuggestions) { value in
@@ -363,12 +415,16 @@ private struct ActiveTripView: View {
                 DisclosureGroup("More details", isExpanded: $showingOptionalFields) {
                     TextField("Method", text: $method)
                         .textInputAutocapitalization(.words)
+                        .focused($focusedField, equals: .method)
                     TextField("Weight (kg)", text: $weight)
                         .keyboardType(.decimalPad)
+                        .focused($focusedField, equals: .weight)
                     TextField("Length (cm)", text: $length)
                         .keyboardType(.decimalPad)
+                        .focused($focusedField, equals: .length)
                     TextField("Note", text: $note, axis: .vertical)
                         .lineLimit(2...4)
+                        .focused($focusedField, equals: .note)
 
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         if let photoData {
@@ -396,23 +452,36 @@ private struct ActiveTripView: View {
                         .buttonStyle(.bordered)
                         .tint(.appAccent)
                         .accessibilityIdentifier("quickCatch.photoLibraryButton")
+
+                        Text("If photo access is unavailable, you can still save the catch.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
                 Button {
-                    saveCatch()
+                    saveCatch(action: .save)
                 } label: {
-                    PrimaryActionLabel(title: "Save Catch", systemImage: "checkmark.circle.fill")
+                    PrimaryActionLabel(title: "Save", systemImage: "checkmark.circle.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.appAccent)
                 .accessibilityIdentifier("quickCatch.saveButton")
                 .listRowSeparator(.hidden)
                 .sensoryFeedback(.success, trigger: showingSavedConfirmation)
+
+                Button {
+                    saveCatch(action: .saveAndAddAnother)
+                } label: {
+                    PrimaryActionLabel(title: "Save & Add Another", systemImage: "plus.circle.fill")
+                }
+                .buttonStyle(.bordered)
+                .tint(.appAccent)
+                .listRowSeparator(.hidden)
             } header: {
                 Text("Quick Catch")
             } footer: {
-                Text("Time and place attach automatically. Photo is optional and currently comes from your library.")
+                Text("Time and spot attach automatically. Optional fields stay collapsed so a basic catch can be logged fast, even offline.")
             }
 
             // This Trip's Catches
@@ -449,10 +518,10 @@ private struct ActiveTripView: View {
 
             // End Trip
             Section {
-                Button(role: .destructive) {
-                    showingEndConfirmation = true
+                Button {
+                    showingEndReview = true
                 } label: {
-                    Label("End Trip", systemImage: "stop.circle")
+                    Label("Review & End Trip", systemImage: "stop.circle")
                         .frame(maxWidth: .infinity)
                 }
                 .accessibilityIdentifier("trip.endButton")
@@ -460,18 +529,7 @@ private struct ActiveTripView: View {
         }
         .onAppear {
             primeDefaultsIfNeeded()
-        }
-        .alert("End this trip?", isPresented: $showingEndConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("End Trip", role: .destructive) {
-                endTrip()
-            }
-        } message: {
-            if catchesForTrip.isEmpty {
-                Text("This trip will be marked as skunked.")
-            } else {
-                Text("This trip has \(catchesForTrip.count) \(catchesForTrip.count == 1 ? "catch" : "catches") logged.")
-            }
+            focusedField = .species
         }
         .onChange(of: selectedPhotoItem) { _, newValue in
             guard let newValue else { return }
@@ -496,12 +554,18 @@ private struct ActiveTripView: View {
                 ContentUnavailableView("Catch not found", systemImage: "exclamationmark.triangle")
             }
         }
+        .sheet(isPresented: $showingEndReview) {
+            EndTripReviewView(trip: trip, catches: catchesForTrip) {
+                showingEndReview = false
+                endTrip()
+            }
+        }
         .persistenceFailureAlert(message: $persistenceErrorMessage)
     }
 
     // MARK: - Actions
 
-    private func saveCatch() {
+    private func saveCatch(action: QuickCatchSaveAction) {
         let draft = TripEditingLogic.catchDraft(
             species: species,
             lureOrBait: lureOrBait,
@@ -548,6 +612,11 @@ private struct ActiveTripView: View {
                 photoData = resetState.photoData
                 selectedPhotoItem = nil
                 showingOptionalFields = resetState.showingOptionalFields
+                if action == .saveAndAddAnother {
+                    focusedField = .species
+                } else {
+                    focusedField = nil
+                }
                 showingSavedConfirmation.toggle()
             },
             onFailure: { message in
@@ -567,7 +636,7 @@ private struct ActiveTripView: View {
                 modelContext.rollback()
             },
             onSuccess: {
-                onTripEnded?(trip)
+                onTripEnded(trip)
             },
             onFailure: { message in
                 persistenceErrorMessage = message
@@ -640,6 +709,148 @@ private struct ActiveTripStatusCard: View {
             }
         }
         .appCard(prominent: true)
+    }
+}
+
+private struct EndTripReviewView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let trip: Trip
+    let catches: [CatchRecord]
+    let onConfirm: () -> Void
+
+    private var summaryCards: [TripSummaryCardItem] {
+        LogFeatureLogic.tripSummaryCards(trip: trip, catches: catches)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    if catches.isEmpty {
+                        SectionEmptyState(
+                            icon: "moon.zzz",
+                            title: "No catches logged this trip",
+                            subtitle: "You can still save the trip. Skunked days stay part of your private memory."
+                        )
+                    } else {
+                        Text("Wrap up this trip with a quick factual recap before it moves into history.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Section("Trip recap") {
+                    ForEach(summaryCards) { card in
+                        VStack(alignment: .leading, spacing: Spacing.xxs) {
+                            Text(card.title)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Text(card.value)
+                                .font(.body.weight(.medium))
+                            if let subtitle = card.subtitle {
+                                Text(subtitle)
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .padding(.vertical, Spacing.xxs)
+                    }
+                }
+
+                Section {
+                    Button(role: .destructive) {
+                        dismiss()
+                        onConfirm()
+                    } label: {
+                        PrimaryActionLabel(title: "End Trip", systemImage: "stop.fill")
+                    }
+                }
+            }
+            .navigationTitle("End Trip")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Keep Logging") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+private struct TripEndedSummaryView: View {
+    let trip: Trip
+    let onDone: () -> Void
+    let viewHistory: () -> Void
+
+    @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
+
+    private var catches: [CatchRecord] {
+        allCatches.filter { $0.trip?.id == trip.id }
+    }
+
+    private var summaryCards: [TripSummaryCardItem] {
+        LogFeatureLogic.tripSummaryCards(trip: trip, catches: catches)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        AppBadge(
+                            text: trip.outcome == .skunked ? "Saved privately" : "Trip saved",
+                            color: trip.outcome == .skunked ? .secondary : .appAccent
+                        )
+                        Text(trip.outcome == .skunked ? "That trip is part of the memory too." : "Trip saved to your private history.")
+                            .font(.headline)
+                        Text("Your spots stay yours. Everything here is drawn from your own logbook.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, Spacing.xs)
+                }
+
+                Section("Trip summary") {
+                    ForEach(summaryCards) { card in
+                        VStack(alignment: .leading, spacing: Spacing.xxs) {
+                            Text(card.title)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Text(card.value)
+                                .font(.body.weight(.medium))
+                            if let subtitle = card.subtitle {
+                                Text(subtitle)
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .padding(.vertical, Spacing.xxs)
+                    }
+                }
+
+                Section {
+                    Button {
+                        viewHistory()
+                    } label: {
+                        PrimaryActionLabel(title: "View in Trips", systemImage: "clock.arrow.circlepath")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.appAccent)
+
+                    Button("Done") {
+                        onDone()
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+            .navigationTitle("Trip Summary")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDetents([.medium, .large])
     }
 }
 

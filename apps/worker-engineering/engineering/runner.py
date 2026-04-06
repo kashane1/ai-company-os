@@ -1,9 +1,11 @@
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
+from typing import Callable
 
 from packages.config.repositories import load_repo_configs
 from packages.db.task_run_store import TaskRunStore
 from packages.db.task_store import TaskStore
+from packages.schemas.approval import ApprovalRecord
 from packages.db.worktree_store import WorktreeStore
 from packages.schemas.task_packet import TaskResult, TaskStatus
 from packages.schemas.task_run import EngineeringResultClassification, TaskRun, TaskRunStatus
@@ -26,11 +28,17 @@ def worktree_status_for_classification(classification: EngineeringResultClassifi
     return WorktreeStatus.FAILED
 
 
-def execute_task(task_id: str) -> TaskResult:
+def execute_task(
+    task_id: str,
+    *,
+    update_task_status: bool = True,
+    approval_factory: Callable[[str, str, str, str], ApprovalRecord] | None = None,
+) -> TaskResult:
     started_at = datetime.now(UTC).isoformat()
     task_store = TaskStore()
     task = task_store.load(task_id)
-    task_store.set_status(task.id, TaskStatus.IN_PROGRESS, updated_at=started_at)
+    if update_task_status:
+        task_store.set_status(task.id, TaskStatus.IN_PROGRESS, updated_at=started_at)
 
     repo_config = load_repo_configs()[task.repo_id]
     repo_record = prepare_repo(repo_config)
@@ -81,12 +89,16 @@ def execute_task(task_id: str) -> TaskResult:
     )
     approval = None
     if classification.value == "safe_for_review":
-        approval = create_approval_record(
-            task=task,
-            task_run_id=f"run-{task.id}",
-            review_artifact_path=review_artifact_path,
-            summary=summary,
-        )
+        task_run_id = f"run-{task.id}"
+        if approval_factory is not None:
+            approval = approval_factory(task.id, task_run_id, review_artifact_path, summary)
+        else:
+            approval = create_approval_record(
+                task=task,
+                task_run_id=task_run_id,
+                review_artifact_path=review_artifact_path,
+                summary=summary,
+            )
 
     task_run = TaskRun(
         id=f"run-{task.id}",
@@ -136,7 +148,8 @@ def execute_task(task_id: str) -> TaskResult:
         if classification.value in {"safe_for_review", "no_change"}
         else TaskStatus.FAILED
     )
-    task_store.set_status(task.id, final_status, updated_at=finished_at)
+    if update_task_status:
+        task_store.set_status(task.id, final_status, updated_at=finished_at)
 
     return TaskResult(
         task_id=task.id,

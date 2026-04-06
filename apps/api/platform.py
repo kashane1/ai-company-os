@@ -9,6 +9,7 @@ for entry in (ROOT, ENGINEERING_APP):
         sys.path.insert(0, str(entry))
 
 from engineering.runner import execute_task, result_as_dict
+from apps.api.control_plane import ControlPlaneService
 from packages.config.products import load_product_configs
 from packages.config.settings import ensure_runtime_directories, load_runtime_paths
 from packages.db.approval_store import ApprovalStore
@@ -38,6 +39,8 @@ from packages.schemas.task import Task
 from packages.schemas.task_packet import RiskLevel, WorkerLane
 
 FISHING_FOUNDERS_PACK_SOURCE = "/Users/simons/Desktop/founders-pack-fishing-journal.rtf"
+APPSTORE_RELEASE_PREP_ACTION = "prepare_testflight"
+FISHING_RELEASE_ID_PREFIX = "release-fishing-logbook-v"
 
 
 def create_engineering_task(
@@ -232,6 +235,77 @@ def scaffold_release_state(
         "metadata_draft": metadata_draft.to_dict(),
         "screenshot_set": screenshot_set.to_dict(),
         "release_record": release_record.to_dict(),
+    }
+
+
+def ensure_release_state(
+    release_id: str,
+    *,
+    build_number: str = "1",
+) -> dict[str, object]:
+    release_store = ReleaseStore()
+    try:
+        release_record = release_store.load_release_record(release_id)
+    except FileNotFoundError:
+        if not release_id.startswith(FISHING_RELEASE_ID_PREFIX):
+            raise ValueError(
+                f"Unsupported release id format: {release_id}. "
+                f"Expected prefix {FISHING_RELEASE_ID_PREFIX}."
+            )
+        version = release_id.removeprefix(FISHING_RELEASE_ID_PREFIX)
+        release_state = scaffold_release_state(version=version, build_number=build_number)
+        return {
+            "release_id": release_id,
+            "release_state_status": "scaffolded",
+            "release_record": release_state["release_record"],
+        }
+    return {
+        "release_id": release_record.id,
+        "release_state_status": "existing",
+        "release_record": release_record.to_dict(),
+    }
+
+
+def seed_appstore_release_prep(
+    *,
+    release_id: str,
+    action: str = APPSTORE_RELEASE_PREP_ACTION,
+    build_number: str = "1",
+) -> dict[str, object]:
+    if action != APPSTORE_RELEASE_PREP_ACTION:
+        raise ValueError(f"Unsupported App Store seed action: {action}")
+
+    release_state = ensure_release_state(release_id, build_number=build_number)
+    service = ControlPlaneService()
+    goal = service.create_goal(
+        title=f"Prepare TestFlight state for {release_id}",
+        summary=f"Queue one App Store release-prep task for {release_id}.",
+        description=(
+            "Operator-seeded local runtime work for the App Store lane. "
+            f"Action: {action}."
+        ),
+    )
+    task = service.create_task_for_goal(
+        goal_id=goal.id,
+        repo_id="fishing-logbook-ios",
+        lane=WorkerLane.APPSTORE,
+        title=f"Prepare TestFlight state for {release_id}",
+        summary=f"Use the App Store lane to prepare release state for {release_id}.",
+        task_type="appstore_release",
+        product_id="fishing-logbook",
+        constraints=[
+            f"release_id={release_id}",
+            f"release_action={action}",
+        ],
+    )
+    return {
+        "goal_id": goal.id,
+        "task_id": task.id,
+        "release_id": release_id,
+        "action": action,
+        "task_status": task.status.value,
+        "release_state_status": release_state["release_state_status"],
+        "next_command": "./scripts/runtime status",
     }
 
 

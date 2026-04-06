@@ -229,15 +229,30 @@ Runtime-state isolation:
 
 ## Getting Started
 
-This repo currently provides a minimal real control-plane slice plus the existing engineering and iOS/App Store scaffolds.
+This repo currently provides a minimal real control-plane slice, three lane worker loops, and a thin local runtime supervisor with a CLI operator surface.
 
-Suggested first implementation steps after this scaffold:
+Local runtime operator workflow:
+
+```bash
+./scripts/runtime start
+./scripts/runtime status
+./scripts/runtime stop
+```
+
+Current runtime truth:
+
+- `./scripts/runtime` is a thin wrapper around `apps/runtime-supervisor/cli.py`
+- `start` launches the local runtime supervisor in the background
+- `status` reads the persisted supervisor status file
+- `stop` writes a stop-request file that the running supervisor honors for clean shutdown
+- the runtime supervisor manages the existing engineering, iOS, and App Store worker loops only
+
+Suggested next implementation steps after this scaffold:
 
 1. Point `AI_COMPANY_OS_DATABASE_URL` at Postgres to move the control-plane records off the default local SQLite file.
 2. Replace the current durable queue table with Redis once worker daemons are running continuously.
-3. Replace the placeholder worker scripts with long-running worker processes.
-4. Add worktree creation and Codex invocation to the engineering and iOS lanes for claimed tasks.
-5. Expand approval persistence and enforcement from the current narrow task/release actions to more public workflows.
+3. Add a richer operator surface only after the local runtime loop proves stable in day-to-day use.
+4. Expand approval persistence and enforcement from the current narrow task/release actions to more public workflows.
 
 ## Read Next
 

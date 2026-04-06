@@ -33,6 +33,24 @@ struct QuickCatchResetState {
     let photoData: Data?
 }
 
+enum QuickCatchSaveAction {
+    case save
+    case saveAndAddAnother
+}
+
+struct QuickCatchContextSummary {
+    let timeText: String
+    let spotText: String
+    let privacyText: String
+}
+
+struct TripSummaryCardItem: Identifiable {
+    let id: String
+    let title: String
+    let value: String
+    let subtitle: String?
+}
+
 enum LogFeatureLogic {
     static let startTripOptionalDetailsInitiallyExpanded = false
     static let startTripOptionalDetailsLabel = "Optional details"
@@ -131,6 +149,78 @@ enum LogFeatureLogic {
         catchCount == 0 ? .skunked : .caught
     }
 
+    static func quickCatchContextSummary(
+        trip: Trip,
+        now: Date = .now,
+        formatTime: (Date) -> String = { AppFormatters.shortTime.string(from: $0) }
+    ) -> QuickCatchContextSummary {
+        QuickCatchContextSummary(
+            timeText: formatTime(now),
+            spotText: trip.spot?.title ?? trip.waterbody?.name ?? "General area",
+            privacyText: "Saved privately"
+        )
+    }
+
+    static func tripSummaryCards(
+        trip: Trip,
+        catches: [CatchRecord],
+        durationFormatter: DateComponentsFormatter = AppFormatters.duration
+    ) -> [TripSummaryCardItem] {
+        let durationText = trip.endAt.flatMap { endAt in
+            durationFormatter.string(from: endAt.timeIntervalSince(trip.startAt))
+        } ?? "In progress"
+
+        var cards: [TripSummaryCardItem] = [
+            TripSummaryCardItem(
+                id: "total-catches",
+                title: "Total catches",
+                value: "\(catches.count)",
+                subtitle: catches.isEmpty ? "Skunked trips still stay in your history." : nil
+            ),
+            TripSummaryCardItem(
+                id: "duration",
+                title: "Trip duration",
+                value: durationText,
+                subtitle: nil
+            ),
+        ]
+
+        if let topSpecies = topSpeciesSummary(from: catches) {
+            cards.append(
+                TripSummaryCardItem(
+                    id: "top-species",
+                    title: "Top species",
+                    value: topSpecies.value,
+                    subtitle: topSpecies.subtitle
+                )
+            )
+        }
+
+        if let bestCatch = bestCatchSummary(from: catches) {
+            cards.append(
+                TripSummaryCardItem(
+                    id: "best-catch",
+                    title: "Best catch",
+                    value: bestCatch.value,
+                    subtitle: bestCatch.subtitle
+                )
+            )
+        }
+
+        if let topLure = topLureSummary(from: catches) {
+            cards.append(
+                TripSummaryCardItem(
+                    id: "top-lure",
+                    title: "Top lure",
+                    value: topLure.value,
+                    subtitle: topLure.subtitle
+                )
+            )
+        }
+
+        return cards
+    }
+
     static func resetQuickCatchStateAfterSave(
         lureOrBait: String,
         method: String
@@ -145,5 +235,70 @@ enum LogFeatureLogic {
             showingOptionalFields: false,
             photoData: nil
         )
+    }
+
+    private static func topSpeciesSummary(from catches: [CatchRecord]) -> (value: String, subtitle: String)? {
+        let counts = Dictionary(grouping: catches) {
+            TripEditingLogic.normalizedText($0.speciesDisplayName)
+        }.mapValues(\.count)
+
+        guard let winner = counts.max(by: { lhs, rhs in
+            if lhs.value != rhs.value {
+                return lhs.value < rhs.value
+            }
+            return lhs.key > rhs.key
+        }) else {
+            return nil
+        }
+
+        return (
+            value: winner.key,
+            subtitle: "\(winner.value) \(winner.value == 1 ? "catch" : "catches") this trip"
+        )
+    }
+
+    private static func topLureSummary(from catches: [CatchRecord]) -> (value: String, subtitle: String)? {
+        let eligible = catches.compactMap { catchRecord -> String? in
+            TripEditingLogic.normalizedOptionalText(catchRecord.lureOrBait)
+        }
+        let counts = Dictionary(grouping: eligible, by: { $0 }).mapValues(\.count)
+
+        guard let winner = counts.max(by: { lhs, rhs in
+            if lhs.value != rhs.value {
+                return lhs.value < rhs.value
+            }
+            return lhs.key > rhs.key
+        }) else {
+            return nil
+        }
+
+        return (
+            value: winner.key,
+            subtitle: "Used on \(winner.value) \(winner.value == 1 ? "catch" : "catches")"
+        )
+    }
+
+    private static func bestCatchSummary(from catches: [CatchRecord]) -> (value: String, subtitle: String)? {
+        guard let bestCatch = catches.max(by: { lhs, rhs in
+            bestCatchScore(for: lhs) < bestCatchScore(for: rhs)
+        }) else {
+            return nil
+        }
+
+        let metrics = [
+            bestCatch.lengthCm.map { "\($0.formatted()) cm" },
+            bestCatch.weightKg.map { "\($0.formatted()) kg" },
+        ].compactMap { $0 }
+
+        return (
+            value: bestCatch.speciesDisplayName,
+            subtitle: metrics.isEmpty ? AppFormatters.shortTime.string(from: bestCatch.caughtAt) : metrics.joined(separator: " • ")
+        )
+    }
+
+    private static func bestCatchScore(for catchRecord: CatchRecord) -> Double {
+        let lengthScore = catchRecord.lengthCm ?? 0
+        let weightScore = (catchRecord.weightKg ?? 0) * 10
+        return max(lengthScore, weightScore)
     }
 }

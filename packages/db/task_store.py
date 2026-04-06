@@ -93,6 +93,37 @@ class TaskStore:
             for payload in self.db.fetch_all(query, {"goal_id": goal_id})
         ]
 
+    def count_by_status(self) -> dict[str, int]:
+        query = f"""
+            SELECT status, COUNT(*) AS count
+            FROM {TASKS_TABLE}
+            GROUP BY status
+        """
+        rows = self.db.fetch_all(query, {})
+        return {str(row["status"]): int(row["count"]) for row in rows}
+
+    def latest_for_lane(self, lane: str) -> Task | None:
+        query = f"""
+            SELECT *
+            FROM {TASKS_TABLE}
+            WHERE lane = {self.db.placeholder("lane")}
+            ORDER BY updated_at DESC, created_at DESC, id DESC
+            LIMIT 1
+        """
+        payload = self.db.fetch_one(query, {"lane": lane})
+        if payload is None:
+            return None
+        return self._from_row(payload)
+
+    def list_for_lane(self, lane: str) -> list[Task]:
+        query = f"""
+            SELECT *
+            FROM {TASKS_TABLE}
+            WHERE lane = {self.db.placeholder("lane")}
+            ORDER BY updated_at DESC, created_at DESC, id DESC
+        """
+        return [self._from_row(payload) for payload in self.db.fetch_all(query, {"lane": lane})]
+
     def set_status(self, task_id: str, status: TaskStatus, updated_at: str) -> Task:
         current = self.load(task_id)
         updated = replace(current, status=status, updated_at=updated_at)

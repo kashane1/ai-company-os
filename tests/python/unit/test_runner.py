@@ -296,3 +296,89 @@ def test_result_as_dict_serializes_enum_backed_status() -> None:
     )
 
     assert payload["status"] == "completed"
+
+
+def test_execute_task_uses_injected_approval_factory_when_provided(
+    isolated_repo_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    task = build_task(task_id="task-control-plane-approval", repo_id="repo-approval")
+    TaskStore().save(task)
+    worktree_root = isolated_repo_root / "state" / "worktrees" / "repo-approval" / task.id
+    worktree_root.mkdir(parents=True)
+    repo_record = build_repo_record(repo_id="repo-approval")
+    approval = ApprovalRecord(
+        id="approval-control-plane",
+        task_id=task.id,
+        task_run_id=f"run-{task.id}",
+        status=ApprovalStatus.PENDING,
+        summary="Ready for review",
+        created_at="2026-03-30T00:02:00+00:00",
+        subject_type="task_run",
+        subject_id=f"run-{task.id}",
+        action="review_engineering_task",
+    )
+    approval_calls: list[tuple[str, str, str, str]] = []
+
+    monkeypatch.setattr(runner, "load_repo_configs", lambda: {"repo-approval": build_repo_config(repo_id="repo-approval")})
+    monkeypatch.setattr(runner, "prepare_repo", lambda repo_config: repo_record)
+    monkeypatch.setattr(runner, "prepare_worktree", lambda task_arg, repo_arg: build_worktree_metadata(str(worktree_root)))
+    monkeypatch.setattr(runner, "render_task_packet", lambda task_arg, worktree_arg: str(worktree_root / "TASK_PACKET.md"))
+    monkeypatch.setattr(
+        runner,
+        "capture_git_state",
+        lambda root_path, _states=iter(
+            [build_git_state(changed_files=[]), build_git_state(changed_files=["src/app.py"])]
+        ): next(_states),
+    )
+    monkeypatch.setattr(
+        runner,
+        "execute_codex",
+        lambda task_arg, worktree_arg, packet_path: (
+            str(worktree_root / "codex_last_message.md"),
+            build_execution_record(),
+            str(isolated_repo_root / "state" / "artifacts" / task.id / "summary.txt"),
+            str(worktree_root / "codex_execution.json"),
+        ),
+    )
+    monkeypatch.setattr(runner, "capture_diff", lambda worktree_arg, task_id: str(worktree_root / "changes.diff"))
+    monkeypatch.setattr(
+        runner,
+        "validate_run",
+        lambda *args: (
+            [ValidationCheck(name="tests", passed=True, details="ok")],
+            build_testing_policy(),
+            "- Added tests",
+        ),
+    )
+    monkeypatch.setattr(
+        runner, "classify_result", lambda *args: EngineeringResultClassification.SAFE_FOR_REVIEW
+    )
+    monkeypatch.setattr(runner, "build_summary", lambda *args: "Ready for review")
+    monkeypatch.setattr(
+        runner,
+        "write_review_artifact",
+        lambda **kwargs: str(isolated_repo_root / "state" / "artifacts" / task.id / "review_summary.json"),
+    )
+
+    def approval_factory(task_id: str, task_run_id: str, review_artifact_path: str, summary: str) -> ApprovalRecord:
+        approval_calls.append((task_id, task_run_id, review_artifact_path, summary))
+        return approval
+
+    result = runner.execute_task(
+        task.id,
+        update_task_status=False,
+        approval_factory=approval_factory,
+    )
+    saved_task = TaskStore().load(task.id)
+
+    assert result.approval_id == approval.id
+    assert saved_task.status is TaskStatus.PENDING
+    assert approval_calls == [
+        (
+            task.id,
+            f"run-{task.id}",
+            str(isolated_repo_root / "state" / "artifacts" / task.id / "review_summary.json"),
+            "Ready for review",
+        )
+    ]

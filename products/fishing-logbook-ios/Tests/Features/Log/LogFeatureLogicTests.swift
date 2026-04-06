@@ -177,6 +177,50 @@ final class LogFeatureLogicTests: XCTestCase {
         XCTAssertEqual(LogFeatureLogic.endTripOutcome(catchCount: 2), .caught)
     }
 
+    func testQuickCatchContextSummaryUsesCurrentTripSpotAndPrivacyCopy() {
+        let waterbody = Waterbody(name: "Lake A", type: .lake)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trip = Trip(waterbody: waterbody, spot: spot)
+
+        let summary = LogFeatureLogic.quickCatchContextSummary(
+            trip: trip,
+            now: Date(timeIntervalSince1970: 100),
+            formatTime: { _ in "6:15 AM" }
+        )
+
+        XCTAssertEqual(summary.timeText, "6:15 AM")
+        XCTAssertEqual(summary.spotText, "Dock")
+        XCTAssertEqual(summary.privacyText, "Saved privately")
+    }
+
+    func testTripSummaryCardsIncludeDeterministicRecapValues() {
+        let waterbody = Waterbody(name: "Lake A", type: .lake)
+        let trip = Trip(waterbody: waterbody, startAt: Date(timeIntervalSince1970: 100))
+        trip.endAt = Date(timeIntervalSince1970: 220)
+        let catches = [
+            CatchRecord(species: "Bass", trip: trip, caughtAt: Date(timeIntervalSince1970: 140), lureOrBait: "Spinner", weightKg: 2.4),
+            CatchRecord(species: "Bass", trip: trip, caughtAt: Date(timeIntervalSince1970: 150), lureOrBait: "Spinner", lengthCm: 48),
+            CatchRecord(species: "Trout", trip: trip, caughtAt: Date(timeIntervalSince1970: 160), lureOrBait: "Spoon"),
+        ]
+
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.minute]
+        formatter.unitsStyle = .abbreviated
+        let cards = LogFeatureLogic.tripSummaryCards(trip: trip, catches: catches, durationFormatter: formatter)
+
+        XCTAssertEqual(cards.map(\.title), [
+            "Total catches",
+            "Trip duration",
+            "Top species",
+            "Best catch",
+            "Top lure",
+        ])
+        XCTAssertEqual(cards.first?.value, "3")
+        XCTAssertEqual(cards[1].value, "2m")
+        XCTAssertEqual(cards[2].value, "Bass")
+        XCTAssertEqual(cards[4].value, "Spinner")
+    }
+
     func testSharedRecallCardsStillIncludeBestTimeWindowForLogConsumers() {
         let summary = SpotRecallSummary(
             recentTrips: [],
@@ -216,7 +260,7 @@ final class LogFeatureLogicTests: XCTestCase {
 
         XCTAssertEqual(
             summary.cards.first(where: { $0.kind == .similarConditions })?.body,
-            "4 completed trips with catches here lined up with Morning light • Dry."
+            "4 productive trips here matched Morning light • Dry."
         )
     }
 }

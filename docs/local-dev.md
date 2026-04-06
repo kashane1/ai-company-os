@@ -98,16 +98,27 @@ Important paths:
 
 Do not treat these as source directories.
 
-## Current Scaffold Checks
+## Local Runtime Operator Workflow
 
-The current repo is still in scaffold mode, but these entrypoints should run:
+The current local runtime is operated through the runtime supervisor CLI:
 
 ```bash
-python3 apps/api/main.py
-python3 apps/worker-supervisor/main.py
+./scripts/runtime start
+./scripts/runtime status
+./scripts/runtime stop
 ```
 
-These are verification hooks, not the final runtime model.
+What these commands do:
+
+- `./scripts/runtime` is a thin wrapper around `apps/runtime-supervisor/cli.py`
+- `start` launches the local runtime supervisor in the background
+- `status` reads the persisted supervisor status file under `state/checkpoints/platform/`
+- `stop` writes a stop-request file that the running supervisor loop watches and honors for clean shutdown
+
+Current scope:
+
+- the supervisor manages the engineering, iOS, and App Store worker loops only
+- it is a thin local runtime operator flow, not a full orchestration system
 
 ## Testing And Coverage
 

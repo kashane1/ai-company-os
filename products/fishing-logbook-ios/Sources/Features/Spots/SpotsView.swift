@@ -87,7 +87,7 @@ private struct SpotRow: View {
 
 // MARK: - Spot Detail
 
-private struct SpotDetailView: View {
+struct SpotDetailView: View {
     let spot: Spot
 
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
@@ -103,6 +103,10 @@ private struct SpotDetailView: View {
 
     private var statSummary: SpotStatSummary {
         SpotPresentationLogic.statSummary(for: summary)
+    }
+
+    private var recallDetails: [SpotRecallDetailItem] {
+        SpotPresentationLogic.recallDetails(for: summary)
     }
 
     private var recentTripSummaries: [SpotRecentTripSummary] {
@@ -143,6 +147,36 @@ private struct SpotDetailView: View {
                 .listRowBackground(Color.clear)
             }
 
+            Section {
+                if recallDetails.isEmpty {
+                    SectionEmptyState(
+                        icon: "clock.badge.questionmark",
+                        title: "Not enough history yet",
+                        subtitle: "A few trips here will turn this into a useful private memory before your next outing."
+                    )
+                } else {
+                    ForEach(recallDetails) { item in
+                        VStack(alignment: .leading, spacing: Spacing.xxs) {
+                            Text(item.title)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Text(item.value)
+                                .font(.body.weight(.medium))
+                            if let evidence = item.evidence {
+                                Text(evidence)
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .padding(.vertical, Spacing.xxs)
+                    }
+                }
+            } header: {
+                Text("Recall Snapshot")
+            } footer: {
+                Text("Every recall line comes from your own saved trips and catches.")
+            }
+
             // Insight Cards
             if !privateRecallCards.isEmpty {
                 Section("Private Recall") {
@@ -163,15 +197,37 @@ private struct SpotDetailView: View {
 
             // Recent Catches
             Section {
-                if catchesHere.isEmpty {
+                if summary.recentCatches.isEmpty {
                     SectionEmptyState(
                         icon: "fish",
                         title: "No catches here yet",
                         subtitle: "Your catch history at this spot will appear here."
                     )
                 } else {
-                    ForEach(catchesHere.prefix(5), id: \.id) { catchRecord in
-                        CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
+                    ForEach(summary.recentCatches) { catchSummary in
+                        VStack(alignment: .leading, spacing: Spacing.xxs) {
+                            HStack {
+                                Text(catchSummary.species)
+                                    .font(.subheadline.weight(.semibold))
+                                Spacer()
+                                Text(AppFormatters.tripDate.string(from: catchSummary.caughtAt))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if let lureOrBait = catchSummary.lureOrBait {
+                                Text(lureOrBait)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if let metricSummary = catchSummary.metricSummary {
+                                Text(metricSummary)
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .padding(.vertical, Spacing.xxs)
                     }
                 }
             } header: {

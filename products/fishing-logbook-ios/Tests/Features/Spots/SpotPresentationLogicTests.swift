@@ -53,6 +53,7 @@ final class SpotPresentationLogicTests: XCTestCase {
     func testStatSummaryFormatsCountsAsStrings() {
         let summary = SpotRecallSummary(
             recentTrips: [],
+            tripCount: 7,
             catchCount: 7,
             successfulTripCount: 3,
             recencyInsight: nil,
@@ -69,7 +70,7 @@ final class SpotPresentationLogicTests: XCTestCase {
 
         let stats = SpotPresentationLogic.statSummary(for: summary)
 
-        XCTAssertEqual(stats.tripCountText, "0")
+        XCTAssertEqual(stats.tripCountText, "7")
         XCTAssertEqual(stats.catchCountText, "7")
         XCTAssertEqual(stats.productiveTripCountText, "3")
     }
@@ -102,7 +103,7 @@ final class SpotPresentationLogicTests: XCTestCase {
         XCTAssertEqual(summaries.first?.conditionSummary, "Dock edge • Live weather deferred for this MVP")
     }
 
-    func testPrivateRecallCardsHideLegacyBestTimeWindowCard() {
+    func testPrivateRecallCardsKeepDeterministicCardsVisibleForSpotDetail() {
         let summary = SpotRecallSummary(
             recentTrips: [],
             catchCount: 5,
@@ -126,10 +127,10 @@ final class SpotPresentationLogicTests: XCTestCase {
         let cards = SpotPresentationLogic.privateRecallCards(for: summary)
 
         XCTAssertNotNil(cards.first(where: { $0.kind == .conditions }))
-        XCTAssertNil(cards.first(where: { $0.kind == .bestTimeWindow }))
+        XCTAssertNotNil(cards.first(where: { $0.kind == .bestTimeWindow }))
     }
 
-    func testPrivateRecallCardsShowAtMostOneTimeWindowOrConditionsStory() {
+    func testRecallDetailsExposeEvidenceAwareSnapshotRows() {
         let summary = SpotRecallSummary(
             recentTrips: [],
             catchCount: 5,
@@ -144,16 +145,25 @@ final class SpotPresentationLogicTests: XCTestCase {
             ),
             lureInsight: nil,
             bestTimeWindow: "6-9 AM",
+            bestTimeWindowSupportCount: 4,
             mostEffectiveLure: "Spinner",
+            mostEffectiveLureSupportCount: 3,
             seasonalityInsight: nil,
             similarConditionsCount: 0,
-            similarConditionsLabel: nil
+            similarConditionsLabel: nil,
+            simpleConditionSummary: "Morning light • Dry",
+            simpleConditionSupportCount: 3
         )
 
-        let cards = SpotPresentationLogic.privateRecallCards(for: summary)
-        let timeWindowStyleCards = cards.filter { $0.kind == .conditions || $0.kind == .bestTimeWindow }
+        let details = SpotPresentationLogic.recallDetails(for: summary)
 
-        XCTAssertEqual(timeWindowStyleCards.count, 1)
-        XCTAssertEqual(timeWindowStyleCards.first?.kind, .conditions)
+        XCTAssertEqual(details.map(\.title), [
+            "Most effective lure",
+            "Best time window",
+            "Simple condition summary",
+        ])
+        XCTAssertEqual(details.first?.evidence, "Based on 3 catches")
+        XCTAssertEqual(details[1].evidence, "Based on 4 catches")
+        XCTAssertEqual(details[2].evidence, "Based on 3 productive trips")
     }
 }

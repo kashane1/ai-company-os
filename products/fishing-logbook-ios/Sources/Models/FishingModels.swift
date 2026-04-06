@@ -346,18 +346,24 @@ final class PersonalBest {
     var species: String
     var longestLengthCm: Double?
     var heaviestWeightKg: Double?
+    var longestCatchID: UUID?
+    var heaviestCatchID: UUID?
     var updatedAt: Date
 
     init(
         species: String,
         longestLengthCm: Double? = nil,
         heaviestWeightKg: Double? = nil,
+        longestCatchID: UUID? = nil,
+        heaviestCatchID: UUID? = nil,
         updatedAt: Date = .now
     ) {
         self.id = UUID()
         self.species = species
         self.longestLengthCm = longestLengthCm
         self.heaviestWeightKg = heaviestWeightKg
+        self.longestCatchID = longestCatchID
+        self.heaviestCatchID = heaviestCatchID
         self.updatedAt = updatedAt
     }
 }

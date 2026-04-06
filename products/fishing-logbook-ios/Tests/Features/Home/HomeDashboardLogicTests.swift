@@ -177,6 +177,67 @@ final class HomeDashboardLogicTests: XCTestCase {
         XCTAssertEqual(fallback, "now")
     }
 
+    func testLastTripSummaryIncludesDurationAndTopSpecies() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let trip = Trip(waterbody: waterbody, startAt: Date(timeIntervalSince1970: 100))
+        trip.endAt = Date(timeIntervalSince1970: 220)
+        let catches = [
+            CatchRecord(species: "Bass", trip: trip),
+            CatchRecord(species: "Bass", trip: trip),
+            CatchRecord(species: "Trout", trip: trip),
+        ]
+
+        let summary = HomeDashboardLogic.lastTripSummary(
+            trip: trip,
+            catches: catches,
+            durationFormatter: {
+                let formatter = DateComponentsFormatter()
+                formatter.allowedUnits = [.minute]
+                formatter.unitsStyle = .abbreviated
+                return formatter
+            }()
+        )
+
+        XCTAssertEqual(summary.catchText, "3 catches")
+        XCTAssertEqual(summary.topSpeciesText, "Bass")
+        XCTAssertEqual(summary.durationText, "2m")
+    }
+
+    func testSuggestedMemoryCardUsesBestTimeWindowWhenAvailable() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trip = Trip(waterbody: waterbody, spot: spot)
+        trip.endAt = Date(timeIntervalSince1970: 100)
+        let summary = SpotRecallSummary(
+            recentTrips: [trip],
+            tripCount: 4,
+            catchCount: 6,
+            successfulTripCount: 3,
+            recencyInsight: nil,
+            productivityInsight: nil,
+            speciesInsight: nil,
+            conditionsInsight: nil,
+            lureInsight: nil,
+            bestTimeWindow: "6-9 AM",
+            bestTimeWindowSupportCount: 4,
+            mostEffectiveLure: "Spinner",
+            mostEffectiveLureSupportCount: 3,
+            seasonalityInsight: nil,
+            similarConditionsCount: 0,
+            similarConditionsLabel: nil
+        )
+
+        let card = HomeDashboardLogic.suggestedMemoryCard(
+            latestCompletedTrip: trip,
+            summary: summary,
+            totalCompletedTrips: 4
+        )
+
+        XCTAssertEqual(card?.title, "Before your next stop at Dock")
+        XCTAssertEqual(card?.body, "6-9 AM has been your strongest window there so far.")
+        XCTAssertEqual(card?.footer, "Based on 4 logged catches")
+    }
+
     func testSharedRecallCardsStillIncludeBestTimeWindowForNonSpotDetailConsumers() {
         let summary = SpotRecallSummary(
             recentTrips: [],
@@ -216,7 +277,7 @@ final class HomeDashboardLogicTests: XCTestCase {
 
         XCTAssertEqual(
             summary.cards.first(where: { $0.kind == .similarConditions })?.body,
-            "4 completed trips with catches here lined up with Morning light • Dry."
+            "4 productive trips here matched Morning light • Dry."
         )
     }
 }

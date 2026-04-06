@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from apps.api import platform
+from apps.api.control_plane import ControlPlaneService
 from packages.db.approval_store import ApprovalStore
 from packages.db.product_store import ProductStore
 from packages.db.release_store import ReleaseStore
@@ -79,3 +80,63 @@ def test_scaffold_release_state_and_create_release_approval_persist_records(
     assert release_record.status is ReleaseStatus.DRAFT
     assert stored_approval.status is ApprovalStatus.PENDING
     assert stored_approval.action == "submit_appstore"
+
+
+def test_seed_appstore_release_prep_scaffolds_release_and_queues_task(
+    isolated_repo_root: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(platform, "ROOT", isolated_repo_root)
+
+    summary = platform.seed_appstore_release_prep(
+        release_id="release-fishing-logbook-v1.3.0",
+        build_number="7",
+    )
+    release_store = ReleaseStore()
+    task_store = TaskStore()
+    service = ControlPlaneService()
+
+    release_record = release_store.load_release_record("release-fishing-logbook-v1.3.0")
+    task = task_store.load(summary["task_id"])
+    goal = service.list_goals()[0]
+
+    assert summary == {
+        "action": "prepare_testflight",
+        "goal_id": goal.id,
+        "next_command": "./scripts/runtime status",
+        "release_id": "release-fishing-logbook-v1.3.0",
+        "release_state_status": "scaffolded",
+        "task_id": task.id,
+        "task_status": "pending",
+    }
+    assert release_record.id == "release-fishing-logbook-v1.3.0"
+    assert task.lane is WorkerLane.APPSTORE
+    assert task.task_type == "appstore_release"
+    assert task.constraints == [
+        "release_id=release-fishing-logbook-v1.3.0",
+        "release_action=prepare_testflight",
+    ]
+    assert goal.title == "Prepare TestFlight state for release-fishing-logbook-v1.3.0"
+
+
+def test_seed_appstore_release_prep_reuses_existing_release_record(
+    isolated_repo_root: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(platform, "ROOT", isolated_repo_root)
+    platform.scaffold_release_state(version="1.4.0", build_number="2")
+
+    summary = platform.seed_appstore_release_prep(
+        release_id="release-fishing-logbook-v1.4.0",
+        build_number="99",
+    )
+    release_store = ReleaseStore()
+    build_candidate = release_store.load_build_candidate("build-fishing-logbook-1.4.0-b2")
+    task = TaskStore().load(summary["task_id"])
+
+    assert summary["release_state_status"] == "existing"
+    assert build_candidate.build_number == "2"
+    assert task.constraints == [
+        "release_id=release-fishing-logbook-v1.4.0",
+        "release_action=prepare_testflight",
+    ]

@@ -49,6 +49,18 @@ class EventStore:
             )
         ]
 
+    def latest(self) -> EventRecord | None:
+        query = f"""
+            SELECT *
+            FROM {EVENTS_TABLE}
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1
+        """
+        payload = self.db.fetch_one(query, {})
+        if payload is None:
+            return None
+        return self._from_row(payload)
+
     def _from_row(self, payload: dict[str, object]) -> EventRecord:
         payload = dict(payload)
         payload["payload"] = self.db.load_json(str(payload.pop("payload_json")))
