@@ -1,5 +1,13 @@
 import Foundation
 
+struct TripHistorySection: Identifiable {
+    let id: String
+    let title: String
+    let subtitle: String?
+    let spot: Spot?
+    let trips: [Trip]
+}
+
 enum TripDateFilter: String, CaseIterable, Identifiable {
     case all
     case last30Days
@@ -48,6 +56,51 @@ enum TripSeasonFilter: String, CaseIterable, Identifiable {
 }
 
 enum TripHistoryLogic {
+    static func sections(
+        trips: [Trip],
+        catches: [CatchRecord]
+    ) -> [TripHistorySection] {
+        let catchesByTripID = Dictionary(grouping: catches) { $0.trip?.id }
+        let groupedTrips = Dictionary(grouping: trips) { trip in
+            trip.spot?.id.uuidString ?? "general-area"
+        }
+
+        return groupedTrips.compactMap { key, groupedTrips in
+            let sortedTrips = groupedTrips.sorted { $0.startAt > $1.startAt }
+            guard let latestTrip = sortedTrips.first else { return nil }
+
+            let totalCatchCount = sortedTrips.reduce(into: 0) { total, trip in
+                total += catchesByTripID[Optional(trip.id), default: []].count
+            }
+
+            if let spot = latestTrip.spot {
+                return TripHistorySection(
+                    id: key,
+                    title: spot.title,
+                    subtitle: sectionSubtitle(
+                        tripCount: sortedTrips.count,
+                        catchCount: totalCatchCount
+                    ),
+                    spot: spot,
+                    trips: sortedTrips
+                )
+            }
+
+            return TripHistorySection(
+                id: key,
+                title: "General Area",
+                subtitle: "Trips without a saved spot still stay private and easy to revisit.",
+                spot: nil,
+                trips: sortedTrips
+            )
+        }
+        .sorted { lhs, rhs in
+            let lhsDate = lhs.trips.first?.startAt ?? .distantPast
+            let rhsDate = rhs.trips.first?.startAt ?? .distantPast
+            return lhsDate > rhsDate
+        }
+    }
+
     static func availableWaterbodies(waterbodies: [Waterbody], trips: [Trip]) -> [Waterbody] {
         let tripWaterbodyIDs = Set(trips.compactMap(\.waterbody?.id))
         return waterbodies.filter { tripWaterbodyIDs.contains($0.id) }
@@ -227,5 +280,15 @@ enum TripHistoryLogic {
         return value
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
+    }
+
+    private static func sectionSubtitle(tripCount: Int, catchCount: Int) -> String {
+        let tripLabel = "\(tripCount) \(tripCount == 1 ? "trip" : "trips")"
+        guard catchCount > 0 else {
+            return "\(tripLabel) saved privately"
+        }
+
+        let catchLabel = "\(catchCount) \(catchCount == 1 ? "catch" : "catches")"
+        return "\(tripLabel) · \(catchLabel)"
     }
 }

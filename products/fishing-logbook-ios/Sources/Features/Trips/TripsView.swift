@@ -63,6 +63,18 @@ struct TripsView: View {
         }, uniquingKeysWith: +)
     }
 
+    private var catchesByTripID: [UUID: [CatchRecord]] {
+        Dictionary(grouping: catches) { $0.trip?.id }
+            .reduce(into: [UUID: [CatchRecord]]()) { result, element in
+                guard let tripID = element.key else { return }
+                result[tripID] = element.value.sorted { $0.caughtAt > $1.caughtAt }
+            }
+    }
+
+    private var historySections: [TripHistorySection] {
+        TripHistoryLogic.sections(trips: filteredTrips, catches: catches)
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
             Group {
@@ -130,12 +142,20 @@ struct TripsView: View {
                                 )
                             }
                         } else {
-                            ForEach(filteredTrips, id: \.id) { trip in
-                                NavigationLink(value: trip.id) {
-                                    TripRow(
-                                        trip: trip,
-                                        catchCount: catchCountsByTripID[trip.id, default: 0]
-                                    )
+                            ForEach(historySections) { section in
+                                Section {
+                                    ForEach(section.trips, id: \.id) { trip in
+                                        NavigationLink(value: trip.id) {
+                                            TripRow(
+                                                trip: trip,
+                                                catchCount: catchCountsByTripID[trip.id, default: 0],
+                                                catches: catchesByTripID[trip.id, default: []],
+                                                showSpotTitle: section.spot == nil
+                                            )
+                                        }
+                                    }
+                                } header: {
+                                    TripHistorySectionHeader(section: section)
                                 }
                             }
                         }
@@ -193,8 +213,15 @@ struct TripsView: View {
 private struct TripRow: View {
     let trip: Trip
     let catchCount: Int
+    let catches: [CatchRecord]
+    let showSpotTitle: Bool
+
     private var rowSummary: TripRowSummary {
         TripPresentationLogic.tripRowSummary(trip: trip, catchCount: catchCount)
+    }
+
+    private var memoryRecap: TripMemoryRecap {
+        TripPresentationLogic.tripMemoryRecap(trip: trip, catches: catches)
     }
 
     var body: some View {
@@ -228,13 +255,58 @@ private struct TripRow: View {
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            if let spot = rowSummary.spotTitle {
+            Text(memoryRecap.primaryLine)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(rowSummary.showsSkunkedStyle ? .secondary : .primary)
+
+            if let secondaryLine = memoryRecap.secondaryLine {
+                Text(secondaryLine)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+
+            if showSpotTitle, let spot = rowSummary.spotTitle {
                 Label(spot, systemImage: "mappin")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
         }
         .padding(.vertical, Spacing.xs)
+    }
+}
+
+private struct TripHistorySectionHeader: View {
+    let section: TripHistorySection
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xxs) {
+            if let spot = section.spot {
+                NavigationLink {
+                    SpotDetailView(spot: spot)
+                } label: {
+                    HStack(spacing: Spacing.xs) {
+                        Label(section.title, systemImage: "mappin.and.ellipse")
+                            .font(.footnote.weight(.semibold))
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .buttonStyle(.plain)
+            } else {
+                Label(section.title, systemImage: "mappin.slash")
+                    .font(.footnote.weight(.semibold))
+            }
+
+            if let subtitle = section.subtitle {
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .textCase(nil)
+        .padding(.top, Spacing.xxs)
     }
 }
 

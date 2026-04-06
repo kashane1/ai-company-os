@@ -2,6 +2,16 @@ import XCTest
 @testable import Fishing_Logbook
 
 final class HomeDashboardLogicTests: XCTestCase {
+    private func utcCalendar() -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
+    }
+
+    private func utcDate(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0) -> Date {
+        utcCalendar().date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))!
+    }
+
     func testActiveTripSelectsFirstActiveTrip() {
         let waterbody = Waterbody(name: "Lake", type: .lake)
         let completedTrip = Trip(waterbody: waterbody, startAt: Date(timeIntervalSince1970: 100))
@@ -22,6 +32,22 @@ final class HomeDashboardLogicTests: XCTestCase {
         let selected = HomeDashboardLogic.latestCompletedTrip(from: [activeTrip, latestCompletedTrip])
 
         XCTAssertEqual(selected?.id, latestCompletedTrip.id)
+    }
+
+    func testLatestCompletedSpotTripRequiresSpot() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let completedWithoutSpot = Trip(waterbody: waterbody, startAt: Date(timeIntervalSince1970: 300))
+        completedWithoutSpot.endAt = Date(timeIntervalSince1970: 400)
+        let completedWithSpot = Trip(waterbody: waterbody, spot: spot, startAt: Date(timeIntervalSince1970: 200))
+        completedWithSpot.endAt = Date(timeIntervalSince1970: 250)
+        let activeWithSpot = Trip(waterbody: waterbody, spot: spot, startAt: Date(timeIntervalSince1970: 500))
+
+        let selected = HomeDashboardLogic.latestCompletedSpotTrip(
+            from: [activeWithSpot, completedWithoutSpot, completedWithSpot]
+        )
+
+        XCTAssertEqual(selected?.id, completedWithSpot.id)
     }
 
     func testCompletedTripCountExcludesActiveTrips() {
@@ -236,6 +262,27 @@ final class HomeDashboardLogicTests: XCTestCase {
         XCTAssertEqual(card?.title, "Before your next stop at Dock")
         XCTAssertEqual(card?.body, "6-9 AM has been your strongest window there so far.")
         XCTAssertEqual(card?.footer, "Based on 4 logged catches")
+    }
+
+    func testLastTimeHereCardBuildsDeterministicReplayCopy() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trip = Trip(waterbody: waterbody, spot: spot, startAt: utcDate(year: 2025, month: 1, day: 3, hour: 6))
+        trip.endAt = utcDate(year: 2025, month: 1, day: 3, hour: 8)
+        let catches = [
+            CatchRecord(species: "Bass", trip: trip, caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6, minute: 10), lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trip, caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6, minute: 20), lureOrBait: "Spinner"),
+        ]
+
+        let card = HomeDashboardLogic.lastTimeHereCard(
+            trip: trip,
+            catches: catches,
+            calendar: utcCalendar()
+        )
+
+        XCTAssertEqual(card?.title, "Last time at Dock")
+        XCTAssertEqual(card?.body, "2 catches · Top species Bass")
+        XCTAssertEqual(card?.footer, "Top lure Spinner · 6-9 AM")
     }
 
     func testSharedRecallCardsStillIncludeBestTimeWindowForNonSpotDetailConsumers() {

@@ -12,6 +12,12 @@ struct HomeLastTripSummary {
     let topSpeciesText: String?
 }
 
+struct HomeReplayCard {
+    let title: String
+    let body: String
+    let footer: String
+}
+
 enum HomeDashboardLogic {
     static func activeTrip(from trips: [Trip]) -> Trip? {
         trips.first(where: \.isActive)
@@ -19,6 +25,10 @@ enum HomeDashboardLogic {
 
     static func latestCompletedTrip(from trips: [Trip]) -> Trip? {
         trips.first(where: { !$0.isActive })
+    }
+
+    static func latestCompletedSpotTrip(from trips: [Trip]) -> Trip? {
+        trips.first(where: { !$0.isActive && $0.spot != nil })
     }
 
     static func completedTripCount(from trips: [Trip]) -> Int {
@@ -133,6 +143,25 @@ enum HomeDashboardLogic {
             title: "Private memory from \(spot.title)",
             body: "You have \(summary.tripCount) trips and \(summary.catchCount) catches saved there already.",
             footer: "Your spots stay yours"
+        )
+    }
+
+    static func lastTimeHereCard(
+        trip: Trip?,
+        catches: [CatchRecord],
+        calendar: Calendar = .current
+    ) -> HomeReplayCard? {
+        guard let trip, let spot = trip.spot else { return nil }
+
+        let recap = TripPresentationLogic.tripMemoryRecap(
+            trip: trip,
+            catches: catches,
+            calendar: calendar
+        )
+        return HomeReplayCard(
+            title: "Last time at \(spot.title)",
+            body: recap.primaryLine,
+            footer: recap.secondaryLine ?? "Saved privately for your next pass here"
         )
     }
 }

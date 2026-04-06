@@ -323,4 +323,29 @@ final class TripHistoryLogicTests: XCTestCase {
             )
         )
     }
+
+    func testSectionsGroupTripsBySpotAndOrderByMostRecentTrip() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let northPoint = Spot(title: "North Point", waterbody: waterbody)
+        let dock = Spot(title: "Dock", waterbody: waterbody)
+        let latestDockTrip = Trip(waterbody: waterbody, spot: dock, startAt: utcDate(year: 2025, month: 7, day: 12))
+        let earlierDockTrip = Trip(waterbody: waterbody, spot: dock, startAt: utcDate(year: 2025, month: 7, day: 10))
+        let northPointTrip = Trip(waterbody: waterbody, spot: northPoint, startAt: utcDate(year: 2025, month: 7, day: 11))
+        let generalTrip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 7, day: 9))
+        let catches = [
+            CatchRecord(species: "Bass", trip: latestDockTrip),
+            CatchRecord(species: "Bass", trip: latestDockTrip),
+            CatchRecord(species: "Trout", trip: northPointTrip),
+        ]
+
+        let sections = TripHistoryLogic.sections(
+            trips: [generalTrip, latestDockTrip, earlierDockTrip, northPointTrip],
+            catches: catches
+        )
+
+        XCTAssertEqual(sections.map(\.title), ["Dock", "North Point", "General Area"])
+        XCTAssertEqual(sections.first?.subtitle, "2 trips · 2 catches")
+        XCTAssertEqual(sections.first?.trips.map(\.id), [latestDockTrip.id, earlierDockTrip.id])
+        XCTAssertEqual(sections.last?.subtitle, "Trips without a saved spot still stay private and easy to revisit.")
+    }
 }

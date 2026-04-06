@@ -4,6 +4,16 @@ import XCTest
 @testable import Fishing_Logbook
 
 final class TripPresentationLogicTests: XCTestCase {
+    private func utcCalendar() -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
+    }
+
+    private func utcDate(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0) -> Date {
+        utcCalendar().date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))!
+    }
+
     private func formatter() -> DateComponentsFormatter {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute]
@@ -58,6 +68,41 @@ final class TripPresentationLogicTests: XCTestCase {
         XCTAssertEqual(basic.map(\.id), ["catches"])
         XCTAssertEqual(basic.first?.label, "Catch")
         XCTAssertEqual(basic.first?.value, "1")
+    }
+
+    func testTripMemoryRecapHighlightsCatchOutcomeSpeciesLureAndWindow() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let trip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 1, day: 3, hour: 6))
+        trip.endAt = utcDate(year: 2025, month: 1, day: 3, hour: 8)
+        let catches = [
+            CatchRecord(species: "Bass", trip: trip, caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6, minute: 10), lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: trip, caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6, minute: 20), lureOrBait: "Spinner"),
+            CatchRecord(species: "Trout", trip: trip, caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6, minute: 30), lureOrBait: "Jig"),
+        ]
+
+        let recap = TripPresentationLogic.tripMemoryRecap(
+            trip: trip,
+            catches: catches,
+            calendar: utcCalendar()
+        )
+
+        XCTAssertEqual(recap.primaryLine, "3 catches · Top species Bass")
+        XCTAssertEqual(recap.secondaryLine, "Top lure Spinner · 6-9 AM")
+    }
+
+    func testTripMemoryRecapFallsBackToSkunkedTripWindow() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let trip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 1, day: 3, hour: 6))
+        trip.endAt = utcDate(year: 2025, month: 1, day: 3, hour: 7)
+
+        let recap = TripPresentationLogic.tripMemoryRecap(
+            trip: trip,
+            catches: [],
+            calendar: utcCalendar()
+        )
+
+        XCTAssertEqual(recap.primaryLine, "Skunked")
+        XCTAssertEqual(recap.secondaryLine, "6-9 AM")
     }
 
     func testCatchShareCardContentUsesOnlyApprovedFields() {

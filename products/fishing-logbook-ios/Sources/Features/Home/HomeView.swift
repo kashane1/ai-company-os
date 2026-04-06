@@ -21,6 +21,10 @@ struct HomeView: View {
         HomeDashboardLogic.latestCompletedTrip(from: trips)
     }
 
+    private var latestCompletedSpotTrip: Trip? {
+        HomeDashboardLogic.latestCompletedSpotTrip(from: trips)
+    }
+
     private var latestSpotSummary: SpotRecallSummary? {
         guard let latestSpot = latestCompletedTrip?.spot else { return nil }
         return SpotRecallSummary.build(for: latestSpot, trips: trips, catches: catches)
@@ -39,11 +43,23 @@ struct HomeView: View {
         )
     }
 
+    private var latestCompletedSpotTripCatches: [CatchRecord] {
+        guard let latestCompletedSpotTrip else { return [] }
+        return catches.filter { $0.trip?.id == latestCompletedSpotTrip.id }
+    }
+
     private var suggestedMemoryCard: HomeMemoryCard? {
         HomeDashboardLogic.suggestedMemoryCard(
             latestCompletedTrip: latestCompletedTrip,
             summary: latestSpotSummary,
             totalCompletedTrips: totalTrips
+        )
+    }
+
+    private var lastTimeHereCard: HomeReplayCard? {
+        HomeDashboardLogic.lastTimeHereCard(
+            trip: latestCompletedSpotTrip,
+            catches: latestCompletedSpotTripCatches
         )
     }
 
@@ -110,6 +126,21 @@ struct HomeView: View {
                                 .padding(.horizontal)
 
                             SuggestedMemoryCard(card: suggestedMemoryCard)
+                            .padding(.horizontal)
+                        }
+                    }
+
+                    if let latestCompletedSpotTrip, let spot = latestCompletedSpotTrip.spot, let lastTimeHereCard {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            HomeSectionHeader(title: "Last Time Here")
+                                .padding(.horizontal)
+
+                            NavigationLink {
+                                SpotDetailView(spot: spot)
+                            } label: {
+                                LastTimeHereCard(card: lastTimeHereCard)
+                            }
+                            .buttonStyle(.plain)
                             .padding(.horizontal)
                         }
                     }
@@ -396,6 +427,34 @@ private struct SuggestedMemoryCard: View {
             Text(card.body)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            Text(card.footer)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .appCard(prominent: true)
+    }
+}
+
+private struct LastTimeHereCard: View {
+    let card: HomeReplayCard
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack {
+                AppBadge(text: "Saved Privately")
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+
+            Text(card.title)
+                .font(.headline)
+
+            Text(card.body)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
             Text(card.footer)
                 .font(.caption)
                 .foregroundStyle(.tertiary)
