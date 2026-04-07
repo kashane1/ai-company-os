@@ -1,0 +1,51 @@
+name: AfterPlans
+options:
+  bundleIdPrefix: io.aicompanyos.products
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 0.1.0
+targets:
+  AfterPlans:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: After Plans
+        NSLocationWhenInUseUsageDescription: After Plans uses your location while you use the app to anchor what just ended and surface nearby continuation options.
+        UIApplicationSupportsIndirectInputEvents: YES
+        UILaunchScreen:
+          {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.afterplans
+        PRODUCT_NAME: AfterPlans
+        TARGETED_DEVICE_FAMILY: 1
+        SUPPORTS_MACCATALYST: NO
+        DEVELOPMENT_ASSET_PATHS: "\"\""
+    scheme:
+      gatherCoverageData: true
+      coverageTargets:
+        - AfterPlans
+      testTargets:
+        - AfterPlansTests
+  AfterPlansTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: AfterPlans
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.afterplansTests
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AfterPlans.app/AfterPlans"

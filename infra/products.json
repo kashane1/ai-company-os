@@ -7,5 +7,14 @@
     "repo_id": "fishing-logbook-ios",
     "source_path": "products/fishing-logbook-ios",
     "docs_root": "docs/products/fishing-logbook"
+  },
+  {
+    "id": "after-plans",
+    "name": "After Plans",
+    "slug": "after-plans",
+    "platform": "ios",
+    "repo_id": "after-plans-ios",
+    "source_path": "products/after-plans-ios",
+    "docs_root": "docs/products/after-plans"
   }
 ]
