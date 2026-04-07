@@ -110,7 +110,11 @@ struct SpotDetailView: View {
     }
 
     private var recentTripSummaries: [SpotRecentTripSummary] {
-        SpotPresentationLogic.recentTripSummaries(trips: summary.recentTrips)
+        SpotPresentationLogic.recentTripSummaries(trips: summary.recentTrips, catches: catchesHere)
+    }
+
+    private var recentCatchSummaries: [SpotRecentCatchSummary] {
+        SpotPresentationLogic.recentCatchSummaries(catches: catchesHere)
     }
 
     private var privateRecallCards: [DeterministicInsightCard] {
@@ -195,39 +199,49 @@ struct SpotDetailView: View {
                 }
             }
 
+            // Trip History
+            if !summary.recentTrips.isEmpty {
+                Section {
+                    ForEach(Array(zip(summary.recentTrips, recentTripSummaries)), id: \.0.id) { trip, tripSummary in
+                        NavigationLink {
+                            TripDetailView(trip: trip)
+                        } label: {
+                            SpotRecentTripRow(summary: tripSummary)
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text("Recent Trips")
+                        Spacer()
+                        Text("\(summary.tripCount)")
+                            .font(.footnote.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                } footer: {
+                    Text("Open a trip to move from spot recall into that trip's private memory.")
+                }
+            }
+
             // Recent Catches
             Section {
-                if summary.recentCatches.isEmpty {
+                if recentCatchSummaries.isEmpty {
                     SectionEmptyState(
                         icon: "fish",
                         title: "No catches here yet",
                         subtitle: "Your catch history at this spot will appear here."
                     )
                 } else {
-                    ForEach(summary.recentCatches) { catchSummary in
-                        VStack(alignment: .leading, spacing: Spacing.xxs) {
-                            HStack {
-                                Text(catchSummary.species)
-                                    .font(.subheadline.weight(.semibold))
-                                Spacer()
-                                Text(AppFormatters.tripDate.string(from: catchSummary.caughtAt))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    ForEach(recentCatchSummaries) { catchSummary in
+                        if let tripID = catchSummary.tripID,
+                           let trip = trips.first(where: { $0.id == tripID }) {
+                            NavigationLink {
+                                TripDetailView(trip: trip)
+                            } label: {
+                                SpotRecentCatchRow(summary: catchSummary)
                             }
-
-                            if let lureOrBait = catchSummary.lureOrBait {
-                                Text(lureOrBait)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            if let metricSummary = catchSummary.metricSummary {
-                                Text(metricSummary)
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
-                            }
+                        } else {
+                            SpotRecentCatchRow(summary: catchSummary)
                         }
-                        .padding(.vertical, Spacing.xxs)
                     }
                 }
             } header: {
@@ -238,40 +252,87 @@ struct SpotDetailView: View {
                         .font(.footnote.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
-            }
-
-            // Trip History
-            if !summary.recentTrips.isEmpty {
-                Section("Recent Trips") {
-                    ForEach(Array(zip(summary.recentTrips, recentTripSummaries)), id: \.0.id) { trip, tripSummary in
-                        NavigationLink {
-                            TripDetailView(trip: trip)
-                        } label: {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
-                                HStack {
-                                    Text(tripSummary.dateText)
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Text(tripSummary.outcomeText)
-                                        .font(.caption.weight(.medium))
-                                        .foregroundColor(
-                                            tripSummary.isSkunked
-                                                ? .secondary : .appAccent
-                                        )
-                                }
-                                if let conditionSummary = tripSummary.conditionSummary {
-                                    Text(conditionSummary)
-                                        .font(.caption)
-                                        .foregroundStyle(.tertiary)
-                                }
-                            }
-                        }
-                    }
+            } footer: {
+                if !recentCatchSummaries.isEmpty {
+                    Text("Recent catches stay linked to the trips you logged here.")
                 }
             }
         }
         .navigationTitle(spot.title)
         .navigationBarTitleDisplayMode(.large)
+    }
+}
+
+private struct SpotRecentTripRow: View {
+    let summary: SpotRecentTripSummary
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xxs) {
+            HStack {
+                Text(summary.dateText)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Text(summary.catchText)
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .foregroundColor(summary.isSkunked ? .secondary : .appAccent)
+            }
+
+            HStack(spacing: Spacing.sm) {
+                Text(summary.outcomeText)
+                if let topSpeciesText = summary.topSpeciesText {
+                    Text("Top \(topSpeciesText)")
+                }
+                if let topLureText = summary.topLureText {
+                    Text(topLureText)
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            if let conditionSummary = summary.conditionSummary {
+                Text(conditionSummary)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(.vertical, Spacing.xxs)
+    }
+}
+
+private struct SpotRecentCatchRow: View {
+    let summary: SpotRecentCatchSummary
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xxs) {
+            HStack {
+                Text(summary.species)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Text(summary.dateText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let tripTitle = summary.tripTitle {
+                Text(tripTitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let lureOrBait = summary.lureOrBait {
+                Text(lureOrBait)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let metricSummary = summary.metricSummary {
+                Text(metricSummary)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(.vertical, Spacing.xxs)
     }
 }
 

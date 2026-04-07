@@ -41,13 +41,14 @@ final class SpotPresentationLogicTests: XCTestCase {
         let dockTrip = Trip(waterbody: waterbody, spot: dock)
         let reedsTrip = Trip(waterbody: waterbody, spot: reeds)
         let catches = [
-            CatchRecord(species: "Bass", trip: dockTrip),
-            CatchRecord(species: "Trout", trip: reedsTrip),
+            CatchRecord(species: "Bass", trip: dockTrip, caughtAt: Date(timeIntervalSince1970: 200)),
+            CatchRecord(species: "Trout", trip: reedsTrip, caughtAt: Date(timeIntervalSince1970: 300)),
+            CatchRecord(species: "Perch", trip: dockTrip, caughtAt: Date(timeIntervalSince1970: 400)),
         ]
 
         let filtered = SpotPresentationLogic.catchesHere(spotID: dock.id, catches: catches)
 
-        XCTAssertEqual(filtered.map(\.species), ["Bass"])
+        XCTAssertEqual(filtered.map(\.species), ["Perch", "Bass"])
     }
 
     func testStatSummaryFormatsCountsAsStrings() {
@@ -91,16 +92,55 @@ final class SpotPresentationLogicTests: XCTestCase {
             startAt: Date(timeIntervalSince1970: 1_711_986_400)
         )
         productiveTrip.outcomeRawValue = TripOutcome.caught.rawValue
+        let catches = [
+            CatchRecord(species: "Bass", trip: productiveTrip, lureOrBait: "Spinner"),
+            CatchRecord(species: "Bass", trip: productiveTrip, lureOrBait: "Spinner"),
+            CatchRecord(species: "Trout", trip: productiveTrip, lureOrBait: "Jig"),
+        ]
 
         let summaries = SpotPresentationLogic.recentTripSummaries(
             trips: [skunkedTrip, productiveTrip],
+            catches: catches,
             dateFormatter: fixedFormatter()
         )
 
         XCTAssertEqual(summaries.map(\.dateText), ["2024-03-31", "2024-04-01"])
         XCTAssertEqual(summaries.map(\.outcomeText), ["Skunked", "Caught"])
+        XCTAssertEqual(summaries.map(\.catchText), ["Skunked", "3 catches"])
         XCTAssertEqual(summaries.map(\.isSkunked), [true, false])
+        XCTAssertNil(summaries.first?.topSpeciesText)
+        XCTAssertEqual(summaries.last?.topSpeciesText, "Bass")
+        XCTAssertEqual(summaries.last?.topLureText, "Spinner")
         XCTAssertEqual(summaries.first?.conditionSummary, "Dock edge • Live weather deferred for this MVP")
+    }
+
+    func testRecentCatchSummariesStaySortedAndKeepTripContext() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let spot = Spot(title: "Dock", waterbody: waterbody)
+        let trip = Trip(waterbody: waterbody, spot: spot, startAt: Date(timeIntervalSince1970: 100))
+        let olderCatch = CatchRecord(
+            species: "Bass",
+            trip: trip,
+            caughtAt: Date(timeIntervalSince1970: 200),
+            lureOrBait: "Spinner"
+        )
+        let newerCatch = CatchRecord(
+            species: "Trout",
+            trip: trip,
+            caughtAt: Date(timeIntervalSince1970: 300),
+            weightKg: 1.8,
+            lengthCm: 48
+        )
+
+        let summaries = SpotPresentationLogic.recentCatchSummaries(
+            catches: [newerCatch, olderCatch],
+            dateFormatter: fixedFormatter()
+        )
+
+        XCTAssertEqual(summaries.map(\.species), ["Trout", "Bass"])
+        XCTAssertEqual(summaries.first?.tripTitle, trip.title)
+        XCTAssertEqual(summaries.first?.metricSummary, "48 cm · 1.8 kg")
+        XCTAssertEqual(summaries.last?.lureOrBait, "Spinner")
     }
 
     func testPrivateRecallCardsKeepDeterministicCardsVisibleForSpotDetail() {

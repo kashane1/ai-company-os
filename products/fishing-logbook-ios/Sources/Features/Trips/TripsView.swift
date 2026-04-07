@@ -332,6 +332,7 @@ private enum TripDetailSheet: Identifiable {
 struct TripDetailView: View {
     let trip: Trip
 
+    @Query(sort: \Trip.startAt, order: .reverse) private var allTrips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
     @State private var activeSheet: TripDetailSheet?
 
@@ -347,6 +348,18 @@ struct TripDetailView: View {
         ).map { ($0.value, $0.label, $0.icon) }
     }
 
+    private var recallSummary: TripDetailRecallSummary {
+        TripPresentationLogic.tripDetailRecallSummary(trip: trip, catches: catches)
+    }
+
+    private var recentSpotTrips: [TripSpotReplaySummary] {
+        TripPresentationLogic.recentSpotTripSummaries(
+            currentTrip: trip,
+            allTrips: allTrips,
+            catches: allCatches
+        )
+    }
+
     var body: some View {
         List {
             Section {
@@ -358,6 +371,56 @@ struct TripDetailView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .listRowBackground(Color.clear)
+            }
+
+            Section {
+                TripDetailRecallCard(summary: recallSummary)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            } header: {
+                Text("Trip Recall")
+            } footer: {
+                Text("This recap only uses the trip you saved here.")
+            }
+
+            if let spot = trip.spot {
+                Section {
+                    NavigationLink {
+                        SpotDetailView(spot: spot)
+                    } label: {
+                        LabeledContent {
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        } label: {
+                            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                                Text("Open recall for \(spot.title)")
+                                Text("Jump from this trip into your saved spot memory.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+
+                    if recentSpotTrips.isEmpty {
+                        Text("This is your only saved trip at \(spot.title) so far.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(recentSpotTrips) { relatedTrip in
+                            NavigationLink {
+                                TripDetailView(trip: relatedTrip.trip)
+                            } label: {
+                                SpotReplayRow(summary: relatedTrip)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Spot Memory")
+                } footer: {
+                    if !recentSpotTrips.isEmpty {
+                        Text("Recent trips at this same spot.")
+                    }
+                }
             }
 
             Section("Details") {
@@ -475,6 +538,64 @@ struct TripDetailView: View {
                 }
             }
         }
+    }
+}
+
+private struct TripDetailRecallCard: View {
+    let summary: TripDetailRecallSummary
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text(summary.headline)
+                .font(.headline)
+
+            if let supportingText = summary.supportingText {
+                Text(supportingText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            VStack(spacing: Spacing.sm) {
+                ForEach(summary.items) { item in
+                    VStack(alignment: .leading, spacing: Spacing.xxs) {
+                        Text(item.title)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Text(item.value)
+                            .font(.body.weight(.medium))
+                        if let evidence = item.evidence {
+                            Text(evidence)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+        .appCard(prominent: true)
+    }
+}
+
+private struct SpotReplayRow: View {
+    let summary: TripSpotReplaySummary
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xxs) {
+            HStack {
+                Text(summary.trip.title)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Text(summary.catchText)
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .foregroundColor(summary.isSkunked ? .secondary : .appAccent)
+            }
+
+            Text(summary.dateText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, Spacing.xxs)
     }
 }
 

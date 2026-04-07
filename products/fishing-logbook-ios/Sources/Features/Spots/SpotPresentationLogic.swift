@@ -23,8 +23,21 @@ struct SpotRecentTripSummary: Identifiable {
     let id: UUID
     let dateText: String
     let outcomeText: String
+    let catchText: String
     let isSkunked: Bool
+    let topSpeciesText: String?
+    let topLureText: String?
     let conditionSummary: String?
+}
+
+struct SpotRecentCatchSummary: Identifiable {
+    let id: UUID
+    let species: String
+    let dateText: String
+    let lureOrBait: String?
+    let metricSummary: String?
+    let tripID: UUID?
+    let tripTitle: String?
 }
 
 enum SpotPresentationLogic {
@@ -42,7 +55,9 @@ enum SpotPresentationLogic {
     }
 
     static func catchesHere(spotID: UUID, catches: [CatchRecord]) -> [CatchRecord] {
-        catches.filter { $0.trip?.spot?.id == spotID }
+        catches
+            .filter { $0.trip?.spot?.id == spotID }
+            .sorted { $0.caughtAt > $1.caughtAt }
     }
 
     static func statSummary(for summary: SpotRecallSummary) -> SpotStatSummary {
@@ -116,16 +131,80 @@ enum SpotPresentationLogic {
 
     static func recentTripSummaries(
         trips: [Trip],
+        catches: [CatchRecord],
         dateFormatter: DateFormatter = AppFormatters.tripDate
     ) -> [SpotRecentTripSummary] {
         trips.map { trip in
-            SpotRecentTripSummary(
+            let tripCatches = catches.filter { $0.trip?.id == trip.id }
+            return SpotRecentTripSummary(
                 id: trip.id,
                 dateText: dateFormatter.string(from: trip.startAt),
                 outcomeText: trip.outcomeRawValue.capitalized,
+                catchText: catchText(for: trip, catches: tripCatches),
                 isSkunked: trip.outcomeRawValue == TripOutcome.skunked.rawValue,
+                topSpeciesText: topSpeciesText(from: tripCatches),
+                topLureText: topLureText(from: tripCatches),
                 conditionSummary: trip.conditionSnapshot?.displaySummary
             )
         }
+    }
+
+    static func recentCatchSummaries(
+        catches: [CatchRecord],
+        dateFormatter: DateFormatter = AppFormatters.tripDate
+    ) -> [SpotRecentCatchSummary] {
+        Array(catches.sorted { $0.caughtAt > $1.caughtAt }.prefix(5)).map { catchRecord in
+            SpotRecentCatchSummary(
+                id: catchRecord.id,
+                species: catchRecord.speciesDisplayName,
+                dateText: dateFormatter.string(from: catchRecord.caughtAt),
+                lureOrBait: TripEditingLogic.normalizedOptionalText(catchRecord.lureOrBait),
+                metricSummary: metricSummary(for: catchRecord),
+                tripID: catchRecord.trip?.id,
+                tripTitle: catchRecord.trip?.title
+            )
+        }
+    }
+
+    private static func catchText(for trip: Trip, catches: [CatchRecord]) -> String {
+        let catchCount = catches.count
+        if catchCount == 0 && (
+            trip.outcomeRawValue == TripOutcome.skunked.rawValue ||
+            !trip.isActive
+        ) {
+            return "Skunked"
+        }
+        return "\(catchCount) \(catchCount == 1 ? "catch" : "catches")"
+    }
+
+    private static func topSpeciesText(from catches: [CatchRecord]) -> String? {
+        let counts = Dictionary(grouping: catches, by: \.speciesDisplayName).mapValues(\.count)
+        return counts.max { lhs, rhs in
+            if lhs.value != rhs.value {
+                return lhs.value < rhs.value
+            }
+            return lhs.key > rhs.key
+        }?.key
+    }
+
+    private static func topLureText(from catches: [CatchRecord]) -> String? {
+        let lures = catches.compactMap { catchRecord -> String? in
+            TripEditingLogic.normalizedOptionalText(catchRecord.lureOrBait)
+        }
+        let counts = Dictionary(grouping: lures, by: { $0 }).mapValues(\.count)
+        return counts.max { lhs, rhs in
+            if lhs.value != rhs.value {
+                return lhs.value < rhs.value
+            }
+            return lhs.key > rhs.key
+        }?.key
+    }
+
+    private static func metricSummary(for catchRecord: CatchRecord) -> String? {
+        let metrics = [
+            catchRecord.lengthCm.map { "\($0.formatted()) cm" },
+            catchRecord.weightKg.map { "\($0.formatted()) kg" },
+        ].compactMap { $0 }
+        return metrics.isEmpty ? nil : metrics.joined(separator: " · ")
     }
 }

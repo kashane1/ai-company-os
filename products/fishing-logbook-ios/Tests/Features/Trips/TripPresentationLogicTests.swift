@@ -105,6 +105,90 @@ final class TripPresentationLogicTests: XCTestCase {
         XCTAssertEqual(recap.secondaryLine, "6-9 AM")
     }
 
+    func testTripDetailRecallSummaryUsesTripDataForSpeciesLureBestCatchAndWindow() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let trip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 1, day: 3, hour: 6))
+        trip.endAt = utcDate(year: 2025, month: 1, day: 3, hour: 9)
+        let catches = [
+            CatchRecord(species: "Bass", trip: trip, caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6, minute: 15), lureOrBait: "Spinner", weightKg: 2.4, lengthCm: 51),
+            CatchRecord(species: "Bass", trip: trip, caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6, minute: 40), lureOrBait: "Spinner"),
+            CatchRecord(species: "Trout", trip: trip, caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 9, minute: 15), lureOrBait: "Jig", lengthCm: 40),
+        ]
+
+        let summary = TripPresentationLogic.tripDetailRecallSummary(
+            trip: trip,
+            catches: catches,
+            calendar: utcCalendar()
+        )
+
+        XCTAssertEqual(summary.headline, "3 catches logged")
+        XCTAssertEqual(summary.supportingText, "Bass showed up most often in this trip's catch log.")
+        XCTAssertEqual(summary.items.map(\.title), ["Catch outcome", "Top species", "Strongest lure signal", "Best catch", "Time window"])
+        XCTAssertEqual(summary.items.first?.value, "Productive")
+        XCTAssertEqual(summary.items.first?.evidence, "3 catches logged")
+        XCTAssertEqual(summary.items[1].value, "Bass")
+        XCTAssertEqual(summary.items[1].evidence, "2 catches")
+        XCTAssertEqual(summary.items[2].value, "Spinner")
+        XCTAssertEqual(summary.items[2].evidence, "2 catches")
+        XCTAssertEqual(summary.items[3].value, "Bass")
+        XCTAssertEqual(summary.items[3].evidence, "51 cm · 2.4 kg")
+        XCTAssertEqual(summary.items[4].value, "6-9 AM")
+        XCTAssertEqual(summary.items[4].evidence, "2 catches")
+    }
+
+    func testTripDetailRecallSummaryUsesSkunkFallbacksWithoutBestCatchOrLure() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let trip = Trip(waterbody: waterbody, startAt: utcDate(year: 2025, month: 1, day: 3, hour: 15))
+        trip.endAt = utcDate(year: 2025, month: 1, day: 3, hour: 17)
+
+        let summary = TripPresentationLogic.tripDetailRecallSummary(
+            trip: trip,
+            catches: [],
+            calendar: utcCalendar()
+        )
+
+        XCTAssertEqual(summary.headline, "Skunked")
+        XCTAssertEqual(summary.supportingText, "No catches were logged on this trip.")
+        XCTAssertEqual(summary.items.map(\.title), ["Catch outcome", "Time window"])
+        XCTAssertEqual(summary.items.first?.value, "Skunked")
+        XCTAssertEqual(summary.items.last?.value, "3-7 PM")
+        XCTAssertEqual(summary.items.last?.evidence, "From trip timing")
+    }
+
+    func testRecentSpotTripSummariesUseSameSpotExcludeCurrentTripAndSortNewestFirst() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let dock = Spot(title: "Dock", waterbody: waterbody)
+        let point = Spot(title: "Point", waterbody: waterbody)
+        let currentTrip = Trip(waterbody: waterbody, spot: dock, startAt: utcDate(year: 2025, month: 1, day: 10, hour: 6))
+        let newestRelated = Trip(waterbody: waterbody, spot: dock, startAt: utcDate(year: 2025, month: 1, day: 9, hour: 6))
+        let olderRelated = Trip(waterbody: waterbody, spot: dock, startAt: utcDate(year: 2025, month: 1, day: 7, hour: 6))
+        olderRelated.endAt = utcDate(year: 2025, month: 1, day: 7, hour: 8)
+        let otherSpot = Trip(waterbody: waterbody, spot: point, startAt: utcDate(year: 2025, month: 1, day: 8, hour: 6))
+        let catches = [
+            CatchRecord(species: "Bass", trip: newestRelated),
+            CatchRecord(species: "Bass", trip: newestRelated),
+        ]
+
+        let summaries = TripPresentationLogic.recentSpotTripSummaries(
+            currentTrip: currentTrip,
+            allTrips: [olderRelated, otherSpot, newestRelated, currentTrip],
+            catches: catches,
+            limit: 3,
+            dateFormatter: {
+                let formatter = DateFormatter()
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "yyyy-MM-dd"
+                return formatter
+            }()
+        )
+
+        XCTAssertEqual(summaries.map(\.id), [newestRelated.id, olderRelated.id])
+        XCTAssertEqual(summaries.first?.catchText, "2 catches")
+        XCTAssertEqual(summaries.last?.catchText, "Skunked")
+        XCTAssertTrue(summaries.last?.isSkunked ?? false)
+        XCTAssertEqual(summaries.first?.dateText, "2025-01-09")
+    }
+
     func testCatchShareCardContentUsesOnlyApprovedFields() {
         let waterbody = Waterbody(name: "Secret Lake", type: .lake, latitude: 45, longitude: -122)
         let spot = Spot(title: "Hidden Dock", waterbody: waterbody, latitude: 46, longitude: -123)
