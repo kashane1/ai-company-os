@@ -2,26 +2,26 @@
 
 ## Current State Summary
 
-After Plans now has a real managed iOS source tree under `products/after-plans-ios/` with an XcodeGen project, a compile-safe SwiftUI shell, in-memory continuation-loop scaffolding, and lane-matching unit tests. The product remains intentionally narrow: no backend, chat, payments, or App Store work has been added.
+After Plans now has the intended Phase 5 continuation-loop refinement in place and no further product widening is needed in this pass. The remaining blocker is still validation closure: After Plans can `xcodegen generate`, `build-for-testing`, and launch manually on the simulator, but simulator-backed XCTest still hangs locally. A final narrow environment reset was attempted in this context and did not clear the issue. The same `test-without-building` hang also reproduces against `products/fishing-logbook-ios`, which strongly suggests the issue is environmental rather than After Plans-specific.
 
 ## Last Completed Phase
 
-Phase 4: iOS workspace bootstrap and MVP shell scaffold.
+Phase 4 is complete. Phase 5 is in progress.
 
 ## What Remains Next
 
-Phase 5: iOS interaction refinement.
+Finish Phase 5.
 
 If work resumes, the next concrete step is:
 
-- keep the shell architecture intact and refine the interaction logic
-- extract more state and presentation behavior into dedicated testable logic files
-- deepen the context selection, create-plan, and plan-detail flows without adding backend or chat
-- rerun simulator-backed tests after clearing the local simulator hang
+- keep the current shell architecture intact
+- restore or repair the local simulator/XCTest session environment outside this repo first
+- rerun the exact After Plans simulator-backed test command once the environment is healthy
+- do not do additional app polish unless the simulator-backed path actually turns green
 
 ## Exact Next Action
 
-Read `PHASE_STATUS.md`, `products/after-plans-ios/README.md`, `Sources/App/AfterPlansStore.swift`, `Sources/Features/Home/HomeView.swift`, and `Sources/Features/PlanDetail/PlanDetailView.swift`, then implement the next narrow iOS slice around interaction logic and state refinement only.
+Read `PHASE_STATUS.md` and `state/artifacts/after-plans/codex-append-log.md`, then rerun `xcodebuild test -project AfterPlans.xcodeproj -scheme AfterPlans -destination 'platform=iOS Simulator,id=1A88AF54-4E90-40C2-8DB0-33B905A29951'` from `products/after-plans-ios/` only after the local simulator/XCTest environment has been repaired outside this repo. Do not do more product work before that rerun.
 
 ## Read These Files First
 
@@ -33,7 +33,9 @@ Read `PHASE_STATUS.md`, `products/after-plans-ios/README.md`, `Sources/App/After
 - `docs/products/after-plans/task-packets/02-ios-mvp-shell-core-loop-planning.md`
 - `products/after-plans-ios/README.md`
 - `products/after-plans-ios/project.yml`
+- `products/after-plans-ios/Sources/App/ContinuationLoop.swift`
 - `products/after-plans-ios/Sources/App/AfterPlansStore.swift`
 - `products/after-plans-ios/Sources/Features/Home/HomeView.swift`
 - `products/after-plans-ios/Sources/Features/PlanDetail/PlanDetailView.swift`
+- `products/after-plans-ios/Sources/Features/Confirmation/ConfirmationRoomView.swift`
 - `state/artifacts/after-plans/codex-append-log.md`

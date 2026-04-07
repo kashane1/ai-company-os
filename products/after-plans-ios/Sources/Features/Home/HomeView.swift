@@ -10,6 +10,7 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
                 hero
+                currentMoveSection
                 contextSection
                 discoverySection
             }
@@ -50,7 +51,7 @@ struct HomeView: View {
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("Shared context comes first. The shell keeps the app low-pressure, visible, and bounded instead of feeling like an open public feed.")
+            Text(heroSubtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -65,8 +66,62 @@ struct HomeView: View {
                 }
                 .buttonStyle(ActionPillButtonStyle())
             }
+
+            if let message = store.lastActionMessage {
+                Text(message)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.appSafe)
+            }
         }
         .appSurface(prominent: true)
+    }
+
+    private var currentMoveSection: some View {
+        Group {
+            if let plan = store.focusedPlan {
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    SectionHeader(
+                        title: "Your current move",
+                        subtitle: "The app should carry your latest join, create, or confirmation forward instead of dropping you into disconnected screens."
+                    )
+
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
+                                Text(plan.title)
+                                    .font(.headline)
+                                Text(plan.lifecycleHeadline)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            AppBadge(text: plan.lifecycle.title, tone: .appMomentum)
+                        }
+
+                        Text(plan.nextStepGuidance)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: Spacing.sm) {
+                            NavigationLink("Open details") {
+                                PlanDetailView(planID: plan.id)
+                            }
+                            .buttonStyle(ActionPillButtonStyle(prominent: true))
+
+                            if plan.lifecycle.allowsConfirmationRoom {
+                                NavigationLink("Confirmation room") {
+                                    ConfirmationRoomView(planID: plan.id)
+                                }
+                                .buttonStyle(ActionPillButtonStyle())
+                            }
+                        }
+                    }
+                    .appSurface()
+                }
+            }
+        }
     }
 
     private var contextSection: some View {
@@ -83,7 +138,7 @@ struct HomeView: View {
                     Text(store.selectedContext?.title ?? "Pick what just ended")
                         .font(.headline)
                         .foregroundStyle(.primary)
-                    Text(store.selectedContext?.trustNote ?? "Choose a context before you publish or join.")
+                    Text(contextSubtitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     HStack(spacing: Spacing.sm) {
@@ -100,25 +155,73 @@ struct HomeView: View {
 
     private var discoverySection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            SectionHeader(
-                title: "What is next",
-                subtitle: "A believable shell for ranked continuation cards. Server ranking and social memory come later."
-            )
-
-            ForEach(store.feedPlans) { plan in
-                DiscoveryCardView(
-                    plan: plan,
-                    onJoin: { store.join(plan.id) },
-                    onInterested: { store.expressInterest(in: plan.id) },
-                    onSuggestPlace: { store.suggestDefaultPlace(for: plan.id) }
+            if !store.currentContextPlans.isEmpty {
+                SectionHeader(
+                    title: "Happening after \(store.selectedContext?.title ?? "this")",
+                    subtitle: "Current-context plans should win first so Home answers the question, “what is happening after this?”"
                 )
+
+                ForEach(store.currentContextPlans) { plan in
+                    discoveryCard(for: plan, showContext: false)
+                }
+            } else {
+                SectionHeader(
+                    title: "Nothing started here yet",
+                    subtitle: "If this context is quiet, starting a lightweight plan should still feel easier than spinning up an event."
+                )
+
+                Button("Start the first next plan") {
+                    isShowingCreatePlan = true
+                }
+                .buttonStyle(ActionPillButtonStyle(prominent: true))
+            }
+
+            if !store.secondaryFeedPlans.isEmpty {
+                SectionHeader(
+                    title: "Also nearby from other recent contexts",
+                    subtitle: "Secondary plans stay visible, but only after the current context is clear."
+                )
+
+                ForEach(store.secondaryFeedPlans) { plan in
+                    discoveryCard(for: plan, showContext: true)
+                }
             }
         }
+    }
+
+    private var heroSubtitle: String {
+        if let context = store.selectedContext {
+            return "Right now you're anchored to \(context.title). Shared context comes first so the app stays low-pressure, visible, and bounded."
+        }
+
+        return "Shared context comes first. The shell keeps the app low-pressure, visible, and bounded instead of feeling like an open public feed."
+    }
+
+    private var contextSubtitle: String {
+        if let context = store.selectedContext {
+            let count = store.currentContextPlans.count
+            let noun = count == 1 ? "plan" : "plans"
+            return "\(context.trustNote) \(count) \(noun) currently match this moment."
+        }
+
+        return "Choose a context before you publish or join."
+    }
+
+    @ViewBuilder
+    private func discoveryCard(for plan: AfterPlan, showContext: Bool) -> some View {
+        DiscoveryCardView(
+            plan: plan,
+            showContext: showContext,
+            onJoin: { store.join(plan.id) },
+            onInterested: { store.expressInterest(in: plan.id) },
+            onSuggestPlace: { store.suggestDefaultPlace(for: plan.id) }
+        )
     }
 }
 
 private struct DiscoveryCardView: View {
     let plan: AfterPlan
+    let showContext: Bool
     let onJoin: () -> Void
     let onInterested: () -> Void
     let onSuggestPlace: () -> Void
@@ -147,6 +250,10 @@ private struct DiscoveryCardView: View {
                 InfoRow(icon: "clock", text: plan.timeLabel)
             }
 
+            if showContext {
+                InfoRow(icon: "sparkles.rectangle.stack", text: plan.contextTitle)
+            }
+
             HStack(spacing: Spacing.sm) {
                 InfoRow(icon: "person.2", text: plan.momentumLine)
                 InfoRow(icon: "shield", text: plan.visibility.title)
@@ -157,14 +264,16 @@ private struct DiscoveryCardView: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: Spacing.sm) {
-                Button("Join", action: onJoin)
+                Button(plan.joinActionTitle, action: onJoin)
                     .buttonStyle(ActionPillButtonStyle(prominent: true))
-                Button("Interested", action: onInterested)
+                    .disabled(!plan.canJoin)
+                Button(plan.interestedActionTitle, action: onInterested)
                     .buttonStyle(ActionPillButtonStyle())
+                    .disabled(!plan.canExpressInterest)
             }
 
             HStack(spacing: Spacing.sm) {
-                Button("Suggest place", action: onSuggestPlace)
+                Button(plan.suggestPlaceActionTitle, action: onSuggestPlace)
                     .buttonStyle(ActionPillButtonStyle())
 
                 NavigationLink("Details") {

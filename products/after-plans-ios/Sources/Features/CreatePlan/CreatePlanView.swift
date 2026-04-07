@@ -6,6 +6,8 @@ struct CreatePlanView: View {
     @State private var draft = CreatePlanDraft()
 
     var body: some View {
+        let validationMessage = draft.validationMessage(hasContext: store.selectedContext != nil)
+
         Form {
             Section {
                 Text("Creation should feel lighter than spinning up a full event. Pick one mode and give people enough context to join.")
@@ -73,7 +75,18 @@ struct CreatePlanView: View {
                     .foregroundStyle(.secondary)
             }
 
-            if let message = draft.validationMessage(hasContext: store.selectedContext != nil) {
+            Section("What people will see") {
+                Text(previewTitle)
+                    .font(.headline)
+                Text(previewSummary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text("After publishing, the plan returns to Home pinned as your current move so detail and confirmation can tighten it from there.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let message = validationMessage {
                 Section {
                     Text(message)
                         .font(.footnote)
@@ -92,7 +105,25 @@ struct CreatePlanView: View {
                         dismiss()
                     }
                 }
+                .disabled(validationMessage != nil)
             }
         }
+    }
+
+    private var previewTitle: String {
+        if !draft.trimmedTitle.isEmpty {
+            return draft.trimmedTitle
+        }
+
+        if let context = store.selectedContext {
+            return "\(draft.mode.defaultTitlePrefix) \(context.title)"
+        }
+
+        return "Pick a context to preview the plan"
+    }
+
+    private var previewSummary: String {
+        let contextTitle = store.selectedContext?.title ?? "Current context"
+        return "\(contextTitle) · \(draft.visibility.title) · \(draft.timeHint)"
     }
 }

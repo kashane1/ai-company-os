@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-Phase 5 is next.
+Phase 5 is in progress and blocked on local simulator-backed validation.
 
-Phases 0 through 4 are complete. The repo now has a managed product record, a durable docs workspace, an implementation-ready artifact chain, lane-aligned task packets, and a real managed iOS shell for After Plans.
+Phases 0 through 4 are complete. Phase 5 has now started with a continuation-loop refactor, stronger flow wiring across Home/Create/Detail/Confirmation, additional lane-matching tests, and refreshed build validation.
 
 ## Completed Phases
 
@@ -16,11 +16,16 @@ Phases 0 through 4 are complete. The repo now has a managed product record, a du
 
 ## Blocked Phases
 
-- none
+- Phase 5 validation closure is currently blocked by the local simulator/XCTest session environment, not by a confirmed After Plans code or project-wiring defect
 
-## Not-Started Phases
+## Active Phase Notes
 
-- Phase 5: iOS interaction refinement and sample-state hardening
+- Phase 5: extracted continuation-loop filtering/ranking into a dedicated helper, added focused-plan state and action feedback to the store, and made Home center the selected context plus the user's latest continuation move
+- Phase 5: tightened create-plan publishing, participation-state copy, and confirmation-room behavior so the shell reads more like one loop and less like disconnected screens
+- Phase 5: `xcodegen generate` and `xcodebuild build-for-testing` succeeded locally for After Plans
+- Phase 5: manual `simctl launch` succeeded for both `After Plans` and the separate `Fishing Logbook` app on booted simulators, which argues against an app-launch deadlock in After Plans
+- Phase 5: simulator-backed XCTest hangs reproduce for After Plans across two simulators and also reproduce against the separate `Fishing Logbook` iOS workspace, which strongly points to a local Xcode/CoreSimulator/XCTest session issue rather than an After Plans repo-local defect
+- Phase 5: one final narrow environment reset was attempted in this context by shutting down simulators, killing Simulator/CoreSimulator service processes, rebooting the target simulator, and rerunning the exact After Plans test command; the full test command still stalled and the narrowed single-class run still emitted `IDERunDestination: Supported platforms for the buildables in the current scheme is empty`
 
 ## Locked Decisions
 
@@ -62,9 +67,9 @@ Phases 0 through 4 are complete. The repo now has a managed product record, a du
 
 Phase 5.
 
-Refine the iOS shell without widening scope:
+Finish Phase 5 only after simulator-backed XCTest is healthy again:
 
-- extract and harden more interaction logic into dedicated testable units
-- deepen the context-selection, create-plan, and plan-detail flows
-- keep invite/share, safety, and confirmation surfaces lightweight and backend-free
-- rerun simulator-backed tests once the local simulator session stops hanging
+- restore a healthy local simulator/XCTest session and rerun the exact After Plans `xcodebuild test` command
+- do not add more product work until the simulator-backed path is either green or the environment issue is resolved externally
+- preserve the current in-memory shell architecture and stay out of backend, chat, payments, notifications, and release work
+- no more work should be done in this Codex context unless the local simulator/XCTest environment is repaired first

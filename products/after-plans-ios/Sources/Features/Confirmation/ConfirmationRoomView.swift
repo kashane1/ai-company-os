@@ -13,7 +13,7 @@ struct ConfirmationRoomView: View {
                             AppBadge(text: plan.lifecycle.title, tone: .appMomentum)
                             Text("Confirmation room")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
-                            Text("This is where the shell shows convergence. Messaging and handoff tooling stay intentionally out of scope for now.")
+                            Text(plan.confirmationRoomSubtitle)
                                 .foregroundStyle(.secondary)
                         }
                         .appSurface(prominent: true)
@@ -29,6 +29,19 @@ struct ConfirmationRoomView: View {
                         .appSurface()
 
                         VStack(alignment: .leading, spacing: Spacing.md) {
+                            SectionHeader(title: "What still needs to happen", subtitle: "Confirmation should feel like convergence, not like opening a chat thread.")
+                            Text(plan.lifecycleHeadline)
+                                .font(.headline)
+                            Text(plan.nextStepGuidance)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Text(plan.participationLabel)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .appSurface()
+
+                        VStack(alignment: .leading, spacing: Spacing.md) {
                             SectionHeader(title: "What happens next", subtitle: "Later slices can add handoff, arrival, and richer coordination.")
                             Text("1. The group sees one place and timing.")
                             Text("2. People confirm if they are actually going.")
@@ -36,11 +49,15 @@ struct ConfirmationRoomView: View {
                         }
                         .appSurface()
 
-                        Button(plan.lifecycle == .confirmed ? "Already confirmed" : "Mark as confirmed") {
-                            store.confirm(plan.id)
+                        Button(plan.confirmationActionTitle) {
+                            if plan.participationState == .browsing || plan.participationState == .interested {
+                                store.join(plan.id)
+                            } else {
+                                store.confirm(plan.id)
+                            }
                         }
                         .buttonStyle(ActionPillButtonStyle(prominent: true))
-                        .disabled(plan.lifecycle == .confirmed || plan.lifecycle == .active)
+                        .disabled(plan.participationState == .confirmed || plan.lifecycle == .active)
                     }
                     .padding(Spacing.lg)
                 }

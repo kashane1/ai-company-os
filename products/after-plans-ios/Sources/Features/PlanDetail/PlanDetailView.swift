@@ -13,6 +13,7 @@ struct PlanDetailView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
                         header(plan)
+                        momentum(plan)
                         actions(plan)
                         people(plan)
                         suggestions(plan)
@@ -96,17 +97,38 @@ struct PlanDetailView: View {
             SectionHeader(title: "Quick actions", subtitle: "Soft signals stay visible before anything turns into chat.")
 
             HStack(spacing: Spacing.sm) {
-                Button("Join") { store.join(plan.id) }
+                Button(plan.joinActionTitle) { store.join(plan.id) }
                     .buttonStyle(ActionPillButtonStyle(prominent: true))
-                Button("Interested") { store.expressInterest(in: plan.id) }
+                    .disabled(!plan.canJoin)
+                Button(plan.interestedActionTitle) { store.expressInterest(in: plan.id) }
                     .buttonStyle(ActionPillButtonStyle())
+                    .disabled(!plan.canExpressInterest)
             }
 
             HStack(spacing: Spacing.sm) {
-                Button("Suggest place") { store.suggestDefaultPlace(for: plan.id) }
+                Button(plan.suggestPlaceActionTitle) { store.suggestDefaultPlace(for: plan.id) }
                     .buttonStyle(ActionPillButtonStyle())
                 Button("Share") { isShowingInvite = true }
                     .buttonStyle(ActionPillButtonStyle())
+            }
+        }
+        .appSurface()
+    }
+
+    private func momentum(_ plan: AfterPlan) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            SectionHeader(title: "Momentum", subtitle: "The detail view should make the plan lifecycle readable at a glance.")
+
+            Text(plan.lifecycleHeadline)
+                .font(.headline)
+
+            Text(plan.nextStepGuidance)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: Spacing.sm) {
+                AppBadge(text: plan.mode.title)
+                AppBadge(text: plan.visibility.trustBadge, tone: .appSafe)
             }
         }
         .appSurface()
@@ -173,7 +195,7 @@ struct PlanDetailView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(plan.lifecycle.shortActionLabel)
                             .font(.headline)
-                        Text(plan.lifecycle.summary)
+                        Text(plan.confirmationRoomSubtitle)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

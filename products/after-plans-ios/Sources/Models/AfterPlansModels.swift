@@ -36,6 +36,10 @@ struct ContextOption: Identifiable, Equatable {
     var endedAtLabel: String
     var proximityLabel: String
     var trustNote: String
+
+    var timingSummary: String {
+        "\(venueName) · \(endedAtLabel)"
+    }
 }
 
 enum PlanMode: String, CaseIterable, Identifiable {
@@ -266,6 +270,105 @@ struct AfterPlan: Identifiable, Equatable {
             "You joined the plan."
         case .confirmed:
             "You are confirmed."
+        }
+    }
+
+    var joinActionTitle: String {
+        switch participationState {
+        case .browsing, .interested:
+            "Join"
+        case .joined:
+            "Joined"
+        case .confirmed:
+            "Confirmed"
+        }
+    }
+
+    var interestedActionTitle: String {
+        switch participationState {
+        case .browsing:
+            "Interested"
+        case .interested:
+            "Interested"
+        case .joined:
+            "Joined"
+        case .confirmed:
+            "Confirmed"
+        }
+    }
+
+    var canJoin: Bool {
+        switch participationState {
+        case .browsing, .interested:
+            lifecycle != .closed
+        case .joined, .confirmed:
+            false
+        }
+    }
+
+    var canExpressInterest: Bool {
+        participationState == .browsing && lifecycle != .closed
+    }
+
+    var suggestPlaceActionTitle: String {
+        placeSuggestions.isEmpty ? "Suggest place" : "Suggest another place"
+    }
+
+    var lifecycleHeadline: String {
+        switch lifecycle {
+        case .open:
+            "Open for a first yes"
+        case .forming:
+            "Momentum is building"
+        case .confirmed:
+            "This next move is locked"
+        case .active:
+            "People are already on the way"
+        case .closed:
+            "This plan already wrapped"
+        }
+    }
+
+    var nextStepGuidance: String {
+        switch lifecycle {
+        case .open:
+            "A couple quick joins or a place suggestion will move this toward a real plan."
+        case .forming:
+            "There is enough signal to tighten the place and time without turning this into chat."
+        case .confirmed:
+            "Use the confirmation room to keep everyone aligned on one place and timing."
+        case .active:
+            "Keep the handoff simple. The plan already has enough detail to go."
+        case .closed:
+            "Closed plans stay visible in Activity so the shell feels like a real continuation loop."
+        }
+    }
+
+    var confirmationActionTitle: String {
+        switch participationState {
+        case .browsing:
+            "Join first"
+        case .interested:
+            "Join and lock it"
+        case .joined:
+            lifecycle == .confirmed || lifecycle == .active ? "You're confirmed" : "Lock this plan"
+        case .confirmed:
+            "You're confirmed"
+        }
+    }
+
+    var confirmationRoomSubtitle: String {
+        switch lifecycle {
+        case .open:
+            "The plan is still open. One clear place and a few committed people should pull it into focus."
+        case .forming:
+            "The group has momentum. This is the moment to converge on one option."
+        case .confirmed:
+            "The details are locked. The room now acts as the final alignment surface."
+        case .active:
+            "This plan is already in motion, so the room just reflects the agreed details."
+        case .closed:
+            "This room is closed because the plan already wrapped."
         }
     }
 }

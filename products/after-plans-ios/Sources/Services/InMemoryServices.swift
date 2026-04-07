@@ -192,6 +192,9 @@ struct InMemoryPlanParticipationService: PlanParticipationService {
 
         switch action {
         case .join:
+            if updated.participationState == .interested, updated.interestedCount > 0 {
+                updated.interestedCount -= 1
+            }
             if !updated.participants.contains(where: { $0.name == currentUser.firstName }) {
                 updated.participants.append(
                     ParticipantSummary(
@@ -204,14 +207,14 @@ struct InMemoryPlanParticipationService: PlanParticipationService {
                 )
             }
             updated.participationState = updated.lifecycle == .confirmed ? .confirmed : .joined
-            if updated.lifecycle == .open {
+            if updated.lifecycle == .open || updated.lifecycle == .forming {
                 updated.lifecycle = .forming
             }
         case .interested:
             if updated.participationState == .browsing {
                 updated.interestedCount += 1
+                updated.participationState = .interested
             }
-            updated.participationState = .interested
         case let .suggestPlace(place):
             if !updated.placeSuggestions.contains(place) {
                 updated.placeSuggestions.append(place)
@@ -220,6 +223,20 @@ struct InMemoryPlanParticipationService: PlanParticipationService {
                 updated.lifecycle = .forming
             }
         case .confirm:
+            if updated.participationState == .interested, updated.interestedCount > 0 {
+                updated.interestedCount -= 1
+            }
+            if !updated.participants.contains(where: { $0.name == currentUser.firstName }) {
+                updated.participants.append(
+                    ParticipantSummary(
+                        id: currentUser.id,
+                        name: currentUser.firstName,
+                        descriptor: "Confirmed from room",
+                        isOrganizer: false,
+                        isKnown: true
+                    )
+                )
+            }
             updated.lifecycle = .confirmed
             updated.participationState = .confirmed
         }

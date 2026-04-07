@@ -8,6 +8,8 @@ final class AfterPlansStore: ObservableObject {
     @Published var currentUser: UserProfile
     @Published var availableContexts: [ContextOption]
     @Published var selectedContext: ContextOption?
+    @Published var focusedPlanID: UUID?
+    @Published private(set) var lastActionMessage: String?
     @Published private(set) var plans: [AfterPlan]
     @Published private(set) var blockedUserNames: [String]
     @Published private(set) var reportLog: [String]
@@ -25,6 +27,7 @@ final class AfterPlansStore: ObservableObject {
         currentUser: UserProfile,
         availableContexts: [ContextOption],
         selectedContext: ContextOption?,
+        focusedPlanID: UUID? = nil,
         plans: [AfterPlan],
         blockedUserNames: [String] = [],
         reportLog: [String] = [],
@@ -39,6 +42,7 @@ final class AfterPlansStore: ObservableObject {
         self.currentUser = currentUser
         self.availableContexts = availableContexts
         self.selectedContext = selectedContext
+        self.focusedPlanID = focusedPlanID
         self.plans = plans
         self.blockedUserNames = blockedUserNames
         self.reportLog = reportLog
@@ -66,29 +70,31 @@ final class AfterPlansStore: ObservableObject {
     }
 
     var feedPlans: [AfterPlan] {
-        visiblePlans.sorted { lhs, rhs in
-            rankingScore(for: lhs) > rankingScore(for: rhs)
-        }
+        continuation.rankedPlans
+    }
+
+    var currentContextPlans: [AfterPlan] {
+        continuation.currentContextPlans
+    }
+
+    var secondaryFeedPlans: [AfterPlan] {
+        continuation.secondaryPlans
+    }
+
+    var focusedPlan: AfterPlan? {
+        continuation.focusedPlan
     }
 
     var livePlans: [AfterPlan] {
-        visiblePlans.filter { $0.lifecycle != .closed }
+        continuation.livePlans
     }
 
     var historyPlans: [AfterPlan] {
-        visiblePlans.filter { $0.lifecycle == .closed }
+        continuation.historyPlans
     }
 
     var recentPartners: [String] {
-        var names: [String] = []
-
-        for participant in visiblePlans.flatMap(\.participants) where participant.name != currentUser.firstName {
-            if !names.contains(participant.name) {
-                names.append(participant.name)
-            }
-        }
-
-        return Array(names.prefix(4))
+        continuation.recentPartners
     }
 
     var moderationNote: String {
@@ -100,16 +106,19 @@ final class AfterPlansStore: ObservableObject {
         if selectedContext == nil {
             selectedContext = availableContexts.first
         }
+        focusedPlanID = continuation.currentContextPlans.first?.id
         analyticsService.record(event: "signup_completed")
     }
 
     func selectContext(_ context: ContextOption) {
         selectedContext = context
+        focusedPlanID = continuation.currentContextPlans.first?.id
+        lastActionMessage = "Showing what's next after \(context.title)."
         analyticsService.record(event: "context_selected")
     }
 
     func plan(with id: UUID) -> AfterPlan? {
-        visiblePlans.first(where: { $0.id == id })
+        continuation.plan(with: id)
     }
 
     func invitePreview(for plan: AfterPlan) -> InvitePreview {
@@ -120,6 +129,10 @@ final class AfterPlansStore: ObservableObject {
         mutatePlan(id: planID) { [participationService, currentUser] plan in
             participationService.apply(.join, to: plan, currentUser: currentUser)
         }
+        focus(on: planID)
+        if let plan = plan(with: planID) {
+            lastActionMessage = "You're in for \(plan.title)."
+        }
         analyticsService.record(event: "join_tapped")
     }
 
@@ -127,16 +140,24 @@ final class AfterPlansStore: ObservableObject {
         mutatePlan(id: planID) { [participationService, currentUser] plan in
             participationService.apply(.interested, to: plan, currentUser: currentUser)
         }
+        focus(on: planID)
+        if let plan = plan(with: planID) {
+            lastActionMessage = "Marked interest in \(plan.title)."
+        }
         analyticsService.record(event: "interested_tapped")
     }
 
     func suggestDefaultPlace(for planID: UUID) {
-        guard let plan = plans.first(where: { $0.id == planID }) else { return }
+        guard let existingPlan = plans.first(where: { $0.id == planID }) else { return }
         let defaults = ["Tea House", "Corner Slice", "Mercado", "Rooftop Coffee"]
-        let suggestion = defaults[plan.placeSuggestions.count % defaults.count]
+        let suggestion = defaults[existingPlan.placeSuggestions.count % defaults.count]
 
         mutatePlan(id: planID) { [participationService, currentUser] current in
             participationService.apply(.suggestPlace(suggestion), to: current, currentUser: currentUser)
+        }
+        focus(on: planID)
+        if let plan = plan(with: planID) {
+            lastActionMessage = "Suggested \(suggestion) for \(plan.title)."
         }
         analyticsService.record(event: "suggest_place_tapped")
     }
@@ -144,6 +165,10 @@ final class AfterPlansStore: ObservableObject {
     func confirm(_ planID: UUID) {
         mutatePlan(id: planID) { [participationService, currentUser] plan in
             participationService.apply(.confirm, to: plan, currentUser: currentUser)
+        }
+        focus(on: planID)
+        if let plan = plan(with: planID) {
+            lastActionMessage = "\(plan.title) is now locked for \(plan.timeLabel)."
         }
         analyticsService.record(event: "plan_confirmed")
     }
@@ -156,6 +181,8 @@ final class AfterPlansStore: ObservableObject {
 
         let plan = composerService.createPlan(from: draft, in: selectedContext, host: currentUser)
         plans.insert(plan, at: 0)
+        focus(on: plan.id)
+        lastActionMessage = "Your plan is live for \(selectedContext.title)."
         selectedTab = .home
         analyticsService.record(event: "plan_created")
         return true
@@ -163,6 +190,7 @@ final class AfterPlansStore: ObservableObject {
 
     func reportPlan(_ plan: AfterPlan) {
         reportLog.append("Reported plan: \(plan.title)")
+        focus(on: plan.id)
         analyticsService.record(event: "report_submitted")
     }
 
@@ -174,52 +202,28 @@ final class AfterPlansStore: ObservableObject {
     func blockUser(named name: String) {
         guard !blockedUserNames.contains(name) else { return }
         blockedUserNames.append(name)
+        if let focusedPlan, focusedPlan.hostName == name || focusedPlan.participants.contains(where: { $0.name == name }) {
+            focusedPlanID = continuation.currentContextPlans.first?.id
+        }
         analyticsService.record(event: "block_user")
     }
 
-    private var visiblePlans: [AfterPlan] {
-        plans.filter { plan in
-            !blockedUserNames.contains(plan.hostName) &&
-                plan.participants.allSatisfy { !blockedUserNames.contains($0.name) }
-        }
-    }
-
-    private func rankingScore(for plan: AfterPlan) -> Int {
-        var score = 0
-
-        if plan.contextTitle == selectedContext?.title {
-            score += 100
-        }
-
-        switch plan.lifecycle {
-        case .forming:
-            score += 30
-        case .confirmed:
-            score += 25
-        case .open:
-            score += 20
-        case .active:
-            score += 15
-        case .closed:
-            score += 0
-        }
-
-        switch plan.visibility {
-        case .sameContextOnly:
-            score += 12
-        case .knownPeople:
-            score += 9
-        case .inviteOnly:
-            score += 6
-        case .friendsOfParticipants:
-            score += 2
-        }
-
-        return score + plan.joinedCount + plan.interestedCount
+    private var continuation: ContinuationLoop {
+        ContinuationLoop(
+            plans: plans,
+            selectedContext: selectedContext,
+            blockedUserNames: blockedUserNames,
+            currentUserName: currentUser.firstName,
+            focusedPlanID: focusedPlanID
+        )
     }
 
     private func mutatePlan(id: UUID, transform: (AfterPlan) -> AfterPlan) {
         guard let index = plans.firstIndex(where: { $0.id == id }) else { return }
         plans[index] = transform(plans[index])
+    }
+
+    private func focus(on planID: UUID) {
+        focusedPlanID = planID
     }
 }

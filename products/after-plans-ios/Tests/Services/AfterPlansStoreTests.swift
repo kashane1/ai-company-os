@@ -71,4 +71,34 @@ final class AfterPlansStoreTests: XCTestCase {
 
         XCTAssertFalse(store.feedPlans.contains(where: { $0.hostName == host }))
     }
+
+    func testCreatePlanPinsItAsCurrentMoveAndSetsFeedbackMessage() throws {
+        let store = AfterPlansStore.bootstrap()
+        let draft = CreatePlanDraft(
+            mode: .defaultOption,
+            title: "Tea after pottery",
+            summary: "Keep talking a bit longer",
+            venueHint: "Lantern Tea",
+            timeHint: "Right now",
+            visibility: .sameContextOnly
+        )
+
+        XCTAssertTrue(store.createPlan(from: draft))
+
+        let focused = try XCTUnwrap(store.focusedPlan)
+        XCTAssertEqual(focused.title, "Tea after pottery")
+        XCTAssertEqual(store.focusedPlanID, focused.id)
+        XCTAssertEqual(store.lastActionMessage, "Your plan is live for Pottery Night.")
+    }
+
+    func testSelectingContextRetargetsFocusedPlanToThatContext() throws {
+        let store = AfterPlansStore.bootstrap()
+        let newContext = try XCTUnwrap(store.availableContexts.last)
+
+        store.selectContext(newContext)
+
+        let focused = try XCTUnwrap(store.focusedPlan)
+        XCTAssertEqual(focused.contextTitle, newContext.title)
+        XCTAssertEqual(store.lastActionMessage, "Showing what's next after \(newContext.title).")
+    }
 }
