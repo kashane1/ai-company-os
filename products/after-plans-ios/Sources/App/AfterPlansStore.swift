@@ -12,6 +12,7 @@ final class AfterPlansStore: ObservableObject {
     @Published private(set) var lastActionMessage: String?
     @Published private(set) var plans: [AfterPlan]
     @Published private(set) var blockedUserNames: [String]
+    @Published private(set) var inviteShareStates: [UUID: InviteShareState]
     @Published private(set) var reportLog: [String]
 
     let reportReasons: [SafetyReason]
@@ -30,6 +31,7 @@ final class AfterPlansStore: ObservableObject {
         focusedPlanID: UUID? = nil,
         plans: [AfterPlan],
         blockedUserNames: [String] = [],
+        inviteShareStates: [UUID: InviteShareState] = [:],
         reportLog: [String] = [],
         reportReasons: [SafetyReason],
         composerService: PlanComposerService,
@@ -45,6 +47,7 @@ final class AfterPlansStore: ObservableObject {
         self.focusedPlanID = focusedPlanID
         self.plans = plans
         self.blockedUserNames = blockedUserNames
+        self.inviteShareStates = inviteShareStates
         self.reportLog = reportLog
         self.reportReasons = reportReasons
         self.composerService = composerService
@@ -97,8 +100,16 @@ final class AfterPlansStore: ObservableObject {
         continuation.recentPartners
     }
 
+    func affinity(for planID: UUID) -> PlanAffinity? {
+        continuation.affinity(for: planID)
+    }
+
     var moderationNote: String {
         "Reports route to a founder-reviewed moderation queue in this shell. Backend moderation tooling is intentionally deferred."
+    }
+
+    var blockEffectNote: String {
+        "Blocked hosts or participants disappear from your visible plan surfaces in this shell."
     }
 
     func finishOnboarding() {
@@ -123,6 +134,14 @@ final class AfterPlansStore: ObservableObject {
 
     func invitePreview(for plan: AfterPlan) -> InvitePreview {
         inviteService.preview(for: plan)
+    }
+
+    func inviteShareState(for planID: UUID) -> InviteShareState? {
+        inviteShareStates[planID]
+    }
+
+    func inviteChannels(for plan: AfterPlan) -> [InviteShareChannel] {
+        plan.inviteChannels
     }
 
     func join(_ planID: UUID) {
@@ -171,6 +190,52 @@ final class AfterPlansStore: ObservableObject {
             lastActionMessage = "\(plan.title) is now locked for \(plan.timeLabel)."
         }
         analyticsService.record(event: "plan_confirmed")
+    }
+
+    func markPlanActive(_ planID: UUID) {
+        mutatePlan(id: planID) { plan in
+            var updated = plan
+            updated.lifecycle = .active
+            if updated.participationState == .joined {
+                updated.participationState = .confirmed
+            }
+            return updated
+        }
+        focus(on: planID)
+        if let plan = plan(with: planID) {
+            lastActionMessage = "\(plan.title) is now in motion."
+        }
+        analyticsService.record(event: "plan_active")
+    }
+
+    func prepareInviteShare(for planID: UUID, channel: InviteShareChannel) {
+        guard let plan = plan(with: planID), plan.inviteChannels.contains(channel) else { return }
+
+        let state = InviteShareState(
+            channel: channel,
+            statusTitle: shareStatusTitle(for: plan, channel: channel),
+            statusDetail: shareStatusDetail(for: plan, channel: channel)
+        )
+
+        inviteShareStates[planID] = state
+        focus(on: planID)
+        lastActionMessage = state.statusTitle
+        analyticsService.record(event: "invite_share_prepared")
+    }
+
+    func runConfirmationAction(for planID: UUID) {
+        guard let plan = plan(with: planID) else { return }
+
+        switch plan.confirmationAction {
+        case .join:
+            join(planID)
+        case .confirm:
+            confirm(planID)
+        case .markActive:
+            markPlanActive(planID)
+        case .none:
+            break
+        }
     }
 
     @discardableResult
@@ -225,5 +290,31 @@ final class AfterPlansStore: ObservableObject {
 
     private func focus(on planID: UUID) {
         focusedPlanID = planID
+    }
+
+    private func shareStatusTitle(for plan: AfterPlan, channel: InviteShareChannel) -> String {
+        switch channel {
+        case .sameContext:
+            "Ready to share \(plan.title) with people from \(plan.contextTitle)."
+        case .knownPeople:
+            "Ready to send a low-pressure invite for \(plan.title)."
+        case .nearbyQR:
+            "QR handoff is ready for people already nearby."
+        }
+    }
+
+    private func shareStatusDetail(for plan: AfterPlan, channel: InviteShareChannel) -> String {
+        switch channel {
+        case .sameContext:
+            return "Use this if the plan still needs a couple quick joins from the same moment."
+        case .knownPeople:
+            return "Use this for a few familiar people who are likely to say yes without needing extra context."
+        case .nearbyQR:
+            if plan.lifecycle == .confirmed {
+                return "Use this in person for the last right people instead of widening the plan further."
+            }
+
+            return "Use this in person so people already around can join without turning this into generic outreach."
+        }
     }
 }

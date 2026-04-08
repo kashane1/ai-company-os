@@ -2,26 +2,31 @@
 
 ## Current State Summary
 
-After Plans now has the intended Phase 5 continuation-loop refinement in place and no further product widening is needed in this pass. The remaining blocker is still validation closure: After Plans can `xcodegen generate`, `build-for-testing`, and launch manually on the simulator, but simulator-backed XCTest still hangs locally. A final narrow environment reset was attempted in this context and did not clear the issue. The same `test-without-building` hang also reproduces against `products/fishing-logbook-ios`, which strongly suggests the issue is environmental rather than After Plans-specific.
+After Plans has moved beyond Phase 5 and validation is closed in the current repo state. Phase 6 now includes the known-people ranking refinement, lifecycle-state clarity across Home/detail/confirmation, tighter invite/share-to-join scaffolding, and a trust/safety visibility refinement inside the active loop. Plan detail, invite/share, confirmation, and safety surfaces now explain bounded visibility more directly and expose safety access inline.
+
+Validation in this context is green:
+
+- targeted trust/safety rerun: 17 tests executed, 0 failures
+- xcresult: `/Users/simons/Library/Developer/Xcode/DerivedData/AfterPlans-heghknxaovecykezqnthqeehepul/Logs/Test/Test-AfterPlans-2026.04.07_21-59-09--0700.xcresult`
 
 ## Last Completed Phase
 
-Phase 4 is complete. Phase 5 is in progress.
+Phase 5 is complete. Phase 6 is in progress.
 
 ## What Remains Next
 
-Finish Phase 5.
+Continue Phase 6 with one more narrow continuation-loop slice.
 
 If work resumes, the next concrete step is:
 
 - keep the current shell architecture intact
-- restore or repair the local simulator/XCTest session environment outside this repo first
-- rerun the exact After Plans simulator-backed test command once the environment is healthy
-- do not do additional app polish unless the simulator-backed path actually turns green
+- inspect the new bounded-visibility and safety-access additions in `AfterPlansModels.swift`, `PlanDetailView.swift`, `InviteShareView.swift`, `ConfirmationRoomView.swift`, and `SafetyCenterView.swift`
+- continue with a single narrow refinement in light social-memory cues
+- do not broaden into backend, chat, public discovery, or premium work
 
 ## Exact Next Action
 
-Read `PHASE_STATUS.md` and `state/artifacts/after-plans/codex-append-log.md`, then rerun `xcodebuild test -project AfterPlans.xcodeproj -scheme AfterPlans -destination 'platform=iOS Simulator,id=1A88AF54-4E90-40C2-8DB0-33B905A29951'` from `products/after-plans-ios/` only after the local simulator/XCTest environment has been repaired outside this repo. Do not do more product work before that rerun.
+Read `PHASE_STATUS.md` and `state/artifacts/after-plans/codex-append-log.md`, inspect the current trust/visibility implementation, then take the next single narrow continuation-loop slice without widening architecture.
 
 ## Read These Files First
 
@@ -35,7 +40,11 @@ Read `PHASE_STATUS.md` and `state/artifacts/after-plans/codex-append-log.md`, th
 - `products/after-plans-ios/project.yml`
 - `products/after-plans-ios/Sources/App/ContinuationLoop.swift`
 - `products/after-plans-ios/Sources/App/AfterPlansStore.swift`
-- `products/after-plans-ios/Sources/Features/Home/HomeView.swift`
+- `products/after-plans-ios/Sources/Models/AfterPlansModels.swift`
+- `products/after-plans-ios/Sources/Features/InviteShare/InviteShareView.swift`
 - `products/after-plans-ios/Sources/Features/PlanDetail/PlanDetailView.swift`
 - `products/after-plans-ios/Sources/Features/Confirmation/ConfirmationRoomView.swift`
+- `products/after-plans-ios/Sources/Features/Safety/SafetyCenterView.swift`
+- `products/after-plans-ios/Tests/Services/AfterPlansStoreTests.swift`
+- `products/after-plans-ios/Tests/Models/AfterPlansModelsTests.swift`
 - `state/artifacts/after-plans/codex-append-log.md`

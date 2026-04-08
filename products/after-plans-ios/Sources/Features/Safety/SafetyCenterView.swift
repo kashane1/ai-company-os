@@ -13,7 +13,18 @@ struct SafetyCenterView: View {
 
             if let focusedPlanID, let plan = store.plan(with: focusedPlanID) {
                 Section("Current plan") {
-                    Text(plan.title)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(plan.title)
+                        Text(plan.visibilityHeadline)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Text(plan.visibilityDetail)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Text(store.blockEffectNote)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                     Button("Report this plan") {
                         store.reportPlan(plan)
                     }

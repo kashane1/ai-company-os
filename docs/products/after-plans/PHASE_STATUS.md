@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-Phase 5 is in progress and blocked on local simulator-backed validation.
+Phase 6 is in progress.
 
-Phases 0 through 4 are complete. Phase 5 has now started with a continuation-loop refactor, stronger flow wiring across Home/Create/Detail/Confirmation, additional lane-matching tests, and refreshed build validation.
+Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking refinement, a lifecycle-state clarity pass across Home/detail/confirmation, a tighter invite/share-to-join scaffolding pass, and a trust/safety visibility refinement inside the active loop.
 
 ## Completed Phases
 
@@ -13,19 +13,30 @@ Phases 0 through 4 are complete. Phase 5 has now started with a continuation-loo
 - Phase 2: derived the implementation-ready artifact chain for product, iOS, trust/safety, App Store, GTM, launch, and backlog work
 - Phase 3: created bounded task packets for supervisor, iOS, trust/safety, App Store, and GTM work
 - Phase 4: bootstrapped the managed iOS source tree, added the XcodeGen project definition, built a compile-safe SwiftUI shell, scaffolded the continuation loop with in-memory state, and added lane-matching unit tests
+- Phase 5: completed the first continuation-loop deepening pass with focused-plan carry-forward, tighter Home/Create/Detail/Confirmation wiring, additional lane-matching tests, and a previously successful full simulator-backed test run
 
 ## Blocked Phases
 
-- Phase 5 validation closure is currently blocked by the local simulator/XCTest session environment, not by a confirmed After Plans code or project-wiring defect
+- no product phase is currently blocked by a confirmed repo-local defect
+- simulator-backed validation is currently healthy in this repo state after a minimal simulator reboot and exact reruns of the After Plans test commands
 
 ## Active Phase Notes
 
-- Phase 5: extracted continuation-loop filtering/ranking into a dedicated helper, added focused-plan state and action feedback to the store, and made Home center the selected context plus the user's latest continuation move
-- Phase 5: tightened create-plan publishing, participation-state copy, and confirmation-room behavior so the shell reads more like one loop and less like disconnected screens
-- Phase 5: `xcodegen generate` and `xcodebuild build-for-testing` succeeded locally for After Plans
-- Phase 5: manual `simctl launch` succeeded for both `After Plans` and the separate `Fishing Logbook` app on booted simulators, which argues against an app-launch deadlock in After Plans
-- Phase 5: simulator-backed XCTest hangs reproduce for After Plans across two simulators and also reproduce against the separate `Fishing Logbook` iOS workspace, which strongly points to a local Xcode/CoreSimulator/XCTest session issue rather than an After Plans repo-local defect
-- Phase 5: one final narrow environment reset was attempted in this context by shutting down simulators, killing Simulator/CoreSimulator service processes, rebooting the target simulator, and rerunning the exact After Plans test command; the full test command still stalled and the narrowed single-class run still emitted `IDERunDestination: Supported platforms for the buildables in the current scheme is empty`
+- Phase 6: added `PlanAffinity` as a narrow derived-state helper so same-context, known-people, repeat-context, and meaningful host-memory cues can influence ranking without widening the architecture
+- Phase 6: Home discovery cards now show trust-oriented badges and a social-memory explanation line so the feed reads more like "people you know or were just around" and less like a generic list
+- Phase 6: focused tests now cover the new ranking preference and host-memory filtering
+- Phase 6: lifecycle semantics are now explicit in the model layer, including step labels, state-window copy, confirmation-room action mapping, and suppression of misleading active/closed actions
+- Phase 6: Home, plan detail, and confirmation now render the lifecycle state more consistently with shared badge/progress UI and state-specific helper copy
+- Phase 6: confirmation can now advance a plan from confirmed to active in the in-memory shell so lifecycle maturity feels intentional instead of static
+- Phase 6: a minimal simulator reboot followed by a targeted rerun closed the prior validation question, and the exact full `xcodebuild test` command now completes successfully again
+- Phase 6: `xcodegen generate` was rerun after adding a new shared UI source file so the generated project stayed in sync
+- Phase 6: invite/share now has lifecycle-aware gating, low-pressure join framing, bounded audience guidance, and an in-memory prepared-share state so the handoff feels like continuation scaffolding instead of generic messaging
+- Phase 6: Plan detail and confirmation now expose clearer share entrypoints only when a plan is still sensible to share, while active and closed plans stop advertising invite actions
+- Phase 6: focused model/store tests now cover invite availability, low-pressure framing, and one in-memory path from the current loop into the invite/share surface
+- Phase 6: plan detail, invite/share, confirmation, and the safety center now make bounded visibility more explicit with inline “who can see this” and “why this is not public” explanations
+- Phase 6: safety access is now surfaced more directly from existing plan screens with calm report/block guidance instead of relying only on a toolbar icon
+- Phase 6: active and closed plans now keep trust/safety messaging visible while avoiding misleading “still live” visibility posture
+- Phase 6: targeted model/store validation for the trust/safety visibility slice is green, so a redundant full-scheme rerun was intentionally skipped this pass
 
 ## Locked Decisions
 
@@ -65,11 +76,10 @@ Phases 0 through 4 are complete. Phase 5 has now started with a continuation-loo
 
 ## Next Recommended Phase
 
-Phase 5.
+Continue Phase 6 with another single narrow continuation-loop refinement.
 
-Finish Phase 5 only after simulator-backed XCTest is healthy again:
+Preferred next step:
 
-- restore a healthy local simulator/XCTest session and rerun the exact After Plans `xcodebuild test` command
-- do not add more product work until the simulator-backed path is either green or the environment issue is resolved externally
-- preserve the current in-memory shell architecture and stay out of backend, chat, payments, notifications, and release work
-- no more work should be done in this Codex context unless the local simulator/XCTest environment is repaired first
+- keep using targeted simulator-backed `xcodebuild test` coverage for the touched area after each narrow slice
+- choose the next narrow continuation-loop improvement from light social-memory cues rather than broader polish
+- preserve the in-memory shell architecture and stay out of backend, chat, payments, notifications, and release work

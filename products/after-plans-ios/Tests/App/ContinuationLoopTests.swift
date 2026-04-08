@@ -61,24 +61,95 @@ final class ContinuationLoopTests: XCTestCase {
         XCTAssertEqual(loop.focusedPlan?.id, plan.id)
     }
 
-    private func makePlan(title: String, contextTitle: String, hostName: String) -> AfterPlan {
-        AfterPlan(
+    func testKnownPeopleAndRepeatContextPushPlanHigherWithinSameContext() {
+        let context = ContextOption(
+            id: UUID(),
+            type: .classSession,
+            title: "Pottery Night",
+            venueName: "Clay House Studio",
+            endedAtLabel: "Ended 10 min ago",
+            proximityLabel: "3 min away",
+            trustNote: "Pottery people first."
+        )
+
+        let lowerTrustPlan = makePlan(
+            title: "Anywhere nearby",
+            contextTitle: context.title,
+            hostName: "Sam",
+            hostDescriptor: "Hosting",
+            knownParticipantCount: 0
+        )
+
+        let higherTrustPlan = makePlan(
+            title: "Tacos with Nia",
+            contextTitle: context.title,
+            hostName: "Nia",
+            hostDescriptor: "You've planned with Nia twice.",
+            knownParticipantCount: 2
+        )
+
+        let closedHistory = makePlan(
+            title: "Last week's tea",
+            contextTitle: context.title,
+            hostName: "Mina",
+            hostDescriptor: "Hosted",
+            knownParticipantCount: 1,
+            lifecycle: .closed
+        )
+
+        let loop = ContinuationLoop(
+            plans: [lowerTrustPlan, higherTrustPlan, closedHistory],
+            selectedContext: context,
+            blockedUserNames: [],
+            currentUserName: "Maya",
+            focusedPlanID: nil
+        )
+
+        XCTAssertEqual(loop.currentContextPlans.first?.title, "Tacos with Nia")
+        XCTAssertEqual(loop.affinity(for: higherTrustPlan.id)?.badges, ["Same moment", "2 known faces", "Repeat context"])
+    }
+
+    private func makePlan(
+        title: String,
+        contextTitle: String,
+        hostName: String,
+        hostDescriptor: String = "Host",
+        knownParticipantCount: Int = 1,
+        lifecycle: PlanLifecycleState = .open
+    ) -> AfterPlan {
+        let supportingParticipants = (0..<max(knownParticipantCount - 1, 0)).map { index in
+            ParticipantSummary(
+                id: UUID(),
+                name: "Known \(index)",
+                descriptor: "Met here before",
+                isOrganizer: false,
+                isKnown: true
+            )
+        }
+
+        return AfterPlan(
             id: UUID(),
             title: title,
             summary: "Simple next move",
             contextTitle: contextTitle,
             hostName: hostName,
-            hostDescriptor: "Host",
+            hostDescriptor: hostDescriptor,
             mode: .defaultOption,
             visibility: .sameContextOnly,
-            lifecycle: .open,
+            lifecycle: lifecycle,
             timeLabel: "Now",
             venueLabel: "Tea House",
             distanceLabel: "3 min walk",
             trustBlurb: "Same context first.",
             participants: [
-                ParticipantSummary(id: UUID(), name: hostName, descriptor: "Hosting", isOrganizer: true, isKnown: true),
-            ],
+                ParticipantSummary(
+                    id: UUID(),
+                    name: hostName,
+                    descriptor: "Hosting",
+                    isOrganizer: true,
+                    isKnown: knownParticipantCount > 0
+                ),
+            ] + supportingParticipants,
             interestedCount: 1,
             placeSuggestions: [],
             participationState: .browsing

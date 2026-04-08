@@ -192,6 +192,80 @@ enum PlanLifecycleState: String, CaseIterable, Identifiable {
     var allowsConfirmationRoom: Bool {
         self != .closed
     }
+
+    var progressLabel: String {
+        switch self {
+        case .open:
+            "Step 1 of 5"
+        case .forming:
+            "Step 2 of 5"
+        case .confirmed:
+            "Step 3 of 5"
+        case .active:
+            "Step 4 of 5"
+        case .closed:
+            "Step 5 of 5"
+        }
+    }
+}
+
+enum ConfirmationAction: Equatable {
+    case join
+    case confirm
+    case markActive
+    case none
+}
+
+enum InviteShareChannel: String, CaseIterable, Identifiable, Equatable {
+    case sameContext
+    case knownPeople
+    case nearbyQR
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .sameContext:
+            "People from this moment"
+        case .knownPeople:
+            "Known people"
+        case .nearbyQR:
+            "Nearby QR"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .sameContext:
+            "Best when the plan is still forming and the right people are leaving the same thing."
+        case .knownPeople:
+            "Use this when one or two familiar faces would make joining feel easier."
+        case .nearbyQR:
+            "Keep it in-person for people already around you instead of widening the plan."
+        }
+    }
+
+    var actionTitle: String {
+        switch self {
+        case .sameContext:
+            "Prep same-context share"
+        case .knownPeople:
+            "Prep known-people invite"
+        case .nearbyQR:
+            "Show nearby QR"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .sameContext:
+            "person.2.wave.2"
+        case .knownPeople:
+            "person.crop.circle.badge.checkmark"
+        case .nearbyQR:
+            "qrcode"
+        }
+    }
 }
 
 enum PlanParticipationState: String, Equatable {
@@ -245,6 +319,13 @@ struct AfterPlan: Identifiable, Equatable {
         participants.count
     }
 
+    var meaningfulHostMemory: String? {
+        let trimmed = hostDescriptor.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        guard trimmed != "Host", trimmed != "Hosting", trimmed != "Hosted" else { return nil }
+        return trimmed
+    }
+
     var momentumLine: String {
         switch lifecycle {
         case .open:
@@ -274,7 +355,15 @@ struct AfterPlan: Identifiable, Equatable {
     }
 
     var joinActionTitle: String {
-        switch participationState {
+        if lifecycle == .active {
+            return "Already started"
+        }
+
+        if lifecycle == .closed {
+            return "Wrapped"
+        }
+
+        return switch participationState {
         case .browsing, .interested:
             "Join"
         case .joined:
@@ -285,7 +374,15 @@ struct AfterPlan: Identifiable, Equatable {
     }
 
     var interestedActionTitle: String {
-        switch participationState {
+        if lifecycle == .active {
+            return "In motion"
+        }
+
+        if lifecycle == .closed {
+            return "Wrapped"
+        }
+
+        return switch participationState {
         case .browsing:
             "Interested"
         case .interested:
@@ -300,18 +397,34 @@ struct AfterPlan: Identifiable, Equatable {
     var canJoin: Bool {
         switch participationState {
         case .browsing, .interested:
-            lifecycle != .closed
+            lifecycle != .active && lifecycle != .closed
         case .joined, .confirmed:
             false
         }
     }
 
     var canExpressInterest: Bool {
-        participationState == .browsing && lifecycle != .closed
+        participationState == .browsing && lifecycle != .active && lifecycle != .closed
+    }
+
+    var canSuggestPlace: Bool {
+        lifecycle == .open || lifecycle == .forming
     }
 
     var suggestPlaceActionTitle: String {
-        placeSuggestions.isEmpty ? "Suggest place" : "Suggest another place"
+        if lifecycle == .confirmed {
+            return "Place locked"
+        }
+
+        if lifecycle == .active {
+            return "Already moving"
+        }
+
+        if lifecycle == .closed {
+            return "Wrapped"
+        }
+
+        return placeSuggestions.isEmpty ? "Suggest place" : "Suggest another place"
     }
 
     var lifecycleHeadline: String {
@@ -344,17 +457,72 @@ struct AfterPlan: Identifiable, Equatable {
         }
     }
 
-    var confirmationActionTitle: String {
-        switch participationState {
-        case .browsing:
-            "Join first"
-        case .interested:
-            "Join and lock it"
-        case .joined:
-            lifecycle == .confirmed || lifecycle == .active ? "You're confirmed" : "Lock this plan"
+    var lifecycleWindowTitle: String {
+        switch lifecycle {
+        case .open:
+            "Open now"
+        case .forming:
+            "Momentum window"
         case .confirmed:
-            "You're confirmed"
+            "Locked in"
+        case .active:
+            "Already happening"
+        case .closed:
+            "Wrapped up"
         }
+    }
+
+    var lifecycleWindowDetail: String {
+        switch lifecycle {
+        case .open:
+            "Best action now: join or mark interest so the plan feels real quickly."
+        case .forming:
+            "Best action now: tighten the place and move the group toward one committed option."
+        case .confirmed:
+            "Best action now: help people shift from \"sounds good\" to actually heading there."
+        case .active:
+            "No more setup is needed. The plan should read as real, not still collecting reactions."
+        case .closed:
+            "This plan stays visible as history only. Setup and participation actions should be over."
+        }
+    }
+
+    var confirmationAction: ConfirmationAction {
+        switch lifecycle {
+        case .open, .forming:
+            switch participationState {
+            case .browsing, .interested:
+                .join
+            case .joined, .confirmed:
+                .confirm
+            }
+        case .confirmed:
+            switch participationState {
+            case .browsing, .interested:
+                .join
+            case .joined, .confirmed:
+                .markActive
+            }
+        case .active, .closed:
+            .none
+        }
+    }
+
+    var confirmationActionTitle: String {
+        switch confirmationAction {
+        case .join:
+            return participationState == .interested ? "Join this plan" : "Join first"
+        case .confirm:
+            return "Lock this plan"
+        case .markActive:
+            return "Mark as on the way"
+        case .none:
+            return lifecycle == .active ? "Already in motion" : "Plan wrapped"
+        }
+    }
+
+    var canTakeConfirmationAction: Bool {
+        confirmationAction != .none
     }
 
     var confirmationRoomSubtitle: String {
@@ -364,11 +532,162 @@ struct AfterPlan: Identifiable, Equatable {
         case .forming:
             "The group has momentum. This is the moment to converge on one option."
         case .confirmed:
-            "The details are locked. The room now acts as the final alignment surface."
+            "The details are locked. The room should now help people shift from confirmed to actually moving."
         case .active:
-            "This plan is already in motion, so the room just reflects the agreed details."
+            "This plan is already in motion, so the room should only reflect the agreed details."
         case .closed:
             "This room is closed because the plan already wrapped."
+        }
+    }
+
+    var visibilityHeadline: String {
+        switch visibility {
+        case .sameContextOnly:
+            "Visible to people from this context"
+        case .inviteOnly:
+            "Visible only through direct share"
+        case .knownPeople:
+            "Visible to known or trust-linked people"
+        case .friendsOfParticipants:
+            "Visibility stays bounded"
+        }
+    }
+
+    var visibilityDetail: String {
+        switch lifecycle {
+        case .open, .forming, .confirmed:
+            return switch visibility {
+            case .sameContextOnly:
+                "People already leaving \(contextTitle) can see this while the plan is still live."
+            case .inviteOnly:
+                "This only moves through direct share paths, not broad discovery."
+            case .knownPeople:
+                "This reaches familiar or previously trusted people before anyone else."
+            case .friendsOfParticipants:
+                "This mode stays out of the MVP shell unless the trust model proves it is needed."
+            }
+        case .active:
+            return "The plan is already in motion, so visibility should read as bounded status, not fresh outreach."
+        case .closed:
+            return "This plan remains readable as history only and should no longer circulate as a live option."
+        }
+    }
+
+    var visibilityFootnote: String {
+        switch visibility {
+        case .sameContextOnly:
+            "This should feel like shared activity follow-through, not random local discovery."
+        case .inviteOnly:
+            "People need a direct handoff to see this plan."
+        case .knownPeople:
+            "Known people outrank strangers in this trust model."
+        case .friendsOfParticipants:
+            "Expanded visibility is intentionally deferred."
+        }
+    }
+
+    var safetyEntryTitle: String {
+        "Need help? Open Safety Center"
+    }
+
+    var safetyEntryDetail: String {
+        switch lifecycle {
+        case .open, .forming, .confirmed:
+            "Report or block from this plan if the context, host, or participant behavior feels off."
+        case .active:
+            "Safety options still apply even after the plan is in motion."
+        case .closed:
+            "Safety options remain available for follow-up on a plan that already wrapped."
+        }
+    }
+
+    var canShareInvite: Bool {
+        lifecycle == .open || lifecycle == .forming || lifecycle == .confirmed
+    }
+
+    var shareActionTitle: String {
+        switch lifecycle {
+        case .open:
+            "Invite from this moment"
+        case .forming:
+            "Bring in the right people"
+        case .confirmed:
+            "Bring in the last right people"
+        case .active:
+            "Already in motion"
+        case .closed:
+            "Wrapped"
+        }
+    }
+
+    var shareActionSubtitle: String {
+        switch lifecycle {
+        case .open:
+            "Keep sharing lightweight so a first yes feels easy."
+        case .forming:
+            "Use bounded invites to help this plan feel real without opening it wider."
+        case .confirmed:
+            "Use sharing only for the last people who already fit this plan."
+        case .active:
+            "Avoid sending new invites once the group is already moving."
+        case .closed:
+            "Closed plans should not keep circulating."
+        }
+    }
+
+    var shareAudienceHeadline: String {
+        switch visibility {
+        case .sameContextOnly:
+            "Start with people from this same context."
+        case .inviteOnly:
+            "Keep it direct and intentional."
+        case .knownPeople:
+            "Favor familiar people over broad outreach."
+        case .friendsOfParticipants:
+            "Do not widen this in the MVP shell."
+        }
+    }
+
+    var shareAudienceDetail: String {
+        switch visibility {
+        case .sameContextOnly:
+            "This plan should reach the people already leaving \(contextTitle), not a generic nearby crowd."
+        case .inviteOnly:
+            "This plan only makes sense if someone already close to the moment passes it along."
+        case .knownPeople:
+            "A small nudge to familiar people is enough. The goal is easy joining, not recruiting."
+        case .friendsOfParticipants:
+            "This visibility mode stays out of launch share flows."
+        }
+    }
+
+    var shareJoinFraming: String {
+        switch lifecycle {
+        case .open:
+            "Share it like an easy next move, not a commitment. A soft yes should be enough to get momentum started."
+        case .forming:
+            "Share it as a lightweight join for people already nearby or already known to the group."
+        case .confirmed:
+            "Share it as a last-call join for the people who were likely coming anyway."
+        case .active:
+            "The plan is already real. Sharing should stop before it feels like late outreach."
+        case .closed:
+            "There is nothing left to join here."
+        }
+    }
+
+    var inviteChannels: [InviteShareChannel] {
+        guard canShareInvite else { return [] }
+
+        return switch visibility {
+        case .sameContextOnly:
+            [InviteShareChannel.sameContext, InviteShareChannel.nearbyQR]
+        case .inviteOnly:
+            [InviteShareChannel.knownPeople, InviteShareChannel.nearbyQR]
+        case .knownPeople:
+            [InviteShareChannel.knownPeople, InviteShareChannel.sameContext]
+        case .friendsOfParticipants:
+            [InviteShareChannel.sameContext]
         }
     }
 }
@@ -384,8 +703,19 @@ struct UserProfile: Equatable {
 struct InvitePreview: Equatable {
     var title: String
     var subtitle: String
+    var audienceHeadline: String
+    var audienceDetail: String
+    var joinFraming: String
     var linkLabel: String
     var qrLabel: String
+    var nextStepTitle: String
+    var nextStepDetail: String
+}
+
+struct InviteShareState: Equatable {
+    var channel: InviteShareChannel
+    var statusTitle: String
+    var statusDetail: String
 }
 
 struct SafetyReason: Identifiable, Equatable {

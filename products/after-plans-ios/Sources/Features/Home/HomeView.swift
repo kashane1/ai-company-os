@@ -97,8 +97,10 @@ struct HomeView: View {
 
                             Spacer()
 
-                            AppBadge(text: plan.lifecycle.title, tone: .appMomentum)
+                            LifecycleBadgeView(lifecycle: plan.lifecycle)
                         }
+
+                        LifecycleProgressView(lifecycle: plan.lifecycle)
 
                         Text(plan.nextStepGuidance)
                             .font(.footnote)
@@ -158,7 +160,7 @@ struct HomeView: View {
             if !store.currentContextPlans.isEmpty {
                 SectionHeader(
                     title: "Happening after \(store.selectedContext?.title ?? "this")",
-                    subtitle: "Current-context plans should win first so Home answers the question, “what is happening after this?”"
+                    subtitle: "Current-context plans should win first, and known people inside that moment should rise before generic nearby options."
                 )
 
                 ForEach(store.currentContextPlans) { plan in
@@ -179,7 +181,7 @@ struct HomeView: View {
             if !store.secondaryFeedPlans.isEmpty {
                 SectionHeader(
                     title: "Also nearby from other recent contexts",
-                    subtitle: "Secondary plans stay visible, but only after the current context is clear."
+                    subtitle: "Secondary plans stay visible, but only after the current context is clear and the stronger trust cues have already been shown."
                 )
 
                 ForEach(store.secondaryFeedPlans) { plan in
@@ -211,6 +213,7 @@ struct HomeView: View {
     private func discoveryCard(for plan: AfterPlan, showContext: Bool) -> some View {
         DiscoveryCardView(
             plan: plan,
+            affinity: store.affinity(for: plan.id),
             showContext: showContext,
             onJoin: { store.join(plan.id) },
             onInterested: { store.expressInterest(in: plan.id) },
@@ -221,6 +224,7 @@ struct HomeView: View {
 
 private struct DiscoveryCardView: View {
     let plan: AfterPlan
+    let affinity: PlanAffinity?
     let showContext: Bool
     let onJoin: () -> Void
     let onInterested: () -> Void
@@ -240,10 +244,12 @@ private struct DiscoveryCardView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: Spacing.xs) {
-                    AppBadge(text: plan.lifecycle.title, tone: .appMomentum)
+                    LifecycleBadgeView(lifecycle: plan.lifecycle)
                     AppBadge(text: plan.visibility.trustBadge)
                 }
             }
+
+            LifecycleProgressView(lifecycle: plan.lifecycle, compact: true)
 
             HStack(spacing: Spacing.sm) {
                 InfoRow(icon: "mappin.and.ellipse", text: plan.venueLabel)
@@ -254,12 +260,26 @@ private struct DiscoveryCardView: View {
                 InfoRow(icon: "sparkles.rectangle.stack", text: plan.contextTitle)
             }
 
+            if let affinity, !affinity.badges.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Spacing.sm) {
+                        ForEach(affinity.badges, id: \.self) { badge in
+                            AppBadge(text: badge, tone: .appSafe)
+                        }
+                    }
+                }
+            }
+
             HStack(spacing: Spacing.sm) {
                 InfoRow(icon: "person.2", text: plan.momentumLine)
                 InfoRow(icon: "shield", text: plan.visibility.title)
             }
 
-            Text(plan.trustBlurb)
+            Text(affinity?.detailLine ?? plan.trustBlurb)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            Text(plan.lifecycleWindowDetail)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
@@ -275,6 +295,7 @@ private struct DiscoveryCardView: View {
             HStack(spacing: Spacing.sm) {
                 Button(plan.suggestPlaceActionTitle, action: onSuggestPlace)
                     .buttonStyle(ActionPillButtonStyle())
+                    .disabled(!plan.canSuggestPlace)
 
                 NavigationLink("Details") {
                     PlanDetailView(planID: plan.id)

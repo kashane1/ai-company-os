@@ -13,6 +13,7 @@ struct PlanDetailView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
                         header(plan)
+                        trustVisibility(plan)
                         momentum(plan)
                         actions(plan)
                         people(plan)
@@ -25,10 +26,12 @@ struct PlanDetailView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
-                        Button {
-                            isShowingInvite = true
-                        } label: {
-                            Image(systemName: "qrcode")
+                        if plan.canShareInvite {
+                            Button {
+                                isShowingInvite = true
+                            } label: {
+                                Image(systemName: "qrcode")
+                            }
                         }
 
                         Button {
@@ -66,10 +69,12 @@ struct PlanDetailView: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: Spacing.xs) {
-                    AppBadge(text: plan.lifecycle.title, tone: .appMomentum)
+                    LifecycleBadgeView(lifecycle: plan.lifecycle)
                     AppBadge(text: plan.visibility.title)
                 }
             }
+
+            LifecycleProgressView(lifecycle: plan.lifecycle)
 
             Text(plan.trustBlurb)
                 .font(.subheadline.weight(.medium))
@@ -92,9 +97,41 @@ struct PlanDetailView: View {
         .appSurface(prominent: true)
     }
 
+    private func trustVisibility(_ plan: AfterPlan) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            SectionHeader(title: "Visibility & Safety", subtitle: "This should feel bounded to people from the moment, not like open local discovery.")
+
+            Text(plan.visibilityHeadline)
+                .font(.headline)
+
+            Text(plan.visibilityDetail)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: Spacing.sm) {
+                AppBadge(text: plan.visibility.trustBadge, tone: .appSafe)
+                AppBadge(text: plan.visibility.title)
+            }
+
+            Text(plan.visibilityFootnote)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            Button(plan.safetyEntryTitle) {
+                isShowingSafety = true
+            }
+            .buttonStyle(ActionPillButtonStyle())
+
+            Text(plan.safetyEntryDetail)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        .appSurface()
+    }
+
     private func actions(_ plan: AfterPlan) -> some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            SectionHeader(title: "Quick actions", subtitle: "Soft signals stay visible before anything turns into chat.")
+            SectionHeader(title: "Quick actions", subtitle: plan.lifecycleWindowDetail)
 
             HStack(spacing: Spacing.sm) {
                 Button(plan.joinActionTitle) { store.join(plan.id) }
@@ -108,9 +145,15 @@ struct PlanDetailView: View {
             HStack(spacing: Spacing.sm) {
                 Button(plan.suggestPlaceActionTitle) { store.suggestDefaultPlace(for: plan.id) }
                     .buttonStyle(ActionPillButtonStyle())
-                Button("Share") { isShowingInvite = true }
+                    .disabled(!plan.canSuggestPlace)
+                Button(plan.shareActionTitle) { isShowingInvite = true }
                     .buttonStyle(ActionPillButtonStyle())
+                    .disabled(!plan.canShareInvite)
             }
+
+            Text(plan.shareActionSubtitle)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
         .appSurface()
     }
@@ -124,6 +167,10 @@ struct PlanDetailView: View {
 
             Text(plan.nextStepGuidance)
                 .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Text(plan.lifecycleWindowTitle)
+                .font(.footnote.weight(.semibold))
                 .foregroundStyle(.secondary)
 
             HStack(spacing: Spacing.sm) {
@@ -188,19 +235,29 @@ struct PlanDetailView: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             SectionHeader(title: "Confirmation room", subtitle: "The app should help the group converge before any last-mile handoff.")
 
-            NavigationLink {
-                ConfirmationRoomView(planID: plan.id)
-            } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(plan.lifecycle.shortActionLabel)
-                            .font(.headline)
-                        Text(plan.confirmationRoomSubtitle)
-                            .font(.subheadline)
+            if plan.lifecycle.allowsConfirmationRoom {
+                NavigationLink {
+                    ConfirmationRoomView(planID: plan.id)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(plan.lifecycle.shortActionLabel)
+                                .font(.headline)
+                            Text(plan.confirmationRoomSubtitle)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
                             .foregroundStyle(.secondary)
                     }
-                    Spacer()
-                    Image(systemName: "chevron.right")
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(plan.lifecycle.shortActionLabel)
+                        .font(.headline)
+                    Text("Closed plans stay readable here, but the confirmation room is no longer actionable.")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
             }

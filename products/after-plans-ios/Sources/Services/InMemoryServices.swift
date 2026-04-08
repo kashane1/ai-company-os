@@ -250,8 +250,13 @@ struct InMemoryInviteService: InviteService {
         InvitePreview(
             title: plan.title,
             subtitle: "\(plan.contextTitle) · \(plan.visibility.title)",
+            audienceHeadline: plan.shareAudienceHeadline,
+            audienceDetail: plan.shareAudienceDetail,
+            joinFraming: plan.shareJoinFraming,
             linkLabel: "Copy invite link",
-            qrLabel: "Show QR for people nearby"
+            qrLabel: "Show QR for people nearby",
+            nextStepTitle: "What happens next",
+            nextStepDetail: "Sharing here should help the right people join quickly, then hand the group back to the confirmation loop."
         )
     }
 }
