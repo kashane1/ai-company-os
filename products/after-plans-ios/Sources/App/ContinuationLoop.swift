@@ -55,6 +55,39 @@ struct PlanAffinity: Equatable {
     }
 }
 
+/// Lightweight social-memory stats derived from the current plan set.
+struct RecapSummary: Equatable {
+    /// Number of closed plans (successful follow-throughs).
+    let followThroughCount: Int
+    /// Distinct context titles that have at least one closed plan.
+    let distinctContextsFollowedThrough: [String]
+    /// Context title that appears most often in closed plans, if any.
+    let repeatContextTitle: String?
+    /// A warm summary headline for the Activity surface.
+    var headline: String {
+        if followThroughCount == 0 {
+            return "Your first continuation is waiting."
+        }
+        if let repeatContext = repeatContextTitle {
+            return "You keep coming back after \(repeatContext)."
+        }
+        if distinctContextsFollowedThrough.count > 1 {
+            return "\(followThroughCount) follow-throughs across \(distinctContextsFollowedThrough.count) contexts."
+        }
+        return "You followed through once so far."
+    }
+    /// Short, warm detail line about social momentum.
+    var detail: String {
+        if followThroughCount == 0 {
+            return "Plans that wrap will show up here as your continuation history."
+        }
+        if followThroughCount == 1 {
+            return "One real follow-through is a start."
+        }
+        return "That kind of follow-through builds real momentum."
+    }
+}
+
 struct ContinuationLoop {
     let visiblePlans: [AfterPlan]
     let rankedPlans: [AfterPlan]
@@ -140,6 +173,21 @@ struct ContinuationLoop {
 
     func affinity(for id: UUID) -> PlanAffinity? {
         affinityByPlanID[id]
+    }
+
+    var recapSummary: RecapSummary {
+        let closed = historyPlans
+        let contextCounts = Dictionary(grouping: closed, by: \.contextTitle)
+            .mapValues(\.count)
+        let distinctContexts = contextCounts.keys.sorted()
+        let repeatContext = contextCounts.max(by: { $0.value < $1.value })
+        let repeatTitle = (repeatContext?.value ?? 0) >= 2 ? repeatContext?.key : nil
+
+        return RecapSummary(
+            followThroughCount: closed.count,
+            distinctContextsFollowedThrough: distinctContexts,
+            repeatContextTitle: repeatTitle
+        )
     }
 
     private static func rankingScore(for plan: AfterPlan, affinity: PlanAffinity?) -> Int {

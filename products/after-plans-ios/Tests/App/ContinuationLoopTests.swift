@@ -187,6 +187,92 @@ final class ContinuationLoopTests: XCTestCase {
         XCTAssertEqual(affinity?.detailLine, "You've kept going after this context before.")
     }
 
+    func testRecapSummaryCountsFollowThroughsAndDetectsRepeatContexts() {
+        let context = ContextOption(
+            id: UUID(), type: .classSession, title: "Pottery Night",
+            venueName: "Clay House Studio", endedAtLabel: "Ended 10 min ago",
+            proximityLabel: "3 min away", trustNote: "Pottery people first."
+        )
+
+        let closedA = makePlan(title: "Tea after class", contextTitle: context.title,
+                                hostName: "Nia", lifecycle: .closed)
+        let closedB = makePlan(title: "Post-class slices", contextTitle: context.title,
+                                hostName: "Mina", lifecycle: .closed)
+        let openPlan = makePlan(title: "Walk after pottery", contextTitle: context.title,
+                                 hostName: "Dev")
+
+        let loop = ContinuationLoop(
+            plans: [closedA, closedB, openPlan],
+            selectedContext: context,
+            blockedUserNames: [],
+            currentUserName: "Maya",
+            focusedPlanID: nil
+        )
+
+        let recap = loop.recapSummary
+        XCTAssertEqual(recap.followThroughCount, 2)
+        XCTAssertEqual(recap.distinctContextsFollowedThrough, ["Pottery Night"])
+        XCTAssertEqual(recap.repeatContextTitle, "Pottery Night")
+        XCTAssertTrue(recap.headline.contains("keep coming back"))
+    }
+
+    func testRecapSummaryWithNoClosedPlansShowsEmptyState() {
+        let context = ContextOption(
+            id: UUID(), type: .community, title: "Run Club",
+            venueName: "Track", endedAtLabel: "Ended 5 min ago",
+            proximityLabel: "4 min away", trustNote: "Runners first."
+        )
+
+        let openPlan = makePlan(title: "Coffee walk", contextTitle: context.title,
+                                 hostName: "Sam")
+
+        let loop = ContinuationLoop(
+            plans: [openPlan],
+            selectedContext: context,
+            blockedUserNames: [],
+            currentUserName: "Maya",
+            focusedPlanID: nil
+        )
+
+        let recap = loop.recapSummary
+        XCTAssertEqual(recap.followThroughCount, 0)
+        XCTAssertTrue(recap.distinctContextsFollowedThrough.isEmpty)
+        XCTAssertNil(recap.repeatContextTitle)
+        XCTAssertTrue(recap.headline.contains("first continuation"))
+    }
+
+    func testRecapSummaryMultipleContextsWithoutRepeat() {
+        let pottery = ContextOption(
+            id: UUID(), type: .classSession, title: "Pottery Night",
+            venueName: "Clay House Studio", endedAtLabel: "Ended 10 min ago",
+            proximityLabel: "3 min away", trustNote: "Pottery people first."
+        )
+        let runClub = ContextOption(
+            id: UUID(), type: .community, title: "Run Club",
+            venueName: "Track", endedAtLabel: "Ended 5 min ago",
+            proximityLabel: "4 min away", trustNote: "Runners first."
+        )
+
+        let closedPottery = makePlan(title: "Tea after class", contextTitle: pottery.title,
+                                      hostName: "Nia", lifecycle: .closed)
+        let closedRun = makePlan(title: "Coffee after run", contextTitle: runClub.title,
+                                  hostName: "Dev", lifecycle: .closed)
+
+        let loop = ContinuationLoop(
+            plans: [closedPottery, closedRun],
+            selectedContext: pottery,
+            blockedUserNames: [],
+            currentUserName: "Maya",
+            focusedPlanID: nil
+        )
+
+        let recap = loop.recapSummary
+        XCTAssertEqual(recap.followThroughCount, 2)
+        XCTAssertEqual(recap.distinctContextsFollowedThrough.count, 2)
+        XCTAssertNil(recap.repeatContextTitle) // each context only once — no repeat
+        XCTAssertTrue(recap.headline.contains("2 follow-throughs"))
+    }
+
     private func makePlan(
         title: String,
         contextTitle: String,

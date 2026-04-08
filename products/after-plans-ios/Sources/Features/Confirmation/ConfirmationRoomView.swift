@@ -27,7 +27,9 @@ struct ConfirmationRoomView: View {
                             .disabled(!plan.canTakeConfirmationAction)
 
                             if !plan.canTakeConfirmationAction {
-                                Text("Waiting for enough people to join before this unlocks.")
+                                Text(plan.confirmationDisabledReason.isEmpty
+                                     ? "Waiting for enough people to join before this unlocks."
+                                     : plan.confirmationDisabledReason)
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
                                     .multilineTextAlignment(.center)
@@ -85,6 +87,12 @@ struct ConfirmationRoomView: View {
                 InfoRow(icon: "clock", text: plan.timeLabel)
             }
             InfoRow(icon: "person.3", text: "\(plan.joinedCount) joined · \(plan.interestedCount) interested")
+
+            if !plan.joinConfidenceCue.isEmpty {
+                Text(plan.joinConfidenceCue)
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(plan.lifecycle == .confirmed || plan.lifecycle == .active ? Color.appSafe : Color.appMomentum)
+            }
 
             Text(plan.lifecycleWindowDetail)
                 .font(.caption)

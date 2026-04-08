@@ -100,6 +100,10 @@ final class AfterPlansStore: ObservableObject {
         continuation.recentPartners
     }
 
+    var recapSummary: RecapSummary {
+        continuation.recapSummary
+    }
+
     func affinity(for planID: UUID) -> PlanAffinity? {
         continuation.affinity(for: planID)
     }

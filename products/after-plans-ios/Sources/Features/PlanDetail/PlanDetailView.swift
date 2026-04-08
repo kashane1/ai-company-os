@@ -80,6 +80,13 @@ struct PlanDetailView: View {
 
             LifecycleProgressView(lifecycle: plan.lifecycle)
 
+            // Readiness cue — helps the viewer gauge join-confidence
+            if !plan.readinessHint.isEmpty {
+                Text(plan.readinessHint)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(readinessHintColor(plan))
+            }
+
             // What to do next — prominent guidance
             Text(plan.nextStepGuidance)
                 .font(.subheadline)
@@ -103,6 +110,14 @@ struct PlanDetailView: View {
                 .foregroundStyle(.secondary)
         }
         .appSurface(prominent: true, tint: headerTint(plan))
+    }
+
+    private func readinessHintColor(_ plan: AfterPlan) -> Color {
+        switch plan.lifecycle {
+        case .confirmed, .active: return .appSafe
+        case .forming:            return .appMomentum
+        default:                  return .secondary
+        }
     }
 
     private func headerTint(_ plan: AfterPlan) -> Color? {

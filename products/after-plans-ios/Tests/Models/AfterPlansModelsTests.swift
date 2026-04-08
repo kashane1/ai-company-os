@@ -139,11 +139,107 @@ final class AfterPlansModelsTests: XCTestCase {
         XCTAssertEqual(plan.shareable.qrString, plan.shareable.url.absoluteString)
     }
 
+    // MARK: - Join-confidence and lifecycle-clarity cues
+
+    func testJoinConfidenceCueReflectsLifecycleAndMomentum() {
+        let openEmpty = makePlan(lifecycle: .open, participationState: .browsing, participantCount: 0)
+        XCTAssertEqual(openEmpty.joinConfidenceCue, "Still early — soft interest helps")
+
+        let openWithJoins = makePlan(lifecycle: .open, participationState: .browsing, participantCount: 2)
+        XCTAssertTrue(openWithJoins.joinConfidenceCue.contains("a few more makes it real"))
+
+        let forming = makePlan(lifecycle: .forming, participationState: .joined, participantCount: 2)
+        XCTAssertEqual(forming.joinConfidenceCue, "Already taking shape")
+
+        let formingHigh = makePlan(lifecycle: .forming, participationState: .joined, participantCount: 3)
+        XCTAssertEqual(formingHigh.joinConfidenceCue, "Close to confirming")
+
+        let confirmed = makePlan(lifecycle: .confirmed, participationState: .joined)
+        XCTAssertEqual(confirmed.joinConfidenceCue, "Good to join — this is happening")
+
+        let active = makePlan(lifecycle: .active, participationState: .confirmed)
+        XCTAssertEqual(active.joinConfidenceCue, "Already in motion")
+
+        let closed = makePlan(lifecycle: .closed, participationState: .confirmed)
+        XCTAssertTrue(closed.joinConfidenceCue.isEmpty)
+    }
+
+    func testReadinessHintReflectsLifecycleAndMomentum() {
+        let openEmpty = makePlan(lifecycle: .open, participationState: .browsing, participantCount: 0)
+        XCTAssertTrue(openEmpty.readinessHint.contains("first yes"))
+
+        let openWithJoins = makePlan(lifecycle: .open, participationState: .browsing, participantCount: 2)
+        XCTAssertTrue(openWithJoins.readinessHint.contains("couple more"))
+
+        let forming = makePlan(lifecycle: .forming, participationState: .joined, participantCount: 2)
+        XCTAssertTrue(forming.readinessHint.contains("locks your spot"))
+
+        let formingHigh = makePlan(lifecycle: .forming, participationState: .joined, participantCount: 3)
+        XCTAssertTrue(formingHigh.readinessHint.contains("one more person"))
+
+        let confirmed = makePlan(lifecycle: .confirmed, participationState: .joined)
+        XCTAssertTrue(confirmed.readinessHint.contains("join with confidence"))
+
+        let closed = makePlan(lifecycle: .closed, participationState: .confirmed)
+        XCTAssertTrue(closed.readinessHint.isEmpty)
+    }
+
+    func testRecapLineOnlyPopulatesForClosedPlans() {
+        let open = makePlan(lifecycle: .open, participationState: .browsing)
+        XCTAssertTrue(open.recapLine.isEmpty)
+
+        let forming = makePlan(lifecycle: .forming, participationState: .joined)
+        XCTAssertTrue(forming.recapLine.isEmpty)
+
+        let closedSmall = makePlan(lifecycle: .closed, participationState: .confirmed, participantCount: 2)
+        XCTAssertTrue(closedSmall.recapLine.contains("followed through"))
+        XCTAssertTrue(closedSmall.recapLine.contains("Pottery Night"))
+
+        let closedLarge = makePlan(lifecycle: .closed, participationState: .confirmed, participantCount: 4)
+        XCTAssertTrue(closedLarge.recapLine.contains("4 people"))
+        XCTAssertTrue(closedLarge.recapLine.contains("kept the moment going"))
+
+        let closedEmpty = makePlan(lifecycle: .closed, participationState: .confirmed, participantCount: 0)
+        XCTAssertTrue(closedEmpty.recapLine.contains("continuation from"))
+    }
+
+    func testConfirmationDisabledReasonIsLifecycleAware() {
+        let open = makePlan(lifecycle: .open, participationState: .browsing)
+        XCTAssertTrue(open.confirmationDisabledReason.contains("first yes"))
+
+        let forming = makePlan(lifecycle: .forming, participationState: .joined)
+        XCTAssertTrue(forming.confirmationDisabledReason.contains("lock in"))
+
+        let confirmed = makePlan(lifecycle: .confirmed, participationState: .joined)
+        XCTAssertTrue(confirmed.confirmationDisabledReason.contains("confirmed"))
+
+        let active = makePlan(lifecycle: .active, participationState: .confirmed)
+        XCTAssertTrue(active.confirmationDisabledReason.isEmpty)
+
+        let closed = makePlan(lifecycle: .closed, participationState: .confirmed)
+        XCTAssertTrue(closed.confirmationDisabledReason.isEmpty)
+    }
+
     private func makePlan(
         lifecycle: PlanLifecycleState,
-        participationState: PlanParticipationState
+        participationState: PlanParticipationState,
+        participantCount: Int = 1
     ) -> AfterPlan {
-        AfterPlan(
+        let participants: [ParticipantSummary]
+        if participantCount == 0 {
+            participants = []
+        } else {
+            participants = (0..<participantCount).map { index in
+                ParticipantSummary(
+                    id: UUID(),
+                    name: index == 0 ? "Nia" : "Person \(index)",
+                    descriptor: index == 0 ? "Hosting" : "Joined",
+                    isOrganizer: index == 0,
+                    isKnown: index == 0
+                )
+            }
+        }
+        return AfterPlan(
             id: UUID(),
             title: "Tea after class",
             summary: "Simple next move",
@@ -157,9 +253,7 @@ final class AfterPlansModelsTests: XCTestCase {
             venueLabel: "Tea House",
             distanceLabel: "3 min walk",
             trustBlurb: "Same context first.",
-            participants: [
-                ParticipantSummary(id: UUID(), name: "Nia", descriptor: "Hosting", isOrganizer: true, isKnown: true),
-            ],
+            participants: participants,
             interestedCount: 0,
             placeSuggestions: [],
             participationState: participationState

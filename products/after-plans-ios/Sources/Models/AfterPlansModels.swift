@@ -341,6 +341,76 @@ struct AfterPlan: Identifiable, Equatable {
         }
     }
 
+    /// Short, reassuring cue about how ready this plan is to join. Shown on discovery cards.
+    var joinConfidenceCue: String {
+        switch lifecycle {
+        case .open:
+            if joinedCount == 0 {
+                return "Still early — soft interest helps"
+            }
+            return "\(joinedCount) joined · a few more makes it real"
+        case .forming:
+            if joinedCount >= 3 {
+                return "Close to confirming"
+            }
+            return "Already taking shape"
+        case .confirmed:
+            return "Good to join — this is happening"
+        case .active:
+            return "Already in motion"
+        case .closed:
+            return ""
+        }
+    }
+
+    /// Slightly longer readiness cue for Plan Detail, helping the viewer decide whether to commit.
+    var readinessHint: String {
+        switch lifecycle {
+        case .open:
+            if joinedCount == 0 {
+                return "This plan is waiting for a first yes. Joining now helps it feel real."
+            }
+            return "A couple more people and this starts to take shape."
+        case .forming:
+            if joinedCount >= 3 {
+                return "Waiting on one more person to lock this in."
+            }
+            return "There's enough interest to converge. Joining now locks your spot."
+        case .confirmed:
+            return "The details are set. You can join with confidence."
+        case .active:
+            return "Already underway — no more setup needed."
+        case .closed:
+            return ""
+        }
+    }
+
+    /// Warm recap line for closed plans, summarizing the continuation outcome for the Activity surface.
+    var recapLine: String {
+        guard lifecycle == .closed else { return "" }
+        if joinedCount >= 3 {
+            return "You kept the moment going with \(joinedCount) people after \(contextTitle)."
+        }
+        if joinedCount > 0 {
+            return "You followed through after \(contextTitle)."
+        }
+        return "A continuation from \(contextTitle)."
+    }
+
+    /// Lifecycle-aware explanation when the confirmation CTA is disabled.
+    var confirmationDisabledReason: String {
+        switch lifecycle {
+        case .open:
+            return "Waiting on a first yes before this can move forward."
+        case .forming:
+            return "One or two more joins and this can lock in."
+        case .confirmed:
+            return "This is confirmed — ready when you are."
+        case .active, .closed:
+            return ""
+        }
+    }
+
     var participationLabel: String {
         switch participationState {
         case .browsing:

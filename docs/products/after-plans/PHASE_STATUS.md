@@ -37,6 +37,10 @@ Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking r
 - Phase 6: safety access is now surfaced more directly from existing plan screens with calm report/block guidance instead of relying only on a toolbar icon
 - Phase 6: active and closed plans now keep trust/safety messaging visible while avoiding misleading “still live” visibility posture
 - Phase 6: targeted model/store validation for the trust/safety visibility slice is green, so a redundant full-scheme rerun was intentionally skipped this pass
+- Phase 6: Home discovery cards, Plan Detail, and Confirmation Room now surface join-confidence and lifecycle-clarity cues (`joinConfidenceCue`, `readinessHint`, `confirmationDisabledReason`) so users can gauge readiness and feel informed without pressure
+- Phase 6: full scheme rerun green at 33 tests, 0 failures after the join-confidence cues slice
+- Phase 6: Activity surface now functions as a lightweight recap/social-memory feed with `RecapSummary` (follow-through count, repeat-context detection, warm headline/detail copy), `recapLine` on closed plans, recent-partners chip row, and affinity badges on history entries
+- Phase 6: full scheme rerun green at 37 tests, 0 failures after the recap/social-memory slice
 
 ## Locked Decisions
 

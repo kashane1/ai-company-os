@@ -331,6 +331,13 @@ private struct DiscoveryCardView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
 
+            // 2b. Join-confidence cue — lightweight readiness signal
+            if !plan.joinConfidenceCue.isEmpty {
+                Text(plan.joinConfidenceCue)
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(confidenceCueColor)
+            }
+
             if showContext {
                 InfoRow(icon: "sparkles.rectangle.stack", text: plan.contextTitle)
             }
@@ -385,6 +392,14 @@ private struct DiscoveryCardView: View {
     private var hasTrustSignal: Bool {
         guard let affinity else { return false }
         return !affinity.badges.isEmpty
+    }
+
+    private var confidenceCueColor: Color {
+        switch plan.lifecycle {
+        case .confirmed, .active: return .appSafe
+        case .forming:            return .appMomentum
+        default:                  return .secondary
+        }
     }
 
     private var planMetaLine: String {
