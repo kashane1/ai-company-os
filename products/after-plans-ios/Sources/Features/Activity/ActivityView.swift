@@ -5,26 +5,28 @@ struct ActivityView: View {
 
     var body: some View {
         List {
-            Section {
-                Text("Activity is for live and recent after-plans. It is not a chat inbox.")
-                    .foregroundStyle(.secondary)
-            }
-
             Section("Live now") {
                 if store.livePlans.isEmpty {
-                    Text("Nothing live yet.")
+                    Label("Nothing live right now.", systemImage: "moon")
                         .foregroundStyle(.secondary)
+                        .font(.subheadline)
                 } else {
                     ForEach(store.livePlans) { plan in
                         NavigationLink {
                             PlanDetailView(planID: plan.id)
                         } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(plan.title)
-                                Text("\(plan.lifecycle.title) · \(plan.contextTitle)")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(plan.title)
+                                        .font(.headline)
+                                    Text(plan.contextTitle)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                LifecycleBadgeView(lifecycle: plan.lifecycle)
                             }
+                            .padding(.vertical, 2)
                         }
                     }
                 }
@@ -32,15 +34,26 @@ struct ActivityView: View {
 
             Section("Recent") {
                 if store.historyPlans.isEmpty {
-                    Text("Closed plans will appear here once the loop is running.")
+                    Label("Closed plans will appear here.", systemImage: "clock.arrow.circlepath")
                         .foregroundStyle(.secondary)
+                        .font(.subheadline)
                 } else {
                     ForEach(store.historyPlans) { plan in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(plan.title)
-                            Text("\(plan.contextTitle) · \(plan.venueLabel)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                        NavigationLink {
+                            PlanDetailView(planID: plan.id)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(plan.title)
+                                        .font(.headline)
+                                    Text("\(plan.contextTitle) · \(plan.venueLabel)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                LifecycleBadgeView(lifecycle: plan.lifecycle)
+                            }
+                            .padding(.vertical, 2)
                         }
                     }
                 }

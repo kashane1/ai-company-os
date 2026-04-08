@@ -10,7 +10,7 @@ struct CreatePlanView: View {
 
         Form {
             Section {
-                Text("Creation should feel lighter than spinning up a full event. Pick one mode and give people enough context to join.")
+                Text("Pick a mode and give people enough to decide if they want to join.")
                     .foregroundStyle(.secondary)
             }
 
@@ -81,7 +81,7 @@ struct CreatePlanView: View {
                 Text(previewSummary)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                Text("After publishing, the plan returns to Home pinned as your current move so detail and confirmation can tighten it from there.")
+                Text("Once published, this plan appears on Home as your current move.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -94,6 +94,7 @@ struct CreatePlanView: View {
                 }
             }
         }
+        .tint(.appAccent)
         .navigationTitle("Start What's Next")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {

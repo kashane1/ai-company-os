@@ -10,102 +10,35 @@ struct ConfirmationRoomView: View {
             if let plan = store.plan(with: planID) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
-                        VStack(alignment: .leading, spacing: Spacing.md) {
-                            LifecycleBadgeView(lifecycle: plan.lifecycle)
-                            LifecycleProgressView(lifecycle: plan.lifecycle)
-                            Text("Confirmation room")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
-                            Text(plan.confirmationRoomSubtitle)
-                                .foregroundStyle(.secondary)
-                        }
-                        .appSurface(prominent: true)
-
-                        VStack(alignment: .leading, spacing: Spacing.md) {
-                            SectionHeader(title: "Locked details", subtitle: "Enough structure to move from soft interest to a real next plan.")
-                            Text(plan.title)
-                                .font(.headline)
-                            InfoRow(icon: "mappin.and.ellipse", text: plan.venueLabel)
-                            InfoRow(icon: "clock", text: plan.timeLabel)
-                            InfoRow(icon: "person.3", text: "\(plan.joinedCount) joined · \(plan.interestedCount) interested")
-                        }
-                        .appSurface()
-
-                        VStack(alignment: .leading, spacing: Spacing.md) {
-                            SectionHeader(title: plan.lifecycleWindowTitle, subtitle: "Confirmation should feel like convergence, not like opening a chat thread.")
-                            Text(plan.lifecycleHeadline)
-                                .font(.headline)
-                            Text(plan.nextStepGuidance)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            Text(plan.lifecycleWindowDetail)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                            Text(plan.participationLabel)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                        .appSurface()
-
-                        VStack(alignment: .leading, spacing: Spacing.md) {
-                            SectionHeader(title: "Visibility & Safety", subtitle: "Bounded visibility should stay legible even as the plan gets more real.")
-                            Text(plan.visibilityHeadline)
-                                .font(.headline)
-                            Text(plan.visibilityDetail)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            Text(plan.visibilityFootnote)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                            Button(plan.safetyEntryTitle) {
-                                isShowingSafety = true
-                            }
-                            .buttonStyle(ActionPillButtonStyle())
-                        }
-                        .appSurface()
-
-                        VStack(alignment: .leading, spacing: Spacing.md) {
-                            SectionHeader(title: "What happens next", subtitle: "Later slices can add handoff, arrival, and richer coordination.")
-                            Text(sequenceLineOne(for: plan))
-                            Text(sequenceLineTwo(for: plan))
-                            Text(sequenceLineThree(for: plan))
-                        }
-                        .appSurface()
+                        planCard(plan)
+                        stepsCard(plan)
+                        trustLine(plan)
 
                         if plan.canShareInvite {
-                            VStack(alignment: .leading, spacing: Spacing.md) {
-                                SectionHeader(title: "Invite the right people", subtitle: "Sharing here should help the current plan form or fill in, not turn into broad outreach.")
-                                Text(plan.shareActionSubtitle)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                            inviteCard(plan)
+                        }
 
-                                NavigationLink {
-                                    InviteShareView(planID: plan.id)
-                                } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(plan.shareActionTitle)
-                                                .font(.headline)
-                                            Text(plan.shareAudienceHeadline)
-                                                .font(.subheadline)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
+                        // CTA with extra breathing room
+                        VStack(spacing: Spacing.sm) {
+                            Button(plan.confirmationActionTitle) {
+                                store.runConfirmationAction(for: plan.id)
                             }
-                            .appSurface()
-                        }
+                            .buttonStyle(ActionPillButtonStyle(prominent: true))
+                            .disabled(!plan.canTakeConfirmationAction)
 
-                        Button(plan.confirmationActionTitle) {
-                            store.runConfirmationAction(for: plan.id)
+                            if !plan.canTakeConfirmationAction {
+                                Text("Waiting for enough people to join before this unlocks.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .frame(maxWidth: .infinity)
+                            }
                         }
-                        .buttonStyle(ActionPillButtonStyle(prominent: true))
-                        .disabled(!plan.canTakeConfirmationAction)
+                        .padding(.top, Spacing.sm)
                     }
                     .padding(Spacing.lg)
                 }
+                .background(Color.appBackground.ignoresSafeArea())
                 .navigationTitle("Confirmation")
                 .sheet(isPresented: $isShowingSafety) {
                     NavigationStack {
@@ -118,42 +51,155 @@ struct ConfirmationRoomView: View {
         }
     }
 
+    // MARK: - Plan card (merged header + details)
+
+    private func planCard(_ plan: AfterPlan) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            // Status row
+            HStack {
+                LifecycleBadgeView(lifecycle: plan.lifecycle)
+                Spacer()
+                AppBadge(text: plan.visibility.trustBadge, tone: .appSafe)
+            }
+
+            // Plan identity
+            Text(plan.title)
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+
+            Text(plan.confirmationRoomSubtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            LifecycleProgressView(lifecycle: plan.lifecycle)
+
+            // What you need to do — prominent guidance below progress
+            Text(plan.nextStepGuidance)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            CardDivider()
+
+            // Key facts
+            HStack(spacing: Spacing.lg) {
+                InfoRow(icon: "mappin.and.ellipse", text: plan.venueLabel)
+                InfoRow(icon: "clock", text: plan.timeLabel)
+            }
+            InfoRow(icon: "person.3", text: "\(plan.joinedCount) joined · \(plan.interestedCount) interested")
+
+            Text(plan.lifecycleWindowDetail)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .appSurface(prominent: true, tint: plan.lifecycle == .confirmed || plan.lifecycle == .active ? .appSafe : nil)
+    }
+
+    // MARK: - Steps card (icon-bulleted)
+
+    private func stepsCard(_ plan: AfterPlan) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            SectionHeader(title: "What happens next")
+
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                stepRow(sequenceLineOne(for: plan))
+                stepRow(sequenceLineTwo(for: plan))
+                stepRow(sequenceLineThree(for: plan))
+            }
+        }
+        .appSurface()
+    }
+
+    private func stepRow(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: Spacing.sm) {
+            Circle()
+                .fill(Color.appAccent.opacity(0.35))
+                .frame(width: 6, height: 6)
+                .padding(.top, 7)
+            Text(stripped(text))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    /// Strips a leading "N. " step prefix so content can be displayed without the number.
+    private func stripped(_ text: String) -> String {
+        guard text.count > 3,
+              let first = text.first, first.isNumber,
+              text.dropFirst().first == "." else {
+            return text
+        }
+        return String(text.dropFirst(3))
+    }
+
+    // MARK: - Trust line (single-line, not a full card)
+
+    private func trustLine(_ plan: AfterPlan) -> some View {
+        HStack(spacing: Spacing.sm) {
+            AppBadge(text: plan.visibility.trustBadge, tone: .appSafe)
+            Text(plan.visibilityHeadline)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Spacer()
+            Button(plan.safetyEntryTitle) {
+                isShowingSafety = true
+            }
+            .buttonStyle(TextLinkButtonStyle())
+        }
+        .appSurface(tint: .appSafe)
+    }
+
+    // MARK: - Invite card
+
+    private func inviteCard(_ plan: AfterPlan) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            SectionHeader(title: "Invite people", subtitle: "People in your context only.")
+
+            NavigationLink {
+                InviteShareView(planID: plan.id)
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(plan.shareActionTitle)
+                            .font(.headline)
+                        Text(plan.shareAudienceHeadline)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .appSurface()
+    }
+
+    // MARK: - Step copy
+
     private func sequenceLineOne(for plan: AfterPlan) -> String {
         switch plan.lifecycle {
-        case .open:
-            "1. People react while the plan is still lightweight."
-        case .forming:
-            "1. The group narrows toward one place and timing."
-        case .confirmed:
-            "1. The details are already locked for the group."
-        case .active:
-            "1. The plan is already underway."
-        case .closed:
-            "1. The plan already happened."
+        case .open:      "1. People see the plan and decide if they're in."
+        case .forming:   "1. The group is converging on a time and place."
+        case .confirmed: "1. The details are locked — everyone knows the plan."
+        case .active:    "1. The plan is live."
+        case .closed:    "1. The plan already happened."
         }
     }
 
     private func sequenceLineTwo(for plan: AfterPlan) -> String {
         switch plan.lifecycle {
-        case .open, .forming:
-            "2. Enough joins and one clear option push it into a confirmed plan."
-        case .confirmed:
-            "2. People now shift from confirmed to actually heading there."
-        case .active:
-            "2. The room now just reflects the agreed details."
-        case .closed:
-            "2. The room is now history, not coordination."
+        case .open, .forming: "2. Enough people joining locks the details in."
+        case .confirmed:      "2. People mark themselves as heading out."
+        case .active:         "2. The room reflects the agreed details."
+        case .closed:         "2. This room is part of the record now."
         }
     }
 
     private func sequenceLineThree(for plan: AfterPlan) -> String {
         switch plan.lifecycle {
-        case .open, .forming, .confirmed:
-            "3. Last-mile chatter can hand off to text later."
-        case .active:
-            "3. No new setup should compete with the fact that it is already real."
-        case .closed:
-            "3. Any follow-up belongs to recap, not this room."
+        case .open, .forming, .confirmed: "3. Final coordination moves to your messages app."
+        case .active:  "3. You're set — just show up."
+        case .closed:  "3. Any follow-up lives in the activity recap, not here."
         }
     }
 }

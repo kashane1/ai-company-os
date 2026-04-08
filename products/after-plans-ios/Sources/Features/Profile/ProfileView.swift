@@ -4,59 +4,118 @@ struct ProfileView: View {
     @EnvironmentObject private var store: AfterPlansStore
 
     var body: some View {
-        List {
-            Section("Profile") {
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text(store.currentUser.firstName)
-                        .font(.title2.weight(.bold))
-                    Text(store.currentUser.descriptor)
-                        .foregroundStyle(.secondary)
-                    AppBadge(text: store.currentUser.trustHeadline, tone: .appSafe)
-                }
-                .padding(.vertical, 6)
+        ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.xl) {
+                profileHeader
+                trustSection
+                partnersSection
+                safetySection
+            }
+            .padding(Spacing.lg)
+        }
+        .background(Color.appBackground.ignoresSafeArea())
+        .navigationTitle("Profile")
+    }
+
+    // MARK: - Profile header
+
+    private var profileHeader: some View {
+        HStack(spacing: Spacing.lg) {
+            ZStack {
+                Circle()
+                    .fill(Color.appAccent.opacity(0.12))
+                    .frame(width: 64, height: 64)
+                Text(store.currentUser.firstName.prefix(1))
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.appAccent)
             }
 
-            Section("Trust defaults") {
-                Label(store.currentUser.visibilityDefault.title, systemImage: "eye")
-                Text("Known people, same-context visibility, and block controls should stay visible before launch.")
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(store.currentUser.firstName)
+                    .font(.title2.weight(.bold))
+                Text(store.currentUser.descriptor)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                AppBadge(text: store.currentUser.trustHeadline, tone: .appSafe)
+            }
+
+            Spacer()
+        }
+        .appSurface(prominent: true)
+    }
+
+    // MARK: - Trust defaults
+
+    private var trustSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            SectionHeader(title: "Trust defaults")
+
+            Label(store.currentUser.visibilityDefault.title, systemImage: "eye")
+                .font(.subheadline)
+
+            Text("Your default visibility controls who can see you in plans.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        .appSurface()
+    }
+
+    // MARK: - Partners
+
+    private var partnersSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            SectionHeader(title: "Recent plan partners")
+
+            if store.recentPartners.isEmpty {
+                Text("Past partners appear here as you join more plans.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(store.recentPartners, id: \.self) { partner in
+                    HStack {
+                        Text(partner)
+                            .font(.subheadline)
+                        Spacer()
+                        AppBadge(text: "Known")
+                    }
+                }
+            }
+        }
+        .appSurface()
+    }
+
+    // MARK: - Safety
+
+    private var safetySection: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            SectionHeader(title: "Safety")
+
+            NavigationLink {
+                SafetyCenterView(focusedPlanID: nil)
+            } label: {
+                HStack {
+                    Label("Open safety center", systemImage: "shield.lefthalf.filled")
+                        .font(.subheadline.weight(.medium))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.tertiary)
+                        .font(.footnote)
+                }
+            }
+            .buttonStyle(.plain)
+
+            if store.blockedUserNames.isEmpty {
+                Text("No blocked users.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-            }
-
-            Section("Recent plan partners") {
-                if store.recentPartners.isEmpty {
-                    Text("Past partners will show up here as the seed build is exercised.")
+            } else {
+                ForEach(store.blockedUserNames, id: \.self) { name in
+                    Label(name, systemImage: "hand.raised")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
-                } else {
-                    ForEach(store.recentPartners, id: \.self) { partner in
-                        Text(partner)
-                    }
                 }
             }
-
-            Section("Safety") {
-                NavigationLink("Open safety center") {
-                    SafetyCenterView(focusedPlanID: nil)
-                }
-
-                if store.blockedUserNames.isEmpty {
-                    Text("No blocked users yet.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(store.blockedUserNames, id: \.self) { name in
-                        Label(name, systemImage: "hand.raised")
-                    }
-                }
-            }
-
-            Section("Intentionally deferred") {
-                Label("Ranking logic", systemImage: "chart.line.uptrend.xyaxis")
-                Label("Messaging and handoff tooling", systemImage: "message")
-                Label("Organizer and premium layers", systemImage: "crown")
-                Label("Payments and analytics pipelines", systemImage: "creditcard")
-            }
-            .foregroundStyle(.secondary)
         }
-        .navigationTitle("Profile")
+        .appSurface()
     }
 }

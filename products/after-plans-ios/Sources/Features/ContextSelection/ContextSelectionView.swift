@@ -7,7 +7,7 @@ struct ContextSelectionView: View {
     var body: some View {
         List {
             Section {
-                Text("Anchor the feed to what just ended so the app feels bounded and trust-aware from the start.")
+                Text("Pick what just ended to anchor your feed to the right moment and the right people.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -18,26 +18,38 @@ struct ContextSelectionView: View {
                         store.selectContext(context)
                         dismiss()
                     } label: {
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text(context.title)
-                                .foregroundStyle(.primary)
-                            Text("\(context.venueName) · \(context.endedAtLabel)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            Text(context.trustNote)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
+                        HStack {
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
+                                Text(context.title)
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text("\(context.venueName) · \(context.endedAtLabel)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                Text(context.trustNote)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if store.selectedContext?.id == context.id {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(Color.appAccent)
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
+                        .padding(.vertical, 2)
                     }
                 }
-            }
 
-            Section("Later, not now") {
-                Label("Manual context entry", systemImage: "square.and.pencil")
-                Label("Context inference from location", systemImage: "location")
-                Label("Imported invite or QR context", systemImage: "qrcode")
+                if store.availableContexts.isEmpty {
+                    Label("No recent contexts found.", systemImage: "clock")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
-            .foregroundStyle(.secondary)
         }
         .navigationTitle("Current Context")
         .toolbar {

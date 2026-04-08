@@ -1,14 +1,18 @@
 import SwiftUI
 
+// MARK: - Color tokens
+
 extension ShapeStyle where Self == Color {
     static var appAccent: Color { Color(red: 0.12, green: 0.39, blue: 0.78) }
     static var appMomentum: Color { Color(red: 0.98, green: 0.60, blue: 0.18) }
     static var appSafe: Color { Color(red: 0.11, green: 0.54, blue: 0.42) }
-    static var appBackground: Color { Color(red: 0.96, green: 0.97, blue: 0.98) }
-    static var appCard: Color { Color.white.opacity(0.86) }
+    static var appBackground: Color { Color(red: 0.95, green: 0.96, blue: 0.98) }
+    static var appCard: Color { Color.white.opacity(0.84) }
     static var appCardStrong: Color { Color.white.opacity(0.97) }
-    static var appBorder: Color { Color.black.opacity(0.08) }
+    static var appBorder: Color { Color.black.opacity(0.07) }
 }
+
+// MARK: - Spacing
 
 enum Spacing {
     static let xs: CGFloat = 6
@@ -19,8 +23,13 @@ enum Spacing {
     static let xxl: CGFloat = 32
 }
 
+// MARK: - Surface
+// tint: optional left-edge accent color — used to encode card state
+// (e.g. appSafe for high-trust, appMomentum for forming, nil for neutral)
+
 struct AppSurface: ViewModifier {
     var prominent: Bool = false
+    var tint: Color? = nil
 
     func body(content: Content) -> some View {
         content
@@ -28,19 +37,46 @@ struct AppSurface: ViewModifier {
             .background(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .fill(prominent ? Color.appCardStrong : Color.appCard)
+                    .shadow(
+                        color: .black.opacity(prominent ? 0.07 : 0.04),
+                        radius: prominent ? 16 : 8,
+                        y: prominent ? 4 : 2
+                    )
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(Color.appBorder, lineWidth: 1)
+                    .stroke(tint?.opacity(0.25) ?? Color.appBorder, lineWidth: 0.75)
             )
+            .overlay(alignment: .leading) {
+                if let tint {
+                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                        .fill(tint.opacity(0.7))
+                        .frame(width: 3)
+                        .padding(.vertical, Spacing.lg + 2)
+                        .padding(.leading, 2)
+                }
+            }
     }
 }
 
 extension View {
-    func appSurface(prominent: Bool = false) -> some View {
-        modifier(AppSurface(prominent: prominent))
+    func appSurface(prominent: Bool = false, tint: Color? = nil) -> some View {
+        modifier(AppSurface(prominent: prominent, tint: tint))
     }
 }
+
+// MARK: - Card divider
+
+struct CardDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color.appBorder)
+            .frame(height: 0.5)
+            .padding(.vertical, 2)
+    }
+}
+
+// MARK: - Badge
 
 struct AppBadge: View {
     let text: String
@@ -49,27 +85,35 @@ struct AppBadge: View {
     var body: some View {
         Text(text)
             .font(.caption2.weight(.bold))
-            .padding(.horizontal, 8)
+            .tracking(0.3)
+            .padding(.horizontal, 9)
             .padding(.vertical, 5)
             .foregroundStyle(tone)
-            .background(tone.opacity(0.14), in: Capsule())
+            .background(tone.opacity(0.12), in: Capsule())
     }
 }
+
+// MARK: - Section header
+// subtitle defaults to "" — omit when no subtitle is needed
 
 struct SectionHeader: View {
     let title: String
-    let subtitle: String
+    var subtitle: String = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(title)
-                .font(.title3.weight(.semibold))
-            Text(subtitle)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.subheadline.weight(.semibold))
+            if !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
+
+// MARK: - Info row
 
 struct InfoRow: View {
     let icon: String
@@ -82,21 +126,69 @@ struct InfoRow: View {
     }
 }
 
+// MARK: - Participant avatar — initials circle for people surfaces
+
+struct ParticipantAvatar: View {
+    let name: String
+    var size: CGFloat = 36
+    var color: Color = .appAccent
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(color.opacity(0.12))
+                .frame(width: size, height: size)
+            Text(String(name.prefix(1)).uppercased())
+                .font(.system(size: size * 0.38, weight: .semibold, design: .rounded))
+                .foregroundStyle(color)
+        }
+    }
+}
+
+// MARK: - Action pill button — primary (accent fill) and secondary (neutral fill)
+
 struct ActionPillButtonStyle: ButtonStyle {
     var prominent: Bool = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
             .frame(maxWidth: .infinity)
             .background(
-                prominent ? Color.appAccent.opacity(configuration.isPressed ? 0.72 : 1.0) :
-                    Color.appBorder.opacity(configuration.isPressed ? 0.18 : 0.12),
-                in: Capsule()
+                Capsule().fill(
+                    prominent
+                        ? Color.appAccent.opacity(configuration.isPressed ? 0.78 : 1.0)
+                        : Color.black.opacity(configuration.isPressed ? 0.09 : 0.055)
+                )
             )
             .foregroundStyle(prominent ? Color.white : Color.primary)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.75), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Plain press button — opacity-only feedback for non-themed rows (e.g. safety actions)
+
+struct PlainPressButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.55 : 1.0)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Text link button — tertiary / inline actions
+
+struct TextLinkButtonStyle: ButtonStyle {
+    var color: Color = .appAccent
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(color.opacity(configuration.isPressed ? 0.55 : 1.0))
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.75), value: configuration.isPressed)
     }
 }
