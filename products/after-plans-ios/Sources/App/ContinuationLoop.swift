@@ -4,39 +4,47 @@ struct PlanAffinity: Equatable {
     let isInSelectedContext: Bool
     let knownPeopleCount: Int
     let hasPriorContextHistory: Bool
+    let pastPartnerCount: Int
     let hostMemory: String?
 
     var badges: [String] {
-        var badges: [String] = []
+        var result: [String] = []
 
         if isInSelectedContext {
-            badges.append("Same moment")
+            result.append("Same moment")
         }
 
-        if knownPeopleCount > 0 {
+        if pastPartnerCount > 0 {
+            result.append("Familiar crew")
+        } else if knownPeopleCount > 0 {
             let noun = knownPeopleCount == 1 ? "known face" : "known faces"
-            badges.append("\(knownPeopleCount) \(noun)")
+            result.append("\(knownPeopleCount) \(noun)")
         }
 
         if hasPriorContextHistory {
-            badges.append("Repeat context")
+            result.append("Repeat context")
         }
 
-        return badges
+        return result
     }
 
     var detailLine: String {
+        if pastPartnerCount > 0 {
+            let noun = pastPartnerCount == 1 ? "person" : "people"
+            return "You've planned with \(pastPartnerCount) of these \(noun) before."
+        }
+
         if let hostMemory {
             return hostMemory
         }
 
         if knownPeopleCount > 0 {
-            let verb = knownPeopleCount == 1 ? "is" : "are"
-            return "\(knownPeopleCount) known people \(verb) already in this plan."
+            let noun = knownPeopleCount == 1 ? "person is" : "people are"
+            return "\(knownPeopleCount) known \(noun) already in this plan."
         }
 
         if hasPriorContextHistory {
-            return "This context already produced a recent continuation, which makes the next move feel safer."
+            return "You've kept going after this context before."
         }
 
         if isInSelectedContext {
@@ -70,8 +78,22 @@ struct ContinuationLoop {
                 plan.participants.allSatisfy { !blockedUserNames.contains($0.name) }
         }
 
+        // Count how many plans each participant name appears in (to detect past partners).
+        var partnerPlanCount: [String: Int] = [:]
+        for plan in visiblePlans {
+            for participant in plan.participants where participant.name != currentUserName {
+                partnerPlanCount[participant.name, default: 0] += 1
+            }
+        }
+
         let affinityByPlanID = Dictionary(uniqueKeysWithValues: visiblePlans.map { plan in
-            (
+            // A "past partner" is someone in this plan who also appears in at least one other plan.
+            let pastPartnerCount = plan.participants.filter { participant in
+                participant.name != currentUserName &&
+                    (partnerPlanCount[participant.name] ?? 0) > 1
+            }.count
+
+            return (
                 plan.id,
                 PlanAffinity(
                     isInSelectedContext: plan.contextTitle == selectedContext?.title,
@@ -81,6 +103,7 @@ struct ContinuationLoop {
                             candidate.contextTitle == plan.contextTitle &&
                             candidate.lifecycle == .closed
                     },
+                    pastPartnerCount: pastPartnerCount,
                     hostMemory: plan.meaningfulHostMemory
                 )
             )
@@ -151,6 +174,7 @@ struct ContinuationLoop {
         }
 
         if let affinity {
+            score += affinity.pastPartnerCount * 15
             score += affinity.knownPeopleCount * 12
 
             if affinity.hasPriorContextHistory {
