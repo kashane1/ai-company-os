@@ -18,6 +18,7 @@
 		45539A3EC70279D40CE141BA /* ContextSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BA78C3EA89D1E375791F0E /* ContextSelectionView.swift */; };
 		4A8C384A13E2E4A5E65B40E3 /* CreatePlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8AB2F7DFC2A62B02CA400CF /* CreatePlanView.swift */; };
 		506D78F72FEDDF87C9F1640F /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56683C522A90B3C4409D68E4 /* DesignTokens.swift */; };
+		613F7D30D735C0CE42AB4D21 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9084512148C9A74F07691351 /* QRCodeView.swift */; };
 		6214B61EBCB8AB4B0DF9F6FB /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 704FC4F850B7577B3E88BB2D /* AppTab.swift */; };
 		7B72C820D9C5A8D2DEF3D129 /* AfterPlansStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E785D2A6AA8AEF7A0C7E9C /* AfterPlansStoreTests.swift */; };
 		8533C026E8AF261B38F73D8F /* PlanLifecycleViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558E14DAE3414EF507EF0CB3 /* PlanLifecycleViews.swift */; };
@@ -61,6 +62,7 @@
 		7257A99FCBE833C25680E81B /* CreatePlanDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePlanDraft.swift; sourceTree = "<group>"; };
 		734DDAE879F368AB93A04A55 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		9029163A2F6D292233E2564D /* AfterPlans.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AfterPlans.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9084512148C9A74F07691351 /* QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeView.swift; sourceTree = "<group>"; };
 		9390BC42EA209EF88FA436CD /* InviteShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteShareView.swift; sourceTree = "<group>"; };
 		B8AB2F7DFC2A62B02CA400CF /* CreatePlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePlanView.swift; sourceTree = "<group>"; };
 		C7FF8F23D47FD4807B94A245 /* AfterPlansStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterPlansStore.swift; sourceTree = "<group>"; };
@@ -224,6 +226,7 @@
 			children = (
 				56683C522A90B3C4409D68E4 /* DesignTokens.swift */,
 				558E14DAE3414EF507EF0CB3 /* PlanLifecycleViews.swift */,
+				9084512148C9A74F07691351 /* QRCodeView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -400,6 +403,7 @@
 				31034B64FEAD30659CE5B214 /* PlanDetailView.swift in Sources */,
 				8533C026E8AF261B38F73D8F /* PlanLifecycleViews.swift in Sources */,
 				24702E0501273A706ABFE6FA /* ProfileView.swift in Sources */,
+				613F7D30D735C0CE42AB4D21 /* QRCodeView.swift in Sources */,
 				219B34F7FFF56269CAA6CF6D /* SafetyCenterView.swift in Sources */,
 				2B82630048F3D88893D772C4 /* ServiceProtocols.swift in Sources */,
 			);

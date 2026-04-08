@@ -605,6 +605,16 @@ struct AfterPlan: Identifiable, Equatable {
         lifecycle == .open || lifecycle == .forming || lifecycle == .confirmed
     }
 
+    var shareable: ShareablePayload {
+        let urlString = "afterplans://join/\(id.uuidString)"
+        let url = URL(string: urlString) ?? URL(string: "afterplans://join")!
+        return ShareablePayload(
+            url: url,
+            text: "Join \"\(title)\" on After Plans — what's next after \(contextTitle).",
+            qrString: urlString
+        )
+    }
+
     var shareActionTitle: String {
         switch lifecycle {
         case .open:
@@ -722,4 +732,10 @@ struct SafetyReason: Identifiable, Equatable {
     let id: String
     var title: String
     var explanation: String
+}
+
+struct ShareablePayload: Equatable {
+    var url: URL
+    var text: String
+    var qrString: String
 }

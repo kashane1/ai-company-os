@@ -114,6 +114,31 @@ final class AfterPlansModelsTests: XCTestCase {
         XCTAssertTrue(closed.safetyEntryDetail.contains("follow-up"))
     }
 
+    func testShareablePayloadURLContainsPlanID() {
+        let plan = makePlan(lifecycle: .open, participationState: .browsing)
+        let payload = plan.shareable
+        XCTAssertTrue(payload.url.absoluteString.contains(plan.id.uuidString))
+        XCTAssertTrue(payload.qrString.contains(plan.id.uuidString))
+    }
+
+    func testShareablePayloadTextContainsTitleAndContext() {
+        let plan = makePlan(lifecycle: .forming, participationState: .joined)
+        let payload = plan.shareable
+        XCTAssertFalse(payload.text.isEmpty)
+        XCTAssertTrue(payload.text.contains(plan.title))
+        XCTAssertTrue(payload.text.contains(plan.contextTitle))
+    }
+
+    func testShareablePayloadURLIsAfterPlansScheme() {
+        let plan = makePlan(lifecycle: .confirmed, participationState: .confirmed)
+        XCTAssertEqual(plan.shareable.url.scheme, "afterplans")
+    }
+
+    func testShareablePayloadQRStringMatchesURLString() {
+        let plan = makePlan(lifecycle: .open, participationState: .browsing)
+        XCTAssertEqual(plan.shareable.qrString, plan.shareable.url.absoluteString)
+    }
+
     private func makePlan(
         lifecycle: PlanLifecycleState,
         participationState: PlanParticipationState

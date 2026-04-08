@@ -4,6 +4,7 @@ struct InviteShareView: View {
     @EnvironmentObject private var store: AfterPlansStore
     @Environment(\.dismiss) private var dismiss
     @State private var isShowingSafety = false
+    @State private var isShowingQR = false
 
     let planID: UUID
 
@@ -19,7 +20,7 @@ struct InviteShareView: View {
                         Section {
                             Text(plan.shareActionSubtitle)
                                 .foregroundStyle(.secondary)
-                            Text("This shell keeps sharing bounded to context, known people, and in-person handoff. It does not open a chat thread or generic outreach flow.")
+                            Text("Sharing is limited to people already in your context — not open outreach.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -52,33 +53,25 @@ struct InviteShareView: View {
 
                         Section("Share options") {
                             ForEach(channels) { channel in
-                                Button {
-                                    store.prepareInviteShare(for: plan.id, channel: channel)
-                                } label: {
-                                    HStack(alignment: .top, spacing: Spacing.md) {
-                                        Image(systemName: channel.systemImage)
-                                            .foregroundStyle(.appSafe)
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(channel.title)
-                                                .font(.headline)
-                                                .foregroundStyle(.primary)
-                                            Text(channel.subtitle)
-                                                .font(.subheadline)
-                                                .foregroundStyle(.secondary)
-                                            Text(channel.actionTitle)
-                                                .font(.footnote.weight(.semibold))
-                                                .foregroundStyle(.appMomentum)
-                                        }
-                                        Spacer()
+                                if channel == .nearbyQR {
+                                    Button {
+                                        store.prepareInviteShare(for: plan.id, channel: channel)
+                                        isShowingQR = true
+                                    } label: {
+                                        channelRowLabel(channel)
                                     }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    ShareLink(
+                                        item: plan.shareable.url,
+                                        subject: Text(plan.title),
+                                        message: Text(plan.shareable.text)
+                                    ) {
+                                        channelRowLabel(channel)
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
-
-                            Label(preview.linkLabel, systemImage: "link")
-                                .foregroundStyle(.secondary)
-                            Label(preview.qrLabel, systemImage: "qrcode")
-                                .foregroundStyle(.secondary)
                         }
 
                         Section(state == nil ? preview.nextStepTitle : "Ready after sharing") {
@@ -121,6 +114,9 @@ struct InviteShareView: View {
                             SafetyCenterView(focusedPlanID: plan.id)
                         }
                     }
+                    .sheet(isPresented: $isShowingQR) {
+                        qrSheet(for: plan)
+                    }
                 } else {
                     ContentUnavailableView(
                         "Invite unavailable",
@@ -130,6 +126,67 @@ struct InviteShareView: View {
                 }
             } else {
                 ContentUnavailableView("Invite unavailable", systemImage: "link.badge.plus")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func channelRowLabel(_ channel: InviteShareChannel) -> some View {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            Image(systemName: channel.systemImage)
+                .foregroundStyle(.appSafe)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(channel.title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Text(channel.subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text(channel.actionTitle)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.appMomentum)
+            }
+            Spacer()
+        }
+    }
+
+    @ViewBuilder
+    private func qrSheet(for plan: AfterPlan) -> some View {
+        NavigationStack {
+            VStack(spacing: Spacing.lg) {
+                Text("Show this to people already around you.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+
+                QRCodeView(payload: plan.shareable.qrString)
+                    .padding(.vertical, Spacing.sm)
+
+                Text("Scan to join \"\(plan.title)\"")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+
+                Text("Only for people already here — not for wide sharing.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+
+                ShareLink(
+                    item: plan.shareable.url,
+                    subject: Text(plan.title),
+                    message: Text(plan.shareable.text)
+                ) {
+                    Label("Copy or share link", systemImage: "link")
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding()
+            .navigationTitle("Nearby QR")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { isShowingQR = false }
+                }
             }
         }
     }
