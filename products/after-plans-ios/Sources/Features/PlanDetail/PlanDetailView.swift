@@ -133,7 +133,10 @@ struct PlanDetailView: View {
 
     @ViewBuilder
     private func actions(_ plan: AfterPlan) -> some View {
-        if plan.canJoin || plan.canExpressInterest || plan.canSuggestPlace || plan.canShareInvite {
+        let hasStandardActions = plan.canJoin || plan.canExpressInterest || plan.canSuggestPlace || plan.canShareInvite
+        let canWrap = plan.confirmationAction == .wrapPlan
+
+        if hasStandardActions || canWrap {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 SectionHeader(title: "Actions", subtitle: plan.lifecycleWindowDetail)
 
@@ -165,6 +168,17 @@ struct PlanDetailView: View {
 
                 if plan.canShareInvite {
                     Text(plan.shareActionSubtitle)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
+                if canWrap {
+                    Button(plan.confirmationActionTitle) {
+                        store.wrapPlan(plan.id)
+                    }
+                    .buttonStyle(ActionPillButtonStyle())
+
+                    Text("When the group is done, wrap this plan to close the loop and add it to your history.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

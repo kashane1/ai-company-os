@@ -213,6 +213,7 @@ enum ConfirmationAction: Equatable {
     case join
     case confirm
     case markActive
+    case wrapPlan
     case none
 }
 
@@ -573,7 +574,14 @@ struct AfterPlan: Identifiable, Equatable {
             case .joined, .confirmed:
                 .markActive
             }
-        case .active, .closed:
+        case .active:
+            switch participationState {
+            case .joined, .confirmed:
+                .wrapPlan
+            default:
+                .none
+            }
+        case .closed:
             .none
         }
     }
@@ -586,8 +594,10 @@ struct AfterPlan: Identifiable, Equatable {
             return "Lock this plan"
         case .markActive:
             return "Mark as on the way"
+        case .wrapPlan:
+            return "Wrap this plan"
         case .none:
-            return lifecycle == .active ? "Already in motion" : "Plan wrapped"
+            return lifecycle == .closed ? "Plan wrapped" : "Already in motion"
         }
     }
 
@@ -673,6 +683,33 @@ struct AfterPlan: Identifiable, Equatable {
 
     var canShareInvite: Bool {
         lifecycle == .open || lifecycle == .forming || lifecycle == .confirmed
+    }
+
+    var canHandoffToText: Bool {
+        lifecycle == .confirmed || lifecycle == .active
+    }
+
+    var handoffTextBody: String {
+        var lines = [title]
+        if !venueLabel.isEmpty { lines.append(venueLabel) }
+        if !timeLabel.isEmpty { lines.append(timeLabel) }
+        lines.append("afterplans://join/\(id.uuidString)")
+        return lines.joined(separator: "\n")
+    }
+
+    var handoffCTATitle: String {
+        lifecycle == .active ? "Share details with the group" : "Continue in Messages"
+    }
+
+    var handoffSubtitle: String {
+        switch lifecycle {
+        case .confirmed:
+            return "Send the final details to a group text so everyone knows where to go."
+        case .active:
+            return "Share the plan details with anyone still coordinating."
+        default:
+            return ""
+        }
     }
 
     var shareable: ShareablePayload {

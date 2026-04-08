@@ -102,6 +102,69 @@ final class AfterPlansStoreTests: XCTestCase {
         XCTAssertEqual(store.lastActionMessage, "Showing what's next after \(newContext.title).")
     }
 
+    func testPlanCanProgressFullLifecycleIncludingWrap() throws {
+        let user = UserProfile(
+            id: UUID(),
+            firstName: "Maya",
+            descriptor: "Verified",
+            visibilityDefault: .sameContextOnly,
+            trustHeadline: "Identity-light, but real"
+        )
+        let context = ContextOption(
+            id: UUID(),
+            type: .meetup,
+            title: "Pottery Night",
+            venueName: "Clay House Studio",
+            endedAtLabel: "Ended 10 min ago",
+            proximityLabel: "3 min away",
+            trustNote: "Same context first."
+        )
+        let openPlan = AfterPlan(
+            id: UUID(),
+            title: "Tea after class",
+            summary: "Simple next move",
+            contextTitle: context.title,
+            hostName: "Nia",
+            hostDescriptor: "Host",
+            mode: .defaultOption,
+            visibility: .sameContextOnly,
+            lifecycle: .open,
+            timeLabel: "Now",
+            venueLabel: "Tea House",
+            distanceLabel: "3 min walk",
+            trustBlurb: "Visible to the pottery group first.",
+            participants: [
+                ParticipantSummary(id: UUID(), name: "Nia", descriptor: "Hosting", isOrganizer: true, isKnown: true),
+            ],
+            interestedCount: 1,
+            placeSuggestions: [],
+            participationState: .browsing
+        )
+
+        let store = AfterPlansStore(
+            currentUser: user,
+            availableContexts: [context],
+            selectedContext: context,
+            plans: [openPlan],
+            reportReasons: InMemorySafetyService().reportReasons,
+            composerService: InMemoryPlanComposerService(),
+            participationService: InMemoryPlanParticipationService(),
+            inviteService: InMemoryInviteService(),
+            analyticsService: NoopAnalyticsService()
+        )
+
+        store.join(openPlan.id)
+        store.confirm(openPlan.id)
+        store.markPlanActive(openPlan.id)
+        XCTAssertEqual(try XCTUnwrap(store.plan(with: openPlan.id)).lifecycle, .active)
+
+        store.wrapPlan(openPlan.id)
+        let closed = try XCTUnwrap(store.plan(with: openPlan.id))
+        XCTAssertEqual(closed.lifecycle, .closed)
+        XCTAssertTrue(store.lastActionMessage?.contains("wrapped") == true)
+        XCTAssertFalse(closed.recapLine.isEmpty)
+    }
+
     func testPlanCanProgressFromOpenToFormingToConfirmedToActive() throws {
         let user = UserProfile(
             id: UUID(),

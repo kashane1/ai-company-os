@@ -212,6 +212,18 @@ final class AfterPlansStore: ObservableObject {
         analyticsService.record(event: "plan_active")
     }
 
+    func wrapPlan(_ planID: UUID) {
+        mutatePlan(id: planID) { plan in
+            var updated = plan
+            updated.lifecycle = .closed
+            return updated
+        }
+        if let plan = plan(with: planID) {
+            lastActionMessage = "\(plan.title) is wrapped. Check your activity for the recap."
+        }
+        analyticsService.record(event: "plan_closed")
+    }
+
     func prepareInviteShare(for planID: UUID, channel: InviteShareChannel) {
         guard let plan = plan(with: planID), plan.inviteChannels.contains(channel) else { return }
 
@@ -237,6 +249,8 @@ final class AfterPlansStore: ObservableObject {
             confirm(planID)
         case .markActive:
             markPlanActive(planID)
+        case .wrapPlan:
+            wrapPlan(planID)
         case .none:
             break
         }

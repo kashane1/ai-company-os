@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 6 is in progress.
+Phase 6 is complete. The v1 continuation-loop MVP is complete.
 
 Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking refinement, a lifecycle-state clarity pass across Home/detail/confirmation, a tighter invite/share-to-join scaffolding pass, and a trust/safety visibility refinement inside the active loop.
 
@@ -41,6 +41,11 @@ Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking r
 - Phase 6: full scheme rerun green at 33 tests, 0 failures after the join-confidence cues slice
 - Phase 6: Activity surface now functions as a lightweight recap/social-memory feed with `RecapSummary` (follow-through count, repeat-context detection, warm headline/detail copy), `recapLine` on closed plans, recent-partners chip row, and affinity badges on history entries
 - Phase 6: full scheme rerun green at 37 tests, 0 failures after the recap/social-memory slice
+- Phase 6: added `wrapPlan` lifecycle action so active plans can be closed by the user, completing the full Open → Forming → Confirmed → Active → Closed loop
+- Phase 6: Plan Detail and Confirmation Room now surface "Wrap this plan" for active plans where the user has joined or confirmed
+- Phase 6: full scheme rerun green at 39 tests, 0 failures after the wrap-lifecycle slice
+- Phase 6: added handoff-to-text affordance on confirmed and active plans in the Confirmation Room so the core loop has a credible exit to real-world coordination via Messages
+- Phase 6: full scheme rerun green at 41 tests, 0 failures after the handoff-to-text slice
 
 ## Locked Decisions
 
@@ -80,10 +85,14 @@ Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking r
 
 ## Next Recommended Phase
 
-Continue Phase 6 with another single narrow continuation-loop refinement.
+Phase 6 is complete. The v1 continuation-loop MVP is complete.
 
-Preferred next step:
+All "Must Ship" items from MVP_SPEC.md are implemented. All PRD core loop steps have working affordances. All MVP Release Criteria are satisfied. The "Should Follow Soon" items were implemented ahead of schedule during Phase 6.
 
-- keep using targeted simulator-backed `xcodebuild test` coverage for the touched area after each narrow slice
-- choose the next narrow continuation-loop improvement from light social-memory cues rather than broader polish
-- preserve the in-memory shell architecture and stay out of backend, chat, payments, notifications, and release work
+The next best work should move into a different lane:
+
+- App Store positioning and copy refinement (separate lane per repo rules)
+- Seeded launch prep
+- Backend contract definition (when ready to move past in-memory shell)
+
+Do not continue adding in-app slices unless a clear gap is identified in a fresh review.

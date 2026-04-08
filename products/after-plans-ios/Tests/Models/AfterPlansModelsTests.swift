@@ -70,8 +70,20 @@ final class AfterPlansModelsTests: XCTestCase {
         XCTAssertEqual(makePlan(lifecycle: .open, participationState: .browsing).confirmationAction, .join)
         XCTAssertEqual(makePlan(lifecycle: .forming, participationState: .joined).confirmationAction, .confirm)
         XCTAssertEqual(makePlan(lifecycle: .confirmed, participationState: .joined).confirmationAction, .markActive)
-        XCTAssertEqual(makePlan(lifecycle: .active, participationState: .confirmed).confirmationAction, .none)
+        XCTAssertEqual(makePlan(lifecycle: .active, participationState: .confirmed).confirmationAction, .wrapPlan)
+        XCTAssertEqual(makePlan(lifecycle: .active, participationState: .joined).confirmationAction, .wrapPlan)
+        XCTAssertEqual(makePlan(lifecycle: .active, participationState: .browsing).confirmationAction, .none)
         XCTAssertEqual(makePlan(lifecycle: .closed, participationState: .confirmed).confirmationAction, .none)
+    }
+
+    func testWrapPlanActionTitleAndCanTakeAction() {
+        let activePlan = makePlan(lifecycle: .active, participationState: .confirmed)
+        XCTAssertEqual(activePlan.confirmationActionTitle, "Wrap this plan")
+        XCTAssertTrue(activePlan.canTakeConfirmationAction)
+
+        let closedPlan = makePlan(lifecycle: .closed, participationState: .confirmed)
+        XCTAssertEqual(closedPlan.confirmationActionTitle, "Plan wrapped")
+        XCTAssertFalse(closedPlan.canTakeConfirmationAction)
     }
 
     func testInviteShareAvailabilityMatchesLifecycle() {
@@ -201,6 +213,23 @@ final class AfterPlansModelsTests: XCTestCase {
 
         let closedEmpty = makePlan(lifecycle: .closed, participationState: .confirmed, participantCount: 0)
         XCTAssertTrue(closedEmpty.recapLine.contains("continuation from"))
+    }
+
+    func testHandoffToTextAvailabilityMatchesLifecycle() {
+        XCTAssertFalse(makePlan(lifecycle: .open, participationState: .browsing).canHandoffToText)
+        XCTAssertFalse(makePlan(lifecycle: .forming, participationState: .joined).canHandoffToText)
+        XCTAssertTrue(makePlan(lifecycle: .confirmed, participationState: .confirmed).canHandoffToText)
+        XCTAssertTrue(makePlan(lifecycle: .active, participationState: .confirmed).canHandoffToText)
+        XCTAssertFalse(makePlan(lifecycle: .closed, participationState: .confirmed).canHandoffToText)
+    }
+
+    func testHandoffTextBodyContainsPlanDetailsAndDeepLink() {
+        let plan = makePlan(lifecycle: .confirmed, participationState: .confirmed)
+        let body = plan.handoffTextBody
+        XCTAssertTrue(body.contains(plan.title))
+        XCTAssertTrue(body.contains(plan.venueLabel))
+        XCTAssertTrue(body.contains("afterplans://join/"))
+        XCTAssertTrue(body.contains(plan.id.uuidString))
     }
 
     func testConfirmationDisabledReasonIsLifecycleAware() {

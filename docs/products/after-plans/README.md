@@ -57,10 +57,11 @@ This follows the repo's existing split between product artifacts under `docs/pro
 ## Recommended Reading Order
 
 1. `PHASE_STATUS.md`
-2. `PRODUCT_BRIEF.md`
-3. `MVP_SPEC.md`
-4. `TASK_BACKLOG.md`
-5. `task-packets/`
+2. `START_HERE_FOR_CLAUDE.md`
+3. `PRODUCT_BRIEF.md`
+4. `MVP_SPEC.md`
+5. `TASK_BACKLOG.md`
+6. `task-packets/`
 
 ## Current Status
 

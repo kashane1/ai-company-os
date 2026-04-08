@@ -2,53 +2,41 @@
 
 ## Current State Summary
 
-After Plans is in Phase 6. The most recent slice added recap and social-memory feed refinement to the Activity surface.
+After Plans v1 continuation-loop MVP is **complete** as of Phase 6.
 
-New additions:
+All "Must Ship" items from MVP_SPEC.md are implemented. All PRD core loop steps have working affordances. All MVP Release Criteria are satisfied. The "Should Follow Soon" items (known-people ranking, prior partners, recurring context memory/recap) were implemented ahead of schedule during Phase 6.
 
-- `recapLine` on `AfterPlan` — a warm one-liner for closed plans (e.g. "You followed through after Pottery Night.", "You kept the moment going with 4 people after Dinner Club.")
-- `RecapSummary` struct on `ContinuationLoop` — lightweight derived stats: follow-through count, distinct contexts, repeat-context detection, warm headline/detail copy
-- `recapSummary` exposed from `AfterPlansStore`
-- `ActivityView` rewritten from bare List to a richer recap surface with:
-  - Social-memory header with warm headline and context badges
-  - Recent partners chip row
-  - Live section with confidence cues
-  - History section with recapLine and affinity badges per closed plan
+Final validation: 41 tests, 0 failures, `** TEST SUCCEEDED **`
 
-Validation is green:
+## Completed Phases
 
-- full scheme rerun: 37 tests, 0 failures
-- `** TEST EXECUTE SUCCEEDED **`
+- Phase 0: repo assessment and workspace setup
+- Phase 1: product workspace bootstrap and docs normalization
+- Phase 2: implementation-ready artifact chain
+- Phase 3: bounded task packets
+- Phase 4: iOS source tree bootstrap and compile-safe SwiftUI shell
+- Phase 5: continuation-loop deepening with feed filtering, ranking, and lifecycle coherence
+- Phase 6: full MVP implementation — ranking refinement, lifecycle clarity, invite/share, trust/safety visibility, join-confidence cues, social-memory recap, share sheet/QR, repeat-context cues, past-partner trust, wrap-plan lifecycle closure, and handoff-to-text
 
-## Last Completed Phase
+## What Happens Next
 
-Phase 5 is complete. Phase 6 is in progress.
+The next best work is no longer "one more narrow in-app slice." It should move into a different lane:
 
-## What Remains Next
+1. **App Store positioning and copy refinement** — a separate lane per repo rules
+2. **Seeded launch prep** — defining the first test cohort and seeding strategy
+3. **Backend contract definition** — when ready to move past the in-memory shell
 
-Continue Phase 6 with one more narrow slice. The recap/social-memory refinement is now complete.
+## Key Numbers
 
-Possible next slices:
-
-- onboarding tightening
-- first-use feed seeding refinement
-- profile surface enrichment
-- App Store prep
-
-Do not broaden into backend, chat, public discovery, or premium work.
-
-## Exact Next Action
-
-Read `PHASE_STATUS.md` and `state/artifacts/after-plans/codex-append-log.md`, then decide on the next narrow Phase 6 slice.
+- 21 Swift source files under `products/after-plans-ios/Sources/`
+- 4 test files with 41 tests, all passing
+- 15 screens in the screen map, all covered
+- Full lifecycle exercisable: Open → Forming → Confirmed → Active → Closed
+- 5 report reasons, block flow, bounded visibility, and safety center all operational
 
 ## Read These Files First
 
 - `docs/products/after-plans/PHASE_STATUS.md`
 - `docs/products/after-plans/MVP_SPEC.md`
-- `products/after-plans-ios/Sources/App/ContinuationLoop.swift`
+- `docs/products/after-plans/APP_STORE_POSITIONING.md`
 - `products/after-plans-ios/Sources/App/AfterPlansStore.swift`
-- `products/after-plans-ios/Sources/Models/AfterPlansModels.swift`
-- `products/after-plans-ios/Sources/Features/Activity/ActivityView.swift`
-- `products/after-plans-ios/Tests/Models/AfterPlansModelsTests.swift`
-- `products/after-plans-ios/Tests/App/ContinuationLoopTests.swift`
-- `state/artifacts/after-plans/codex-append-log.md`

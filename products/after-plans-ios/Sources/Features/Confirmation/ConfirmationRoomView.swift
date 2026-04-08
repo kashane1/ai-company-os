@@ -18,6 +18,10 @@ struct ConfirmationRoomView: View {
                             inviteCard(plan)
                         }
 
+                        if plan.canHandoffToText {
+                            handoffCard(plan)
+                        }
+
                         // CTA with extra breathing room
                         VStack(spacing: Spacing.sm) {
                             Button(plan.confirmationActionTitle) {
@@ -178,6 +182,34 @@ struct ConfirmationRoomView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+        }
+        .appSurface()
+    }
+
+    // MARK: - Handoff to text
+
+    private func handoffCard(_ plan: AfterPlan) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            SectionHeader(title: "Coordinate outside the app", subtitle: plan.handoffSubtitle)
+
+            ShareLink(
+                item: plan.handoffTextBody,
+                subject: Text(plan.title),
+                message: Text("Here are the details for \(plan.title)")
+            ) {
+                HStack {
+                    Label(plan.handoffCTATitle, systemImage: "message.fill")
+                        .font(.subheadline.weight(.medium))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.secondary)
+                        .font(.footnote)
+                }
+            }
+
+            Text("After Plans owns discovery and formation. Last-mile coordination belongs in your messages.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
         .appSurface()
     }
