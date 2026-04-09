@@ -164,3 +164,22 @@ struct SuggestionRow: View {
         .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
     }
 }
+
+// MARK: - Saved Confirmation Banner
+
+struct SavedConfirmationBanner: View {
+    let text: String
+
+    var body: some View {
+        HStack(spacing: Spacing.xs) {
+            Image(systemName: "checkmark.circle.fill")
+            Text(text)
+        }
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.appAccent)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(.appAccent.opacity(0.12), in: Capsule())
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
+}

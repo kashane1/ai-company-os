@@ -310,6 +310,7 @@ private struct ActiveTripView: View {
     @State private var showingOptionalFields = false
     @State private var didPrimeDefaults = false
     @State private var showingSavedConfirmation = false
+    @State private var showingSavedBanner = false
     @State private var showingEndReview = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var photoData: Data?
@@ -457,6 +458,12 @@ private struct ActiveTripView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                }
+
+                if showingSavedBanner {
+                    SavedConfirmationBanner(text: "Catch saved!")
+                        .frame(maxWidth: .infinity)
+                        .listRowSeparator(.hidden)
                 }
 
                 Button {
@@ -618,6 +625,15 @@ private struct ActiveTripView: View {
                     focusedField = nil
                 }
                 showingSavedConfirmation.toggle()
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showingSavedBanner = true
+                }
+                Task {
+                    try? await Task.sleep(for: .seconds(2))
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        showingSavedBanner = false
+                    }
+                }
             },
             onFailure: { message in
                 persistenceErrorMessage = message
