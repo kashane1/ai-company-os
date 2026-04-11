@@ -1,6 +1,15 @@
 # Skill Registry
 # This is the index of all canonical skills in the repo.
 # Each entry points to the canonical definition file.
+#
+# Phase 0.5 additions:
+#   kind: validator | agentic
+#   fixture_status: passing | failing | missing
+#   source: internal | external:<repo>@<commit>
+#
+# The loader (packages/tools/skills/loader.py) refuses to load a skill in
+# mode="autonomous" unless fixture_status is "passing". Validator and agentic
+# skills are mutually exclusive for synchronous callers.
 
 skills:
 
@@ -10,6 +19,9 @@ skills:
     owner_agent: supervisor
     target_runtimes: [claude, codex]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       claude: adapters/claude/product-artifact-chain.md
     project_skill: .claude/skills/product-artifact-chain.md
@@ -20,6 +32,9 @@ skills:
     owner_agent: engineering
     target_runtimes: [codex]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       codex: adapters/codex/bounded-codex-implementation.md
 
@@ -29,16 +44,22 @@ skills:
     owner_agent: any
     target_runtimes: [claude, codex]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       claude: adapters/claude/codex-claude-handoff.md
     project_skill: .claude/skills/codex-claude-handoff.md
 
   - id: ios-ui-polish-review
     name: iOS UI Polish Review
-    path: canonical/products/fishing-logbook/ios-ui-polish-review.md
+    path: canonical/products/catchbook/ios-ui-polish-review.md
     owner_agent: ios
     target_runtimes: [claude]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       claude: adapters/claude/ios-ui-polish-review.md
     project_skill: .claude/skills/ios-ui-polish-review.md
@@ -49,6 +70,9 @@ skills:
     owner_agent: ios
     target_runtimes: [claude, codex]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       claude: adapters/claude/ios-to-appstore-handoff.md
     project_skill: .claude/skills/ios-to-appstore-handoff.md
@@ -59,6 +83,9 @@ skills:
     owner_agent: supervisor
     target_runtimes: [claude]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       claude: adapters/claude/supervisor-goal-decomposition.md
     project_skill: .claude/skills/supervisor-goal-decomposition.md
@@ -69,6 +96,9 @@ skills:
     owner_agent: engineering
     target_runtimes: [codex]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       codex: adapters/codex/codex-task-packet-library.md
     templates: canonical/shared/codex-packet-patterns/
@@ -79,6 +109,9 @@ skills:
     owner_agent: appstore
     target_runtimes: [claude]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       claude: adapters/claude/app-store-positioning-pack.md
     project_skill: .claude/skills/app-store-positioning-pack.md
@@ -89,6 +122,9 @@ skills:
     owner_agent: engineering
     target_runtimes: [codex]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       codex: adapters/codex/repo-sync.md
 
@@ -98,6 +134,9 @@ skills:
     owner_agent: engineering
     target_runtimes: [codex]
     stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
     adapters:
       codex: adapters/codex/worktree-lifecycle.md
 
@@ -107,5 +146,72 @@ skills:
     owner_agent: engineering
     target_runtimes: [codex]
     stage: active
+    kind: validator
+    fixture_status: passing
+    source: internal
     adapters:
       codex: adapters/codex/post-run-validation.md
+
+  # ----- Phase 2.5 GTM skill pack -----
+
+  - id: content-voice-guardrail
+    name: Content Voice Guardrail
+    path: canonical/content-voice-guardrail/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    source: internal
+
+  - id: social-post-safety
+    name: Social Post Safety
+    path: canonical/social-post-safety/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: validator
+    fixture_status: passing
+    source: internal
+
+  - id: aso-keyword-refresh
+    name: ASO Keyword Refresh
+    path: canonical/aso-keyword-refresh/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    source: internal
+
+  - id: creator-outreach-draft
+    name: Creator Outreach Draft
+    path: canonical/creator-outreach-draft/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    source: internal
+
+  - id: approval-token-audit
+    name: Approval Token Audit
+    path: canonical/approval-token-audit/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: validator
+    fixture_status: passing
+    source: internal
+
+  # ----- Phase 4 observability + regression skills -----
+
+  - id: failure-mode-regression
+    name: Failure Mode Regression Capture
+    path: canonical/failure-mode-regression/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: validator
+    fixture_status: passing
+    source: internal

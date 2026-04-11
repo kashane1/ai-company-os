@@ -1,0 +1,54 @@
+# Phase 5.1 — Product Artifact Chain
+#
+# Declares the canonical founder-to-App-Store chain for every product
+# under docs/products/<id>/. The validator enforces that each downstream
+# artifact references its upstream parent(s) via a "parent:" front-matter
+# key or explicit markdown link, and that every required node exists.
+#
+# If a product is in an early phase (discovery / mvp-build) some of the
+# downstream nodes may be intentionally missing; the validator treats
+# missing nodes as warnings unless the product's phase is >= the node's
+# required_from phase.
+
+nodes:
+  - id: founder-brief
+    file: founder-brief.md
+    required_from: discovery
+    parents: []
+
+  - id: product-brief
+    file: product-brief.md
+    required_from: discovery
+    parents: [founder-brief]
+
+  - id: mvp-spec
+    file: mvp-spec.md
+    required_from: mvp-build
+    parents: [product-brief]
+
+  - id: monetization-strategy
+    file: monetization-strategy.md
+    required_from: mvp-build
+    parents: [product-brief]
+
+  - id: app-store-positioning
+    file: app-store-positioning.md
+    required_from: app-store-submission
+    parents: [product-brief, mvp-spec]
+
+  - id: appstore-metadata-draft
+    file: appstore-metadata-draft.md
+    required_from: app-store-submission
+    parents: [app-store-positioning]
+
+  - id: submission-checklist
+    file: submission-checklist.md
+    required_from: app-store-submission
+    parents: [appstore-metadata-draft]
+
+phase_order:
+  - discovery
+  - mvp-build
+  - app-store-submission
+  - live
+  - maintenance
