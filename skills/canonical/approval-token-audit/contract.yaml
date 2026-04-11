@@ -1,0 +1,17 @@
+inputs:
+  - name: approval_id
+    type: string
+  - name: expected_action
+    type: string
+  - name: expected_subject_id
+    type: string
+  - name: store
+    type: object
+outputs:
+  - name: verdict
+    type: enum
+    values: [ok, fail]
+  - name: reason
+    type: string
+  - name: events
+    type: list

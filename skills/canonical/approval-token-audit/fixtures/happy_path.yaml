@@ -1,0 +1,21 @@
+name: happy_path
+description: Well-formed P0 approval with second factor — verdict ok.
+# Pytest consumes this fixture via tests/python/unit/test_approval_token_audit.py
+input:
+  approval_id: appr_001
+  expected_action: submit_appstore
+  expected_subject_id: release_42
+  record:
+    action: submit_appstore
+    subject_id: release_42
+    status: approved
+    p0: true
+    issued_at_offset_sec: 0
+    approved_at_offset_sec: 60
+    second_factor_offset_sec: 65
+    burn_count: 1
+    expected_device_fingerprint: mac-abcd
+    device_fingerprint: mac-abcd
+    transitions: [pending, approved]
+expected:
+  verdict: ok

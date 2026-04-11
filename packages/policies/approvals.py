@@ -1,4 +1,18 @@
+from packages.db.approval_store import ApprovalStore
+from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.task_packet import RiskLevel, TaskPacket, WorkerLane
+
+
+class PolicyViolation(RuntimeError):
+    """Raised when a policy check refuses to authorize an action.
+
+    Always carries a short machine-readable ``code`` alongside the human
+    message so callers can switch on the reason without string parsing.
+    """
+
+    def __init__(self, code: str, detail: str | None = None) -> None:
+        self.code = code
+        super().__init__(detail or code)
 
 
 APPROVAL_KEYWORDS = {
@@ -35,3 +49,27 @@ def requires_release_action_approval(action: str) -> bool:
     if action in SAFE_RELEASE_ACTIONS:
         return False
     return action in APPROVAL_REQUIRED_RELEASE_ACTIONS
+
+
+def is_approval_granted(
+    approval_id: str,
+    expected_type: str,
+    *,
+    store: ApprovalStore | None = None,
+) -> bool:
+    """Phase 3.2 helper — true iff the referenced approval is approved and
+    matches ``expected_type``.
+
+    Used by ``packages.policies.release_readiness`` and any other policy
+    that blocks on a typed approval. Never raises for a missing record;
+    returns ``False`` instead so callers can produce a single uniform
+    PolicyViolation path.
+    """
+    approvals = store or ApprovalStore()
+    try:
+        record: ApprovalRecord = approvals.load(approval_id)
+    except FileNotFoundError:
+        return False
+    if record.status is not ApprovalStatus.APPROVED:
+        return False
+    return record.approval_type == expected_type

@@ -1,0 +1,20 @@
+name: boundary
+description: Non-P0 approval within default TTL — no second factor required.
+input:
+  approval_id: appr_002
+  expected_action: merge_protected_branch
+  expected_subject_id: pr_7
+  record:
+    action: merge_protected_branch
+    subject_id: pr_7
+    status: approved
+    p0: false
+    issued_at_offset_sec: 0
+    approved_at_offset_sec: 1500
+    second_factor_offset_sec: null
+    burn_count: 1
+    expected_device_fingerprint: null
+    device_fingerprint: null
+    transitions: [pending, approved]
+expected:
+  verdict: ok

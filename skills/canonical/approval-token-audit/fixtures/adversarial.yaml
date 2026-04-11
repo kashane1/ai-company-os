@@ -1,0 +1,21 @@
+name: adversarial
+description: Token replayed (burn_count=2) — must fail.
+input:
+  approval_id: appr_003
+  expected_action: submit_appstore
+  expected_subject_id: release_99
+  record:
+    action: submit_appstore
+    subject_id: release_99
+    status: approved
+    p0: true
+    issued_at_offset_sec: 0
+    approved_at_offset_sec: 60
+    second_factor_offset_sec: 65
+    burn_count: 2
+    expected_device_fingerprint: mac-xyz
+    device_fingerprint: mac-xyz
+    transitions: [pending, approved]
+expected:
+  verdict: fail
+  reason_contains: burn_count=2
