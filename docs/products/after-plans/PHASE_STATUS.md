@@ -70,6 +70,8 @@ Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking r
 - `IOS_ARCHITECTURE.md`
 - `TRUST_SAFETY_GUARDRAILS.md`
 - `APP_STORE_POSITIONING.md`
+- `APP_STORE_METADATA_DRAFT.md`
+- `SCREENSHOT_PLAN.md`
 - `GTM_PLAN.md`
 - `LAUNCH_PLAN.md`
 - `TASK_BACKLOG.md`
@@ -89,10 +91,20 @@ Phase 6 is complete. The v1 continuation-loop MVP is complete.
 
 All "Must Ship" items from MVP_SPEC.md are implemented. All PRD core loop steps have working affordances. All MVP Release Criteria are satisfied. The "Should Follow Soon" items were implemented ahead of schedule during Phase 6.
 
-The next best work should move into a different lane:
+### App Store Positioning Pass: Complete
 
-- App Store positioning and copy refinement (separate lane per repo rules)
-- Seeded launch prep
-- Backend contract definition (when ready to move past in-memory shell)
+The App Store positioning and launch-prep artifact pass has been completed. Artifacts are now execution-ready:
+
+- APP_STORE_POSITIONING.md — tightened with decided subtitle, messaging hierarchy, age rating recommendation, full description draft, keyword set, review notes, privacy labels, and "what is not" framing
+- APP_STORE_METADATA_DRAFT.md — new, field-by-field draft ready to copy into App Store Connect
+- SCREENSHOT_PLAN.md — new, per-screenshot storyboard with screen mappings, headlines, captions, design direction
+- LAUNCH_PLAN.md — updated with concrete App Store lane handoff checklist
+
+### Next lanes (in recommended priority)
+
+1. **Founder decisions** — subtitle, age rating, and launch context approvals (see LAUNCH_PLAN.md handoff checklist)
+2. **Backend contract definition** — move past the in-memory shell
+3. **Seeded launch prep** — select target contexts, draft organizer outreach
+4. **App Store lane execution** — screenshots, icon, build, submission (blocked by founder decisions and backend)
 
 Do not continue adding in-app slices unless a clear gap is identified in a fresh review.

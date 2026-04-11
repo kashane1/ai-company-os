@@ -74,6 +74,45 @@ No-go if:
 - moderation is only theoretical
 - launch depends on a hard consumer paywall
 
+## App Store Lane Handoff Checklist
+
+This checklist defines what must be done before the App Store lane can execute. Items marked with source docs can be found in the referenced artifacts.
+
+### Founder Decisions Required
+
+- [ ] approve subtitle — recommended "Keep the moment going" (see APP_STORE_POSITIONING.md)
+- [ ] approve age rating — recommended 17+ (see APP_STORE_POSITIONING.md, TRUST_SAFETY_GUARDRAILS.md)
+- [ ] approve launch contexts — which communities/groups get seeded first
+- [ ] confirm moderation operating path — who triages reports, response window
+
+### Artifacts Ready For Use
+
+- [x] App Store description drafted (APP_STORE_METADATA_DRAFT.md)
+- [x] Keywords drafted (APP_STORE_METADATA_DRAFT.md)
+- [x] Promotional text drafted (APP_STORE_METADATA_DRAFT.md)
+- [x] Review notes drafted (APP_STORE_METADATA_DRAFT.md)
+- [x] Screenshot storyboard with per-screenshot specs (SCREENSHOT_PLAN.md)
+- [x] Privacy label mapping started (APP_STORE_METADATA_DRAFT.md)
+- [x] "What this is not" framing documented (APP_STORE_POSITIONING.md)
+
+### Artifacts Still Needed Before Submission
+
+- [ ] support URL live (landing page or simple support site)
+- [ ] privacy policy URL live
+- [ ] marketing URL (optional, recommended)
+- [ ] app icon finalized at required export sizes
+- [ ] screenshot captures from live build on required device sizes
+- [ ] demo/test account created and seeded for App Review
+- [ ] privacy labels finalized against actual data collection in the shipping build
+- [ ] contact information for App Store Connect filled in
+
+### Build Prerequisites
+
+- [ ] backend contract defined (currently in-memory shell)
+- [ ] shipping build with real networking layer
+- [ ] TestFlight build validated
+- [ ] build uploaded to App Store Connect via Xcode or Transporter
+
 ## Founder Checklist
 
 - approve launch contexts
