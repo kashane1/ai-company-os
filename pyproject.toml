@@ -6,11 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "ai-company-os"
 version = "0.1.0"
 description = "A local-first AI company operating system scaffold."
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.115,<1",
     "httpx>=0.28,<1",
     "psycopg[binary]>=3.2,<4",
+    "pyyaml>=6,<7",
     "uvicorn>=0.34,<1",
 ]
 

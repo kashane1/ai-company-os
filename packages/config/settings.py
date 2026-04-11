@@ -7,6 +7,38 @@ TEST_REPO_ROOT_ENV_VAR = "AI_COMPANY_OS_REPO_ROOT"
 DATABASE_URL_ENV_VAR = "AI_COMPANY_OS_DATABASE_URL"
 
 
+# ── API Key Environment Variables ────────────────────────────
+GEMINI_API_KEY_ENV_VAR = "GEMINI_API_KEY"
+POSTIZ_API_KEY_ENV_VAR = "POSTIZ_API_KEY"
+REVENUECAT_API_KEY_ENV_VAR = "REVENUECAT_API_KEY"
+OPENROUTER_API_KEY_ENV_VAR = "OPENROUTER_API_KEY"
+
+
+def load_dotenv() -> None:
+    """Load .env file from repo root if it exists. No external dependencies."""
+    root = Path(__file__).resolve().parents[2]
+    env_file = root / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key, value = key.strip(), value.strip()
+        # Don't overwrite existing env vars (explicit env takes precedence)
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+def get_api_key(env_var: str) -> str | None:
+    """Get an API key, loading .env first if needed."""
+    load_dotenv()
+    return os.environ.get(env_var)
+
+
 @dataclass(frozen=True)
 class RuntimePaths:
     repo_root: Path
