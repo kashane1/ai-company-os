@@ -1,4 +1,6 @@
+from datetime import UTC, datetime
 from dataclasses import asdict, dataclass, replace
+import json
 from pathlib import Path
 import time
 import sys
@@ -176,12 +178,33 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
         )
         raise
 
+    release_id = _constraint_value(packet, "release_id=") or ""
+    release_action = _constraint_value(packet, "release_action=") or "prepare_testflight"
+    artifact_path = f"state/artifacts/appstore/{task.id}/submission_summary.json"
+    artifact_file = Path(artifact_path)
+    artifact_file.parent.mkdir(parents=True, exist_ok=True)
+    artifact_file.write_text(
+        json.dumps(
+            {
+                "task_id": task.id,
+                "release_id": release_id,
+                "action": release_action,
+                "status": "completed",
+                "summary": result.summary,
+                "written_at": datetime.now(UTC).isoformat(),
+            }
+        ),
+        encoding="utf-8",
+    )
+
     control_plane.submit_task_result(
         task_id=task.id,
         status=result.status,
         summary=result.summary,
         worker_id=worker_id,
         approval_id=result.approval_id,
+        artifacts=[artifact_path],
+        events=["task_completed"],
     )
     return result
 
@@ -251,8 +274,6 @@ def run_worker_loop(
 
 
 if __name__ == "__main__":
-    import json
-
     try:
         stats = run_worker_loop(worker_id="worker-appstore")
     except KeyboardInterrupt:

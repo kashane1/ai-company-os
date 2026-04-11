@@ -78,6 +78,8 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
         summary=result.summary,
         worker_id=worker_id,
         approval_id=result.approval_id,
+        artifacts=list(result.artifacts or []),
+        events=["task_completed"],
     )
     return result
 
