@@ -3,13 +3,13 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IOS_ROOT="$ROOT/products/fishing-logbook-ios"
+IOS_ROOT="$ROOT/products/catchbook-ios"
 BUILD_ROOT="$ROOT/build/ios"
 SUMMARY_ROOT="$ROOT/build/coverage"
-RESULT_BUNDLE="$BUILD_ROOT/FishingLogbook.xcresult"
+RESULT_BUNDLE="$BUILD_ROOT/Catchbook.xcresult"
 DERIVED_DATA="$BUILD_ROOT/DerivedData"
 SIMULATOR_ID="${IOS_SIMULATOR_ID:-}"
-SCHEME_NAME="FishingLogbook"
+SCHEME_NAME="Catchbook"
 SUMMARY_FILE="$SUMMARY_ROOT/ios-coverage-summary.json"
 
 mkdir -p "$BUILD_ROOT"
@@ -37,7 +37,7 @@ if [[ -z "$SIMULATOR_ID" ]]; then
 fi
 
 xcodebuild test \
-  -project "$IOS_ROOT/FishingLogbook.xcodeproj" \
+  -project "$IOS_ROOT/Catchbook.xcodeproj" \
   -scheme "$SCHEME_NAME" \
   -destination "id=$SIMULATOR_ID" \
   -derivedDataPath "$DERIVED_DATA" \

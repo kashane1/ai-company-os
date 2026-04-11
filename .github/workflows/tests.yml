@@ -82,4 +82,4 @@ jobs:
         with:
           name: ios-test-artifacts
           path: |
-            build/ios/FishingLogbook.xcresult
+            build/ios/Catchbook.xcresult

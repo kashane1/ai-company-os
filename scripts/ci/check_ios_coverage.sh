@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-RESULT_BUNDLE="${1:-build/ios/FishingLogbook.xcresult}"
-TARGET_NAME="${2:-${IOS_COVERAGE_TARGET:-Fishing Logbook.app}}"
+RESULT_BUNDLE="${1:-build/ios/Catchbook.xcresult}"
+TARGET_NAME="${2:-${IOS_COVERAGE_TARGET:-Catchbook.app}}"
 MINIMUM="${IOS_COVERAGE_MIN:-}"
 SCHEME_NAME="${IOS_COVERAGE_SCHEME:-}"
 SUMMARY_FILE="${IOS_COVERAGE_SUMMARY_FILE:-}"
