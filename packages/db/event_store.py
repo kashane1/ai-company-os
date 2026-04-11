@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.db.contracts import EVENTS_TABLE
 from packages.schemas.event import EventRecord
