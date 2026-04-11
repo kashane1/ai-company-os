@@ -1,0 +1,19 @@
+inputs:
+  - name: lane
+    type: string
+  - name: task_type
+    type: string
+  - name: result
+    type: object
+  - name: repo_root
+    type: string
+outputs:
+  - name: verdict
+    type: enum
+    values: [ok, fail]
+  - name: failure_code
+    type: string
+  - name: reason
+    type: string
+  - name: lane
+    type: string

@@ -1,0 +1,8 @@
+lane: ios
+required_artifacts:
+  - path: state/artifacts/ios/{task_id}/build_summary.json
+required_events:
+  - task_completed
+forbidden_failure_codes:
+  - xcode_build_failed_silently
+  - strategic_task_validation_failed

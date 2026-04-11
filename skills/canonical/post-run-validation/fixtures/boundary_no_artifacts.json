@@ -1,0 +1,20 @@
+{
+  "input": {
+    "lane": "engineering",
+    "task_type": "code_patch",
+    "task_id": "task-boundary-002",
+    "result": {
+      "task_id": "task-boundary-002",
+      "summary": "nothing to do",
+      "status": "completed",
+      "artifacts": [],
+      "events": ["task_completed"]
+    },
+    "repo_root": "."
+  },
+  "expected": {
+    "verdict": "fail",
+    "failure_code": "required_artifact_missing",
+    "lane": "engineering"
+  }
+}

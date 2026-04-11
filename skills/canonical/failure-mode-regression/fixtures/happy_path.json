@@ -1,0 +1,10 @@
+{
+  "input": {
+    "failure_code": "lint_failed",
+    "lane": "engineering",
+    "excerpt": "ERROR failure_code=lint_failed sk-abcdefghij0123456789ABCDEF",
+    "payload": {"worker_id": "eng-1"},
+    "now": "2026-04-10T08:00:00+00:00"
+  },
+  "expected_verdict": "ok"
+}

@@ -1,0 +1,22 @@
+{
+  "input": {
+    "lane": "gtm",
+    "task_type": "gtm_daily_run",
+    "task_id": "task-advers-003",
+    "result": {
+      "task_id": "task-advers-003",
+      "summary": "Post rejected by social_post_safety_rejected — see logs",
+      "status": "completed",
+      "artifacts": [
+        "state/artifacts/gtm/task-advers-003/run_summary.json"
+      ],
+      "events": ["task_completed"]
+    },
+    "repo_root": "."
+  },
+  "expected": {
+    "verdict": "fail",
+    "failure_code": "forbidden_failure_code_present",
+    "lane": "gtm"
+  }
+}

@@ -1,0 +1,8 @@
+lane: gtm
+required_artifacts:
+  - path: state/artifacts/gtm/{task_id}/run_summary.json
+required_events:
+  - task_completed
+forbidden_failure_codes:
+  - social_post_safety_rejected
+  - content_voice_guardrail_violation

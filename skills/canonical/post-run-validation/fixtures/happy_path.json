@@ -1,0 +1,22 @@
+{
+  "input": {
+    "lane": "engineering",
+    "task_type": "code_patch",
+    "task_id": "task-happy-001",
+    "result": {
+      "task_id": "task-happy-001",
+      "summary": "Applied patch, tests passed",
+      "status": "completed",
+      "artifacts": [
+        "state/artifacts/engineering/task-happy-001/review_summary.json"
+      ],
+      "events": ["task_completed"]
+    },
+    "repo_root": "."
+  },
+  "expected": {
+    "verdict": "ok",
+    "failure_code": "",
+    "lane": "engineering"
+  }
+}

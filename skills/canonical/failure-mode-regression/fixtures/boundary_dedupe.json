@@ -1,0 +1,10 @@
+{
+  "input": {
+    "failure_code": "lint_failed",
+    "lane": "engineering",
+    "excerpt": "second occurrence within 24h",
+    "payload": {},
+    "now": "2026-04-10T09:00:00+00:00"
+  },
+  "expected_verdict": "skipped"
+}

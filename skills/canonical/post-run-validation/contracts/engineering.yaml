@@ -1,0 +1,8 @@
+lane: engineering
+required_artifacts:
+  - path: state/artifacts/engineering/{task_id}/review_summary.json
+required_events:
+  - task_completed
+forbidden_failure_codes:
+  - strategic_task_validation_failed
+  - capture_pipeline_self_failure
