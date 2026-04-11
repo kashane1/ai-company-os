@@ -10,11 +10,15 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from apps.api.approval_endpoint import router as approval_router
 from apps.api.control_plane import ControlPlaneService, as_payload
 from packages.schemas.approval import ApprovalStatus
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
 
 app = FastAPI(title="ai-company-os control plane", version="0.1.0")
+# Phase 3.1 — magic-link approval endpoint, mounted under /magic/approvals to
+# avoid colliding with the existing JSON /approvals surface.
+app.include_router(approval_router, prefix="/magic")
 
 
 class CreateGoalRequest(BaseModel):

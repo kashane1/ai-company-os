@@ -15,6 +15,12 @@ from packages.schemas.event import EventRecord
 from packages.schemas.goal import GoalRecord, GoalStatus
 from packages.schemas.task import Task
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
+from packages.tools.skills.loader import (
+    SkillLoadError,
+    SkillNotEvaluated,
+    SkillNotFound,
+    load_validator,
+)
 
 
 class ControlPlaneService:
@@ -141,9 +147,46 @@ class ControlPlaneService:
         summary: str,
         worker_id: str,
         approval_id: str | None = None,
+        artifacts: list[str] | None = None,
+        events: list[str] | None = None,
     ) -> Task:
         now = self._now()
         if status is TaskStatus.COMPLETED:
+            # Phase 4.5 — post-run-validation gate. Fail-closed: if the
+            # validator reports a failure, downgrade to REJECTED.
+            gate = self._run_post_run_validation(
+                task_id=task_id,
+                summary=summary,
+                artifacts=artifacts or [],
+                events=events or [],
+            )
+            if gate is not None and gate.get("verdict") != "ok":
+                failure_code = gate.get("failure_code") or "post_run_validation_failed"
+                reason = gate.get("reason") or failure_code
+                task = self.tasks.fail(
+                    task_id,
+                    error_summary=f"post_run_validation: {reason}",
+                    failed_at=now,
+                )
+                self.queue.acknowledge(task_id)
+                self._append_event(
+                    event_type="task_result_rejected",
+                    subject_type="task",
+                    subject_id=task.id,
+                    goal_id=task.goal_id,
+                    task_id=task.id,
+                    approval_id=approval_id,
+                    payload={
+                        "worker_id": worker_id,
+                        "summary": summary,
+                        "failure_code": failure_code,
+                        "lane": gate.get("lane", ""),
+                        "reason": reason,
+                    },
+                )
+                self._refresh_goal_status(task.goal_id, now)
+                return task
+
             task = self.tasks.complete(
                 task_id,
                 summary=summary,
@@ -243,6 +286,54 @@ class ControlPlaneService:
 
     def list_events(self) -> list[EventRecord]:
         return self.events.list()
+
+    def _run_post_run_validation(
+        self,
+        *,
+        task_id: str,
+        summary: str,
+        artifacts: list[str],
+        events: list[str],
+    ) -> dict | None:
+        """Invoke the ``post-run-validation`` validator skill.
+
+        Returns the validator verdict dict, or ``None`` if the validator
+        cannot be loaded (in which case the gate is considered advisory
+        and we let the task complete — the loader already refuses
+        fixture-failing skills in autonomous mode).
+        """
+        try:
+            task = self.tasks.load(task_id)
+        except Exception:
+            return None
+        try:
+            validator = load_validator("post-run-validation")
+        except (SkillNotFound, SkillNotEvaluated, SkillLoadError):
+            return None
+        try:
+            paths = load_runtime_paths()
+            return validator.run(
+                {
+                    "lane": task.lane.value,
+                    "task_type": task.task_type,
+                    "task_id": task_id,
+                    "result": {
+                        "task_id": task_id,
+                        "summary": summary,
+                        "status": "completed",
+                        "artifacts": artifacts,
+                        "events": events,
+                    },
+                    "repo_root": str(paths.repo_root),
+                }
+            )
+        except Exception as exc:
+            return {
+                "verdict": "fail",
+                "failure_code": f"exception:{type(exc).__name__}",
+                "reason": str(exc),
+                "lane": getattr(task.lane, "value", ""),
+            }
 
     def _refresh_goal_status(self, goal_id: str | None, now: str) -> None:
         if not goal_id:

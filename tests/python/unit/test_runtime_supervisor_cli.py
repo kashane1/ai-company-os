@@ -187,7 +187,7 @@ def test_runtime_supervisor_cli_seeds_appstore_release_and_prints_summary(
         [
             "seed-appstore-release",
             "--release-id",
-            "release-fishing-logbook-v0.9.0",
+            "release-catchbook-v0.9.0",
             "--action",
             "prepare_testflight",
             "--build-number",
@@ -196,18 +196,18 @@ def test_runtime_supervisor_cli_seeds_appstore_release_and_prints_summary(
     )
     captured = capsys.readouterr()
     payload = json.loads(captured.out)
-    release_record = ReleaseStore().load_release_record("release-fishing-logbook-v0.9.0")
+    release_record = ReleaseStore().load_release_record("release-catchbook-v0.9.0")
     task = TaskStore().load(payload["task_id"])
 
     assert exit_code == 0
-    assert payload["release_id"] == "release-fishing-logbook-v0.9.0"
+    assert payload["release_id"] == "release-catchbook-v0.9.0"
     assert payload["action"] == "prepare_testflight"
     assert payload["task_status"] == "pending"
     assert payload["release_state_status"] == "scaffolded"
     assert payload["next_command"] == "./scripts/runtime status"
-    assert release_record.id == "release-fishing-logbook-v0.9.0"
+    assert release_record.id == "release-catchbook-v0.9.0"
     assert task.constraints == [
-        "release_id=release-fishing-logbook-v0.9.0",
+        "release_id=release-catchbook-v0.9.0",
         "release_action=prepare_testflight",
     ]
 
@@ -219,14 +219,14 @@ def test_runtime_supervisor_cli_inspect_appstore_release_reports_no_match(
     runtime_supervisor_cli = load_runtime_supervisor_cli()
 
     exit_code = runtime_supervisor_cli.main(
-        ["inspect-appstore-release", "--release-id", "release-fishing-logbook-v9.9.9"]
+        ["inspect-appstore-release", "--release-id", "release-catchbook-v9.9.9"]
     )
     captured = capsys.readouterr()
     payload = json.loads(captured.out)
 
     assert exit_code == 0
     assert payload["found"] is False
-    assert payload["release_id"] == "release-fishing-logbook-v9.9.9"
+    assert payload["release_id"] == "release-catchbook-v9.9.9"
     assert payload["message"] == "No matching App Store task found."
     assert payload["log_paths"]["worker_appstore"].endswith("state/logs/runtime-supervisor/worker-appstore.log")
     assert payload["sources"]["task_state"] == "control_plane.sqlite.tasks"
@@ -241,21 +241,21 @@ def test_runtime_supervisor_cli_inspect_appstore_release_reports_latest_overall(
     goal = service.create_goal(title="Inspect latest", summary="Inspect latest")
     older = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Older task",
         summary="Older task",
         task_type="appstore_release",
-        constraints=["release_id=release-fishing-logbook-v0.3.0", "release_action=prepare_testflight"],
+        constraints=["release_id=release-catchbook-v0.3.0", "release_action=prepare_testflight"],
     )
     newer = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Newer task",
         summary="Newer task",
         task_type="appstore_release",
-        constraints=["release_id=release-fishing-logbook-v0.4.0", "release_action=prepare_testflight"],
+        constraints=["release_id=release-catchbook-v0.4.0", "release_action=prepare_testflight"],
     )
 
     exit_code = runtime_supervisor_cli.main(["inspect-appstore-release"])
@@ -264,7 +264,7 @@ def test_runtime_supervisor_cli_inspect_appstore_release_reports_latest_overall(
 
     assert exit_code == 0
     assert payload["found"] is True
-    assert payload["release_id"] == "release-fishing-logbook-v0.4.0"
+    assert payload["release_id"] == "release-catchbook-v0.4.0"
     assert payload["task"]["task_id"] == newer.id
     assert payload["task"]["task_type"] == "appstore_release"
     assert payload["task"]["status"] == "pending"
@@ -286,7 +286,7 @@ def test_runtime_supervisor_cli_inspect_appstore_release_filters_by_release_and_
     goal = service.create_goal(title="Inspect release", summary="Inspect release")
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Release task",
         summary="Release task",
@@ -331,12 +331,12 @@ def test_runtime_supervisor_cli_reports_queued_task_in_work_summary(
     goal = service.create_goal(title="Queue task", summary="Queue task summary")
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Prepare TestFlight",
         summary="Queued appstore task",
         task_type="appstore_release",
-        constraints=["release_id=release-fishing-logbook-v0.1.9", "release_action=prepare_testflight"],
+        constraints=["release_id=release-catchbook-v0.1.9", "release_action=prepare_testflight"],
     )
 
     exit_code = runtime_supervisor_cli.main(["status"])
@@ -355,7 +355,7 @@ def test_runtime_supervisor_cli_reports_queued_task_in_work_summary(
         "updated_at": task.updated_at,
     }
     assert payload["work_summary"]["release_summary"] == {
-        "release_id": "release-fishing-logbook-v0.1.9",
+        "release_id": "release-catchbook-v0.1.9",
         "source": "lane_owned.release_records",
         "state": "missing",
     }
@@ -372,7 +372,7 @@ def test_runtime_supervisor_cli_reports_completed_task_latest_event_and_release_
     goal = service.create_goal(title="Run task", summary="Run task summary")
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Prepare TestFlight",
         summary="Complete appstore task",
@@ -431,7 +431,7 @@ def test_runtime_supervisor_cli_reports_latest_task_per_lane(
     )
     ios = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.IOS,
         title="iOS task",
         summary="iOS task summary",

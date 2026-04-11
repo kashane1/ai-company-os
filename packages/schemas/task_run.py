@@ -42,6 +42,7 @@ class CodexExecutionRecord:
     started_at: str
     finished_at: str
     timed_out: bool = False
+    session_id: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -58,6 +59,7 @@ class CodexExecutionRecord:
             started_at=str(payload["started_at"]),
             finished_at=str(payload["finished_at"]),
             timed_out=bool(payload.get("timed_out", False)),
+            session_id=str(payload["session_id"]) if payload.get("session_id") else None,
         )
 
 

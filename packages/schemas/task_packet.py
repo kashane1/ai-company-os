@@ -9,6 +9,36 @@ class WorkerLane(str, Enum):
     ENGINEERING = "engineering"
     IOS = "ios"
     APPSTORE = "appstore"
+    GTM = "gtm"
+
+
+# Phase 2.1 — GTM task types. These are referenced by task.task_type (the
+# string field on Task), not the lane enum. A single GTM worker handles all
+# of them.
+GTM_TASK_TYPES = frozenset(
+    {
+        "CONTENT_DRAFT",
+        "CONTENT_IMAGE_GEN",
+        "SOCIAL_POST_SCHEDULE",
+        "GTM_CAMPAIGN_BRIEF",
+        "ASO_METADATA_REFRESH",
+    }
+)
+
+# Phase 5.2 — strategic task types (enum additions only; no new worker).
+STRATEGIC_TASK_TYPES = frozenset(
+    {
+        "PRODUCT_BRIEF_UPDATE",
+        "MVP_SPEC_UPDATE",
+        "APPSTORE_POSITIONING_REFRESH",
+        "APPSTORE_METADATA_DRAFT",
+        "SCREENSHOT_PLAN_REFRESH",
+        "ARTIFACT_CHAIN_REVIEW",
+        "FOUNDER_BRIEF_INTAKE",
+        "GTM_CAMPAIGN_BRIEF",
+        "FAILURE_REGRESSION_FIXTURE",
+    }
+)
 
 
 class TaskStatus(str, Enum):

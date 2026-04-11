@@ -67,7 +67,7 @@ def logic_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) -> list[st
         return [
             change.path
             for change in changes
-            if change.path.startswith("products/fishing-logbook-ios/Sources/")
+            if change.path.startswith("products/catchbook-ios/Sources/")
         ]
     return []
 
@@ -84,7 +84,7 @@ def is_test_path(path: str, lane: TestLane) -> bool:
     if lane is TestLane.PYTHON:
         return path.startswith("tests/python/")
     if lane is TestLane.IOS:
-        return path.startswith("products/fishing-logbook-ios/Tests/")
+        return path.startswith("products/catchbook-ios/Tests/")
     return False
 
 

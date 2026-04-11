@@ -40,7 +40,7 @@ from packages.schemas.task_packet import RiskLevel, WorkerLane
 
 FISHING_FOUNDERS_PACK_SOURCE = "/Users/simons/Desktop/founders-pack-fishing-journal.rtf"
 APPSTORE_RELEASE_PREP_ACTION = "prepare_testflight"
-FISHING_RELEASE_ID_PREFIX = "release-fishing-logbook-v"
+FISHING_RELEASE_ID_PREFIX = "release-catchbook-v"
 
 
 def create_engineering_task(
@@ -143,8 +143,8 @@ def create_ios_task(
     title: str,
     summary: str,
     *,
-    product_id: str = "fishing-logbook",
-    repo_id: str = "fishing-logbook-ios",
+    product_id: str = "catchbook",
+    repo_id: str = "catchbook-ios",
     task_type: str = "ios_feature",
     task_id: str | None = None,
 ) -> Task:
@@ -162,7 +162,7 @@ def create_ios_task(
         constraints=[
             "Operate only inside the managed worktree.",
             "Persist every step of the run to state.",
-            "Use docs/products/fishing-logbook as the product source of truth.",
+            "Use docs/products/catchbook as the product source of truth.",
             "Do not implement release automation in this lane.",
             "Leave all changes uncommitted for manual inspection.",
         ],
@@ -175,8 +175,8 @@ def create_ios_task(
 
 def scaffold_release_state(
     *,
-    product_id: str = "fishing-logbook",
-    repo_id: str = "fishing-logbook-ios",
+    product_id: str = "catchbook",
+    repo_id: str = "catchbook-ios",
     version: str = "0.1.0",
     build_number: str = "1",
 ) -> dict[str, object]:
@@ -287,12 +287,12 @@ def seed_appstore_release_prep(
     )
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title=f"Prepare TestFlight state for {release_id}",
         summary=f"Use the App Store lane to prepare release state for {release_id}.",
         task_type="appstore_release",
-        product_id="fishing-logbook",
+        product_id="catchbook",
         constraints=[
             f"release_id={release_id}",
             f"release_action={action}",
@@ -330,7 +330,7 @@ def create_release_approval(
 
 
 def bootstrap_fishing_product() -> dict[str, object]:
-    product = register_product("fishing-logbook")
+    product = register_product("catchbook")
     release_state = scaffold_release_state()
     return {
         "product": product.to_dict(),

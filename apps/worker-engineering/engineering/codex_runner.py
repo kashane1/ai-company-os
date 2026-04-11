@@ -30,6 +30,21 @@ def render_task_packet(task: Task, worktree: WorktreeMetadata) -> str:
     return str(packet_path)
 
 
+def _read_latest_codex_session_id() -> str | None:
+    index_path = Path.home() / ".codex" / "session_index.jsonl"
+
+    try:
+        lines = index_path.read_text().splitlines()
+        if not lines:
+            return None
+        last_entry = json.loads(lines[-1])
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+
+    session_id = last_entry.get("id")
+    return str(session_id) if session_id else None
+
+
 def execute_codex(
     task: Task,
     worktree: WorktreeMetadata,
@@ -76,6 +91,7 @@ def execute_codex(
         stdout = exc.stdout or ""
         stderr = (exc.stderr or "") + f"\nCodex execution timed out after {CODEX_TIMEOUT_SECONDS} seconds."
         exit_code = -1
+    session_id = _read_latest_codex_session_id()
 
     finished_at = datetime.now(UTC).isoformat()
 
@@ -96,6 +112,7 @@ def execute_codex(
         "started_at": started_at,
         "finished_at": finished_at,
         "timed_out": timed_out,
+        "session_id": session_id,
     }
     with metadata_path.open("w") as handle:
         json.dump(metadata_payload, handle, indent=2, sort_keys=True)
@@ -110,6 +127,7 @@ def execute_codex(
         started_at=started_at,
         finished_at=finished_at,
         timed_out=timed_out,
+        session_id=session_id,
     )
 
     artifact_dir = paths.engineering_artifacts_root / task.id

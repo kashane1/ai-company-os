@@ -38,8 +38,8 @@ def create_release_record(release_id: str) -> None:
     store.save_build_candidate(
         BuildCandidate(
             id=f"build-{release_id}",
-            product_id="fishing-logbook",
-            repo_id="fishing-logbook-ios",
+            product_id="catchbook",
+            repo_id="catchbook-ios",
             source_task_run_id="run-source-1",
             version="1.0.0",
             build_number="1",
@@ -50,7 +50,7 @@ def create_release_record(release_id: str) -> None:
     store.save_metadata_draft(
         MetadataDraft(
             id=f"metadata-{release_id}",
-            product_id="fishing-logbook",
+            product_id="catchbook",
             locale="en-US",
             path="/tmp/metadata.md",
             status=MetadataStatus.READY,
@@ -60,7 +60,7 @@ def create_release_record(release_id: str) -> None:
     store.save_screenshot_set(
         ScreenshotSet(
             id=f"screenshots-{release_id}",
-            product_id="fishing-logbook",
+            product_id="catchbook",
             locale="en-US",
             device_family="iphone",
             asset_paths=[],
@@ -71,7 +71,7 @@ def create_release_record(release_id: str) -> None:
     store.save_release_record(
         ReleaseRecord(
             id=release_id,
-            product_id="fishing-logbook",
+            product_id="catchbook",
             build_candidate_id=f"build-{release_id}",
             metadata_draft_id=f"metadata-{release_id}",
             screenshot_set_id=f"screenshots-{release_id}",
@@ -96,7 +96,7 @@ def test_appstore_worker_claims_executes_and_submits_through_control_plane(
     )
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Prepare TestFlight state",
         summary="Run the App Store lane via the control plane.",
@@ -145,7 +145,7 @@ def test_appstore_worker_requests_approval_and_blocks_when_action_is_gated(
     )
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Submit to App Store",
         summary="Request approval through the control plane.",
@@ -188,7 +188,7 @@ def test_appstore_worker_marks_claimed_task_failed_when_execute_raises(
     )
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Prepare failing release action",
         summary="Simulate an unhandled App Store exception.",
@@ -299,7 +299,7 @@ def test_appstore_worker_loop_processes_tasks_and_idles_when_queue_is_empty(
     )
     first_task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="First App Store task",
         summary="Process first App Store task.",
@@ -311,7 +311,7 @@ def test_appstore_worker_loop_processes_tasks_and_idles_when_queue_is_empty(
     )
     second_task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Second App Store task",
         summary="Process second App Store task.",

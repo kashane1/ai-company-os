@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Phase 1.1 — runtime-supervisor LaunchAgent.
+
+  Installation (one-time, replace <REPO> with the absolute path on the Mac):
+
+    REPO=/Users/simons/ai-company-os
+    sed "s|/Users/simons/ai-company-os|$REPO|g" \
+      "$REPO/infra/launchd/com.ai-company-os.runtime-supervisor.plist" \
+      > /tmp/com.ai-company-os.runtime-supervisor.resolved.plist
+    cp /tmp/com.ai-company-os.runtime-supervisor.resolved.plist \
+       ~/Library/LaunchAgents/com.ai-company-os.runtime-supervisor.plist
+    launchctl bootstrap gui/$(id -u) \
+           ~/Library/LaunchAgents/com.ai-company-os.runtime-supervisor.plist
+    launchctl kickstart -k gui/$(id -u)/com.ai-company-os.runtime-supervisor
+
+  NOTE: Copy, do NOT symlink — symlinking causes the sed substitution to
+  clobber the source file.
+
+  Disable:
+
+    launchctl bootout gui/$(id -u)/com.ai-company-os.runtime-supervisor
+
+  This is a UserAgent (NOT a LaunchDaemon) because Xcode, the iOS simulator,
+  and the codex CLI auth all live in the user session. It runs inside
+  Kashane's login session with GUI access.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ai-company-os.runtime-supervisor</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/simons/ai-company-os/scripts/runtime</string>
+    <string>start</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/simons/ai-company-os</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>AI_COMPANY_OS_ROOT</key>
+    <string>/Users/simons/ai-company-os</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/simons/ai-company-os/state/logs/runtime-supervisor/launchd.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/simons/ai-company-os/state/logs/runtime-supervisor/launchd.err.log</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+</dict>
+</plist>

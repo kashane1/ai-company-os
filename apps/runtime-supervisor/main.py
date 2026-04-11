@@ -95,6 +95,12 @@ def default_worker_specs() -> list[WorkerProcessSpec]:
             script_path=paths.repo_root / "apps" / "worker-appstore" / "main.py",
             log_path=runtime_logs_root / "worker-appstore.log",
         ),
+        WorkerProcessSpec(
+            lane="api",
+            worker_id="worker-api",
+            script_path=paths.repo_root / "apps" / "api" / "server.py",
+            log_path=runtime_logs_root / "worker-api.log",
+        ),
     ]
 
 

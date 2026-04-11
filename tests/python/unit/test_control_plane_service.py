@@ -62,7 +62,7 @@ def test_control_plane_service_requests_and_decides_approval(isolated_repo_root)
     )
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.APPSTORE,
         title="Prepare TestFlight state",
         summary="Set up release metadata and wait for approval.",
