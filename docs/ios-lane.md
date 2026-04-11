@@ -14,7 +14,7 @@ The iOS lane owns implementation and build preparation:
 - build artifact preparation
 - release-candidate handoff
 
-Logic-bearing iOS changes under `products/fishing-logbook-ios/Sources/` must ship with created or modified tests under `products/fishing-logbook-ios/Tests/`, unless a machine-readable no-test exception is valid under shared policy.
+Logic-bearing iOS changes under `products/catchbook-ios/Sources/` must ship with created or modified tests under `products/catchbook-ios/Tests/`, unless a machine-readable no-test exception is valid under shared policy.
 
 This lane should feel like an Apple-specific engineering lane, not a release operations lane.
 
@@ -64,4 +64,11 @@ That means:
 - task packets carry testing requirements in structured fields
 - validators persist `testing_policy` and specific failure codes
 - missing tests remain a `VALIDATION_FAILED` result, not a silent review note
-- project wiring must continue to treat `products/fishing-logbook-ios/project.yml` as the canonical project-definition source when test files or targets change
+- project wiring must continue to treat `products/catchbook-ios/project.yml` as the canonical project-definition source when test files or targets change
+
+## Related Docs
+
+- `docs/appstore-lane.md` — dedicated App Store worker lane doc (operational scope, workflow, approval gates)
+- `docs/approval-policy.md` — approval boundaries for both lanes
+- `docs/products/catchbook/appstore-readiness-audit.md` — current readiness assessment
+- `docs/products/catchbook/submission-checklist.md` — structured submission checklist

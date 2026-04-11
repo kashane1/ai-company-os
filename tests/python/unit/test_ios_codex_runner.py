@@ -11,8 +11,8 @@ from tests.python.factories.task_data import build_task, build_worktree_metadata
 def test_render_task_packet_uses_ios_implementation_defaults(tmp_path: Path) -> None:
     task = build_task(
         lane=WorkerLane.IOS,
-        repo_id="fishing-logbook-ios",
-        product_id="fishing-logbook",
+        repo_id="catchbook-ios",
+        product_id="catchbook",
         title="Seed iOS lane",
         summary="Create the first believable iOS product task.",
         task_type="ios_feature",
@@ -37,8 +37,8 @@ def test_render_task_packet_uses_ios_implementation_defaults(tmp_path: Path) -> 
 def test_render_task_packet_uses_ui_polish_pattern_for_ios_polish_work(tmp_path: Path) -> None:
     task = build_task(
         lane=WorkerLane.IOS,
-        repo_id="fishing-logbook-ios",
-        product_id="fishing-logbook",
+        repo_id="catchbook-ios",
+        product_id="catchbook",
         title="Polish trip detail spacing",
         summary="Fix spacing, alignment, and accessibility polish issues in the trip detail screen.",
         task_type="ios_ui_polish",

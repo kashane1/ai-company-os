@@ -1,12 +1,13 @@
 [
   {
-    "id": "fishing-logbook",
+    "id": "catchbook",
     "name": "Private Fishing Logbook",
-    "slug": "fishing-logbook",
+    "slug": "catchbook",
     "platform": "ios",
-    "repo_id": "fishing-logbook-ios",
-    "source_path": "products/fishing-logbook-ios",
-    "docs_root": "docs/products/fishing-logbook"
+    "repo_id": "catchbook-ios",
+    "source_path": "products/catchbook-ios",
+    "docs_root": "docs/products/catchbook",
+    "phase": "app-store-submission"
   },
   {
     "id": "after-plans",
@@ -15,6 +16,7 @@
     "platform": "ios",
     "repo_id": "after-plans-ios",
     "source_path": "products/after-plans-ios",
-    "docs_root": "docs/products/after-plans"
+    "docs_root": "docs/products/after-plans",
+    "phase": "discovery"
   }
 ]

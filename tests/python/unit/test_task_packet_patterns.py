@@ -43,7 +43,7 @@ def test_build_task_packet_falls_back_to_implementation_for_generic_tasks(tmp_pa
 def test_build_task_packet_renders_handoff_sections(tmp_path: Path) -> None:
     task = build_task(
         lane=WorkerLane.IOS,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         title="Prepare TestFlight handoff",
         summary="Prepare release notes for App Store handoff without changing runtime architecture.",
         task_type="ios_release_handoff",

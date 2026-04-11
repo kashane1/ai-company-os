@@ -33,7 +33,7 @@ def test_ios_worker_claims_executes_and_submits_through_control_plane(
     )
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.IOS,
         title="Execute bounded iOS work",
         summary="Run the iOS lane via the control plane.",
@@ -99,7 +99,7 @@ def test_ios_worker_runtime_requests_approval_when_runner_does(
     )
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.IOS,
         title="Prepare reviewable iOS diff",
         summary="Runner should create approval through control plane service.",
@@ -151,7 +151,7 @@ def test_ios_worker_marks_claimed_task_failed_when_runner_raises(
     )
     task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.IOS,
         title="iOS runner crash",
         summary="Simulate an unhandled iOS exception.",
@@ -194,7 +194,7 @@ def test_ios_worker_loop_processes_tasks_and_idles_when_queue_is_empty(
     )
     first_task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.IOS,
         title="First iOS task",
         summary="Process first iOS task.",
@@ -202,7 +202,7 @@ def test_ios_worker_loop_processes_tasks_and_idles_when_queue_is_empty(
     )
     second_task = service.create_task_for_goal(
         goal_id=goal.id,
-        repo_id="fishing-logbook-ios",
+        repo_id="catchbook-ios",
         lane=WorkerLane.IOS,
         title="Second iOS task",
         summary="Process second iOS task.",

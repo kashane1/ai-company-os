@@ -1,0 +1,153 @@
+# MVP Spec: Catchbook
+
+## Scope
+
+This MVP covers one complete loop for a private fishing memory app:
+
+- start trip
+- capture conditions
+- log catches
+- end trip
+- review history
+- surface deterministic recall
+
+This pass expands the MVP slightly, but only in ways that strengthen private memory and pre-trip recall.
+
+## Feature Order
+
+### Build Now
+
+- coherent deterministic spot-detail recall
+- compressed trip-start and quick-catch logging paths
+- privacy-safe export-only catch share card
+
+### Build Next
+
+- decision pass on narrow pattern replay memory surfaces
+- seasonal memory nudges and personal-best story surfaces
+- optional catch-scan-lite prefilling assist
+
+### Later / Not Now
+
+- compact Spot DNA style "what worked here" composition unless a later pass proves it adds value beyond the existing recall stack
+- standalone fish ID
+- social or community features
+- widgets, Live Activities, App Intents, or Watch work
+- broad analytics dashboards
+- monetization implementation
+
+### Added to MVP (2026-04-09)
+
+- **Live weather via Apple WeatherKit** — automatic weather enrichment on trip start (temperature, wind, cloud cover, precipitation). Graceful offline fallback — weather fields stay nil if service is unavailable, and the UI degrades cleanly. No third-party SDK, uses Apple Developer Program's included WeatherKit (500k API calls/month).
+
+### Added to MVP (2026-04-10)
+
+- **"Last time here" spot recall surface** — promoted from Build Next into the MVP. Implemented as the deterministic `SpotRecallSummary` card on the spot detail screen, showing the user's most recent trip to a spot (date, catches, conditions) without requiring pattern-replay logic. Purely deterministic over existing trip/catch data; no new models or services.
+
+## Core Screens
+
+### Home
+
+- resume current trip
+- last trip summary
+- suggested memory card
+- personal bests card
+
+### Trips
+
+- trip list
+- filters by water, species, season, and lure
+- trip detail
+
+### Log
+
+- start trip
+- add catch
+- mark skunked trip
+
+### Spots
+
+- saved waters and spots
+- map/list view later if helpful
+- spot detail with history, performance summary, and deterministic support-gated recall
+
+### Insights
+
+- deterministic cards only
+- no freeform AI responses
+- no second insight engine separate from recall surfaces
+
+### Sharing
+
+- export-only share card for a catch only
+- one fixed rendered card image
+- one entry point from the existing catch detail/editor surface in trip history
+- exact spot disclosure must remain off by default
+- no feed, comments, profiles, or discovery loops
+
+## Acceptance Criteria
+
+### Trip Start
+
+- user can create or select a water / spot
+- app records start time and current location
+- app captures a condition snapshot when possible
+- trip can start without network connectivity
+- target species and notes may remain available behind collapsed optional details
+
+### Catch Logging
+
+- user can log species with optional photo, weight, length, lure, method, and note
+- time and current spot default automatically
+- logging remains possible offline
+- photo is optional and never blocks save
+
+### History
+
+- user can inspect past trips and catches
+- user can filter by water, species, season, and lure
+- user can view personal bests by species
+
+### Spot Detail
+
+- user can see trip count, catch count, recent catches, successful lures, and simple condition evidence
+- summaries are derived from personal data only
+
+### Spot Recall Summary
+
+- spot detail recall should remain coherent enough without requiring a second composed summary layer
+- any later Spot DNA style summary would need to be composed from existing deterministic outputs only
+- no composed summary should ship unless it is clearly additive beyond the supported card stack
+
+### Insights
+
+- insights are deterministic and traceable to logged data
+- cards must cite enough support to feel credible
+- the app must not present speculative or generated advice
+
+### Sharing
+
+- user can export a catch share card without publishing data to other users
+- exported card must omit spot name, waterbody name, coordinates, and any location line by default
+- exported card must use an explicit allowlist of safe catch fields only
+- share support must not become a requirement for logging or recall flows
+
+## Offline Assumptions
+
+- trip start, catch logging, note entry, and history must work offline
+- condition capture enriches with live weather via WeatherKit when online; degrades gracefully when offline
+- sync is not required for MVP readiness
+- share-card generation should work from local data once the user has already logged the catch
+
+## Current State
+
+- spot-detail recall is coherent enough for the current MVP slice
+- Spot DNA is deferred
+- pattern replay is deferred; "last time here" is now in MVP as a deterministic spot-recall card (see Added to MVP 2026-04-10)
+- further recall or logging redesign is not currently approved
+
+## Photo Handling
+
+- photo use is optional
+- failure to access photos or camera must not block core logging
+- photo references should attach to catches, not define the logging flow

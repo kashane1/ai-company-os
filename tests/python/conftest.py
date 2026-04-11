@@ -38,7 +38,7 @@ def isolated_repo_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, repo_roo
 
     shutil.copytree(repo_root / "infra", test_root / "infra")
     shutil.copytree(repo_root / "docs", test_root / "docs")
-    (test_root / "products" / "fishing-logbook-ios").mkdir(parents=True)
+    (test_root / "products" / "catchbook-ios").mkdir(parents=True)
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(test_root))
     ensure_runtime_directories()

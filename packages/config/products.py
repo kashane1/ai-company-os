@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from packages.config.settings import load_runtime_paths
-from packages.schemas.product import ProductConfig, ProductPlatform
+from packages.schemas.product import ProductConfig, ProductPhase, ProductPlatform
 
 
 def load_product_configs(config_path: Path | None = None) -> dict[str, ProductConfig]:
@@ -21,6 +21,13 @@ def load_product_configs(config_path: Path | None = None) -> dict[str, ProductCo
         if not docs_root.is_absolute():
             docs_root = (paths.repo_root / docs_root).resolve()
 
+        # Phase 5.3 — phase is additive/optional.
+        phase_raw = item.get("phase")
+        try:
+            phase = ProductPhase(str(phase_raw)) if phase_raw else ProductPhase.DISCOVERY
+        except ValueError:
+            phase = ProductPhase.DISCOVERY
+
         configs[item["id"]] = ProductConfig(
             id=item["id"],
             name=item["name"],
@@ -29,6 +36,11 @@ def load_product_configs(config_path: Path | None = None) -> dict[str, ProductCo
             repo_id=item["repo_id"],
             source_path=str(source_path),
             docs_root=str(docs_root),
+            phase=phase,
         )
 
     return configs
+
+
+# Backwards-compat alias — some older call sites import ``load_products``.
+load_products = load_product_configs

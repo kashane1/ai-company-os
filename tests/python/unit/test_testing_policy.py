@@ -38,8 +38,8 @@ def test_evaluate_testing_policy_passes_for_lane_matching_python_test_changes() 
 def test_evaluate_testing_policy_passes_for_lane_matching_ios_test_changes() -> None:
     changes = testing.parse_name_status_lines(
         [
-            "M\tproducts/fishing-logbook-ios/Sources/Features/Trips/TripsView.swift",
-            "A\tproducts/fishing-logbook-ios/Tests/Features/Trips/TripEditingLogicTests.swift",
+            "M\tproducts/catchbook-ios/Sources/Features/Trips/TripsView.swift",
+            "A\tproducts/catchbook-ios/Tests/Features/Trips/TripEditingLogicTests.swift",
         ]
     )
 
@@ -58,7 +58,7 @@ def test_evaluate_testing_policy_requires_lane_matching_tests_for_mixed_changes(
     changes = testing.parse_name_status_lines(
         [
             "M\tapps/api/platform.py",
-            "M\tproducts/fishing-logbook-ios/Sources/Features/Trips/TripsView.swift",
+            "M\tproducts/catchbook-ios/Sources/Features/Trips/TripsView.swift",
             "M\ttests/python/unit/test_platform.py",
         ]
     )
@@ -197,7 +197,7 @@ def test_check_tests_with_code_script_handles_explicit_changed_file_lists(
         "\n".join(
             [
                 "M\tapps/api/platform.py",
-                "M\tproducts/fishing-logbook-ios/Sources/Features/Trips/TripsView.swift",
+                "M\tproducts/catchbook-ios/Sources/Features/Trips/TripsView.swift",
                 "M\ttests/python/unit/test_platform.py",
             ]
         )

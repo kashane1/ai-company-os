@@ -12,6 +12,16 @@ class ProductStatus(str, Enum):
     IN_DEVELOPMENT = "in_development"
 
 
+# Phase 5.3 — product lifecycle phase. Strictly additive; existing
+# ProductStatus remains untouched for backwards compatibility.
+class ProductPhase(str, Enum):
+    DISCOVERY = "discovery"
+    MVP_BUILD = "mvp-build"
+    APP_STORE_SUBMISSION = "app-store-submission"
+    LIVE = "live"
+    MAINTENANCE = "maintenance"
+
+
 class ProductArtifactType(str, Enum):
     FOUNDER_BRIEF = "founder_brief"
     PRODUCT_BRIEF = "product_brief"
@@ -37,6 +47,7 @@ class ProductConfig:
     repo_id: str
     source_path: str
     docs_root: str
+    phase: ProductPhase = ProductPhase.DISCOVERY
 
 
 @dataclass(frozen=True)

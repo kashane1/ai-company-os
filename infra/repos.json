@@ -7,10 +7,10 @@
     "default_branch": "main"
   },
   {
-    "id": "fishing-logbook-ios",
-    "name": "Fishing Logbook iOS",
-    "source_path": "products/fishing-logbook-ios",
-    "managed_repo_name": "fishing-logbook-ios",
+    "id": "catchbook-ios",
+    "name": "Catchbook iOS",
+    "source_path": "products/catchbook-ios",
+    "managed_repo_name": "catchbook-ios",
     "default_branch": "main"
   }
 ]
