@@ -8,14 +8,24 @@ build/
 .coverage
 *.egg-info/
 
+# Secrets — never commit actual .env files
+.env
+.env.local
+.env.*.local
+
 state/repos/*
 state/worktrees/*
 state/artifacts/*
 state/checkpoints/*
 state/logs/*
+state/handshake/
 
 !state/repos/.gitkeep
 !state/worktrees/.gitkeep
 !state/artifacts/.gitkeep
 !state/checkpoints/.gitkeep
 !state/logs/.gitkeep
+
+# Claude Code agent worktrees — each one is its own checkout of the repo,
+# must never be committed back into the parent tree.
+.claude/worktrees/
