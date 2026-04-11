@@ -133,6 +133,17 @@ def _run_token_audit(
             f"validator raised: {type(exc).__name__}: {exc}",
         ) from exc
 
+    if isinstance(result, dict) and str(result.get("reason", "")).startswith(
+        "exception:adapter_"
+    ):
+        reason = result.get("reason", "unknown")
+        detail = result.get("detail", "")
+        suffix = f": {detail}" if detail else ""
+        raise PolicyViolation(
+            "approval_audit_unavailable",
+            f"approval-token-audit unavailable: {reason!r}{suffix}",
+        )
+
     if not isinstance(result, dict) or result.get("verdict") != "ok":
         reason = (
             result.get("reason", "unknown") if isinstance(result, dict) else "unknown"
