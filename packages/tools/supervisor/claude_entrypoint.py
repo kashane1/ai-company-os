@@ -269,6 +269,16 @@ class SessionHandle:
         self._validate_strategic_artifacts()
 
         closed_at = _iso_now()
+        self._append_session_event(
+            "session_closed",
+            {
+                "closed_at": closed_at,
+                "summary_md_len": len(summary_md),
+                "enqueued": len(self._enqueued),
+                "strategic": len(self._strategic),
+                "approvals": len(self._approvals),
+            },
+        )
         summary = SessionSummary(
             session_id=self.session_id,
             actor=self.actor,
@@ -279,16 +289,6 @@ class SessionHandle:
             strategic_task_ids=tuple(self._strategic),
             approval_ids=tuple(self._approvals),
             events_appended=self._events_appended,
-        )
-        self._append_session_event(
-            "session_closed",
-            {
-                "closed_at": closed_at,
-                "summary_md_len": len(summary_md),
-                "enqueued": len(self._enqueued),
-                "strategic": len(self._strategic),
-                "approvals": len(self._approvals),
-            },
         )
         self.closed = True
         return summary

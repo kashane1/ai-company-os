@@ -112,8 +112,9 @@ def execute_codex(
         "started_at": started_at,
         "finished_at": finished_at,
         "timed_out": timed_out,
-        "session_id": session_id,
     }
+    if session_id is not None:
+        metadata_payload["session_id"] = session_id
     with metadata_path.open("w") as handle:
         json.dump(metadata_payload, handle, indent=2, sort_keys=True)
 

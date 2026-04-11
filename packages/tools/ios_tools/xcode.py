@@ -21,7 +21,7 @@ def build_command(scheme: str, destination: str, *, project_reference: str | Non
 
 def default_build_command(project_reference: str) -> str:
     return build_command(
-        scheme="FishingLogbook",
+        scheme="Catchbook",
         destination="platform=iOS Simulator,name=iPhone 16",
         project_reference=project_reference,
     )
