@@ -18,7 +18,7 @@
 
 - `apps/` — worker and API entrypoints
 - `packages/` — shared code (config, db, policies, queue, schemas, tools)
-- `products/` — managed product source (e.g. `fishing-logbook-ios/`)
+- `products/` — managed product source (e.g. `catchbook-ios/`)
 - `docs/` — architecture docs, product artifacts, decisions
 - `infra/` — local infrastructure (db, scripts, fastlane, launchd)
 - `state/` — runtime data (repos, worktrees, artifacts, checkpoints, logs)
@@ -60,6 +60,19 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **ios-to-appstore-handoff** — prepare handoff from iOS build to App Store release
 - **supervisor-goal-decomposition** — decompose founder goals into structured worker tasks
 - **app-store-positioning-pack** — generate App Store positioning outputs from product artifacts
+
+## Trigger phrases → skills
+
+When the user's message matches one of these patterns (including paraphrases), read and follow the named skill's Claude adapter before doing anything else:
+
+- "hand this to codex" / "dispatch to codex" / "delegate to codex" / "queue a task for codex" / "find tasks for codex" / "have codex fix X" / "send this to codex" / "run this through codex" → `skills/adapters/claude/codex-claude-handoff.md`
+- "decompose this goal" / "break this down into tasks" / "turn this into worker tasks" → `skills/adapters/claude/supervisor-goal-decomposition.md`
+- "validate the artifact chain" / "check product artifacts" → `skills/adapters/claude/product-artifact-chain.md`
+- "review the iOS code" / "polish review" → `skills/adapters/claude/ios-ui-polish-review.md`
+- "prep the app store handoff" / "cut a release" → `skills/adapters/claude/ios-to-appstore-handoff.md`
+- "generate app store copy" / "positioning pack" → `skills/adapters/claude/app-store-positioning-pack.md`
+
+Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 
 ## Conventions
 

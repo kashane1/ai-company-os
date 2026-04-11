@@ -101,7 +101,7 @@ ai-company-os/
       ios_tools/
       appstore_tools/
   products/
-    fishing-logbook-ios/
+    catchbook-ios/
   docs/
     architecture.md
     operating-model.md
@@ -133,8 +133,8 @@ The first managed product is a private fishing logbook for iPhone.
 That product now has:
 
 - a product registry entry in `infra/products.json`
-- a managed source root in `products/fishing-logbook-ios/`
-- durable product artifacts in `docs/products/fishing-logbook/`
+- a managed source root in `products/catchbook-ios/`
+- durable product artifacts in `docs/products/catchbook/`
 - checkpoint-backed product and release records under `state/checkpoints/platform/`
 - an iOS worker path that mirrors the engineering lane
 
@@ -208,7 +208,7 @@ python3 -m pip install -e ".[test]"
 Coverage model:
 
 - Python coverage is measured across `apps/` and `packages/`
-- iOS coverage is measured from the `FishingLogbook` target result bundle with `xccov`
+- iOS coverage is measured from the `Catchbook` target result bundle with `xccov`
 - `PYTHON_COVERAGE_MIN` and `IOS_COVERAGE_MIN` control staged threshold enforcement without changing the scripts
 - CI enables the current Stage 1 floors with `PYTHON_COVERAGE_MIN=55` and `IOS_COVERAGE_MIN=20`
 
@@ -218,7 +218,7 @@ Testing policy:
 - persistence and orchestration flows get integration tests
 - UI-heavy snapshot testing and browser-style end-to-end flows are intentionally deferred for now
 - logic-bearing Python changes under `apps/` or `packages/` must ship with created or modified tests under `tests/python/`
-- logic-bearing iOS changes under `products/fishing-logbook-ios/Sources/` must ship with created or modified tests under `products/fishing-logbook-ios/Tests/`
+- logic-bearing iOS changes under `products/catchbook-ios/Sources/` must ship with created or modified tests under `products/catchbook-ios/Tests/`
 - valid no-test exceptions must be declared explicitly with a machine-readable `no_test_reason_code`
 - workers persist structured `testing_policy` and `failure_codes` data so missing tests fail as `VALIDATION_FAILED` with a specific reason such as `missing_tests_for_logic_change`
 

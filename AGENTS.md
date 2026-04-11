@@ -202,7 +202,7 @@ Worker task packets and task runs should carry structured testing fields such as
 Lane matching matters:
 
 - changes under `apps/` or `packages/` require created or modified Python tests under `tests/python/`
-- changes under `products/fishing-logbook-ios/Sources/` require created or modified iOS tests under `products/fishing-logbook-ios/Tests/`
+- changes under `products/catchbook-ios/Sources/` require created or modified iOS tests under `products/catchbook-ios/Tests/`
 
 One unrelated test edit must not satisfy another lane.
 
