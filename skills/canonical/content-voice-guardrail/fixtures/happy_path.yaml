@@ -1,0 +1,16 @@
+name: happy_path
+description: Grounded, specific draft passes voice guardrail.
+input:
+  draft: |
+    Logged a 17-inch smallmouth bass on a chartreuse spinnerbait this
+    morning. Water temp was 58F. Released after a quick photo. Catchbook
+    remembers the lure, the water, the temperature. You don't have to.
+  voice_guide: |
+    Grounded. Specific. Quietly proud. Never "EPIC" or "INSANE". Prefer
+    "release" over "throwback". Banned phrases: Hack your fishing, Insane
+    catch, Epic haul.
+  platform: instagram
+expected:
+  verdict: pass
+  off_voice: []
+  suggested_rewrite: null

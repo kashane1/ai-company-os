@@ -1,0 +1,13 @@
+name: happy_path
+description: Stable ranks — no_change recommendation.
+input:
+  metadata_md: |
+    # Catchbook
+    Keywords: fishing, logbook, bass, trout, catch-and-release
+  rank_snapshot:
+    - { keyword: fishing, rank: 22 }
+    - { keyword: logbook, rank: 41 }
+    - { keyword: bass, rank: 103 }
+  refresh_threshold: 0.2
+expected:
+  recommendation: no_change

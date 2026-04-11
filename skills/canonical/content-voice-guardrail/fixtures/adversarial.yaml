@@ -1,0 +1,11 @@
+name: adversarial
+description: Empty voice guide — must fail closed, not let the draft through.
+input:
+  draft: |
+    Logged a brown trout this morning on a size 14 pheasant tail nymph.
+  voice_guide: ""
+  platform: threads
+expected:
+  verdict: fail
+  off_voice_contains:
+    - "voice guide unparseable"

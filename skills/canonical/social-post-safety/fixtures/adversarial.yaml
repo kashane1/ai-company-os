@@ -1,0 +1,12 @@
+name: adversarial
+description: Leaks email and phone; must fail with PII reasons.
+input:
+  draft: "DM me at guide@example.com or call +1 555 212 3456 for a trip."
+  platform: threads
+  campaign: { paid: false }
+  links: []
+expected:
+  verdict: fail
+  reasons_contains:
+    - pii_email
+    - pii_phone

@@ -1,0 +1,16 @@
+inputs:
+  - name: metadata_md
+    type: string
+  - name: rank_snapshot
+    type: list
+  - name: refresh_threshold
+    type: float
+    default: 0.2
+outputs:
+  - name: diff_md
+    type: string
+  - name: recommendation
+    type: enum
+    values: [apply, file_strategic_task, no_change]
+  - name: rationale
+    type: string

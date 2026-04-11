@@ -1,0 +1,12 @@
+name: boundary
+description: Moderate drop on one keyword — files strategic task.
+input:
+  metadata_md: |
+    Keywords: fishing, logbook, bass, trout
+  rank_snapshot:
+    - { keyword: fishing, rank: 22 }
+    - { keyword: logbook, rank: 250 }
+    - { keyword: bass, rank: 103 }
+  refresh_threshold: 0.2
+expected:
+  recommendation: file_strategic_task

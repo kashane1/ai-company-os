@@ -1,0 +1,17 @@
+name: happy_path
+description: Two targets, two personalized drafts, no send claims.
+input:
+  creator_targets:
+    - handle: "@bassbrad"
+      platform: tiktok
+      notes: "posts dawn topwater clips"
+      recent_post_url: "https://tiktok.com/@bassbrad/video/123"
+    - handle: "@flyfishkate"
+      platform: instagram
+      notes: "Montana, brown trout"
+      recent_post_url: "https://instagram.com/p/abc"
+  campaign_brief: "Catchbook is a fishing logbook launching April 2026."
+expected:
+  drafts_len: 2
+  no_send_claims: true
+  artifact_paths_under: "state/artifacts/outreach/"

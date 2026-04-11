@@ -1,0 +1,10 @@
+name: happy_path
+description: Clean organic post with a compliant link.
+input:
+  draft: "Logged a brown trout this morning. catchbook.app is live soon."
+  platform: instagram
+  campaign: { paid: false }
+  links: [ "https://catchbook.app" ]
+expected:
+  verdict: pass
+  reasons: []

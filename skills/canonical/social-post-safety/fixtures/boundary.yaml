@@ -1,0 +1,12 @@
+name: boundary
+description: Paid campaign missing FTC disclosure.
+input:
+  draft: "Brand new rod. Best I've ever cast."
+  platform: instagram
+  campaign: { paid: true }
+  links: []
+expected:
+  verdict: fail
+  reasons_contains:
+    - ftc_disclosure_missing
+    - instagram_paid_partnership_tag_missing

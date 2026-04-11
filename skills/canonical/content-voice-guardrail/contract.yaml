@@ -1,0 +1,16 @@
+inputs:
+  - name: draft
+    type: string
+  - name: voice_guide
+    type: string
+  - name: platform
+    type: enum
+    values: [tiktok, instagram, threads, x]
+outputs:
+  - name: verdict
+    type: enum
+    values: [pass, fail]
+  - name: off_voice
+    type: list
+  - name: suggested_rewrite
+    type: string_or_null

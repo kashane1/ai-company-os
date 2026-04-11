@@ -1,0 +1,13 @@
+name: boundary
+description: Marginal draft — one banned phrase; must be caught.
+input:
+  draft: |
+    EPIC HAUL today 🔥🔥🔥 caught a huge bass. Catchbook logged it.
+  voice_guide: |
+    Quietly proud. Banned phrases: Epic haul, Insane catch. No shout-caps.
+  platform: tiktok
+expected:
+  verdict: fail
+  off_voice_contains:
+    - "EPIC HAUL"
+  suggested_rewrite_nonempty: true

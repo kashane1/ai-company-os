@@ -1,0 +1,13 @@
+inputs:
+  - name: creator_targets
+    type: list
+  - name: campaign_brief
+    type: string
+outputs:
+  - name: drafts
+    type: list
+banned_output_substrings:
+  - "I have sent"
+  - "I sent"
+  - "message delivered"
+  - "DM delivered"

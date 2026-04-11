@@ -1,0 +1,12 @@
+name: boundary
+description: One target with sparse notes — draft must still personalize via recent post.
+input:
+  creator_targets:
+    - handle: "@walleyejosh"
+      platform: tiktok
+      notes: ""
+      recent_post_url: "https://tiktok.com/@walleyejosh/video/777"
+  campaign_brief: "Catchbook."
+expected:
+  drafts_len: 1
+  no_send_claims: true
