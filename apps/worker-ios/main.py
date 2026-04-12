@@ -72,15 +72,18 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
         )
         raise
 
-    control_plane.submit_task_result(
-        task_id=task.id,
-        status=result.status,
-        summary=result.summary,
-        worker_id=worker_id,
-        approval_id=result.approval_id,
-        artifacts=list(result.artifacts or []),
-        events=["task_completed"],
-    )
+    result_artifacts = list(result.artifacts or [])
+    submit_kwargs: dict = {
+        "task_id": task.id,
+        "status": result.status,
+        "summary": result.summary,
+        "worker_id": worker_id,
+        "approval_id": result.approval_id,
+    }
+    if result_artifacts:
+        submit_kwargs["artifacts"] = result_artifacts
+        submit_kwargs["events"] = ["task_completed"]
+    control_plane.submit_task_result(**submit_kwargs)
     return result
 
 

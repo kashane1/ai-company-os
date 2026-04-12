@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 from packages.db.task_store import TaskStore
@@ -208,7 +209,7 @@ def test_check_tests_with_code_script_handles_explicit_changed_file_lists(
 
     completed = subprocess.run(
         [
-            "python3",
+            sys.executable,
             "scripts/ci/check_tests_with_code.py",
             "--changed-files",
             str(changed_files),
@@ -232,7 +233,7 @@ def test_check_tests_with_code_script_passes_docs_only_changes(tmp_path: Path) -
 
     completed = subprocess.run(
         [
-            "python3",
+            sys.executable,
             "scripts/ci/check_tests_with_code.py",
             "--changed-files",
             str(changed_files),
