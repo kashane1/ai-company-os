@@ -29,3 +29,7 @@ state/handshake/
 # Claude Code agent worktrees — each one is its own checkout of the repo,
 # must never be committed back into the parent tree.
 .claude/worktrees/
+
+# Xcode per-user UI state — binary, machine-specific, changes on every open.
+xcuserdata/
+*.xcuserstate
