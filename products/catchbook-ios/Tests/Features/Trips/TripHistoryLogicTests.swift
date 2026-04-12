@@ -77,6 +77,7 @@ final class TripHistoryLogicTests: XCTestCase {
         XCTAssertEqual(summaries.count, 1)
         XCTAssertEqual(summaries[0].coordinate.latitude, 47.6, accuracy: 0.0001)
         XCTAssertEqual(summaries[0].coordinate.longitude, -122.3, accuracy: 0.0001)
+        XCTAssertEqual(summaries[0].coordinateSource, .canonicalWaterbody)
     }
 
     func testWaterbodySummariesFallBackToSpotCentroid() {
@@ -95,6 +96,7 @@ final class TripHistoryLogicTests: XCTestCase {
         XCTAssertEqual(summaries.count, 1)
         XCTAssertEqual(summaries[0].coordinate.latitude, 48.0, accuracy: 0.0001)
         XCTAssertEqual(summaries[0].coordinate.longitude, -121.0, accuracy: 0.0001)
+        XCTAssertEqual(summaries[0].coordinateSource, .legacySpotCentroid)
     }
 
     func testWaterbodySummariesOmitWatersWithoutResolvableCoordinates() {

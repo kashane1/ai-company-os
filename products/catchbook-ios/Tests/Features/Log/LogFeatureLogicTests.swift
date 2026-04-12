@@ -221,6 +221,28 @@ final class LogFeatureLogicTests: XCTestCase {
         XCTAssertEqual(cards[4].value, "Spinner")
     }
 
+    func testShouldOfferCreateSpotFromTripRequiresWaterbodyAndResolvableCoordinate() {
+        let waterbody = Waterbody(name: "Lake A", type: .lake, latitude: 47.6, longitude: -122.3)
+        let tripWithFallbackCoordinate = Trip(waterbody: waterbody)
+        let savedSpot = Spot(title: "Dock", waterbody: waterbody, latitude: 47.61, longitude: -122.31)
+        let tripWithSavedSpot = Trip(waterbody: waterbody, spot: savedSpot)
+        let unresolvedTrip = Trip(waterbody: Waterbody(name: "Unknown", type: .lake))
+
+        XCTAssertTrue(LogFeatureLogic.shouldOfferCreateSpot(from: tripWithFallbackCoordinate))
+        XCTAssertFalse(LogFeatureLogic.shouldOfferCreateSpot(from: tripWithSavedSpot))
+        XCTAssertFalse(LogFeatureLogic.shouldOfferCreateSpot(from: unresolvedTrip))
+    }
+
+    func testCreateSpotPromptUsesTripConfidenceLanguage() {
+        let waterbody = Waterbody(name: "Lake A", type: .lake, latitude: 47.6, longitude: -122.3)
+        let trip = Trip(waterbody: waterbody)
+
+        XCTAssertEqual(
+            LogFeatureLogic.createSpotPrompt(for: trip),
+            "Near this saved trip location into a reusable spot for faster recall next time."
+        )
+    }
+
     func testSharedRecallCardsStillIncludeBestTimeWindowForLogConsumers() {
         let summary = SpotRecallSummary(
             recentTrips: [],

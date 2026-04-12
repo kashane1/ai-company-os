@@ -21,7 +21,7 @@ from packages.config.settings import POSTIZ_API_KEY_ENV_VAR, get_api_key
 
 logger = logging.getLogger(__name__)
 
-POSTIZ_API_BASE = "https://api.postiz.com"
+POSTIZ_API_BASE = "https://api.postiz.com/public/v1"
 
 
 @dataclass
@@ -87,7 +87,7 @@ def _api_request(
     url = f"{POSTIZ_API_BASE}{endpoint}"
 
     headers = {
-        "Authorization": f"Bearer {key}",
+        "Authorization": key,
         "Content-Type": content_type,
     }
 
@@ -110,12 +110,17 @@ def _api_request(
 
 
 def list_channels(api_key: str | None = None) -> list[dict]:
-    """List all connected social media channels.
+    """List all connected social media channels (Postiz calls these 'integrations').
 
     Returns list of channel dicts with id, platform, name, etc.
+    Note: Postiz UI uses 'channel', but the API uses 'integrations'.
     """
-    result = _api_request("GET", "/channels", api_key=api_key)
-    channels = result.get("channels", result.get("data", []))
+    result = _api_request("GET", "/integrations", api_key=api_key)
+    # API may return list directly or nested under a key
+    if isinstance(result, list):
+        channels = result
+    else:
+        channels = result.get("integrations", result.get("data", []))
     logger.info("Found %d connected channels", len(channels))
     return channels
 
@@ -145,9 +150,9 @@ def upload_media(file_path: Path, api_key: str | None = None) -> PostizMedia:
     ).encode() + file_bytes + f"\r\n--{boundary}--\r\n".encode()
 
     key = api_key or _get_api_key()
-    url = f"{POSTIZ_API_BASE}/media/upload"
+    url = f"{POSTIZ_API_BASE}/upload"
     headers = {
-        "Authorization": f"Bearer {key}",
+        "Authorization": key,
         "Content-Type": f"multipart/form-data; boundary={boundary}",
     }
 

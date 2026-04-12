@@ -15,6 +15,7 @@ struct WaterbodySummary: Identifiable {
     let waterbodyName: String
     let waterbodyType: WaterbodyType
     let coordinate: CLLocationCoordinate2D
+    let coordinateSource: WaterbodySummaryCoordinateSource
     let tripCount: Int
     let catchCount: Int
     let spotCount: Int
@@ -22,6 +23,20 @@ struct WaterbodySummary: Identifiable {
     let spots: [Spot]
 
     var id: UUID { waterbodyID }
+}
+
+enum WaterbodySummaryCoordinateSource: Equatable {
+    case canonicalWaterbody
+    case legacySpotCentroid
+
+    var detailText: String {
+        switch self {
+        case .canonicalWaterbody:
+            return "Map anchored to the waterbody's saved canonical pin."
+        case .legacySpotCentroid:
+            return "Map anchored to a saved spot area until this waterbody gets its own canonical pin."
+        }
+    }
 }
 
 enum TripDateFilter: String, CaseIterable, Identifiable {
@@ -94,8 +109,9 @@ enum TripHistoryLogic {
                 .filter { $0.waterbody?.id == waterbodyID }
                 .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
 
-            let coordinate = coordinate(for: representativeWaterbody, spots: waterbodySpots)
-            guard let coordinate else { return nil }
+            guard let placement = coordinatePlacement(for: representativeWaterbody, spots: waterbodySpots) else {
+                return nil
+            }
 
             let catchCount = catches.reduce(into: 0) { total, catchRecord in
                 guard let tripID = catchRecord.trip?.id, tripIDs.contains(tripID) else { return }
@@ -107,7 +123,8 @@ enum TripHistoryLogic {
                 waterbodyID: waterbodyID,
                 waterbodyName: representativeWaterbody.name,
                 waterbodyType: representativeWaterbody.type,
-                coordinate: coordinate,
+                coordinate: placement.coordinate,
+                coordinateSource: placement.source,
                 tripCount: groupedTrips.count,
                 catchCount: catchCount,
                 spotCount: waterbodySpots.count,
@@ -395,11 +412,21 @@ enum TripHistoryLogic {
         return "\(tripLabel) · \(catchLabel)"
     }
 
-    private static func coordinate(for waterbody: Waterbody, spots: [Spot]) -> CLLocationCoordinate2D? {
+    private static func coordinatePlacement(
+        for waterbody: Waterbody,
+        spots: [Spot]
+    ) -> (coordinate: CLLocationCoordinate2D, source: WaterbodySummaryCoordinateSource)? {
         if let latitude = waterbody.latitude, let longitude = waterbody.longitude {
-            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+            return (
+                CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+                .canonicalWaterbody
+            )
         }
 
-        return SpotPresentationLogic.waterbodyCentroid(from: spots)
+        guard let centroid = SpotPresentationLogic.waterbodyCentroid(from: spots) else {
+            return nil
+        }
+
+        return (centroid, .legacySpotCentroid)
     }
 }

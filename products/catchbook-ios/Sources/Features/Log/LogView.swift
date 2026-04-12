@@ -342,16 +342,7 @@ private struct ConditionPreviewRow: View {
     }
 
     private func mergedLocationLine(for snapshot: ConditionSnapshot) -> String? {
-        switch (snapshot.placeSummary, snapshot.coordinateSummary) {
-        case let (place?, coords?):
-            return "\(place) · \(coords)"
-        case let (place?, nil):
-            return place
-        case let (nil, coords?):
-            return coords
-        default:
-            return nil
-        }
+        snapshot.locationSummaryLine
     }
 }
 
@@ -873,6 +864,7 @@ private struct TripEndedSummaryView: View {
     let viewHistory: () -> Void
 
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
+    @State private var showingSpotForm = false
 
     private var catches: [CatchRecord] {
         allCatches.filter { $0.trip?.id == trip.id }
@@ -880,6 +872,10 @@ private struct TripEndedSummaryView: View {
 
     private var summaryCards: [TripSummaryCardItem] {
         LogFeatureLogic.tripSummaryCards(trip: trip, catches: catches)
+    }
+
+    private var shouldOfferCreateSpot: Bool {
+        LogFeatureLogic.shouldOfferCreateSpot(from: trip)
     }
 
     var body: some View {
@@ -918,6 +914,24 @@ private struct TripEndedSummaryView: View {
                     }
                 }
 
+                if shouldOfferCreateSpot {
+                    Section {
+                        Button {
+                            showingSpotForm = true
+                        } label: {
+                            PrimaryActionLabel(title: "Create Spot from This Trip", systemImage: "mappin.badge.plus")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.appAccent)
+
+                        Text(LogFeatureLogic.createSpotPrompt(for: trip))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    } footer: {
+                        Text("Catchbook will prefill the saved pin from this trip before you fine-tune it.")
+                    }
+                }
+
                 Section {
                     Button {
                         viewHistory()
@@ -935,6 +949,12 @@ private struct TripEndedSummaryView: View {
             }
             .navigationTitle("Trip Summary")
             .navigationBarTitleDisplayMode(.inline)
+        }
+        .sheet(isPresented: $showingSpotForm) {
+            NewSpotForm(
+                preselectedWaterbodyID: trip.waterbody?.id,
+                initialCoordinate: trip.resolvedCoordinate
+            )
         }
         .presentationDetents([.medium, .large])
     }

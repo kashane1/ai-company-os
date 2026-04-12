@@ -30,9 +30,29 @@ enum ConditionCaptureStatus: String, Codable {
 
 enum ConditionSource: String, Codable {
     case deviceLocation
+    case spotFallback
+    case waterbodyFallback
     case tripFallback
     case weatherDeferred
     case weatherKit
+}
+
+enum TripCoordinateSource: Equatable {
+    case observed
+    case spotFallback
+    case waterbodyFallback
+    case unresolved
+
+    var confidenceLabel: String? {
+        switch self {
+        case .observed:
+            return "At"
+        case .spotFallback, .waterbodyFallback:
+            return "Near"
+        case .unresolved:
+            return nil
+        }
+    }
 }
 
 @Model
@@ -170,6 +190,30 @@ final class ConditionSnapshot {
         return String(format: "%.4f, %.4f", latitude, longitude)
     }
 
+    var locationConfidenceLabel: String? {
+        guard coordinateSummary != nil else { return nil }
+
+        switch source {
+        case .deviceLocation:
+            return "At"
+        case .spotFallback, .waterbodyFallback, .tripFallback, .weatherDeferred, .weatherKit:
+            return "Near"
+        }
+    }
+
+    var locationSummaryLine: String? {
+        let parts = [placeSummary, coordinateSummary].compactMap { value -> String? in
+            guard let value, !value.isEmpty else { return nil }
+            return value
+        }
+
+        guard !parts.isEmpty else { return nil }
+
+        let summary = parts.joined(separator: " · ")
+        guard let locationConfidenceLabel else { return summary }
+        return "\(locationConfidenceLabel) \(summary)"
+    }
+
     var statusLine: String {
         switch captureStatus {
         case .ready:
@@ -292,6 +336,36 @@ final class Trip {
 
     var targetSpeciesList: [String] {
         normalizedSpeciesTokens(from: targetSpecies)
+    }
+
+    var coordinateSource: TripCoordinateSource {
+        if coordinateIfPresent(latitude: conditionSnapshot?.latitude, longitude: conditionSnapshot?.longitude) != nil {
+            return .observed
+        }
+        if coordinateIfPresent(latitude: spot?.latitude, longitude: spot?.longitude) != nil {
+            return .spotFallback
+        }
+        if coordinateIfPresent(latitude: waterbody?.latitude, longitude: waterbody?.longitude) != nil {
+            return .waterbodyFallback
+        }
+        return .unresolved
+    }
+
+    var resolvedCoordinate: CLLocationCoordinate2D? {
+        switch coordinateSource {
+        case .observed:
+            return coordinateIfPresent(latitude: conditionSnapshot?.latitude, longitude: conditionSnapshot?.longitude)
+        case .spotFallback:
+            return coordinateIfPresent(latitude: spot?.latitude, longitude: spot?.longitude)
+        case .waterbodyFallback:
+            return coordinateIfPresent(latitude: waterbody?.latitude, longitude: waterbody?.longitude)
+        case .unresolved:
+            return nil
+        }
+    }
+
+    var locationConfidenceLabel: String? {
+        coordinateSource.confidenceLabel
     }
 }
 
@@ -422,6 +496,28 @@ func bestAvailableCoordinate(
         return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
     return nil
+}
+
+func bestAvailableConditionSource(
+    location: CLLocation?,
+    spot: Spot?,
+    waterbody: Waterbody?
+) -> ConditionSource {
+    if location?.coordinate != nil {
+        return .deviceLocation
+    }
+    if coordinateIfPresent(latitude: spot?.latitude, longitude: spot?.longitude) != nil {
+        return .spotFallback
+    }
+    if coordinateIfPresent(latitude: waterbody?.latitude, longitude: waterbody?.longitude) != nil {
+        return .waterbodyFallback
+    }
+    return .tripFallback
+}
+
+func coordinateIfPresent(latitude: Double?, longitude: Double?) -> CLLocationCoordinate2D? {
+    guard let latitude, let longitude else { return nil }
+    return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
 }
 
 func normalizedSpeciesTokens(from rawValue: String) -> [String] {

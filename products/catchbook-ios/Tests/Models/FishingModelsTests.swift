@@ -68,6 +68,8 @@ final class FishingModelsTests: XCTestCase {
 
         XCTAssertEqual(snapshot.coordinateSummary, "47.6205, -122.3493")
         XCTAssertEqual(snapshot.statusLine, "Conditions captured")
+        XCTAssertEqual(snapshot.locationConfidenceLabel, "At")
+        XCTAssertEqual(snapshot.locationSummaryLine, "At Dock • Lake · 47.6205, -122.3493")
         XCTAssertEqual(snapshot.weatherLine, "12°C • Cloudy • 5 kt • Low clouds • Dry")
         XCTAssertEqual(snapshot.similarityDescription, "6-9 AM • Morning light • 5 kt • Dry")
         XCTAssertEqual(
@@ -80,10 +82,26 @@ final class FishingModelsTests: XCTestCase {
         let snapshot = ConditionSnapshot(captureStatus: .pending, source: .weatherDeferred)
 
         XCTAssertNil(snapshot.coordinateSummary)
+        XCTAssertNil(snapshot.locationConfidenceLabel)
+        XCTAssertNil(snapshot.locationSummaryLine)
         XCTAssertEqual(snapshot.statusLine, "Conditions pending")
         XCTAssertEqual(snapshot.weatherLine, "Weather data unavailable")
         XCTAssertEqual(snapshot.similarityDescription, "recent trip context")
         XCTAssertEqual(snapshot.displaySummary, "Weather data unavailable")
+    }
+
+    func testConditionSnapshotLocationSummaryUsesNearForFallbackCoordinates() {
+        let snapshot = ConditionSnapshot(
+            capturedAt: utcDate(hour: 7),
+            latitude: 47.5,
+            longitude: -122.2,
+            placeSummary: "Dock • Lake",
+            captureStatus: .fallback,
+            source: .spotFallback
+        )
+
+        XCTAssertEqual(snapshot.locationConfidenceLabel, "Near")
+        XCTAssertEqual(snapshot.locationSummaryLine, "Near Dock • Lake · 47.5000, -122.2000")
     }
 
     func testTripComputedPropertiesRespectFallbackOrder() {
@@ -105,6 +123,30 @@ final class FishingModelsTests: XCTestCase {
 
         trip.endAt = utcDate(hour: 12)
         XCTAssertFalse(trip.isActive)
+    }
+
+    func testTripResolvedCoordinatePrefersSnapshotThenSpotThenWaterbody() {
+        let waterbody = Waterbody(name: "Lake", type: .lake, latitude: 10, longitude: 20)
+        let spot = Spot(title: "Dock", waterbody: waterbody, latitude: 30, longitude: 40)
+        let snapshot = ConditionSnapshot(latitude: 50, longitude: 60, source: .deviceLocation)
+        let trip = Trip(waterbody: waterbody, spot: spot, conditionSnapshot: snapshot)
+
+        XCTAssertEqual(trip.coordinateSource, .observed)
+        XCTAssertEqual(trip.locationConfidenceLabel, "At")
+        XCTAssertEqual(trip.resolvedCoordinate?.latitude, 50)
+
+        trip.conditionSnapshot = nil
+        XCTAssertEqual(trip.coordinateSource, .spotFallback)
+        XCTAssertEqual(trip.locationConfidenceLabel, "Near")
+        XCTAssertEqual(trip.resolvedCoordinate?.latitude, 30)
+
+        trip.spot = Spot(title: "Dock", waterbody: waterbody)
+        XCTAssertEqual(trip.coordinateSource, .waterbodyFallback)
+        XCTAssertEqual(trip.resolvedCoordinate?.latitude, 10)
+
+        trip.waterbody = nil
+        XCTAssertEqual(trip.coordinateSource, .unresolved)
+        XCTAssertNil(trip.resolvedCoordinate)
     }
 
     func testCatchRecordComputedPropertiesReflectPhotoAndSpeciesFallback() {
@@ -145,6 +187,23 @@ final class FishingModelsTests: XCTestCase {
             10
         )
         XCTAssertNil(bestAvailableCoordinate(location: nil, spot: Spot(title: "Dock", waterbody: nil), waterbody: nil))
+    }
+
+    func testBestAvailableConditionSourceTracksSelectedFallbackLayer() {
+        let waterbody = Waterbody(name: "Lake", type: .lake, latitude: 10, longitude: 20)
+        let spot = Spot(title: "Dock", waterbody: waterbody, latitude: 30, longitude: 40)
+        let location = CLLocation(latitude: 50, longitude: 60)
+
+        XCTAssertEqual(bestAvailableConditionSource(location: location, spot: spot, waterbody: waterbody), .deviceLocation)
+        XCTAssertEqual(bestAvailableConditionSource(location: nil, spot: spot, waterbody: waterbody), .spotFallback)
+        XCTAssertEqual(
+            bestAvailableConditionSource(location: nil, spot: Spot(title: "Dock", waterbody: waterbody), waterbody: waterbody),
+            .waterbodyFallback
+        )
+        XCTAssertEqual(
+            bestAvailableConditionSource(location: nil, spot: Spot(title: "Dock", waterbody: nil), waterbody: nil),
+            .tripFallback
+        )
     }
 
     func testNormalizedSpeciesTokensTrimsFiltersAndDeduplicatesCaseInsensitively() {

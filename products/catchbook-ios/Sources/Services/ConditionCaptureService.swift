@@ -30,6 +30,7 @@ enum ConditionCaptureService {
         capturedAt: Date
     ) -> ConditionSnapshot {
         let coordinate = bestAvailableCoordinate(location: location, spot: spot, waterbody: waterbody)
+        let source = bestAvailableConditionSource(location: location, spot: spot, waterbody: waterbody)
         let isLocationReady = location != nil
         let placeSummary = [spot?.title, waterbody?.name]
             .compactMap { value -> String? in
@@ -60,7 +61,7 @@ enum ConditionCaptureService {
             cloudCoverSummary: nil,
             precipitationSummary: nil,
             captureStatus: status,
-            source: isLocationReady ? .deviceLocation : .tripFallback
+            source: source
         )
     }
 
@@ -82,7 +83,6 @@ enum ConditionCaptureService {
             snapshot.windSummary = weather.windSummary
             snapshot.cloudCoverSummary = weather.cloudCoverSummary
             snapshot.precipitationSummary = weather.precipitationSummary
-            snapshot.sourceRawValue = ConditionSource.weatherKit.rawValue
         }
     }
 }

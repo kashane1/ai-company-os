@@ -431,6 +431,10 @@ private struct WaterbodySummarySheet: View {
                         Text(lastTripText)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
+
+                        Text(summary.coordinateSource.detailText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, Spacing.sm)
                 }
@@ -724,7 +728,9 @@ struct TripDetailView: View {
             if let snapshot = trip.conditionSnapshot {
                 Section("Conditions") {
                     LabeledContent("Status", value: snapshot.statusLine)
-                    if let placeSummary = snapshot.placeSummary {
+                    if let locationSummaryLine = snapshot.locationSummaryLine {
+                        LabeledContent("Location", value: locationSummaryLine)
+                    } else if let placeSummary = snapshot.placeSummary {
                         LabeledContent("Place", value: placeSummary)
                     }
                     if let timeWindowSummary = snapshot.timeWindowSummary {
@@ -956,7 +962,11 @@ private struct TripEditorView: View {
     }
 
     private var recordedLocationFooterText: String {
-        "Captured when the trip started. Clearing removes the coordinates and temperature from this trip permanently."
+        if let confidenceLabel = trip.locationConfidenceLabel {
+            return "\(confidenceLabel) reflects whether this trip is using an observed outing coordinate or a saved-place fallback. Clearing removes the recorded coordinate and temperature from this trip permanently."
+        }
+
+        return "Captured when the trip started. Clearing removes the coordinates and temperature from this trip permanently."
     }
 
     @ViewBuilder

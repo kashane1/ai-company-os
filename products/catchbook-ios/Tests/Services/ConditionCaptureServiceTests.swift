@@ -35,9 +35,26 @@ final class ConditionCaptureServiceTests: XCTestCase {
         )
 
         XCTAssertEqual(snapshot.captureStatus, .fallback)
-        XCTAssertEqual(snapshot.source, .tripFallback)
+        XCTAssertEqual(snapshot.source, .spotFallback)
         XCTAssertEqual(snapshot.latitude, 45.5)
         XCTAssertEqual(snapshot.longitude, -123.5)
+    }
+
+    func testSnapshotFallsBackToWaterbodyCoordinateWithoutDeviceOrSpotCoordinate() {
+        let waterbody = Waterbody(name: "Lake Blue", type: .lake, latitude: 44.0, longitude: -122.0)
+        let spot = Spot(title: "Reeds", waterbody: waterbody)
+
+        let snapshot = ConditionCaptureService.snapshot(
+            waterbody: waterbody,
+            spot: spot,
+            location: nil,
+            capturedAt: Date(timeIntervalSince1970: 1_711_825_000)
+        )
+
+        XCTAssertEqual(snapshot.captureStatus, .fallback)
+        XCTAssertEqual(snapshot.source, .waterbodyFallback)
+        XCTAssertEqual(snapshot.latitude, 44.0)
+        XCTAssertEqual(snapshot.longitude, -122.0)
     }
 
     func testSnapshotIsPendingWhenNoCoordinateOrPlaceIsAvailable() {
@@ -95,7 +112,6 @@ final class ConditionCaptureServiceTests: XCTestCase {
 
         await ConditionCaptureService.enrichWithWeather(snapshot, location: nil)
 
-        // Source should remain deviceLocation, not change to weatherKit
         XCTAssertEqual(snapshot.source, .deviceLocation)
     }
 

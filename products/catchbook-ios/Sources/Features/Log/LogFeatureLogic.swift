@@ -221,6 +221,15 @@ enum LogFeatureLogic {
         return cards
     }
 
+    static func shouldOfferCreateSpot(from trip: Trip) -> Bool {
+        trip.spot == nil && trip.waterbody != nil && trip.resolvedCoordinate != nil
+    }
+
+    static func createSpotPrompt(for trip: Trip) -> String {
+        let confidenceLead = trip.locationConfidenceLabel ?? "Near"
+        return "\(confidenceLead) this saved trip location into a reusable spot for faster recall next time."
+    }
+
     static func resetQuickCatchStateAfterSave(
         lureOrBait: String,
         method: String
