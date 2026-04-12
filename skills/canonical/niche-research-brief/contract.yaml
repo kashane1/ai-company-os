@@ -1,0 +1,20 @@
+inputs:
+  - name: product_id
+    type: string
+  - name: niche
+    type: string
+  - name: platforms
+    type: list
+    default: [tiktok]
+    values: [tiktok, instagram, threads, x, youtube]
+  - name: focus_areas
+    type: list_or_null
+outputs:
+  - name: brief_path
+    type: string
+  - name: memory_path
+    type: string
+  - name: topics_discovered
+    type: int
+  - name: run_number
+    type: int

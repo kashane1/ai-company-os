@@ -1,0 +1,294 @@
+# niche-research-memory.yaml — Schema Reference
+#
+# This file defines the exact YAML structure for the persistent memory file
+# at docs/products/<product_id>/gtm/niche-research-memory.yaml.
+#
+# One memory file per product. Multiple niches live inside it, organized
+# under the `niches` map. Product-level context is shared across all niches.
+#
+# This schema is the source of truth. The skill must produce YAML that
+# conforms to this structure exactly.
+
+# ============================================================================
+# TOP LEVEL
+# ============================================================================
+
+product_id: string          # e.g. "catchbook"
+created: date               # date this memory file was first created
+last_updated: date          # date of most recent write
+
+# ============================================================================
+# PRODUCT-LEVEL CONTEXT
+# Shared across all niches. This is the product's identity as understood
+# through cumulative research. Invaluable for grounding every niche run.
+# ============================================================================
+
+product_context:
+
+  # What this product is and does — distilled from founder-brief, product-brief,
+  # and mvp-spec. Updated if product scope changes.
+  identity:
+    name: string            # e.g. "Catchbook"
+    tagline: string         # e.g. "A fishing logbook for anglers who take the craft seriously"
+    core_value_props:       # list of 3-5 value propositions
+      - string              # e.g. "Log catches with location, weather, and gear in 3 taps"
+    target_user: string     # e.g. "Freshwater anglers, beginner to intermediate, who want to remember and improve"
+    app_store_category: string  # e.g. "Sports"
+
+  # Features and capabilities — what the product can actually do.
+  # Referenced when scoring product_alignment for topics.
+  features:
+    - name: string          # e.g. "Catch logging"
+      description: string   # e.g. "Log species, weight, location, weather, gear, and notes"
+      content_relevance: string  # e.g. "High — directly solves the 'I forgot what worked' pain point"
+
+  # Vocabulary that applies to the product regardless of niche.
+  # Cross-niche terms live here; niche-specific terms live in the niche lexicon.
+  cross_niche_vocabulary:
+    product_terms:          # terms specific to the product and its features
+      - term: string        # e.g. "catch log"
+        context: string     # e.g. "Use instead of 'fishing diary' or 'journal' in product-adjacent content"
+    industry_terms:         # terms that span all niches (e.g. "PB" applies to all fishing, not just bass)
+      - term: string
+        confidence: enum    # high | medium | low
+        context: string     # e.g. "Personal best — universal across all fishing niches"
+
+  # Competitors at the product level (apps that compete regardless of niche).
+  # Niche-specific competitor details live in the niche section.
+  competitors:
+    - name: string          # e.g. "Fishbrain"
+      app_store_url: string
+      first_seen: date
+      signal_quality: enum  # high | medium | low
+      overlap_with_product: string  # e.g. "Direct competitor — catch logging + social feed"
+      key_differentiators: list of string  # how they differ from our product
+      key_complaints:       # complaints that apply broadly (not niche-specific)
+        - string
+      key_praise:
+        - string
+      last_reviewed: date
+
+# ============================================================================
+# NICHES
+# Each niche is a self-contained research context within the product.
+# The niche key is a kebab-case identifier (e.g. "freshwater-bass-fishing").
+# ============================================================================
+
+niches:
+  "<niche-id>":             # e.g. "freshwater-bass-fishing"
+
+    # ---- Niche metadata ----
+    display_name: string    # e.g. "Freshwater Bass Fishing"
+    description: string     # 1-2 sentence description of the niche
+    created: date
+    last_researched: date
+    total_runs: int
+    freshness_window_days: int  # default 30; how many days before a re-run is recommended
+
+    # ---- Run history ----
+    # Append-only. Every run adds an entry. Never delete entries.
+    runs:
+      - run_number: int
+        date: date
+        sources_hit: list of string   # e.g. [reddit, appstore, tiktok, google_trends]
+        topics_discovered: int        # new topics added this run
+        topics_updated: int           # existing topics that were refreshed
+        competitors_found: int        # new competitors discovered this run
+        focus_areas: list of string or null
+        notes: string                 # free-text summary of what this run found
+
+    # ---- Refresh history ----
+    # Append-only. Every gtm-artifact-refresh execution adds an entry.
+    # Separate from research runs because refreshes consume the brief,
+    # they do not produce new research.
+    refresh_runs:
+      - date: date
+        mode: enum                    # full | incremental
+        artifacts_updated: list of string  # e.g. ["voice.md", "content-backlog.md"]
+        backlog_items_added: int
+        mix_balanced: bool
+        mix_report: string            # summary of archetype distribution vs. targets
+        notes: string or null
+
+    # ---- Source quality tracker ----
+    # Tracks which research sources yield high vs. low signal for THIS niche.
+    # Guides future runs: skip low-signal sources, prioritize high-signal ones.
+    sources:
+
+      reddit:
+        subreddits:
+          "<subreddit_name>":         # e.g. "r/bassfishing"
+            signal: enum              # high | medium | low
+            discovered: date
+            last_sampled: date
+            best_thread_count: int    # how many high-value threads were found
+            notes: string             # e.g. "Very active, tournament-focused community"
+
+      tiktok:
+        hashtags_tracked:
+          "<hashtag>":                # e.g. "#bassfishing"
+            volume: enum              # high | medium | low
+            last_checked: date
+        top_creators:
+          - handle: string            # e.g. "@lunaborle"
+            follower_tier: enum       # mega (1M+) | macro (100K+) | mid (10K+) | micro (<10K)
+            content_style: string     # e.g. "POV catches with educational voiceover"
+            discovered: date
+
+      appstore:
+        apps_reviewed: list of string # app names reviewed for this niche specifically
+        last_full_review: date
+
+      google_trends:
+        queries_tracked:
+          - query: string             # e.g. "bass fishing tips"
+            peak_months: list of int  # e.g. [3, 4, 5, 6] for March-June
+            trend_direction: enum     # rising | stable | declining
+            last_checked: date
+
+      youtube:
+        channels_noted:
+          - name: string
+            subscriber_tier: enum     # mega | macro | mid | micro
+            content_focus: string     # e.g. "tournament bass fishing, gear reviews"
+            discovered: date
+
+      amazon:
+        categories_sampled: list of string  # e.g. ["bass lures", "spinning reels"]
+        last_sampled: date
+
+    # ---- Topic registry ----
+    # Every content topic ever discovered for this niche.
+    # Topics are the core unit of intelligence. They accumulate across runs.
+    # Never delete topics — mark them as deprioritized or stale instead.
+    topics:
+      - id: string                    # kebab-case, e.g. "spot-finding-without-local-knowledge"
+        title: string                 # human-readable, e.g. "Finding new spots without local knowledge"
+        description: string           # 1-2 sentences explaining the topic
+        archetype: enum               # pain_point | value_educational | identity_tribal |
+                                      # debate_hot_take | aspirational_aesthetic |
+                                      # humor_relatable | seasonal_timely | behind_the_scenes
+        discovered: date
+        discovered_run: int           # which run number found this topic
+        source: string                # e.g. "r/bassfishing", "appstore:fishbrain", "tiktok:#bassfishing"
+        source_evidence: string       # e.g. "47 upvotes, recurring theme across 3 threads"
+
+        # Scoring (each 0-100)
+        scores:
+          virality: int
+          niche_fit: int
+          product_alignment: int
+          content_gap: int
+          timeliness: int
+          composite: int              # calculated: V*0.30 + NF*0.25 + CG*0.20 + T*0.15 + PA*0.10
+
+        # Lifecycle tracking
+        signal_strength: enum         # high | medium | low — overall assessment
+        lifecycle: enum               # new | confirmed | promoted | deprioritized | used | stale
+        used_in_content: bool         # set to true by gtm-artifact-refresh when added to backlog
+        content_performance: enum or null  # high | medium | low | null (null = not yet measured)
+        backlog_item_number: int or null   # which backlog item number uses this topic (null if unused)
+
+        # Freshness
+        last_validated: date          # date this topic was last confirmed still relevant
+        seasonal_relevance: list of int or null  # months when this topic is most relevant, e.g. [3,4,5]
+        still_relevant: bool
+
+    # ---- Credibility lexicon ----
+    # Niche-specific vocabulary. Terms that signal insider knowledge.
+    # Grows across runs. Never delete — only demote confidence.
+    lexicon:
+
+      species:
+        - term: string                # e.g. "largemouth bass"
+          confidence: enum            # high | medium | low
+          source_count: int           # how many independent sources used this term
+          notes: string or null       # e.g. "Most common species reference in this niche"
+
+      techniques:
+        - term: string                # e.g. "Texas rig"
+          confidence: enum
+          source_count: int
+          notes: string or null
+
+      gear_brands:
+        - term: string                # e.g. "Shimano"
+          confidence: enum
+          source_count: int
+          category: string            # e.g. "reels", "rods", "lures"
+          notes: string or null
+
+      slang:
+        - term: string                # e.g. "PB" (personal best)
+          confidence: enum
+          source_count: int
+          meaning: string             # e.g. "Personal best — largest fish caught"
+          notes: string or null
+
+      locations:                      # regional terms, famous waters, tournament locations
+        - term: string                # e.g. "Lake Fork"
+          confidence: enum
+          source_count: int
+          context: string             # e.g. "Famous Texas bass lake, frequently referenced"
+
+      seasons_and_conditions:         # weather, water, and seasonal terms
+        - term: string                # e.g. "pre-spawn"
+          confidence: enum
+          source_count: int
+          meaning: string             # e.g. "Period before bass move to spawning beds, typically early spring"
+
+    # ---- Seasonal calendar ----
+    # Month-by-month intelligence for this niche.
+    seasonal_calendar:
+      - month: int                    # 1-12
+        month_name: string            # e.g. "March"
+        activity_level: enum          # peak | high | moderate | low | off_season
+        species_active: list of string  # e.g. ["largemouth bass", "crappie"]
+        dominant_techniques: list of string  # e.g. ["jerkbait", "lipless crankbait"]
+        content_themes: list of string  # e.g. ["pre-spawn preparation", "cold water tactics"]
+        gear_in_demand: list of string  # e.g. ["swimbaits", "medium-heavy rods"]
+        notes: string                 # free-text seasonal context
+
+    # ---- Niche-specific competitor notes ----
+    # Extends the product-level competitor cache with niche-specific detail.
+    # e.g. how Fishbrain specifically serves bass anglers.
+    competitor_notes:
+      "<competitor_name>":
+        niche_relevance: enum         # high | medium | low
+        niche_specific_features: list of string
+        niche_specific_complaints: list of string
+        niche_specific_praise: list of string
+        review_quotes:                # exact language from reviews (for voice calibration)
+          - quote: string
+            star_rating: int
+            date: date or null
+
+    # ---- Archetype performance (for this niche) ----
+    # Which content archetypes work best in this niche on the target platforms.
+    # Updated each run based on social media research.
+    archetype_performance:
+      - archetype: enum               # same enum as topic.archetype
+        performance_rating: enum      # overperforms | average | underperforms
+        evidence: string              # e.g. "Gear debates drive 3x comment volume vs. educational posts"
+        recommended_mix_pct: int      # target percentage for content backlog (all must sum to 100)
+        notes: string or null
+
+# ============================================================================
+# SCHEMA RULES
+# ============================================================================
+#
+# 1. One memory file per product: docs/products/<product_id>/gtm/niche-research-memory.yaml
+# 2. Multiple niches per product, keyed by niche-id under the `niches` map.
+# 3. Product-level context is shared across all niches — write it once, reference always.
+# 4. Never delete entries from: runs, topics, lexicon. Append-only or update in place.
+# 5. Topics are the core unit. Every topic gets a unique id within its niche.
+# 6. The lexicon has 6 categories: species, techniques, gear_brands, slang, locations, seasons_and_conditions.
+# 7. Confidence ratings (high/medium/low) are based on source_count:
+#    - high: 3+ independent sources
+#    - medium: 2 independent sources
+#    - low: 1 source only
+# 8. Composite scores are always recalculated, never manually set.
+# 9. When a niche run discovers product-level intelligence (e.g. a competitor
+#    that spans niches), write it to product_context, not just the niche.
+# 10. The seasonal_calendar covers all 12 months, even off-season months
+#     (mark them activity_level: off_season with appropriate notes).

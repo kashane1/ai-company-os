@@ -204,6 +204,34 @@ skills:
     fixture_status: passing
     source: internal
 
+  # ----- Phase 3 content intelligence skills -----
+
+  - id: niche-research-brief
+    name: Niche Research Brief
+    path: canonical/niche-research-brief/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
+    adapters:
+      claude: adapters/claude/niche-research-brief.md
+    project_skill: .claude/skills/niche-research-brief.md
+
+  - id: gtm-artifact-refresh
+    name: GTM Artifact Refresh
+    path: canonical/gtm-artifact-refresh/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
+    adapters:
+      claude: adapters/claude/gtm-artifact-refresh.md
+    project_skill: .claude/skills/gtm-artifact-refresh.md
+
   # ----- Phase 4 observability + regression skills -----
 
   - id: failure-mode-regression

@@ -60,6 +60,8 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **ios-to-appstore-handoff** — prepare handoff from iOS build to App Store release
 - **supervisor-goal-decomposition** — decompose founder goals into structured worker tasks
 - **app-store-positioning-pack** — generate App Store positioning outputs from product artifacts
+- **niche-research-brief** — research a product niche and produce a scored, classified research brief with persistent memory
+- **gtm-artifact-refresh** — consume a research brief and refresh all GTM artifacts with archetype mix balance
 
 ## Trigger phrases → skills
 
@@ -72,6 +74,8 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "review the iOS code" / "polish review" → `skills/adapters/claude/ios-ui-polish-review.md`
 - "prep the app store handoff" / "cut a release" → `skills/adapters/claude/ios-to-appstore-handoff.md`
 - "generate app store copy" / "positioning pack" → `skills/adapters/claude/app-store-positioning-pack.md`
+- "research the niche" / "run niche research" / "research this audience" / "build a research brief" / "what does this audience care about" → `skills/adapters/claude/niche-research-brief.md`
+- "refresh the GTM artifacts" / "update the content backlog" / "propagate the research" / "refresh content from brief" / "balance the content mix" → `skills/adapters/claude/gtm-artifact-refresh.md`
 
 Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 

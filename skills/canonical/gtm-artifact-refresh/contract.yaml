@@ -1,0 +1,19 @@
+inputs:
+  - name: product_id
+    type: string
+  - name: niche
+    type: string
+    description: "Niche identifier (kebab-case, e.g. 'freshwater-bass-fishing'). Must match a key in niches map of the memory file."
+  - name: mode
+    type: enum
+    values: [full, incremental]
+    default: incremental
+outputs:
+  - name: artifacts_updated
+    type: list
+  - name: backlog_items_added
+    type: int
+  - name: mix_balanced
+    type: bool
+  - name: mix_report
+    type: string
