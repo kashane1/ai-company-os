@@ -65,7 +65,8 @@ See `skills/WIRING.md` for the full convention. The short version:
 
 When the user's message matches one of these patterns (including paraphrases), read and follow the named skill's Claude adapter before doing anything else:
 
-- "hand this to codex" / "dispatch to codex" / "delegate to codex" / "queue a task for codex" / "find tasks for codex" / "have codex fix X" / "send this to codex" / "run this through codex" → `skills/adapters/claude/codex-claude-handoff.md`
+- "hand this to codex" / "dispatch to codex" / "delegate to codex" / "queue a task for codex" / "find tasks for codex" / "have codex fix X" / "send this to codex" / "run this through codex" → `skills/adapters/claude/codex-claude-handoff.md` (local dispatch, on-device worker)
+- "use codex cloud" / "dispatch via codex cloud" / "queue this on codex cloud" / "open a PR via codex cloud" → `docs/codex-cloud-dispatch.md` (Chrome-MCP-driven chatgpt.com/codex/cloud → PR against `staging`)
 - "decompose this goal" / "break this down into tasks" / "turn this into worker tasks" → `skills/adapters/claude/supervisor-goal-decomposition.md`
 - "validate the artifact chain" / "check product artifacts" → `skills/adapters/claude/product-artifact-chain.md`
 - "review the iOS code" / "polish review" → `skills/adapters/claude/ios-ui-polish-review.md`
