@@ -1,4 +1,6 @@
+import CoreLocation
 import Foundation
+import MapKit
 
 struct TripHistorySection: Identifiable {
     let id: String
@@ -6,6 +8,20 @@ struct TripHistorySection: Identifiable {
     let subtitle: String?
     let spot: Spot?
     let trips: [Trip]
+}
+
+struct WaterbodySummary: Identifiable {
+    let waterbodyID: UUID
+    let waterbodyName: String
+    let waterbodyType: WaterbodyType
+    let coordinate: CLLocationCoordinate2D
+    let tripCount: Int
+    let catchCount: Int
+    let spotCount: Int
+    let lastTripDate: Date?
+    let spots: [Spot]
+
+    var id: UUID { waterbodyID }
 }
 
 enum TripDateFilter: String, CaseIterable, Identifiable {
@@ -56,6 +72,93 @@ enum TripSeasonFilter: String, CaseIterable, Identifiable {
 }
 
 enum TripHistoryLogic {
+    static func waterbodySummaries(
+        trips: [Trip],
+        catches: [CatchRecord],
+        spots: [Spot],
+        waterbodies: [Waterbody]
+    ) -> [WaterbodySummary] {
+        guard !trips.isEmpty else { return [] }
+
+        let explicitWaterbodies = Dictionary(uniqueKeysWithValues: waterbodies.map { ($0.id, $0) })
+        let tripGroups = Dictionary(grouping: trips) { $0.waterbody?.id }
+        let tripIDs = Set(trips.map(\.id))
+
+        return tripGroups.compactMap { waterbodyID, groupedTrips in
+            guard let waterbodyID else { return nil }
+            guard let representativeWaterbody = explicitWaterbodies[waterbodyID] ?? groupedTrips.compactMap(\.waterbody).first else {
+                return nil
+            }
+
+            let waterbodySpots = spots
+                .filter { $0.waterbody?.id == waterbodyID }
+                .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+
+            let coordinate = coordinate(for: representativeWaterbody, spots: waterbodySpots)
+            guard let coordinate else { return nil }
+
+            let catchCount = catches.reduce(into: 0) { total, catchRecord in
+                guard let tripID = catchRecord.trip?.id, tripIDs.contains(tripID) else { return }
+                guard catchRecord.trip?.waterbody?.id == waterbodyID else { return }
+                total += 1
+            }
+
+            return WaterbodySummary(
+                waterbodyID: waterbodyID,
+                waterbodyName: representativeWaterbody.name,
+                waterbodyType: representativeWaterbody.type,
+                coordinate: coordinate,
+                tripCount: groupedTrips.count,
+                catchCount: catchCount,
+                spotCount: waterbodySpots.count,
+                lastTripDate: groupedTrips.map(\.startAt).max(),
+                spots: waterbodySpots
+            )
+        }
+        .sorted { lhs, rhs in
+            let lhsDate = lhs.lastTripDate ?? .distantPast
+            let rhsDate = rhs.lastTripDate ?? .distantPast
+            if lhsDate != rhsDate {
+                return lhsDate > rhsDate
+            }
+            return lhs.waterbodyName.localizedCaseInsensitiveCompare(rhs.waterbodyName) == .orderedAscending
+        }
+    }
+
+    static func mapRegion(for summaries: [WaterbodySummary]) -> MKCoordinateRegion {
+        guard let firstSummary = summaries.first else {
+            return MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795),
+                span: MKCoordinateSpan(latitudeDelta: 32, longitudeDelta: 44)
+            )
+        }
+
+        guard summaries.count > 1 else {
+            return MKCoordinateRegion(
+                center: firstSummary.coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
+            )
+        }
+
+        let latitudes = summaries.map(\.coordinate.latitude)
+        let longitudes = summaries.map(\.coordinate.longitude)
+        let minLatitude = latitudes.min() ?? firstSummary.coordinate.latitude
+        let maxLatitude = latitudes.max() ?? firstSummary.coordinate.latitude
+        let minLongitude = longitudes.min() ?? firstSummary.coordinate.longitude
+        let maxLongitude = longitudes.max() ?? firstSummary.coordinate.longitude
+
+        return MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: (minLatitude + maxLatitude) / 2,
+                longitude: (minLongitude + maxLongitude) / 2
+            ),
+            span: MKCoordinateSpan(
+                latitudeDelta: max((maxLatitude - minLatitude) * 1.4, 0.2),
+                longitudeDelta: max((maxLongitude - minLongitude) * 1.4, 0.2)
+            )
+        )
+    }
+
     static func sections(
         trips: [Trip],
         catches: [CatchRecord]
@@ -290,5 +393,13 @@ enum TripHistoryLogic {
 
         let catchLabel = "\(catchCount) \(catchCount == 1 ? "catch" : "catches")"
         return "\(tripLabel) · \(catchLabel)"
+    }
+
+    private static func coordinate(for waterbody: Waterbody, spots: [Spot]) -> CLLocationCoordinate2D? {
+        if let latitude = waterbody.latitude, let longitude = waterbody.longitude {
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
+
+        return SpotPresentationLogic.waterbodyCentroid(from: spots)
     }
 }

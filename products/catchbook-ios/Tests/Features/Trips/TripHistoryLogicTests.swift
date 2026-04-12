@@ -1,4 +1,5 @@
 import Foundation
+import MapKit
 import XCTest
 @testable import Catchbook
 
@@ -26,6 +27,120 @@ final class TripHistoryLogicTests: XCTestCase {
         )
 
         XCTAssertEqual(result.map { $0.id }, [lake.id, river.id])
+    }
+
+    func testWaterbodySummariesReturnCountsPerWaterbody() {
+        let lake = Waterbody(name: "Lake", type: .lake, latitude: 47.6, longitude: -122.3)
+        let river = Waterbody(name: "River", type: .river, latitude: 47.7, longitude: -122.2)
+        let lakeSpotA = Spot(title: "Dock", waterbody: lake, latitude: 47.61, longitude: -122.31)
+        let lakeSpotB = Spot(title: "Point", waterbody: lake, latitude: 47.62, longitude: -122.32)
+        let riverSpot = Spot(title: "Bend", waterbody: river, latitude: 47.71, longitude: -122.21)
+        let lakeTripA = Trip(waterbody: lake, spot: lakeSpotA, startAt: utcDate(year: 2025, month: 5, day: 1))
+        let lakeTripB = Trip(waterbody: lake, spot: lakeSpotB, startAt: utcDate(year: 2025, month: 5, day: 2))
+        let riverTrip = Trip(waterbody: river, spot: riverSpot, startAt: utcDate(year: 2025, month: 5, day: 3))
+        let catches = [
+            CatchRecord(species: "Bass", trip: lakeTripA),
+            CatchRecord(species: "Bass", trip: lakeTripB),
+            CatchRecord(species: "Trout", trip: riverTrip),
+            CatchRecord(species: "Trout", trip: riverTrip),
+        ]
+
+        let summaries = TripHistoryLogic.waterbodySummaries(
+            trips: [lakeTripA, lakeTripB, riverTrip],
+            catches: catches,
+            spots: [lakeSpotA, lakeSpotB, riverSpot],
+            waterbodies: [lake, river]
+        )
+
+        let byID = Dictionary(uniqueKeysWithValues: summaries.map { ($0.waterbodyID, $0) })
+        XCTAssertEqual(summaries.count, 2)
+        XCTAssertEqual(byID[lake.id]?.tripCount, 2)
+        XCTAssertEqual(byID[lake.id]?.catchCount, 2)
+        XCTAssertEqual(byID[lake.id]?.spotCount, 2)
+        XCTAssertEqual(byID[river.id]?.tripCount, 1)
+        XCTAssertEqual(byID[river.id]?.catchCount, 2)
+        XCTAssertEqual(byID[river.id]?.spotCount, 1)
+    }
+
+    func testWaterbodySummariesUseWaterbodyCoordinatesWhenAvailable() {
+        let lake = Waterbody(name: "Lake", type: .lake, latitude: 47.6, longitude: -122.3)
+        let spot = Spot(title: "Dock", waterbody: lake, latitude: 40.0, longitude: -120.0)
+        let trip = Trip(waterbody: lake, spot: spot)
+
+        let summaries = TripHistoryLogic.waterbodySummaries(
+            trips: [trip],
+            catches: [],
+            spots: [spot],
+            waterbodies: [lake]
+        )
+
+        XCTAssertEqual(summaries.count, 1)
+        XCTAssertEqual(summaries[0].coordinate.latitude, 47.6, accuracy: 0.0001)
+        XCTAssertEqual(summaries[0].coordinate.longitude, -122.3, accuracy: 0.0001)
+    }
+
+    func testWaterbodySummariesFallBackToSpotCentroid() {
+        let lake = Waterbody(name: "Lake", type: .lake)
+        let spotA = Spot(title: "Dock", waterbody: lake, latitude: 47.0, longitude: -122.0)
+        let spotB = Spot(title: "Point", waterbody: lake, latitude: 49.0, longitude: -120.0)
+        let trip = Trip(waterbody: lake, spot: spotA)
+
+        let summaries = TripHistoryLogic.waterbodySummaries(
+            trips: [trip],
+            catches: [],
+            spots: [spotA, spotB],
+            waterbodies: [lake]
+        )
+
+        XCTAssertEqual(summaries.count, 1)
+        XCTAssertEqual(summaries[0].coordinate.latitude, 48.0, accuracy: 0.0001)
+        XCTAssertEqual(summaries[0].coordinate.longitude, -121.0, accuracy: 0.0001)
+    }
+
+    func testWaterbodySummariesOmitWatersWithoutResolvableCoordinates() {
+        let lake = Waterbody(name: "Lake", type: .lake)
+        let drySpot = Spot(title: "Dock", waterbody: lake)
+        let trip = Trip(waterbody: lake, spot: drySpot)
+
+        let summaries = TripHistoryLogic.waterbodySummaries(
+            trips: [trip],
+            catches: [],
+            spots: [drySpot],
+            waterbodies: [lake]
+        )
+
+        XCTAssertTrue(summaries.isEmpty)
+    }
+
+    func testWaterbodySummariesReturnEmptyArrayWhenNoTripsExist() {
+        let lake = Waterbody(name: "Lake", type: .lake, latitude: 47.6, longitude: -122.3)
+        let spot = Spot(title: "Dock", waterbody: lake, latitude: 47.61, longitude: -122.31)
+
+        let summaries = TripHistoryLogic.waterbodySummaries(
+            trips: [],
+            catches: [],
+            spots: [spot],
+            waterbodies: [lake]
+        )
+
+        XCTAssertTrue(summaries.isEmpty)
+    }
+
+    func testWaterbodySummariesUseMostRecentTripDatePerWaterbody() {
+        let lake = Waterbody(name: "Lake", type: .lake, latitude: 47.6, longitude: -122.3)
+        let spot = Spot(title: "Dock", waterbody: lake, latitude: 47.61, longitude: -122.31)
+        let olderTrip = Trip(waterbody: lake, spot: spot, startAt: utcDate(year: 2025, month: 4, day: 10))
+        let newerTrip = Trip(waterbody: lake, spot: spot, startAt: utcDate(year: 2025, month: 5, day: 10))
+
+        let summaries = TripHistoryLogic.waterbodySummaries(
+            trips: [olderTrip, newerTrip],
+            catches: [],
+            spots: [spot],
+            waterbodies: [lake]
+        )
+
+        XCTAssertEqual(summaries.count, 1)
+        XCTAssertEqual(summaries[0].lastTripDate, utcDate(year: 2025, month: 5, day: 10))
     }
 
     func testFilteredTripsMatchesSelectedWaterbody() {

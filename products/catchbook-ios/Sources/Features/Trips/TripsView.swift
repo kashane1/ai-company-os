@@ -1,3 +1,4 @@
+import MapKit
 import PhotosUI
 import SwiftData
 import SwiftUI
@@ -6,6 +7,7 @@ import UIKit
 struct TripsView: View {
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
+    @Query(sort: \Spot.createdAt) private var spots: [Spot]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
     @Binding private var selectedTripID: UUID?
     @State private var path = NavigationPath()
@@ -14,6 +16,9 @@ struct TripsView: View {
     @State private var dateFilter: TripDateFilter = .all
     @State private var seasonFilter: TripSeasonFilter = .all
     @State private var selectedLure: String?
+    @State private var showsMap = false
+    @State private var selectedWaterbodySummary: WaterbodySummary?
+    @State private var mapCameraPosition = MapCameraPosition.region(TripHistoryLogic.mapRegion(for: []))
 
     init(selectedTripID: Binding<UUID?> = .constant(nil)) {
         _selectedTripID = selectedTripID
@@ -75,103 +80,56 @@ struct TripsView: View {
         TripHistoryLogic.sections(trips: filteredTrips, catches: catches)
     }
 
+    private var waterbodySummaries: [WaterbodySummary] {
+        TripHistoryLogic.waterbodySummaries(
+            trips: filteredTrips,
+            catches: catches,
+            spots: spots,
+            waterbodies: waterbodies
+        )
+    }
+
+    private var listSnapshot: TripsListSnapshot {
+        TripsListSnapshot(
+            availableWaterbodies: availableWaterbodies,
+            availableLures: availableLures,
+            hasActiveFilters: hasActiveFilters,
+            filteredTrips: filteredTrips,
+            historySections: historySections,
+            catchCountsByTripID: catchCountsByTripID,
+            catchesByTripID: catchesByTripID
+        )
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
-            Group {
-                if trips.isEmpty {
-                    ContentUnavailableView {
-                        Label("No Trips Yet", systemImage: "water.waves")
-                    } description: {
-                        Text("Start a trip from the Log tab to begin building private fishing memory by water, spot, and season.")
-                    }
-                } else {
-                    List {
-                        Section("Filters") {
-                            Picker("Water", selection: $selectedWaterbodyID) {
-                                Text("All waters").tag(Optional<UUID>.none)
-                                ForEach(availableWaterbodies, id: \.id) { waterbody in
-                                    Text(waterbody.name).tag(Optional(waterbody.id))
-                                }
-                            }
-                            .pickerStyle(.menu)
-
-                            Picker("Date", selection: $dateFilter) {
-                                ForEach(TripDateFilter.allCases) { filter in
-                                    Text(filter.label).tag(filter)
-                                }
-                            }
-                            .pickerStyle(.menu)
-
-                            Picker("Season", selection: $seasonFilter) {
-                                ForEach(TripSeasonFilter.allCases) { filter in
-                                    Text(filter.label).tag(filter)
-                                }
-                            }
-                            .pickerStyle(.menu)
-
-                            TextField("Species", text: $speciesQuery)
-                                .textInputAutocapitalization(.words)
-                                .accessibilityIdentifier("trips.filter.speciesField")
-
-                            Picker("Lure", selection: $selectedLure) {
-                                Text("All lures").tag(Optional<String>.none)
-                                ForEach(availableLures, id: \.self) { lure in
-                                    Text(lure).tag(Optional(lure))
-                                }
-                            }
-                            .pickerStyle(.menu)
-
-                            if hasActiveFilters {
-                                Button("Clear Filters") {
-                                    selectedWaterbodyID = nil
-                                    speciesQuery = ""
-                                    dateFilter = .all
-                                    seasonFilter = .all
-                                    selectedLure = nil
-                                }
-                                .font(.footnote.weight(.medium))
-                            }
-                        }
-
-                        if filteredTrips.isEmpty {
-                            Section {
-                                SectionEmptyState(
-                                    icon: "line.3.horizontal.decrease.circle",
-                                    title: "No trips match these filters",
-                                    subtitle: "Try a different water, species, lure, or season to bring your history back into view."
-                                )
-                            }
-                        } else {
-                            ForEach(historySections) { section in
-                                Section {
-                                    ForEach(section.trips, id: \.id) { trip in
-                                        NavigationLink(value: trip.id) {
-                                            TripRow(
-                                                trip: trip,
-                                                catchCount: catchCountsByTripID[trip.id, default: 0],
-                                                catches: catchesByTripID[trip.id, default: []],
-                                                showSpotTitle: section.spot == nil
-                                            )
-                                        }
-                                    }
-                                } header: {
-                                    TripHistorySectionHeader(section: section)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            content
             .navigationTitle("Trips")
             .navigationDestination(for: UUID.self) { tripID in
-                if let trip = trips.first(where: { $0.id == tripID }) {
-                    TripDetailView(trip: trip)
-                } else {
-                    ContentUnavailableView("Trip not found", systemImage: "exclamationmark.triangle")
+                TripDestinationContent(trips: trips, tripID: tripID)
+            }
+            .toolbar {
+                if !trips.isEmpty {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            showsMap.toggle()
+                            if showsMap {
+                                refreshMapRegion()
+                            }
+                        } label: {
+                            Label(
+                                showsMap ? "Show list" : "Show map",
+                                systemImage: showsMap ? "list.bullet" : "map"
+                            )
+                            .labelStyle(.iconOnly)
+                        }
+                        .accessibilityLabel(showsMap ? "Show list" : "Show map")
+                    }
                 }
             }
             .onAppear {
                 openPendingTripIfPossible()
+                refreshMapRegion()
             }
             .onChange(of: availableLures) { _, _ in
                 clearUnavailableSelectedLure()
@@ -181,7 +139,48 @@ struct TripsView: View {
             }
             .onChange(of: trips.map(\.id)) { _, _ in
                 openPendingTripIfPossible()
+                refreshMapRegion()
             }
+            .onChange(of: filteredTrips.map(\.id)) { _, _ in
+                refreshMapRegion()
+            }
+            .onChange(of: spots.map(\.id)) { _, _ in
+                refreshMapRegion()
+            }
+        }
+        .sheet(item: $selectedWaterbodySummary) { summary in
+            WaterbodySummarySheet(summary: summary)
+                .presentationDetents([.medium, .large])
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if trips.isEmpty {
+            ContentUnavailableView {
+                Label("No Trips Yet", systemImage: "water.waves")
+            } description: {
+                Text("Start a trip from the Log tab to begin building private fishing memory by water, spot, and season.")
+            }
+        } else if showsMap {
+            TripsMapContent(
+                summaries: waterbodySummaries,
+                hasFilteredTrips: !filteredTrips.isEmpty,
+                position: $mapCameraPosition,
+                onSelect: { summary in
+                    selectedWaterbodySummary = summary
+                }
+            )
+        } else {
+            TripsListContent(
+                snapshot: listSnapshot,
+                selectedWaterbodyID: $selectedWaterbodyID,
+                dateFilter: $dateFilter,
+                seasonFilter: $seasonFilter,
+                speciesQuery: $speciesQuery,
+                selectedLure: $selectedLure,
+                onClearFilters: clearFilters
+            )
         }
     }
 
@@ -205,6 +204,266 @@ struct TripsView: View {
         if !selectionIsAvailable {
             self.selectedLure = nil
         }
+    }
+
+    private func clearFilters() {
+        selectedWaterbodyID = nil
+        speciesQuery = ""
+        dateFilter = .all
+        seasonFilter = .all
+        selectedLure = nil
+    }
+
+    private func refreshMapRegion() {
+        mapCameraPosition = .region(TripHistoryLogic.mapRegion(for: waterbodySummaries))
+    }
+}
+
+private struct TripDestinationContent: View {
+    let trips: [Trip]
+    let tripID: UUID
+
+    var body: some View {
+        if let trip = trips.first(where: { $0.id == tripID }) {
+            TripDetailView(trip: trip)
+        } else {
+            ContentUnavailableView("Trip not found", systemImage: "exclamationmark.triangle")
+        }
+    }
+}
+
+private struct TripsListSnapshot {
+    let availableWaterbodies: [Waterbody]
+    let availableLures: [String]
+    let hasActiveFilters: Bool
+    let filteredTrips: [Trip]
+    let historySections: [TripHistorySection]
+    let catchCountsByTripID: [UUID: Int]
+    let catchesByTripID: [UUID: [CatchRecord]]
+}
+
+private struct TripsListContent: View {
+    let snapshot: TripsListSnapshot
+    @Binding var selectedWaterbodyID: UUID?
+    @Binding var dateFilter: TripDateFilter
+    @Binding var seasonFilter: TripSeasonFilter
+    @Binding var speciesQuery: String
+    @Binding var selectedLure: String?
+    let onClearFilters: () -> Void
+
+    var body: some View {
+        List {
+            filtersSection
+            tripContent
+        }
+    }
+
+    private var filtersSection: some View {
+        Section("Filters") {
+            Picker("Water", selection: $selectedWaterbodyID) {
+                Text("All waters").tag(Optional<UUID>.none)
+                ForEach(snapshot.availableWaterbodies, id: \.id) { waterbody in
+                    Text(waterbody.name).tag(Optional(waterbody.id))
+                }
+            }
+            .pickerStyle(.menu)
+
+            Picker("Date", selection: $dateFilter) {
+                ForEach(TripDateFilter.allCases) { filter in
+                    Text(filter.label).tag(filter)
+                }
+            }
+            .pickerStyle(.menu)
+
+            Picker("Season", selection: $seasonFilter) {
+                ForEach(TripSeasonFilter.allCases) { filter in
+                    Text(filter.label).tag(filter)
+                }
+            }
+            .pickerStyle(.menu)
+
+            TextField("Species", text: $speciesQuery)
+                .textInputAutocapitalization(.words)
+                .accessibilityIdentifier("trips.filter.speciesField")
+
+            Picker("Lure", selection: $selectedLure) {
+                Text("All lures").tag(Optional<String>.none)
+                ForEach(snapshot.availableLures, id: \.self) { lure in
+                    Text(lure).tag(Optional(lure))
+                }
+            }
+            .pickerStyle(.menu)
+
+            if snapshot.hasActiveFilters {
+                Button("Clear Filters", action: onClearFilters)
+                    .font(.footnote.weight(.medium))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var tripContent: some View {
+        if snapshot.filteredTrips.isEmpty {
+            Section {
+                SectionEmptyState(
+                    icon: "line.3.horizontal.decrease.circle",
+                    title: "No trips match these filters",
+                    subtitle: "Try a different water, species, lure, or season to bring your history back into view."
+                )
+            }
+        } else {
+            ForEach(snapshot.historySections) { section in
+                Section {
+                    ForEach(section.trips, id: \.id) { trip in
+                        TripHistoryRow(
+                            trip: trip,
+                            catchCount: snapshot.catchCountsByTripID[trip.id, default: 0],
+                            catches: snapshot.catchesByTripID[trip.id, default: []],
+                            showSpotTitle: section.spot == nil
+                        )
+                    }
+                } header: {
+                    TripHistorySectionHeader(section: section)
+                }
+            }
+        }
+    }
+}
+
+private struct TripHistoryRow: View {
+    let trip: Trip
+    let catchCount: Int
+    let catches: [CatchRecord]
+    let showSpotTitle: Bool
+
+    var body: some View {
+        NavigationLink(value: trip.id) {
+            TripRow(
+                trip: trip,
+                catchCount: catchCount,
+                catches: catches,
+                showSpotTitle: showSpotTitle
+            )
+        }
+    }
+}
+
+private struct TripsMapContent: View {
+    let summaries: [WaterbodySummary]
+    let hasFilteredTrips: Bool
+    @Binding var position: MapCameraPosition
+    let onSelect: (WaterbodySummary) -> Void
+
+    var body: some View {
+        CatchbookMapView(
+            items: summaries,
+            position: $position,
+            coordinate: \.coordinate
+        ) { summary in
+            Button {
+                onSelect(summary)
+            } label: {
+                WaterbodyMapAnnotation(summary: summary)
+            }
+            .buttonStyle(.plain)
+        } overlay: {
+            if !hasFilteredTrips {
+                Text("No trips match these filters.")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.md)
+                    .background(.regularMaterial, in: Capsule())
+                    .allowsHitTesting(false)
+            } else if summaries.isEmpty {
+                Text("No waters with saved coordinates yet.")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.md)
+                    .background(.regularMaterial, in: Capsule())
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+}
+
+private struct WaterbodyMapAnnotation: View {
+    let summary: WaterbodySummary
+
+    private var tripCountText: String {
+        "\(summary.tripCount) \(summary.tripCount == 1 ? "trip" : "trips")"
+    }
+
+    var body: some View {
+        Text("\(summary.waterbodyName) · \(tripCountText)")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+            .background(
+                SpotPresentationLogic.waterbodyColor(for: summary.waterbodyID),
+                in: Capsule()
+            )
+            .shadow(color: .black.opacity(0.12), radius: 4, y: 2)
+    }
+}
+
+private struct WaterbodySummarySheet: View {
+    let summary: WaterbodySummary
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        Text(summary.waterbodyName)
+                            .font(.title2.weight(.bold))
+
+                        AppBadge(text: summary.waterbodyType.label)
+
+                        HStack(spacing: Spacing.lg) {
+                            StatCapsule(value: "\(summary.tripCount)", label: summary.tripCount == 1 ? "Trip" : "Trips", icon: "water.waves")
+                            StatCapsule(value: "\(summary.catchCount)", label: summary.catchCount == 1 ? "Catch" : "Catches", icon: "fish")
+                            StatCapsule(value: "\(summary.spotCount)", label: summary.spotCount == 1 ? "Spot" : "Spots", icon: "mappin")
+                        }
+
+                        Text(lastTripText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, Spacing.sm)
+                }
+
+                Section("Spots") {
+                    if summary.spots.isEmpty {
+                        SectionEmptyState(
+                            icon: "mappin.slash",
+                            title: "No saved spots yet",
+                            subtitle: "Trips here can still build memory before you pin exact spots."
+                        )
+                    } else {
+                        ForEach(summary.spots, id: \.id) { spot in
+                            NavigationLink {
+                                SpotDetailView(spot: spot)
+                            } label: {
+                                Text(spot.title)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Water Summary")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private var lastTripText: String {
+        guard let lastTripDate = summary.lastTripDate else {
+            return "No trips yet"
+        }
+
+        return "Last trip: \(AppFormatters.tripDate.string(from: lastTripDate))"
     }
 }
 
