@@ -174,19 +174,30 @@ def upload_media(file_path: Path, api_key: str | None = None) -> PostizMedia:
     return media
 
 
+# Per-platform hashtag limits (from hashtag-strategy.md convention).
+PLATFORM_HASHTAG_LIMITS: dict[str, int] = {
+    "tiktok": 5,
+    "instagram": 8,
+    "threads": 3,
+    "x": 3,
+}
+DEFAULT_HASHTAG_LIMIT = 5
+
+
 def create_draft_post(
     channel_id: str,
     caption: str,
     media_ids: list[str],
     scheduled_at: datetime | None = None,
     hashtags: list[str] | None = None,
+    platform: str | None = None,
     api_key: str | None = None,
 ) -> PostizPost:
     """Create a post in DRAFT status on a specific channel.
 
     Follows the posting rules:
     - Always sends to DRAFTS (not direct publish)
-    - Max 5 hashtags
+    - Platform-aware hashtag limits (Instagram 8, TikTok 5, Threads 3)
     - Caption under 1,000 characters
 
     Args:
@@ -194,12 +205,16 @@ def create_draft_post(
         caption: Post caption text.
         media_ids: List of media IDs from upload_media.
         scheduled_at: Optional schedule time.
-        hashtags: Up to 5 hashtags (will be trimmed if more).
+        hashtags: Hashtags (trimmed to platform limit if over).
+        platform: Platform name for hashtag limit lookup. Falls back to 5.
         api_key: Override API key.
     """
-    # Enforce posting rules
+    # Enforce posting rules with platform-aware hashtag limits
     if hashtags:
-        hashtags = hashtags[:5]  # Max 5 per posting rules
+        limit = PLATFORM_HASHTAG_LIMITS.get(
+            (platform or "").lower(), DEFAULT_HASHTAG_LIMIT
+        )
+        hashtags = hashtags[:limit]
         caption = f"{caption}\n\n{' '.join(hashtags)}"
 
     if len(caption) > 1000:
