@@ -21,6 +21,26 @@ final class TripPresentationLogicTests: XCTestCase {
         return formatter
     }
 
+    private func makeCatch(
+        id: UUID = UUID(),
+        species: String,
+        caughtAt: Date,
+        trip: Trip? = nil,
+        weightKg: Double? = nil,
+        lengthCm: Double? = nil
+    ) -> CatchRecord {
+        let trip = trip ?? Trip(waterbody: Waterbody(name: "Lake Union", type: .lake))
+        let catchRecord = CatchRecord(
+            species: species,
+            trip: trip,
+            caughtAt: caughtAt,
+            weightKg: weightKg,
+            lengthCm: lengthCm
+        )
+        catchRecord.id = id
+        return catchRecord
+    }
+
     func testTripRowSummaryReflectsActiveAndSkunkedStates() {
         let waterbody = Waterbody(name: "Lake Union", type: .lake)
         let spot = Spot(title: "Dock", waterbody: waterbody)
@@ -220,12 +240,159 @@ final class TripPresentationLogicTests: XCTestCase {
 
         let content = CatchShareCardLogic.content(for: catchRecord)
 
+        XCTAssertNil(content.badgeText)
         XCTAssertEqual(content.speciesName, "Bass")
         XCTAssertEqual(content.lureOrBaitText, "Spinner")
         XCTAssertEqual(content.weightText, "2.5 kg")
         XCTAssertEqual(content.lengthText, "55 cm")
         XCTAssertFalse(content.dateText.contains(":"))
         XCTAssertTrue(content.dateText.contains("2023"))
+    }
+
+    func testCatchShareCardBadgeReturnsLongestWhenCatchMatchesLongestPersonalBest() {
+        let catchRecord = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 8),
+            lengthCm: 55
+        )
+        let personalBest = PersonalBest(species: "Bass", longestCatchID: catchRecord.id)
+
+        let badge = CatchShareCardLogic.badge(
+            for: catchRecord,
+            catches: [catchRecord],
+            personalBests: [personalBest]
+        )
+
+        XCTAssertEqual(badge, .longest(species: "Bass"))
+    }
+
+    func testCatchShareCardBadgeReturnsHeaviestWhenCatchMatchesHeaviestPersonalBest() {
+        let catchRecord = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 8),
+            weightKg: 2.9
+        )
+        let personalBest = PersonalBest(species: "Bass", heaviestCatchID: catchRecord.id)
+
+        let badge = CatchShareCardLogic.badge(
+            for: catchRecord,
+            catches: [catchRecord],
+            personalBests: [personalBest]
+        )
+
+        XCTAssertEqual(badge, .heaviest(species: "Bass"))
+    }
+
+    func testCatchShareCardBadgeReturnsFirstForEarliestCatchOfSpecies() {
+        let firstCatch = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6)
+        )
+        let laterCatch = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 7),
+            trip: firstCatch.trip
+        )
+
+        let badge = CatchShareCardLogic.badge(
+            for: firstCatch,
+            catches: [laterCatch, firstCatch],
+            personalBests: []
+        )
+
+        XCTAssertEqual(badge, .first(species: "Bass"))
+    }
+
+    func testCatchShareCardBadgeReturnsNilWhenCatchIsNotLongestHeaviestOrFirst() {
+        let firstCatch = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6)
+        )
+        let targetCatch = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 7),
+            trip: firstCatch.trip
+        )
+        let longestCatch = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 8),
+            trip: firstCatch.trip,
+            lengthCm: 60
+        )
+        let heaviestCatch = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 9),
+            trip: firstCatch.trip,
+            weightKg: 3.4
+        )
+        let personalBest = PersonalBest(
+            species: "Bass",
+            longestCatchID: longestCatch.id,
+            heaviestCatchID: heaviestCatch.id
+        )
+
+        let badge = CatchShareCardLogic.badge(
+            for: targetCatch,
+            catches: [heaviestCatch, targetCatch, longestCatch, firstCatch],
+            personalBests: [personalBest]
+        )
+
+        XCTAssertNil(badge)
+    }
+
+    func testCatchShareCardBadgePrefersHeaviestOverFirst() {
+        let catchRecord = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6),
+            weightKg: 2.8
+        )
+        let laterCatch = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 7),
+            trip: catchRecord.trip
+        )
+        let personalBest = PersonalBest(species: "Bass", heaviestCatchID: catchRecord.id)
+
+        let badge = CatchShareCardLogic.badge(
+            for: catchRecord,
+            catches: [laterCatch, catchRecord],
+            personalBests: [personalBest]
+        )
+
+        XCTAssertEqual(badge, .heaviest(species: "Bass"))
+    }
+
+    func testCatchShareCardBadgePrefersLongestOverHeaviest() {
+        let catchRecord = makeCatch(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+            species: "Bass",
+            caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6),
+            weightKg: 2.8,
+            lengthCm: 58
+        )
+        let personalBest = PersonalBest(
+            species: "Bass",
+            longestCatchID: catchRecord.id,
+            heaviestCatchID: catchRecord.id
+        )
+
+        let badge = CatchShareCardLogic.badge(
+            for: catchRecord,
+            catches: [catchRecord],
+            personalBests: [personalBest]
+        )
+
+        XCTAssertEqual(badge, .longest(species: "Bass"))
     }
 
     @MainActor

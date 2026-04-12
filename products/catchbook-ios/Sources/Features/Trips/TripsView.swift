@@ -330,6 +330,8 @@ private enum TripDetailSheet: Identifiable {
 }
 
 struct TripDetailView: View {
+    @Environment(\.modelContext) private var modelContext
+
     let trip: Trip
 
     @Query(sort: \Trip.startAt, order: .reverse) private var allTrips: [Trip]
@@ -566,7 +568,7 @@ struct TripDetailView: View {
     }
 
     private func shareCatch(_ catchRecord: CatchRecord) {
-        guard let image = CatchSharing.makeImage(for: catchRecord) else { return }
+        guard let image = CatchSharing.makeImage(for: catchRecord, in: modelContext) else { return }
         shareImage = image
         showingShareSheet = true
     }
@@ -1126,7 +1128,7 @@ struct CatchEditorView: View {
 
     private func shareCatch() {
         guard let catchRecord else { return }
-        guard let image = CatchSharing.makeImage(for: catchRecord) else { return }
+        guard let image = CatchSharing.makeImage(for: catchRecord, in: modelContext) else { return }
         shareImage = image
         showingShareSheet = true
     }
@@ -1134,18 +1136,43 @@ struct CatchEditorView: View {
 
 private enum CatchSharing {
     @MainActor
-    static func makeImage(for catchRecord: CatchRecord) -> UIImage? {
-        CatchShareCardRenderer.renderImage(for: catchRecord)
+    static func makeImage(for catchRecord: CatchRecord, in modelContext: ModelContext) -> UIImage? {
+        let catches = (try? modelContext.fetch(FetchDescriptor<CatchRecord>())) ?? []
+        let personalBests = (try? modelContext.fetch(FetchDescriptor<PersonalBest>())) ?? []
+
+        return CatchShareCardRenderer.renderImage(
+            for: catchRecord,
+            catches: catches,
+            personalBests: personalBests
+        )
     }
 }
 
 struct CatchShareCardContent {
+    let badgeText: String?
     let speciesName: String
     let dateText: String
     let lureOrBaitText: String?
     let weightText: String?
     let lengthText: String?
     let photoData: Data?
+}
+
+enum CatchShareCardBadge: Equatable {
+    case longest(species: String)
+    case heaviest(species: String)
+    case first(species: String)
+
+    var text: String {
+        switch self {
+        case let .longest(species):
+            return "Longest \(species)"
+        case let .heaviest(species):
+            return "Heaviest \(species)"
+        case let .first(species):
+            return "First \(species)"
+        }
+    }
 }
 
 enum CatchShareCardLogic {
@@ -1156,8 +1183,37 @@ enum CatchShareCardLogic {
         return formatter
     }()
 
-    static func content(for catchRecord: CatchRecord) -> CatchShareCardContent {
+    static func badge(
+        for catchRecord: CatchRecord,
+        catches: [CatchRecord],
+        personalBests: [PersonalBest]
+    ) -> CatchShareCardBadge? {
+        let species = normalizedSpecies(catchRecord.species)
+        guard !species.isEmpty else { return nil }
+
+        if personalBests.contains(where: { normalizedSpecies($0.species) == species && $0.longestCatchID == catchRecord.id }) {
+            return .longest(species: catchRecord.speciesDisplayName)
+        }
+
+        if personalBests.contains(where: { normalizedSpecies($0.species) == species && $0.heaviestCatchID == catchRecord.id }) {
+            return .heaviest(species: catchRecord.speciesDisplayName)
+        }
+
+        let speciesCatches = catches.filter { normalizedSpecies($0.species) == species }
+        guard let firstCatch = speciesCatches.min(by: catchOrdering(_:_:)), firstCatch.id == catchRecord.id else {
+            return nil
+        }
+
+        return .first(species: catchRecord.speciesDisplayName)
+    }
+
+    static func content(
+        for catchRecord: CatchRecord,
+        catches: [CatchRecord] = [],
+        personalBests: [PersonalBest] = []
+    ) -> CatchShareCardContent {
         CatchShareCardContent(
+            badgeText: badge(for: catchRecord, catches: catches, personalBests: personalBests)?.text,
             speciesName: catchRecord.speciesDisplayName,
             dateText: coarseDateFormatter.string(from: catchRecord.caughtAt),
             lureOrBaitText: normalizedOptionalText(catchRecord.lureOrBait),
@@ -1171,13 +1227,36 @@ enum CatchShareCardLogic {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
     }
+
+    private static func normalizedSpecies(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func catchOrdering(_ lhs: CatchRecord, _ rhs: CatchRecord) -> Bool {
+        if lhs.caughtAt != rhs.caughtAt {
+            return lhs.caughtAt < rhs.caughtAt
+        }
+
+        return lhs.id.uuidString < rhs.id.uuidString
+    }
 }
 
 enum CatchShareCardRenderer {
     @MainActor
-    static func renderImage(for catchRecord: CatchRecord, scale: CGFloat = 3) -> UIImage? {
+    static func renderImage(
+        for catchRecord: CatchRecord,
+        catches: [CatchRecord] = [],
+        personalBests: [PersonalBest] = [],
+        scale: CGFloat = 3
+    ) -> UIImage? {
         let renderer = ImageRenderer(
-            content: CatchShareCardView(content: CatchShareCardLogic.content(for: catchRecord))
+            content: CatchShareCardView(
+                content: CatchShareCardLogic.content(
+                    for: catchRecord,
+                    catches: catches,
+                    personalBests: personalBests
+                )
+            )
                 .frame(width: 1080, height: 1350)
                 .background(Color(.systemBackground))
         )
@@ -1205,6 +1284,15 @@ private struct CatchShareCardView: View {
                 Text(content.dateText)
                     .font(.system(size: 42, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
+
+                if let badgeText = content.badgeText {
+                    Text(badgeText.uppercased())
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(Color.appAccent, in: Capsule())
+                }
 
                 Text(content.speciesName)
                     .font(.system(size: 88, weight: .bold, design: .rounded))
