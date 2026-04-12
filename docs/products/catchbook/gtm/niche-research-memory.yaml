@@ -1,0 +1,1400 @@
+# Catchbook — Niche Research Memory
+# Schema: skills/canonical/niche-research-brief/memory-schema.yaml
+
+product_id: catchbook
+created: 2026-04-12
+last_updated: 2026-04-12
+
+# ============================================================================
+# PRODUCT-LEVEL CONTEXT
+# ============================================================================
+
+product_context:
+
+  identity:
+    name: Catchbook
+    tagline: "A private fishing logbook for anglers who want to remember what worked"
+    core_value_props:
+      - "Log catches with location, weather, and gear in seconds"
+      - "Private spot memory — your waters stay yours"
+      - "Deterministic recall of what worked, where, and under what conditions"
+      - "iPhone-native, offline-first, no account required for core flow"
+      - "Share a win without exposing the spot"
+    target_user: "Repeat freshwater anglers, beginner to intermediate, who want private recall and personal progress"
+    app_store_category: Sports
+
+  features:
+    - name: Trip logging
+      description: "Start a trip with auto-captured GPS, weather (WeatherKit), and time"
+      content_relevance: "High — directly solves the 'I forgot the conditions' pain point"
+    - name: Quick catch logging
+      description: "Log species, lure/bait, weight, length, photo in under 10 seconds"
+      content_relevance: "High — speed is the top differentiator vs. spreadsheets and other apps"
+    - name: Spot memory
+      description: "Saved waters and spots with trip count, catch count, successful lures, and condition summaries"
+      content_relevance: "High — 'honey hole' recall is emotionally powerful content"
+    - name: Deterministic recall
+      description: "Rules-based insights: top species by water, top lure by species, best time-of-day, best season, similar conditions retrieval"
+      content_relevance: "Very high — the unique value prop no competitor has solved well"
+    - name: Last time here
+      description: "SpotRecallSummary card showing most recent trip to a spot with date, catches, conditions"
+      content_relevance: "High — pre-trip confidence builder"
+    - name: Personal bests
+      description: "Track PB by species across all trips"
+      content_relevance: "High — identity and achievement content"
+    - name: Privacy-safe sharing
+      description: "Export-only catch share card with location omitted by default"
+      content_relevance: "Medium — addresses the spot-burning anxiety directly"
+    - name: Skunked trip support
+      description: "Log zero-catch trips to track skunk rate and conditions"
+      content_relevance: "Medium — relatable content angle, honest logging"
+
+  cross_niche_vocabulary:
+    product_terms:
+      - term: catch log
+        context: "Use instead of 'fishing diary' or 'journal' in product-adjacent content"
+      - term: trip
+        context: "A single outing — the core unit of logging in Catchbook"
+      - term: spot
+        context: "A specific location within a waterbody — the privacy-sensitive unit"
+      - term: recall
+        context: "Catchbook's term for surfacing past patterns before a trip"
+      - term: share card
+        context: "The exported catch image — always privacy-safe, location omitted by default"
+    industry_terms:
+      - term: PB
+        confidence: high
+        context: "Personal best — universal across all fishing niches"
+      - term: skunked
+        confidence: high
+        context: "Zero catches on a trip — universal fishing term"
+      - term: honey hole
+        confidence: high
+        context: "Secret productive spot — emotionally loaded, universal"
+      - term: keeper
+        confidence: high
+        context: "Fish meeting legal/tournament minimum size"
+      - term: catch and release
+        confidence: high
+        context: "Conservation practice — dominant ethic in bass and trout communities"
+      - term: spot burning
+        confidence: high
+        context: "Revealing a productive spot to too many people — primary anxiety in fishing app discourse"
+      - term: pre-spawn
+        confidence: high
+        context: "Period before fish move to spawning beds — critical seasonal marker across all freshwater species"
+      - term: finesse
+        confidence: high
+        context: "Slow, subtle presentations for pressured or inactive fish — technique category spanning all species"
+
+  competitors:
+    - name: Fishbrain
+      app_store_url: "https://apps.apple.com/us/app/fishbrain-fishing-app/id477967747"
+      first_seen: 2026-04-12
+      signal_quality: high
+      overlap_with_product: "Direct competitor in catch logging; diverges on social-first vs. private-first"
+      key_differentiators:
+        - "20M+ user social network and crowdsourced catch map"
+        - "BiteTime AI forecast and species recommendations"
+        - "Fish ID (300+ species)"
+        - "Garmin Navionics HD maps integration (Pro)"
+      key_complaints:
+        - "Progressive paywall — free version essentially useless"
+        - "Spot burning — dubbed 'the spot burner app' by community"
+        - "BiteTime shows species that don't exist in local waters"
+        - "Fish ID tagged a dog as a flathead catfish"
+        - "Location data intentionally corrupted by users protecting spots"
+      key_praise:
+        - "Large active community for discovering unfamiliar water"
+        - "Weather information is accurate"
+        - "Fish ID useful for beginners"
+      last_reviewed: 2026-04-12
+
+    - name: FishAngler
+      app_store_url: "https://apps.apple.com/us/app/fishangler-fish-finder-app/id1073941118"
+      first_seen: 2026-04-12
+      signal_quality: medium
+      overlap_with_product: "Social fishing platform with logbook as secondary feature"
+      key_differentiators:
+        - "Completely free base tier with 45+ catch tracking attributes"
+        - "Real-time NOAA/USGS marine and inland water data"
+        - "Active community with private groups"
+      key_complaints:
+        - "Outdated location data — structures moved or gone"
+        - "Map navigation bugs"
+        - "Excessive cross-state notifications"
+        - "Interface feels dated"
+      key_praise:
+        - "Comprehensive species and body-of-water data"
+        - "Weather and solunar integration"
+        - "Free and accessible"
+      last_reviewed: 2026-04-12
+
+    - name: ANGLR
+      app_store_url: "https://apps.apple.com/us/app/fishing-app-anglr-logbook/id1142347232"
+      first_seen: 2026-04-12
+      signal_quality: high
+      overlap_with_product: "Most direct structural competitor — private-first logbook with GPS trip recording"
+      key_differentiators:
+        - "GPS route mapping of entire fishing trips"
+        - "Bullseye hardware button for one-click catch logging"
+        - "Automatic weather and water condition capture"
+        - "Go LIVE optional trip sharing"
+      key_complaints:
+        - "Frequent crashes during use — catastrophic for a logging app"
+        - "Analytics are surface-level — won't show where you don't catch fish"
+        - "Can't log multiple rods simultaneously"
+        - "Stops recording when cellular service drops"
+        - "Customer support unresponsive"
+      key_praise:
+        - "Automatic environmental data capture at catch time"
+        - "GPS trip replay is compelling"
+        - "Private by default"
+      last_reviewed: 2026-04-12
+
+    - name: "Anglers' Log"
+      app_store_url: "https://apps.apple.com/us/app/anglers-log-fishing-journal/id959989008"
+      first_seen: 2026-04-12
+      signal_quality: medium
+      overlap_with_product: "Closest philosophical match — private, focused, clean, ad-free"
+      key_differentiators:
+        - "Open source (GitHub)"
+        - "CSV export"
+        - "Custom fields"
+        - "Interactive world map + calendar view"
+      key_complaints:
+        - "Manual coordinate entry needed for offshore"
+        - "No river float tracking"
+        - "Can't group logs by body of water"
+        - "Limited statistics"
+      key_praise:
+        - "Purpose built without feature-creep"
+        - "Simple with unlimited customizability"
+        - "Ad-free"
+      last_reviewed: 2026-04-12
+
+    - name: LogIT
+      app_store_url: "https://apps.apple.com/us/app/fishing-log-journal-logit/id6667102943"
+      first_seen: 2026-04-12
+      signal_quality: low
+      overlap_with_product: "Very close positioning — native iOS, analytics-forward private logbook"
+      key_differentiators:
+        - "Multi-entry trip logging with day notes"
+        - "Conditional filtering (time, month, bait, gear, depth)"
+        - "Up to 8 images per catch"
+        - "Personal best auto-detection"
+      key_complaints:
+        - "Very new app — only 19 ratings"
+      key_praise:
+        - "Native iOS design, smooth and fast"
+        - "Developers are anglers"
+        - "Responsive to feedback"
+      last_reviewed: 2026-04-12
+
+    - name: Google Sheets
+      app_store_url: null
+      first_seen: 2026-04-12
+      signal_quality: high
+      overlap_with_product: "Surprise dominant incumbent — many serious anglers use spreadsheets over any dedicated app"
+      key_differentiators:
+        - "Fully customizable fields and formulas"
+        - "Pivot charts for analysis"
+        - "Free, no paywall"
+        - "Total data ownership"
+      key_complaints:
+        - "Not optimized for on-water use"
+        - "No auto weather/GPS capture"
+        - "No mobile-first UX"
+      key_praise:
+        - "Analytics-ready from day one"
+        - "No subscription"
+        - "Complete data control"
+      last_reviewed: 2026-04-12
+
+# ============================================================================
+# NICHES
+# ============================================================================
+
+niches:
+  fishing:
+
+    display_name: Fishing
+    description: "Broad freshwater and general fishing niche — covers bass, panfish, catfish, walleye, trout, and multi-species anglers. Primary focus on US freshwater recreational fishing."
+    created: 2026-04-12
+    last_researched: 2026-04-12
+    total_runs: 1
+    freshness_window_days: 30
+
+    runs:
+      - run_number: 1
+        date: 2026-04-12
+        sources_hit:
+          - reddit
+          - appstore
+          - tiktok
+          - google_trends
+          - amazon
+        topics_discovered: 20
+        topics_updated: 0
+        competitors_found: 6
+        focus_areas: null
+        notes: "First run. Deep pass across all Tier 1 sources. Strong signal on spot-privacy anxiety, logging friction, Fishbrain resentment, and the Google Sheets incumbent. TikTok fishing community (#FishTok) is massive (150B+ views). 57.9M US anglers (2024 record). Finesse fishing is the dominant technique trend nationally."
+
+    refresh_runs: []
+
+    sources:
+
+      reddit:
+        subreddits:
+          "r/Fishing":
+            signal: high
+            discovered: 2026-04-12
+            last_sampled: 2026-04-12
+            best_thread_count: 5
+            notes: "Largest general fishing community (3.1M members). International. Good for broad pain points and app sentiment."
+          "r/bassfishing":
+            signal: high
+            discovered: 2026-04-12
+            last_sampled: 2026-04-12
+            best_thread_count: 8
+            notes: "Most app discussion happens here (194K members). Tournament culture. Heavy slang. Fishbrain backlash strongest."
+          "r/flyfishing":
+            signal: high
+            discovered: 2026-04-12
+            last_sampled: 2026-04-12
+            best_thread_count: 4
+            notes: "Privacy-obsessed community (290K+). Spot-burning discourse is most intense here. Technique purists."
+          "r/kayakfishing":
+            signal: high
+            discovered: 2026-04-12
+            last_sampled: 2026-04-12
+            best_thread_count: 4
+            notes: "Log app requests documented (158K+ members). Mobile-first anglers — perfect Catchbook demographic."
+          "r/FishingForBeginners":
+            signal: high
+            discovered: 2026-04-12
+            last_sampled: 2026-04-12
+            best_thread_count: 3
+            notes: "'What app do I use' threads frequent (45K members). Fishbrain first-timer questions. Spreadsheet recommendations."
+          "r/troutfishing":
+            signal: medium
+            discovered: 2026-04-12
+            last_sampled: 2026-04-12
+            best_thread_count: 2
+            notes: "Species-specific (117K). Good seasonal pattern data."
+          "r/saltwaterfishing":
+            signal: medium
+            discovered: 2026-04-12
+            last_sampled: 2026-04-12
+            best_thread_count: 1
+            notes: "Smaller community (13K). Inshore/offshore split."
+          "r/inshorefishing":
+            signal: medium
+            discovered: 2026-04-12
+            last_sampled: 2026-04-12
+            best_thread_count: 1
+            notes: "Saltwater flats (~10K). Spot secrecy extremely high."
+
+      tiktok:
+        hashtags_tracked:
+          "#fishing":
+            volume: high
+            last_checked: 2026-04-12
+          "#fishtok":
+            volume: high
+            last_checked: 2026-04-12
+          "#bassfishing":
+            volume: high
+            last_checked: 2026-04-12
+          "#catchandrelease":
+            volume: medium
+            last_checked: 2026-04-12
+          "#kayakfishing":
+            volume: medium
+            last_checked: 2026-04-12
+          "#flyfishing":
+            volume: medium
+            last_checked: 2026-04-12
+          "#catchandcook":
+            volume: medium
+            last_checked: 2026-04-12
+        top_creators:
+          - handle: "@outdoorboys"
+            follower_tier: mega
+            content_style: "Family-friendly fishing/camping adventure, feel-good exploration"
+            discovered: 2026-04-12
+          - handle: "@stalekracker"
+            follower_tier: mega
+            content_style: "Cajun personality, catfish + bowfishing + catch-and-cook. Humor-first."
+            discovered: 2026-04-12
+          - handle: "@jacobknowles"
+            follower_tier: mega
+            content_style: "Maine lobster fisherman — BTS commercial fishing, authenticity-driven"
+            discovered: 2026-04-12
+          - handle: "@hannahbarron96"
+            follower_tier: macro
+            content_style: "Freshwater/saltwater mix, noodling, bow fishing, female-led"
+            discovered: 2026-04-12
+          - handle: "@katherinesalom"
+            follower_tier: macro
+            content_style: "Lifestyle female angler, aspirational aesthetic"
+            discovered: 2026-04-12
+          - handle: "@aprilvokey"
+            follower_tier: mid
+            content_style: "Fly fishing, conservation, educational depth"
+            discovered: 2026-04-12
+
+      appstore:
+        apps_reviewed:
+          - Fishbrain
+          - FishAngler
+          - ANGLR
+          - "Anglers' Log"
+          - LogIT
+          - Pro Angler
+          - "Angler: The Fishing App"
+          - "Catch - Fish Log"
+        last_full_review: 2026-04-12
+
+      google_trends:
+        queries_tracked:
+          - query: "fishing rods"
+            peak_months: [7, 8]
+            trend_direction: stable
+            last_checked: 2026-04-12
+          - query: "fishing reels"
+            peak_months: [7]
+            trend_direction: stable
+            last_checked: 2026-04-12
+          - query: "fishing lures"
+            peak_months: [7, 8]
+            trend_direction: rising
+            last_checked: 2026-04-12
+          - query: "bass fishing"
+            peak_months: [3, 4, 5, 6]
+            trend_direction: stable
+            last_checked: 2026-04-12
+          - query: "fishing app"
+            peak_months: [5, 6, 7]
+            trend_direction: rising
+            last_checked: 2026-04-12
+          - query: "forward facing sonar"
+            peak_months: [4, 5, 6, 7]
+            trend_direction: rising
+            last_checked: 2026-04-12
+          - query: "ned rig"
+            peak_months: [3, 4, 5]
+            trend_direction: rising
+            last_checked: 2026-04-12
+          - query: "fishing for beginners"
+            peak_months: [5, 6, 7]
+            trend_direction: rising
+            last_checked: 2026-04-12
+
+      youtube:
+        channels_noted:
+          - name: Outdoor Boys (Luke Nichols)
+            subscriber_tier: mega
+            content_focus: "Family-friendly fishing/camping adventure"
+            discovered: 2026-04-12
+          - name: Wired2Fish
+            subscriber_tier: macro
+            content_focus: "Bass fishing technique, gear reviews, tournament coverage"
+            discovered: 2026-04-12
+          - name: TacticalBassin
+            subscriber_tier: macro
+            content_focus: "Advanced bass fishing techniques, lure breakdowns"
+            discovered: 2026-04-12
+
+      amazon:
+        categories_sampled:
+          - "fishing rods"
+          - "fishing reels"
+          - "bass lures"
+          - "soft plastics"
+          - "fishing line"
+          - "forward facing sonar"
+          - "fishing apparel"
+        last_sampled: 2026-04-12
+
+    # ---- Topic Registry ----
+    topics:
+
+      - id: spot-privacy-anxiety
+        title: "Your secret spots aren't safe — and anglers know it"
+        description: "The visceral fear of having a productive spot exposed by apps, social media, or fishing partners. Fishbrain is the named villain. Users actively corrupt GPS data to protect locations."
+        archetype: pain_point
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, r/flyfishing, r/inshorefishing"
+        source_evidence: "Multiple 85+ upvote threads. Outdoor Life feature article. Fishbrain published a defensive blog post addressing the 'spot burner' label."
+        scores:
+          virality: 90
+          niche_fit: 95
+          product_alignment: 90
+          content_gap: 30
+          timeliness: 75
+          composite: 78
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: logging-friction-kills-habits
+        title: "Why every angler starts a log and quits within a month"
+        description: "Manual logging feels like homework. Anglers start enthusiastic but abandon due to friction. The ANGLR Bullseye hardware button exists specifically because phone-based logging is too slow."
+        archetype: pain_point
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/kayakfishing, r/FishingForBeginners, appstore:ANGLR"
+        source_evidence: "Recurring theme across multiple subreddits and app reviews. ANGLR's $30 hardware accessory validates the pain."
+        scores:
+          virality: 75
+          niche_fit: 90
+          product_alignment: 95
+          content_gap: 50
+          timeliness: 60
+          composite: 75
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: fishbrain-paywall-rage
+        title: "Fishbrain used to be free — now it's a money grab"
+        description: "Progressive paywall has turned the largest fishing app community hostile. Features that were free now require $80/year. 'Free version is essentially useless' is the consensus."
+        archetype: debate_hot_take
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, r/Fishing, r/FishingForBeginners"
+        source_evidence: "85+ upvote complaint threads. Trustpilot 3.7/5. Multiple comparison articles cite paywall as top complaint."
+        scores:
+          virality: 85
+          niche_fit: 80
+          product_alignment: 70
+          content_gap: 40
+          timeliness: 80
+          composite: 72
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: what-worked-last-time
+        title: "What did I throw last spring at this spot? I can't remember"
+        description: "The foundational pain of fishing without memory. Anglers know a spot produces but can't recall the specific lure, technique, or conditions that worked. This is the core job Catchbook solves."
+        archetype: pain_point
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, r/kayakfishing, log.fish"
+        source_evidence: "Thread: 'I know this spot produces in spring but I can't remember what I was throwing.' Multiple threads confirm memory failure for specific details."
+        scores:
+          virality: 70
+          niche_fit: 95
+          product_alignment: 100
+          content_gap: 60
+          timeliness: 70
+          composite: 77
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: spreadsheet-as-fishing-log
+        title: "The Excel angler — why serious fishermen use spreadsheets"
+        description: "Google Sheets and Excel are the surprise incumbent for catch tracking. Anglers build pivot charts, gear inventories, and condition databases. No app has beaten the trust + customization + free trifecta."
+        archetype: value_educational
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/Fishing, r/FishingForBeginners"
+        source_evidence: "Widely-referenced angler built Excel 365 workbook with pivot charts — posted to r/Fishing, described as 'analytics ready.' Multiple threads recommend spreadsheets over apps."
+        scores:
+          virality: 55
+          niche_fit: 85
+          product_alignment: 85
+          content_gap: 70
+          timeliness: 50
+          composite: 68
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: pre-spawn-bass-tactics
+        title: "Pre-spawn bass — the 3-week window where your log matters most"
+        description: "The pre-spawn period (water 50-65°F, typically March-April) is when bass are heaviest and most catchable. Anglers who tracked conditions from prior years have a massive advantage."
+        archetype: seasonal_timely
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, google_trends"
+        source_evidence: "Peak 'bass fishing' search volume March-May. Tournament schedule anchors around this window. Bassmaster Classic in March."
+        scores:
+          virality: 80
+          niche_fit: 95
+          product_alignment: 80
+          content_gap: 35
+          timeliness: 95
+          composite: 77
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: [3, 4]
+        still_relevant: true
+
+      - id: fishing-data-storytelling
+        title: "My 6-month fishing data revealed a pattern I never expected"
+        description: "Almost no creator shows what long-term catch logging actually reveals. This is a content blue ocean directly tied to Catchbook's value prop — showing the story data tells over time."
+        archetype: behind_the_scenes
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "tiktok (gap analysis), r/bassfishing"
+        source_evidence: "Identified as content gap #1 across TikTok research. No major creator owns this angle. Directly relevant to a logbook app."
+        scores:
+          virality: 75
+          niche_fit: 80
+          product_alignment: 100
+          content_gap: 95
+          timeliness: 60
+          composite: 80
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: catch-and-release-ethics
+        title: "Catch and release — are you actually saving the fish?"
+        description: "Perennial debate with genuine science on both sides. Fish mortality rates, handling technique, barbless hooks, and the ethics of catch-and-keep vs. mandatory release."
+        archetype: debate_hot_take
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/Fishing, r/bassfishing, tiktok"
+        source_evidence: "High-engagement threads across multiple subreddits. Lake Erie cheating scandal crossed 1M+ TikTok views. Conservation angle has broad appeal."
+        scores:
+          virality: 85
+          niche_fit: 85
+          product_alignment: 30
+          content_gap: 25
+          timeliness: 65
+          composite: 64
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: three-lures-that-always-work
+        title: "3 lures that work when nothing else does"
+        description: "The 'confidence lure' concept — the few lures every angler trusts. Ned rig, Senko/wacky rig, and a jig consistently win this debate. High educational value, high save rate."
+        archetype: value_educational
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, r/FishingForBeginners, tiktok"
+        source_evidence: "Already in content backlog as item #2. Recurring Reddit thread topic. TikTok tutorial format with high saves."
+        scores:
+          virality: 80
+          niche_fit: 90
+          product_alignment: 60
+          content_gap: 20
+          timeliness: 50
+          composite: 64
+        signal_strength: high
+        lifecycle: new
+        used_in_content: true
+        content_performance: null
+        backlog_item_number: 2
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: bank-angler-underserved
+        title: "Bank fishing is real fishing — stop gatekeeping from your $60K boat"
+        description: "The overwhelming majority of viral fishing content features boats and electronics. Bank anglers, urban pond fishers, and those without boat access are structurally underserved. Large audience."
+        archetype: identity_tribal
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "tiktok (gap analysis), r/FishingForBeginners"
+        source_evidence: "Identified as content gap #2 across TikTok. Strong identity resonance. Urban fishing is a rising search trend."
+        scores:
+          virality: 80
+          niche_fit: 75
+          product_alignment: 70
+          content_gap: 80
+          timeliness: 65
+          composite: 75
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: reading-the-water
+        title: "Reading the water — 3 signs fish are feeding nearby"
+        description: "Teach bank and kayak anglers to read surface activity, structure, and current for strike zones. High educational value, beginner-accessible."
+        archetype: value_educational
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/FishingForBeginners, tiktok"
+        source_evidence: "Already in content backlog as item #4. Tutorial format performs well on TikTok. Recurring FAQ on beginner subreddits."
+        scores:
+          virality: 75
+          niche_fit: 85
+          product_alignment: 50
+          content_gap: 30
+          timeliness: 50
+          composite: 62
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: true
+        content_performance: null
+        backlog_item_number: 4
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: dawn-vs-dusk-myth
+        title: "Dawn vs dusk — when bass actually bite"
+        description: "Common myth-busting angle. Data from logs can show the actual productive windows vs. conventional wisdom. Ties directly to time-of-day recall feature."
+        archetype: value_educational
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, r/FishingForBeginners"
+        source_evidence: "Already in content backlog as item #5. Recurring question on beginner subreddits. Data-driven framing is unique."
+        scores:
+          virality: 70
+          niche_fit: 85
+          product_alignment: 75
+          content_gap: 40
+          timeliness: 50
+          composite: 65
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: true
+        content_performance: null
+        backlog_item_number: 5
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: social-media-ruining-fishing
+        title: "Is social media ruining fishing?"
+        description: "Meta-debate about whether apps and platforms are destroying the fishing experience through spot exposure, pressure, and performative culture. Draws non-fishing viewers."
+        archetype: debate_hot_take
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/Fishing, r/flyfishing, tiktok, outdoor publications"
+        source_evidence: "Multiple Outdoor Life and MidCurrent feature articles. High-engagement TikTok debate format. Genuine passionate sides."
+        scores:
+          virality: 90
+          niche_fit: 70
+          product_alignment: 65
+          content_gap: 25
+          timeliness: 75
+          composite: 68
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: first-fish-emotional-moment
+        title: "Their first fish — the moment that hooks them for life"
+        description: "Kids, partners, or friends catching their first fish. Universally high-warmth content with extreme shareability. Family fishing content is under-saturated."
+        archetype: aspirational_aesthetic
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "tiktok, instagram"
+        source_evidence: "Family/first-catch content identified as content gap. Female angler audience growing fastest. High share, low competition."
+        scores:
+          virality: 90
+          niche_fit: 70
+          product_alignment: 40
+          content_gap: 60
+          timeliness: 50
+          composite: 68
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: [5, 6, 7]
+        still_relevant: true
+
+      - id: pb-personal-best-story
+        title: "The PB that changed everything"
+        description: "Personal best stories are the core currency of fishing identity. Trophy fish memories, the conditions, the lure, the fight. Directly tied to Catchbook's PB tracking feature."
+        archetype: aspirational_aesthetic
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, r/Fishing, instagram"
+        source_evidence: "PB posts are consistently highest-engagement content on fishing subreddits. Trophy catch carousels perform well on Instagram."
+        scores:
+          virality: 85
+          niche_fit: 90
+          product_alignment: 85
+          content_gap: 30
+          timeliness: 50
+          composite: 70
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: gear-elitism-debate
+        title: "You don't need a $500 rod to catch fish"
+        description: "Gear snobbery vs. accessibility debate. Resonates with frustrated majority who feel priced out. Strong engagement driver."
+        archetype: debate_hot_take
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/Fishing, r/FishingForBeginners, tiktok"
+        source_evidence: "High-engagement debate threads. TikTok format: compare cheap vs. expensive gear results."
+        scores:
+          virality: 80
+          niche_fit: 75
+          product_alignment: 25
+          content_gap: 30
+          timeliness: 55
+          composite: 59
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: fall-feeding-frenzy
+        title: "Fall turnover — the second-best bite window of the year"
+        description: "September-October when lakes turn over and bass feed aggressively before winter. Anglers who tracked fall patterns in prior years can time this precisely."
+        archetype: seasonal_timely
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, google_trends"
+        source_evidence: "September-October is documented as second peak fishing period. Fall turnover is a specific seasonal event with high search interest."
+        scores:
+          virality: 70
+          niche_fit: 90
+          product_alignment: 80
+          content_gap: 45
+          timeliness: 85
+          composite: 73
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: [9, 10]
+        still_relevant: true
+
+      - id: skunked-trip-value
+        title: "I got skunked again — and it still counts"
+        description: "The value of logging zero-catch trips for pattern recognition. Skunked trips tell you where NOT to go under those conditions. Relatable humor meets data intelligence."
+        archetype: humor_relatable
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, r/Fishing"
+        source_evidence: "Skunked posts get high engagement — self-deprecating humor. ANGLR criticized for not tracking negative zones."
+        scores:
+          virality: 75
+          niche_fit: 85
+          product_alignment: 90
+          content_gap: 65
+          timeliness: 45
+          composite: 72
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: forward-facing-sonar-revolution
+        title: "Forward-facing sonar is changing fishing — is that good?"
+        description: "Garmin Livescope and Humminbird Mega Live are the biggest gear disruption in a decade. Creates debate about skill erosion, fairness, and technology dependence."
+        archetype: debate_hot_take
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, google_trends, amazon"
+        source_evidence: "'Forward facing sonar' is a rising search term. Tournament bans debated. $1,200-2,500 price point creates accessibility tension."
+        scores:
+          virality: 80
+          niche_fit: 80
+          product_alignment: 30
+          content_gap: 35
+          timeliness: 90
+          composite: 67
+        signal_strength: high
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+      - id: the-angler-who-logs-wins
+        title: "The angler who logs beats the angler who guesses"
+        description: "Framing fishing as a pattern-recognition skill rather than luck. The case for systematic tracking. Directly positions Catchbook's value without being promotional."
+        archetype: identity_tribal
+        discovered: 2026-04-12
+        discovered_run: 1
+        source: "r/bassfishing, log.fish, appstore reviews"
+        source_evidence: "FishTalk Magazine: 'a practical tool for improvement, not another social platform.' Log.fish thesis. Experienced anglers validate the concept but have no app they trust."
+        scores:
+          virality: 65
+          niche_fit: 90
+          product_alignment: 100
+          content_gap: 75
+          timeliness: 50
+          composite: 74
+        signal_strength: medium
+        lifecycle: new
+        used_in_content: false
+        content_performance: null
+        backlog_item_number: null
+        last_validated: 2026-04-12
+        seasonal_relevance: null
+        still_relevant: true
+
+    # ---- Credibility Lexicon ----
+    lexicon:
+
+      species:
+        - term: largemouth bass
+          confidence: high
+          source_count: 8
+          notes: "Dominant species across all fishing content. Referred to as LMB, green fish."
+        - term: smallmouth bass
+          confidence: high
+          source_count: 5
+          notes: "Strong presence in Northeast and Great Lakes. Also called SMB, bronzeback, brown fish."
+        - term: crappie
+          confidence: high
+          source_count: 4
+          notes: "Panfish. Best cold-water month is January. Spawn in spring."
+        - term: walleye
+          confidence: high
+          source_count: 4
+          notes: "Dominant Midwest/Great Lakes species. Ice fishing crossover."
+        - term: rainbow trout
+          confidence: high
+          source_count: 4
+          notes: "Dominant in r/flyfishing and r/troutfishing. Stocked waters."
+        - term: brown trout
+          confidence: high
+          source_count: 3
+          notes: "Wild populations valued. Fall spawning run in Great Lakes tribs."
+        - term: catfish
+          confidence: high
+          source_count: 4
+          notes: "Peaks in summer. Night fishing culture. Stalekracker TikTok presence."
+        - term: bluegill
+          confidence: medium
+          source_count: 2
+          notes: "Beginner-friendly panfish. Often first species caught."
+        - term: redfish
+          confidence: medium
+          source_count: 2
+          notes: "Inshore saltwater. Strong in Southeast coastal communities."
+        - term: pike
+          confidence: medium
+          source_count: 2
+          notes: "Northern predator. Specialty communities."
+        - term: musky
+          confidence: medium
+          source_count: 2
+          notes: "Fish of 10,000 casts. Peak in October. Dedicated cult following."
+
+      techniques:
+        - term: drop shot
+          confidence: high
+          source_count: 5
+          notes: "Year-round finesse technique. Weight below hook, fish at depth."
+        - term: ned rig
+          confidence: high
+          source_count: 5
+          notes: "Rising finesse technique of the decade. Z-Man ElaZtech baits. National spread."
+        - term: Texas rig
+          confidence: high
+          source_count: 4
+          notes: "Classic bass technique. Weedless soft plastic presentation."
+        - term: Carolina rig
+          confidence: high
+          source_count: 3
+          notes: "Spring staging technique. Weight-leader-hook system for covering bottom."
+        - term: topwater
+          confidence: high
+          source_count: 5
+          notes: "Surface lure fishing. Peak in summer mornings. Walking the dog, poppers, frogs."
+        - term: flipping and pitching
+          confidence: high
+          source_count: 3
+          notes: "Short-range precise casting into heavy cover. Bass spawn and summer."
+        - term: finesse fishing
+          confidence: high
+          source_count: 5
+          notes: "Slow, subtle presentations. National trend. Cold water, post-front, pressured fish."
+        - term: jigging
+          confidence: high
+          source_count: 4
+          notes: "Vertical or swimming jig presentations. Year-round. Multiple species."
+        - term: wacky rig
+          confidence: high
+          source_count: 3
+          notes: "Hooking a stick bait through the middle. Simple, beginner-friendly, effective."
+        - term: neko rig
+          confidence: medium
+          source_count: 2
+          notes: "Weighted wacky rig variant. Finesse technique."
+        - term: walking the dog
+          confidence: high
+          source_count: 3
+          notes: "Side-to-side topwater retrieve. Zara Spook is the classic lure."
+
+      gear_brands:
+        - term: Shimano
+          confidence: high
+          source_count: 6
+          category: "rods, reels"
+          notes: "Dominant brand across rods and reels. Stradic is the workhorse spinning reel."
+        - term: Daiwa
+          confidence: high
+          source_count: 5
+          category: reels
+          notes: "Tatula is the named mid-tier reel. Certate HD is premium."
+        - term: St. Croix
+          confidence: high
+          source_count: 4
+          category: rods
+          notes: "Avid series is the 'bread and butter' rod. Strong brand loyalty."
+        - term: Rapala
+          confidence: high
+          source_count: 4
+          category: lures
+          notes: "X-Rap and PXR Maverick jerkbaits specifically named."
+        - term: Z-Man
+          confidence: high
+          source_count: 4
+          category: lures
+          notes: "ElaZtech material for Ned rigs. Rising with finesse trend."
+        - term: Berkley
+          confidence: high
+          source_count: 4
+          category: "lures, line"
+          notes: "Powerbait soft plastics. Also line products."
+        - term: Seaguar
+          confidence: high
+          source_count: 3
+          category: line
+          notes: "Fluorocarbon leader standard. High confidence signal."
+        - term: Strike King
+          confidence: high
+          source_count: 3
+          category: lures
+          notes: "Broad lure line. Tournament presence."
+        - term: Garmin
+          confidence: high
+          source_count: 5
+          category: electronics
+          notes: "Livescope forward-facing sonar is the biggest gear story of the decade."
+        - term: Humminbird
+          confidence: high
+          source_count: 3
+          category: electronics
+          notes: "Mega Live is the Livescope competitor."
+        - term: Abu Garcia
+          confidence: medium
+          source_count: 2
+          category: reels
+          notes: "Revo series. Entry to mid-tier baitcasters."
+        - term: G. Loomis
+          confidence: medium
+          source_count: 2
+          category: rods
+          notes: "Premium rod brand. Tournament-grade."
+        - term: Megabass
+          confidence: medium
+          source_count: 2
+          category: "rods, lures"
+          notes: "Japanese premium brand. Rising in US market."
+
+      slang:
+        - term: PB
+          confidence: high
+          source_count: 8
+          meaning: "Personal best — largest fish caught for a species"
+          notes: "Universal across all fishing niches"
+        - term: skunked
+          confidence: high
+          source_count: 6
+          meaning: "Zero catches on a trip"
+          notes: "Also 'goose egg.' Universal term."
+        - term: hawg
+          confidence: high
+          source_count: 4
+          meaning: "Large, hard-fighting bass"
+          notes: "Bass community specific. High insider signal."
+        - term: honey hole
+          confidence: high
+          source_count: 5
+          meaning: "Secret, productive fishing spot"
+          notes: "Emotionally loaded. Universal."
+        - term: lunker
+          confidence: high
+          source_count: 3
+          meaning: "Largest fish of the day or tournament"
+          notes: "Classic fishing slang."
+        - term: dinks
+          confidence: high
+          source_count: 3
+          meaning: "Undersized, sub-legal fish"
+          notes: "Dismissive but common."
+        - term: kicker
+          confidence: medium
+          source_count: 2
+          meaning: "Fish that significantly improves a tournament bag weight"
+          notes: "Tournament-specific."
+        - term: community hole
+          confidence: medium
+          source_count: 2
+          meaning: "A spot everyone knows — low value, high pressure"
+          notes: "Opposite of honey hole."
+        - term: the sauce
+          confidence: medium
+          source_count: 2
+          meaning: "Consistently or temporarily excellent spot"
+          notes: "Regional slang, rising."
+        - term: rippin' lips
+          confidence: medium
+          source_count: 2
+          meaning: "Catching fish"
+          notes: "Bass community. Action-oriented."
+        - term: spot burning
+          confidence: high
+          source_count: 6
+          meaning: "Revealing a productive spot to too many people"
+          notes: "Central anxiety in fishing app discourse."
+
+      locations:
+        - term: Lake Guntersville
+          confidence: high
+          source_count: 3
+          context: "Alabama. Premier largemouth bass lake. Hosts Bassmaster Elite and MLF events January-February."
+        - term: Lake Fork
+          confidence: high
+          source_count: 3
+          context: "Texas. Famous trophy bass lake. Frequently referenced as bucket-list destination."
+        - term: St. Lawrence River
+          confidence: medium
+          source_count: 2
+          context: "New York. Premier smallmouth bass fishery. Hosts Bassmaster Elite in August."
+        - term: Table Rock Lake
+          confidence: medium
+          source_count: 2
+          context: "Missouri. Clear-water bass lake. MLF Redcrest 2026 venue."
+        - term: Lake Champlain
+          confidence: medium
+          source_count: 2
+          context: "New York/Vermont. Diverse fishery — bass, walleye, pike. Bassmaster Elite August."
+
+      seasons_and_conditions:
+        - term: pre-spawn
+          confidence: high
+          source_count: 7
+          meaning: "Period before fish move to spawning beds. Typically early spring when water hits 50-55°F."
+        - term: post-spawn
+          confidence: high
+          source_count: 5
+          meaning: "Recovery period after spawning. Fish are lethargic, finesse required."
+        - term: fall turnover
+          confidence: high
+          source_count: 4
+          meaning: "Lake water column mixes as surface cools to match deep water temp. Triggers aggressive feeding."
+        - term: cold front
+          confidence: high
+          source_count: 4
+          meaning: "Weather system that shuts down fish activity. Post-front fishing is notoriously difficult."
+        - term: on bed
+          confidence: high
+          source_count: 3
+          meaning: "Fish actively spawning on nests. Controversial sight-fishing target."
+        - term: first ice
+          confidence: medium
+          source_count: 2
+          meaning: "First safe ice formation for ice fishing. High-activity period."
+        - term: solunar
+          confidence: medium
+          source_count: 2
+          meaning: "Moon phase theory predicting fish feeding activity windows."
+        - term: thermocline
+          confidence: medium
+          source_count: 2
+          meaning: "Temperature boundary layer in lakes. Fish often suspend at or near it in summer."
+        - term: stained water
+          confidence: medium
+          source_count: 2
+          meaning: "Slightly murky water with reduced visibility. Affects lure color choice."
+
+    # ---- Seasonal Calendar ----
+    seasonal_calendar:
+      - month: 1
+        month_name: January
+        activity_level: low
+        species_active: ["crappie", "catfish", "walleye (ice)", "perch (ice)"]
+        dominant_techniques: ["slow jigging", "ice fishing rigs", "deep finesse", "drop shot"]
+        content_themes: ["ice fishing gear reviews", "winter bass secrets", "pre-season prep", "tackle organization"]
+        gear_in_demand: ["ice fishing augers", "tip-ups", "jigging spoons", "soft plastics"]
+        notes: "Off-season for most freshwater. Ice fishing active in North. MLF Bass Pro Tour opens Jan 15 at Lake Guntersville."
+
+      - month: 2
+        month_name: February
+        activity_level: low
+        species_active: ["bass (pre-spawn in Deep South)", "crappie", "walleye"]
+        dominant_techniques: ["lipless crankbaits", "jigs near deep structure", "slow-rolling spinnerbaits"]
+        content_themes: ["early bass season", "pre-spawn scouting", "southern bass fishing", "tournament previews"]
+        gear_in_demand: ["lipless crankbaits (Rat-L-Trap, Red Eye Shad)", "jigs", "spinning gear"]
+        notes: "Season begins in the South (45-55°F water). Bassmaster Elite opens Feb 5 at Guntersville."
+
+      - month: 3
+        month_name: March
+        activity_level: high
+        species_active: ["largemouth bass (pre-spawn to spawn)", "smallmouth bass", "trout (stream openers)", "crappie (staging)"]
+        dominant_techniques: ["jerkbaits", "square-bill crankbaits", "bed fishing", "ned rig", "drop shot"]
+        content_themes: ["spring bass fishing", "spawn prep", "trout season openers", "Bassmaster Classic coverage"]
+        gear_in_demand: ["jerkbaits (Rapala X-Rap)", "crankbaits", "sight-fishing gear", "polarized sunglasses"]
+        notes: "Bassmaster Classic (March 13-15, Tennessee River) is the single largest media moment in bass fishing. Peak search interest begins."
+
+      - month: 4
+        month_name: April
+        activity_level: peak
+        species_active: ["largemouth bass (spawn, 55-70°F water)", "smallmouth bass", "crappie (full spawn)", "panfish"]
+        dominant_techniques: ["bed fishing", "topwater in warming shallows", "spinnerbaits", "swimbaits", "wacky rig"]
+        content_themes: ["spawn fishing", "bedding bass tactics", "biggest bass of the year", "crappie spawn guide"]
+        gear_in_demand: ["topwater lures", "swimbaits", "polarized glasses", "soft plastics"]
+        notes: "Single best month for bass fishing nationally. Bass are heaviest during spawn."
+
+      - month: 5
+        month_name: May
+        activity_level: peak
+        species_active: ["bass (post-spawn)", "walleye", "panfish", "pike/musky (north)", "catfish"]
+        dominant_techniques: ["post-spawn finesse", "topwater early morning", "drop shot", "swimbaits", "crankbaits"]
+        content_themes: ["post-spawn recovery patterns", "best summer lures", "catfish season", "walleye runs"]
+        gear_in_demand: ["topwater poppers", "buzz baits", "crankbaits", "spinning reels"]
+        notes: "Search interest building sharply toward summer. Multi-species opportunities."
+
+      - month: 6
+        month_name: June
+        activity_level: peak
+        species_active: ["bass (summer patterns)", "catfish (peak)", "panfish", "musky"]
+        dominant_techniques: ["topwater (early/late)", "offshore structure fishing", "deep crankbaits", "frog fishing"]
+        content_themes: ["summer bass patterns", "topwater fishing", "frog fishing", "night catfishing", "family fishing"]
+        gear_in_demand: ["frog lures", "deep crankbaits", "braided line", "forward-facing sonar"]
+        notes: "Search interest approaching yearly maximum. Family fishing opportunities peak."
+
+      - month: 7
+        month_name: July
+        activity_level: peak
+        species_active: ["bass (deep summer)", "catfish", "panfish", "pike/musky (north)", "smallmouth (Great Lakes)"]
+        dominant_techniques: ["deep crankbaits (20-30ft)", "Carolina rigs", "drop shots", "night fishing"]
+        content_themes: ["deep water bass", "heat-of-summer patterns", "night fishing", "sonar and electronics"]
+        gear_in_demand: ["deep-diving crankbaits", "offshore rigs", "sonar (Garmin, Humminbird)", "sun protection"]
+        notes: "Google Trends maximum for fishing reels. Hottest period — early morning and night fishing dominate."
+
+      - month: 8
+        month_name: August
+        activity_level: high
+        species_active: ["bass (late summer transition)", "smallmouth (Great Lakes peak)", "salmon (Great Lakes)", "catfish"]
+        dominant_techniques: ["football jigs", "topwater early AM", "reaction baits as water cools"]
+        content_themes: ["late summer transitions", "Great Lakes smallmouth", "salmon runs", "gear reviews (holiday season begins)"]
+        gear_in_demand: ["fishing rods (peak search)", "reels", "smallmouth tackle"]
+        notes: "Google Trends peak for fishing rods. Bassmaster Elite at Champlain and St. Lawrence — smallmouth showcase."
+
+      - month: 9
+        month_name: September
+        activity_level: high
+        species_active: ["bass (aggressive fall feed)", "walleye", "musky", "pike", "salmon (Pacific NW)"]
+        dominant_techniques: ["spinnerbaits", "lipless crankbaits", "swimbaits (shad match)", "jerkbaits"]
+        content_themes: ["fall bass patterns", "fish feeding before winter", "shad-matching lures", "trophy musky"]
+        gear_in_demand: ["spinnerbaits", "lipless crankbaits", "swimbaits", "braided line", "jerkbaits"]
+        notes: "Often best fishing of the year for largemouth. Fall turnover triggers aggressive feeding."
+
+      - month: 10
+        month_name: October
+        activity_level: high
+        species_active: ["bass (late fall binge)", "musky (peak)", "walleye", "trout (fall spawn runs)"]
+        dominant_techniques: ["big swimbaits", "jerkbaits", "topwater in warm afternoons", "big jigs"]
+        content_themes: ["trophy bass in fall", "musky season", "Great Lakes trout", "bucket list destinations"]
+        gear_in_demand: ["large swimbaits", "musky tackle", "quality landing nets"]
+        notes: "Musky October is a dedicated cultural event. Fall bass bite continues strong."
+
+      - month: 11
+        month_name: November
+        activity_level: moderate
+        species_active: ["bass (slowing in North, active in South)", "crappie", "trout (stocked waters)", "ice fishing (far North)"]
+        dominant_techniques: ["slower presentations", "jigs", "finesse drop shot", "hair rigs"]
+        content_themes: ["holiday gift guides for anglers", "year-end roundups", "crappie winter guide", "gear wishlists"]
+        gear_in_demand: ["holiday gifts — rods, reels, tackle boxes", "apparel", "ice fishing gear (North)"]
+        notes: "Notable uptick in gear search interest for holiday buying. Content shifts toward gift guides."
+
+      - month: 12
+        month_name: December
+        activity_level: low
+        species_active: ["crappie (best of year in cold water)", "bass (deep, South/Florida)", "trout (tailwaters)"]
+        dominant_techniques: ["slow vertical jigging", "light finesse", "deep presentations"]
+        content_themes: ["year in review", "New Year's angler resolutions", "crappie winter tips", "gear deals"]
+        gear_in_demand: ["holiday gift sets", "new year gear upgrades", "ice fishing gear (North)"]
+        notes: "Off-season in most of North. Florida and Deep South remain active. Content shifts to reflection and planning."
+
+    # ---- Competitor Notes (niche-specific) ----
+    competitor_notes:
+      Fishbrain:
+        niche_relevance: high
+        niche_specific_features:
+          - "Crowdsourced catch map with 20M+ logged catches"
+          - "BiteTime species-specific forecasts"
+          - "Species ID for 300+ freshwater species"
+        niche_specific_complaints:
+          - "BiteTime shows species that don't exist in local waters"
+          - "Predetermined location picks — can't create custom spots"
+          - "Experienced anglers never share real spots, so data is skewed"
+        niche_specific_praise:
+          - "Useful for discovering unfamiliar water when traveling"
+          - "Good weather overlay"
+        review_quotes:
+          - quote: "You used to be able to see all the catches logged at any spot... now you have to pay for premium"
+            star_rating: 1
+            date: null
+          - quote: "One of the biggest spot burning apps out there"
+            star_rating: 2
+            date: null
+          - quote: "That app scanned my camera roll and tagged my dog as a flathead catfish"
+            star_rating: 1
+            date: null
+
+      ANGLR:
+        niche_relevance: high
+        niche_specific_features:
+          - "GPS route mapping of fishing trips"
+          - "Bullseye hardware for one-click logging"
+          - "Auto weather/water capture at catch time"
+        niche_specific_complaints:
+          - "Frequent crashes during use"
+          - "Lacks real data analysis — won't show where you don't catch"
+          - "Stops recording when cellular drops on remote water"
+        niche_specific_praise:
+          - "GPS trip replay is compelling"
+          - "Private by default"
+        review_quotes:
+          - quote: "Great as a trophy case, but falls short if you're trying to step up your game"
+            star_rating: 3
+            date: null
+
+      "Anglers' Log":
+        niche_relevance: medium
+        niche_specific_features:
+          - "Clean ad-free journal"
+          - "CSV export"
+          - "Custom fields"
+        niche_specific_complaints:
+          - "Basic statistics"
+          - "No automated condition capture"
+        niche_specific_praise:
+          - "Purpose built without feature-creep"
+        review_quotes:
+          - quote: "Simple with unlimited customizability"
+            star_rating: 5
+            date: null
+
+    # ---- Archetype Performance ----
+    archetype_performance:
+      - archetype: pain_point
+        performance_rating: overperforms
+        evidence: "Spot privacy, logging friction, and memory failure topics generate highest engagement and deepest comment threads on Reddit."
+        recommended_mix_pct: 20
+        notes: "Lead with pain points early in content calendar to build trust and relevance."
+
+      - archetype: value_educational
+        performance_rating: overperforms
+        evidence: "Tutorial content has highest save rate on TikTok and Instagram. Technique breakdowns, lure guides, and how-to content drive sustained views."
+        recommended_mix_pct: 20
+        notes: "Backbone of content strategy. High save rate builds algorithmic favor."
+
+      - archetype: debate_hot_take
+        performance_rating: overperforms
+        evidence: "Gear debates drive 3x comment volume vs. educational posts. Spot-sharing and C&R debates cross into non-fishing FYPs."
+        recommended_mix_pct: 15
+        notes: "Use sparingly but strategically. High virality but can attract negative attention if over-indexed."
+
+      - archetype: identity_tribal
+        performance_rating: average
+        evidence: "Bank angler vs. boat owner, the 'real anglers know' framing. Strong resonance within community but limited crossover."
+        recommended_mix_pct: 10
+        notes: "Builds core audience loyalty. Pair with product alignment for maximum effect."
+
+      - archetype: aspirational_aesthetic
+        performance_rating: average
+        evidence: "Trophy catches, dawn water shots, lifestyle imagery. Instagram-dominant. High share rate, lower comment depth."
+        recommended_mix_pct: 10
+        notes: "Essential for Instagram. PB stories tie directly to product."
+
+      - archetype: humor_relatable
+        performance_rating: overperforms
+        evidence: "Fishing fails, skunked trips, small fish humor. Very high share rate on TikTok. Stalekracker model validates."
+        recommended_mix_pct: 10
+        notes: "Best for broadening audience beyond core anglers. Skunked-trip content is a unique angle."
+
+      - archetype: seasonal_timely
+        performance_rating: average
+        evidence: "Spawn content peaks in spring, fall turnover in September-October. Bassmaster Classic in March drives huge spikes."
+        recommended_mix_pct: 10
+        notes: "Plan around tournament calendar and seasonal transitions. High timeliness but short windows."
+
+      - archetype: behind_the_scenes
+        performance_rating: average
+        evidence: "Data storytelling and process content is the biggest content gap. No major creator owns the 'what my fishing data shows' angle."
+        recommended_mix_pct: 5
+        notes: "Low competition, high product alignment. Strategic differentiator for Catchbook content."
