@@ -20,8 +20,10 @@ def build_command(scheme: str, destination: str, *, project_reference: str | Non
 
 
 def default_build_command(project_reference: str) -> str:
+    basename = project_reference.rsplit("/", 1)[-1]
+    scheme = basename.removesuffix(".xcworkspace").removesuffix(".xcodeproj")
     return build_command(
-        scheme="Catchbook",
+        scheme=scheme,
         destination="platform=iOS Simulator,name=iPhone 16",
         project_reference=project_reference,
     )

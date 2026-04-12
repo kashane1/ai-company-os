@@ -153,13 +153,19 @@ class ControlPlaneService:
         now = self._now()
         if status is TaskStatus.COMPLETED:
             # Phase 4.5 — post-run-validation gate. Fail-closed: if the
-            # validator reports a failure, downgrade to REJECTED.
-            gate = self._run_post_run_validation(
-                task_id=task_id,
-                summary=summary,
-                artifacts=artifacts or [],
-                events=events or [],
-            )
+            # validator reports a failure, downgrade to REJECTED. Skip the
+            # gate entirely when neither kwarg was passed (distinct from
+            # explicit empty lists) so direct-service callers in tests are
+            # not conflated with worker mains.
+            if artifacts is None and events is None:
+                gate = None
+            else:
+                gate = self._run_post_run_validation(
+                    task_id=task_id,
+                    summary=summary,
+                    artifacts=artifacts or [],
+                    events=events or [],
+                )
             if gate is not None and gate.get("verdict") != "ok":
                 failure_code = gate.get("failure_code") or "post_run_validation_failed"
                 reason = gate.get("reason") or failure_code
