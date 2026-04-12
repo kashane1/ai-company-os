@@ -247,7 +247,7 @@ enum TripHistoryLogic {
         }
     }
 
-    private static func season(for date: Date, calendar: Calendar) -> TripSeasonFilter {
+    static func season(for date: Date, calendar: Calendar) -> TripSeasonFilter {
         switch calendar.component(.month, from: date) {
         case 3 ... 5:
             return .spring

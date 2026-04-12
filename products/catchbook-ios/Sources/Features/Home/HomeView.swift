@@ -63,6 +63,14 @@ struct HomeView: View {
         )
     }
 
+    private var seasonalCards: [HomeSeasonalCard] {
+        HomeDashboardLogic.seasonalNudgeCards(
+            trips: trips,
+            catches: catches,
+            personalBests: personalBests
+        )
+    }
+
     private var totalCatches: Int { HomeDashboardLogic.totalCatchCount(from: catches) }
     private var totalTrips: Int { HomeDashboardLogic.completedTripCount(from: trips) }
 
@@ -143,6 +151,16 @@ struct HomeView: View {
                             .buttonStyle(.plain)
                             .padding(.horizontal)
                         }
+                    }
+
+                    // Seasonal Memory Nudges
+                    if !seasonalCards.isEmpty {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            ForEach(seasonalCards) { card in
+                                SeasonalNudgeCard(card: card)
+                            }
+                        }
+                        .padding(.horizontal)
                     }
 
                     // Private Recall
@@ -529,6 +547,36 @@ private struct PersonalBestCard: View {
             longestLengthCm: record.longestLengthCm,
             heaviestWeightKg: record.heaviestWeightKg
         )
+    }
+}
+
+// MARK: - Seasonal Nudge Card
+
+private struct SeasonalNudgeCard: View {
+    let card: HomeSeasonalCard
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            AppBadge(text: badgeText)
+            Text(card.title)
+                .font(.headline)
+            Text(card.body)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Text(card.footer)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .appCard(prominent: true)
+    }
+
+    private var badgeText: String {
+        switch card.kind {
+        case .pbAnniversary:
+            return "Personal Best"
+        case .sameMonthLastYear, .seasonalSpot, .genericSeasonal:
+            return "Seasonal Memory"
+        }
     }
 }
 

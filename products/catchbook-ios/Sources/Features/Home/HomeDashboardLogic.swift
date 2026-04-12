@@ -18,6 +18,21 @@ struct HomeReplayCard {
     let footer: String
 }
 
+struct HomeSeasonalCard: Identifiable {
+    enum Kind: Comparable {
+        case pbAnniversary
+        case sameMonthLastYear
+        case seasonalSpot
+        case genericSeasonal
+    }
+
+    let id: String
+    let kind: Kind
+    let title: String
+    let body: String
+    let footer: String
+}
+
 enum HomeDashboardLogic {
     static func activeTrip(from trips: [Trip]) -> Trip? {
         trips.first(where: \.isActive)
@@ -163,5 +178,232 @@ enum HomeDashboardLogic {
             body: recap.primaryLine,
             footer: recap.secondaryLine ?? "Saved privately for your next pass here"
         )
+    }
+
+    // MARK: - Seasonal Memory Nudges & Personal-Best Story Moments
+
+    static func seasonalNudgeCards(
+        trips: [Trip],
+        catches: [CatchRecord],
+        personalBests: [PersonalBest],
+        now: Date = .now,
+        calendar: Calendar = .current
+    ) -> [HomeSeasonalCard] {
+        let completedTrips = trips.filter { !$0.isActive }
+        guard !completedTrips.isEmpty else { return [] }
+
+        let currentMonth = calendar.component(.month, from: now)
+        let currentSeason = TripHistoryLogic.season(for: now, calendar: calendar)
+        let catchesByTripID = Dictionary(grouping: catches) { $0.trip?.id }
+
+        var candidates: [HomeSeasonalCard] = []
+
+        // 1. PB anniversary nudge — any personal best set within ±7 days of today in a prior year
+        candidates.append(contentsOf: pbAnniversaryCards(
+            personalBests: personalBests,
+            catches: catches,
+            trips: completedTrips,
+            now: now,
+            calendar: calendar
+        ))
+
+        // 2. Same-month-last-year nudge — productive trip at any spot in same month of prior year
+        candidates.append(contentsOf: sameMonthLastYearCards(
+            trips: completedTrips,
+            catchesByTripID: catchesByTripID,
+            currentMonth: currentMonth,
+            now: now,
+            calendar: calendar
+        ))
+
+        // 3. Seasonal spot nudge — current season matches historically strong season at a spot (≥3 productive trips)
+        candidates.append(contentsOf: seasonalSpotCards(
+            trips: completedTrips,
+            catchesByTripID: catchesByTripID,
+            currentSeason: currentSeason,
+            calendar: calendar
+        ))
+
+        // 4. Generic seasonal nudge — current month is historically productive across all spots (≥3 productive trips)
+        candidates.append(contentsOf: genericSeasonalCards(
+            trips: completedTrips,
+            catchesByTripID: catchesByTripID,
+            currentMonth: currentMonth,
+            calendar: calendar
+        ))
+
+        // Sort by priority (Kind is Comparable — lower ordinal = higher priority), take at most 2
+        return Array(candidates.sorted { $0.kind < $1.kind }.prefix(2))
+    }
+
+    // MARK: - Private Seasonal Helpers
+
+    private static func pbAnniversaryCards(
+        personalBests: [PersonalBest],
+        catches: [CatchRecord],
+        trips: [Trip],
+        now: Date,
+        calendar: Calendar
+    ) -> [HomeSeasonalCard] {
+        let currentYear = calendar.component(.year, from: now)
+        let catchByID = Dictionary(uniqueKeysWithValues: catches.compactMap { ($0.id, $0) })
+        let tripByID = Dictionary(uniqueKeysWithValues: trips.map { ($0.id, $0) })
+
+        var cards: [HomeSeasonalCard] = []
+
+        for pb in personalBests {
+            let candidateCatchIDs = [pb.longestCatchID, pb.heaviestCatchID].compactMap { $0 }
+            for catchID in candidateCatchIDs {
+                guard let catchRecord = catchByID[catchID] else { continue }
+                let catchYear = calendar.component(.year, from: catchRecord.caughtAt)
+                guard catchYear < currentYear else { continue }
+
+                // Build the anniversary date in the current year
+                guard let anniversaryDate = calendar.date(
+                    from: {
+                        var comps = calendar.dateComponents([.month, .day], from: catchRecord.caughtAt)
+                        comps.year = currentYear
+                        return comps
+                    }()
+                ) else { continue }
+
+                let dayDiff = abs(calendar.dateComponents([.day], from: anniversaryDate, to: now).day ?? Int.max)
+                guard dayDiff <= 7 else { continue }
+
+                let yearsAgo = currentYear - catchYear
+                let yearsLabel = yearsAgo == 1 ? "One year ago" : "\(yearsAgo) years ago"
+                let spotTitle = catchRecord.trip.flatMap { tripByID[$0.id] }?.spot?.title
+
+                let isLongest = pb.longestCatchID == catchID
+                if isLongest, let length = pb.longestLengthCm {
+                    let spotSuffix = spotTitle.map { " at \($0)" } ?? ""
+                    cards.append(HomeSeasonalCard(
+                        id: "pb-longest-\(pb.species)-\(catchYear)",
+                        kind: .pbAnniversary,
+                        title: "\(yearsLabel) today",
+                        body: "You set your longest \(pb.species) record — \(length.formatted()) cm\(spotSuffix).",
+                        footer: "Personal best anniversary"
+                    ))
+                } else if let weight = pb.heaviestWeightKg {
+                    let spotSuffix = spotTitle.map { " at \($0)" } ?? ""
+                    cards.append(HomeSeasonalCard(
+                        id: "pb-heaviest-\(pb.species)-\(catchYear)",
+                        kind: .pbAnniversary,
+                        title: "\(yearsLabel) today",
+                        body: "You set your heaviest \(pb.species) record — \(weight.formatted()) kg\(spotSuffix).",
+                        footer: "Personal best anniversary"
+                    ))
+                }
+            }
+        }
+
+        return cards
+    }
+
+    private static func sameMonthLastYearCards(
+        trips: [Trip],
+        catchesByTripID: [UUID?: [CatchRecord]],
+        currentMonth: Int,
+        now: Date,
+        calendar: Calendar
+    ) -> [HomeSeasonalCard] {
+        let currentYear = calendar.component(.year, from: now)
+
+        // Find trips from the same month in the prior year with ≥1 catch
+        let qualifying = trips.filter { trip in
+            let tripMonth = calendar.component(.month, from: trip.startAt)
+            let tripYear = calendar.component(.year, from: trip.startAt)
+            guard tripMonth == currentMonth, tripYear == currentYear - 1 else { return false }
+            let tripCatches = catchesByTripID[Optional(trip.id), default: []]
+            return !tripCatches.isEmpty
+        }
+
+        guard let best = qualifying.max(by: { lhs, rhs in
+            let lhsCount = catchesByTripID[Optional(lhs.id), default: []].count
+            let rhsCount = catchesByTripID[Optional(rhs.id), default: []].count
+            return lhsCount < rhsCount
+        }) else { return [] }
+
+        let catchCount = catchesByTripID[Optional(best.id), default: []].count
+        let spotName = best.spot?.title ?? best.waterbody?.name ?? "a spot"
+
+        return [HomeSeasonalCard(
+            id: "same-month-\(best.id)",
+            kind: .sameMonthLastYear,
+            title: "This time last year",
+            body: "You were fishing \(spotName) and caught \(catchCount) \(catchCount == 1 ? "fish" : "fish").",
+            footer: AppFormatters.tripDate.string(from: best.startAt)
+        )]
+    }
+
+    private static func seasonalSpotCards(
+        trips: [Trip],
+        catchesByTripID: [UUID?: [CatchRecord]],
+        currentSeason: TripSeasonFilter,
+        calendar: Calendar
+    ) -> [HomeSeasonalCard] {
+        guard currentSeason != .all else { return [] }
+
+        // Group productive trips by spot and season
+        let productiveTrips = trips.filter { trip in
+            let tripSeason = TripHistoryLogic.season(for: trip.startAt, calendar: calendar)
+            guard tripSeason == currentSeason, trip.spot != nil else { return false }
+            return !catchesByTripID[Optional(trip.id), default: []].isEmpty
+        }
+
+        let bySpot = Dictionary(grouping: productiveTrips) { $0.spot!.id }
+
+        // Find the spot with the most productive trips in this season (≥3 required)
+        guard let (_, spotTrips) = bySpot.max(by: { lhs, rhs in
+            if lhs.value.count != rhs.value.count { return lhs.value.count < rhs.value.count }
+            return lhs.key.uuidString > rhs.key.uuidString
+        }), spotTrips.count >= 3, let spotTitle = spotTrips.first?.spot?.title else { return [] }
+
+        return [HomeSeasonalCard(
+            id: "seasonal-spot-\(spotTrips.first!.spot!.id)",
+            kind: .seasonalSpot,
+            title: "\(currentSeason.label) at \(spotTitle)",
+            body: "\(currentSeason.label) has been your strongest season there — \(spotTrips.count) productive trips.",
+            footer: "Based on your trip history"
+        )]
+    }
+
+    private static func genericSeasonalCards(
+        trips: [Trip],
+        catchesByTripID: [UUID?: [CatchRecord]],
+        currentMonth: Int,
+        calendar: Calendar
+    ) -> [HomeSeasonalCard] {
+        // Count productive trips in the current month across all years
+        let productiveInMonth = trips.filter { trip in
+            let tripMonth = calendar.component(.month, from: trip.startAt)
+            guard tripMonth == currentMonth else { return false }
+            return !catchesByTripID[Optional(trip.id), default: []].isEmpty
+        }
+
+        guard productiveInMonth.count >= 3 else { return [] }
+
+        let monthName = Calendar.current.monthSymbols[currentMonth - 1]
+
+        // Find the spot that appears most often
+        let spotCounts = productiveInMonth.compactMap(\.spot).reduce(into: [UUID: (count: Int, title: String)]()) { dict, spot in
+            dict[spot.id, default: (0, spot.title)].count += 1
+        }
+        let topSpot = spotCounts.max { $0.value.count < $1.value.count }
+
+        let body: String
+        if let topSpot, topSpot.value.count >= 2 {
+            body = "\(monthName) has historically been productive — \(productiveInMonth.count) trips with catches, often at \(topSpot.value.title)."
+        } else {
+            body = "\(monthName) has historically been productive — \(productiveInMonth.count) trips with catches across your spots."
+        }
+
+        return [HomeSeasonalCard(
+            id: "generic-seasonal-\(currentMonth)",
+            kind: .genericSeasonal,
+            title: "\(monthName) looks promising",
+            body: body,
+            footer: "Based on your trip history"
+        )]
     }
 }
