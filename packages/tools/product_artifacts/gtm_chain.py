@@ -18,6 +18,14 @@ REQUIRED_FILES = (
     "performance-log.md",
 )
 
+# Extended chain files produced by niche-research-brief and gtm-artifact-refresh.
+# Validated separately because they may not exist until the first research run.
+EXTENDED_FILES = (
+    "niche-research-brief.md",
+    "niche-research-memory.yaml",
+    "content-taxonomy.md",
+)
+
 MIN_BACKLOG_ITEMS = 14
 PERFORMANCE_LOG_HEADER = "| Date | Platform | Posts | Impressions | Engagement | Notes |"
 
@@ -30,6 +38,8 @@ class GtmChainResult:
     empty: tuple[str, ...] = ()
     backlog_count: int = 0
     failures: tuple[str, ...] = ()
+    extended_missing: tuple[str, ...] = ()
+    extended_empty: tuple[str, ...] = ()
 
 
 def validate_gtm_chain(
@@ -64,6 +74,18 @@ def validate_gtm_chain(
         if PERFORMANCE_LOG_HEADER not in perf.read_text():
             failures.append("performance-log header does not match expected columns")
 
+    # Extended chain: warn but don't fail if these are missing (they only
+    # exist after the first niche-research-brief run).
+    ext_missing: list[str] = []
+    ext_empty: list[str] = []
+    for name in EXTENDED_FILES:
+        f = gtm_dir / name
+        if not f.exists():
+            ext_missing.append(name)
+            continue
+        if not f.read_text().strip():
+            ext_empty.append(name)
+
     ok = not missing and not empty and not failures
     return GtmChainResult(
         product_id=product_id,
@@ -72,4 +94,6 @@ def validate_gtm_chain(
         empty=tuple(empty),
         backlog_count=backlog_count,
         failures=tuple(failures),
+        extended_missing=tuple(ext_missing),
+        extended_empty=tuple(ext_empty),
     )
