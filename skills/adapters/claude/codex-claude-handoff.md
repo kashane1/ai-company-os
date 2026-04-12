@@ -5,6 +5,12 @@ canonical_source: skills/canonical/handoffs/codex-claude-handoff.md
 
 # Codex-Claude Handoff — Claude adapter
 
+> **DEFERRED 2026-04-11.** This skill is paused. For now, when the user says "hand this to
+> codex" or equivalent, write the task as a plain-text prompt the user can paste into the
+> Codex desktop app — do NOT run the enqueue/dispatch/monitor loop below. Revisit when
+> multiple concurrent runs make the control-plane bookkeeping worth its overhead.
+
+
 You are running the codex-claude-handoff skill. The full protocol lives in `skills/canonical/handoffs/codex-claude-handoff.md` — read it once if you haven't this session. This adapter maps each protocol phase to concrete Claude tool usage.
 
 ## Phase 1 — Select

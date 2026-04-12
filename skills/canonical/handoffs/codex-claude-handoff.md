@@ -1,10 +1,22 @@
+# DEFERRED (2026-04-11)
+#
+# This skill is paused. In practice the full enqueue → supervisor → worktree → diff-review →
+# apply loop added ceremony without proportional benefit for a solo operator who is already
+# monitoring runs by hand. For now, the simpler flow is: Claude writes the task as plain text,
+# the user pastes it into the Codex desktop app, and the user shuttles results back to Claude
+# conversationally. Revisit this skill when there are multiple concurrent tasks in flight or
+# when a second operator joins the loop and the control-plane bookkeeping starts to pay off.
+#
+# Until then, do NOT auto-trigger this skill on "hand this to codex" phrases. Instead, write
+# the task as a plain-text prompt the user can paste into Codex.
+
 ---
 id: codex-claude-handoff
 name: Codex-Claude Handoff
 purpose: Select, dispatch, monitor, review, and apply bounded code-change tasks from Claude to Codex via the ai-company-os engineering lane.
 owner_agent: any
 target_runtimes: [claude, codex]
-stage: active
+stage: deferred
 inputs:
   - either a specific task description the user provided, OR a directive to pick tasks from the backlog
   - the target product (default: catchbook unless the user specifies another)

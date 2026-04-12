@@ -123,6 +123,10 @@ struct SpotDetailView: View {
         SpotPresentationLogic.privateRecallCards(for: summary)
     }
 
+    private var lastTimeHereCard: HomeReplayCard? {
+        Self.lastTimeHereCard(for: spot, trips: trips, catches: catches)
+    }
+
     var body: some View {
         List {
             // Overview
@@ -151,6 +155,15 @@ struct SpotDetailView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .listRowBackground(Color.clear)
+            }
+
+            if let lastTimeHereCard {
+                Section {
+                    LastTimeHereCard(card: lastTimeHereCard)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                } header: {
+                    Text("Last Time Here")
+                }
             }
 
             Section {
@@ -262,6 +275,24 @@ struct SpotDetailView: View {
         }
         .navigationTitle(spot.title)
         .navigationBarTitleDisplayMode(.large)
+    }
+
+    static func lastTimeHereCard(
+        for spot: Spot,
+        trips: [Trip],
+        catches: [CatchRecord],
+        calendar: Calendar = .current
+    ) -> HomeReplayCard? {
+        guard let trip = trips.first(where: { !$0.isActive && $0.spot?.id == spot.id }) else {
+            return nil
+        }
+
+        let tripCatches = catches.filter { $0.trip?.id == trip.id }
+        return HomeDashboardLogic.lastTimeHereCard(
+            trip: trip,
+            catches: tripCatches,
+            calendar: calendar
+        )
     }
 }
 

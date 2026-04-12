@@ -690,84 +690,113 @@ private struct TripEditorView: View {
         )
     }
 
+    private var conditionsFooterText: String {
+        "Descriptive notes only. Temperature and coordinates are captured automatically and can't be edited by hand."
+    }
+
+    private var recordedLocationFooterText: String {
+        "Captured when the trip started. Clearing removes the coordinates and temperature from this trip permanently."
+    }
+
+    @ViewBuilder
+    private var whereSection: some View {
+        Section("Where") {
+            Picker("Waterbody", selection: $selectedWaterbodyID) {
+                Text("Select water").tag(Optional<UUID>.none)
+                ForEach(waterbodies, id: \.id) { waterbody in
+                    Text(waterbody.name).tag(Optional(waterbody.id))
+                }
+            }
+
+            Picker("Spot", selection: $selectedSpotID) {
+                Text("General area").tag(Optional<UUID>.none)
+                ForEach(filteredSpots, id: \.id) { spot in
+                    Text(spot.title).tag(Optional(spot.id))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var tripSection: some View {
+        Section("Trip") {
+            DatePicker("Started", selection: $startAt)
+            Toggle("Trip is still active", isOn: $isTripActive)
+            if !isTripActive {
+                DatePicker("Ended", selection: $endAt, in: startAt...)
+            }
+            TextField("Target species, separated by commas", text: $targetSpecies)
+                .textInputAutocapitalization(.words)
+                .focused($isTextInputFocused)
+            TextField("Notes", text: $notes, axis: .vertical)
+                .lineLimit(2...4)
+                .focused($isTextInputFocused)
+        }
+    }
+
+    @ViewBuilder
+    private func conditionsSection(snapshot: ConditionSnapshot) -> some View {
+        Section {
+            TextField("Place summary", text: $placeSummary)
+                .textInputAutocapitalization(.words)
+            TextField("Time window", text: $timeWindowSummary)
+                .textInputAutocapitalization(.words)
+            TextField("Light", text: $lightLevelSummary)
+                .textInputAutocapitalization(.words)
+            TextField("Weather", text: $weatherSummary)
+                .textInputAutocapitalization(.words)
+            TextField("Wind", text: $windSummary)
+                .textInputAutocapitalization(.words)
+            TextField("Cloud cover", text: $cloudCoverSummary)
+                .textInputAutocapitalization(.words)
+            TextField("Precipitation", text: $precipitationSummary)
+                .textInputAutocapitalization(.words)
+        } header: {
+            Text("Conditions")
+        } footer: {
+            Text(conditionsFooterText)
+        }
+
+        if snapshot.latitude != nil || snapshot.longitude != nil || snapshot.temperatureC != nil {
+            recordedLocationSection(snapshot: snapshot)
+        }
+    }
+
+    @ViewBuilder
+    private func recordedLocationSection(snapshot: ConditionSnapshot) -> some View {
+        Section {
+            if let coordinateSummary = snapshot.coordinateSummary {
+                LabeledContent("Coordinates", value: coordinateSummary)
+            }
+            if let celsius = snapshot.temperatureC {
+                LabeledContent("Temperature", value: temperatureText(celsius: celsius))
+            }
+            Button("Clear Recorded Location", role: .destructive) {
+                showingClearLocationConfirmation = true
+            }
+        } header: {
+            Text("Recorded Location")
+        } footer: {
+            Text(recordedLocationFooterText)
+        }
+    }
+
+    private func temperatureText(celsius: Double) -> String {
+        let measurement = Measurement<UnitTemperature>(value: celsius, unit: .celsius)
+        let formatter = MeasurementFormatter()
+        formatter.unitOptions = [.naturalScale, .providedUnit]
+        formatter.numberFormatter.maximumFractionDigits = 0
+        return formatter.string(from: measurement)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("Where") {
-                    Picker("Waterbody", selection: $selectedWaterbodyID) {
-                        Text("Select water").tag(Optional<UUID>.none)
-                        ForEach(waterbodies, id: \.id) { waterbody in
-                            Text(waterbody.name).tag(Optional(waterbody.id))
-                        }
-                    }
-
-                    Picker("Spot", selection: $selectedSpotID) {
-                        Text("General area").tag(Optional<UUID>.none)
-                        ForEach(filteredSpots, id: \.id) { spot in
-                            Text(spot.title).tag(Optional(spot.id))
-                        }
-                    }
-                }
-
-                Section("Trip") {
-                    DatePicker("Started", selection: $startAt)
-                    Toggle("Trip is still active", isOn: $isTripActive)
-                    if !isTripActive {
-                        DatePicker("Ended", selection: $endAt, in: startAt...)
-                    }
-                    TextField("Target species, separated by commas", text: $targetSpecies)
-                        .textInputAutocapitalization(.words)
-                        .focused($isTextInputFocused)
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(2...4)
-                        .focused($isTextInputFocused)
-                }
+                whereSection
+                tripSection
 
                 if let snapshot = trip.conditionSnapshot {
-                    Section {
-                        TextField("Place summary", text: $placeSummary)
-                            .textInputAutocapitalization(.words)
-                        TextField("Time window", text: $timeWindowSummary)
-                            .textInputAutocapitalization(.words)
-                        TextField("Light", text: $lightLevelSummary)
-                            .textInputAutocapitalization(.words)
-                        TextField("Weather", text: $weatherSummary)
-                            .textInputAutocapitalization(.words)
-                        TextField("Wind", text: $windSummary)
-                            .textInputAutocapitalization(.words)
-                        TextField("Cloud cover", text: $cloudCoverSummary)
-                            .textInputAutocapitalization(.words)
-                        TextField("Precipitation", text: $precipitationSummary)
-                            .textInputAutocapitalization(.words)
-                    } header: {
-                        Text("Conditions")
-                    } footer: {
-                        Text("Descriptive notes only. Temperature and coordinates are captured automatically and can't be edited by hand.")
-                    }
-
-                    // Recorded location is read-only to prevent silent data corruption.
-                    // Users can clear it — but not edit the raw numbers.
-                    if snapshot.latitude != nil || snapshot.longitude != nil || snapshot.temperatureC != nil {
-                        Section {
-                            if let coordinateSummary = snapshot.coordinateSummary {
-                                LabeledContent("Coordinates", value: coordinateSummary)
-                            }
-                            if let celsius = snapshot.temperatureC {
-                                let measurement = Measurement<UnitTemperature>(value: celsius, unit: .celsius)
-                                let formatter = MeasurementFormatter()
-                                formatter.unitOptions = [.naturalScale, .providedUnit]
-                                formatter.numberFormatter.maximumFractionDigits = 0
-                                LabeledContent("Temperature", value: formatter.string(from: measurement))
-                            }
-                            Button("Clear Recorded Location", role: .destructive) {
-                                showingClearLocationConfirmation = true
-                            }
-                        } header: {
-                            Text("Recorded Location")
-                        } footer: {
-                            Text("Captured when the trip started. Clearing removes the coordinates and temperature from this trip permanently.")
-                        }
-                    }
+                    conditionsSection(snapshot: snapshot)
                 }
             }
             .navigationTitle("Edit Trip")

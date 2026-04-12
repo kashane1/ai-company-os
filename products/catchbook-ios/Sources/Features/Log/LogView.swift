@@ -47,8 +47,11 @@ private struct EndedTripSummary: Identifiable {
 
 // MARK: - Start Trip
 
-private struct StartTripView: View {
+struct StartTripView: View {
     @Environment(\.modelContext) private var modelContext
+
+    @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
+    @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
 
     @StateObject private var locationRecorder = LocationRecorder()
     @State private var selectedWaterbodyID: UUID?
@@ -69,6 +72,14 @@ private struct StartTripView: View {
             waterbody: selectedWaterbody,
             spot: selectedSpot,
             location: locationRecorder.lastLocation
+        )
+    }
+
+    private var lastTimeHereCard: HomeReplayCard? {
+        Self.lastTimeHereCard(
+            selectedSpotID: selectedSpotID,
+            trips: trips,
+            catches: catches
         )
     }
 
@@ -105,6 +116,11 @@ private struct StartTripView: View {
                         ForEach(filteredSpots, id: \.id) { spot in
                             Text(spot.title).tag(Optional(spot.id))
                         }
+                    }
+
+                    if let lastTimeHereCard {
+                        LastTimeHereCard(card: lastTimeHereCard)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     }
 
                     HStack(spacing: Spacing.sm) {
@@ -216,6 +232,25 @@ private struct StartTripView: View {
 
     private var filteredSpots: [Spot] {
         LogFeatureLogic.filteredSpots(spots: spots, selectedWaterbodyID: selectedWaterbodyID)
+    }
+
+    static func lastTimeHereCard(
+        selectedSpotID: UUID?,
+        trips: [Trip],
+        catches: [CatchRecord],
+        calendar: Calendar = .current
+    ) -> HomeReplayCard? {
+        guard let selectedSpotID else { return nil }
+        guard let trip = trips.first(where: { !$0.isActive && $0.spot?.id == selectedSpotID }) else {
+            return nil
+        }
+
+        let tripCatches = catches.filter { $0.trip?.id == trip.id }
+        return HomeDashboardLogic.lastTimeHereCard(
+            trip: trip,
+            catches: tripCatches,
+            calendar: calendar
+        )
     }
 
     private func startTrip() {

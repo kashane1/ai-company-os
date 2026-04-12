@@ -437,7 +437,7 @@ private struct SuggestedMemoryCard: View {
     }
 }
 
-private struct LastTimeHereCard: View {
+struct LastTimeHereCard: View {
     let card: HomeReplayCard
 
     var body: some View {

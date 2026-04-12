@@ -90,8 +90,13 @@ actor WeatherKitService {
             let cloudPct = current.cloudCover // 0.0 – 1.0
             let cloudCoverSummary = cloudCoverLabel(cloudPct)
 
+            // WeatherKit models precipitation intensity as a speed measurement.
+            // Convert the supported base unit into mm/hr before applying the copy thresholds.
+            let precipitationRateMmPerHour =
+                current.precipitationIntensity.converted(to: .metersPerSecond).value * 3_600_000
+
             let precipitationSummary: String
-            switch current.precipitationIntensity.converted(to: .millimetersPerHour).value {
+            switch precipitationRateMmPerHour {
             case let rate where rate > 7.5:
                 precipitationSummary = "Heavy rain"
             case let rate where rate > 2.5:
