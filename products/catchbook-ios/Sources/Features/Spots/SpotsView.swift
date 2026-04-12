@@ -1,3 +1,4 @@
+import MapKit
 import SwiftData
 import SwiftUI
 
@@ -5,6 +6,12 @@ struct SpotsView: View {
     @Query(sort: \Spot.createdAt) private var spots: [Spot]
 
     @State private var showingSpotForm = false
+    @State private var showsMap = false
+    @State private var mapCameraPosition = MapCameraPosition.region(SpotPresentationLogic.mapRegion(for: []))
+
+    private var spotsWithCoordinates: [Spot] {
+        SpotPresentationLogic.spotsWithCoordinates(from: spots)
+    }
 
     var body: some View {
         NavigationStack {
@@ -23,6 +30,11 @@ struct SpotsView: View {
                         .buttonStyle(.borderedProminent)
                         .tint(.appAccent)
                     }
+                } else if showsMap {
+                    SpotsMapContent(
+                        spots: spotsWithCoordinates,
+                        position: $mapCameraPosition
+                    )
                 } else {
                     List {
                         ForEach(spots, id: \.id) { spot in
@@ -37,6 +49,24 @@ struct SpotsView: View {
             }
             .navigationTitle("Spots")
             .toolbar {
+                if !spots.isEmpty {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            showsMap.toggle()
+                            if showsMap {
+                                refreshMapRegion()
+                            }
+                        } label: {
+                            Label(
+                                showsMap ? "Show list" : "Show map",
+                                systemImage: showsMap ? "list.bullet" : "map"
+                            )
+                            .labelStyle(.iconOnly)
+                        }
+                        .accessibilityLabel(showsMap ? "Show list" : "Show map")
+                    }
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingSpotForm = true
@@ -48,9 +78,20 @@ struct SpotsView: View {
                 }
             }
         }
+        .onAppear(perform: refreshMapRegion)
+        .onChange(of: spots.map(\.id)) { _, _ in
+            refreshMapRegion()
+        }
+        .onChange(of: spotsWithCoordinates.map(\.coordinateSummary)) { _, _ in
+            refreshMapRegion()
+        }
         .sheet(isPresented: $showingSpotForm) {
             NewSpotForm()
         }
+    }
+
+    private func refreshMapRegion() {
+        mapCameraPosition = .region(SpotPresentationLogic.mapRegion(for: spotsWithCoordinates))
     }
 }
 
@@ -84,6 +125,68 @@ private struct SpotRow: View {
             }
         }
         .padding(.vertical, Spacing.xxs)
+    }
+}
+
+private struct SpotMapAnnotation: View {
+    let title: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: Spacing.xxs) {
+            Text(title)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.catchbookText)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
+                .background(.thinMaterial, in: Capsule())
+
+            Image(systemName: "mappin.circle.fill")
+                .font(.title3)
+                .foregroundStyle(color)
+                .shadow(color: color.opacity(0.2), radius: 4, y: 2)
+        }
+    }
+}
+
+private struct SpotsMapContent: View {
+    let spots: [Spot]
+    @Binding var position: MapCameraPosition
+
+    var body: some View {
+        CatchbookMapView(
+            items: spots,
+            position: $position,
+            coordinate: Self.coordinate(for:)
+        ) { spot in
+            NavigationLink {
+                SpotDetailView(spot: spot)
+            } label: {
+                SpotMapAnnotation(
+                    title: spot.title,
+                    color: SpotPresentationLogic.waterbodyColor(for: spot.waterbody?.id)
+                )
+            }
+            .buttonStyle(.plain)
+        } overlay: {
+            if spots.isEmpty {
+                Text("No spots with saved coordinates yet.")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.md)
+                    .background(.regularMaterial, in: Capsule())
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+
+    private static func coordinate(for spot: Spot) -> CLLocationCoordinate2D? {
+        guard let latitude = spot.latitude, let longitude = spot.longitude else {
+            return nil
+        }
+
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 }
 

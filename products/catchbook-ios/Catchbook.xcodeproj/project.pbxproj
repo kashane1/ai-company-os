@@ -33,6 +33,7 @@
 		5D4A516940A1065CB8DC7766 /* SpotRecallSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 624A7C6A407E4FE02DF082E1 /* SpotRecallSummaryTests.swift */; };
 		5DDD042219672F91176ECDAC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9258292991AD1BCD7D8E5707 /* PrivacyInfo.xcprivacy */; };
 		5F53C6AEDFC5793D26FC5834 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C895C300B2F534629BA1443E /* DesignTokens.swift */; };
+		64C0BD3A4B3D472D9A10A8D1 /* CatchbookMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78C3F39A23F34532BE0A7B92 /* CatchbookMapView.swift */; };
 		70EAC7A4BE3E6DDB40F6E3AD /* LogFeatureLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4748B6C2C57B5F73D14795AA /* LogFeatureLogicTests.swift */; };
 		7126D834D083F2EB0CE5659F /* WeatherKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDDEE0C8A1B245135C31298 /* WeatherKitService.swift */; };
 		715EA33B673F3D5114725809 /* HomeDashboardLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335AA2E89AD46D515F534B2A /* HomeDashboardLogic.swift */; };
@@ -102,6 +103,7 @@
 		621AAF4A0ADB6DD97CE1A7D6 /* Catchbook.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Catchbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		624A7C6A407E4FE02DF082E1 /* SpotRecallSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRecallSummaryTests.swift; sourceTree = "<group>"; };
 		646909ADD796ED34B18C7F29 /* SpotDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDetailViewTests.swift; sourceTree = "<group>"; };
+		78C3F39A23F34532BE0A7B92 /* CatchbookMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchbookMapView.swift; sourceTree = "<group>"; };
 		74828E17661EF5A4C9F1AC7E /* WeatherAttributionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAttributionView.swift; sourceTree = "<group>"; };
 		76B98FB2E208BD4E2E78E039 /* PersonalBestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestService.swift; sourceTree = "<group>"; };
 		790577ECEBEE4E267B0ED399 /* TripEditingLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripEditingLogicTests.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 		26884B43FD65B5BF88F868E2 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				78C3F39A23F34532BE0A7B92 /* CatchbookMapView.swift */,
 				17103AF7932F818FBF29FC3F /* CatchPhotoComponents.swift */,
 				C895C300B2F534629BA1443E /* DesignTokens.swift */,
 				1887DA7ADEC8D7325D4510E1 /* KeyboardDoneToolbar.swift */,
@@ -547,6 +550,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A02CD26A10521EF09B730BC2 /* AppTab.swift in Sources */,
+				64C0BD3A4B3D472D9A10A8D1 /* CatchbookMapView.swift in Sources */,
 				E828DC30676368CABD77A45C /* CatchPhotoComponents.swift in Sources */,
 				7A072CD56BCD1C5EBC7CC58D /* CatchbookApp.swift in Sources */,
 				0B43EA025E20BABB5B6DE09F /* ConditionCaptureService.swift in Sources */,

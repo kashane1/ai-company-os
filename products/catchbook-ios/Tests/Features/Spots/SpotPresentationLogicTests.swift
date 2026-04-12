@@ -1,4 +1,7 @@
 import Foundation
+import MapKit
+import SwiftUI
+import UIKit
 import XCTest
 @testable import Catchbook
 
@@ -168,6 +171,115 @@ final class SpotPresentationLogicTests: XCTestCase {
 
         XCTAssertNotNil(cards.first(where: { $0.kind == .conditions }))
         XCTAssertNotNil(cards.first(where: { $0.kind == .bestTimeWindow }))
+    }
+
+    func testSpotsWithCoordinatesOnlyReturnsPinnedSpots() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let spots = [
+            Spot(title: "Dock", waterbody: waterbody, latitude: 47.62, longitude: -122.34),
+            Spot(title: "Reeds", waterbody: waterbody, latitude: 47.621),
+            Spot(title: "Point", waterbody: waterbody, longitude: -122.33),
+            Spot(title: "Ledge", waterbody: waterbody, latitude: 47.63, longitude: -122.31),
+        ]
+
+        let filtered = SpotPresentationLogic.spotsWithCoordinates(from: spots)
+
+        XCTAssertEqual(filtered.map(\.title), ["Dock", "Ledge"])
+    }
+
+    func testSpotsWithCoordinatesReturnsEmptyWhenNoSpotsArePinned() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let spots = [
+            Spot(title: "Dock", waterbody: waterbody),
+            Spot(title: "Reeds", waterbody: waterbody, latitude: 47.621),
+            Spot(title: "Point", waterbody: waterbody, longitude: -122.33),
+        ]
+
+        XCTAssertTrue(SpotPresentationLogic.spotsWithCoordinates(from: spots).isEmpty)
+    }
+
+    func testMapRegionEncompassesTwoKnownSpots() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let spots = [
+            Spot(title: "North", waterbody: waterbody, latitude: 47.600, longitude: -122.350),
+            Spot(title: "South", waterbody: waterbody, latitude: 47.700, longitude: -122.250),
+        ]
+
+        let region = SpotPresentationLogic.mapRegion(for: spots)
+
+        XCTAssertEqual(region.center.latitude, 47.650, accuracy: 0.001)
+        XCTAssertEqual(region.center.longitude, -122.300, accuracy: 0.001)
+        XCTAssertGreaterThan(region.span.latitudeDelta, 0.10)
+        XCTAssertGreaterThan(region.span.longitudeDelta, 0.10)
+    }
+
+    func testMapRegionCentersOnSingleSpot() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let spot = Spot(title: "Dock", waterbody: waterbody, latitude: 47.62, longitude: -122.34)
+
+        let region = SpotPresentationLogic.mapRegion(for: [spot])
+
+        XCTAssertEqual(region.center.latitude, 47.62, accuracy: 0.0001)
+        XCTAssertEqual(region.center.longitude, -122.34, accuracy: 0.0001)
+        XCTAssertEqual(region.span.latitudeDelta, 0.02, accuracy: 0.0001)
+        XCTAssertEqual(region.span.longitudeDelta, 0.02, accuracy: 0.0001)
+    }
+
+    func testMapRegionReturnsDefaultRegionWhenEmpty() {
+        let region = SpotPresentationLogic.mapRegion(for: [])
+
+        XCTAssertEqual(region.center.latitude, 39.8283, accuracy: 0.0001)
+        XCTAssertEqual(region.center.longitude, -98.5795, accuracy: 0.0001)
+        XCTAssertEqual(region.span.latitudeDelta, 32, accuracy: 0.0001)
+        XCTAssertEqual(region.span.longitudeDelta, 44, accuracy: 0.0001)
+    }
+
+    func testWaterbodyColorIsDeterministicForTheSameUUID() {
+        let waterbodyID = UUID(uuidString: "12345678-1234-1234-1234-1234567890AB")!
+        let palette: [Color] = [.red, .green, .blue, .orange, .pink, .yellow]
+
+        let first = SpotPresentationLogic.waterbodyColor(for: waterbodyID, palette: palette)
+        let second = SpotPresentationLogic.waterbodyColor(for: waterbodyID, palette: palette)
+
+        XCTAssertEqual(UIColor(first).description, UIColor(second).description)
+    }
+
+    func testWaterbodyColorVariesAcrossMultipleUUIDs() {
+        let palette: [Color] = [.red, .green, .blue, .orange, .pink, .yellow]
+        let ids = [
+            UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+            UUID(uuidString: "00000000-0000-0000-0000-00000000000A")!,
+            UUID(uuidString: "00000000-0000-0000-0000-0000000000FF")!,
+        ]
+
+        let colors = ids.map { UIColor(SpotPresentationLogic.waterbodyColor(for: $0, palette: palette)).description }
+
+        XCTAssertEqual(Set(colors).count, ids.count)
+    }
+
+    func testWaterbodyCentroidAveragesThreePinnedSpots() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let spots = [
+            Spot(title: "One", waterbody: waterbody, latitude: 47.0, longitude: -122.0),
+            Spot(title: "Two", waterbody: waterbody, latitude: 48.0, longitude: -121.0),
+            Spot(title: "Three", waterbody: waterbody, latitude: 49.0, longitude: -120.0),
+        ]
+
+        let centroid = SpotPresentationLogic.waterbodyCentroid(from: spots)
+
+        XCTAssertNotNil(centroid)
+        XCTAssertEqual(centroid!.latitude, 48.0, accuracy: 0.0001)
+        XCTAssertEqual(centroid!.longitude, -121.0, accuracy: 0.0001)
+    }
+
+    func testWaterbodyCentroidReturnsNilWithoutCoordinates() {
+        let waterbody = Waterbody(name: "Lake Union", type: .lake)
+        let spots = [
+            Spot(title: "One", waterbody: waterbody),
+            Spot(title: "Two", waterbody: waterbody, latitude: 48.0),
+        ]
+
+        XCTAssertNil(SpotPresentationLogic.waterbodyCentroid(from: spots))
     }
 
     func testRecallDetailsExposeEvidenceAwareSnapshotRows() {

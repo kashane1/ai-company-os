@@ -1,4 +1,7 @@
+import CoreLocation
 import Foundation
+import MapKit
+import SwiftUI
 
 struct SpotRowDetails {
     let waterbodyName: String
@@ -41,6 +44,15 @@ struct SpotRecentCatchSummary: Identifiable {
 }
 
 enum SpotPresentationLogic {
+    static let waterbodyColorPalette: [Color] = [
+        .catchbookOcean,
+        .catchbookDeep,
+        .catchbookNavy,
+        .catchbookAqua,
+        .catchbookForest,
+        .catchbookAmber,
+    ]
+
     static func privateRecallCards(for summary: SpotRecallSummary) -> [DeterministicInsightCard] {
         summary.cards
     }
@@ -52,6 +64,76 @@ enum SpotPresentationLogic {
             isPinned: spot.latitude != nil,
             notesPreview: notesPreview
         )
+    }
+
+    static func spotsWithCoordinates(from spots: [Spot]) -> [Spot] {
+        spots.filter { $0.latitude != nil && $0.longitude != nil }
+    }
+
+    static func mapRegion(for spots: [Spot]) -> MKCoordinateRegion {
+        let coordinates = spots.compactMap(coordinate(for:))
+
+        guard let firstCoordinate = coordinates.first else {
+            return MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795),
+                span: MKCoordinateSpan(latitudeDelta: 32, longitudeDelta: 44)
+            )
+        }
+
+        guard coordinates.count > 1 else {
+            return MKCoordinateRegion(
+                center: firstCoordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+            )
+        }
+
+        let latitudes = coordinates.map(\.latitude)
+        let longitudes = coordinates.map(\.longitude)
+        let minLatitude = latitudes.min() ?? firstCoordinate.latitude
+        let maxLatitude = latitudes.max() ?? firstCoordinate.latitude
+        let minLongitude = longitudes.min() ?? firstCoordinate.longitude
+        let maxLongitude = longitudes.max() ?? firstCoordinate.longitude
+
+        let latitudeDelta = max((maxLatitude - minLatitude) * 1.4, 0.02)
+        let longitudeDelta = max((maxLongitude - minLongitude) * 1.4, 0.02)
+
+        return MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: (minLatitude + maxLatitude) / 2,
+                longitude: (minLongitude + maxLongitude) / 2
+            ),
+            span: MKCoordinateSpan(
+                latitudeDelta: latitudeDelta,
+                longitudeDelta: longitudeDelta
+            )
+        )
+    }
+
+    static func waterbodyCentroid(from spots: [Spot]) -> CLLocationCoordinate2D? {
+        let coordinates = spots.compactMap(coordinate(for:))
+        guard !coordinates.isEmpty else { return nil }
+
+        let latitude = coordinates.map(\.latitude).reduce(0, +) / Double(coordinates.count)
+        let longitude = coordinates.map(\.longitude).reduce(0, +) / Double(coordinates.count)
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
+    static func waterbodyColor(for waterbodyID: UUID?, palette: [Color] = waterbodyColorPalette) -> Color {
+        guard let waterbodyID else {
+            return palette.first ?? .catchbookOcean
+        }
+
+        let index = waterbodyColorIndex(for: waterbodyID, paletteCount: palette.count)
+        return palette[index]
+    }
+
+    static func waterbodyColorIndex(for waterbodyID: UUID, paletteCount: Int) -> Int {
+        guard paletteCount > 0 else { return 0 }
+
+        let hash = waterbodyID.uuidString.unicodeScalars.reduce(5381) { partial, scalar in
+            ((partial << 5) &+ partial) &+ Int(scalar.value)
+        }
+        return abs(hash) % paletteCount
     }
 
     static func catchesHere(spotID: UUID, catches: [CatchRecord]) -> [CatchRecord] {
@@ -206,5 +288,13 @@ enum SpotPresentationLogic {
             catchRecord.weightKg.map { "\($0.formatted()) kg" },
         ].compactMap { $0 }
         return metrics.isEmpty ? nil : metrics.joined(separator: " · ")
+    }
+
+    private static func coordinate(for spot: Spot) -> CLLocationCoordinate2D? {
+        guard let latitude = spot.latitude, let longitude = spot.longitude else {
+            return nil
+        }
+
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 }

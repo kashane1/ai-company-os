@@ -13,6 +13,10 @@ extension Color {
     static let catchbookDeep = Color(red: 0.102, green: 0.478, blue: 0.710)
     /// Navy Blue #0D5E94 — darkest, text on light backgrounds, dark mode accents
     static let catchbookNavy = Color(red: 0.051, green: 0.369, blue: 0.580)
+    /// Forest Green #4F8B68 — muted contrast tone for map grouping
+    static let catchbookForest = Color(red: 0.310, green: 0.545, blue: 0.408)
+    /// Amber #C89238 — muted warm contrast tone for map grouping
+    static let catchbookAmber = Color(red: 0.784, green: 0.573, blue: 0.220)
     /// Soft Gray #C8D8E4 — shadows, dividers, secondary text
     static let catchbookShadow = Color(red: 0.784, green: 0.847, blue: 0.894)
     /// Dark Text #1A2A3A — near-black with blue tint
