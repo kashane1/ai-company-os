@@ -6,17 +6,20 @@ together. The morning briefing (Phase 4.1) calls this every weekday.
 
 from __future__ import annotations
 
+import yaml
 from dataclasses import dataclass, field
 from pathlib import Path
 
 REQUIRED_FILES = (
     "voice.md",
     "campaign-calendar.md",
-    "content-backlog.md",
+    "content-backlog.yaml",
     "hook-library.md",
     "hashtag-strategy.md",
     "performance-log.md",
 )
+
+BACKLOG_REQUIRED_FIELDS = ("item_number", "hook", "archetype", "platform", "campaign", "status")
 
 # Extended chain files produced by niche-research-brief and gtm-artifact-refresh.
 # Validated separately because they may not exist until the first research run.
@@ -42,6 +45,21 @@ class GtmChainResult:
     extended_empty: tuple[str, ...] = ()
 
 
+def validate_backlog_item(item: dict) -> list[str]:
+    """Validate a single content-backlog.yaml item has required fields.
+
+    Returns a list of error strings (empty = valid). Shared across the chain
+    validator, content-factory, and content-scheduler pre-flight checks.
+    """
+    errors: list[str] = []
+    if not isinstance(item, dict):
+        return ["item is not a dict"]
+    for field in BACKLOG_REQUIRED_FIELDS:
+        if field not in item:
+            errors.append(f"missing field: {field}")
+    return errors
+
+
 def validate_gtm_chain(
     product_id: str, repo_root: Path
 ) -> GtmChainResult:
@@ -59,15 +77,24 @@ def validate_gtm_chain(
             empty.append(name)
 
     backlog_count = 0
-    backlog = gtm_dir / "content-backlog.md"
+    backlog = gtm_dir / "content-backlog.yaml"
     if backlog.exists():
-        for line in backlog.read_text().splitlines():
-            if line.strip().startswith(tuple(f"{i}." for i in range(1, 100))):
-                backlog_count += 1
+        try:
+            items = yaml.safe_load(backlog.read_text()) or []
+            backlog_count = len(items) if isinstance(items, list) else 0
+        except yaml.YAMLError:
+            failures.append("content-backlog.yaml is not valid YAML")
         if backlog_count < MIN_BACKLOG_ITEMS:
             failures.append(
                 f"content-backlog has {backlog_count} items; need {MIN_BACKLOG_ITEMS}"
             )
+        # Validate each item has required fields
+        for item in (items if isinstance(items, list) else []):
+            errors = validate_backlog_item(item)
+            if errors:
+                failures.append(
+                    f"item {item.get('item_number', '?')}: {', '.join(errors)}"
+                )
 
     perf = gtm_dir / "performance-log.md"
     if perf.exists():

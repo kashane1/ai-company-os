@@ -1,0 +1,296 @@
+- item_number: 1
+  hook: Rod setup in 15 seconds
+  archetype: value_educational
+  platform: tiktok
+  campaign: zero
+  composite_score: 60
+  topic_id: null
+  status: draft
+- item_number: 2
+  hook: 3 bass lures that work when nothing else does
+  archetype: value_educational
+  platform: tiktok
+  campaign: zero
+  composite_score: 64
+  topic_id: null
+  status: draft
+- item_number: 3
+  hook: 'Catch and release: how to handle bass without hurting them'
+  archetype: value_educational
+  platform: tiktok
+  campaign: zero
+  composite_score: 64
+  topic_id: null
+  status: draft
+- item_number: 4
+  hook: Reading the water
+  archetype: value_educational
+  platform: tiktok
+  campaign: zero
+  composite_score: 62
+  topic_id: null
+  status: draft
+- item_number: 5
+  hook: 'Dawn vs dusk: when bass actually bite (it''s not when you think)'
+  archetype: value_educational
+  platform: tiktok
+  campaign: zero
+  composite_score: 65
+  topic_id: null
+  status: draft
+- item_number: 6
+  hook: Your secret spots aren't safe
+  archetype: pain_point
+  platform: tiktok
+  campaign: zero
+  composite_score: 78
+  topic_id: null
+  status: draft
+- item_number: 7
+  hook: Bank fishing is real fishing
+  archetype: identity_tribal
+  platform: tiktok
+  campaign: zero
+  composite_score: 75
+  topic_id: null
+  status: draft
+- item_number: 8
+  hook: I got skunked again
+  archetype: humor_relatable
+  platform: tiktok
+  campaign: zero
+  composite_score: 72
+  topic_id: null
+  status: draft
+- item_number: 9
+  hook: Is social media ruining fishing?
+  archetype: debate_hot_take
+  platform: tiktok
+  campaign: zero
+  composite_score: 68
+  topic_id: null
+  status: draft
+- item_number: 10
+  hook: Pre-spawn bass
+  archetype: seasonal_timely
+  platform: tiktok
+  campaign: zero
+  composite_score: 77
+  topic_id: null
+  status: draft
+- item_number: 11
+  hook: Their first fish
+  archetype: aspirational_aesthetic
+  platform: instagram
+  campaign: zero
+  composite_score: 68
+  topic_id: null
+  status: draft
+- item_number: 12
+  hook: Forward-facing sonar is changing fishing
+  archetype: debate_hot_take
+  platform: tiktok
+  campaign: zero
+  composite_score: 67
+  topic_id: null
+  status: draft
+- item_number: 13
+  hook: Catch and release
+  archetype: debate_hot_take
+  platform: tiktok
+  campaign: zero
+  composite_score: 64
+  topic_id: null
+  status: draft
+- item_number: 14
+  hook: You don't need a $500 rod to catch fish
+  archetype: debate_hot_take
+  platform: tiktok
+  campaign: zero
+  composite_score: 59
+  topic_id: null
+  status: draft
+- item_number: 15
+  hook: My 6-month fishing data revealed a pattern I never expected
+  archetype: behind_the_scenes
+  platform: tiktok
+  campaign: zero
+  composite_score: 80
+  topic_id: null
+  status: draft
+- item_number: 16
+  hook: Fall turnover
+  archetype: seasonal_timely
+  platform: tiktok
+  campaign: zero
+  composite_score: 73
+  topic_id: null
+  status: draft
+- item_number: 17
+  hook: The Excel angler
+  archetype: value_educational
+  platform: threads
+  campaign: zero
+  composite_score: 68
+  topic_id: null
+  status: draft
+- item_number: 18
+  hook: The logbook I wish I had in my tackle box
+  archetype: pain_point
+  platform: threads
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 19
+  hook: First-fish carousel (3 slides)
+  archetype: aspirational_aesthetic
+  platform: instagram
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 20
+  hook: 'Species-of-the-week: smallmouth'
+  archetype: value_educational
+  platform: instagram
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 21
+  hook: Three taps to log a catch
+  archetype: value_educational
+  platform: tiktok
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 22
+  hook: Water-temperature micro-tip
+  archetype: value_educational
+  platform: threads
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 23
+  hook: 'Beta tester testimonial #1'
+  archetype: identity_tribal
+  platform: instagram
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 24
+  hook: Release-responsibly PSA
+  archetype: value_educational
+  platform: tiktok
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 25
+  hook: Pre-launch countdown
+  archetype: seasonal_timely
+  platform: threads
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 26
+  hook: Screenshots reveal
+  archetype: aspirational_aesthetic
+  platform: instagram
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 27
+  hook: Founder intro
+  archetype: behind_the_scenes
+  platform: tiktok
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 28
+  hook: Beta-to-launch story
+  archetype: behind_the_scenes
+  platform: threads
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 29
+  hook: Launch day carousel
+  archetype: aspirational_aesthetic
+  platform: instagram
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 30
+  hook: Launch day video
+  archetype: aspirational_aesthetic
+  platform: tiktok
+  campaign: one
+  composite_score: null
+  topic_id: null
+  status: draft
+- item_number: 31
+  hook: What did I throw last spring? Your log knows
+  archetype: pain_point
+  platform: tiktok
+  campaign: one
+  composite_score: 77
+  topic_id: null
+  status: draft
+- item_number: 32
+  hook: The angler who logs beats the angler who guesses
+  archetype: identity_tribal
+  platform: threads
+  campaign: one
+  composite_score: 74
+  topic_id: null
+  status: draft
+- item_number: 33
+  hook: Why every angler starts a log and quits within a month
+  archetype: pain_point
+  platform: tiktok
+  campaign: one
+  composite_score: 75
+  topic_id: null
+  status: draft
+- item_number: 34
+  hook: The PB that changed everything
+  archetype: aspirational_aesthetic
+  platform: instagram
+  campaign: one
+  composite_score: 70
+  topic_id: null
+  status: draft
+- item_number: 35
+  hook: Skunked trips build character. Logged skunked trips build patterns.
+  archetype: humor_relatable
+  platform: tiktok
+  campaign: one
+  composite_score: 72
+  topic_id: null
+  status: draft
+- item_number: 36
+  hook: Here's what 47 logged trips taught me about bass
+  archetype: behind_the_scenes
+  platform: tiktok
+  campaign: one
+  composite_score: 80
+  topic_id: null
+  status: draft
+- item_number: 37
+  hook: Fishbrain charges $80/year. Your notes app charges nothing. Neither remembers what worked.
+  archetype: debate_hot_take
+  platform: threads
+  campaign: one
+  composite_score: 72
+  topic_id: null
+  status: draft
