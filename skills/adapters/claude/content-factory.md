@@ -16,15 +16,22 @@ by `gtm-artifact-refresh` when the backlog items were created.
 **Prerequisite:** Items must have `slides` data in `content-backlog.yaml`.
 If slides are missing, run `gtm-artifact-refresh` first.
 
+**Text-only items:** The factory gracefully skips backlog items that have no
+`slides` array (null, missing, or empty). This is normal for text platforms
+like X and Facebook that produce caption-only items. The factory no longer
+aborts when it encounters these items — it logs a skip message and continues
+processing the remaining items.
+
 ## Steps
 
 1. Read items from `content-backlog.yaml` by item_number
-2. Validate each item has slides with text + visual_hint
-3. For each slide: generate background via Gemini, overlay text via Pillow
-4. Wait 4 seconds between Gemini calls (rate limit)
-5. Write metadata.yaml sidecar with caption + hashtags
-6. Open output folder in Finder for preview
-7. Update item status to `generated`
+2. Filter out text-only items (no `slides` array) — skip gracefully, do not abort
+3. Validate remaining items have slides with text + visual_hint
+4. For each slide: generate background via Gemini, overlay text via Pillow
+5. Wait 4 seconds between Gemini calls (rate limit); retry on 429/5xx with backoff
+6. Write metadata.yaml sidecar with caption + hashtags
+7. Open output folder in Finder for preview
+8. Update item status to `generated` (only for items that had slides processed)
 
 ## Boundaries
 

@@ -6,9 +6,10 @@ Runtimes: claude
 
 ## Purpose
 
-Push generated slide images to Postiz as draft posts for human review.
-Runs the social-post-safety validator as a hard gate before any upload.
-The founder reviews drafts in Postiz and publishes manually from their phone.
+Push generated slide images and text-only posts to Postiz as draft posts
+for human review. Runs the social-post-safety validator as a hard gate
+before any upload or post creation. The founder reviews drafts in Postiz
+and publishes manually from their phone.
 
 This is Lane 4 of the GTM pipeline.
 
@@ -38,7 +39,9 @@ Outputs:
 
 ## Dependencies
 
-- `state/artifacts/content-factory/<product_id>/item_<NNN>/` (read)
+- `state/artifacts/content-factory/<product_id>/item_<NNN>/` (read — visual path only)
+- `docs/products/<product_id>/gtm/content-backlog.yaml` (read for text-only items + status write)
+- `packages/tools/social_tools/postiz_client.list_channels()`
 - `packages/tools/social_tools/postiz_client.upload_media()`
 - `packages/tools/social_tools/postiz_client.create_draft_post()`
 - `packages/tools/product_artifacts/gtm_chain.validate_backlog_item()`
@@ -50,21 +53,39 @@ Outputs:
 
 ### Phase 1 — Load and validate
 
-1. **For each requested item_number**, read the generated slides from
-   `state/artifacts/content-factory/<product_id>/item_<NNN>/`.
-   If the directory does not exist, abort: "Item N has not been generated.
-   Run content-factory first."
+0. **Pre-flight channel check.** Call `list_channels()` and verify that
+   channels exist for all target platforms in `channel_ids`. If a
+   platform's channel is not connected, warn and skip items for that
+   platform (do not abort the entire batch).
 
-2. **Read `metadata.yaml`** from the item directory for caption, hashtags,
-   platform, and archetype.
+1. **For each requested item_number**, determine the routing path:
 
-3. **Run the `social-post-safety` validator** on the caption. This is a
-   hard gate — if the validator returns `verdict: fail`, abort with the
-   failure reasons. Do not upload anything.
+   **IF** the backlog item has `slides` AND status == `generated`:
+     -> **Visual path** (existing): read slides from
+        `state/artifacts/content-factory/<product_id>/item_<NNN>/`.
+        Read `metadata.yaml` from the item directory for caption, hashtags,
+        platform, and archetype.
+
+   **ELIF** the backlog item has NO `slides` AND status == `draft`:
+     -> **Text path**: read `caption` and `hashtags` directly from the
+        item's entry in `content-backlog.yaml`. No artifact directory is
+        required. Status transitions directly from `draft` to `scheduled`
+        (skips the `generated` state).
+
+   **ELSE** the item has slides but status != `generated`:
+     -> Error: "Item N has slides but has not been generated. Run
+        content-factory first."
+
+2. **Run the `social-post-safety` validator** on the caption for ALL items
+   regardless of path. This is a hard gate — if the validator returns
+   `verdict: fail`, abort that item with the failure reasons. Do not
+   upload or post anything for it.
 
 ### Phase 2 — Upload and create drafts
 
 4. **For each platform in `channel_ids`:**
+
+   **Visual-path items (have slides):**
 
    a. Upload each slide image via `upload_media()`. Collect the returned
       `media_id` and `url` (path) for each.
@@ -73,6 +94,8 @@ Outputs:
       - TikTok: max 5
       - Instagram: max 8
       - Threads: max 3
+      - X: max 3
+      - Facebook: max 5
 
    c. Call `create_draft_post()` with:
       - `channel_id` from the channel_ids mapping
@@ -82,6 +105,19 @@ Outputs:
       - `platform` name
       - `scheduled_at` from input
 
+   **Text-path items (no slides):**
+
+   a. Trim hashtags to the platform limit (same limits as above).
+
+   b. Call `create_draft_post()` with:
+      - `channel_id` from the channel_ids mapping
+      - `caption` from the backlog item
+      - `hashtags` (trimmed to platform limit)
+      - `platform` name
+      - `scheduled_at` from input
+      - Do NOT include `media_ids` or `media_urls`. The Postiz client
+        must omit the `image` key entirely (do not send an empty list).
+
    d. Log the post ID and platform.
 
 5. **Posts always go to DRAFT status.** The Postiz client enforces this.
@@ -90,6 +126,8 @@ Outputs:
 ### Phase 3 — Update status
 
 6. **Update the item's status** to `scheduled` in `content-backlog.yaml`.
+   Visual-path items transition: `generated` -> `scheduled`.
+   Text-path items transition: `draft` -> `scheduled` (skips `generated`).
 
 7. **Print a summary:** item number, platforms, post IDs.
 

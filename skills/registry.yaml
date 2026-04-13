@@ -260,6 +260,19 @@ skills:
       claude: adapters/claude/content-scheduler.md
     project_skill: .claude/skills/content-scheduler.md
 
+  # ----- Phase 6 content intelligence feedback -----
+
+  - id: content-performance-review
+    name: Content Performance Review
+    path: canonical/content-performance-review/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: planned
+    kind: agentic
+    fixture_status: planned
+    source: internal
+    notes: "Deferred until 30+ posts published. See docs/plans/2026-04-13-feat-gtm-multi-platform-content-engine-plan.md"
+
   # ----- Phase 4 observability + regression skills -----
 
   - id: failure-mode-regression

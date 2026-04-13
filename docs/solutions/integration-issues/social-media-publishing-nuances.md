@@ -110,7 +110,26 @@ payload = {
 ### X (Twitter)
 
 - **Channel identifier:** `x`
+- **Required settings:** `{"__type": "x"}`
 - **Hashtag limit:** 3 max
+- **Character limit:** 280 (standard) / 25,000 (Premium) — target 280 for max reach
+- **Algorithm notes:** Replies worth 27x a like; conversations (reply + reply back) worth 150x.
+  External links get near-zero distribution for non-Premium; drop links in first reply.
+  Posts lose ~50% visibility every 6 hours.
+- **Text-only posts:** Omit the `image` key from the Postiz value entry entirely.
+  Do NOT send `"image": []` — this may cause 400 errors.
+- **Not yet tested for publishing** — update when first post goes live.
+
+### Facebook
+
+- **Channel identifier:** `facebook`
+- **Required settings:** `{"__type": "facebook"}`
+- **Hashtag limit:** 2 max (minimal hashtag culture)
+- **Character limit:** 63,206 (sweet spot 300-800)
+- **Algorithm notes:** Shares-to-Stories and Saves worth 50+ Likes. Reels get 3-5x reach.
+  Account "tag" built from last 9-12 posts — scattered topics kill recommendation weight.
+  Groups deliver higher organic reach than Pages.
+- **Text-only posts:** Same as X — omit `image` key for text-only posts.
 - **Not yet tested for publishing** — update when first post goes live.
 
 ## Text Overlay — Formatting Fix (2026-04-12)

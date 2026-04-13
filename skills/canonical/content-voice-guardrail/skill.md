@@ -16,7 +16,7 @@ Inputs:
 
 - `draft`: str — the full post body including any trailing hashtags.
 - `voice_guide`: str — the raw text of `docs/products/<product>/gtm/voice.md`.
-- `platform`: "tiktok" | "instagram" | "threads" | "x".
+- `platform`: "tiktok" | "instagram" | "threads" | "x" | "facebook".
 
 Outputs:
 

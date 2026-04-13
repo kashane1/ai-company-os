@@ -54,20 +54,28 @@ Outputs:
 2. **For each requested item_number**, find the item in the YAML list.
    If not found, log a warning and skip.
 
-3. **Validate each item** using `validate_backlog_item()`. If any required
-   fields are missing, abort with a clear error listing the invalid items.
+3. **Filter text-only items.** Skip any item where `slides` is null, missing,
+   or an empty list. This handles text-platform items (e.g. X, Facebook) that
+   have caption-only content with no slides to generate.
+   Log each skip: "Item N — no slides, skipping image generation."
+   If ALL requested items lack slides, exit gracefully with
+   `slides_generated: 0, items_processed: 0` (this is not an error).
 
-4. **Check item status.** Only process items with `status: draft`. Skip items
+4. **Validate each remaining item** using `validate_backlog_item()`. If any
+   required fields are missing, abort with a clear error listing the invalid
+   items.
+
+5. **Check item status.** Only process items with `status: draft`. Skip items
    that are already `generated` or `scheduled` (log a note).
 
-5. **Confirm each item has slide data.** The item must have a `slides` array
-   with at least one entry, each containing `text` and `visual_hint` fields.
-   If slides are missing, abort: "Item N has no slide data. Run
+6. **Confirm each item has valid slide entries.** Every slide in the `slides`
+   array must contain `text` and `visual_hint` fields. If a slide entry is
+   malformed, abort: "Item N has invalid slide data. Run
    gtm-artifact-refresh first to author slide text."
 
 ### Phase 2 — Generate slides
 
-6. **For each item, for each slide:**
+7. **For each item, for each slide:**
 
    a. Call `generate_image(visual_hint, aspect_ratio="9:16")` to produce a
       background image from Gemini. The prompt should contain ONLY the
@@ -90,7 +98,14 @@ Outputs:
       matches the Gemini free-tier rate limit of 15 req/min exactly and
       avoids 429 errors.
 
-7. **Write a `metadata.yaml` sidecar** in the item's output directory:
+   g. **On Gemini API 429 or 5xx errors**, retry with exponential backoff:
+      - 1st retry: wait 8 seconds
+      - 2nd retry: wait 16 seconds
+      - 3rd retry: wait 32 seconds
+      - After 3 retries: log the failure and skip this slide. The parent
+        item remains at `status: draft` so it can be retried later.
+
+8. **Write a `metadata.yaml` sidecar** in the item's output directory:
    ```yaml
    item_number: int
    hook: string
@@ -105,10 +120,13 @@ Outputs:
 
 ### Phase 3 — Preview and update status
 
-8. **Open the output directory in Finder** for human review:
-   `subprocess.run(["open", str(output_dir)])`
+9.  **Open the output directory in Finder** for human review:
+    `subprocess.run(["open", str(output_dir)])`
 
-9. **Update the item's status** to `generated` in `content-backlog.yaml`.
+10. **Update the item's status** to `generated` in `content-backlog.yaml`.
+    Only update status for items that were actually processed (had slides
+    generated). Items skipped in Phase 1 (no slides) retain their current
+    status unchanged.
 
 ### Output directory structure
 

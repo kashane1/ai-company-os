@@ -21,6 +21,8 @@ REQUIRED_FILES = (
 
 BACKLOG_REQUIRED_FIELDS = ("item_number", "hook", "archetype", "platform", "campaign", "status")
 
+VALID_PLATFORMS = {"tiktok", "instagram", "threads", "x", "facebook"}
+
 # Extended chain files produced by niche-research-brief and gtm-artifact-refresh.
 # Validated separately because they may not exist until the first research run.
 EXTENDED_FILES = (
@@ -50,13 +52,33 @@ def validate_backlog_item(item: dict) -> list[str]:
 
     Returns a list of error strings (empty = valid). Shared across the chain
     validator, content-factory, and content-scheduler pre-flight checks.
+
+    Supports both legacy items (no topic_id) and new multi-platform items.
+    New fields (topic_id, format, audience) are validated only when non-null.
     """
     errors: list[str] = []
     if not isinstance(item, dict):
         return ["item is not a dict"]
-    for field in BACKLOG_REQUIRED_FIELDS:
-        if field not in item:
-            errors.append(f"missing field: {field}")
+    for f in BACKLOG_REQUIRED_FIELDS:
+        if f not in item:
+            errors.append(f"missing field: {f}")
+
+    # Platform enum validation.
+    platform = item.get("platform")
+    if platform and platform not in VALID_PLATFORMS:
+        errors.append(f"invalid platform: {platform}")
+
+    # Text platforms (x, facebook) don't require slides.
+    # Visual platforms require slides only for new multi-platform items.
+    topic_id = item.get("topic_id")
+    if topic_id is not None and platform not in ("x", "facebook"):
+        if not item.get("slides"):
+            errors.append(f"visual platform {platform} missing slides")
+
+    # topic_id format when present.
+    if topic_id is not None and not isinstance(topic_id, str):
+        errors.append("topic_id must be a string")
+
     return errors
 
 

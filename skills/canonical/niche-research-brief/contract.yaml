@@ -6,7 +6,7 @@ inputs:
   - name: platforms
     type: list
     default: [tiktok]
-    values: [tiktok, instagram, threads, x, youtube]
+    values: [tiktok, instagram, threads, x, facebook, youtube]
   - name: focus_areas
     type: list_or_null
 outputs:

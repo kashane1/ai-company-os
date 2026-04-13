@@ -64,6 +64,7 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **gtm-artifact-refresh** — consume a research brief and refresh all GTM artifacts with archetype mix balance
 - **content-factory** — generate finished slide images from authored backlog items (Gemini backgrounds + Pillow text overlay)
 - **content-scheduler** — push generated slides to Postiz as draft posts for human review
+- **content-performance-review** — (planned) analyze content performance and propose improvements to hooks, archetype weights, and platform strategy
 
 ## Trigger phrases → skills
 

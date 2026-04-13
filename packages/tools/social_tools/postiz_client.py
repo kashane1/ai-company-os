@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import json
 import logging
+import re
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -22,6 +24,12 @@ from packages.config.settings import POSTIZ_API_KEY_ENV_VAR, get_api_key
 logger = logging.getLogger(__name__)
 
 POSTIZ_API_BASE = "https://api.postiz.com/public/v1"
+
+# Regex for sanitizing filenames in multipart uploads.
+_SAFE_FILENAME_RE = re.compile(r"[^a-zA-Z0-9._-]")
+
+# Delay between consecutive API calls to avoid rate limits.
+API_CALL_DELAY_SECONDS = 1.5
 
 
 @dataclass
@@ -104,7 +112,7 @@ def _api_request(
         with urlopen(request, timeout=30) as response:
             return json.loads(response.read())
     except HTTPError as e:
-        body_text = e.read().decode() if e.fp else ""
+        body_text = (e.read().decode() if e.fp else "")[:500]
         logger.error("Postiz API error %d on %s %s: %s", e.code, method, endpoint, body_text)
         raise RuntimeError(f"Postiz API returned {e.code}: {body_text}") from e
 
@@ -141,11 +149,14 @@ def upload_media(file_path: Path, api_key: str | None = None) -> PostizMedia:
     mime_type = mimetypes.guess_type(str(file_path))[0] or "image/png"
     file_bytes = file_path.read_bytes()
 
+    # Sanitize filename to prevent header injection.
+    safe_name = _SAFE_FILENAME_RE.sub("_", file_path.name)
+
     # Multipart form data boundary
     boundary = uuid.uuid4().hex
     body = (
         f"--{boundary}\r\n"
-        f'Content-Disposition: form-data; name="file"; filename="{file_path.name}"\r\n'
+        f'Content-Disposition: form-data; name="file"; filename="{safe_name}"\r\n'
         f"Content-Type: {mime_type}\r\n\r\n"
     ).encode() + file_bytes + f"\r\n--{boundary}--\r\n".encode()
 
@@ -162,7 +173,7 @@ def upload_media(file_path: Path, api_key: str | None = None) -> PostizMedia:
         with urlopen(request, timeout=60) as response:
             result = json.loads(response.read())
     except HTTPError as e:
-        err_body = e.read().decode() if e.fp else ""
+        err_body = (e.read().decode() if e.fp else "")[:500]
         raise RuntimeError(f"Media upload failed ({e.code}): {err_body}") from e
 
     media = PostizMedia(
@@ -180,6 +191,7 @@ PLATFORM_HASHTAG_LIMITS: dict[str, int] = {
     "instagram": 8,
     "threads": 3,
     "x": 3,
+    "facebook": 2,
 }
 DEFAULT_HASHTAG_LIMIT = 5
 
@@ -207,6 +219,14 @@ def _platform_settings(platform: str | None) -> dict:
     elif p == "threads":
         return {
             "__type": "threads",
+        }
+    elif p == "x":
+        return {
+            "__type": "x",
+        }
+    elif p == "facebook":
+        return {
+            "__type": "facebook",
         }
     else:
         return {
@@ -252,34 +272,39 @@ def create_draft_post(
         logger.warning("Caption exceeds 1000 chars (%d), truncating", len(caption))
         caption = caption[:997] + "..."
 
+    # Safety: only ever create drafts. Refuse any other type.
+    post_type = "draft"
+
     # Postiz API uses a nested structure:
     # {type, date, posts: [{integration: {id}, value: [{content, image}], settings}]}
     from datetime import datetime as _dt
 
     schedule_date = scheduled_at or _dt.now()
 
+    # Build the value entry — omit "image" key entirely for text-only posts.
+    # Sending an empty "image": [] can cause 400 errors.
+    value_entry: dict = {"content": caption}
+    if media_ids and media_urls:
+        value_entry["image"] = [
+            {"id": mid, "path": murl}
+            for mid, murl in zip(media_ids, media_urls)
+        ]
+
     payload: dict = {
-        "type": "draft",
+        "type": post_type,
         "date": schedule_date.isoformat(),
         "shortLink": False,
         "tags": [],
         "posts": [
             {
                 "integration": {"id": channel_id},
-                "value": [
-                    {
-                        "content": caption,
-                        "image": [
-                            {"id": mid, "path": murl}
-                            for mid, murl in zip(media_ids, media_urls or [])
-                        ] if media_urls else [],
-                    }
-                ],
+                "value": [value_entry],
                 "settings": _platform_settings(platform),
             }
         ],
     }
 
+    time.sleep(API_CALL_DELAY_SECONDS)
     result = _api_request("POST", "/posts", data=payload, api_key=api_key)
 
     # API may return a list of post objects or a single object

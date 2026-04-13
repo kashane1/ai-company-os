@@ -20,11 +20,13 @@ This skill takes the niche research brief and propagates its intelligence into t
 ### 1. Load inputs
 
 - Read `skills/canonical/niche-research-brief/memory-schema.yaml` to understand the memory file structure
+- Read `skills/canonical/gtm-artifact-refresh/platforms.md` — the platform playbook for multi-platform authoring (tone, format, character limits per platform)
 - Read `niche-research-brief.md` (required — abort if missing)
 - Read `niche-research-memory.yaml` — locate the niche entry at `niches.<niche>`. Abort if the niche key is not found.
 - Read `product_context` from the memory file for cross-niche vocabulary and product-level competitors
 - Read all existing GTM artifacts (content-taxonomy.md, voice.md, hook-library.md, hashtag-strategy.md, content-backlog.yaml, campaign-calendar.md)
 - If `content-taxonomy.md` does not exist, force `mode: full`
+- Accept `platforms` input (default: `[x, tiktok, instagram, threads, facebook]`) — which platforms to generate backlog items for
 
 ### 2. Create or update content-taxonomy.md
 
@@ -64,17 +66,30 @@ Read from `niches.<niche>.topics` (sorted by composite score) and `niches.<niche
 
 Read from `niches.<niche>.sources.tiktok.hashtags_tracked` (and other platforms).
 - **Multi-niche rule:** Group hashtags by niche under labeled sections. Platform limits apply per-post, not per-section.
-- Respect platform limits (Instagram 8, TikTok 5, Threads 3)
+- Respect platform limits (Instagram 8, TikTok 5, Threads 3, X 3, Facebook 2)
+- Ensure sections exist for all 5 platforms (add Facebook and X sections if missing)
 - Replace low-volume hashtags with higher-volume alternatives
 - Keep hashtags that performed well in published content
 
-### 6. Update content-backlog.yaml
+### 6. Update content-backlog.yaml (multi-platform authoring)
 
 Read from `niches.<niche>.topics` where `used_in_content: false`, sorted by composite score descending.
 
 - Lock items already scheduled or published (do not modify or remove)
 - Tag all existing items with archetype and composite score if not already tagged
-- Add new items: `N. "Hook text" — platform format — [Archetype] Score: NN/100`
+
+**Multi-platform authoring loop** (cap at 3-5 topics per invocation):
+
+For each unused topic, for each platform in the `platforms` input:
+1. Check platform suitability using `platforms.md`. Skip unsuitable platforms (min 3 per topic).
+2. RETHINK the angle per platform — different opening line, adapted tone.
+3. **Visual platforms (tiktok, instagram, threads):** author full slides array + caption + hashtags.
+4. **Text platforms (x, facebook):** author caption + hashtags ONLY. No `slides` field in the YAML.
+5. **Enforce character limits at authoring time:** X 280, Threads 500, Instagram 2200, TikTok 4000, Facebook 300-800 sweet spot.
+6. Assign shared `topic_id` (format: `topic_NNN`) across all platform variants of the same topic.
+7. Write all items for a topic as a single append. Item numbers start at max(existing) + 1.
+8. **Idempotent:** check existing backlog for this `topic_id` — only generate missing platforms.
+
 - New Campaign Zero items = pure engagement (no product mentions)
 - New Campaign One items = product-relevant content
 
@@ -91,6 +106,7 @@ Generate additional items for under-represented archetypes if needed.
 - Only adjust timing, not structure
 - Apply seasonal intelligence from `niches.<niche>.seasonal_calendar`
 - Move seasonally-relevant items earlier, out-of-season items later
+- Stagger same-topic posts (`topic_id`) 24-48 hours apart across platforms. Include `topic_id` in calendar entries.
 - Never reschedule published items
 
 ### 8. Update memory
@@ -101,8 +117,9 @@ In `niche-research-memory.yaml` at `niches.<niche>`:
 
 ### 9. Run validators
 
-- Run `content-voice-guardrail` on the updated voice.md
-- Run `social-post-safety` on the updated hashtag-strategy.md
+- Run `content-voice-guardrail` on the updated voice.md — run once per platform (passing `platform` param) to verify tone adaptation
+- Run `social-post-safety` on the updated hashtag-strategy.md (all 5 platforms: Instagram 8, TikTok 5, Threads 3, X 3, Facebook 2)
+- Character limits are enforced during authoring (Phase 6), not just at validation
 - If either fails, fix the changes before completing
 
 ### 10. Validate and output
@@ -118,5 +135,5 @@ In `niche-research-memory.yaml` at `niches.<niche>`:
 
 - **May edit**: `content-taxonomy.md`, `voice.md`, `hook-library.md`, `hashtag-strategy.md`, `content-backlog.yaml`, `campaign-calendar.md`, `niche-research-memory.yaml`
 - **Must not touch**: `apps/`, `packages/`, `infra/`, `state/`, `products/`
-- **Read-only**: `niche-research-brief.md`, `performance-log.md`, `memory-schema.yaml`
+- **Read-only**: `niche-research-brief.md`, `performance-log.md`, `memory-schema.yaml`, `platforms.md`
 - **Do not remove** existing voice constraints, published content items, or scheduled calendar entries

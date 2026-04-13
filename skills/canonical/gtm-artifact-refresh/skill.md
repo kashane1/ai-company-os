@@ -21,6 +21,13 @@ Inputs:
   Must match a key in the `niches` map of the memory file.
 - `mode`: enum — `full` (rewrite all artifacts from brief) or `incremental`
   (add new items, preserve existing). Default: `incremental`.
+- `platforms`: list of enum — platforms to generate backlog items for.
+  Values: `tiktok`, `instagram`, `threads`, `x`, `facebook`.
+  Default: `[x, tiktok, instagram, threads, facebook]`.
+
+This skill also reads `platforms.md` from its own directory
+(`skills/canonical/gtm-artifact-refresh/platforms.md`) as a read-only
+reference for platform-specific tone, format, and character limits.
 
 Outputs:
 
@@ -80,7 +87,12 @@ Outputs:
    - `content-backlog.yaml`
    - `campaign-calendar.md`
 
-4. **Determine mode.** If `content-taxonomy.md` does not exist, force
+4. **Read the platform playbook** at
+   `skills/canonical/gtm-artifact-refresh/platforms.md`. This is a read-only
+   reference for per-platform tone, format, character limits, and posting
+   rules used during multi-platform authoring in Phase 6.
+
+5. **Determine mode.** If `content-taxonomy.md` does not exist, force
    `mode: full` regardless of input — the taxonomy must be created before
    incremental updates make sense.
 
@@ -201,6 +213,11 @@ Outputs:
     - Instagram: max 8
     - TikTok: max 5
     - Threads: max 3
+    - X: max 3 (at end of post only, not in body)
+    - Facebook: max 2 (purely categorical, minimal hashtag culture)
+
+    Ensure sections for all 5 platforms exist in the hashtag strategy file.
+    If a Facebook or X section is missing, create it with the limits above.
 
 19. **Replace low-volume hashtags** with higher-volume alternatives from the
     brief, but keep hashtags that have appeared in published content with good
@@ -217,10 +234,32 @@ skill authors all content at this stage, when research context is richest.
     slides, captions, or visual_hints, as the factory may have already
     produced images from them.
 
-21. **Add new items from the brief's scored topic registry.**
-    For each topic in the registry that has `used_in_content: false`:
+21. **Add new items from the brief's scored topic registry (multi-platform authoring).**
 
-    a. **Select the archetype-based slide template:**
+    For each unused topic in the registry (cap at 3-5 topics per invocation
+    to manage context), where `used_in_content: false`:
+
+    a. **Assess platform suitability.** For each platform in the `platforms`
+       input list, read that platform's section in `platforms.md`. Decide if
+       this topic works on this platform. If clearly unsuitable, skip with a
+       one-line reason. Minimum 3 platforms per topic.
+
+    b. **For each suitable platform, RETHINK the angle** (not reformat).
+       Read the platform's section in `platforms.md` for tone, format, and
+       rules. Each platform version MUST have a different opening line.
+
+       - **Character limits enforced at authoring time:**
+         X: 280 max, Threads: 500, Instagram: 2200, TikTok: 4000,
+         Facebook: 300-800 sweet spot.
+
+       - **Visual platforms (tiktok, instagram, threads):** author full
+         `slides` array + caption + hashtags using the archetype-based
+         slide template below.
+
+       - **Text platforms (x, facebook):** author caption + hashtags ONLY.
+         No `slides` array — the field is absent (not null) in the YAML.
+
+    c. **Select the archetype-based slide template** (visual platforms only):
 
        | Archetype | Slides | Layout |
        |-----------|--------|--------|
@@ -233,38 +272,54 @@ skill authors all content at this stage, when research context is richest.
        | seasonal_timely | 3 | headline + seasonal detail + closer |
        | behind_the_scenes | 3 | headline + data/insight + reflection |
 
-    b. **Author full slide text** using research context (topic description,
-       source evidence, lexicon vocabulary). Each slide gets:
+    d. **Author slide text** (visual platforms) using research context
+       (topic description, source evidence, lexicon vocabulary). Each slide:
        - `text.headline`: string (required)
        - `text.subhead`: string (optional — closers, taglines)
        - `text.bullets`: list of string (optional — for Value/Educational)
        - `text.body`: string (optional — for longer formats)
 
-    c. **Write `visual_hint` per slide** — a short Gemini prompt string
-       describing the background image. No text instructions. Example:
-       "underwater bass approaching a lure, murky green water, dramatic lighting"
+    e. **Write `visual_hint` per slide** (visual platforms) — a short Gemini
+       prompt string describing the background image. No text instructions.
+       Example: "underwater bass approaching a lure, murky green water,
+       dramatic lighting"
 
-    d. **Write a platform-specific caption** consistent with the voice guide.
+    f. **Write a platform-specific caption** consistent with the voice guide
+       and the platform's tone from `platforms.md`. Respect the character
+       limit for that platform.
 
-    e. **Select hashtags** from `hashtag-strategy.md` as a flat list. The
-       content-scheduler will trim to platform limits at post time.
+    g. **Select hashtags** from `hashtag-strategy.md` as a flat list,
+       respecting per-platform limits (Instagram 8, TikTok 5, Threads 3,
+       X 3, Facebook 2).
 
-    f. **Campaign Zero items** must never contain app mentions in any field.
+    h. **Campaign Zero items** must never contain app mentions in any field.
        If a slide 3 exists, use engagement closers: "Which one's your go-to?",
        "Save this for your next trip", "Drop your answer below."
+
+    i. **Assign a shared `topic_id`** (format: `topic_NNN`) to all items
+       generated from the same topic. This groups cross-platform variants.
+
+    j. **Write all items for a topic as a single append operation.** Item
+       numbers start at `max(existing_item_numbers) + 1`. Only after ALL
+       items for a topic are written, update memory to set
+       `used_in_content: true`.
+
+    k. **Idempotent re-runs:** before generating, check the existing backlog
+       for items with this `topic_id`. Only generate for platforms not yet
+       present in the group.
 
     Each item follows this YAML schema:
     ```yaml
     - item_number: int
       hook: string
       archetype: enum
-      platform: enum   # tiktok | instagram | threads
+      platform: enum   # tiktok | instagram | threads | x | facebook
       campaign: enum   # zero | one
       composite_score: int
-      topic_id: string | null
+      topic_id: string          # shared across platform variants
       status: draft
-      slides:
-        - slide: 1
+      slides:                   # PRESENT for visual platforms only (tiktok, instagram, threads)
+        - slide: 1              # ABSENT (not null) for text platforms (x, facebook)
           text:
             headline: string
             subhead: string | null
@@ -292,11 +347,15 @@ skill authors all content at this stage, when research context is richest.
     If a topic is out of season, push it later or note it for the next
     seasonal window.
 
-28. **Do not reschedule items that are already published** (check performance log).
+28. **Stagger same-topic posts.** Items sharing a `topic_id` must be
+    scheduled 24-48 hours apart across platforms. Include the `topic_id`
+    in calendar entries so cross-platform groups are visible at a glance.
+
+29. **Do not reschedule items that are already published** (check performance log).
 
 ### Phase 8 — Update memory
 
-29. **Update `niche-research-memory.yaml` at `niches.<niche>`:**
+30. **Update `niche-research-memory.yaml` at `niches.<niche>`:**
     - For every topic added to the backlog, set `used_in_content: true`
       AND set `backlog_item_number` to the item's number in content-backlog.yaml
     - Append a `refresh_runs` entry (per the schema) with: date, mode,
@@ -304,18 +363,21 @@ skill authors all content at this stage, when research context is richest.
 
 ### Phase 9 — Run validators
 
-30. **Run the `content-voice-guardrail` skill** on the updated voice.md.
+31. **Run the `content-voice-guardrail` skill** on the updated voice.md.
     Pass the full text of voice.md as `voice_guide` and a synthetic test
     draft using the newly added vocabulary as `draft`. If it returns
     `verdict: fail`, review and fix the voice.md changes before proceeding.
+    Run the guardrail once per platform (passing the `platform` param) to
+    verify tone adaptation is within brand bounds for each platform.
 
-31. **Run the `social-post-safety` validator** on the updated
+32. **Run the `social-post-safety` validator** on the updated
     hashtag-strategy.md. Confirm that per-platform hashtag counts respect
-    the limits: Instagram max 8, TikTok max 5, Threads max 3.
+    the limits: Instagram max 8, TikTok max 5, Threads max 3, X max 3,
+    Facebook max 2.
 
 ### Phase 10 — Validate and output
 
-32. **Run validation:**
+33. **Run validation:**
     - All updated artifact files exist and are non-empty
     - Content backlog has at least 14 items (existing GTM chain requirement)
     - Every new backlog item has an archetype tag and score
@@ -325,7 +387,7 @@ skill authors all content at this stage, when research context is richest.
     - content-voice-guardrail passed on updated voice.md
     - social-post-safety passed on updated hashtag-strategy.md
 
-33. **Output the mix report** so the caller can see the archetype distribution
+34. **Output the mix report** so the caller can see the archetype distribution
     at a glance.
 
 ## Non-goals
