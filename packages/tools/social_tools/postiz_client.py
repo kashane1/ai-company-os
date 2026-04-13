@@ -167,7 +167,7 @@ def upload_media(file_path: Path, api_key: str | None = None) -> PostizMedia:
 
     media = PostizMedia(
         media_id=result.get("id", result.get("media_id", "")),
-        url=result.get("url", ""),
+        url=result.get("path", result.get("url", "")),
         filename=file_path.name,
     )
     logger.info("Uploaded %s → media_id=%s", file_path.name, media.media_id)
@@ -184,6 +184,36 @@ PLATFORM_HASHTAG_LIMITS: dict[str, int] = {
 DEFAULT_HASHTAG_LIMIT = 5
 
 
+def _platform_settings(platform: str | None) -> dict:
+    """Return required platform-specific settings for Postiz post creation."""
+    p = (platform or "tiktok").lower()
+    if p == "tiktok":
+        return {
+            "__type": "tiktok",
+            "privacy_level": "PUBLIC_TO_EVERYONE",
+            "duet": True,
+            "stitch": True,
+            "comment": True,
+            "autoAddMusic": "no",
+            "brand_content_toggle": False,
+            "brand_organic_toggle": False,
+            "content_posting_method": "UPLOAD",
+        }
+    elif p == "instagram" or p == "instagram-standalone":
+        return {
+            "__type": "instagram",
+            "post_type": "post",
+        }
+    elif p == "threads":
+        return {
+            "__type": "threads",
+        }
+    else:
+        return {
+            "__type": p,
+        }
+
+
 def create_draft_post(
     channel_id: str,
     caption: str,
@@ -192,6 +222,7 @@ def create_draft_post(
     hashtags: list[str] | None = None,
     platform: str | None = None,
     api_key: str | None = None,
+    media_urls: list[str] | None = None,
 ) -> PostizPost:
     """Create a post in DRAFT status on a specific channel.
 
@@ -221,21 +252,45 @@ def create_draft_post(
         logger.warning("Caption exceeds 1000 chars (%d), truncating", len(caption))
         caption = caption[:997] + "..."
 
-    payload: dict = {
-        "channelId": channel_id,
-        "content": caption,
-        "mediaIds": media_ids,
-        "status": "draft",  # ALWAYS draft — never direct publish
-    }
+    # Postiz API uses a nested structure:
+    # {type, date, posts: [{integration: {id}, value: [{content, image}], settings}]}
+    from datetime import datetime as _dt
 
-    if scheduled_at:
-        payload["scheduledAt"] = scheduled_at.isoformat()
+    schedule_date = scheduled_at or _dt.now()
+
+    payload: dict = {
+        "type": "draft",
+        "date": schedule_date.isoformat(),
+        "shortLink": False,
+        "tags": [],
+        "posts": [
+            {
+                "integration": {"id": channel_id},
+                "value": [
+                    {
+                        "content": caption,
+                        "image": [
+                            {"id": mid, "path": murl}
+                            for mid, murl in zip(media_ids, media_urls or [])
+                        ] if media_urls else [],
+                    }
+                ],
+                "settings": _platform_settings(platform),
+            }
+        ],
+    }
 
     result = _api_request("POST", "/posts", data=payload, api_key=api_key)
 
+    # API may return a list of post objects or a single object
+    if isinstance(result, list):
+        first = result[0] if result else {}
+    else:
+        first = result
+
     post = PostizPost(
-        post_id=result.get("id", result.get("post_id", "")),
-        platform=result.get("platform", "unknown"),
+        post_id=first.get("id", first.get("post_id", str(result)[:50])),
+        platform=first.get("platform", platform or "unknown"),
         status="draft",
         scheduled_at=scheduled_at.isoformat() if scheduled_at else None,
         caption=caption,
