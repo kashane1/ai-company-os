@@ -8,7 +8,7 @@ Runtimes: claude
 
 Consume a niche-research-brief and refresh the GTM artifact chain:
 content-taxonomy.md, voice.md, hook-library.md, hashtag-strategy.md,
-content-backlog.md, and campaign-calendar.md. Preserves existing content
+content-backlog.yaml, and campaign-calendar.md. Preserves existing content
 that is still valid, adds new items from the brief, retires stale entries,
 and enforces content archetype mix balance.
 
@@ -35,7 +35,7 @@ Outputs:
 - `docs/products/<product_id>/gtm/voice.md`
 - `docs/products/<product_id>/gtm/hook-library.md`
 - `docs/products/<product_id>/gtm/hashtag-strategy.md`
-- `docs/products/<product_id>/gtm/content-backlog.md`
+- `docs/products/<product_id>/gtm/content-backlog.yaml`
 - `docs/products/<product_id>/gtm/campaign-calendar.md`
 - `docs/products/<product_id>/gtm/niche-research-memory.yaml`
 
@@ -77,7 +77,7 @@ Outputs:
    - `voice.md`
    - `hook-library.md`
    - `hashtag-strategy.md`
-   - `content-backlog.md`
+   - `content-backlog.yaml`
    - `campaign-calendar.md`
 
 4. **Determine mode.** If `content-taxonomy.md` does not exist, force
@@ -206,49 +206,80 @@ Outputs:
     brief, but keep hashtags that have appeared in published content with good
     engagement.
 
-### Phase 6 — Update content-backlog.md
+### Phase 6 — Update content-backlog.yaml
 
-This is the most complex update. The backlog must grow with new research while
-maintaining archetype mix balance.
+This is the most complex update. The backlog is a YAML list where each item
+has full slide text, visual direction, captions, and hashtags. The refresh
+skill authors all content at this stage, when research context is richest.
 
-20. **Read the existing backlog.** Note which items are already scheduled
-    (in campaign-calendar.md) or published (in performance-log.md). These
-    items are locked and must not be modified or removed.
+20. **Read the existing backlog** from `content-backlog.yaml` (YAML list).
+    Lock items with status in `{generated, scheduled}` — do not modify their
+    slides, captions, or visual_hints, as the factory may have already
+    produced images from them.
 
-21. **Map existing backlog items to archetypes** if not already tagged.
-    Add archetype and score tags to each existing item:
-    ```
-    N. "Hook text" — platform format — [Archetype] Score: NN/100
-    ```
-
-22. **Add new items from the brief's scored topic registry.**
+21. **Add new items from the brief's scored topic registry.**
     For each topic in the registry that has `used_in_content: false`:
-    - Create a backlog item with: hook text, platform, format recommendation,
-      archetype tag, composite score
-    - Draw hook text from the hook library or write a new one consistent with
-      the voice guide
-    - Sort new items by composite score descending
 
-23. **Check archetype mix balance** against the taxonomy's target percentages.
-    Calculate the current distribution of all backlog items (including locked ones).
+    a. **Select the archetype-based slide template:**
 
+       | Archetype | Slides | Layout |
+       |-----------|--------|--------|
+       | value_educational | 3 | headline + 3 bullets + closing question |
+       | pain_point | 2 | provocative headline + resolution |
+       | debate_hot_take | 2 | claim + counter-argument |
+       | identity_tribal | 2 | identity statement + closer |
+       | aspirational_aesthetic | 2 | short text + visual emphasis |
+       | humor_relatable | 2 | setup + punchline |
+       | seasonal_timely | 3 | headline + seasonal detail + closer |
+       | behind_the_scenes | 3 | headline + data/insight + reflection |
+
+    b. **Author full slide text** using research context (topic description,
+       source evidence, lexicon vocabulary). Each slide gets:
+       - `text.headline`: string (required)
+       - `text.subhead`: string (optional — closers, taglines)
+       - `text.bullets`: list of string (optional — for Value/Educational)
+       - `text.body`: string (optional — for longer formats)
+
+    c. **Write `visual_hint` per slide** — a short Gemini prompt string
+       describing the background image. No text instructions. Example:
+       "underwater bass approaching a lure, murky green water, dramatic lighting"
+
+    d. **Write a platform-specific caption** consistent with the voice guide.
+
+    e. **Select hashtags** from `hashtag-strategy.md` as a flat list. The
+       content-scheduler will trim to platform limits at post time.
+
+    f. **Campaign Zero items** must never contain app mentions in any field.
+       If a slide 3 exists, use engagement closers: "Which one's your go-to?",
+       "Save this for your next trip", "Drop your answer below."
+
+    Each item follows this YAML schema:
+    ```yaml
+    - item_number: int
+      hook: string
+      archetype: enum
+      platform: enum   # tiktok | instagram | threads
+      campaign: enum   # zero | one
+      composite_score: int
+      topic_id: string | null
+      status: draft
+      slides:
+        - slide: 1
+          text:
+            headline: string
+            subhead: string | null
+            bullets: list | null
+            body: string | null
+          visual_hint: string
+      caption: string
+      hashtags: list of string
     ```
-    Mix report example:
-    Value/Educational: 5 items (28%) — target 25% — OK
-    Identity/Tribal:   2 items (11%) — target 20% — NEED 2 MORE
-    Debate/Hot Take:   3 items (17%) — target 15% — OK
-    Pain Point:        4 items (22%) — target 15% — OVER-INDEXED
-    ```
 
-24. **If imbalanced:** generate additional items for under-represented
-    archetypes using topics from the brief. Flag over-indexed archetypes but
-    do not remove existing items — the next content to be created should
-    come from under-represented archetypes.
+22. **Check archetype mix balance** against the taxonomy's target percentages.
+    Calculate distribution of all backlog items (including locked ones).
 
-25. **Maintain the Campaign Zero / Campaign One structure** (or whatever
-    campaign structure exists). New items go into the appropriate campaign
-    section based on whether they mention the product (Campaign One) or are
-    pure engagement content (Campaign Zero).
+23. **If imbalanced:** generate additional items for under-represented
+    archetypes. Do not remove existing items.
 
 ### Phase 7 — Update campaign-calendar.md
 
@@ -267,7 +298,7 @@ maintaining archetype mix balance.
 
 29. **Update `niche-research-memory.yaml` at `niches.<niche>`:**
     - For every topic added to the backlog, set `used_in_content: true`
-      AND set `backlog_item_number` to the item's number in content-backlog.md
+      AND set `backlog_item_number` to the item's number in content-backlog.yaml
     - Append a `refresh_runs` entry (per the schema) with: date, mode,
       artifacts_updated, backlog_items_added, mix_balanced, mix_report
 

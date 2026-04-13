@@ -1,5 +1,5 @@
 ---
-description: Consume a niche-research-brief and refresh the GTM artifact chain — content-taxonomy.md, voice.md, hook-library.md, hashtag-strategy.md, content-backlog.md, and campaign-calendar.md. Enforces content archetype mix balance. Run this after niche-research-brief to propagate research into actionable content artifacts.
+description: Consume a niche-research-brief and refresh the GTM artifact chain — content-taxonomy.md, voice.md, hook-library.md, hashtag-strategy.md, content-backlog.yaml, and campaign-calendar.md. Enforces content archetype mix balance. Run this after niche-research-brief to propagate research into actionable content artifacts.
 canonical_source: skills/canonical/gtm-artifact-refresh/skill.md
 ---
 
@@ -23,7 +23,7 @@ This skill takes the niche research brief and propagates its intelligence into t
 - Read `niche-research-brief.md` (required — abort if missing)
 - Read `niche-research-memory.yaml` — locate the niche entry at `niches.<niche>`. Abort if the niche key is not found.
 - Read `product_context` from the memory file for cross-niche vocabulary and product-level competitors
-- Read all existing GTM artifacts (content-taxonomy.md, voice.md, hook-library.md, hashtag-strategy.md, content-backlog.md, campaign-calendar.md)
+- Read all existing GTM artifacts (content-taxonomy.md, voice.md, hook-library.md, hashtag-strategy.md, content-backlog.yaml, campaign-calendar.md)
 - If `content-taxonomy.md` does not exist, force `mode: full`
 
 ### 2. Create or update content-taxonomy.md
@@ -68,7 +68,7 @@ Read from `niches.<niche>.sources.tiktok.hashtags_tracked` (and other platforms)
 - Replace low-volume hashtags with higher-volume alternatives
 - Keep hashtags that performed well in published content
 
-### 6. Update content-backlog.md
+### 6. Update content-backlog.yaml
 
 Read from `niches.<niche>.topics` where `used_in_content: false`, sorted by composite score descending.
 
@@ -116,7 +116,7 @@ In `niche-research-memory.yaml` at `niches.<niche>`:
 
 ## Boundaries
 
-- **May edit**: `content-taxonomy.md`, `voice.md`, `hook-library.md`, `hashtag-strategy.md`, `content-backlog.md`, `campaign-calendar.md`, `niche-research-memory.yaml`
+- **May edit**: `content-taxonomy.md`, `voice.md`, `hook-library.md`, `hashtag-strategy.md`, `content-backlog.yaml`, `campaign-calendar.md`, `niche-research-memory.yaml`
 - **Must not touch**: `apps/`, `packages/`, `infra/`, `state/`, `products/`
 - **Read-only**: `niche-research-brief.md`, `performance-log.md`, `memory-schema.yaml`
 - **Do not remove** existing voice constraints, published content items, or scheduled calendar entries

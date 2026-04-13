@@ -33,7 +33,7 @@ Read `skills/canonical/niche-research-brief/memory-schema.yaml` to understand th
   - If exists but niche is new: add a new niche entry. Do not overwrite existing niches.
 - Read `docs/products/<product_id>/gtm/performance-log.md` (read-only)
 - Match published content to topics in memory, update `content_performance` ratings
-- Read `docs/products/<product_id>/gtm/content-backlog.md` to mark topics as `used_in_content`
+- Read `docs/products/<product_id>/gtm/content-backlog.yaml` to mark topics as `used_in_content`
 
 ### 2. Plan the research pass
 
@@ -109,5 +109,5 @@ Write `niche-research-brief.md` with ALL cumulative intelligence. Required secti
 
 - **May edit**: `docs/products/<product_id>/gtm/niche-research-brief.md`, `docs/products/<product_id>/gtm/niche-research-memory.yaml`
 - **Must not touch**: `apps/`, `packages/`, `infra/`, `state/`, `products/`, any other GTM artifact
-- **Read-only**: `performance-log.md`, `content-backlog.md`, product artifact chain (founder-brief, product-brief, mvp-spec)
+- **Read-only**: `performance-log.md`, `content-backlog.yaml`, product artifact chain (founder-brief, product-brief, mvp-spec)
 - **Do not invent** product decisions or audience assumptions without research backing

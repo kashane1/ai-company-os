@@ -62,6 +62,8 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **app-store-positioning-pack** — generate App Store positioning outputs from product artifacts
 - **niche-research-brief** — research a product niche and produce a scored, classified research brief with persistent memory
 - **gtm-artifact-refresh** — consume a research brief and refresh all GTM artifacts with archetype mix balance
+- **content-factory** — generate finished slide images from authored backlog items (Gemini backgrounds + Pillow text overlay)
+- **content-scheduler** — push generated slides to Postiz as draft posts for human review
 
 ## Trigger phrases → skills
 
@@ -76,6 +78,8 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "generate app store copy" / "positioning pack" → `skills/adapters/claude/app-store-positioning-pack.md`
 - "research the niche" / "run niche research" / "research this audience" / "build a research brief" / "what does this audience care about" → `skills/adapters/claude/niche-research-brief.md`
 - "refresh the GTM artifacts" / "update the content backlog" / "propagate the research" / "refresh content from brief" / "balance the content mix" → `skills/adapters/claude/gtm-artifact-refresh.md`
+- "create content" / "generate slides" / "make posts" / "run the content factory" / "generate images for the backlog" → `skills/adapters/claude/content-factory.md`
+- "schedule posts" / "push to postiz" / "send to drafts" / "schedule content" / "queue drafts" → `skills/adapters/claude/content-scheduler.md`
 
 Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 

@@ -232,6 +232,34 @@ skills:
       claude: adapters/claude/gtm-artifact-refresh.md
     project_skill: .claude/skills/gtm-artifact-refresh.md
 
+  # ----- Phase 5 content pipeline skills -----
+
+  - id: content-factory
+    name: Content Factory
+    path: canonical/content-factory/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
+    adapters:
+      claude: adapters/claude/content-factory.md
+    project_skill: .claude/skills/content-factory.md
+
+  - id: content-scheduler
+    name: Content Scheduler
+    path: canonical/content-scheduler/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    source: internal
+    adapters:
+      claude: adapters/claude/content-scheduler.md
+    project_skill: .claude/skills/content-scheduler.md
+
   # ----- Phase 4 observability + regression skills -----
 
   - id: failure-mode-regression

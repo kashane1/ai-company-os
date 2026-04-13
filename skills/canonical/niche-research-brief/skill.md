@@ -47,7 +47,7 @@ Outputs:
 
 - Web search and web fetch tools (for research)
 - `docs/products/<product_id>/gtm/performance-log.md` (read-only, for feedback loop)
-- `docs/products/<product_id>/gtm/content-backlog.md` (read-only, to know what topics are already in use)
+- `docs/products/<product_id>/gtm/content-backlog.yaml` (read-only, to know what topics are already in use)
 
 ## Memory file
 
@@ -338,7 +338,7 @@ Follow the schema in `memory-schema.yaml` for exact field names and types.
 ## Non-goals
 
 - This skill does not create or modify GTM artifacts (voice.md, hook-library.md,
-  content-backlog.md, etc.). That is the job of `gtm-artifact-refresh`.
+  content-backlog.yaml, etc.). That is the job of `gtm-artifact-refresh`.
 - This skill does not generate content, images, or posts.
 - This skill does not publish anything or interact with social platforms.
 - The performance log is read-only — this skill never appends to it.
