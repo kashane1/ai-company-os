@@ -240,7 +240,20 @@ niches:
         focus_areas: null
         notes: "First run. Deep pass across all Tier 1 sources. Strong signal on spot-privacy anxiety, logging friction, Fishbrain resentment, and the Google Sheets incumbent. TikTok fishing community (#FishTok) is massive (150B+ views). 57.9M US anglers (2024 record). Finesse fishing is the dominant technique trend nationally."
 
-    refresh_runs: []
+    refresh_runs:
+      - date: 2026-04-12
+        mode: full
+        artifacts_updated:
+          - content-taxonomy.md
+          - voice.md
+          - hook-library.md
+          - hashtag-strategy.md
+          - content-backlog.md
+          - campaign-calendar.md
+        backlog_items_added: 19
+        mix_balanced: true
+        mix_report: "Combined: Pain Point 11% (target 20%, need more), Value/Edu 27% (target 20%, over), Debate 11% (target 15%, OK), Identity 8% (target 10%, OK), Aspirational 14% (target 10%, OK), Humor 5% (target 10%, need more), Seasonal 8% (target 10%, OK), BTS 11% (target 5%, over). Imbalances acceptable for launch window."
+        notes: "First full refresh from fishing niche research brief. Created content-taxonomy.md from scratch. Added credibility lexicon to voice.md. Rewrote hook-library with archetype+source tags. Refreshed hashtag strategy with TikTok/Instagram research data. Expanded backlog from 18 to 37 items. Applied seasonal intelligence to campaign calendar — swapped 5 items for better archetype balance and April spawn relevance."
 
     sources:
 
@@ -437,9 +450,9 @@ niches:
           composite: 78
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 6
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -461,9 +474,9 @@ niches:
           composite: 75
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 33
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -485,9 +498,9 @@ niches:
           composite: 72
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 37
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -509,9 +522,9 @@ niches:
           composite: 77
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 31
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -533,9 +546,9 @@ niches:
           composite: 68
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 17
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -557,9 +570,9 @@ niches:
           composite: 77
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 10
         last_validated: 2026-04-12
         seasonal_relevance: [3, 4]
         still_relevant: true
@@ -581,9 +594,9 @@ niches:
           composite: 80
         signal_strength: medium
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 15
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -605,9 +618,9 @@ niches:
           composite: 64
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 13
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -653,9 +666,9 @@ niches:
           composite: 75
         signal_strength: medium
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 7
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -725,9 +738,9 @@ niches:
           composite: 68
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 9
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -749,9 +762,9 @@ niches:
           composite: 68
         signal_strength: medium
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 11
         last_validated: 2026-04-12
         seasonal_relevance: [5, 6, 7]
         still_relevant: true
@@ -773,9 +786,9 @@ niches:
           composite: 70
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 34
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -797,9 +810,9 @@ niches:
           composite: 59
         signal_strength: medium
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 14
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -821,9 +834,9 @@ niches:
           composite: 73
         signal_strength: medium
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 16
         last_validated: 2026-04-12
         seasonal_relevance: [9, 10]
         still_relevant: true
@@ -845,9 +858,9 @@ niches:
           composite: 72
         signal_strength: medium
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 8
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -869,9 +882,9 @@ niches:
           composite: 67
         signal_strength: high
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 12
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
@@ -893,9 +906,9 @@ niches:
           composite: 74
         signal_strength: medium
         lifecycle: new
-        used_in_content: false
+        used_in_content: true
         content_performance: null
-        backlog_item_number: null
+        backlog_item_number: 32
         last_validated: 2026-04-12
         seasonal_relevance: null
         still_relevant: true
