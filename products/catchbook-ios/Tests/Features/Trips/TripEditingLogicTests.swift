@@ -78,7 +78,9 @@ final class TripEditingLogicTests: XCTestCase {
             weatherSummary: "Cloudy",
             windSummary: " 10 kt ",
             cloudCoverSummary: " ",
-            precipitationSummary: " Dry "
+            precipitationSummary: " Dry ",
+            waterClarity: .stained,
+            tideState: .incoming
         )
 
         XCTAssertEqual(draft.placeSummary, "Dock")
@@ -88,6 +90,8 @@ final class TripEditingLogicTests: XCTestCase {
         XCTAssertEqual(draft.windSummary, "10 kt")
         XCTAssertNil(draft.cloudCoverSummary)
         XCTAssertEqual(draft.precipitationSummary, "Dry")
+        XCTAssertEqual(draft.waterClarity, .stained)
+        XCTAssertEqual(draft.tideState, .incoming)
     }
 
     func testCatchDraftTrimsFieldsAndReflectsPhotoMetadata() {
@@ -97,7 +101,9 @@ final class TripEditingLogicTests: XCTestCase {
             method: " Burn ",
             weight: " 1.4 ",
             length: " 42 ",
+            waterDepth: " 3.2 ",
             note: " Healthy fish ",
+            disposition: .released,
             photoData: Data([1, 2, 3])
         )
         XCTAssertEqual(withPhoto.species, "Bass")
@@ -105,7 +111,9 @@ final class TripEditingLogicTests: XCTestCase {
         XCTAssertEqual(withPhoto.method, "Burn")
         XCTAssertEqual(withPhoto.weightKg, 1.4)
         XCTAssertEqual(withPhoto.lengthCm, 42)
+        XCTAssertEqual(withPhoto.waterDepthM, 3.2)
         XCTAssertEqual(withPhoto.note, "Healthy fish")
+        XCTAssertEqual(withPhoto.disposition, .released)
         XCTAssertEqual(withPhoto.photoReference, "embedded-photo")
         XCTAssertEqual(withPhoto.photoContentType, "image/jpeg")
 
@@ -115,13 +123,17 @@ final class TripEditingLogicTests: XCTestCase {
             method: "",
             weight: "invalid",
             length: " ",
+            waterDepth: " ",
             note: "  ",
+            disposition: .notRecorded,
             photoData: nil
         )
         XCTAssertEqual(withoutPhoto.species, "")
         XCTAssertNil(withoutPhoto.weightKg)
         XCTAssertNil(withoutPhoto.lengthCm)
+        XCTAssertNil(withoutPhoto.waterDepthM)
         XCTAssertEqual(withoutPhoto.note, "")
+        XCTAssertEqual(withoutPhoto.disposition, .notRecorded)
         XCTAssertNil(withoutPhoto.photoReference)
         XCTAssertNil(withoutPhoto.photoContentType)
     }

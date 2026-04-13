@@ -8,6 +8,8 @@ struct TripConditionDraft {
     let windSummary: String?
     let cloudCoverSummary: String?
     let precipitationSummary: String?
+    let waterClarity: WaterClarity
+    let tideState: TideState
 }
 
 struct CatchEditorDraft {
@@ -16,7 +18,9 @@ struct CatchEditorDraft {
     let method: String
     let weightKg: Double?
     let lengthCm: Double?
+    let waterDepthM: Double?
     let note: String
+    let disposition: CatchDisposition
     let photoReference: String?
     let photoContentType: String?
 }
@@ -69,7 +73,9 @@ enum TripEditingLogic {
         weatherSummary: String,
         windSummary: String,
         cloudCoverSummary: String,
-        precipitationSummary: String
+        precipitationSummary: String,
+        waterClarity: WaterClarity,
+        tideState: TideState
     ) -> TripConditionDraft {
         TripConditionDraft(
             placeSummary: normalizedOptionalText(placeSummary),
@@ -78,7 +84,9 @@ enum TripEditingLogic {
             weatherSummary: normalizedOptionalText(weatherSummary),
             windSummary: normalizedOptionalText(windSummary),
             cloudCoverSummary: normalizedOptionalText(cloudCoverSummary),
-            precipitationSummary: normalizedOptionalText(precipitationSummary)
+            precipitationSummary: normalizedOptionalText(precipitationSummary),
+            waterClarity: waterClarity,
+            tideState: tideState
         )
     }
 
@@ -88,7 +96,9 @@ enum TripEditingLogic {
         method: String,
         weight: String,
         length: String,
+        waterDepth: String,
         note: String,
+        disposition: CatchDisposition,
         photoData: Data?
     ) -> CatchEditorDraft {
         CatchEditorDraft(
@@ -97,7 +107,9 @@ enum TripEditingLogic {
             method: normalizedText(method),
             weightKg: normalizedDouble(weight),
             lengthCm: normalizedDouble(length),
+            waterDepthM: normalizedDouble(waterDepth),
             note: normalizedText(note),
+            disposition: disposition,
             photoReference: photoData == nil ? nil : "embedded-photo",
             photoContentType: photoData == nil ? nil : "image/jpeg"
         )

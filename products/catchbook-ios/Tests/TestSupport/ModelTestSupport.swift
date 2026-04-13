@@ -14,6 +14,7 @@ enum ModelTestSupport {
             ConditionSnapshot.self,
             Trip.self,
             CatchRecord.self,
+            CatchPhoto.self,
             PersonalBest.self,
         ])
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)

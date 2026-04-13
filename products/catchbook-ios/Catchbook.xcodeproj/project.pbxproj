@@ -11,6 +11,10 @@
 		0B43EA025E20BABB5B6DE09F /* ConditionCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABFC74665AA46640F6EEB87 /* ConditionCaptureService.swift */; };
 		0F7A174AF1B1D4F01C2B310C /* LocationRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5261B9AC086957AABF70159 /* LocationRecorder.swift */; };
 		10A9847F5198841447DEE8EF /* KeyboardDoneToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1887DA7ADEC8D7325D4510E1 /* KeyboardDoneToolbar.swift */; };
+		11C8F526A1D9401BB33B2F58 /* CatchPhotoMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C8F526A1D9401BB33B2F57 /* CatchPhotoMigrationService.swift */; };
+		11C8F526A1D9401BB33B2F5A /* CatchPhotoMigrationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C8F526A1D9401BB33B2F59 /* CatchPhotoMigrationServiceTests.swift */; };
+		11C8F526A1D9401BB33B2F5C /* CatchHistoryLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C8F526A1D9401BB33B2F5B /* CatchHistoryLogic.swift */; };
+		11C8F526A1D9401BB33B2F5E /* CatchHistoryLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C8F526A1D9401BB33B2F5D /* CatchHistoryLogicTests.swift */; };
 		16969EE6B6D8779DAE8D3ECF /* SpotRecallSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15D717AEFA05D1A8854C9E2 /* SpotRecallSummary.swift */; };
 		18047BA149444D9E029A215A /* HomeDashboardLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9278125096C153B9117B22A1 /* HomeDashboardLogicTests.swift */; };
 		1A98F0C2F8856B3EC393ACD4 /* TripPresentationLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 021B0F36CCE27052C6F6B376 /* TripPresentationLogicTests.swift */; };
@@ -84,6 +88,10 @@
 		0B63485F4A03F4B1A40CDC11 /* NewSpotForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSpotForm.swift; sourceTree = "<group>"; };
 		0B7F5FF1E8F92F02FFDB02A7 /* DeterministicInsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterministicInsightCard.swift; sourceTree = "<group>"; };
 		0CF1E991B1DF69CBE52D3247 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
+		11C8F526A1D9401BB33B2F57 /* CatchPhotoMigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchPhotoMigrationService.swift; sourceTree = "<group>"; };
+		11C8F526A1D9401BB33B2F59 /* CatchPhotoMigrationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchPhotoMigrationServiceTests.swift; sourceTree = "<group>"; };
+		11C8F526A1D9401BB33B2F5B /* CatchHistoryLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchHistoryLogic.swift; sourceTree = "<group>"; };
+		11C8F526A1D9401BB33B2F5D /* CatchHistoryLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchHistoryLogicTests.swift; sourceTree = "<group>"; };
 		12F672E5BC4B333982D7B7AB /* PersonalBestServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestServiceTests.swift; sourceTree = "<group>"; };
 		17103AF7932F818FBF29FC3F /* CatchPhotoComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchPhotoComponents.swift; sourceTree = "<group>"; };
 		17C142ACA5FBE74B95074D15 /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
@@ -233,6 +241,7 @@
 		642E43527870EA96BABD37D7 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				11C8F526A1D9401BB33B2F57 /* CatchPhotoMigrationService.swift */,
 				EABFC74665AA46640F6EEB87 /* ConditionCaptureService.swift */,
 				A5261B9AC086957AABF70159 /* LocationRecorder.swift */,
 				946CB2CF4C2D97F1D3E84384 /* LogbookBackupExporter.swift */,
@@ -263,6 +272,7 @@
 		73F46D5F86CD4105B74BC73E /* Trips */ = {
 			isa = PBXGroup;
 			children = (
+				11C8F526A1D9401BB33B2F5B /* CatchHistoryLogic.swift */,
 				5CF6943CF3DFED0D6549F317 /* TripEditingLogic.swift */,
 				8D6AA7417686EE0946814818 /* TripHistoryLogic.swift */,
 				F9A22BA34E1DDD9A62D233D0 /* TripPresentationLogic.swift */,
@@ -283,6 +293,7 @@
 		82C2913EF563CBCEF0B65F82 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				11C8F526A1D9401BB33B2F59 /* CatchPhotoMigrationServiceTests.swift */,
 				08DD8F289A9536E8D8CEEE09 /* ConditionCaptureServiceTests.swift */,
 				EE163737C354756109F698EA /* LocationRecorderTests.swift */,
 				F57EAFD44335BF6CECA163FB /* LogbookBackupExporterTests.swift */,
@@ -320,6 +331,7 @@
 		95FF8BFF6BCAE4A296A0B3D3 /* Trips */ = {
 			isa = PBXGroup;
 			children = (
+				11C8F526A1D9401BB33B2F5D /* CatchHistoryLogicTests.swift */,
 				790577ECEBEE4E267B0ED399 /* TripEditingLogicTests.swift */,
 				EC4991427876AD9ADB4749C7 /* TripHistoryLogicTests.swift */,
 				021B0F36CCE27052C6F6B376 /* TripPresentationLogicTests.swift */,
@@ -519,6 +531,8 @@
 				84091F9D365C4199C4C6C6B4 /* AppFormattersTests.swift in Sources */,
 				527CBE6D10D67C07396F8B56 /* AppTabTests.swift in Sources */,
 				43EE50C2E7ED149D3088FC09 /* ConditionCaptureServiceTests.swift in Sources */,
+				11C8F526A1D9401BB33B2F5E /* CatchHistoryLogicTests.swift in Sources */,
+				11C8F526A1D9401BB33B2F5A /* CatchPhotoMigrationServiceTests.swift in Sources */,
 				FDED0EBB2F47C1BC11B1DC0A /* DeterministicInsightCardTests.swift in Sources */,
 				AD7B70211A0882EF88C1B62C /* EdgeCaseTests.swift in Sources */,
 				55BC949915C908FEBE5E54F0 /* FishingModelsTests.swift in Sources */,
@@ -549,8 +563,10 @@
 			files = (
 				A02CD26A10521EF09B730BC2 /* AppTab.swift in Sources */,
 				64C0BD3A4B3D472D9A10A8D1 /* CatchbookMapView.swift in Sources */,
+				11C8F526A1D9401BB33B2F5C /* CatchHistoryLogic.swift in Sources */,
 				E828DC30676368CABD77A45C /* CatchPhotoComponents.swift in Sources */,
 				7A072CD56BCD1C5EBC7CC58D /* CatchbookApp.swift in Sources */,
+				11C8F526A1D9401BB33B2F58 /* CatchPhotoMigrationService.swift in Sources */,
 				0B43EA025E20BABB5B6DE09F /* ConditionCaptureService.swift in Sources */,
 				5F53C6AEDFC5793D26FC5834 /* DesignTokens.swift in Sources */,
 				7695CB82C626ADAA18A4FAE9 /* DeterministicInsightCard.swift in Sources */,

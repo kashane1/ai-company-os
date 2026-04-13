@@ -76,6 +76,10 @@ struct ConditionSnapshotExportRecord: Codable, Equatable {
     let windSummary: String?
     let cloudCoverSummary: String?
     let precipitationSummary: String?
+    let waterClarity: String
+    let moonPhase: String
+    let pressureHPa: Double?
+    let tideState: String
     let captureStatus: String
     let source: String
 }
@@ -101,9 +105,12 @@ struct CatchExportRecord: Codable, Equatable {
     let method: String
     let weightKg: Double?
     let lengthCm: Double?
+    let waterDepthM: Double?
     let note: String
+    let disposition: String
     let photoContentType: String?
     let photoFilename: String?
+    let photoFilenames: [String]?
 }
 
 struct LogbookBackupPhotoAsset: Equatable {
@@ -251,7 +258,7 @@ enum LogbookBackupExporter {
             ($0.caughtAt, $0.id.uuidString) < ($1.caughtAt, $1.id.uuidString)
         }
 
-        let photoAssets = sortedCatches.compactMap(photoAsset(for:))
+        let photoAssets = sortedCatches.flatMap(photoAssets(for:))
 
         let waterbodyRecords = sortedWaterbodies.map { waterbody in
             WaterbodyExportRecord(
@@ -292,6 +299,10 @@ enum LogbookBackupExporter {
                 windSummary: snapshot.windSummary,
                 cloudCoverSummary: snapshot.cloudCoverSummary,
                 precipitationSummary: snapshot.precipitationSummary,
+                waterClarity: snapshot.waterClarity.rawValue,
+                moonPhase: snapshot.moonPhase.rawValue,
+                pressureHPa: snapshot.pressureHPa,
+                tideState: snapshot.tideState.rawValue,
                 captureStatus: snapshot.captureStatus.rawValue,
                 source: snapshot.source.rawValue
             )
@@ -321,9 +332,12 @@ enum LogbookBackupExporter {
                 method: catchRecord.method,
                 weightKg: catchRecord.weightKg,
                 lengthCm: catchRecord.lengthCm,
+                waterDepthM: catchRecord.waterDepthM,
                 note: catchRecord.note,
-                photoContentType: catchRecord.photoContentType,
-                photoFilename: photoFilename(for: catchRecord)
+                disposition: catchRecord.disposition.rawValue,
+                photoContentType: catchRecord.primaryPhotoContentType,
+                photoFilename: photoFilename(for: catchRecord),
+                photoFilenames: photoFilenames(for: catchRecord)
             )
         }
 
@@ -363,20 +377,45 @@ enum LogbookBackupExporter {
         return encoder
     }
 
-    private static func photoAsset(for catchRecord: CatchRecord) -> LogbookBackupPhotoAsset? {
-        guard let photoData = catchRecord.photoData else { return nil }
-        guard let filename = photoFilename(for: catchRecord) else { return nil }
-        return LogbookBackupPhotoAsset(filename: filename, data: photoData)
+    private static func photoAssets(for catchRecord: CatchRecord) -> [LogbookBackupPhotoAsset] {
+        let assets = catchRecord.sortedPhotos.enumerated().compactMap { index, photo -> LogbookBackupPhotoAsset? in
+            guard let photoData = photo.photoData else { return nil }
+            guard let filename = photoFilename(for: catchRecord, index: index, contentType: photo.photoContentType) else { return nil }
+            return LogbookBackupPhotoAsset(filename: filename, data: photoData)
+        }
+
+        if !assets.isEmpty {
+            return assets
+        }
+
+        guard let photoData = catchRecord.photoData else { return [] }
+        guard let filename = photoFilename(for: catchRecord) else { return [] }
+        return [LogbookBackupPhotoAsset(filename: filename, data: photoData)]
     }
 
     private static func photoFilename(for catchRecord: CatchRecord) -> String? {
-        guard catchRecord.photoData != nil else { return nil }
+        guard catchRecord.primaryPhotoData != nil else { return nil }
+        return photoFilename(for: catchRecord, index: 0, contentType: catchRecord.primaryPhotoContentType)
+    }
 
+    private static func photoFilenames(for catchRecord: CatchRecord) -> [String]? {
+        let filenames = catchRecord.sortedPhotos.enumerated().compactMap { index, photo in
+            photoFilename(for: catchRecord, index: index, contentType: photo.photoContentType)
+        }
+
+        if !filenames.isEmpty {
+            return filenames
+        }
+
+        return photoFilename(for: catchRecord).map { [$0] }
+    }
+
+    private static func photoFilename(for catchRecord: CatchRecord, index: Int, contentType: String?) -> String? {
         let resolvedExtension: String
-        if let contentType = catchRecord.photoContentType?.lowercased(),
+        if let contentType = contentType?.lowercased(),
            contentType == "image/jpeg" || contentType == "image/jpg" {
             resolvedExtension = "jpg"
-        } else if let contentType = catchRecord.photoContentType,
+        } else if let contentType,
                   let type = UTType(mimeType: contentType),
                   let preferredExtension = type.preferredFilenameExtension {
             resolvedExtension = preferredExtension
@@ -384,6 +423,10 @@ enum LogbookBackupExporter {
             resolvedExtension = "jpg"
         }
 
-        return "\(catchRecord.id.uuidString.lowercased()).\(resolvedExtension.lowercased())"
+        if index == 0 {
+            return "\(catchRecord.id.uuidString.lowercased()).\(resolvedExtension.lowercased())"
+        }
+
+        return "\(catchRecord.id.uuidString.lowercased())-\(index).\(resolvedExtension.lowercased())"
     }
 }

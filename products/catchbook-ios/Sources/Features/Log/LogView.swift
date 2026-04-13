@@ -358,9 +358,11 @@ private struct ActiveTripView: View {
 
     @State private var species = ""
     @State private var lureOrBait = ""
+    @State private var disposition: CatchDisposition = .notRecorded
     @State private var method = ""
     @State private var weight = ""
     @State private var length = ""
+    @State private var waterDepth = ""
     @State private var note = ""
     @State private var showingOptionalFields = false
     @State private var didPrimeDefaults = false
@@ -368,7 +370,8 @@ private struct ActiveTripView: View {
     @State private var showingSavedBanner = false
     @State private var showingEndReview = false
     @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var photoData: Data?
+    @State private var photos: [CatchPhotoDraft] = []
+    @State private var showingCamera = false
     @State private var editingCatchID: UUID?
     @State private var persistenceErrorMessage: String?
     @FocusState private var focusedField: QuickCatchField?
@@ -400,6 +403,10 @@ private struct ActiveTripView: View {
 
     private var quickCatchContext: QuickCatchContextSummary {
         LogFeatureLogic.quickCatchContextSummary(trip: trip)
+    }
+
+    private var canUseCamera: Bool {
+        UIImagePickerController.isSourceTypeAvailable(.camera)
     }
 
     var body: some View {
@@ -473,6 +480,12 @@ private struct ActiveTripView: View {
                 }
 
                 DisclosureGroup("More details", isExpanded: $showingOptionalFields) {
+                    Picker("Disposition", selection: $disposition) {
+                        ForEach(CatchDisposition.allCases) { option in
+                            Text(option.label).tag(option)
+                        }
+                    }
+
                     TextField("Method", text: $method)
                         .textInputAutocapitalization(.words)
                         .focused($focusedField, equals: .method)
@@ -482,41 +495,42 @@ private struct ActiveTripView: View {
                     TextField("Length (cm)", text: $length)
                         .keyboardType(.decimalPad)
                         .focused($focusedField, equals: .length)
+                    TextField("Water depth (m)", text: $waterDepth)
+                        .keyboardType(.decimalPad)
+                        .focused($focusedField, equals: .waterDepth)
                     TextField("Note", text: $note, axis: .vertical)
                         .lineLimit(2...4)
                         .focused($focusedField, equals: .note)
 
                     VStack(alignment: .leading, spacing: Spacing.sm) {
-                        if let photoData {
-                            HStack(spacing: Spacing.md) {
-                                CatchPhotoThumbnailView(data: photoData)
-                                VStack(alignment: .leading, spacing: Spacing.xs) {
-                                    Text("Photo attached")
-                                        .font(.footnote.weight(.semibold))
-                                    Text("Optional only. Save still works without it.")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                    Button(role: .destructive) {
-                                        self.photoData = nil
-                                        selectedPhotoItem = nil
-                                    } label: {
-                                        Label("Remove Photo", systemImage: "trash")
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .controlSize(.small)
+                        if !photos.isEmpty {
+                            CatchPhotoDraftStripView(photos: photos) { id in
+                                photos.removeAll { $0.id == id }
+                                if photos.isEmpty {
+                                    selectedPhotoItem = nil
                                 }
                             }
                         }
 
                         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                            Label(photoData == nil ? "Choose from Library" : "Replace from Library", systemImage: "photo.on.rectangle")
+                            Label(photos.isEmpty ? "Add from Library" : "Add Another from Library", systemImage: "photo.on.rectangle")
                                 .font(.footnote.weight(.medium))
                         }
                         .buttonStyle(.bordered)
                         .tint(.appAccent)
+                        .disabled(photos.count >= 4)
                         .accessibilityIdentifier("quickCatch.photoLibraryButton")
 
-                        Text("If photo access is unavailable, you can still save the catch.")
+                        Button {
+                            showingCamera = true
+                        } label: {
+                            Label("Take Photo", systemImage: "camera")
+                                .font(.footnote.weight(.medium))
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(!canUseCamera || photos.count >= 4)
+
+                        Text("Up to 4 photos. If photo access is unavailable, you can still save the catch.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -607,7 +621,18 @@ private struct ActiveTripView: View {
         .onChange(of: selectedPhotoItem) { _, newValue in
             guard let newValue else { return }
             Task {
-                photoData = try? await newValue.loadTransferable(type: Data.self)
+                if let data = try? await newValue.loadTransferable(type: Data.self) {
+                    appendPhoto(data: data)
+                }
+                selectedPhotoItem = nil
+            }
+        }
+        .sheet(isPresented: $showingCamera) {
+            CameraCaptureView { data in
+                appendPhoto(data: data)
+                showingCamera = false
+            } onCancel: {
+                showingCamera = false
             }
         }
         .sheet(
@@ -645,8 +670,10 @@ private struct ActiveTripView: View {
             method: method,
             weight: weight,
             length: length,
+            waterDepth: waterDepth,
             note: note,
-            photoData: photoData
+            disposition: disposition,
+            photoData: photos.first?.data
         )
         let catchRecord = CatchRecord(
             species: draft.species,
@@ -656,15 +683,18 @@ private struct ActiveTripView: View {
             method: draft.method,
             weightKg: draft.weightKg,
             lengthCm: draft.lengthCm,
+            waterDepthM: draft.waterDepthM,
             note: draft.note,
+            disposition: draft.disposition,
             photoReference: draft.photoReference,
-            photoData: photoData,
+            photoData: photos.first?.data,
             photoContentType: draft.photoContentType
         )
 
         modelContext.insert(catchRecord)
         PersistenceWriteCoordinator.perform(
             commit: {
+                CatchPhotoMigrationService.sync(record: catchRecord, drafts: photos, in: modelContext)
                 try PersonalBestService.refresh(with: catchRecord, in: modelContext)
                 try modelContext.save()
             },
@@ -678,11 +708,13 @@ private struct ActiveTripView: View {
                 )
                 species = resetState.species
                 lureOrBait = resetState.lureOrBait
+                disposition = resetState.disposition
                 method = resetState.method
                 weight = resetState.weight
                 length = resetState.length
+                waterDepth = resetState.waterDepth
                 note = resetState.note
-                photoData = resetState.photoData
+                photos = []
                 selectedPhotoItem = nil
                 showingOptionalFields = resetState.showingOptionalFields
                 if action == .saveAndAddAnother {
@@ -705,6 +737,11 @@ private struct ActiveTripView: View {
                 persistenceErrorMessage = message
             }
         )
+    }
+
+    private func appendPhoto(data: Data) {
+        guard photos.count < 4 else { return }
+        photos.append(CatchPhotoDraft(data: data))
     }
 
     private func endTrip() {
@@ -983,7 +1020,7 @@ struct CatchHistoryRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.md) {
-            if let photoData = catchRecord.photoData {
+            if let photoData = catchRecord.primaryPhotoData {
                 CatchPhotoThumbnailView(data: photoData)
             }
 
@@ -1008,14 +1045,22 @@ struct CatchHistoryRow: View {
                 }
 
                 let metricParts: [String] = [
+                    catchRecord.disposition == .notRecorded ? nil : catchRecord.disposition.label,
                     catchRecord.weightKg.map { "\($0.formatted()) kg" },
                     catchRecord.lengthCm.map { "\($0.formatted()) cm" },
+                    catchRecord.waterDepthM.map { "\($0.formatted()) m deep" },
                 ].compactMap { $0 }
 
                 if !metricParts.isEmpty {
                     Text(metricParts.joined(separator: " · "))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                }
+
+                if catchRecord.photoCount > 1 {
+                    Text("\(catchRecord.photoCount) photos")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
                 }
 
                 if !catchRecord.note.isEmpty {

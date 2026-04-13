@@ -73,17 +73,19 @@ final class TripPresentationLogicTests: XCTestCase {
         let withExtras = TripPresentationLogic.topStats(
             catchCount: 3,
             durationText: "2h 15m",
+            catchesPerHourText: "1.3",
             targetSpeciesCount: 2
         )
         let basic = TripPresentationLogic.topStats(
             catchCount: 1,
             durationText: nil,
+            catchesPerHourText: nil,
             targetSpeciesCount: 0
         )
 
-        XCTAssertEqual(withExtras.map(\.id), ["catches", "duration", "targets"])
-        XCTAssertEqual(withExtras.map(\.label), ["Catches", "Duration", "Targets"])
-        XCTAssertEqual(withExtras.map(\.value), ["3", "2h 15m", "2"])
+        XCTAssertEqual(withExtras.map(\.id), ["catches", "duration", "catch-rate", "targets"])
+        XCTAssertEqual(withExtras.map(\.label), ["Catches", "Duration", "Per hour", "Targets"])
+        XCTAssertEqual(withExtras.map(\.value), ["3", "2h 15m", "1.3", "2"])
 
         XCTAssertEqual(basic.map(\.id), ["catches"])
         XCTAssertEqual(basic.first?.label, "Catch")

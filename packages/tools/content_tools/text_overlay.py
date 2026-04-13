@@ -35,7 +35,7 @@ TEXT_AREA_H = CANVAS_H - SAFE_TOP - SAFE_BOTTOM
 # Typography
 LINE_SPACING = 8
 BLOCK_SPACING = 32
-DEFAULT_OVERLAY_ALPHA = 178  # ~70% opacity — sweet spot for contrast
+DEFAULT_OVERLAY_ALPHA = 115  # ~45% opacity — lets background show through
 
 # Font path (bundled in repo)
 FONT_DIR = Path(__file__).parent / "fonts"
@@ -60,24 +60,28 @@ def _load_font(path: str, size: int) -> ImageFont.FreeTypeFont:
 
 def _wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int,
                draw: ImageDraw.ImageDraw) -> str:
-    """Word-wrap text to fit within max_width. Returns newline-joined string."""
-    words = text.split()
-    lines: list[str] = []
-    current: list[str] = []
+    """Word-wrap text to fit within max_width. Preserves existing newlines
+    (e.g. bullet lists) — each input line is wrapped independently."""
+    output_lines: list[str] = []
 
-    for word in words:
-        test = " ".join(current + [word])
-        if draw.textlength(test, font=font) <= max_width:
-            current.append(word)
-        else:
-            if current:
-                lines.append(" ".join(current))
-            current = [word]
+    for input_line in text.split("\n"):
+        words = input_line.split()
+        if not words:
+            output_lines.append("")
+            continue
+        current: list[str] = []
+        for word in words:
+            test = " ".join(current + [word])
+            if draw.textlength(test, font=font) <= max_width:
+                current.append(word)
+            else:
+                if current:
+                    output_lines.append(" ".join(current))
+                current = [word]
+        if current:
+            output_lines.append(" ".join(current))
 
-    if current:
-        lines.append(" ".join(current))
-
-    return "\n".join(lines) if lines else text
+    return "\n".join(output_lines)
 
 
 def _fit_font_size(text: str, font_path: str, max_width: int, max_height: int,
@@ -143,10 +147,12 @@ def overlay_text(
     # Load and resize background
     base = Image.open(background_path).resize(target_size).convert("RGBA")
 
-    # Create semi-transparent dark overlay (lower 2/3 of image)
+    # Create semi-transparent dark overlay (20%–60% from top of image)
     overlay = Image.new("RGBA", base.size, (0, 0, 0, 0))
     overlay_draw = ImageDraw.Draw(overlay)
-    overlay_region = (0, CANVAS_H // 3, CANVAS_W, CANVAS_H)
+    shadow_top = int(CANVAS_H * 0.20)   # 20% from top
+    shadow_bottom = int(CANVAS_H * 0.60) # 60% from top
+    overlay_region = (0, shadow_top, CANVAS_W, shadow_bottom)
     overlay_draw.rectangle(overlay_region, fill=(0, 0, 0, overlay_alpha))
     base = Image.alpha_composite(base, overlay)
 
@@ -187,9 +193,10 @@ def overlay_text(
 
     total_h = sum(h for _, _, h in fitted) + BLOCK_SPACING * (len(fitted) - 1)
 
-    # Vertically center in the overlay region (lower 2/3)
-    region_top = CANVAS_H // 3
-    region_h = CANVAS_H - region_top - SAFE_BOTTOM
+    # Vertically center in the shadow region (20%–60% from top)
+    region_top = int(CANVAS_H * 0.20)
+    region_bottom = int(CANVAS_H * 0.60)
+    region_h = region_bottom - region_top
     start_y = region_top + max(0, (region_h - total_h) // 2)
 
     # Draw each block

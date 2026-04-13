@@ -55,6 +55,109 @@ enum TripCoordinateSource: Equatable {
     }
 }
 
+enum WaterClarity: String, CaseIterable, Codable, Identifiable {
+    case notRecorded
+    case clear
+    case stained
+    case muddy
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .notRecorded:
+            return "Not recorded"
+        case .clear:
+            return "Clear"
+        case .stained:
+            return "Stained"
+        case .muddy:
+            return "Muddy"
+        }
+    }
+}
+
+enum TideState: String, CaseIterable, Codable, Identifiable {
+    case notRecorded
+    case incoming
+    case outgoing
+    case high
+    case low
+    case slack
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .notRecorded:
+            return "Not recorded"
+        case .incoming:
+            return "Incoming"
+        case .outgoing:
+            return "Outgoing"
+        case .high:
+            return "High"
+        case .low:
+            return "Low"
+        case .slack:
+            return "Slack"
+        }
+    }
+}
+
+enum MoonPhase: String, CaseIterable, Codable, Identifiable {
+    case newMoon
+    case waxingCrescent
+    case firstQuarter
+    case waxingGibbous
+    case fullMoon
+    case waningGibbous
+    case lastQuarter
+    case waningCrescent
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .newMoon:
+            return "New moon"
+        case .waxingCrescent:
+            return "Waxing crescent"
+        case .firstQuarter:
+            return "First quarter"
+        case .waxingGibbous:
+            return "Waxing gibbous"
+        case .fullMoon:
+            return "Full moon"
+        case .waningGibbous:
+            return "Waning gibbous"
+        case .lastQuarter:
+            return "Last quarter"
+        case .waningCrescent:
+            return "Waning crescent"
+        }
+    }
+}
+
+enum CatchDisposition: String, CaseIterable, Codable, Identifiable {
+    case notRecorded
+    case released
+    case kept
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .notRecorded:
+            return "Not recorded"
+        case .released:
+            return "Released"
+        case .kept:
+            return "Kept"
+        }
+    }
+}
+
 @Model
 final class Waterbody {
     @Attribute(.unique) var id: UUID
@@ -143,6 +246,10 @@ final class ConditionSnapshot {
     var windSummary: String?
     var cloudCoverSummary: String?
     var precipitationSummary: String?
+    var waterClarityRawValue: String
+    var moonPhaseRawValue: String
+    var pressureHPa: Double?
+    var tideStateRawValue: String
     var captureStatusRawValue: String
     var sourceRawValue: String
 
@@ -158,6 +265,10 @@ final class ConditionSnapshot {
         windSummary: String? = nil,
         cloudCoverSummary: String? = nil,
         precipitationSummary: String? = nil,
+        waterClarity: WaterClarity = .notRecorded,
+        moonPhase: MoonPhase? = nil,
+        pressureHPa: Double? = nil,
+        tideState: TideState = .notRecorded,
         captureStatus: ConditionCaptureStatus = .fallback,
         source: ConditionSource = .tripFallback
     ) {
@@ -173,6 +284,10 @@ final class ConditionSnapshot {
         self.windSummary = windSummary
         self.cloudCoverSummary = cloudCoverSummary
         self.precipitationSummary = precipitationSummary
+        self.waterClarityRawValue = waterClarity.rawValue
+        self.moonPhaseRawValue = (moonPhase ?? moonPhaseValue(for: capturedAt)).rawValue
+        self.pressureHPa = pressureHPa
+        self.tideStateRawValue = tideState.rawValue
         self.captureStatusRawValue = captureStatus.rawValue
         self.sourceRawValue = source.rawValue
     }
@@ -183,6 +298,21 @@ final class ConditionSnapshot {
 
     var source: ConditionSource {
         ConditionSource(rawValue: sourceRawValue) ?? .tripFallback
+    }
+
+    var waterClarity: WaterClarity {
+        get { WaterClarity(rawValue: waterClarityRawValue) ?? .notRecorded }
+        set { waterClarityRawValue = newValue.rawValue }
+    }
+
+    var moonPhase: MoonPhase {
+        get { MoonPhase(rawValue: moonPhaseRawValue) ?? moonPhaseValue(for: capturedAt) }
+        set { moonPhaseRawValue = newValue.rawValue }
+    }
+
+    var tideState: TideState {
+        get { TideState(rawValue: tideStateRawValue) ?? .notRecorded }
+        set { tideStateRawValue = newValue.rawValue }
     }
 
     var coordinateSummary: String? {
@@ -249,6 +379,9 @@ final class ConditionSnapshot {
         if let precipitationSummary, !precipitationSummary.isEmpty {
             parts.append(precipitationSummary)
         }
+        if let pressureSummary {
+            parts.append(pressureSummary)
+        }
 
         if parts.isEmpty {
             return "Weather data unavailable"
@@ -288,6 +421,23 @@ final class ConditionSnapshot {
         }
         parts.append(weatherLine)
         return parts.joined(separator: " • ")
+    }
+
+    var pressureSummary: String? {
+        guard let pressureHPa else { return nil }
+        let measurement = Measurement(value: pressureHPa, unit: UnitPressure.hectopascals)
+        let formatter = MeasurementFormatter()
+        formatter.unitOptions = [.providedUnit]
+        formatter.numberFormatter.maximumFractionDigits = 0
+        return formatter.string(from: measurement)
+    }
+
+    var claritySummary: String? {
+        waterClarity == .notRecorded ? nil : waterClarity.label
+    }
+
+    var tideSummary: String? {
+        tideState == .notRecorded ? nil : tideState.label
     }
 }
 
@@ -367,6 +517,12 @@ final class Trip {
     var locationConfidenceLabel: String? {
         coordinateSource.confidenceLabel
     }
+
+    var durationInterval: TimeInterval? {
+        guard let endAt else { return nil }
+        let duration = endAt.timeIntervalSince(startAt)
+        return duration > 0 ? duration : nil
+    }
 }
 
 @Model
@@ -378,10 +534,13 @@ final class CatchRecord {
     var method: String
     var weightKg: Double?
     var lengthCm: Double?
+    var waterDepthM: Double?
     var note: String
+    var dispositionRawValue: String
     var photoReference: String?
     @Attribute(.externalStorage) var photoData: Data?
     var photoContentType: String?
+    @Relationship(deleteRule: .cascade, inverse: \CatchPhoto.catchRecord) var photos: [CatchPhoto]
     var trip: Trip?
 
     init(
@@ -392,7 +551,9 @@ final class CatchRecord {
         method: String = "",
         weightKg: Double? = nil,
         lengthCm: Double? = nil,
+        waterDepthM: Double? = nil,
         note: String = "",
+        disposition: CatchDisposition = .notRecorded,
         photoReference: String? = nil,
         photoData: Data? = nil,
         photoContentType: String? = nil
@@ -404,20 +565,80 @@ final class CatchRecord {
         self.method = method
         self.weightKg = weightKg
         self.lengthCm = lengthCm
+        self.waterDepthM = waterDepthM
         self.note = note
+        self.dispositionRawValue = disposition.rawValue
         self.photoReference = photoReference
         self.photoData = photoData
         self.photoContentType = photoContentType
+        self.photos = []
         self.trip = trip
     }
 
+    var disposition: CatchDisposition {
+        get { CatchDisposition(rawValue: dispositionRawValue) ?? .notRecorded }
+        set { dispositionRawValue = newValue.rawValue }
+    }
+
     var hasPhoto: Bool {
-        photoData != nil
+        primaryPhotoData != nil
     }
 
     var speciesDisplayName: String {
         let trimmed = species.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? "Species not logged" : trimmed
+    }
+
+    var sortedPhotos: [CatchPhoto] {
+        photos.sorted {
+            if $0.sortOrder != $1.sortOrder {
+                return $0.sortOrder < $1.sortOrder
+            }
+            return $0.createdAt < $1.createdAt
+        }
+    }
+
+    var primaryPhotoData: Data? {
+        sortedPhotos.first?.photoData ?? photoData
+    }
+
+    var primaryPhotoContentType: String? {
+        sortedPhotos.first?.photoContentType ?? photoContentType
+    }
+
+    var photoCount: Int {
+        if !sortedPhotos.isEmpty {
+            return sortedPhotos.count
+        }
+        return photoData == nil ? 0 : 1
+    }
+}
+
+@Model
+final class CatchPhoto {
+    @Attribute(.unique) var id: UUID
+    var createdAt: Date
+    var sortOrder: Int
+    var photoReference: String?
+    var photoContentType: String?
+    @Attribute(.externalStorage) var photoData: Data?
+    var catchRecord: CatchRecord?
+
+    init(
+        catchRecord: CatchRecord? = nil,
+        createdAt: Date = .now,
+        sortOrder: Int = 0,
+        photoReference: String? = nil,
+        photoContentType: String? = nil,
+        photoData: Data? = nil
+    ) {
+        self.id = UUID()
+        self.createdAt = createdAt
+        self.sortOrder = sortOrder
+        self.photoReference = photoReference
+        self.photoContentType = photoContentType
+        self.photoData = photoData
+        self.catchRecord = catchRecord
     }
 }
 
@@ -478,6 +699,36 @@ func lightLevelLabel(for date: Date, calendar: Calendar = .current) -> String {
         return "Evening light"
     default:
         return "Low light"
+    }
+}
+
+func moonPhaseValue(for date: Date, calendar: Calendar = .current) -> MoonPhase {
+    let referenceComponents = DateComponents(
+        calendar: calendar,
+        timeZone: TimeZone(secondsFromGMT: 0),
+        year: 2000,
+        month: 1,
+        day: 6,
+        hour: 18,
+        minute: 14
+    )
+    let synodicMonth = 29.53058867
+    guard let referenceDate = referenceComponents.date else { return .newMoon }
+
+    let daysSinceReference = date.timeIntervalSince(referenceDate) / 86_400
+    let normalized = daysSinceReference.truncatingRemainder(dividingBy: synodicMonth)
+    let phaseAge = normalized >= 0 ? normalized : normalized + synodicMonth
+    let index = Int(((phaseAge / synodicMonth) * 8).rounded()) % 8
+
+    switch index {
+    case 0: return .newMoon
+    case 1: return .waxingCrescent
+    case 2: return .firstQuarter
+    case 3: return .waxingGibbous
+    case 4: return .fullMoon
+    case 5: return .waningGibbous
+    case 6: return .lastQuarter
+    default: return .waningCrescent
     }
 }
 

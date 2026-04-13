@@ -152,7 +152,7 @@ final class LogFeatureLogicTests: XCTestCase {
         )
         XCTAssertEqual(
             LogFeatureLogic.quickCatchOptionalFields,
-            [.method, .weight, .length, .note, .photo]
+            [.disposition, .method, .weight, .length, .waterDepth, .note, .photo]
         )
     }
 
@@ -164,12 +164,23 @@ final class LogFeatureLogicTests: XCTestCase {
 
         XCTAssertEqual(reset.species, "")
         XCTAssertEqual(reset.lureOrBait, "Spinner")
+        XCTAssertEqual(reset.disposition, .notRecorded)
         XCTAssertEqual(reset.method, "Slow roll")
         XCTAssertEqual(reset.weight, "")
         XCTAssertEqual(reset.length, "")
+        XCTAssertEqual(reset.waterDepth, "")
         XCTAssertEqual(reset.note, "")
         XCTAssertFalse(reset.showingOptionalFields)
         XCTAssertNil(reset.photoData)
+    }
+
+    func testCatchesPerHourTextReturnsRoundedRateForEndedTripsOnly() {
+        let trip = Trip(waterbody: Waterbody(name: "Lake A", type: .lake), startAt: Date(timeIntervalSince1970: 0))
+        trip.endAt = Date(timeIntervalSince1970: 7_200)
+
+        XCTAssertEqual(LogFeatureLogic.catchesPerHourText(trip: trip, catchCount: 3), "1.5")
+        XCTAssertNil(LogFeatureLogic.catchesPerHourText(trip: Trip(waterbody: nil), catchCount: 3))
+        XCTAssertNil(LogFeatureLogic.catchesPerHourText(trip: trip, catchCount: 0))
     }
 
     func testEndTripOutcomeReflectsCatchCount() {
@@ -211,14 +222,16 @@ final class LogFeatureLogicTests: XCTestCase {
         XCTAssertEqual(cards.map(\.title), [
             "Total catches",
             "Trip duration",
+            "Catches / hour",
             "Top species",
             "Best catch",
             "Top lure",
         ])
         XCTAssertEqual(cards.first?.value, "3")
         XCTAssertEqual(cards[1].value, "2m")
-        XCTAssertEqual(cards[2].value, "Bass")
-        XCTAssertEqual(cards[4].value, "Spinner")
+        XCTAssertEqual(cards[2].value, "90")
+        XCTAssertEqual(cards[3].value, "Bass")
+        XCTAssertEqual(cards[5].value, "Spinner")
     }
 
     func testShouldOfferCreateSpotFromTripRequiresWaterbodyAndResolvableCoordinate() {

@@ -115,7 +115,8 @@ final class WeatherKitServiceTests: XCTestCase {
             weatherSummary: "Partly cloudy",
             windSummary: "10 kt N",
             cloudCoverSummary: "Partly cloudy",
-            precipitationSummary: "Dry"
+            precipitationSummary: "Dry",
+            pressureHPa: 1_012.8
         )
 
         XCTAssertEqual(conditions.temperatureC, 15.5)
@@ -123,6 +124,7 @@ final class WeatherKitServiceTests: XCTestCase {
         XCTAssertEqual(conditions.windSummary, "10 kt N")
         XCTAssertEqual(conditions.cloudCoverSummary, "Partly cloudy")
         XCTAssertEqual(conditions.precipitationSummary, "Dry")
+        XCTAssertEqual(conditions.pressureHPa, 1_012.8)
     }
 
     func testWeatherConditionsWithExtremeTemperature() {
@@ -131,11 +133,13 @@ final class WeatherKitServiceTests: XCTestCase {
             weatherSummary: "Heavy snow",
             windSummary: "35 kt NW",
             cloudCoverSummary: "Overcast",
-            precipitationSummary: "Heavy rain"
+            precipitationSummary: "Heavy rain",
+            pressureHPa: nil
         )
 
         XCTAssertEqual(conditions.temperatureC, -25.0)
         XCTAssertTrue(conditions.weatherSummary.count > 0)
+        XCTAssertNil(conditions.pressureHPa)
     }
 
     // MARK: - Helper functions (reproduce private methods from WeatherKitService)

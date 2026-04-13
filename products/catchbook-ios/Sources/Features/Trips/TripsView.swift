@@ -4,6 +4,20 @@ import SwiftData
 import SwiftUI
 import UIKit
 
+private enum TripHistoryMode: String, CaseIterable, Identifiable {
+    case trips
+    case catches
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .trips: return "Trips"
+        case .catches: return "Catches"
+        }
+    }
+}
+
 struct TripsView: View {
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
@@ -11,6 +25,7 @@ struct TripsView: View {
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
     @Binding private var selectedTripID: UUID?
     @State private var path = NavigationPath()
+    @State private var historyMode: TripHistoryMode = .trips
     @State private var selectedWaterbodyID: UUID?
     @State private var speciesQuery = ""
     @State private var dateFilter: TripDateFilter = .all
@@ -25,7 +40,9 @@ struct TripsView: View {
     }
 
     private var availableWaterbodies: [Waterbody] {
-        TripHistoryLogic.availableWaterbodies(waterbodies: waterbodies, trips: trips)
+        historyMode == .trips
+            ? TripHistoryLogic.availableWaterbodies(waterbodies: waterbodies, trips: trips)
+            : CatchHistoryLogic.availableWaterbodies(catches: catches)
     }
 
     private var filteredTrips: [Trip] {
@@ -41,23 +58,48 @@ struct TripsView: View {
     }
 
     private var availableLures: [String] {
-        TripHistoryLogic.availableLures(
-            trips: trips,
+        if historyMode == .trips {
+            return TripHistoryLogic.availableLures(
+                trips: trips,
+                catches: catches,
+                selectedWaterbodyID: selectedWaterbodyID,
+                speciesQuery: speciesQuery,
+                dateFilter: dateFilter,
+                seasonFilter: seasonFilter
+            )
+        }
+
+        return CatchHistoryLogic.availableLures(
             catches: catches,
-            selectedWaterbodyID: selectedWaterbodyID,
-            speciesQuery: speciesQuery,
-            dateFilter: dateFilter,
-            seasonFilter: seasonFilter
+            filter: CatchHistoryFilter(
+                query: speciesQuery,
+                selectedWaterbodyID: selectedWaterbodyID,
+                dateFilter: dateFilter,
+                seasonFilter: seasonFilter,
+                selectedLure: selectedLure
+            )
         )
     }
 
     private var hasActiveFilters: Bool {
-        TripHistoryLogic.hasActiveFilters(
-            selectedWaterbodyID: selectedWaterbodyID,
-            speciesQuery: speciesQuery,
-            dateFilter: dateFilter,
-            seasonFilter: seasonFilter,
-            selectedLure: selectedLure
+        if historyMode == .trips {
+            return TripHistoryLogic.hasActiveFilters(
+                selectedWaterbodyID: selectedWaterbodyID,
+                speciesQuery: speciesQuery,
+                dateFilter: dateFilter,
+                seasonFilter: seasonFilter,
+                selectedLure: selectedLure
+            )
+        }
+
+        return CatchHistoryLogic.hasActiveFilters(
+            CatchHistoryFilter(
+                query: speciesQuery,
+                selectedWaterbodyID: selectedWaterbodyID,
+                dateFilter: dateFilter,
+                seasonFilter: seasonFilter,
+                selectedLure: selectedLure
+            )
         )
     }
 
@@ -80,6 +122,19 @@ struct TripsView: View {
         TripHistoryLogic.sections(trips: filteredTrips, catches: catches)
     }
 
+    private var filteredCatches: [CatchRecord] {
+        CatchHistoryLogic.filteredCatches(
+            catches: catches,
+            filter: CatchHistoryFilter(
+                query: speciesQuery,
+                selectedWaterbodyID: selectedWaterbodyID,
+                dateFilter: dateFilter,
+                seasonFilter: seasonFilter,
+                selectedLure: selectedLure
+            )
+        )
+    }
+
     private var waterbodySummaries: [WaterbodySummary] {
         TripHistoryLogic.waterbodySummaries(
             trips: filteredTrips,
@@ -91,14 +146,20 @@ struct TripsView: View {
 
     private var listSnapshot: TripsListSnapshot {
         TripsListSnapshot(
+            historyMode: historyMode,
             availableWaterbodies: availableWaterbodies,
             availableLures: availableLures,
             hasActiveFilters: hasActiveFilters,
             filteredTrips: filteredTrips,
+            filteredCatches: filteredCatches,
             historySections: historySections,
             catchCountsByTripID: catchCountsByTripID,
             catchesByTripID: catchesByTripID
         )
+    }
+
+    private var shouldShowMapToggle: Bool {
+        historyMode == .trips && !trips.isEmpty
     }
 
     var body: some View {
@@ -109,7 +170,7 @@ struct TripsView: View {
                 TripDestinationContent(trips: trips, tripID: tripID)
             }
             .toolbar {
-                if !trips.isEmpty {
+                if shouldShowMapToggle {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
                             showsMap.toggle()
@@ -162,7 +223,7 @@ struct TripsView: View {
             } description: {
                 Text("Start a trip from the Log tab to begin building private fishing memory by water, spot, and season.")
             }
-        } else if showsMap {
+        } else if showsMap && historyMode == .trips {
             TripsMapContent(
                 summaries: waterbodySummaries,
                 hasFilteredTrips: !filteredTrips.isEmpty,
@@ -174,6 +235,7 @@ struct TripsView: View {
         } else {
             TripsListContent(
                 snapshot: listSnapshot,
+                historyMode: $historyMode,
                 selectedWaterbodyID: $selectedWaterbodyID,
                 dateFilter: $dateFilter,
                 seasonFilter: $seasonFilter,
@@ -233,10 +295,12 @@ private struct TripDestinationContent: View {
 }
 
 private struct TripsListSnapshot {
+    let historyMode: TripHistoryMode
     let availableWaterbodies: [Waterbody]
     let availableLures: [String]
     let hasActiveFilters: Bool
     let filteredTrips: [Trip]
+    let filteredCatches: [CatchRecord]
     let historySections: [TripHistorySection]
     let catchCountsByTripID: [UUID: Int]
     let catchesByTripID: [UUID: [CatchRecord]]
@@ -244,6 +308,7 @@ private struct TripsListSnapshot {
 
 private struct TripsListContent: View {
     let snapshot: TripsListSnapshot
+    @Binding var historyMode: TripHistoryMode
     @Binding var selectedWaterbodyID: UUID?
     @Binding var dateFilter: TripDateFilter
     @Binding var seasonFilter: TripSeasonFilter
@@ -253,8 +318,20 @@ private struct TripsListContent: View {
 
     var body: some View {
         List {
+            Section {
+                Picker("History", selection: $historyMode) {
+                    ForEach(TripHistoryMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
             filtersSection
-            tripContent
+            if snapshot.historyMode == .trips {
+                tripContent
+            } else {
+                catchContent
+            }
         }
     }
 
@@ -282,7 +359,7 @@ private struct TripsListContent: View {
             }
             .pickerStyle(.menu)
 
-            TextField("Species", text: $speciesQuery)
+            TextField(snapshot.historyMode == .trips ? "Species" : "Search catches", text: $speciesQuery)
                 .textInputAutocapitalization(.words)
                 .accessibilityIdentifier("trips.filter.speciesField")
 
@@ -325,6 +402,37 @@ private struct TripsListContent: View {
                 } header: {
                     TripHistorySectionHeader(section: section)
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var catchContent: some View {
+        if snapshot.filteredCatches.isEmpty {
+            Section {
+                SectionEmptyState(
+                    icon: "magnifyingglass",
+                    title: "No catches match these filters",
+                    subtitle: "Try a different search, water, lure, or season."
+                )
+            }
+        } else {
+            Section {
+                ForEach(snapshot.filteredCatches, id: \.id) { catchRecord in
+                    if let trip = catchRecord.trip {
+                        NavigationLink {
+                            TripDetailView(trip: trip)
+                        } label: {
+                            CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
+                        }
+                    } else {
+                        CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
+                    }
+                }
+            } header: {
+                Text("All Catches")
+            } footer: {
+                Text("Searches species, lure, notes, method, waterbody, and spot names.")
             }
         }
     }
@@ -608,9 +716,11 @@ struct TripDetailView: View {
     }
 
     private var topStats: [(value: String, label: String, icon: String)] {
-        TripPresentationLogic.topStats(
+        let durationText = trip.endAt.flatMap { AppFormatters.duration.string(from: $0.timeIntervalSince(trip.startAt)) }
+        return TripPresentationLogic.topStats(
             catchCount: catches.count,
-            durationText: trip.endAt.flatMap { AppFormatters.duration.string(from: $0.timeIntervalSince(trip.startAt)) },
+            durationText: durationText,
+            catchesPerHourText: LogFeatureLogic.catchesPerHourText(trip: trip, catchCount: catches.count),
             targetSpeciesCount: trip.targetSpeciesList.count
         ).map { ($0.value, $0.label, $0.icon) }
     }
@@ -739,7 +849,17 @@ struct TripDetailView: View {
                     if let lightLevelSummary = snapshot.lightLevelSummary {
                         LabeledContent("Light", value: lightLevelSummary)
                     }
+                    LabeledContent("Moon", value: snapshot.moonPhase.label)
+                    if let claritySummary = snapshot.claritySummary {
+                        LabeledContent("Water clarity", value: claritySummary)
+                    }
+                    if let tideSummary = snapshot.tideSummary {
+                        LabeledContent("Tide", value: tideSummary)
+                    }
                     LabeledContent("Weather", value: snapshot.weatherLine)
+                    if let pressureSummary = snapshot.pressureSummary {
+                        LabeledContent("Pressure", value: pressureSummary)
+                    }
                     if snapshot.weatherSummary != nil {
                         WeatherAttributionView()
                     }
@@ -921,6 +1041,8 @@ private struct TripEditorView: View {
     @State private var windSummary: String
     @State private var cloudCoverSummary: String
     @State private var precipitationSummary: String
+    @State private var waterClarity: WaterClarity
+    @State private var tideState: TideState
     @State private var persistenceErrorMessage: String?
     @State private var showingClearLocationConfirmation = false
     @FocusState private var isTextInputFocused: Bool
@@ -942,6 +1064,8 @@ private struct TripEditorView: View {
         _windSummary = State(initialValue: trip.conditionSnapshot?.windSummary ?? "")
         _cloudCoverSummary = State(initialValue: trip.conditionSnapshot?.cloudCoverSummary ?? "")
         _precipitationSummary = State(initialValue: trip.conditionSnapshot?.precipitationSummary ?? "")
+        _waterClarity = State(initialValue: trip.conditionSnapshot?.waterClarity ?? .notRecorded)
+        _tideState = State(initialValue: trip.conditionSnapshot?.tideState ?? .notRecorded)
     }
 
     private var filteredSpots: [Spot] {
@@ -1022,6 +1146,20 @@ private struct TripEditorView: View {
                 .textInputAutocapitalization(.words)
             TextField("Precipitation", text: $precipitationSummary)
                 .textInputAutocapitalization(.words)
+            Picker("Water clarity", selection: $waterClarity) {
+                ForEach(WaterClarity.allCases) { option in
+                    Text(option.label).tag(option)
+                }
+            }
+            Picker("Tide state", selection: $tideState) {
+                ForEach(TideState.allCases) { option in
+                    Text(option.label).tag(option)
+                }
+            }
+            LabeledContent("Moon phase", value: snapshot.moonPhase.label)
+            if let pressureSummary = snapshot.pressureSummary {
+                LabeledContent("Pressure", value: pressureSummary)
+            }
         } header: {
             Text("Conditions")
         } footer: {
@@ -1148,7 +1286,9 @@ private struct TripEditorView: View {
                 weatherSummary: weatherSummary,
                 windSummary: windSummary,
                 cloudCoverSummary: cloudCoverSummary,
-                precipitationSummary: precipitationSummary
+                precipitationSummary: precipitationSummary,
+                waterClarity: waterClarity,
+                tideState: tideState
             )
             snapshot.placeSummary = draft.placeSummary
             snapshot.timeWindowSummary = draft.timeWindowSummary
@@ -1157,6 +1297,8 @@ private struct TripEditorView: View {
             snapshot.windSummary = draft.windSummary
             snapshot.cloudCoverSummary = draft.cloudCoverSummary
             snapshot.precipitationSummary = draft.precipitationSummary
+            snapshot.waterClarity = draft.waterClarity
+            snapshot.tideState = draft.tideState
         }
 
         PersistenceWriteCoordinator.perform(
@@ -1189,9 +1331,12 @@ struct CatchEditorView: View {
     @State private var method: String
     @State private var weight: String
     @State private var length: String
+    @State private var waterDepth: String
     @State private var note: String
-    @State private var photoData: Data?
+    @State private var disposition: CatchDisposition
+    @State private var photos: [CatchPhotoDraft]
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showingCamera = false
     @State private var showingDeleteConfirmation = false
     @State private var shareImage: UIImage?
     @State private var showingShareSheet = false
@@ -1207,8 +1352,14 @@ struct CatchEditorView: View {
         _method = State(initialValue: catchRecord?.method ?? "")
         _weight = State(initialValue: catchRecord?.weightKg.map { String($0) } ?? "")
         _length = State(initialValue: catchRecord?.lengthCm.map { String($0) } ?? "")
+        _waterDepth = State(initialValue: catchRecord?.waterDepthM.map { String($0) } ?? "")
         _note = State(initialValue: catchRecord?.note ?? "")
-        _photoData = State(initialValue: catchRecord?.photoData)
+        _disposition = State(initialValue: catchRecord?.disposition ?? .notRecorded)
+        _photos = State(initialValue: CatchPhotoMigrationService.drafts(for: catchRecord))
+    }
+
+    private var canUseCamera: Bool {
+        UIImagePickerController.isSourceTypeAvailable(.camera)
     }
 
     private var sheetTitle: String {
@@ -1228,10 +1379,18 @@ struct CatchEditorView: View {
             TextField("Method", text: $method)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+            Picker("Disposition", selection: $disposition) {
+                ForEach(CatchDisposition.allCases) { option in
+                    Text(option.label).tag(option)
+                }
+            }
             TextField("Weight (kg)", text: $weight)
                 .keyboardType(.decimalPad)
                 .focused($isTextInputFocused)
             TextField("Length (cm)", text: $length)
+                .keyboardType(.decimalPad)
+                .focused($isTextInputFocused)
+            TextField("Water depth (m)", text: $waterDepth)
                 .keyboardType(.decimalPad)
                 .focused($isTextInputFocused)
             TextField("Note", text: $note, axis: .vertical)
@@ -1243,30 +1402,33 @@ struct CatchEditorView: View {
     @ViewBuilder
     private var photoSection: some View {
         Section {
-            if let photoData {
-                HStack(spacing: Spacing.md) {
-                    CatchPhotoThumbnailView(data: photoData)
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text("Photo attached")
-                            .font(.footnote.weight(.semibold))
-                        Button("Remove Photo") {
-                            self.photoData = nil
-                            selectedPhotoItem = nil
-                        }
-                        .font(.caption)
+            if !photos.isEmpty {
+                CatchPhotoDraftStripView(photos: photos) { id in
+                    photos.removeAll { $0.id == id }
+                    if photos.isEmpty {
+                        selectedPhotoItem = nil
                     }
                 }
             }
 
             PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                Label(photoData == nil ? "Choose from Library" : "Replace from Library", systemImage: "photo.on.rectangle")
+                Label(photos.isEmpty ? "Add from Library" : "Add Another from Library", systemImage: "photo.on.rectangle")
             }
             .buttonStyle(.bordered)
             .tint(.appAccent)
+            .disabled(photos.count >= 4)
+
+            Button {
+                showingCamera = true
+            } label: {
+                Label("Take Photo", systemImage: "camera")
+            }
+            .buttonStyle(.bordered)
+            .disabled(!canUseCamera || photos.count >= 4)
         } header: {
-            Text("Photo")
+            Text("Photos")
         } footer: {
-            Text("Photo stays optional. You can save this catch without one.")
+            Text("Up to 4 photos. You can still save this catch without any photos.")
         }
     }
 
@@ -1328,7 +1490,18 @@ struct CatchEditorView: View {
         .onChange(of: selectedPhotoItem) { _, newValue in
             guard let newValue else { return }
             Task {
-                photoData = try? await newValue.loadTransferable(type: Data.self)
+                if let data = try? await newValue.loadTransferable(type: Data.self) {
+                    appendPhoto(data: data)
+                }
+                selectedPhotoItem = nil
+            }
+        }
+        .sheet(isPresented: $showingCamera) {
+            CameraCaptureView { data in
+                appendPhoto(data: data)
+                showingCamera = false
+            } onCancel: {
+                showingCamera = false
             }
         }
         .sheet(isPresented: $showingShareSheet) {
@@ -1350,8 +1523,10 @@ struct CatchEditorView: View {
             method: method,
             weight: weight,
             length: length,
+            waterDepth: waterDepth,
             note: note,
-            photoData: photoData
+            disposition: disposition,
+            photoData: photos.first?.data
         )
 
         record.trip = trip
@@ -1361,14 +1536,21 @@ struct CatchEditorView: View {
         record.method = draft.method
         record.weightKg = draft.weightKg
         record.lengthCm = draft.lengthCm
+        record.waterDepthM = draft.waterDepthM
         record.note = draft.note
-        record.photoData = photoData
+        record.disposition = draft.disposition
         record.photoReference = draft.photoReference
         record.photoContentType = draft.photoContentType
+        CatchPhotoMigrationService.sync(record: record, drafts: photos, in: modelContext)
 
         persistCatchChanges {
             dismiss()
         }
+    }
+
+    private func appendPhoto(data: Data) {
+        guard photos.count < 4 else { return }
+        photos.append(CatchPhotoDraft(data: data))
     }
 
     private func deleteCatch() {
@@ -1424,6 +1606,7 @@ struct CatchShareCardContent {
     let lureOrBaitText: String?
     let weightText: String?
     let lengthText: String?
+    let photoCountText: String?
     let photoData: Data?
 }
 
@@ -1488,7 +1671,8 @@ enum CatchShareCardLogic {
             lureOrBaitText: normalizedOptionalText(catchRecord.lureOrBait),
             weightText: catchRecord.weightKg.map { "\($0.formatted()) kg" },
             lengthText: catchRecord.lengthCm.map { "\($0.formatted()) cm" },
-            photoData: catchRecord.photoData
+            photoCountText: catchRecord.photoCount > 1 ? "\(catchRecord.photoCount) photos" : nil,
+            photoData: catchRecord.primaryPhotoData
         )
     }
 

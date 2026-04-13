@@ -21,6 +21,7 @@ final class ConditionCaptureServiceTests: XCTestCase {
         XCTAssertEqual(snapshot.latitude, 46.0)
         XCTAssertEqual(snapshot.longitude, -124.0)
         XCTAssertEqual(snapshot.placeSummary, "Dock • River Bend")
+        XCTAssertEqual(snapshot.moonPhase, moonPhaseValue(for: capturedAt))
     }
 
     func testSnapshotFallsBackToSpotCoordinateWithoutDeviceLocation() {
@@ -97,6 +98,7 @@ final class ConditionCaptureServiceTests: XCTestCase {
         // Snapshot should remain unchanged when location is nil
         XCTAssertNil(snapshot.temperatureC)
         XCTAssertNil(snapshot.weatherSummary)
+        XCTAssertNil(snapshot.pressureHPa)
         XCTAssertEqual(snapshot.source, originalSource)
     }
 

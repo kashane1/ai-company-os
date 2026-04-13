@@ -8,9 +8,11 @@ struct StartTripDraft {
 enum QuickCatchField: Equatable {
     case species
     case lureOrBait
+    case disposition
     case method
     case weight
     case length
+    case waterDepth
     case note
     case photo
     case save
@@ -25,9 +27,11 @@ struct QuickCatchDefaults {
 struct QuickCatchResetState {
     let species: String
     let lureOrBait: String
+    let disposition: CatchDisposition
     let method: String
     let weight: String
     let length: String
+    let waterDepth: String
     let note: String
     let showingOptionalFields: Bool
     let photoData: Data?
@@ -63,9 +67,11 @@ enum LogFeatureLogic {
     ]
 
     static let quickCatchOptionalFields: [QuickCatchField] = [
+        .disposition,
         .method,
         .weight,
         .length,
+        .waterDepth,
         .note,
         .photo,
     ]
@@ -169,6 +175,7 @@ enum LogFeatureLogic {
         let durationText = trip.endAt.flatMap { endAt in
             durationFormatter.string(from: endAt.timeIntervalSince(trip.startAt))
         } ?? "In progress"
+        let catchesPerHourText = catchesPerHourText(trip: trip, catchCount: catches.count)
 
         var cards: [TripSummaryCardItem] = [
             TripSummaryCardItem(
@@ -184,6 +191,17 @@ enum LogFeatureLogic {
                 subtitle: nil
             ),
         ]
+
+        if let catchesPerHourText {
+            cards.append(
+                TripSummaryCardItem(
+                    id: "catch-rate",
+                    title: "Catches / hour",
+                    value: catchesPerHourText,
+                    subtitle: "Based on ended-trip duration"
+                )
+            )
+        }
 
         if let topSpecies = topSpeciesSummary(from: catches) {
             cards.append(
@@ -237,13 +255,27 @@ enum LogFeatureLogic {
         QuickCatchResetState(
             species: "",
             lureOrBait: lureOrBait,
+            disposition: .notRecorded,
             method: method,
             weight: "",
             length: "",
+            waterDepth: "",
             note: "",
             showingOptionalFields: false,
             photoData: nil
         )
+    }
+
+    static func catchesPerHourText(trip: Trip, catchCount: Int) -> String? {
+        guard let durationInterval = trip.durationInterval, catchCount > 0 else { return nil }
+        let hours = durationInterval / 3_600
+        guard hours > 0 else { return nil }
+
+        let rate = Double(catchCount) / hours
+        if abs(rate.rounded() - rate) < 0.05 {
+            return String(format: "%.0f", rate.rounded())
+        }
+        return String(format: "%.1f", rate)
     }
 
     private static func topSpeciesSummary(from catches: [CatchRecord]) -> (value: String, subtitle: String)? {

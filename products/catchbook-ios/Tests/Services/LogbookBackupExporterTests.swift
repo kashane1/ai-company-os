@@ -32,6 +32,10 @@ final class LogbookBackupExporterTests: XCTestCase {
             windSummary: "5 mph",
             cloudCoverSummary: "Low clouds",
             precipitationSummary: "Dry",
+            waterClarity: .clear,
+            moonPhase: .fullMoon,
+            pressureHPa: 1_012.4,
+            tideState: .incoming,
             captureStatus: .ready,
             source: .deviceLocation
         )
@@ -54,6 +58,7 @@ final class LogbookBackupExporterTests: XCTestCase {
             method: "Casting",
             weightKg: 2.4,
             lengthCm: 48,
+            waterDepthM: 3.2,
             note: "Windy edge"
         )
 
@@ -78,11 +83,18 @@ final class LogbookBackupExporterTests: XCTestCase {
         XCTAssertEqual(package.waterbodies.first?.id, waterbody.id)
         XCTAssertEqual(package.spots.first?.waterbodyId, waterbody.id)
         XCTAssertEqual(package.conditionSnapshots.first?.id, snapshot.id)
+        XCTAssertEqual(package.conditionSnapshots.first?.waterClarity, "clear")
+        XCTAssertEqual(package.conditionSnapshots.first?.moonPhase, "fullMoon")
+        XCTAssertEqual(package.conditionSnapshots.first?.pressureHPa, 1_012.4)
+        XCTAssertEqual(package.conditionSnapshots.first?.tideState, "incoming")
         XCTAssertEqual(package.trips.first?.waterbodyId, waterbody.id)
         XCTAssertEqual(package.trips.first?.spotId, spot.id)
         XCTAssertEqual(package.trips.first?.conditionSnapshotId, snapshot.id)
         XCTAssertEqual(package.trips.first?.endAt, trip.endAt)
         XCTAssertEqual(package.catches.first?.tripId, trip.id)
+        XCTAssertEqual(package.catches.first?.waterDepthM, 3.2)
+        XCTAssertEqual(package.catches.first?.disposition, "notRecorded")
+        XCTAssertEqual(package.catches.first?.photoFilenames, nil)
         XCTAssertNil(package.catches.first?.photoFilename)
     }
 
@@ -135,6 +147,7 @@ final class LogbookBackupExporterTests: XCTestCase {
         XCTAssertEqual(package.manifest.counts.photos, 1)
         XCTAssertEqual(package.photos.count, 1)
         XCTAssertEqual(package.catches.first?.photoFilename, "\(catchRecord.id.uuidString.lowercased()).jpg")
+        XCTAssertEqual(package.catches.first?.photoFilenames, ["\(catchRecord.id.uuidString.lowercased()).jpg"])
 
         let fileWrapper = try package.makeFileWrapper()
         let exportedMedia = try unwrapFileWrapper(
@@ -162,6 +175,7 @@ final class LogbookBackupExporterTests: XCTestCase {
         XCTAssertEqual(package.manifest.counts.photos, 0)
         XCTAssertTrue(package.photos.isEmpty)
         XCTAssertNil(package.catches.first?.photoFilename)
+        XCTAssertNil(package.catches.first?.photoFilenames)
 
         let fileWrapper = try package.makeFileWrapper()
         let catchMediaDirectory = try unwrapFileWrapper(root: fileWrapper, path: ["media", "catches"])

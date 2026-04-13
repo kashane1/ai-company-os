@@ -234,6 +234,7 @@ enum TripPresentationLogic {
     static func topStats(
         catchCount: Int,
         durationText: String?,
+        catchesPerHourText: String?,
         targetSpeciesCount: Int
     ) -> [TripStatItem] {
         var stats: [TripStatItem] = [
@@ -246,6 +247,9 @@ enum TripPresentationLogic {
         ]
         if let durationText {
             stats.append(TripStatItem(id: "duration", value: durationText, label: "Duration", icon: "timer"))
+        }
+        if let catchesPerHourText {
+            stats.append(TripStatItem(id: "catch-rate", value: catchesPerHourText, label: "Per hour", icon: "speedometer"))
         }
         if targetSpeciesCount > 0 {
             stats.append(

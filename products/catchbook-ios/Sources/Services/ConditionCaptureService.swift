@@ -83,6 +83,7 @@ enum ConditionCaptureService {
             snapshot.windSummary = weather.windSummary
             snapshot.cloudCoverSummary = weather.cloudCoverSummary
             snapshot.precipitationSummary = weather.precipitationSummary
+            snapshot.pressureHPa = weather.pressureHPa
         }
     }
 }

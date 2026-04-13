@@ -44,9 +44,15 @@ final class FishingModelsTests: XCTestCase {
         let snapshot = ConditionSnapshot()
         snapshot.captureStatusRawValue = "not-valid"
         snapshot.sourceRawValue = "not-valid"
+        snapshot.waterClarityRawValue = "not-valid"
+        snapshot.moonPhaseRawValue = "not-valid"
+        snapshot.tideStateRawValue = "not-valid"
 
         XCTAssertEqual(snapshot.captureStatus, .fallback)
         XCTAssertEqual(snapshot.source, .tripFallback)
+        XCTAssertEqual(snapshot.waterClarity, .notRecorded)
+        XCTAssertEqual(snapshot.tideState, .notRecorded)
+        XCTAssertEqual(snapshot.moonPhase, moonPhaseValue(for: snapshot.capturedAt))
     }
 
     func testConditionSnapshotComputedPropertiesStayReadableAndOrdered() {
@@ -62,6 +68,10 @@ final class FishingModelsTests: XCTestCase {
             windSummary: "5 kt",
             cloudCoverSummary: "Low clouds",
             precipitationSummary: "Dry",
+            waterClarity: .clear,
+            moonPhase: .fullMoon,
+            pressureHPa: 1_013.2,
+            tideState: .incoming,
             captureStatus: .ready,
             source: .deviceLocation
         )
@@ -70,12 +80,15 @@ final class FishingModelsTests: XCTestCase {
         XCTAssertEqual(snapshot.statusLine, "Conditions captured")
         XCTAssertEqual(snapshot.locationConfidenceLabel, "At")
         XCTAssertEqual(snapshot.locationSummaryLine, "At Dock • Lake · 47.6205, -122.3493")
-        XCTAssertEqual(snapshot.weatherLine, "12°C • Cloudy • 5 kt • Low clouds • Dry")
+        XCTAssertEqual(snapshot.weatherLine, "12°C • Cloudy • 5 kt • Low clouds • Dry • 1,013 hPa")
         XCTAssertEqual(snapshot.similarityDescription, "6-9 AM • Morning light • 5 kt • Dry")
         XCTAssertEqual(
             snapshot.displaySummary,
-            "Dock • Lake • 6-9 AM • Morning light • 47.6205, -122.3493 • 12°C • Cloudy • 5 kt • Low clouds • Dry"
+            "Dock • Lake • 6-9 AM • Morning light • 47.6205, -122.3493 • 12°C • Cloudy • 5 kt • Low clouds • Dry • 1,013 hPa"
         )
+        XCTAssertEqual(snapshot.claritySummary, "Clear")
+        XCTAssertEqual(snapshot.tideSummary, "Incoming")
+        XCTAssertEqual(snapshot.moonPhase.label, "Full moon")
     }
 
     func testConditionSnapshotFallbackStringsHandleEmptyWeatherContext() {
@@ -154,9 +167,34 @@ final class FishingModelsTests: XCTestCase {
 
         XCTAssertTrue(catchRecord.hasPhoto)
         XCTAssertEqual(catchRecord.speciesDisplayName, "Species not logged")
+        XCTAssertEqual(catchRecord.disposition, .notRecorded)
 
         catchRecord.species = "  Bass "
+        catchRecord.disposition = .released
         XCTAssertEqual(catchRecord.speciesDisplayName, "Bass")
+        XCTAssertEqual(catchRecord.disposition.label, "Released")
+    }
+
+    func testTripDurationIntervalReturnsPositiveEndedDurationOnly() {
+        let trip = Trip(waterbody: Waterbody(name: "Lake", type: .lake), startAt: utcDate(hour: 6))
+        XCTAssertNil(trip.durationInterval)
+
+        trip.endAt = utcDate(hour: 8)
+        XCTAssertEqual(trip.durationInterval, 7_200)
+
+        trip.endAt = utcDate(hour: 5)
+        XCTAssertNil(trip.durationInterval)
+    }
+
+    func testMoonPhaseReturnsExpectedSeasonalPhases() {
+        XCTAssertEqual(
+            moonPhaseValue(for: utcCalendar.date(from: DateComponents(year: 2025, month: 3, day: 14, hour: 6))!, calendar: utcCalendar),
+            .fullMoon
+        )
+        XCTAssertEqual(
+            moonPhaseValue(for: utcCalendar.date(from: DateComponents(year: 2025, month: 3, day: 29, hour: 10))!, calendar: utcCalendar),
+            .newMoon
+        )
     }
 
     func testTimeWindowLabelUsesProvidedCalendarAtBoundaryHours() {

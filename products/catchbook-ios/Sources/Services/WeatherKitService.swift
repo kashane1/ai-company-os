@@ -10,6 +10,7 @@ struct WeatherConditions: Sendable {
     let windSummary: String
     let cloudCoverSummary: String
     let precipitationSummary: String
+    let pressureHPa: Double?
 }
 
 /// Thread-safe service for fetching weather data from Apple WeatherKit.
@@ -112,7 +113,8 @@ actor WeatherKitService {
                 weatherSummary: weatherSummary,
                 windSummary: windSummary,
                 cloudCoverSummary: cloudCoverSummary,
-                precipitationSummary: precipitationSummary
+                precipitationSummary: precipitationSummary,
+                pressureHPa: current.pressure.converted(to: .hectopascals).value
             )
         } catch {
             // Network down, service unavailable, entitlement missing, etc.
