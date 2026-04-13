@@ -103,6 +103,7 @@ struct CatchExportRecord: Codable, Equatable {
     let caughtAt: Date
     let lureOrBait: String
     let method: String
+    let gear: String
     let weightKg: Double?
     let lengthCm: Double?
     let waterDepthM: Double?
@@ -330,6 +331,7 @@ enum LogbookBackupExporter {
                 caughtAt: catchRecord.caughtAt,
                 lureOrBait: catchRecord.lureOrBait,
                 method: catchRecord.method,
+                gear: catchRecord.gear,
                 weightKg: catchRecord.weightKg,
                 lengthCm: catchRecord.lengthCm,
                 waterDepthM: catchRecord.waterDepthM,

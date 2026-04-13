@@ -1861,6 +1861,7 @@ struct CatchEditorView: View {
     @State private var caughtAt: Date
     @State private var lureOrBait: String
     @State private var method: String
+    @State private var gear: String
     @State private var weight: String
     @State private var length: String
     @State private var waterDepth: String
@@ -1875,6 +1876,7 @@ struct CatchEditorView: View {
     @State private var shareImage: UIImage?
     @State private var showingShareSheet = false
     @State private var persistenceErrorMessage: String?
+    @AppStorage(CatchOptionalField.appStorageKey) private var storedVisibleFields = CatchOptionalField.storedValue(for: CatchOptionalField.defaultFields)
     @FocusState private var isTextInputFocused: Bool
 
     init(trip: Trip, catchRecord: CatchRecord? = nil, duplicateSource: CatchRecord? = nil) {
@@ -1889,6 +1891,7 @@ struct CatchEditorView: View {
                 caughtAt: catchRecord.caughtAt,
                 lureOrBait: catchRecord.lureOrBait,
                 method: catchRecord.method,
+                gear: catchRecord.gear,
                 weight: catchRecord.weightKg.map { "\($0)" } ?? "",
                 length: catchRecord.lengthCm.map { "\($0)" } ?? "",
                 waterDepth: catchRecord.waterDepthM.map { "\($0)" } ?? "",
@@ -1903,6 +1906,7 @@ struct CatchEditorView: View {
                 caughtAt: trip.endAt ?? Date(),
                 lureOrBait: "",
                 method: "",
+                gear: "",
                 weight: "",
                 length: "",
                 waterDepth: "",
@@ -1915,6 +1919,7 @@ struct CatchEditorView: View {
         _caughtAt = State(initialValue: seed.caughtAt)
         _lureOrBait = State(initialValue: seed.lureOrBait)
         _method = State(initialValue: seed.method)
+        _gear = State(initialValue: seed.gear)
         _weight = State(initialValue: seed.weight)
         _length = State(initialValue: seed.length)
         _waterDepth = State(initialValue: seed.waterDepth)
@@ -1937,6 +1942,10 @@ struct CatchEditorView: View {
         return allCatches.filter { $0.trip?.waterbody?.id == waterbodyID }
     }
 
+    private var visibleFields: Set<CatchOptionalField> {
+        CatchOptionalField.fields(from: storedVisibleFields)
+    }
+
     private var speciesSuggestions: [String] {
         LogFeatureLogic.historySuggestions(
             query: species,
@@ -1952,6 +1961,15 @@ struct CatchEditorView: View {
             spotValues: catchesForSpot.map(\.lureOrBait),
             waterbodyValues: catchesForWaterbody.map(\.lureOrBait),
             globalValues: allCatches.map(\.lureOrBait)
+        )
+    }
+
+    private var gearSuggestions: [String] {
+        LogFeatureLogic.historySuggestions(
+            query: gear,
+            spotValues: catchesForSpot.map(\.gear),
+            waterbodyValues: catchesForWaterbody.map(\.gear),
+            globalValues: allCatches.map(\.gear)
         )
     }
 
@@ -1985,33 +2003,57 @@ struct CatchEditorView: View {
                     lureOrBait = value
                 }
             }
-            TextField("Method", text: $method)
-                .textInputAutocapitalization(.words)
-                .focused($isTextInputFocused)
-            Picker("Disposition", selection: $disposition) {
-                ForEach(CatchDisposition.allCases) { option in
-                    Text(option.label).tag(option)
+            CatchFieldVisibilityEditor(storedVisibleFields: $storedVisibleFields)
+
+            if visibleFields.contains(.method) {
+                TextField("Method", text: $method)
+                    .textInputAutocapitalization(.words)
+                    .focused($isTextInputFocused)
+            }
+            if visibleFields.contains(.gear) {
+                TextField("Gear", text: $gear)
+                    .textInputAutocapitalization(.words)
+                    .focused($isTextInputFocused)
+                if !gearSuggestions.isEmpty {
+                    SuggestionRow(label: "Gear", values: gearSuggestions) { value in
+                        gear = value
+                    }
                 }
             }
-            TextField("Weight (kg)", text: $weight)
-                .keyboardType(.decimalPad)
-                .focused($isTextInputFocused)
-            TextField("Length (cm)", text: $length)
-                .keyboardType(.decimalPad)
-                .focused($isTextInputFocused)
-            TextField("Water depth (m)", text: $waterDepth)
-                .keyboardType(.decimalPad)
-                .focused($isTextInputFocused)
-            TextField("Note", text: $note, axis: .vertical)
-                .lineLimit(2...4)
-                .focused($isTextInputFocused)
+            if visibleFields.contains(.disposition) {
+                Picker("Disposition", selection: $disposition) {
+                    ForEach(CatchDisposition.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+            }
+            if visibleFields.contains(.weight) {
+                TextField("Weight (kg)", text: $weight)
+                    .keyboardType(.decimalPad)
+                    .focused($isTextInputFocused)
+            }
+            if visibleFields.contains(.length) {
+                TextField("Length (cm)", text: $length)
+                    .keyboardType(.decimalPad)
+                    .focused($isTextInputFocused)
+            }
+            if visibleFields.contains(.waterDepth) {
+                TextField("Water depth (m)", text: $waterDepth)
+                    .keyboardType(.decimalPad)
+                    .focused($isTextInputFocused)
+            }
+            if visibleFields.contains(.note) {
+                TextField("Note", text: $note, axis: .vertical)
+                    .lineLimit(2...4)
+                    .focused($isTextInputFocused)
+            }
         }
     }
 
     @ViewBuilder
     private var photoSection: some View {
         Section {
-            if !photos.isEmpty {
+            if visibleFields.contains(.photo), !photos.isEmpty {
                 CatchPhotoDraftStripView(photos: photos) { id in
                     photos.removeAll { $0.id == id }
                     if photos.isEmpty {
@@ -2022,26 +2064,28 @@ struct CatchEditorView: View {
                 }
             }
 
-            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                Label(photos.isEmpty ? "Add from Library" : "Add Another from Library", systemImage: "photo.on.rectangle")
-            }
-            .buttonStyle(.bordered)
-            .tint(.appAccent)
-            .disabled(photos.count >= 4)
+            if visibleFields.contains(.photo) {
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                    Label(photos.isEmpty ? "Add from Library" : "Add Another from Library", systemImage: "photo.on.rectangle")
+                }
+                .buttonStyle(.bordered)
+                .tint(.appAccent)
+                .disabled(photos.count >= 4)
 
-            Button {
-                showingCamera = true
-            } label: {
-                Label("Take Photo", systemImage: "camera")
+                Button {
+                    showingCamera = true
+                } label: {
+                    Label("Take Photo", systemImage: "camera")
+                }
+                .buttonStyle(.bordered)
+                .disabled(!canUseCamera || photos.count >= 4)
             }
-            .buttonStyle(.bordered)
-            .disabled(!canUseCamera || photos.count >= 4)
         } header: {
-            Text("Photos")
+            Text(visibleFields.contains(.photo) ? "Photos" : "Photos Hidden")
         } footer: {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("Up to 4 photos. You can still save this catch without any photos.")
-                if let photoLocationSuggestion {
+                Text(visibleFields.contains(.photo) ? "Up to 4 photos. You can still save this catch without any photos." : "Turn Photos back on in Visible Fields whenever you want library and camera capture here.")
+                if visibleFields.contains(.photo), let photoLocationSuggestion {
                     PhotoSpotSuggestionCard(
                         suggestion: photoLocationSuggestion,
                         currentSpotID: trip.spot?.id,
@@ -2143,6 +2187,7 @@ struct CatchEditorView: View {
             species: species,
             lureOrBait: lureOrBait,
             method: method,
+            gear: gear,
             weight: weight,
             length: length,
             waterDepth: waterDepth,
@@ -2156,6 +2201,7 @@ struct CatchEditorView: View {
         record.caughtAt = caughtAt
         record.lureOrBait = draft.lureOrBait
         record.method = draft.method
+        record.gear = draft.gear
         record.weightKg = draft.weightKg
         record.lengthCm = draft.lengthCm
         record.waterDepthM = draft.waterDepthM

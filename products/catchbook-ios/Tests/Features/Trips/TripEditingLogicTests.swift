@@ -11,6 +11,7 @@ final class TripEditingLogicTests: XCTestCase {
             caughtAt: Date(timeIntervalSince1970: 10),
             lureOrBait: "Spinner",
             method: "Slow roll",
+            gear: "7' MH Casting",
             weightKg: 2.5,
             lengthCm: 50,
             waterDepthM: 1.2,
@@ -27,6 +28,7 @@ final class TripEditingLogicTests: XCTestCase {
         XCTAssertEqual(seed.caughtAt, Date(timeIntervalSince1970: 100))
         XCTAssertEqual(seed.lureOrBait, "Spinner")
         XCTAssertEqual(seed.method, "Slow roll")
+        XCTAssertEqual(seed.gear, "7' MH Casting")
         XCTAssertEqual(seed.weight, "2.5")
         XCTAssertEqual(seed.length, "50.0")
         XCTAssertEqual(seed.waterDepth, "1.2")

@@ -16,6 +16,7 @@ struct CatchEditorDraft {
     let species: String
     let lureOrBait: String
     let method: String
+    let gear: String
     let weightKg: Double?
     let lengthCm: Double?
     let waterDepthM: Double?
@@ -30,6 +31,7 @@ struct CatchEditorSeed {
     let caughtAt: Date
     let lureOrBait: String
     let method: String
+    let gear: String
     let weight: String
     let length: String
     let waterDepth: String
@@ -106,6 +108,7 @@ enum TripEditingLogic {
         species: String,
         lureOrBait: String,
         method: String,
+        gear: String,
         weight: String,
         length: String,
         waterDepth: String,
@@ -117,6 +120,7 @@ enum TripEditingLogic {
             species: normalizedText(species),
             lureOrBait: normalizedText(lureOrBait),
             method: normalizedText(method),
+            gear: normalizedText(gear),
             weightKg: normalizedDouble(weight),
             lengthCm: normalizedDouble(length),
             waterDepthM: normalizedDouble(waterDepth),
@@ -136,6 +140,7 @@ enum TripEditingLogic {
             caughtAt: duplicateTimestamp,
             lureOrBait: catchRecord.lureOrBait,
             method: catchRecord.method,
+            gear: catchRecord.gear,
             weight: catchRecord.weightKg.map { "\($0)" } ?? "",
             length: catchRecord.lengthCm.map { "\($0)" } ?? "",
             waterDepth: catchRecord.waterDepthM.map { "\($0)" } ?? "",

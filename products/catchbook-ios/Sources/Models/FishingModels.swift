@@ -532,6 +532,7 @@ final class CatchRecord {
     var caughtAt: Date
     var lureOrBait: String
     var method: String
+    var gear: String
     var weightKg: Double?
     var lengthCm: Double?
     var waterDepthM: Double?
@@ -549,6 +550,7 @@ final class CatchRecord {
         caughtAt: Date = .now,
         lureOrBait: String = "",
         method: String = "",
+        gear: String = "",
         weightKg: Double? = nil,
         lengthCm: Double? = nil,
         waterDepthM: Double? = nil,
@@ -563,6 +565,7 @@ final class CatchRecord {
         self.caughtAt = caughtAt
         self.lureOrBait = lureOrBait
         self.method = method
+        self.gear = gear
         self.weightKg = weightKg
         self.lengthCm = lengthCm
         self.waterDepthM = waterDepthM

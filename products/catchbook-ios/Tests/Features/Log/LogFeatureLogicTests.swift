@@ -129,28 +129,32 @@ final class LogFeatureLogicTests: XCTestCase {
     }
 
     func testPrimeDefaultsFillsOnlyEmptyFieldsAndRunsOnce() {
-        let recentCatch = CatchRecord(species: "Bass", trip: nil, lureOrBait: "Spinner", method: "Slow roll")
+        let recentCatch = CatchRecord(species: "Bass", trip: nil, lureOrBait: "Spinner", method: "Slow roll", gear: "Spinning")
 
         let primed = LogFeatureLogic.primeDefaultsIfNeeded(
             didPrimeDefaults: false,
             lureOrBait: "",
             method: "Burn",
+            gear: "",
             catchesForSpot: [recentCatch],
             allCatches: []
         )
         XCTAssertEqual(primed.lureOrBait, "Spinner")
         XCTAssertEqual(primed.method, "Burn")
+        XCTAssertEqual(primed.gear, "Spinning")
         XCTAssertTrue(primed.didPrimeDefaults)
 
         let alreadyPrimed = LogFeatureLogic.primeDefaultsIfNeeded(
             didPrimeDefaults: true,
             lureOrBait: "Jig",
             method: "Hop",
+            gear: "Casting",
             catchesForSpot: [recentCatch],
             allCatches: []
         )
         XCTAssertEqual(alreadyPrimed.lureOrBait, "Jig")
         XCTAssertEqual(alreadyPrimed.method, "Hop")
+        XCTAssertEqual(alreadyPrimed.gear, "Casting")
         XCTAssertTrue(alreadyPrimed.didPrimeDefaults)
     }
 
@@ -159,12 +163,14 @@ final class LogFeatureLogicTests: XCTestCase {
             didPrimeDefaults: false,
             lureOrBait: "Jig",
             method: "Hop",
+            gear: "Fly",
             catchesForSpot: [],
             allCatches: []
         )
 
         XCTAssertEqual(primed.lureOrBait, "Jig")
         XCTAssertEqual(primed.method, "Hop")
+        XCTAssertEqual(primed.gear, "Fly")
         XCTAssertTrue(primed.didPrimeDefaults)
     }
 
@@ -175,20 +181,22 @@ final class LogFeatureLogicTests: XCTestCase {
         )
         XCTAssertEqual(
             LogFeatureLogic.quickCatchOptionalFields,
-            [.disposition, .method, .weight, .length, .waterDepth, .note, .photo]
+            [.disposition, .method, .gear, .weight, .length, .waterDepth, .note, .photo]
         )
     }
 
     func testResetQuickCatchStateAfterSaveClearsTransientFieldsAndPreservesStickyDefaults() {
         let reset = LogFeatureLogic.resetQuickCatchStateAfterSave(
             lureOrBait: "Spinner",
-            method: "Slow roll"
+            method: "Slow roll",
+            gear: "Casting"
         )
 
         XCTAssertEqual(reset.species, "")
         XCTAssertEqual(reset.lureOrBait, "Spinner")
         XCTAssertEqual(reset.disposition, .notRecorded)
         XCTAssertEqual(reset.method, "Slow roll")
+        XCTAssertEqual(reset.gear, "Casting")
         XCTAssertEqual(reset.weight, "")
         XCTAssertEqual(reset.length, "")
         XCTAssertEqual(reset.waterDepth, "")

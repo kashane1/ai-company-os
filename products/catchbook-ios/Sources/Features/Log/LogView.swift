@@ -361,6 +361,7 @@ private struct ActiveTripView: View {
     @State private var lureOrBait = ""
     @State private var disposition: CatchDisposition = .notRecorded
     @State private var method = ""
+    @State private var gear = ""
     @State private var weight = ""
     @State private var length = ""
     @State private var waterDepth = ""
@@ -377,6 +378,8 @@ private struct ActiveTripView: View {
     @State private var showingCamera = false
     @State private var editingCatchID: UUID?
     @State private var persistenceErrorMessage: String?
+    @AppStorage(CatchOptionalField.appStorageKey) private var storedVisibleFields = CatchOptionalField.storedValue(for: CatchOptionalField.defaultFields)
+    @AppStorage(QuickCatchEntryMode.appStorageKey) private var storedQuickCatchEntryMode = QuickCatchEntryMode.full.rawValue
     @FocusState private var focusedField: QuickCatchField?
 
     private var catchesForTrip: [CatchRecord] {
@@ -415,6 +418,34 @@ private struct ActiveTripView: View {
             waterbodyValues: catchesForWaterbody.map(\.lureOrBait),
             globalValues: allCatches.map(\.lureOrBait)
         )
+    }
+
+    private var recentGearSuggestions: [String] {
+        LogFeatureLogic.historySuggestions(
+            query: gear,
+            spotValues: catchesForSpot.map(\.gear),
+            waterbodyValues: catchesForWaterbody.map(\.gear),
+            globalValues: allCatches.map(\.gear)
+        )
+    }
+
+    private var visibleFields: Set<CatchOptionalField> {
+        CatchOptionalField.fields(from: storedVisibleFields)
+    }
+
+    private var quickCatchEntryMode: QuickCatchEntryMode {
+        QuickCatchEntryMode(rawValue: storedQuickCatchEntryMode) ?? .full
+    }
+
+    private var tripSpeciesTallies: [(species: String, count: Int)] {
+        Dictionary(grouping: catchesForTrip, by: \.speciesDisplayName)
+            .map { ($0.key, $0.value.count) }
+            .sorted {
+                if $0.count != $1.count {
+                    return $0.count > $1.count
+                }
+                return $0.species.localizedCaseInsensitiveCompare($1.species) == .orderedAscending
+            }
     }
 
     private var quickCatchContext: QuickCatchContextSummary {
@@ -461,13 +492,20 @@ private struct ActiveTripView: View {
                 }
                 .padding(.vertical, Spacing.xxs)
 
+                Picker("Entry Mode", selection: $storedQuickCatchEntryMode) {
+                    ForEach(QuickCatchEntryMode.allCases) { mode in
+                        Text(mode.label).tag(mode.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+
                 TextField("Species", text: $species)
                     .textInputAutocapitalization(.words)
                     .submitLabel(.done)
                     .focused($focusedField, equals: .species)
                     .onSubmit {
                         if !species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            saveCatch(action: .save)
+                            saveCatch(action: .save, tallyOnly: quickCatchEntryMode == .tally)
                         }
                     }
 
@@ -485,82 +523,133 @@ private struct ActiveTripView: View {
                     }
                 }
 
-                TextField("Lure or bait", text: $lureOrBait)
-                    .textInputAutocapitalization(.words)
-                    .focused($focusedField, equals: .lureOrBait)
+                if quickCatchEntryMode == .full {
+                    TextField("Lure or bait", text: $lureOrBait)
+                        .textInputAutocapitalization(.words)
+                        .focused($focusedField, equals: .lureOrBait)
 
-                if !recentLureSuggestions.isEmpty {
-                    SuggestionRow(label: "Lure", values: recentLureSuggestions) { value in
-                        lureOrBait = value
-                    }
-                }
-
-                DisclosureGroup("More details", isExpanded: $showingOptionalFields) {
-                    Picker("Disposition", selection: $disposition) {
-                        ForEach(CatchDisposition.allCases) { option in
-                            Text(option.label).tag(option)
+                    if !recentLureSuggestions.isEmpty {
+                        SuggestionRow(label: "Lure", values: recentLureSuggestions) { value in
+                            lureOrBait = value
                         }
                     }
+                    DisclosureGroup("More details", isExpanded: $showingOptionalFields) {
+                        CatchFieldVisibilityEditor(storedVisibleFields: $storedVisibleFields)
 
-                    TextField("Method", text: $method)
-                        .textInputAutocapitalization(.words)
-                        .focused($focusedField, equals: .method)
-                    TextField("Weight (kg)", text: $weight)
-                        .keyboardType(.decimalPad)
-                        .focused($focusedField, equals: .weight)
-                    TextField("Length (cm)", text: $length)
-                        .keyboardType(.decimalPad)
-                        .focused($focusedField, equals: .length)
-                    TextField("Water depth (m)", text: $waterDepth)
-                        .keyboardType(.decimalPad)
-                        .focused($focusedField, equals: .waterDepth)
-                    TextField("Note", text: $note, axis: .vertical)
-                        .lineLimit(2...4)
-                        .focused($focusedField, equals: .note)
-
-                    VStack(alignment: .leading, spacing: Spacing.sm) {
-                        if !photos.isEmpty {
-                            CatchPhotoDraftStripView(photos: photos) { id in
-                                photos.removeAll { $0.id == id }
-                                if photos.isEmpty {
-                                    photoLocationSuggestion = nil
-                                    pendingMatchedSpotID = nil
-                                    selectedPhotoItem = nil
+                        if visibleFields.contains(.disposition) {
+                            Picker("Disposition", selection: $disposition) {
+                                ForEach(CatchDisposition.allCases) { option in
+                                    Text(option.label).tag(option)
                                 }
                             }
                         }
 
-                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                            Label(photos.isEmpty ? "Add from Library" : "Add Another from Library", systemImage: "photo.on.rectangle")
-                                .font(.footnote.weight(.medium))
+                        if visibleFields.contains(.method) {
+                            TextField("Method", text: $method)
+                                .textInputAutocapitalization(.words)
+                                .focused($focusedField, equals: .method)
                         }
-                        .buttonStyle(.bordered)
-                        .tint(.appAccent)
-                        .disabled(photos.count >= 4)
-                        .accessibilityIdentifier("quickCatch.photoLibraryButton")
 
-                        Button {
-                            showingCamera = true
-                        } label: {
-                            Label("Take Photo", systemImage: "camera")
-                                .font(.footnote.weight(.medium))
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(!canUseCamera || photos.count >= 4)
-
-                        Text("Up to 4 photos. If photo access is unavailable, you can still save the catch.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        if let photoLocationSuggestion {
-                            PhotoSpotSuggestionCard(
-                                suggestion: photoLocationSuggestion,
-                                currentSpotID: trip.spot?.id,
-                                pendingSpotID: pendingMatchedSpotID
-                            ) { spotID in
-                                pendingMatchedSpotID = spotID
+                        if visibleFields.contains(.gear) {
+                            TextField("Gear", text: $gear)
+                                .textInputAutocapitalization(.words)
+                                .focused($focusedField, equals: .gear)
+                            if !recentGearSuggestions.isEmpty {
+                                SuggestionRow(label: "Gear", values: recentGearSuggestions) { value in
+                                    gear = value
+                                }
                             }
                         }
+
+                        if visibleFields.contains(.weight) {
+                            TextField("Weight (kg)", text: $weight)
+                                .keyboardType(.decimalPad)
+                                .focused($focusedField, equals: .weight)
+                        }
+                        if visibleFields.contains(.length) {
+                            TextField("Length (cm)", text: $length)
+                                .keyboardType(.decimalPad)
+                                .focused($focusedField, equals: .length)
+                        }
+                        if visibleFields.contains(.waterDepth) {
+                            TextField("Water depth (m)", text: $waterDepth)
+                                .keyboardType(.decimalPad)
+                                .focused($focusedField, equals: .waterDepth)
+                        }
+                        if visibleFields.contains(.note) {
+                            TextField("Note", text: $note, axis: .vertical)
+                                .lineLimit(2...4)
+                                .focused($focusedField, equals: .note)
+                        }
+
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            if visibleFields.contains(.photo), !photos.isEmpty {
+                                CatchPhotoDraftStripView(photos: photos) { id in
+                                    photos.removeAll { $0.id == id }
+                                    if photos.isEmpty {
+                                        photoLocationSuggestion = nil
+                                        pendingMatchedSpotID = nil
+                                        selectedPhotoItem = nil
+                                    }
+                                }
+                            }
+
+                            if visibleFields.contains(.photo) {
+                                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                                    Label(photos.isEmpty ? "Add from Library" : "Add Another from Library", systemImage: "photo.on.rectangle")
+                                        .font(.footnote.weight(.medium))
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(.appAccent)
+                                .disabled(photos.count >= 4)
+                                .accessibilityIdentifier("quickCatch.photoLibraryButton")
+
+                                Button {
+                                    showingCamera = true
+                                } label: {
+                                    Label("Take Photo", systemImage: "camera")
+                                        .font(.footnote.weight(.medium))
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(!canUseCamera || photos.count >= 4)
+
+                                Text("Up to 4 photos. If photo access is unavailable, you can still save the catch.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                if let photoLocationSuggestion {
+                                    PhotoSpotSuggestionCard(
+                                        suggestion: photoLocationSuggestion,
+                                        currentSpotID: trip.spot?.id,
+                                        pendingSpotID: pendingMatchedSpotID
+                                    ) { spotID in
+                                        pendingMatchedSpotID = spotID
+                                    }
+                                }
+                            } else {
+                                Text("Photos are hidden right now. Turn them back on in Visible Fields when you want richer catch detail.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } else {
+                    if !tripSpeciesTallies.isEmpty {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            Text("Trip tally")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            ForEach(Array(tripSpeciesTallies.prefix(4).enumerated()), id: \.offset) { _, tally in
+                                HStack {
+                                    Text(tally.species)
+                                    Spacer()
+                                    Text("\(tally.count)")
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.vertical, Spacing.xs)
                     }
                 }
 
@@ -571,9 +660,9 @@ private struct ActiveTripView: View {
                 }
 
                 Button {
-                    saveCatch(action: .save)
+                    saveCatch(action: .save, tallyOnly: quickCatchEntryMode == .tally)
                 } label: {
-                    PrimaryActionLabel(title: "Save", systemImage: "checkmark.circle.fill")
+                    PrimaryActionLabel(title: quickCatchEntryMode == .tally ? "Add To Tally" : "Save", systemImage: quickCatchEntryMode == .tally ? "plus.circle.fill" : "checkmark.circle.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.appAccent)
@@ -581,18 +670,20 @@ private struct ActiveTripView: View {
                 .listRowSeparator(.hidden)
                 .sensoryFeedback(.success, trigger: showingSavedConfirmation)
 
-                Button {
-                    saveCatch(action: .saveAndAddAnother)
-                } label: {
-                    PrimaryActionLabel(title: "Save & Add Another", systemImage: "plus.circle.fill")
+                if quickCatchEntryMode == .full {
+                    Button {
+                        saveCatch(action: .saveAndAddAnother, tallyOnly: false)
+                    } label: {
+                        PrimaryActionLabel(title: "Save & Add Another", systemImage: "plus.circle.fill")
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.appAccent)
+                    .listRowSeparator(.hidden)
                 }
-                .buttonStyle(.bordered)
-                .tint(.appAccent)
-                .listRowSeparator(.hidden)
             } header: {
                 Text("Quick Catch")
             } footer: {
-                Text("Time and spot attach automatically. Optional fields stay collapsed so a basic catch can be logged fast, even offline.")
+                Text(quickCatchEntryMode == .tally ? "Tally mode keeps logging species-first for busy sessions. Each tap still creates a real catch record in this trip." : "Time and spot attach automatically. Optional fields stay collapsed so a basic catch can be logged fast, even offline.")
             }
 
             // This Trip's Catches
@@ -691,17 +782,18 @@ private struct ActiveTripView: View {
 
     // MARK: - Actions
 
-    private func saveCatch(action: QuickCatchSaveAction) {
+    private func saveCatch(action: QuickCatchSaveAction, tallyOnly: Bool) {
         let draft = TripEditingLogic.catchDraft(
             species: species,
-            lureOrBait: lureOrBait,
-            method: method,
-            weight: weight,
-            length: length,
-            waterDepth: waterDepth,
-            note: note,
-            disposition: disposition,
-            photoData: photos.first?.data
+            lureOrBait: tallyOnly ? "" : lureOrBait,
+            method: tallyOnly ? "" : method,
+            gear: tallyOnly ? "" : gear,
+            weight: tallyOnly ? "" : weight,
+            length: tallyOnly ? "" : length,
+            waterDepth: tallyOnly ? "" : waterDepth,
+            note: tallyOnly ? "" : note,
+            disposition: tallyOnly ? .notRecorded : disposition,
+            photoData: tallyOnly ? nil : photos.first?.data
         )
         let catchRecord = CatchRecord(
             species: draft.species,
@@ -709,13 +801,14 @@ private struct ActiveTripView: View {
             caughtAt: .now,
             lureOrBait: draft.lureOrBait,
             method: draft.method,
+            gear: draft.gear,
             weightKg: draft.weightKg,
             lengthCm: draft.lengthCm,
             waterDepthM: draft.waterDepthM,
             note: draft.note,
             disposition: draft.disposition,
             photoReference: draft.photoReference,
-            photoData: photos.first?.data,
+            photoData: tallyOnly ? nil : photos.first?.data,
             photoContentType: draft.photoContentType
         )
 
@@ -736,12 +829,14 @@ private struct ActiveTripView: View {
             onSuccess: {
                 let resetState = LogFeatureLogic.resetQuickCatchStateAfterSave(
                     lureOrBait: lureOrBait,
-                    method: method
+                    method: method,
+                    gear: gear
                 )
                 species = resetState.species
                 lureOrBait = resetState.lureOrBait
                 disposition = resetState.disposition
                 method = resetState.method
+                gear = resetState.gear
                 weight = resetState.weight
                 length = resetState.length
                 waterDepth = resetState.waterDepth
@@ -751,7 +846,7 @@ private struct ActiveTripView: View {
                 pendingMatchedSpotID = nil
                 selectedPhotoItem = nil
                 showingOptionalFields = resetState.showingOptionalFields
-                if action == .saveAndAddAnother {
+                if action == .saveAndAddAnother || tallyOnly {
                     focusedField = .species
                 } else {
                     focusedField = nil
@@ -803,12 +898,14 @@ private struct ActiveTripView: View {
             didPrimeDefaults: didPrimeDefaults,
             lureOrBait: lureOrBait,
             method: method,
+            gear: gear,
             catchesForSpot: catchesForSpot,
             allCatches: allCatches
         )
         didPrimeDefaults = defaults.didPrimeDefaults
         lureOrBait = defaults.lureOrBait
         method = defaults.method
+        gear = defaults.gear
     }
 
     private func updatePhotoLocationSuggestion(from data: Data) {
@@ -1085,7 +1182,7 @@ struct CatchHistoryRow: View {
                     }
                 }
 
-                let secondaryParts = [catchRecord.lureOrBait, catchRecord.method]
+                let secondaryParts = [catchRecord.lureOrBait, catchRecord.method, catchRecord.gear]
                     .filter { !$0.isEmpty }
                 if !secondaryParts.isEmpty {
                     Text(secondaryParts.joined(separator: " · "))

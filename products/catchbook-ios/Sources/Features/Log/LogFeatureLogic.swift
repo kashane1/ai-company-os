@@ -8,6 +8,7 @@ struct StartTripDraft {
 enum QuickCatchField: Equatable {
     case species
     case lureOrBait
+    case gear
     case disposition
     case method
     case weight
@@ -21,6 +22,7 @@ enum QuickCatchField: Equatable {
 struct QuickCatchDefaults {
     let lureOrBait: String
     let method: String
+    let gear: String
     let didPrimeDefaults: Bool
 }
 
@@ -29,6 +31,7 @@ struct QuickCatchResetState {
     let lureOrBait: String
     let disposition: CatchDisposition
     let method: String
+    let gear: String
     let weight: String
     let length: String
     let waterDepth: String
@@ -69,6 +72,7 @@ enum LogFeatureLogic {
     static let quickCatchOptionalFields: [QuickCatchField] = [
         .disposition,
         .method,
+        .gear,
         .weight,
         .length,
         .waterDepth,
@@ -153,6 +157,7 @@ enum LogFeatureLogic {
         didPrimeDefaults: Bool,
         lureOrBait: String,
         method: String,
+        gear: String,
         catchesForSpot: [CatchRecord],
         allCatches: [CatchRecord]
     ) -> QuickCatchDefaults {
@@ -160,6 +165,7 @@ enum LogFeatureLogic {
             return QuickCatchDefaults(
                 lureOrBait: lureOrBait,
                 method: method,
+                gear: gear,
                 didPrimeDefaults: didPrimeDefaults
             )
         }
@@ -167,12 +173,14 @@ enum LogFeatureLogic {
             return QuickCatchDefaults(
                 lureOrBait: lureOrBait,
                 method: method,
+                gear: gear,
                 didPrimeDefaults: true
             )
         }
         return QuickCatchDefaults(
             lureOrBait: lureOrBait.isEmpty ? recentCatch.lureOrBait : lureOrBait,
             method: method.isEmpty ? recentCatch.method : method,
+            gear: gear.isEmpty ? recentCatch.gear : gear,
             didPrimeDefaults: true
         )
     }
@@ -280,13 +288,15 @@ enum LogFeatureLogic {
 
     static func resetQuickCatchStateAfterSave(
         lureOrBait: String,
-        method: String
+        method: String,
+        gear: String
     ) -> QuickCatchResetState {
         QuickCatchResetState(
             species: "",
             lureOrBait: lureOrBait,
             disposition: .notRecorded,
             method: method,
+            gear: gear,
             weight: "",
             length: "",
             waterDepth: "",
