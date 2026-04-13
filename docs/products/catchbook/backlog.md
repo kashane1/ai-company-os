@@ -13,6 +13,11 @@
 - `engineering_change`: keep app-store positioning and screenshot story aligned with the updated wedge
 - `ios_feature`: add a "Last time here" recall surface on spot detail and on trip-start when a known spot is selected, rendered from existing local data (no geofencing, no background location, no notifications)
 - `ios_feature`: extend the existing catch share card with a computed personal-best badge (longest-of-species, heaviest-of-species, or first-of-species), always-on when true, one visual treatment, no separate surface or template
+- ~~`ios_feature`: establish the layered location model for waterbody, spot, and trip semantics with clear fallback rules~~ ✓ done — canonical waterbody anchor, user-owned spot precision, trip fallback order, and shared `At` / `Near` confidence language are now defined and implemented
+- ~~`ios_feature`: redesign waterbody creation as search-first with private/custom fallback~~ ✓ done — Phase 1 is locked to Apple MapKit search (`MKLocalSearchCompleter` / `MKLocalSearch`) plus immediate custom/private fallback
+- ~~`ios_feature`: redesign spot creation around pin-first capture and map refinement~~ ✓ done — new spots now start from the best available coordinate and support map refinement before save
+- ~~`ios_feature`: separate waterbody map anchoring from trip readback semantics~~ ✓ done — Trips map now distinguishes canonical water pins from legacy spot-centroid fallback
+- ~~`ios_feature`: offer post-trip "create spot from this trip" when a finished trip has a usable saved location but no saved spot~~ ✓ done — trip summary now opens a prefilled new-spot flow from the resolved trip coordinate
 - ~~`ios_feature`: expose Share Catch from the trip-detail catch row via swipe action or context menu so the share flow is discoverable without opening the edit sheet~~ ✓ done — trailing swipe + context menu added to trip-detail catch rows, both routing through `CatchSharing.makeImage` / `CatchShareCardRenderer`
 
 ## Build Next
@@ -20,6 +25,9 @@
 - `ios_feature`: add seasonal memory nudges and personal-best story moments
 - `ios_feature`: explore optional catch-scan-lite logging assist for field prefilling only
 - `ios_feature`: refine spot memory browsing if map/list switching proves necessary after the core detail view is coherent
+- `ios_feature`: define the lazy/eager/backfill strategy for older waters that still rely on legacy spot-centroid compatibility anchoring
+- `ios_feature`: define denied-location and stale-location behavior for pin-first spot creation and trip-start fallback messaging
+- `ios_feature`: decide whether post-trip spot creation should ship with suggested names or remain manual-only for the first pass
 
 ## Later / Not Now
 

@@ -34,6 +34,32 @@ Core entities:
 - Catch
 - ConditionSnapshot
 
+Location responsibilities:
+
+- `Waterbody` is the canonical named-place anchor.
+- `Spot` is the user-owned saved fishing area within a waterbody.
+- `Trip` belongs to exactly one waterbody and may optionally reference one spot.
+- `ConditionSnapshot` carries observed trip-time location and weather context; it should not be treated as a canonical waterbody anchor.
+
+Trip and map fallback rules:
+
+- trip coordinate fallback order:
+  1. directly observed trip/device coordinate
+  2. selected spot coordinate
+  3. canonical waterbody coordinate
+  4. unresolved / no coordinate shown
+- waterbody summary anchoring fallback order:
+  1. waterbody canonical coordinate
+  2. legacy spot-centroid compatibility fallback
+  3. unresolved / no coordinate shown
+- trip readback and waterbody anchoring intentionally use different fallback chains because outing-location semantics and named-place semantics are different
+
+UI language:
+
+- main trip-adjacent UI should use `At` for directly recorded trip coordinates
+- main trip-adjacent UI should use `Near` for inherited spot or waterbody fallback coordinates
+- deeper provenance may remain in model/service logic without surfacing technical wording in the core logging flow
+
 Derived outputs:
 
 - PersonalBest summaries
@@ -55,6 +81,14 @@ Derived outputs:
 - no generative summarization is allowed in the MVP path
 - compact Spot DNA output should compose existing deterministic rules instead of introducing a separate reasoning layer
 - the current spot-detail recall stack is coherent enough without Spot DNA in the current MVP state
+
+## Maps And Search Contract
+
+- MapKit is the Phase 1 named-water provider
+- `MKLocalSearchCompleter` / `MKLocalSearch` are the approved search-first waterbody entry path
+- private/custom water creation must remain available immediately when search is unavailable, offline, or not a fit
+- spot creation should start from the best available coordinate and allow map refinement before save
+- a finished trip without a saved spot may offer "create spot from this trip" using the trip's resolved coordinate fallback
 
 ## Share Card Boundary
 

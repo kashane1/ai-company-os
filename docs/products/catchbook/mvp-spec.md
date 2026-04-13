@@ -44,6 +44,10 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 
 - **"Last time here" spot recall surface** — promoted from Build Next into the MVP. Implemented as the deterministic `SpotRecallSummary` card on the spot detail screen, showing the user's most recent trip to a spot (date, catches, conditions) without requiring pattern-replay logic. Purely deterministic over existing trip/catch data; no new models or services.
 
+### Added to MVP (2026-04-12)
+
+- **Layered location model rollout** — promoted into the MVP as the approved location foundation for private recall. `Waterbody` now acts as the canonical place anchor, `Spot` as the user-owned fishing area, and `Trip` as the outing context with explicit fallback rules. Waterbody creation is now MapKit search-first with immediate private/custom fallback, spot creation is pin-first, and the trip summary flow can offer "create spot from this trip" when a finished trip has a usable saved location but no saved spot yet.
+
 ## Core Screens
 
 ### Home
@@ -94,6 +98,13 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 - app captures a condition snapshot when possible
 - trip can start without network connectivity
 - target species and notes may remain available behind collapsed optional details
+- waterbody selection may use Apple MapKit search-first entry, but private/custom water creation must remain available immediately when search is unavailable or not a fit
+- trip location fallback order must be:
+  1. directly observed trip/device coordinate
+  2. selected spot coordinate
+  3. canonical waterbody coordinate
+  4. no coordinate shown
+- main trip-adjacent UI should use `At` for directly recorded trip coordinates and `Near` for inherited spot or waterbody fallback
 
 ### Catch Logging
 
@@ -112,6 +123,7 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 
 - user can see trip count, catch count, recent catches, successful lures, and simple condition evidence
 - summaries are derived from personal data only
+- spot precision remains user-owned and should come from a saved spot pin, not from inferred catch-level precision
 
 ### Spot Recall Summary
 
@@ -138,13 +150,16 @@ This pass expands the MVP slightly, but only in ways that strengthen private mem
 - condition capture enriches with live weather via WeatherKit when online; degrades gracefully when offline
 - sync is not required for MVP readiness
 - share-card generation should work from local data once the user has already logged the catch
+- MapKit-backed water search is an enhancement, not a requirement; private/custom water and spot creation must still work when the network is unavailable
 
 ## Current State
 
 - spot-detail recall is coherent enough for the current MVP slice
 - Spot DNA is deferred
 - pattern replay is deferred; "last time here" is now in MVP as a deterministic spot-recall card (see Added to MVP 2026-04-10)
-- further recall or logging redesign is not currently approved
+- the layered location model is now approved and in-flight for MVP delivery
+- waterbody entry is search-first with private/custom fallback
+- spot creation is pin-first and may be created from a finished trip when that improves future recall
 
 ## Photo Handling
 
