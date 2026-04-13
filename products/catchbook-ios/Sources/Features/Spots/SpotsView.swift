@@ -230,6 +230,10 @@ struct SpotDetailView: View {
         Self.lastTimeHereCard(for: spot, trips: trips, catches: catches)
     }
 
+    private var catchMapMarkers: [CatchMapMarker] {
+        TripBrowseLogic.catchMapMarkers(for: catchesHere)
+    }
+
     var body: some View {
         List {
             // Overview
@@ -258,6 +262,17 @@ struct SpotDetailView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .listRowBackground(Color.clear)
+            }
+
+            if !catchMapMarkers.isEmpty {
+                Section("Map") {
+                    CatchMapSection(
+                        markers: catchMapMarkers,
+                        fallbackCoordinate: coordinateIfPresent(latitude: spot.latitude, longitude: spot.longitude),
+                        footerText: "Catch markers only appear when the linked trip has a saved observed or fallback location."
+                    )
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                }
             }
 
             if let lastTimeHereCard {

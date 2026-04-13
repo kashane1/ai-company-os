@@ -3,6 +3,7 @@ import MapKit
 import SwiftUI
 
 struct CatchbookMapView<Item: Identifiable, AnnotationContent: View, OverlayContent: View>: View {
+    @AppStorage(CatchbookMapStyle.appStorageKey) private var storedMapStyle = CatchbookMapStyle.standard.rawValue
     @Binding private var position: MapCameraPosition
 
     private let entries: [Entry<Item>]
@@ -33,9 +34,27 @@ struct CatchbookMapView<Item: Identifiable, AnnotationContent: View, OverlayCont
                 }
             }
         }
+        .mapStyle(selectedMapStyle.mapStyle)
+        .overlay(alignment: .topTrailing) {
+            Button {
+                storedMapStyle = selectedMapStyle.next.rawValue
+            } label: {
+                Image(systemName: selectedMapStyle.iconName)
+                    .font(.headline)
+                    .foregroundStyle(Color.catchbookText)
+                    .padding(10)
+                    .background(.regularMaterial, in: Circle())
+            }
+            .padding(Spacing.md)
+            .accessibilityLabel(selectedMapStyle.accessibilityLabel)
+        }
         .overlay(alignment: .center) {
             overlayContent
         }
+    }
+
+    private var selectedMapStyle: CatchbookMapStyle {
+        CatchbookMapStyle(rawValue: storedMapStyle) ?? .standard
     }
 }
 

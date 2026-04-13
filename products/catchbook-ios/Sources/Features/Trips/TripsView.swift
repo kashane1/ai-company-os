@@ -18,6 +18,12 @@ private enum TripHistoryMode: String, CaseIterable, Identifiable {
     }
 }
 
+private enum TripsBrowseRoute: Hashable {
+    case calendar
+    case calendarDay(Date)
+    case gallery
+}
+
 struct TripsView: View {
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
@@ -164,29 +170,25 @@ struct TripsView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            content
+            navigationContent
+        }
+        .sheet(item: $selectedWaterbodySummary) { summary in
+            WaterbodySummarySheet(summary: summary)
+                .presentationDetents([.medium, .large])
+        }
+    }
+
+    private var navigationContent: some View {
+        content
             .navigationTitle("Trips")
             .navigationDestination(for: UUID.self) { tripID in
                 TripDestinationContent(trips: trips, tripID: tripID)
             }
+            .navigationDestination(for: TripsBrowseRoute.self) { route in
+                browseDestination(for: route)
+            }
             .toolbar {
-                if shouldShowMapToggle {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            showsMap.toggle()
-                            if showsMap {
-                                refreshMapRegion()
-                            }
-                        } label: {
-                            Label(
-                                showsMap ? "Show list" : "Show map",
-                                systemImage: showsMap ? "list.bullet" : "map"
-                            )
-                            .labelStyle(.iconOnly)
-                        }
-                        .accessibilityLabel(showsMap ? "Show list" : "Show map")
-                    }
-                }
+                tripsToolbarContent
             }
             .onAppear {
                 openPendingTripIfPossible()
@@ -208,10 +210,38 @@ struct TripsView: View {
             .onChange(of: spots.map(\.id)) { _, _ in
                 refreshMapRegion()
             }
+    }
+
+    @ViewBuilder
+    private func browseDestination(for route: TripsBrowseRoute) -> some View {
+        switch route {
+        case .calendar:
+            TripsCalendarView(trips: trips, catches: catches)
+        case let .calendarDay(date):
+            TripsCalendarDayView(date: date, trips: trips, catches: catches)
+        case .gallery:
+            CatchGalleryView(catches: catches, trips: trips)
         }
-        .sheet(item: $selectedWaterbodySummary) { summary in
-            WaterbodySummarySheet(summary: summary)
-                .presentationDetents([.medium, .large])
+    }
+
+    @ToolbarContentBuilder
+    private var tripsToolbarContent: some ToolbarContent {
+        if shouldShowMapToggle {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showsMap.toggle()
+                    if showsMap {
+                        refreshMapRegion()
+                    }
+                } label: {
+                    Label(
+                        showsMap ? "Show list" : "Show map",
+                        systemImage: showsMap ? "list.bullet" : "map"
+                    )
+                    .labelStyle(.iconOnly)
+                }
+                .accessibilityLabel(showsMap ? "Show list" : "Show map")
+            }
         }
     }
 
@@ -284,10 +314,17 @@ struct TripsView: View {
 private struct TripDestinationContent: View {
     let trips: [Trip]
     let tripID: UUID
+    let initialCatchID: UUID?
+
+    init(trips: [Trip], tripID: UUID, initialCatchID: UUID? = nil) {
+        self.trips = trips
+        self.tripID = tripID
+        self.initialCatchID = initialCatchID
+    }
 
     var body: some View {
         if let trip = trips.first(where: { $0.id == tripID }) {
-            TripDetailView(trip: trip)
+            TripDetailView(trip: trip, initialCatchID: initialCatchID)
         } else {
             ContentUnavailableView("Trip not found", systemImage: "exclamationmark.triangle")
         }
@@ -326,11 +363,32 @@ private struct TripsListContent: View {
                 }
                 .pickerStyle(.segmented)
             }
+            browseSection
             filtersSection
             if snapshot.historyMode == .trips {
                 tripContent
             } else {
                 catchContent
+            }
+        }
+    }
+
+    private var browseSection: some View {
+        Section("Browse") {
+            NavigationLink(value: TripsBrowseRoute.calendar) {
+                TripsBrowseRow(
+                    title: "Calendar",
+                    subtitle: "See which days you fished and jump straight into that day's trips.",
+                    systemImage: "calendar"
+                )
+            }
+
+            NavigationLink(value: TripsBrowseRoute.gallery) {
+                TripsBrowseRow(
+                    title: "Photo Gallery",
+                    subtitle: "Browse every catch photo as a private trophy wall and open the linked catch.",
+                    systemImage: "photo.on.rectangle.angled"
+                )
             }
         }
     }
@@ -435,6 +493,27 @@ private struct TripsListContent: View {
                 Text("Searches species, lure, notes, method, waterbody, and spot names.")
             }
         }
+    }
+}
+
+private struct TripsBrowseRow: View {
+    let title: String
+    let subtitle: String
+    let systemImage: String
+
+    var body: some View {
+        LabeledContent {
+            Image(systemName: systemImage)
+                .foregroundStyle(.appAccent)
+        } label: {
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                Text(title)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, Spacing.xxs)
     }
 }
 
@@ -681,12 +760,417 @@ private struct TripHistorySectionHeader: View {
     }
 }
 
+private struct TripsCalendarView: View {
+    let trips: [Trip]
+    let catches: [CatchRecord]
+
+    @State private var displayedMonth: Date
+    private let calendar: Calendar
+
+    init(trips: [Trip], catches: [CatchRecord], calendar: Calendar = .current) {
+        self.trips = trips
+        self.catches = catches
+        self.calendar = calendar
+        let anchorDate = trips.map(\.startAt).max() ?? .now
+        _displayedMonth = State(initialValue: calendar.dateInterval(of: .month, for: anchorDate)?.start ?? anchorDate)
+    }
+
+    private var daySummaries: [TripCalendarDaySummary] {
+        TripBrowseLogic.calendarDaySummaries(trips: trips, catches: catches, calendar: calendar)
+    }
+
+    private var gridCells: [TripCalendarGridCell] {
+        TripBrowseLogic.monthGrid(displayedMonth: displayedMonth, daySummaries: daySummaries, calendar: calendar)
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                HStack {
+                    Button {
+                        shiftMonth(by: -1)
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.headline)
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    Text(TripBrowseLogic.monthTitle(for: displayedMonth, calendar: calendar))
+                        .font(.title3.weight(.semibold))
+
+                    Spacer()
+
+                    Button {
+                        shiftMonth(by: 1)
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .font(.headline)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Spacing.sm), count: 7), spacing: Spacing.sm) {
+                    ForEach(calendar.veryShortWeekdaySymbols, id: \.self) { symbol in
+                        Text(symbol.uppercased())
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.tertiary)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    ForEach(gridCells) { cell in
+                        TripsCalendarDayCell(cell: cell, calendar: calendar)
+                    }
+                }
+
+                if let monthCatchCount = monthCatchCount {
+                    Text("\(monthCatchCount) catches logged this month.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(Spacing.lg)
+        }
+        .navigationTitle("Calendar")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var monthCatchCount: Int? {
+        let monthSummaries = daySummaries.filter { summary in
+            calendar.isDate(summary.date, equalTo: displayedMonth, toGranularity: .month)
+        }
+        guard !monthSummaries.isEmpty else { return nil }
+        return monthSummaries.reduce(0) { $0 + $1.catchCount }
+    }
+
+    private func shiftMonth(by offset: Int) {
+        guard let nextMonth = calendar.date(byAdding: .month, value: offset, to: displayedMonth) else { return }
+        displayedMonth = calendar.dateInterval(of: .month, for: nextMonth)?.start ?? nextMonth
+    }
+}
+
+private struct TripsCalendarDayCell: View {
+    let cell: TripCalendarGridCell
+    let calendar: Calendar
+
+    var body: some View {
+        Group {
+            if let date = cell.date, cell.isWithinDisplayedMonth {
+                if cell.summary != nil {
+                    NavigationLink(value: TripsBrowseRoute.calendarDay(date)) {
+                        dayCellContent
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    dayCellContent
+                }
+            } else {
+                Color.clear
+                    .frame(height: 52)
+            }
+        }
+    }
+
+    private var dayCellContent: some View {
+        VStack(spacing: Spacing.xxs) {
+            Text(dayNumber)
+                .font(.subheadline.weight(cell.summary == nil ? .regular : .semibold))
+                .foregroundStyle(cell.summary == nil ? .secondary : .primary)
+
+            HStack(spacing: 3) {
+                ForEach(0..<dotCount, id: \.self) { _ in
+                    Circle()
+                        .fill(Color.appAccent)
+                        .frame(width: 5, height: 5)
+                }
+            }
+            .frame(height: 6)
+        }
+        .frame(maxWidth: .infinity, minHeight: 52)
+        .padding(.vertical, Spacing.xs)
+        .background(cell.summary == nil ? Color(.secondarySystemBackground) : Color.appAccent.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var dayNumber: String {
+        guard let date = cell.date else { return "" }
+        return "\(calendar.component(.day, from: date))"
+    }
+
+    private var dotCount: Int {
+        guard let summary = cell.summary else { return 0 }
+        switch summary.catchCount {
+        case 1: return 1
+        case 2...3: return 2
+        default: return 3
+        }
+    }
+}
+
+private struct TripsCalendarDayView: View {
+    let date: Date
+    let trips: [Trip]
+    let catches: [CatchRecord]
+    private let calendar: Calendar
+
+    init(date: Date, trips: [Trip], catches: [CatchRecord], calendar: Calendar = .current) {
+        self.date = calendar.startOfDay(for: date)
+        self.trips = trips
+        self.catches = catches
+        self.calendar = calendar
+    }
+
+    private var dayTrips: [Trip] {
+        trips
+            .filter { calendar.isDate($0.startAt, inSameDayAs: date) }
+            .sorted { $0.startAt > $1.startAt }
+    }
+
+    private var dayCatches: [CatchRecord] {
+        catches
+            .filter { catchRecord in
+                guard let tripStart = catchRecord.trip?.startAt else { return false }
+                return calendar.isDate(tripStart, inSameDayAs: date)
+            }
+            .sorted { $0.caughtAt > $1.caughtAt }
+    }
+
+    var body: some View {
+        List {
+            Section {
+                HStack(spacing: Spacing.lg) {
+                    StatCapsule(value: "\(dayTrips.count)", label: dayTrips.count == 1 ? "Trip" : "Trips", icon: "water.waves")
+                    StatCapsule(value: "\(dayCatches.count)", label: dayCatches.count == 1 ? "Catch" : "Catches", icon: "fish")
+                    StatCapsule(
+                        value: "\(dayCatches.reduce(0) { $0 + $1.photoCount })",
+                        label: "Photos",
+                        icon: "photo"
+                    )
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.sm)
+                .listRowBackground(Color.clear)
+            }
+
+            Section("Trips") {
+                if dayTrips.isEmpty {
+                    SectionEmptyState(
+                        icon: "calendar.badge.exclamationmark",
+                        title: "No trips that day",
+                        subtitle: "This date is in view, but nothing in your saved history landed on it."
+                    )
+                } else {
+                    ForEach(dayTrips, id: \.id) { trip in
+                        NavigationLink(value: trip.id) {
+                            TripRow(
+                                trip: trip,
+                                catchCount: dayCatches.filter { $0.trip?.id == trip.id }.count,
+                                catches: dayCatches.filter { $0.trip?.id == trip.id },
+                                showSpotTitle: trip.spot == nil
+                            )
+                        }
+                    }
+                }
+            }
+
+            Section("Catches") {
+                if dayCatches.isEmpty {
+                    SectionEmptyState(
+                        icon: "fish",
+                        title: "No catches that day",
+                        subtitle: "Your day-level recall will fill in here whenever you log fish on that date."
+                    )
+                } else {
+                    ForEach(dayCatches, id: \.id) { catchRecord in
+                        if let trip = catchRecord.trip {
+                            NavigationLink {
+                                TripDetailView(trip: trip, initialCatchID: catchRecord.id)
+                            } label: {
+                                CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
+                            }
+                        } else {
+                            CatchHistoryRow(catchRecord: catchRecord, includeTimestamp: true)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle(TripBrowseLogic.dayLabel(for: date, calendar: calendar))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct CatchGalleryView: View {
+    let catches: [CatchRecord]
+    let trips: [Trip]
+
+    private var items: [CatchGalleryItem] {
+        TripBrowseLogic.catchGalleryItems(catches: catches)
+    }
+
+    private let columns = [
+        GridItem(.flexible(), spacing: Spacing.md),
+        GridItem(.flexible(), spacing: Spacing.md),
+    ]
+
+    var body: some View {
+        ScrollView {
+            if items.isEmpty {
+                SectionEmptyState(
+                    icon: "photo.on.rectangle.angled",
+                    title: "No catch photos yet",
+                    subtitle: "Every photo you save to a catch will appear here as a private trophy wall."
+                )
+                .padding(Spacing.xl)
+            } else {
+                LazyVGrid(columns: columns, spacing: Spacing.md) {
+                    ForEach(items) { item in
+                        if let tripID = item.tripID {
+                            NavigationLink {
+                                TripDestinationContent(trips: trips, tripID: tripID, initialCatchID: item.catchID)
+                            } label: {
+                                CatchGalleryCard(item: item)
+                            }
+                            .buttonStyle(.plain)
+                        } else {
+                            CatchGalleryCard(item: item)
+                        }
+                    }
+                }
+                .padding(Spacing.lg)
+            }
+        }
+        .navigationTitle("Photo Gallery")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct CatchGalleryCard: View {
+    let item: CatchGalleryItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            if let image = UIImage(data: item.imageData) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 160)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            } else {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.secondarySystemBackground))
+                    .frame(height: 160)
+                    .overlay {
+                        Image(systemName: "photo")
+                            .foregroundStyle(.secondary)
+                    }
+            }
+
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                Text(item.speciesName)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+
+                Text(item.spotTitle ?? item.tripTitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
+                Text(AppFormatters.tripDate.string(from: item.caughtAt))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+
+                if item.photoCount > 1 {
+                    Text("Photo \(item.photoIndex + 1) of \(item.photoCount)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+    }
+}
+
+struct CatchMapSection: View {
+    let markers: [CatchMapMarker]
+    let fallbackCoordinate: CLLocationCoordinate2D?
+    let footerText: String
+
+    @State private var position: MapCameraPosition
+
+    init(markers: [CatchMapMarker], fallbackCoordinate: CLLocationCoordinate2D?, footerText: String) {
+        self.markers = markers
+        self.fallbackCoordinate = fallbackCoordinate
+        self.footerText = footerText
+        _position = State(initialValue: .region(TripBrowseLogic.mapRegion(for: markers, fallbackCoordinate: fallbackCoordinate)))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            CatchbookMapView(
+                items: markers,
+                position: $position,
+                coordinate: \.coordinate
+            ) { marker in
+                CatchMapAnnotation(marker: marker)
+            }
+            .frame(height: 220)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+
+            Text(footerText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .onChange(of: markers.map(\.id)) { _, _ in
+            position = .region(TripBrowseLogic.mapRegion(for: markers, fallbackCoordinate: fallbackCoordinate))
+        }
+    }
+}
+
+private struct CatchMapAnnotation: View {
+    let marker: CatchMapMarker
+
+    private var title: String {
+        marker.catchCount == 1 ? "1 catch" : "\(marker.catchCount) catches"
+    }
+
+    var body: some View {
+        VStack(spacing: Spacing.xxs) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: "fish.fill")
+                Text(title)
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.white)
+
+            if let speciesText = marker.speciesText {
+                Text(speciesText)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .lineLimit(1)
+            }
+
+            if let confidenceLabel = marker.confidenceLabel {
+                Text(confidenceLabel)
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
+        .background(Color.appAccent, in: Capsule())
+        .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
+    }
+}
+
 // MARK: - Trip Detail
 
 private enum TripDetailSheet: Identifiable {
     case editTrip
     case newCatch
     case editCatch(UUID)
+    case duplicateCatch(UUID)
 
     var id: String {
         switch self {
@@ -696,6 +1180,8 @@ private enum TripDetailSheet: Identifiable {
             return "new-catch"
         case let .editCatch(id):
             return "edit-catch-\(id.uuidString)"
+        case let .duplicateCatch(id):
+            return "duplicate-catch-\(id.uuidString)"
         }
     }
 }
@@ -704,12 +1190,19 @@ struct TripDetailView: View {
     @Environment(\.modelContext) private var modelContext
 
     let trip: Trip
+    let initialCatchID: UUID?
 
     @Query(sort: \Trip.startAt, order: .reverse) private var allTrips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
     @State private var activeSheet: TripDetailSheet?
     @State private var shareImage: UIImage?
     @State private var showingShareSheet = false
+    @State private var openedInitialCatch = false
+
+    init(trip: Trip, initialCatchID: UUID? = nil) {
+        self.trip = trip
+        self.initialCatchID = initialCatchID
+    }
 
     private var catches: [CatchRecord] {
         allCatches.filter { $0.trip?.id == trip.id }
@@ -737,6 +1230,14 @@ struct TripDetailView: View {
         )
     }
 
+    private var catchMapMarkers: [CatchMapMarker] {
+        TripBrowseLogic.catchMapMarkers(for: catches)
+    }
+
+    private var shouldShowMapSection: Bool {
+        !catchMapMarkers.isEmpty
+    }
+
     var body: some View {
         List {
             Section {
@@ -757,6 +1258,17 @@ struct TripDetailView: View {
                 Text("Trip Recall")
             } footer: {
                 Text("This recap only uses the trip you saved here.")
+            }
+
+            if shouldShowMapSection {
+                Section("Map") {
+                    CatchMapSection(
+                        markers: catchMapMarkers,
+                        fallbackCoordinate: trip.resolvedCoordinate,
+                        footerText: "Catch markers only appear when this trip has a saved observed or fallback location."
+                    )
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                }
             }
 
             if let spot = trip.spot {
@@ -888,6 +1400,12 @@ struct TripDetailView: View {
                         .buttonStyle(.plain)
                         .contextMenu {
                             Button {
+                                activeSheet = .duplicateCatch(catchRecord.id)
+                            } label: {
+                                Label("Duplicate Catch", systemImage: "plus.square.on.square")
+                            }
+
+                            Button {
                                 shareCatch(catchRecord)
                             } label: {
                                 Label("Share Catch", systemImage: "square.and.arrow.up")
@@ -943,12 +1461,23 @@ struct TripDetailView: View {
                 } else {
                     ContentUnavailableView("Catch not found", systemImage: "exclamationmark.triangle")
                 }
+            case let .duplicateCatch(catchID):
+                if let catchRecord = catches.first(where: { $0.id == catchID }) {
+                    CatchEditorView(trip: trip, duplicateSource: catchRecord)
+                } else {
+                    ContentUnavailableView("Catch not found", systemImage: "exclamationmark.triangle")
+                }
             }
         }
         .sheet(isPresented: $showingShareSheet) {
             if let shareImage {
                 ActivityShareSheet(activityItems: [shareImage])
             }
+        }
+        .onAppear {
+            guard !openedInitialCatch, let initialCatchID, catches.contains(where: { $0.id == initialCatchID }) else { return }
+            activeSheet = .editCatch(initialCatchID)
+            openedInitialCatch = true
         }
     }
 
@@ -1321,9 +1850,12 @@ private struct TripEditorView: View {
 struct CatchEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
+    @Query(sort: \Spot.createdAt) private var spots: [Spot]
 
     let trip: Trip
     let catchRecord: CatchRecord?
+    let duplicateSource: CatchRecord?
 
     @State private var species: String
     @State private var caughtAt: Date
@@ -1336,6 +1868,8 @@ struct CatchEditorView: View {
     @State private var disposition: CatchDisposition
     @State private var photos: [CatchPhotoDraft]
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var photoLocationSuggestion: CatchPhotoLocationSuggestion?
+    @State private var pendingMatchedSpotID: UUID?
     @State private var showingCamera = false
     @State private var showingDeleteConfirmation = false
     @State private var shareImage: UIImage?
@@ -1343,27 +1877,92 @@ struct CatchEditorView: View {
     @State private var persistenceErrorMessage: String?
     @FocusState private var isTextInputFocused: Bool
 
-    init(trip: Trip, catchRecord: CatchRecord? = nil) {
+    init(trip: Trip, catchRecord: CatchRecord? = nil, duplicateSource: CatchRecord? = nil) {
         self.trip = trip
         self.catchRecord = catchRecord
-        _species = State(initialValue: catchRecord?.species ?? "")
-        _caughtAt = State(initialValue: catchRecord?.caughtAt ?? trip.endAt ?? Date())
-        _lureOrBait = State(initialValue: catchRecord?.lureOrBait ?? "")
-        _method = State(initialValue: catchRecord?.method ?? "")
-        _weight = State(initialValue: catchRecord?.weightKg.map { String($0) } ?? "")
-        _length = State(initialValue: catchRecord?.lengthCm.map { String($0) } ?? "")
-        _waterDepth = State(initialValue: catchRecord?.waterDepthM.map { String($0) } ?? "")
-        _note = State(initialValue: catchRecord?.note ?? "")
-        _disposition = State(initialValue: catchRecord?.disposition ?? .notRecorded)
-        _photos = State(initialValue: CatchPhotoMigrationService.drafts(for: catchRecord))
+        self.duplicateSource = duplicateSource
+
+        let seed: CatchEditorSeed
+        if let catchRecord {
+            seed = CatchEditorSeed(
+                species: catchRecord.species,
+                caughtAt: catchRecord.caughtAt,
+                lureOrBait: catchRecord.lureOrBait,
+                method: catchRecord.method,
+                weight: catchRecord.weightKg.map { "\($0)" } ?? "",
+                length: catchRecord.lengthCm.map { "\($0)" } ?? "",
+                waterDepth: catchRecord.waterDepthM.map { "\($0)" } ?? "",
+                note: catchRecord.note,
+                disposition: catchRecord.disposition
+            )
+        } else if let duplicateSource {
+            seed = TripEditingLogic.duplicateCatchSeed(from: duplicateSource)
+        } else {
+            seed = CatchEditorSeed(
+                species: "",
+                caughtAt: trip.endAt ?? Date(),
+                lureOrBait: "",
+                method: "",
+                weight: "",
+                length: "",
+                waterDepth: "",
+                note: "",
+                disposition: .notRecorded
+            )
+        }
+
+        _species = State(initialValue: seed.species)
+        _caughtAt = State(initialValue: seed.caughtAt)
+        _lureOrBait = State(initialValue: seed.lureOrBait)
+        _method = State(initialValue: seed.method)
+        _weight = State(initialValue: seed.weight)
+        _length = State(initialValue: seed.length)
+        _waterDepth = State(initialValue: seed.waterDepth)
+        _note = State(initialValue: seed.note)
+        _disposition = State(initialValue: seed.disposition)
+        _photos = State(initialValue: CatchPhotoMigrationService.drafts(for: catchRecord ?? duplicateSource))
     }
 
     private var canUseCamera: Bool {
         UIImagePickerController.isSourceTypeAvailable(.camera)
     }
 
+    private var catchesForSpot: [CatchRecord] {
+        guard let spotID = trip.spot?.id else { return [] }
+        return allCatches.filter { $0.trip?.spot?.id == spotID }
+    }
+
+    private var catchesForWaterbody: [CatchRecord] {
+        guard let waterbodyID = trip.waterbody?.id else { return [] }
+        return allCatches.filter { $0.trip?.waterbody?.id == waterbodyID }
+    }
+
+    private var speciesSuggestions: [String] {
+        LogFeatureLogic.historySuggestions(
+            query: species,
+            spotValues: catchesForSpot.map(\.species),
+            waterbodyValues: catchesForWaterbody.map(\.species),
+            globalValues: allCatches.map(\.species)
+        )
+    }
+
+    private var lureSuggestions: [String] {
+        LogFeatureLogic.historySuggestions(
+            query: lureOrBait,
+            spotValues: catchesForSpot.map(\.lureOrBait),
+            waterbodyValues: catchesForWaterbody.map(\.lureOrBait),
+            globalValues: allCatches.map(\.lureOrBait)
+        )
+    }
+
     private var sheetTitle: String {
-        catchRecord == nil ? "Add Catch" : "Edit Catch"
+        if catchRecord != nil {
+            return "Edit Catch"
+        }
+        if duplicateSource != nil {
+            return "Duplicate Catch"
+        }
+        return "Add Catch"
     }
 
     @ViewBuilder
@@ -1372,10 +1971,20 @@ struct CatchEditorView: View {
             TextField("Species (optional)", text: $species)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+            if !speciesSuggestions.isEmpty {
+                SuggestionRow(label: "Species", values: speciesSuggestions) { value in
+                    species = value
+                }
+            }
             DatePicker("Caught at", selection: $caughtAt)
             TextField("Lure or bait", text: $lureOrBait)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+            if !lureSuggestions.isEmpty {
+                SuggestionRow(label: "Lure", values: lureSuggestions) { value in
+                    lureOrBait = value
+                }
+            }
             TextField("Method", text: $method)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
@@ -1406,6 +2015,8 @@ struct CatchEditorView: View {
                 CatchPhotoDraftStripView(photos: photos) { id in
                     photos.removeAll { $0.id == id }
                     if photos.isEmpty {
+                        photoLocationSuggestion = nil
+                        pendingMatchedSpotID = nil
                         selectedPhotoItem = nil
                     }
                 }
@@ -1428,7 +2039,18 @@ struct CatchEditorView: View {
         } header: {
             Text("Photos")
         } footer: {
-            Text("Up to 4 photos. You can still save this catch without any photos.")
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("Up to 4 photos. You can still save this catch without any photos.")
+                if let photoLocationSuggestion {
+                    PhotoSpotSuggestionCard(
+                        suggestion: photoLocationSuggestion,
+                        currentSpotID: trip.spot?.id,
+                        pendingSpotID: pendingMatchedSpotID
+                    ) { spotID in
+                        pendingMatchedSpotID = spotID
+                    }
+                }
+            }
         }
     }
 
@@ -1541,6 +2163,10 @@ struct CatchEditorView: View {
         record.disposition = draft.disposition
         record.photoReference = draft.photoReference
         record.photoContentType = draft.photoContentType
+        if let pendingMatchedSpotID,
+           let matchedSpot = spots.first(where: { $0.id == pendingMatchedSpotID }) {
+            TripEditingLogic.applyMatchedSpot(matchedSpot, to: trip)
+        }
         CatchPhotoMigrationService.sync(record: record, drafts: photos, in: modelContext)
 
         persistCatchChanges {
@@ -1551,6 +2177,7 @@ struct CatchEditorView: View {
     private func appendPhoto(data: Data) {
         guard photos.count < 4 else { return }
         photos.append(CatchPhotoDraft(data: data))
+        updatePhotoLocationSuggestion(from: data)
     }
 
     private func deleteCatch() {
@@ -1582,6 +2209,20 @@ struct CatchEditorView: View {
         guard let image = CatchSharing.makeImage(for: catchRecord, in: modelContext) else { return }
         shareImage = image
         showingShareSheet = true
+    }
+
+    private func updatePhotoLocationSuggestion(from data: Data) {
+        guard let metadata = CatchPhotoMetadataService.metadata(from: data),
+              let coordinate = metadata.coordinate else {
+            photoLocationSuggestion = nil
+            pendingMatchedSpotID = nil
+            return
+        }
+
+        photoLocationSuggestion = CatchPhotoLocationSuggestion(
+            coordinate: coordinate,
+            matches: CatchPhotoMetadataService.nearbySpotMatches(for: coordinate, spots: spots)
+        )
     }
 }
 

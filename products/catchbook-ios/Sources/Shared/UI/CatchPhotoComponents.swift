@@ -1,4 +1,7 @@
+import CoreLocation
+import ImageIO
 import SwiftUI
+import UniformTypeIdentifiers
 import UIKit
 
 struct CatchPhotoThumbnailView: View {
@@ -88,12 +91,104 @@ struct CameraCaptureView: UIViewControllerRepresentable {
             _ picker: UIImagePickerController,
             didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
         ) {
-            guard let image = info[.originalImage] as? UIImage,
-                  let data = image.jpegData(compressionQuality: 0.9) else {
+            guard let image = info[.originalImage] as? UIImage else {
+                onCancel()
+                return
+            }
+            let metadata = info[.mediaMetadata] as? [String: Any]
+            guard let data = jpegData(for: image, metadata: metadata) else {
                 onCancel()
                 return
             }
             onCapture(data)
+        }
+
+        private func jpegData(for image: UIImage, metadata: [String: Any]?) -> Data? {
+            guard let cgImage = image.cgImage else {
+                return image.jpegData(compressionQuality: 0.9)
+            }
+
+            let data = NSMutableData()
+            guard let destination = CGImageDestinationCreateWithData(
+                data,
+                UTType.jpeg.identifier as CFString,
+                1,
+                nil
+            ) else {
+                return image.jpegData(compressionQuality: 0.9)
+            }
+
+            CGImageDestinationAddImage(destination, cgImage, metadata as CFDictionary?)
+            guard CGImageDestinationFinalize(destination) else {
+                return image.jpegData(compressionQuality: 0.9)
+            }
+
+            return data as Data
+        }
+    }
+}
+
+struct PhotoSpotSuggestionCard: View {
+    let suggestion: CatchPhotoLocationSuggestion
+    let currentSpotID: UUID?
+    let pendingSpotID: UUID?
+    let onUseSpot: (UUID) -> Void
+
+    private var activeSpotID: UUID? {
+        pendingSpotID ?? currentSpotID
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            if suggestion.matches.isEmpty {
+                Label("Photo includes location data, but no saved spot matched nearby.", systemImage: "location.magnifyingglass")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if suggestion.matches.count == 1, let match = suggestion.matches.first {
+                if activeSpotID == match.spotID {
+                    Label("Photo location matches \(match.title).", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.appAccent)
+                } else {
+                    Text("Photo location is near \(match.title).")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Button {
+                        onUseSpot(match.spotID)
+                    } label: {
+                        Label("Use \(match.title) for This Trip", systemImage: "mappin.circle")
+                            .font(.footnote.weight(.medium))
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.appAccent)
+                }
+            } else {
+                Text("Photo location is near saved spots.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Spacing.sm) {
+                        ForEach(suggestion.matches) { match in
+                            Button {
+                                onUseSpot(match.spotID)
+                            } label: {
+                                Text(match.title)
+                                    .font(.footnote.weight(activeSpotID == match.spotID ? .semibold : .medium))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .frame(minHeight: 44)
+                                    .background(
+                                        activeSpotID == match.spotID ? Color.appAccent.opacity(0.16) : Color(.tertiarySystemFill),
+                                        in: Capsule()
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
         }
     }
 }

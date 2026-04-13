@@ -105,6 +105,29 @@ final class LogFeatureLogicTests: XCTestCase {
         XCTAssertEqual(suggestions, ["Spinner", "Jerkbait"])
     }
 
+    func testHistorySuggestionsFilterTypedMatchesAcrossScopesAndSkipExactQuery() {
+        let suggestions = LogFeatureLogic.historySuggestions(
+            query: "bas",
+            prioritizedValues: ["Bass"],
+            spotValues: ["Spotted Bass"],
+            waterbodyValues: ["Smallmouth Bass"],
+            globalValues: ["Bass", "Striped Bass"]
+        )
+
+        XCTAssertEqual(suggestions, ["Bass", "Spotted Bass", "Smallmouth Bass", "Striped Bass"])
+    }
+
+    func testHistorySuggestionsDedupeCaseVariantsAndIgnoreWhitespace() {
+        let suggestions = LogFeatureLogic.historySuggestions(
+            query: "",
+            prioritizedValues: ["  Bass  "],
+            spotValues: ["bass"],
+            globalValues: ["", "BASS", "Trout"]
+        )
+
+        XCTAssertEqual(suggestions, ["Bass", "Trout"])
+    }
+
     func testPrimeDefaultsFillsOnlyEmptyFieldsAndRunsOnce() {
         let recentCatch = CatchRecord(species: "Bass", trip: nil, lureOrBait: "Spinner", method: "Slow roll")
 

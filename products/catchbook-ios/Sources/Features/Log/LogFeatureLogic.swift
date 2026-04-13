@@ -93,19 +93,12 @@ enum LogFeatureLogic {
         catches: [CatchRecord],
         limit: Int = 4
     ) -> [String] {
-        var suggestions: [String] = []
-        for target in targetSpeciesList {
-            guard !suggestions.contains(target) else { continue }
-            suggestions.append(target)
-            if suggestions.count == limit { return suggestions }
-        }
-        for catchRecord in catches {
-            let value = TripEditingLogic.normalizedText(catchRecord.species)
-            guard !value.isEmpty, !suggestions.contains(value) else { continue }
-            suggestions.append(value)
-            if suggestions.count == limit { break }
-        }
-        return suggestions
+        historySuggestions(
+            query: "",
+            prioritizedValues: targetSpeciesList,
+            globalValues: catches.map(\.species),
+            limit: limit
+        )
     }
 
     static func recentLureSuggestions(
@@ -113,13 +106,46 @@ enum LogFeatureLogic {
         allCatches: [CatchRecord],
         limit: Int = 4
     ) -> [String] {
+        historySuggestions(
+            query: "",
+            spotValues: catchesForSpot.map(\.lureOrBait),
+            globalValues: allCatches.map(\.lureOrBait),
+            limit: limit
+        )
+    }
+
+    static func historySuggestions(
+        query: String,
+        prioritizedValues: [String] = [],
+        spotValues: [String] = [],
+        waterbodyValues: [String] = [],
+        globalValues: [String] = [],
+        limit: Int = 4
+    ) -> [String] {
+        let normalizedQuery = normalizedSuggestionKey(query)
+        let skipExactMatch = !normalizedQuery.isEmpty
+
+        var seen: Set<String> = []
         var suggestions: [String] = []
-        for catchRecord in catchesForSpot + allCatches {
-            let value = TripEditingLogic.normalizedText(catchRecord.lureOrBait)
-            guard !value.isEmpty, !suggestions.contains(value) else { continue }
-            suggestions.append(value)
-            if suggestions.count == limit { break }
+
+        func append(values: [String]) {
+            for value in values {
+                let trimmed = TripEditingLogic.normalizedText(value)
+                let key = normalizedSuggestionKey(trimmed)
+                guard !trimmed.isEmpty, !seen.contains(key) else { continue }
+                if skipExactMatch && key == normalizedQuery { continue }
+                if !normalizedQuery.isEmpty && !key.contains(normalizedQuery) { continue }
+                seen.insert(key)
+                suggestions.append(trimmed)
+                if suggestions.count == limit { return }
+            }
         }
+
+        append(values: prioritizedValues)
+        if suggestions.count < limit { append(values: spotValues) }
+        if suggestions.count < limit { append(values: waterbodyValues) }
+        if suggestions.count < limit { append(values: globalValues) }
+
         return suggestions
     }
 
@@ -246,6 +272,10 @@ enum LogFeatureLogic {
     static func createSpotPrompt(for trip: Trip) -> String {
         let confidenceLead = trip.locationConfidenceLabel ?? "Near"
         return "\(confidenceLead) this saved trip location into a reusable spot for faster recall next time."
+    }
+
+    private static func normalizedSuggestionKey(_ value: String) -> String {
+        TripEditingLogic.normalizedText(value).folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
     }
 
     static func resetQuickCatchStateAfterSave(

@@ -25,6 +25,18 @@ struct CatchEditorDraft {
     let photoContentType: String?
 }
 
+struct CatchEditorSeed {
+    let species: String
+    let caughtAt: Date
+    let lureOrBait: String
+    let method: String
+    let weight: String
+    let length: String
+    let waterDepth: String
+    let note: String
+    let disposition: CatchDisposition
+}
+
 enum TripEditingLogic {
     static func filteredSpots(spots: [Spot], selectedWaterbodyID: UUID?) -> [Spot] {
         guard let selectedWaterbodyID else { return spots }
@@ -113,5 +125,29 @@ enum TripEditingLogic {
             photoReference: photoData == nil ? nil : "embedded-photo",
             photoContentType: photoData == nil ? nil : "image/jpeg"
         )
+    }
+
+    static func duplicateCatchSeed(
+        from catchRecord: CatchRecord,
+        duplicateTimestamp: Date = .now
+    ) -> CatchEditorSeed {
+        CatchEditorSeed(
+            species: catchRecord.species,
+            caughtAt: duplicateTimestamp,
+            lureOrBait: catchRecord.lureOrBait,
+            method: catchRecord.method,
+            weight: catchRecord.weightKg.map { "\($0)" } ?? "",
+            length: catchRecord.lengthCm.map { "\($0)" } ?? "",
+            waterDepth: catchRecord.waterDepthM.map { "\($0)" } ?? "",
+            note: catchRecord.note,
+            disposition: catchRecord.disposition
+        )
+    }
+
+    static func applyMatchedSpot(_ spot: Spot, to trip: Trip) {
+        trip.spot = spot
+        if let waterbody = spot.waterbody {
+            trip.waterbody = waterbody
+        }
     }
 }

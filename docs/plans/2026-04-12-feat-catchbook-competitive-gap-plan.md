@@ -24,6 +24,9 @@ feature that fits the current MVP boundaries:
 Source analysis:
 `docs/products/catchbook/competitive-deep-dive-2026-04-12.md`
 
+Implementation learning:
+`docs/solutions/integration-issues/catchbook-competitive-gap-rollout.md`
+
 This plan keeps Catchbook inside its current product stance:
 
 - private by default

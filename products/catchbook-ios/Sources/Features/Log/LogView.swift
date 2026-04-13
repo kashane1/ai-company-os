@@ -355,6 +355,7 @@ private struct ActiveTripView: View {
 
     @Query(sort: \Trip.startAt, order: .reverse) private var allTrips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var allCatches: [CatchRecord]
+    @Query(sort: \Spot.createdAt) private var spots: [Spot]
 
     @State private var species = ""
     @State private var lureOrBait = ""
@@ -371,6 +372,8 @@ private struct ActiveTripView: View {
     @State private var showingEndReview = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var photos: [CatchPhotoDraft] = []
+    @State private var photoLocationSuggestion: CatchPhotoLocationSuggestion?
+    @State private var pendingMatchedSpotID: UUID?
     @State private var showingCamera = false
     @State private var editingCatchID: UUID?
     @State private var persistenceErrorMessage: String?
@@ -385,20 +388,33 @@ private struct ActiveTripView: View {
         return allCatches.filter { $0.trip?.spot?.id == spotID }
     }
 
+    private var catchesForWaterbody: [CatchRecord] {
+        guard let waterbodyID = trip.waterbody?.id else { return [] }
+        return allCatches.filter { $0.trip?.waterbody?.id == waterbodyID }
+    }
+
     private var recallSummary: SpotRecallSummary? {
         guard let spot = trip.spot else { return nil }
         return SpotRecallSummary.build(for: spot, trips: allTrips, catches: allCatches)
     }
 
     private var recentSpeciesSuggestions: [String] {
-        LogFeatureLogic.recentSpeciesSuggestions(
-            targetSpeciesList: trip.targetSpeciesList,
-            catches: allCatches
+        LogFeatureLogic.historySuggestions(
+            query: species,
+            prioritizedValues: trip.targetSpeciesList,
+            spotValues: catchesForSpot.map(\.species),
+            waterbodyValues: catchesForWaterbody.map(\.species),
+            globalValues: allCatches.map(\.species)
         )
     }
 
     private var recentLureSuggestions: [String] {
-        LogFeatureLogic.recentLureSuggestions(catchesForSpot: catchesForSpot, allCatches: allCatches)
+        LogFeatureLogic.historySuggestions(
+            query: lureOrBait,
+            spotValues: catchesForSpot.map(\.lureOrBait),
+            waterbodyValues: catchesForWaterbody.map(\.lureOrBait),
+            globalValues: allCatches.map(\.lureOrBait)
+        )
     }
 
     private var quickCatchContext: QuickCatchContextSummary {
@@ -455,11 +471,11 @@ private struct ActiveTripView: View {
                         }
                     }
 
-                if !recentSpeciesSuggestions.isEmpty && species.isEmpty {
+                if !recentSpeciesSuggestions.isEmpty {
                     Text(
                         trip.targetSpeciesList.isEmpty
-                            ? "Recent species appear here as quick picks."
-                            : "Trip targets appear here as quick picks."
+                            ? (species.isEmpty ? "Recent species appear here as quick picks." : "Matching species from your log.")
+                            : (species.isEmpty ? "Trip targets appear here as quick picks." : "Matching species from this trip and your log.")
                     )
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -473,7 +489,7 @@ private struct ActiveTripView: View {
                     .textInputAutocapitalization(.words)
                     .focused($focusedField, equals: .lureOrBait)
 
-                if !recentLureSuggestions.isEmpty && lureOrBait.isEmpty {
+                if !recentLureSuggestions.isEmpty {
                     SuggestionRow(label: "Lure", values: recentLureSuggestions) { value in
                         lureOrBait = value
                     }
@@ -507,6 +523,8 @@ private struct ActiveTripView: View {
                             CatchPhotoDraftStripView(photos: photos) { id in
                                 photos.removeAll { $0.id == id }
                                 if photos.isEmpty {
+                                    photoLocationSuggestion = nil
+                                    pendingMatchedSpotID = nil
                                     selectedPhotoItem = nil
                                 }
                             }
@@ -533,6 +551,16 @@ private struct ActiveTripView: View {
                         Text("Up to 4 photos. If photo access is unavailable, you can still save the catch.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+
+                        if let photoLocationSuggestion {
+                            PhotoSpotSuggestionCard(
+                                suggestion: photoLocationSuggestion,
+                                currentSpotID: trip.spot?.id,
+                                pendingSpotID: pendingMatchedSpotID
+                            ) { spotID in
+                                pendingMatchedSpotID = spotID
+                            }
+                        }
                     }
                 }
 
@@ -694,6 +722,10 @@ private struct ActiveTripView: View {
         modelContext.insert(catchRecord)
         PersistenceWriteCoordinator.perform(
             commit: {
+                if let pendingMatchedSpotID,
+                   let matchedSpot = spots.first(where: { $0.id == pendingMatchedSpotID }) {
+                    TripEditingLogic.applyMatchedSpot(matchedSpot, to: trip)
+                }
                 CatchPhotoMigrationService.sync(record: catchRecord, drafts: photos, in: modelContext)
                 try PersonalBestService.refresh(with: catchRecord, in: modelContext)
                 try modelContext.save()
@@ -715,6 +747,8 @@ private struct ActiveTripView: View {
                 waterDepth = resetState.waterDepth
                 note = resetState.note
                 photos = []
+                photoLocationSuggestion = nil
+                pendingMatchedSpotID = nil
                 selectedPhotoItem = nil
                 showingOptionalFields = resetState.showingOptionalFields
                 if action == .saveAndAddAnother {
@@ -742,6 +776,7 @@ private struct ActiveTripView: View {
     private func appendPhoto(data: Data) {
         guard photos.count < 4 else { return }
         photos.append(CatchPhotoDraft(data: data))
+        updatePhotoLocationSuggestion(from: data)
     }
 
     private func endTrip() {
@@ -774,6 +809,20 @@ private struct ActiveTripView: View {
         didPrimeDefaults = defaults.didPrimeDefaults
         lureOrBait = defaults.lureOrBait
         method = defaults.method
+    }
+
+    private func updatePhotoLocationSuggestion(from data: Data) {
+        guard let metadata = CatchPhotoMetadataService.metadata(from: data),
+              let coordinate = metadata.coordinate else {
+            photoLocationSuggestion = nil
+            pendingMatchedSpotID = nil
+            return
+        }
+
+        photoLocationSuggestion = CatchPhotoLocationSuggestion(
+            coordinate: coordinate,
+            matches: CatchPhotoMetadataService.nearbySpotMatches(for: coordinate, spots: spots)
+        )
     }
 }
 
