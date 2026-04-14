@@ -43,20 +43,21 @@ struct SpotsView: View {
                             position: $mapCameraPosition,
                             onSpotTapped: { spot in
                                 selectedSpotForDetail = spot
+                            },
+                            onCameraChange: { center in
+                                mapCenter = center
                             }
                         )
 
                         if isAddSpotMode {
-                            // Crosshair overlay for pin placement
-                            VStack(spacing: Spacing.sm) {
-                                Image(systemName: "plus")
-                                    .font(.title2.weight(.medium))
-                                    .foregroundStyle(.appAccent)
-                                    .frame(width: 44, height: 44)
-                                    .background(.ultraThinMaterial, in: Circle())
-                                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-                            }
-                            .allowsHitTesting(false)
+                            // Minimal pin marker for placement — small and
+                            // semi-transparent so the map remains readable.
+                            // Anchored so the pin's tip sits on the map center.
+                            Image(systemName: "mappin")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.appAccent.opacity(0.55))
+                                .offset(y: -9)
+                                .allowsHitTesting(false)
 
                             VStack {
                                 Spacer()
@@ -69,7 +70,7 @@ struct SpotsView: View {
                                     Button {
                                         confirmAddSpot()
                                     } label: {
-                                        Label("Add Spot Here", systemImage: "mappin.badge.plus")
+                                        Label("Add Spot Here", systemImage: "mappin.and.ellipse")
                                     }
                                     .buttonStyle(.borderedProminent)
                                     .tint(.appAccent)
@@ -157,11 +158,17 @@ struct SpotsView: View {
     }
 
     private func confirmAddSpot() {
-        // Use the center of whatever region the map is currently showing.
-        // mapCameraPosition is an @State binding — its region center
-        // approximates where the crosshair is pointing.
-        let region = SpotPresentationLogic.mapRegion(for: spotsWithCoordinates)
-        addSpotCoordinate = mapCameraPosition.region?.center ?? region.center
+        // Prefer the live camera center tracked via onMapCameraChange.
+        // MapCameraPosition.region returns nil after user gestures, so it
+        // can't be relied on here — falling through to the default region
+        // center was the cause of spots stacking on the first one.
+        if let center = mapCenter {
+            addSpotCoordinate = center
+        } else if let region = mapCameraPosition.region {
+            addSpotCoordinate = region.center
+        } else {
+            addSpotCoordinate = SpotPresentationLogic.mapRegion(for: spotsWithCoordinates).center
+        }
         isAddSpotMode = false
     }
 }
@@ -229,12 +236,14 @@ private struct SpotsMapContent: View {
     let spots: [Spot]
     @Binding var position: MapCameraPosition
     var onSpotTapped: ((Spot) -> Void)?
+    var onCameraChange: ((CLLocationCoordinate2D) -> Void)?
 
     var body: some View {
         CatchbookMapView(
             items: spots,
             position: $position,
-            coordinate: Self.coordinate(for:)
+            coordinate: Self.coordinate(for:),
+            onCameraChange: onCameraChange
         ) { spot in
             Button {
                 onSpotTapped?(spot)
