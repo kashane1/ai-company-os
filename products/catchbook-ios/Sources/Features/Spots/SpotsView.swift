@@ -3,11 +3,17 @@ import SwiftData
 import SwiftUI
 
 struct SpotsView: View {
+    @Environment(AppRouter.self) private var router
     @Query(sort: \Spot.createdAt) private var spots: [Spot]
 
     @State private var showingSpotForm = false
-    @State private var showsMap = false
+    @State private var showsMap = true
     @State private var mapCameraPosition = MapCameraPosition.region(SpotPresentationLogic.mapRegion(for: []))
+    @State private var isAddSpotMode = false
+    @State private var selectedSpotForDetail: Spot?
+    @State private var addSpotCoordinate: CLLocationCoordinate2D?
+    @State private var showingNewSpotFromPin = false
+    @State private var mapCenter: CLLocationCoordinate2D?
 
     private var spotsWithCoordinates: [Spot] {
         SpotPresentationLogic.spotsWithCoordinates(from: spots)
@@ -31,10 +37,49 @@ struct SpotsView: View {
                         .tint(.appAccent)
                     }
                 } else if showsMap {
-                    SpotsMapContent(
-                        spots: spotsWithCoordinates,
-                        position: $mapCameraPosition
-                    )
+                    ZStack {
+                        SpotsMapContent(
+                            spots: spotsWithCoordinates,
+                            position: $mapCameraPosition,
+                            onSpotTapped: { spot in
+                                selectedSpotForDetail = spot
+                            }
+                        )
+
+                        if isAddSpotMode {
+                            // Crosshair overlay for pin placement
+                            VStack(spacing: Spacing.sm) {
+                                Image(systemName: "plus")
+                                    .font(.title2.weight(.medium))
+                                    .foregroundStyle(.appAccent)
+                                    .frame(width: 44, height: 44)
+                                    .background(.ultraThinMaterial, in: Circle())
+                                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                            }
+                            .allowsHitTesting(false)
+
+                            VStack {
+                                Spacer()
+                                HStack(spacing: Spacing.md) {
+                                    Button("Cancel") {
+                                        isAddSpotMode = false
+                                    }
+                                    .buttonStyle(.bordered)
+
+                                    Button {
+                                        confirmAddSpot()
+                                    } label: {
+                                        Label("Add Spot Here", systemImage: "mappin.badge.plus")
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.appAccent)
+                                }
+                                .padding()
+                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                                .padding()
+                            }
+                        }
+                    }
                 } else {
                     List {
                         ForEach(spots, id: \.id) { spot in
@@ -69,29 +114,55 @@ struct SpotsView: View {
 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingSpotForm = true
+                        if showsMap {
+                            isAddSpotMode.toggle()
+                        } else {
+                            showingSpotForm = true
+                        }
                     } label: {
-                        Label("Add spot", systemImage: "plus")
-                            .labelStyle(.iconOnly)
+                        Label(
+                            isAddSpotMode ? "Cancel" : "Add spot",
+                            systemImage: isAddSpotMode ? "xmark" : "plus"
+                        )
+                        .labelStyle(.iconOnly)
                     }
-                    .accessibilityLabel("Add spot")
+                    .accessibilityLabel(isAddSpotMode ? "Cancel add spot" : "Add spot")
                 }
             }
         }
-        .onAppear(perform: refreshMapRegion)
-        .onChange(of: spots.map(\.id)) { _, _ in
-            refreshMapRegion()
-        }
-        .onChange(of: spotsWithCoordinates.map(\.coordinateSummary)) { _, _ in
+        .task(id: spots.count) {
             refreshMapRegion()
         }
         .sheet(isPresented: $showingSpotForm) {
             NewSpotForm()
         }
+        .sheet(item: $selectedSpotForDetail) { spot in
+            SpotDetailView(spot: spot)
+                .presentationDetents([.medium, .large])
+        }
+        .onChange(of: addSpotCoordinate != nil) { _, hasCoordinate in
+            if hasCoordinate {
+                showingNewSpotFromPin = true
+            }
+        }
+        .sheet(isPresented: $showingNewSpotFromPin, onDismiss: {
+            addSpotCoordinate = nil
+        }) {
+            NewSpotForm(initialCoordinate: addSpotCoordinate)
+        }
     }
 
     private func refreshMapRegion() {
         mapCameraPosition = .region(SpotPresentationLogic.mapRegion(for: spotsWithCoordinates))
+    }
+
+    private func confirmAddSpot() {
+        // Use the center of whatever region the map is currently showing.
+        // mapCameraPosition is an @State binding — its region center
+        // approximates where the crosshair is pointing.
+        let region = SpotPresentationLogic.mapRegion(for: spotsWithCoordinates)
+        addSpotCoordinate = mapCameraPosition.region?.center ?? region.center
+        isAddSpotMode = false
     }
 }
 
@@ -152,6 +223,7 @@ private struct SpotMapAnnotation: View {
 private struct SpotsMapContent: View {
     let spots: [Spot]
     @Binding var position: MapCameraPosition
+    var onSpotTapped: ((Spot) -> Void)?
 
     var body: some View {
         CatchbookMapView(
@@ -159,8 +231,8 @@ private struct SpotsMapContent: View {
             position: $position,
             coordinate: Self.coordinate(for:)
         ) { spot in
-            NavigationLink {
-                SpotDetailView(spot: spot)
+            Button {
+                onSpotTapped?(spot)
             } label: {
                 SpotMapAnnotation(
                     title: spot.title,
@@ -193,6 +265,7 @@ private struct SpotsMapContent: View {
 // MARK: - Spot Detail
 
 struct SpotDetailView: View {
+    @Environment(AppRouter.self) private var router
     let spot: Spot
 
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
@@ -236,6 +309,17 @@ struct SpotDetailView: View {
 
     var body: some View {
         List {
+            // Start Trip Here
+            Section {
+                Button {
+                    router.requestTripStart(spot: spot, waterbody: spot.waterbody)
+                } label: {
+                    PrimaryActionLabel(title: "Start Trip Here", systemImage: "figure.fishing")
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.appAccent)
+            }
+
             // Overview
             Section("Overview") {
                 LabeledContent("Water", value: spot.waterbody?.name ?? "Unknown")

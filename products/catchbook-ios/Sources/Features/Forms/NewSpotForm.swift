@@ -1,3 +1,4 @@
+import CoreLocation
 import MapKit
 import SwiftData
 import SwiftUI
@@ -18,6 +19,9 @@ struct NewSpotForm: View {
     @State private var selectedCoordinate: CLLocationCoordinate2D?
     @State private var hasCustomizedCoordinate = false
     @State private var persistenceErrorMessage: String?
+    @State private var suggestedWaterbodyName: String?
+    @State private var isDetectingWaterbody = false
+    @State private var waterbodyDetectionFailed = false
 
     var preselectedWaterbodyID: UUID?
     var initialCoordinate: CLLocationCoordinate2D?
@@ -67,6 +71,22 @@ struct NewSpotForm: View {
                             ForEach(waterbodies, id: \.id) { waterbody in
                                 Text(waterbody.name).tag(Optional(waterbody.id))
                             }
+                        }
+
+                        if isDetectingWaterbody {
+                            HStack(spacing: Spacing.sm) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Detecting waterbody...")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        if waterbodyDetectionFailed, selectedWaterbodyID == nil {
+                            Text("Couldn't identify the waterbody — you can name it manually.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
 
                         Button {
@@ -134,6 +154,10 @@ struct NewSpotForm: View {
         .onAppear {
             locationRecorder.requestIfNeeded()
             primeCoordinateIfNeeded()
+        }
+        .task(id: initialCoordinate?.latitude) {
+            guard initialCoordinate != nil, selectedWaterbodyID == nil else { return }
+            await detectWaterbody()
         }
         .onChange(of: locationRecorder.lastLocation?.coordinate.latitude) { _, _ in
             primeCoordinateIfNeeded()
@@ -219,6 +243,108 @@ struct NewSpotForm: View {
 
     private func coordinateText(for coordinate: CLLocationCoordinate2D) -> String {
         String(format: "%.4f, %.4f", coordinate.latitude, coordinate.longitude)
+    }
+
+    // MARK: - Waterbody Auto-Detection
+
+    private func detectWaterbody() async {
+        guard let coordinate = selectedCoordinate ?? initialCoordinate else { return }
+        isDetectingWaterbody = true
+        waterbodyDetectionFailed = false
+
+        // Layer 1: CLGeocoder reverse geocoding
+        let geocoder = CLGeocoder()
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        if let placemarks = try? await geocoder.reverseGeocodeLocation(location),
+           let placemark = placemarks.first {
+            if let waterName = placemark.inlandWater {
+                await applyDetectedWaterbody(name: waterName, coordinate: coordinate)
+                isDetectingWaterbody = false
+                return
+            }
+            if let oceanName = placemark.ocean {
+                await applyDetectedWaterbody(name: oceanName, coordinate: coordinate)
+                isDetectingWaterbody = false
+                return
+            }
+        }
+
+        // Layer 2: MKLocalSearch nearby water features
+        for query in ["lake", "river", "reservoir"] {
+            let request = MKLocalSearch.Request()
+            request.naturalLanguageQuery = query
+            request.region = MKCoordinateRegion(
+                center: coordinate,
+                latitudinalMeters: 2000,
+                longitudinalMeters: 2000
+            )
+            if let response = try? await MKLocalSearch(request: request).start(),
+               let nearest = response.mapItems.first,
+               let name = nearest.name {
+                await applyDetectedWaterbody(name: name, coordinate: coordinate)
+                isDetectingWaterbody = false
+                return
+            }
+        }
+
+        // Layer 3: Failed — user enters manually
+        isDetectingWaterbody = false
+        waterbodyDetectionFailed = true
+    }
+
+    @MainActor
+    private func applyDetectedWaterbody(name: String, coordinate: CLLocationCoordinate2D) {
+        suggestedWaterbodyName = name
+
+        // Check for existing waterbody with matching name
+        let lowered = name.lowercased()
+        if let existing = waterbodies.first(where: { $0.name.lowercased() == lowered }) {
+            selectedWaterbodyID = existing.id
+            return
+        }
+
+        // Auto-create a new waterbody from the detected name
+        let inferredType = WaterbodyAutoDetection.inferType(from: name)
+        let waterbody = Waterbody(
+            name: name,
+            type: inferredType,
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude
+        )
+        modelContext.insert(waterbody)
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                selectedWaterbodyID = waterbody.id
+            },
+            onFailure: { _ in
+                // Non-critical: fall back to manual selection
+                waterbodyDetectionFailed = true
+            }
+        )
+    }
+}
+
+// MARK: - Waterbody Type Inference
+
+private enum WaterbodyAutoDetection {
+    static func inferType(from name: String) -> WaterbodyType {
+        let lower = name.lowercased()
+        if lower.contains("river") || lower.contains("creek") || lower.contains("stream") {
+            return .river
+        }
+        if lower.contains("pond") {
+            return .pond
+        }
+        if lower.contains("ocean") || lower.contains("sea") || lower.contains("gulf") || lower.contains("bay") {
+            return .coastal
+        }
+        return .lake
     }
 }
 

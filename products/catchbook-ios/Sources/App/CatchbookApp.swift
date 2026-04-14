@@ -50,25 +50,19 @@ private struct CatchbookRootView: View {
             }
             .tag(AppTab.home)
 
-            NavigationStack {
-                SpotsView()
-            }
+            SpotsView()
             .tabItem {
                 Label("Spots", systemImage: "mappin.and.ellipse")
             }
             .tag(AppTab.spots)
 
-            NavigationStack {
-                TripsView()
-            }
+            TripsView()
             .tabItem {
                 Label("Trips", systemImage: "clock.arrow.circlepath")
             }
             .tag(AppTab.trips)
 
-            NavigationStack {
-                MoreView()
-            }
+            MoreView()
             .tabItem {
                 Label("More", systemImage: "ellipsis")
             }
