@@ -673,6 +673,25 @@ final class PersonalBest {
     }
 }
 
+// MARK: - Saved Lure
+
+@Model
+final class SavedLure {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var color: String
+    var notes: String
+    var createdAt: Date
+
+    init(name: String, color: String = "", notes: String = "") {
+        self.id = UUID()
+        self.name = name
+        self.color = color
+        self.notes = notes
+        self.createdAt = .now
+    }
+}
+
 func timeWindowLabel(for date: Date, calendar: Calendar = .current) -> String {
     let hour = calendar.component(.hour, from: date)
     switch hour {

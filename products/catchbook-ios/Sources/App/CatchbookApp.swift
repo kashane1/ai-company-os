@@ -23,6 +23,7 @@ struct CatchbookApp: App {
             CatchPhoto.self,
             ConditionSnapshot.self,
             PersonalBest.self,
+            SavedLure.self,
         ])
     }
 }

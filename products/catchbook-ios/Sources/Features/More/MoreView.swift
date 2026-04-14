@@ -12,10 +12,16 @@ struct MoreView: View {
         NavigationStack {
             List {
                 Section("My Inventory") {
-                    Label("Saved Lures & Baits", systemImage: "lasso.and.sparkles")
-                        .foregroundStyle(.secondary)
-                    Label("Species", systemImage: "fish")
-                        .foregroundStyle(.secondary)
+                    NavigationLink {
+                        SavedLuresView()
+                    } label: {
+                        Label("Saved Lures & Baits", systemImage: "lasso.and.sparkles")
+                    }
+                    NavigationLink {
+                        SpeciesListView()
+                    } label: {
+                        Label("Species", systemImage: "fish")
+                    }
                 }
 
                 Section("Data & Export") {
@@ -40,8 +46,11 @@ struct MoreView: View {
                 }
 
                 Section("Stats & Insights") {
-                    Label("Personal Bests", systemImage: "trophy")
-                        .foregroundStyle(.secondary)
+                    NavigationLink {
+                        PersonalBestsListView()
+                    } label: {
+                        Label("Personal Bests", systemImage: "trophy")
+                    }
                     Label {
                         HStack {
                             Text("Fishing Stats")

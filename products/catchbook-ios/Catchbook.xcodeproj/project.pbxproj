@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		195DD29004844CF99C4CCAE7 /* SavedLuresLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70943DE7CC540BBAE5977B1 /* SavedLuresLogic.swift */; };
+		2578BA8B33BB47289388F100 /* SavedLuresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6D06E44ACF469CAA840564 /* SavedLuresView.swift */; };
+		E30BDD7C1CD249898ECA7DB5 /* SpeciesListLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C875E14EAE74FD7908D3389 /* SpeciesListLogic.swift */; };
+		9D36A46F0272471FA67E5A51 /* SpeciesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8347B1175B194632BD37F1D1 /* SpeciesListView.swift */; };
+		EED7FBBC3FE64F1094A1FFC9 /* PersonalBestsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EC39BE7DD940D887733547 /* PersonalBestsListView.swift */; };
 		3B1148116B7A4B3997363090 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94560F7F2834C14B9B4581B /* AppRouter.swift */; };
 		B8895475A6FA463B95E09E78 /* PrimaryActionLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C4A03252A52467CAEF7A4D9 /* PrimaryActionLabel.swift */; };
 		5AD4368C37FA4BCBB60E746D /* ActiveTripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40B39AD4DB3849A29477665F /* ActiveTripView.swift */; };
@@ -97,6 +102,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C70943DE7CC540BBAE5977B1 /* SavedLuresLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedLuresLogic.swift; sourceTree = "<group>"; };
+		4A6D06E44ACF469CAA840564 /* SavedLuresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedLuresView.swift; sourceTree = "<group>"; };
+		2C875E14EAE74FD7908D3389 /* SpeciesListLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeciesListLogic.swift; sourceTree = "<group>"; };
+		8347B1175B194632BD37F1D1 /* SpeciesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeciesListView.swift; sourceTree = "<group>"; };
+		A9EC39BE7DD940D887733547 /* PersonalBestsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestsListView.swift; sourceTree = "<group>"; };
 		E94560F7F2834C14B9B4581B /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 		4C4A03252A52467CAEF7A4D9 /* PrimaryActionLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryActionLabel.swift; sourceTree = "<group>"; };
 		40B39AD4DB3849A29477665F /* ActiveTripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveTripView.swift; sourceTree = "<group>"; };
@@ -501,6 +511,11 @@
 			isa = PBXGroup;
 			children = (
 				FBC53500B091467ABFC950A7 /* MoreView.swift */,
+				C70943DE7CC540BBAE5977B1 /* SavedLuresLogic.swift */,
+				4A6D06E44ACF469CAA840564 /* SavedLuresView.swift */,
+				2C875E14EAE74FD7908D3389 /* SpeciesListLogic.swift */,
+				8347B1175B194632BD37F1D1 /* SpeciesListView.swift */,
+				A9EC39BE7DD940D887733547 /* PersonalBestsListView.swift */,
 			);
 			path = More;
 			sourceTree = "<group>";
@@ -639,6 +654,11 @@
 				7306B931092106807E26245D /* CatchPhotoMetadataService.swift in Sources */,
 				BDD9413DFDDBBE874AC62C72 /* CatchPhotoMigrationService.swift in Sources */,
 				7A072CD56BCD1C5EBC7CC58D /* CatchbookApp.swift in Sources */,
+				195DD29004844CF99C4CCAE7 /* SavedLuresLogic.swift in Sources */,
+				2578BA8B33BB47289388F100 /* SavedLuresView.swift in Sources */,
+				E30BDD7C1CD249898ECA7DB5 /* SpeciesListLogic.swift in Sources */,
+				9D36A46F0272471FA67E5A51 /* SpeciesListView.swift in Sources */,
+				EED7FBBC3FE64F1094A1FFC9 /* PersonalBestsListView.swift in Sources */,
 				15E07C720C58A2F24E119D9F /* CatchbookMapStyle.swift in Sources */,
 				A1D4ADF55B7CCCB59CCEF943 /* CatchbookMapView.swift in Sources */,
 				0B43EA025E20BABB5B6DE09F /* ConditionCaptureService.swift in Sources */,
