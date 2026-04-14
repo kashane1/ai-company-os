@@ -3,13 +3,12 @@ import XCTest
 
 final class AppTabTests: XCTestCase {
     func testAllFourCasesExist() {
-        let cases: [AppTab] = [.home, .trips, .log, .spots]
+        let cases: [AppTab] = [.home, .spots, .trips, .more]
         XCTAssertEqual(cases.count, 4)
     }
 
     func testHomeTabCaseExists() {
         let tab = AppTab.home
-        // Verify case is constructible
         XCTAssertNotNil(tab)
     }
 
@@ -18,18 +17,18 @@ final class AppTabTests: XCTestCase {
         XCTAssertNotNil(tab)
     }
 
-    func testLogTabCaseExists() {
-        let tab = AppTab.log
-        XCTAssertNotNil(tab)
-    }
-
     func testSpotsTabCaseExists() {
         let tab = AppTab.spots
         XCTAssertNotNil(tab)
     }
 
+    func testMoreTabCaseExists() {
+        let tab = AppTab.more
+        XCTAssertNotNil(tab)
+    }
+
     func testTabHashableConformanceWithSet() {
-        let tabSet: Set<AppTab> = [.home, .trips, .log, .spots]
+        let tabSet: Set<AppTab> = [.home, .spots, .trips, .more]
         XCTAssertEqual(tabSet.count, 4)
     }
 
@@ -40,44 +39,44 @@ final class AppTabTests: XCTestCase {
     }
 
     func testTabHashableConformanceAllCasesInSet() {
-        let allTabs: Set<AppTab> = [.home, .trips, .log, .spots]
+        let allTabs: Set<AppTab> = [.home, .spots, .trips, .more]
         XCTAssertTrue(allTabs.contains(.home))
-        XCTAssertTrue(allTabs.contains(.trips))
-        XCTAssertTrue(allTabs.contains(.log))
         XCTAssertTrue(allTabs.contains(.spots))
+        XCTAssertTrue(allTabs.contains(.trips))
+        XCTAssertTrue(allTabs.contains(.more))
     }
 
     func testTabEquality() {
         XCTAssertEqual(AppTab.home, AppTab.home)
         XCTAssertEqual(AppTab.trips, AppTab.trips)
-        XCTAssertEqual(AppTab.log, AppTab.log)
         XCTAssertEqual(AppTab.spots, AppTab.spots)
+        XCTAssertEqual(AppTab.more, AppTab.more)
     }
 
     func testTabInequality() {
         XCTAssertNotEqual(AppTab.home, AppTab.trips)
-        XCTAssertNotEqual(AppTab.trips, AppTab.log)
-        XCTAssertNotEqual(AppTab.log, AppTab.spots)
+        XCTAssertNotEqual(AppTab.trips, AppTab.more)
+        XCTAssertNotEqual(AppTab.more, AppTab.spots)
         XCTAssertNotEqual(AppTab.spots, AppTab.home)
     }
 
     func testTabCanBeUsedInArray() {
-        let tabs: [AppTab] = [.home, .trips, .log, .spots]
+        let tabs: [AppTab] = [.home, .spots, .trips, .more]
         XCTAssertEqual(tabs.count, 4)
         XCTAssertEqual(tabs[0], .home)
-        XCTAssertEqual(tabs[3], .spots)
+        XCTAssertEqual(tabs[3], .more)
     }
 
     func testTabCanBeUsedInDictionary() {
         var tabNames: [AppTab: String] = [:]
         tabNames[.home] = "Home"
-        tabNames[.trips] = "Trips"
-        tabNames[.log] = "Log"
         tabNames[.spots] = "Spots"
+        tabNames[.trips] = "Trips"
+        tabNames[.more] = "More"
 
         XCTAssertEqual(tabNames[.home], "Home")
-        XCTAssertEqual(tabNames[.trips], "Trips")
-        XCTAssertEqual(tabNames[.log], "Log")
         XCTAssertEqual(tabNames[.spots], "Spots")
+        XCTAssertEqual(tabNames[.trips], "Trips")
+        XCTAssertEqual(tabNames[.more], "More")
     }
 }

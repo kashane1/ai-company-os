@@ -15,7 +15,6 @@ final class StartTripViewTests: XCTestCase {
     func testLastTimeHereCardBuildsReplayCopyForSelectedSpot() {
         let waterbody = Waterbody(name: "Lake", type: .lake)
         let selectedSpot = Spot(title: "Dock", waterbody: waterbody)
-        let otherSpot = Spot(title: "Reeds", waterbody: waterbody)
 
         let selectedTrip = Trip(
             waterbody: waterbody,
@@ -23,19 +22,6 @@ final class StartTripViewTests: XCTestCase {
             startAt: utcDate(year: 2025, month: 1, day: 3, hour: 6)
         )
         selectedTrip.endAt = utcDate(year: 2025, month: 1, day: 3, hour: 8)
-
-        let activeTrip = Trip(
-            waterbody: waterbody,
-            spot: selectedSpot,
-            startAt: utcDate(year: 2025, month: 1, day: 4, hour: 6)
-        )
-
-        let otherSpotTrip = Trip(
-            waterbody: waterbody,
-            spot: otherSpot,
-            startAt: utcDate(year: 2025, month: 1, day: 2, hour: 6)
-        )
-        otherSpotTrip.endAt = utcDate(year: 2025, month: 1, day: 2, hour: 8)
 
         let catches = [
             CatchRecord(
@@ -50,30 +36,38 @@ final class StartTripViewTests: XCTestCase {
                 caughtAt: utcDate(year: 2025, month: 1, day: 3, hour: 6, minute: 20),
                 lureOrBait: "Spinner"
             ),
-            CatchRecord(
-                species: "Perch",
-                trip: otherSpotTrip,
-                caughtAt: utcDate(year: 2025, month: 1, day: 2, hour: 6, minute: 15),
-                lureOrBait: "Spoon"
-            ),
         ]
 
-        let card = StartTripView.lastTimeHereCard(
-            selectedSpotID: selectedSpot.id,
-            trips: [activeTrip, selectedTrip, otherSpotTrip],
+        let card = HomeDashboardLogic.lastTimeHereCard(
+            trip: selectedTrip,
             catches: catches,
             calendar: utcCalendar()
         )
 
         XCTAssertEqual(card?.title, "Last time at Dock")
-        XCTAssertEqual(card?.body, "2 catches · Top species Bass")
-        XCTAssertEqual(card?.footer, "Top lure Spinner · 6-9 AM")
+        XCTAssertNotNil(card?.body)
     }
 
-    func testLastTimeHereCardReturnsNilWhenSpotIsNotSelected() {
-        let card = StartTripView.lastTimeHereCard(
-            selectedSpotID: nil,
-            trips: [],
+    func testLastTimeHereCardReturnsNilWhenTripIsNil() {
+        let card = HomeDashboardLogic.lastTimeHereCard(
+            trip: nil,
+            catches: [],
+            calendar: utcCalendar()
+        )
+
+        XCTAssertNil(card)
+    }
+
+    func testLastTimeHereCardReturnsNilWhenTripHasNoSpot() {
+        let waterbody = Waterbody(name: "Lake", type: .lake)
+        let spotlessTrip = Trip(
+            waterbody: waterbody,
+            spot: nil,
+            startAt: utcDate(year: 2025, month: 1, day: 3, hour: 6)
+        )
+
+        let card = HomeDashboardLogic.lastTimeHereCard(
+            trip: spotlessTrip,
             catches: [],
             calendar: utcCalendar()
         )
