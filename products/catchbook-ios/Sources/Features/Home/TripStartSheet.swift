@@ -5,6 +5,7 @@ import SwiftUI
 struct TripStartSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppRouter.self) private var router
 
     @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
     @Query(sort: \Spot.title) private var spots: [Spot]
@@ -231,6 +232,11 @@ struct TripStartSheet: View {
                     await ConditionCaptureService.enrichWithWeather(snapshot, location: location)
                     try? modelContext.save()
                 }
+                // Push the Active Trip screen immediately so the user lands
+                // on the live trip flow instead of Home. The Resume Trip card
+                // on Home still covers the case where the user leaves this
+                // screen and comes back.
+                router.showActiveTrip(trip)
                 dismiss()
             },
             onFailure: { message in

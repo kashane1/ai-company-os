@@ -393,8 +393,23 @@ struct ActiveTripView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .navigationTitle("Current Trip")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             KeyboardDoneToolbar { focusedField = nil }
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: Spacing.sm) {
+                    Text("Current Trip")
+                        .font(.headline.weight(.semibold))
+                    Text("LIVE")
+                        .font(.caption.weight(.bold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .foregroundStyle(Color.appAccent)
+                        .background(Color.appAccent.opacity(0.15), in: Capsule())
+                        .accessibilityLabel("Trip is live")
+                }
+            }
         }
         .onAppear {
             primeDefaultsIfNeeded()
@@ -606,13 +621,13 @@ private struct ActiveTripStatusCard: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HStack(spacing: Spacing.sm) {
-                        AppBadge(text: "Live")
-                        TimelineView(.periodic(from: trip.startAt, by: 60)) { context in
-                            Text(HomeDashboardLogic.elapsedText(startAt: trip.startAt, now: context.date))
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
+                    // "LIVE" badge moved to the nav bar header so the user
+                    // always sees which screen they're on. The elapsed timer
+                    // stays here next to the trip title.
+                    TimelineView(.periodic(from: trip.startAt, by: 60)) { context in
+                        Text(HomeDashboardLogic.elapsedText(startAt: trip.startAt, now: context.date))
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
                     }
                     Text(trip.title)
                         .font(.headline)
