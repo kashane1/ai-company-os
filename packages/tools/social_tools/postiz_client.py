@@ -223,6 +223,7 @@ def _platform_settings(platform: str | None) -> dict:
     elif p == "x":
         return {
             "__type": "x",
+            "who_can_reply_post": "everyone",
         }
     elif p == "facebook":
         return {
@@ -281,14 +282,16 @@ def create_draft_post(
 
     schedule_date = scheduled_at or _dt.now()
 
-    # Build the value entry — omit "image" key entirely for text-only posts.
-    # Sending an empty "image": [] can cause 400 errors.
+    # Build the value entry. X requires "image" key to be present as an
+    # array even for text-only posts. Other platforms also accept empty arrays.
     value_entry: dict = {"content": caption}
     if media_ids and media_urls:
         value_entry["image"] = [
             {"id": mid, "path": murl}
             for mid, murl in zip(media_ids, media_urls)
         ]
+    else:
+        value_entry["image"] = []
 
     payload: dict = {
         "type": post_type,

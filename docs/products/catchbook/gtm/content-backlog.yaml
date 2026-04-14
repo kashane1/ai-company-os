@@ -44,8 +44,35 @@
   platform: tiktok
   campaign: zero
   composite_score: 78
-  topic_id: null
-  status: draft
+  topic_id: spot-privacy-anxiety
+  status: scheduled
+  slides:
+  - text:
+      headline: Your secret spots
+      subhead: aren't safe
+    visual_hint: Aerial view of a quiet secluded lake cove at dawn, morning mist rising
+      off the water, single empty dock, moody and atmospheric, 9:16 portrait
+  - text:
+      headline: 3 things burning your spots
+      body: Forward-facing sonar finding fish without local knowledge. Shared waypoints
+        in fishing apps. Geotagged catch photos on social media.
+    visual_hint: Phone screen glowing in dim light near water at dusk, social media
+      interface implied, moody blue and orange tones, 9:16 portrait
+  - text:
+      headline: The smart anglers already know
+      body: They're careful about what they share. They check their geotags. They
+        keep the coordinates to themselves.
+    visual_hint: Lone angler on a misty bank at golden hour, back turned to camera,
+      private peaceful fishing moment, warm atmospheric light, 9:16 portrait
+  caption: your secret spots aren't safe anymore. forward-facing sonar. shared waypoints.
+    geotagged photos. the days of a private honey hole are getting shorter. the anglers
+    who keep catching aren't better — they're just more careful about what they share.
+  hashtags:
+  - '#fishing'
+  - '#fishtok'
+  - '#bassfishing'
+  - '#fishingtips'
+  - '#honeyhole'
 - item_number: 7
   hook: Bank fishing is real fishing
   archetype: identity_tribal
@@ -71,13 +98,43 @@
   topic_id: null
   status: draft
 - item_number: 10
-  hook: Pre-spawn bass
+  hook: Pre-spawn bass — the 3-week window you can't miss
   archetype: seasonal_timely
   platform: tiktok
   campaign: zero
   composite_score: 77
-  topic_id: null
-  status: draft
+  topic_id: pre-spawn-bass-tactics
+  status: scheduled
+  slides:
+  - text:
+      headline: Pre-spawn bass
+      subhead: The 3-week window you can't miss
+    visual_hint: Misty lake at dawn with shallow water visible, submerged log near
+      shore, green spring vegetation emerging, warm golden sunrise light, 9:16 portrait
+  - text:
+      headline: The 55°F trigger
+      body: Water crosses 55°F. Bass leave deep winter spots. They stage on points,
+        creek channels, and ledges. Feeding hard before the spawn.
+    visual_hint: Underwater scene of largemouth bass near rocky point structure, clear
+      water with sunlight filtering down, spring green tones, 9:16 portrait
+  - text:
+      headline: What to throw right now
+      bullets:
+      - Jerkbaits — pause and twitch on points
+      - Lipless cranks — rip through emerging grass
+      - Ned rig — drag on rocky transitions
+    visual_hint: Three fishing lures arranged on weathered wood dock surface, soft
+      morning light, close-up detail, natural wood grain texture, 9:16 portrait
+  caption: pre-spawn bass are the easiest fish you'll catch all year. water hits 55°F
+    — they push shallow — they eat everything. this window is happening right now.
+    jerkbaits, lipless cranks, ned rigs on points. if you're not on the water this
+    week, you're missing the best bite of the year.
+  hashtags:
+  - '#bassfishing'
+  - '#fishtok'
+  - '#prespawn'
+  - '#fishingtips'
+  - '#fishing'
 - item_number: 11
   hook: Their first fish
   archetype: aspirational_aesthetic
@@ -287,10 +344,231 @@
   topic_id: null
   status: draft
 - item_number: 37
-  hook: Fishbrain charges $80/year. Your notes app charges nothing. Neither remembers what worked.
+  hook: Fishbrain charges $80/year. Your notes app charges nothing. Neither remembers
+    what worked.
   archetype: debate_hot_take
   platform: threads
   campaign: one
   composite_score: 72
   topic_id: null
   status: draft
+- item_number: 38
+  hook: pre-spawn bass are the easiest fish you'll catch all year
+  archetype: seasonal_timely
+  platform: x
+  campaign: zero
+  composite_score: 77
+  topic_id: pre-spawn-bass-tactics
+  status: scheduled
+  caption: 'pre-spawn bass are the easiest fish you''ll catch all year.
+
+
+    water hits 55°F. they push shallow. they eat everything.
+
+
+    the window is open right now. don''t sleep on it.'
+  hashtags:
+  - '#bassfishing'
+  - '#prespawn'
+  - '#fishing'
+- item_number: 39
+  hook: The 3-week window where bass fishing gets easy
+  archetype: seasonal_timely
+  platform: facebook
+  campaign: zero
+  composite_score: 77
+  topic_id: pre-spawn-bass-tactics
+  status: draft
+  caption: 'There''s a 3-week window every spring where bass fishing gets almost too
+    easy.
+
+
+    Water temperature climbs past 55°F. Bass push out of their deep winter spots and
+    stage on shallow structure — points, creek channels, ledges. They''re feeding
+    aggressively before the spawn.
+
+
+    Pre-spawn is the single best bite window of the year. It''s happening right now
+    in most of the country.
+
+
+    Jerkbaits. Lipless cranks. Ned rigs on points. Keep it simple and cover water.
+
+
+    What''s the water temp on your home lake right now?'
+  hashtags:
+  - '#bassfishing'
+  - '#prespawn'
+- item_number: 40
+  hook: The best fishing of the year is happening right now
+  archetype: seasonal_timely
+  platform: instagram
+  campaign: zero
+  composite_score: 77
+  topic_id: pre-spawn-bass-tactics
+  status: scheduled
+  slides:
+  - text:
+      headline: Pre-spawn bass
+      subhead: The best bite of the year is right now
+    visual_hint: Wide angle lake sunrise with warm golden light reflecting off calm
+      water, spring tree line in background, peaceful and inviting, 9:16 portrait
+  - text:
+      headline: The 55°F trigger
+      body: Water crosses 55. Bass leave deep structure. They stage shallow on points
+        and creek channels. Aggressive feeding before the spawn.
+    visual_hint: Close-up of water surface with temperature ripples, early morning
+      light, green aquatic plants visible beneath clear water, 9:16 portrait
+  - text:
+      headline: What to throw right now
+      bullets:
+      - Jerkbaits — pause on points
+      - Lipless cranks — rip through grass
+      - Ned rig — rocky transitions
+      body: Cover water. They're aggressive. Save this for your next trip.
+    visual_hint: Tackle box open on lake bank with organized lures visible, morning
+      dew on grass, soft natural lighting, 9:16 portrait
+  caption: Pre-spawn bass are the easiest fish you'll catch all year. Water hits 55°F
+    and they move shallow. This 3-week window is happening right now in most of the
+    country. Save this for your next trip.
+  hashtags:
+  - '#bassfishing'
+  - '#fishing'
+  - '#prespawn'
+  - '#fishingtips'
+  - '#catchandrelease'
+  - '#fishinglife'
+  - '#largemouthbass'
+  - '#springfishing'
+- item_number: 41
+  hook: pre-spawn bass — the window is open right now
+  archetype: seasonal_timely
+  platform: threads
+  campaign: zero
+  composite_score: 77
+  topic_id: pre-spawn-bass-tactics
+  status: draft
+  caption: 'pre-spawn bass are the easiest fish you''ll catch all year.
+
+
+    water hits 55°F → they push shallow → they eat everything.
+
+
+    jerkbaits. lipless cranks. ned rigs on points.
+
+
+    this window lasts about 3 weeks and it''s happening right now.
+
+
+    what''s the water temp on your home lake?'
+  hashtags:
+  - '#fishing'
+  - '#bassfishing'
+  - '#fishingtips'
+- item_number: 42
+  hook: your secret spots aren't safe
+  archetype: pain_point
+  platform: x
+  campaign: zero
+  composite_score: 78
+  topic_id: spot-privacy-anxiety
+  status: scheduled
+  caption: 'your secret spots aren''t safe.
+
+
+    forward-facing sonar. shared waypoints. geotagged catch photos.
+
+
+    the anglers who keep catching aren''t better — they''re just more careful about
+    what they share.'
+  hashtags:
+  - '#fishing'
+  - '#bassfishing'
+  - '#fishingtips'
+- item_number: 43
+  hook: Your secret spots aren't safe anymore
+  archetype: pain_point
+  platform: facebook
+  campaign: zero
+  composite_score: 78
+  topic_id: spot-privacy-anxiety
+  status: draft
+  caption: 'Your secret spots aren''t safe anymore.
+
+
+    Between forward-facing sonar making it easier to find fish from scratch, shared
+    waypoints in fishing apps, and geotagged catch photos on social media — the days
+    of a truly private honey hole are getting shorter.
+
+
+    The anglers who keep finding fish aren''t necessarily better. They''re just more
+    careful about what they share and where they share it.
+
+
+    Has this happened to you? Someone showing up at your spot out of nowhere?'
+  hashtags:
+  - '#fishing'
+  - '#bassfishing'
+- item_number: 44
+  hook: Your honey holes aren't as secret as you think
+  archetype: pain_point
+  platform: instagram
+  campaign: zero
+  composite_score: 78
+  topic_id: spot-privacy-anxiety
+  status: draft
+  slides:
+  - text:
+      headline: Your secret spots
+      subhead: aren't safe
+    visual_hint: Foggy lake cove from above at early dawn, mist hovering over still
+      water, hidden private fishing spot feeling, moody blue tones, 9:16 portrait
+  - text:
+      headline: What's burning your spots
+      bullets:
+      - Forward-facing sonar
+      - Shared waypoints in apps
+      - Geotagged catch photos
+    visual_hint: Close-up of phone screen showing a map pin on water, dark moody lighting,
+      social media notification implied, 9:16 portrait
+  - text:
+      headline: Be careful what you share
+      body: The anglers who keep catching aren't better. They're more careful. Check
+        your geotags. Keep the coordinates to yourself.
+    visual_hint: Single angler on quiet misty bank at golden hour, silhouette, back
+      turned to camera, private moment with nature, warm light, 9:16 portrait
+  caption: Your secret spots aren't as safe as you think. Forward-facing sonar. Shared
+    waypoints. Geotagged photos. The anglers who keep catching aren't better — they're
+    just more careful about what they share.
+  hashtags:
+  - '#fishing'
+  - '#bassfishing'
+  - '#fishinglife'
+  - '#fishingtips'
+  - '#catchandrelease'
+  - '#honeyhole'
+  - '#fishingaddict'
+  - '#largemouthbass'
+- item_number: 45
+  hook: your secret spots aren't safe
+  archetype: pain_point
+  platform: threads
+  campaign: zero
+  composite_score: 78
+  topic_id: spot-privacy-anxiety
+  status: draft
+  caption: 'your secret spots aren''t safe.
+
+
+    forward-facing sonar. shared waypoints. geotagged catch photos on social media.
+
+
+    the anglers who keep catching aren''t better — they''re just more careful about
+    what they share.
+
+
+    has this happened to you?'
+  hashtags:
+  - '#fishing'
+  - '#bassfishing'
+  - '#fishinglife'

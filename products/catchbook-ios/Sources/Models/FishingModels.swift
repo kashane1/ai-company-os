@@ -537,7 +537,7 @@ final class CatchRecord {
     var lengthCm: Double?
     var waterDepthM: Double?
     var note: String
-    var dispositionRawValue: String
+    var dispositionRawValue: String = CatchDisposition.notRecorded.rawValue
     var photoReference: String?
     @Attribute(.externalStorage) var photoData: Data?
     var photoContentType: String?
