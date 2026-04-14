@@ -11,6 +11,7 @@ struct NewSpotForm: View {
 
     @State private var title: String
     @State private var notes: String
+    @State private var pinColor: SpotPinColor
     @State private var showingCoordinatePicker = false
     @State private var selectedCoordinate: CLLocationCoordinate2D?
     @State private var hasCustomizedCoordinate: Bool
@@ -50,6 +51,7 @@ struct NewSpotForm: View {
 
         _title = State(initialValue: editingSpot?.title ?? "")
         _notes = State(initialValue: editingSpot?.notes ?? "")
+        _pinColor = State(initialValue: editingSpot?.pinColor ?? .blue)
         _selectedCoordinate = State(initialValue: seedCoordinate)
         _hasCustomizedCoordinate = State(initialValue: seedCoordinate != nil)
     }
@@ -95,6 +97,37 @@ struct NewSpotForm: View {
                     Text("Spot")
                 } footer: {
                     Text("Private by default. Drop a pin to mark this spot.")
+                }
+
+                Section {
+                    HStack(spacing: Spacing.md) {
+                        ForEach(SpotPinColor.allCases) { color in
+                            Button {
+                                pinColor = color
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .strokeBorder(
+                                            pinColor == color ? Color.appAccent : Color.clear,
+                                            lineWidth: 2
+                                        )
+                                        .frame(width: 36, height: 36)
+                                    Image(systemName: "mappin.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(color.color)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("\(color.label) pin")
+                            .accessibilityAddTraits(pinColor == color ? [.isSelected] : [])
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.vertical, Spacing.xs)
+                } header: {
+                    Text("Pin Color")
+                } footer: {
+                    Text("Pick a color to help group and filter spots on the list view.")
                 }
 
                 if isEditing {
@@ -177,6 +210,7 @@ struct NewSpotForm: View {
                     editingSpot.notes = draft.notes
                     editingSpot.latitude = draft.latitude
                     editingSpot.longitude = draft.longitude
+                    editingSpot.pinColor = pinColor
                     spotToDeliver = editingSpot
                 } else {
                     let resolvedWaterbody: Waterbody?
@@ -199,7 +233,8 @@ struct NewSpotForm: View {
                         waterbody: resolvedWaterbody,
                         latitude: draft.latitude,
                         longitude: draft.longitude,
-                        notes: draft.notes
+                        notes: draft.notes,
+                        pinColor: pinColor
                     )
                     modelContext.insert(spot)
                     spotToDeliver = spot

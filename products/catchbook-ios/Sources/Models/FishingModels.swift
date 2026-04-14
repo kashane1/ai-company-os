@@ -139,6 +139,28 @@ enum MoonPhase: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum SpotPinColor: String, CaseIterable, Codable, Identifiable {
+    case blue
+    case green
+    case amber
+    case red
+    case purple
+    case teal
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .blue: return "Blue"
+        case .green: return "Green"
+        case .amber: return "Amber"
+        case .red: return "Red"
+        case .purple: return "Purple"
+        case .teal: return "Teal"
+        }
+    }
+}
+
 enum CatchDisposition: String, CaseIterable, Codable, Identifiable {
     case notRecorded
     case released
@@ -205,6 +227,9 @@ final class Spot {
     var notes: String = ""
     var isPrivate: Bool = true
     var createdAt: Date = Date.distantPast
+    // Property-level default required for SwiftData lightweight migration —
+    // legacy rows backfill to the default pin color.
+    var pinColorRawValue: String = SpotPinColor.blue.rawValue
     var waterbody: Waterbody?
 
     init(
@@ -214,6 +239,7 @@ final class Spot {
         longitude: Double? = nil,
         notes: String = "",
         isPrivate: Bool = true,
+        pinColor: SpotPinColor = .blue,
         createdAt: Date = .now
     ) {
         self.id = UUID()
@@ -222,8 +248,14 @@ final class Spot {
         self.longitude = longitude
         self.notes = notes
         self.isPrivate = isPrivate
+        self.pinColorRawValue = pinColor.rawValue
         self.createdAt = createdAt
         self.waterbody = waterbody
+    }
+
+    var pinColor: SpotPinColor {
+        get { SpotPinColor(rawValue: pinColorRawValue) ?? .blue }
+        set { pinColorRawValue = newValue.rawValue }
     }
 
     var coordinateSummary: String {

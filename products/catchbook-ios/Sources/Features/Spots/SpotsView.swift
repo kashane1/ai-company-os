@@ -14,9 +14,15 @@ struct SpotsView: View {
     @State private var addSpotCoordinate: CLLocationCoordinate2D?
     @State private var showingNewSpotFromPin = false
     @State private var mapCenter: CLLocationCoordinate2D?
+    @State private var activePinColorFilters: Set<SpotPinColor> = []
 
     private var spotsWithCoordinates: [Spot] {
         SpotPresentationLogic.spotsWithCoordinates(from: spots)
+    }
+
+    private var filteredSpots: [Spot] {
+        guard !activePinColorFilters.isEmpty else { return spots }
+        return spots.filter { activePinColorFilters.contains($0.pinColor) }
     }
 
     var body: some View {
@@ -82,12 +88,23 @@ struct SpotsView: View {
                         }
                     }
                 } else {
-                    List {
-                        ForEach(spots, id: \.id) { spot in
-                            NavigationLink {
-                                SpotDetailView(spot: spot)
-                            } label: {
-                                SpotRow(spot: spot)
+                    VStack(spacing: 0) {
+                        PinColorFilterBar(active: $activePinColorFilters)
+                        if filteredSpots.isEmpty {
+                            ContentUnavailableView {
+                                Label("No Matching Spots", systemImage: "line.3.horizontal.decrease.circle")
+                            } description: {
+                                Text("No spots match the selected pin colors. Tap a color to toggle it off.")
+                            }
+                        } else {
+                            List {
+                                ForEach(filteredSpots, id: \.id) { spot in
+                                    NavigationLink {
+                                        SpotDetailView(spot: spot)
+                                    } label: {
+                                        SpotRow(spot: spot)
+                                    }
+                                }
                             }
                         }
                     }
@@ -180,6 +197,53 @@ struct SpotsView: View {
     }
 }
 
+// MARK: - Pin Color Filter Bar
+
+private struct PinColorFilterBar: View {
+    @Binding var active: Set<SpotPinColor>
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Spacing.sm) {
+                ForEach(SpotPinColor.allCases) { color in
+                    let isOn = active.contains(color)
+                    Button {
+                        if isOn {
+                            active.remove(color)
+                        } else {
+                            active.insert(color)
+                        }
+                    } label: {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(color.color)
+                            .padding(6)
+                            .background(
+                                Circle()
+                                    .strokeBorder(isOn ? color.color : Color.clear, lineWidth: 2)
+                            )
+                            .opacity(isOn || active.isEmpty ? 1.0 : 0.35)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(color.label) pin filter")
+                    .accessibilityAddTraits(isOn ? [.isSelected] : [])
+                }
+                if !active.isEmpty {
+                    Button("Clear") {
+                        active.removeAll()
+                    }
+                    .font(.caption.weight(.semibold))
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.sm)
+        }
+        .background(Color(.systemGroupedBackground))
+    }
+}
+
 // MARK: - Spot Row
 
 private struct SpotRow: View {
@@ -257,7 +321,7 @@ private struct SpotsMapContent: View {
             } label: {
                 SpotMapAnnotation(
                     title: spot.title,
-                    color: SpotPresentationLogic.waterbodyColor(for: spot.waterbody?.id)
+                    color: spot.pinColor.color
                 )
             }
             .buttonStyle(.plain)
