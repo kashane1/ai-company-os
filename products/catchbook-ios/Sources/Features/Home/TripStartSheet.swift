@@ -100,12 +100,14 @@ struct TripStartSheet: View {
                                 .textInputAutocapitalization(.words)
                                 .focused($isTextInputFocused)
                                 .accessibilityIdentifier("startTrip.targetSpeciesField")
+                                .characterLimit(CharacterLimits.tripTargetSpecies, text: $targetSpecies)
                             Text("Optional. Enter one or more targets. We turn them into quick-catch suggestions.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                             TextField("Trip notes", text: $tripNotes, axis: .vertical)
                                 .lineLimit(2...4)
                                 .focused($isTextInputFocused)
+                                .characterLimit(CharacterLimits.tripNotes, text: $tripNotes)
                         },
                         label: {
                             VStack(alignment: .leading, spacing: Spacing.xs) {

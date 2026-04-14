@@ -40,9 +40,11 @@ struct NewSpotForm: View {
                     TextField("Spot name", text: $title)
                         .textInputAutocapitalization(.words)
                         .submitLabel(.next)
+                        .characterLimit(CharacterLimits.spotName, text: $title)
 
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(2...4)
+                        .characterLimit(CharacterLimits.spotNotes, text: $notes)
 
                     Button {
                         if selectedCoordinate == nil {

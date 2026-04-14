@@ -166,6 +166,7 @@ struct ActiveTripView: View {
                             saveCatch(action: .save, tallyOnly: quickCatchEntryMode == .tally)
                         }
                     }
+                    .characterLimit(CharacterLimits.catchSpecies, text: $species)
 
                 if !recentSpeciesSuggestions.isEmpty {
                     Text(
@@ -185,6 +186,7 @@ struct ActiveTripView: View {
                     TextField("Lure or bait", text: $lureOrBait)
                         .textInputAutocapitalization(.words)
                         .focused($focusedField, equals: .lureOrBait)
+                        .characterLimit(CharacterLimits.catchLureOrBait, text: $lureOrBait)
 
                     if !recentLureSuggestions.isEmpty {
                         SuggestionRow(label: "Lure", values: recentLureSuggestions) { value in
@@ -206,12 +208,14 @@ struct ActiveTripView: View {
                             TextField("Method", text: $method)
                                 .textInputAutocapitalization(.words)
                                 .focused($focusedField, equals: .method)
+                                .characterLimit(CharacterLimits.catchMethod, text: $method)
                         }
 
                         if visibleFields.contains(.gear) {
                             TextField("Gear", text: $gear)
                                 .textInputAutocapitalization(.words)
                                 .focused($focusedField, equals: .gear)
+                                .characterLimit(CharacterLimits.catchGear, text: $gear)
                             if !recentGearSuggestions.isEmpty {
                                 SuggestionRow(label: "Gear", values: recentGearSuggestions) { value in
                                     gear = value
@@ -238,6 +242,7 @@ struct ActiveTripView: View {
                             TextField("Note", text: $note, axis: .vertical)
                                 .lineLimit(2...4)
                                 .focused($focusedField, equals: .note)
+                                .characterLimit(CharacterLimits.catchNote, text: $note)
                         }
 
                         VStack(alignment: .leading, spacing: Spacing.sm) {

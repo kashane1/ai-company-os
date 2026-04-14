@@ -90,6 +90,7 @@
 		FA25A9E41F95DDAC7DAA979D /* SeasonalNudgeCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AF1E59EEB862B4D73F16ACA /* SeasonalNudgeCardTests.swift */; };
 		FCFDFAAD7272AFB723A180C9 /* TripHistoryLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6AA7417686EE0946814818 /* TripHistoryLogic.swift */; };
 		FDED0EBB2F47C1BC11B1DC0A /* DeterministicInsightCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD01C6EBBF3AAF0AF7A2BCD /* DeterministicInsightCardTests.swift */; };
+		E64848686611C6651DCCE135 /* CharacterLimitField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB898E800B9BBB3EB04506D /* CharacterLimitField.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -188,6 +189,7 @@
 		F9A22BA34E1DDD9A62D233D0 /* TripPresentationLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripPresentationLogic.swift; sourceTree = "<group>"; };
 		FB0550E64A741FDBD9D6767F /* ModelTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelTestSupport.swift; sourceTree = "<group>"; };
 		FC502878D61CFFA94F41D59F /* AppTabTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabTests.swift; sourceTree = "<group>"; };
+		3AB898E800B9BBB3EB04506D /* CharacterLimitField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterLimitField.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -247,7 +249,8 @@
 				74828E17661EF5A4C9F1AC7E /* WeatherAttributionView.swift */,
 				4C4A03252A52467CAEF7A4D9 /* PrimaryActionLabel.swift */,
 				2B24AF66CD7949AE928D1DC7 /* CatchHistoryRow.swift */,
-			);
+							3AB898E800B9BBB3EB04506D /* CharacterLimitField.swift */,
+);
 			path = UI;
 			sourceTree = "<group>";
 		};
@@ -676,6 +679,7 @@
 				25B3DAC403EF7E1BACE8CD07 /* HomeView.swift in Sources */,
 				EF94B76AE07941BD9F5E3EE0 /* TripStartSheet.swift in Sources */,
 				6C217C61B86B4D90A2CFD0E4 /* MoreView.swift in Sources */,
+				E64848686611C6651DCCE135 /* CharacterLimitField.swift in Sources */,
 				B8895475A6FA463B95E09E78 /* PrimaryActionLabel.swift in Sources */,
 				10A9847F5198841447DEE8EF /* KeyboardDoneToolbar.swift in Sources */,
 				5AA7833A42518B9BD55F898E /* LocaleDecimalParser.swift in Sources */,

@@ -111,10 +111,13 @@ private struct LureFormSheet: View {
                 Section {
                     TextField("Lure or bait name", text: $name)
                         .textInputAutocapitalization(.words)
+                        .characterLimit(CharacterLimits.lureName, text: $name)
                     TextField("Color / variant", text: $color)
                         .textInputAutocapitalization(.words)
+                        .characterLimit(CharacterLimits.lureColor, text: $color)
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(2...4)
+                        .characterLimit(CharacterLimits.lureNotes, text: $notes)
                 } footer: {
                     Text("Saved lures will appear as suggestions when you log catches.")
                 }

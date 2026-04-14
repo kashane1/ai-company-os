@@ -1626,9 +1626,11 @@ private struct TripEditorView: View {
             TextField("Target species, separated by commas", text: $targetSpecies)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+                .characterLimit(CharacterLimits.tripTargetSpecies, text: $targetSpecies)
             TextField("Notes", text: $notes, axis: .vertical)
                 .lineLimit(2...4)
                 .focused($isTextInputFocused)
+                .characterLimit(CharacterLimits.tripNotes, text: $notes)
         }
     }
 
@@ -1637,18 +1639,25 @@ private struct TripEditorView: View {
         Section {
             TextField("Place summary", text: $placeSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $placeSummary)
             TextField("Time window", text: $timeWindowSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $timeWindowSummary)
             TextField("Light", text: $lightLevelSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $lightLevelSummary)
             TextField("Weather", text: $weatherSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $weatherSummary)
             TextField("Wind", text: $windSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $windSummary)
             TextField("Cloud cover", text: $cloudCoverSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $cloudCoverSummary)
             TextField("Precipitation", text: $precipitationSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $precipitationSummary)
             Picker("Water clarity", selection: $waterClarity) {
                 ForEach(WaterClarity.allCases) { option in
                     Text(option.label).tag(option)
@@ -1957,6 +1966,7 @@ struct CatchEditorView: View {
             TextField("Species (optional)", text: $species)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+                .characterLimit(CharacterLimits.catchSpecies, text: $species)
             if !speciesSuggestions.isEmpty {
                 SuggestionRow(label: "Species", values: speciesSuggestions) { value in
                     species = value
@@ -1966,6 +1976,7 @@ struct CatchEditorView: View {
             TextField("Lure or bait", text: $lureOrBait)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+                .characterLimit(CharacterLimits.catchLureOrBait, text: $lureOrBait)
             if !lureSuggestions.isEmpty {
                 SuggestionRow(label: "Lure", values: lureSuggestions) { value in
                     lureOrBait = value
@@ -1977,11 +1988,13 @@ struct CatchEditorView: View {
                 TextField("Method", text: $method)
                     .textInputAutocapitalization(.words)
                     .focused($isTextInputFocused)
+                    .characterLimit(CharacterLimits.catchMethod, text: $method)
             }
             if visibleFields.contains(.gear) {
                 TextField("Gear", text: $gear)
                     .textInputAutocapitalization(.words)
                     .focused($isTextInputFocused)
+                    .characterLimit(CharacterLimits.catchGear, text: $gear)
                 if !gearSuggestions.isEmpty {
                     SuggestionRow(label: "Gear", values: gearSuggestions) { value in
                         gear = value
@@ -2014,6 +2027,7 @@ struct CatchEditorView: View {
                 TextField("Note", text: $note, axis: .vertical)
                     .lineLimit(2...4)
                     .focused($isTextInputFocused)
+                    .characterLimit(CharacterLimits.catchNote, text: $note)
             }
         }
     }
