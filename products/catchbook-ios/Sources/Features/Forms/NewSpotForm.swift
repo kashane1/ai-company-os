@@ -9,28 +9,49 @@ struct NewSpotForm: View {
 
     @StateObject private var locationRecorder = LocationRecorder()
 
-    @State private var title = ""
-    @State private var notes = ""
+    @State private var title: String
+    @State private var notes: String
     @State private var showingCoordinatePicker = false
     @State private var selectedCoordinate: CLLocationCoordinate2D?
-    @State private var hasCustomizedCoordinate = false
+    @State private var hasCustomizedCoordinate: Bool
     @State private var persistenceErrorMessage: String?
+    @State private var showingDeleteConfirmation = false
     // Auto-detected waterbody for this spot. Captured silently from the pin
     // coordinate; committed inside save() so cancelling leaves no phantom row.
     // The user never sees or picks waterbody — it's a passive tag.
     @State private var pendingDetected: WaterbodyAutoDetectionService.Detected?
 
     var initialCoordinate: CLLocationCoordinate2D?
+    var editingSpot: Spot?
     var onSaved: ((Spot) -> Void)?
+    var onDeleted: (() -> Void)?
+
+    private var isEditing: Bool { editingSpot != nil }
 
     init(
         initialCoordinate: CLLocationCoordinate2D? = nil,
-        onSaved: ((Spot) -> Void)? = nil
+        editingSpot: Spot? = nil,
+        onSaved: ((Spot) -> Void)? = nil,
+        onDeleted: (() -> Void)? = nil
     ) {
         self.initialCoordinate = initialCoordinate
+        self.editingSpot = editingSpot
         self.onSaved = onSaved
-        _selectedCoordinate = State(initialValue: initialCoordinate)
-        _hasCustomizedCoordinate = State(initialValue: initialCoordinate != nil)
+        self.onDeleted = onDeleted
+
+        let existingCoordinate: CLLocationCoordinate2D? = {
+            guard let spot = editingSpot,
+                  let latitude = spot.latitude,
+                  let longitude = spot.longitude
+            else { return nil }
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }()
+        let seedCoordinate = existingCoordinate ?? initialCoordinate
+
+        _title = State(initialValue: editingSpot?.title ?? "")
+        _notes = State(initialValue: editingSpot?.notes ?? "")
+        _selectedCoordinate = State(initialValue: seedCoordinate)
+        _hasCustomizedCoordinate = State(initialValue: seedCoordinate != nil)
     }
 
     var body: some View {
@@ -75,8 +96,18 @@ struct NewSpotForm: View {
                 } footer: {
                     Text("Private by default. Drop a pin to mark this spot.")
                 }
+
+                if isEditing {
+                    Section {
+                        Button(role: .destructive) {
+                            showingDeleteConfirmation = true
+                        } label: {
+                            Label("Delete Spot", systemImage: "trash")
+                        }
+                    }
+                }
             }
-            .navigationTitle("New Spot")
+            .navigationTitle(isEditing ? "Edit Spot" : "New Spot")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -85,7 +116,7 @@ struct NewSpotForm: View {
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(isEditing ? "Done" : "Save") {
                         save()
                     }
                     .fontWeight(.semibold)
@@ -93,6 +124,12 @@ struct NewSpotForm: View {
                 }
             }
             .interactiveDismissDisabled(!title.isEmpty)
+            .alert("Delete Spot?", isPresented: $showingDeleteConfirmation) {
+                Button("Delete", role: .destructive) { deleteEditingSpot() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This removes the spot from your saved places. Trips and catches logged here stay, but will no longer be linked to this spot.")
+            }
         }
         .presentationDetents([.medium, .large])
         .onAppear {
@@ -100,6 +137,9 @@ struct NewSpotForm: View {
             primeCoordinateIfNeeded()
         }
         .task(id: selectedCoordinate?.latitude) {
+            // Editing preserves the existing waterbody tag — users who want
+            // re-detection can delete and recreate the spot.
+            guard !isEditing else { return }
             guard selectedCoordinate != nil, pendingDetected == nil else { return }
             await detectWaterbody()
         }
@@ -129,30 +169,41 @@ struct NewSpotForm: View {
         var spotToDeliver: Spot?
         PersistenceWriteCoordinator.perform(
             commit: {
-                let resolvedWaterbody: Waterbody?
-                if let pendingDetected {
-                    // Defer-commit: the auto-detected waterbody is only
-                    // inserted now, inside the save transaction, so
-                    // dismissing the form leaves no phantom records. The
-                    // user never picked it — it's a passive tag derived
-                    // from the spot's coordinate.
-                    resolvedWaterbody = try WaterbodyAutoDetectionService.findOrCreate(
-                        pendingDetected,
-                        in: modelContext
-                    )
+                if let editingSpot {
+                    // Edit path: mutate the existing record in place so
+                    // related trips/catches remain linked. Waterbody is left
+                    // untouched — see the .task guard above.
+                    editingSpot.title = draft.title
+                    editingSpot.notes = draft.notes
+                    editingSpot.latitude = draft.latitude
+                    editingSpot.longitude = draft.longitude
+                    spotToDeliver = editingSpot
                 } else {
-                    resolvedWaterbody = nil
-                }
+                    let resolvedWaterbody: Waterbody?
+                    if let pendingDetected {
+                        // Defer-commit: the auto-detected waterbody is only
+                        // inserted now, inside the save transaction, so
+                        // dismissing the form leaves no phantom records. The
+                        // user never picked it — it's a passive tag derived
+                        // from the spot's coordinate.
+                        resolvedWaterbody = try WaterbodyAutoDetectionService.findOrCreate(
+                            pendingDetected,
+                            in: modelContext
+                        )
+                    } else {
+                        resolvedWaterbody = nil
+                    }
 
-                let spot = Spot(
-                    title: draft.title,
-                    waterbody: resolvedWaterbody,
-                    latitude: draft.latitude,
-                    longitude: draft.longitude,
-                    notes: draft.notes
-                )
-                modelContext.insert(spot)
-                spotToDeliver = spot
+                    let spot = Spot(
+                        title: draft.title,
+                        waterbody: resolvedWaterbody,
+                        latitude: draft.latitude,
+                        longitude: draft.longitude,
+                        notes: draft.notes
+                    )
+                    modelContext.insert(spot)
+                    spotToDeliver = spot
+                }
                 try modelContext.save()
             },
             rollback: {
@@ -162,6 +213,26 @@ struct NewSpotForm: View {
                 if let spotToDeliver {
                     onSaved?(spotToDeliver)
                 }
+                dismiss()
+            },
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
+        )
+    }
+
+    private func deleteEditingSpot() {
+        guard let editingSpot else { return }
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                modelContext.delete(editingSpot)
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                onDeleted?()
                 dismiss()
             },
             onFailure: { message in

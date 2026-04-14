@@ -101,6 +101,11 @@ struct SpotsView: View {
                             showsMap.toggle()
                             if showsMap {
                                 refreshMapRegion()
+                            } else {
+                                // Leaving the map cancels any in-progress pin
+                                // placement so the state doesn't bleed across
+                                // views — see commit for the bug report.
+                                isAddSpotMode = false
                             }
                         } label: {
                             Label(
@@ -138,8 +143,10 @@ struct SpotsView: View {
             NewSpotForm()
         }
         .sheet(item: $selectedSpotForDetail) { spot in
-            SpotDetailView(spot: spot)
-                .presentationDetents([.medium, .large])
+            NavigationStack {
+                SpotDetailView(spot: spot)
+            }
+            .presentationDetents([.medium, .large])
         }
         .onChange(of: addSpotCoordinate != nil) { _, hasCoordinate in
             if hasCoordinate {
@@ -280,7 +287,10 @@ private struct SpotsMapContent: View {
 
 struct SpotDetailView: View {
     @Environment(AppRouter.self) private var router
+    @Environment(\.dismiss) private var dismiss
     let spot: Spot
+
+    @State private var showingEditSheet = false
 
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
@@ -491,6 +501,23 @@ struct SpotDetailView: View {
         }
         .navigationTitle(spot.title)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Edit") {
+                    showingEditSheet = true
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditSheet) {
+            NewSpotForm(
+                editingSpot: spot,
+                onDeleted: {
+                    // Pop/close the detail view once the underlying spot is
+                    // gone — the view is still holding a now-deleted model.
+                    dismiss()
+                }
+            )
+        }
     }
 
     static func lastTimeHereCard(
