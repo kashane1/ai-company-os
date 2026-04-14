@@ -134,7 +134,14 @@ enum TripBrowseLogic {
             )
         }
 
-        let trailingCount = cells.count.isMultiple(of: 7) ? 0 : 7 - (cells.count % 7)
+        // Pad to a whole number of weeks, with a minimum of 5 rows so the
+        // calendar height stays stable month-to-month. A 28-day February that
+        // starts on a Sunday would otherwise render as 4 rows and cause the
+        // surrounding layout to jump when paging between months.
+        let minimumCells = 35
+        let weekAligned = cells.count.isMultiple(of: 7) ? cells.count : cells.count + (7 - cells.count % 7)
+        let targetCount = max(weekAligned, minimumCells)
+        let trailingCount = targetCount - cells.count
         cells.append(contentsOf: Array(repeating: TripCalendarGridCell(date: nil, summary: nil, isWithinDisplayedMonth: false), count: trailingCount))
         return cells
     }

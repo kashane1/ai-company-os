@@ -72,8 +72,9 @@ final class WeatherKitServiceTests: XCTestCase {
     }
 
     func testDegreesToCardinalNegativeDegrees() {
-        // -10 degrees should normalize to 350 degrees (NNW)
-        XCTAssertEqual(degreesToCardinalHelper(-10), "NNW")
+        // -10 degrees normalizes to 350 degrees, which falls in the N sector
+        // (N covers 348.75°–11.25°).
+        XCTAssertEqual(degreesToCardinalHelper(-10), "N")
     }
 
     func testDegreesToCardinalLargeOverflow() {
