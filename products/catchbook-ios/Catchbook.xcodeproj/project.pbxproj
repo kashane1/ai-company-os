@@ -91,6 +91,11 @@
 		FCFDFAAD7272AFB723A180C9 /* TripHistoryLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6AA7417686EE0946814818 /* TripHistoryLogic.swift */; };
 		FDED0EBB2F47C1BC11B1DC0A /* DeterministicInsightCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD01C6EBBF3AAF0AF7A2BCD /* DeterministicInsightCardTests.swift */; };
 		E64848686611C6651DCCE135 /* CharacterLimitField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB898E800B9BBB3EB04506D /* CharacterLimitField.swift */; };
+		F0FC898072C0ABDA2D46B993 /* LogbookCSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 834E59D86B276CADD0D85772 /* LogbookCSVExporter.swift */; };
+		6BCC86C963FCA74B808FA318 /* FishingStatsLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF13263AD844E31CCBC7665F /* FishingStatsLogic.swift */; };
+		6B38FF4C5664D586DB63A899 /* FishingStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC860658ADF8843BD5AB8D50 /* FishingStatsView.swift */; };
+		6F790E1A8EFF22C3FE8DF15F /* LogbookCSVExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3A18568E47D092045F4452 /* LogbookCSVExporterTests.swift */; };
+		DD5D2DF769C8804820ABA06E /* FishingStatsLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281CC037CF696645B5488AAC /* FishingStatsLogicTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -190,6 +195,11 @@
 		FB0550E64A741FDBD9D6767F /* ModelTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelTestSupport.swift; sourceTree = "<group>"; };
 		FC502878D61CFFA94F41D59F /* AppTabTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabTests.swift; sourceTree = "<group>"; };
 		3AB898E800B9BBB3EB04506D /* CharacterLimitField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterLimitField.swift; sourceTree = "<group>"; };
+		834E59D86B276CADD0D85772 /* LogbookCSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookCSVExporter.swift; sourceTree = "<group>"; };
+		AF13263AD844E31CCBC7665F /* FishingStatsLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingStatsLogic.swift; sourceTree = "<group>"; };
+		AC860658ADF8843BD5AB8D50 /* FishingStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingStatsView.swift; sourceTree = "<group>"; };
+		7B3A18568E47D092045F4452 /* LogbookCSVExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookCSVExporterTests.swift; sourceTree = "<group>"; };
+		281CC037CF696645B5488AAC /* FishingStatsLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingStatsLogicTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -300,7 +310,8 @@
 				76B98FB2E208BD4E2E78E039 /* PersonalBestService.swift */,
 				A2B2C2D2E2F2A3B3C3D3E3F3 /* WaterbodyAutoDetectionService.swift */,
 				7BDDEE0C8A1B245135C31298 /* WeatherKitService.swift */,
-			);
+							834E59D86B276CADD0D85772 /* LogbookCSVExporter.swift */,
+);
 			path = Services;
 			sourceTree = "<group>";
 		};
@@ -356,7 +367,9 @@
 				12F672E5BC4B333982D7B7AB /* PersonalBestServiceTests.swift */,
 				C2D2E2F2A2B2C2D2E2F20102 /* WaterbodyAutoDetectionServiceTests.swift */,
 				C4314B83C1A91BB57573A4F6 /* WeatherKitServiceTests.swift */,
-			);
+							7B3A18568E47D092045F4452 /* LogbookCSVExporterTests.swift */,
+				281CC037CF696645B5488AAC /* FishingStatsLogicTests.swift */,
+);
 			path = Services;
 			sourceTree = "<group>";
 		};
@@ -522,7 +535,9 @@
 				2C875E14EAE74FD7908D3389 /* SpeciesListLogic.swift */,
 				8347B1175B194632BD37F1D1 /* SpeciesListView.swift */,
 				A9EC39BE7DD940D887733547 /* PersonalBestsListView.swift */,
-			);
+							AF13263AD844E31CCBC7665F /* FishingStatsLogic.swift */,
+				AC860658ADF8843BD5AB8D50 /* FishingStatsView.swift */,
+);
 			path = More;
 			sourceTree = "<group>";
 		};
@@ -629,6 +644,8 @@
 				B57E92D71C4555C4C9609880 /* LocationRecorderTests.swift in Sources */,
 				70EAC7A4BE3E6DDB40F6E3AD /* LogFeatureLogicTests.swift in Sources */,
 				E983DB9DDF26DBF7B3958968 /* LogbookBackupExporterTests.swift in Sources */,
+				DD5D2DF769C8804820ABA06E /* FishingStatsLogicTests.swift in Sources */,
+				6F790E1A8EFF22C3FE8DF15F /* LogbookCSVExporterTests.swift in Sources */,
 				93212FB0232DF16AF39EEFFA /* ModelTestSupport.swift in Sources */,
 				97435F3A4E39938195ED1C27 /* PersistenceFailureHandlingTests.swift in Sources */,
 				3D1E9273F52EDD87F5A60A93 /* PersonalBestServiceTests.swift in Sources */,
@@ -679,6 +696,9 @@
 				25B3DAC403EF7E1BACE8CD07 /* HomeView.swift in Sources */,
 				EF94B76AE07941BD9F5E3EE0 /* TripStartSheet.swift in Sources */,
 				6C217C61B86B4D90A2CFD0E4 /* MoreView.swift in Sources */,
+				6B38FF4C5664D586DB63A899 /* FishingStatsView.swift in Sources */,
+				6BCC86C963FCA74B808FA318 /* FishingStatsLogic.swift in Sources */,
+				F0FC898072C0ABDA2D46B993 /* LogbookCSVExporter.swift in Sources */,
 				E64848686611C6651DCCE135 /* CharacterLimitField.swift in Sources */,
 				B8895475A6FA463B95E09E78 /* PrimaryActionLabel.swift in Sources */,
 				10A9847F5198841447DEE8EF /* KeyboardDoneToolbar.swift in Sources */,

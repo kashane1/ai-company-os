@@ -6,6 +6,8 @@ struct MoreView: View {
 
     @State private var backupDocument = LogbookBackupDocument(package: .placeholder())
     @State private var showingBackupExporter = false
+    @State private var csvDocument = LogbookCSVDocument(csv: "")
+    @State private var showingCSVExporter = false
     @State private var exportPreparationError: String?
 
     var body: some View {
@@ -24,45 +26,34 @@ struct MoreView: View {
                     }
                 }
 
-                Section("Data & Export") {
+                Section {
                     Button {
                         prepareBackupExport()
                     } label: {
-                        Label("Export Logbook Backup", systemImage: "square.and.arrow.up")
+                        Label("Export Catchbook Data", systemImage: "square.and.arrow.up")
                     }
-
-                    Label {
-                        HStack {
-                            Text("CSV Export")
-                            Spacer()
-                            Text("Coming soon")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                        }
-                    } icon: {
-                        Image(systemName: "tablecells")
+                    Button {
+                        prepareCSVExport()
+                    } label: {
+                        Label("Export Catches as CSV", systemImage: "tablecells")
                     }
-                    .foregroundStyle(.secondary)
+                } header: {
+                    Text("Data & Export")
+                } footer: {
+                    Text("Full backup saves every trip, catch, and photo in Catchbook's package format. CSV export flattens all catches with trip and condition context for spreadsheets.")
                 }
 
                 Section("Stats & Insights") {
+                    NavigationLink {
+                        FishingStatsView()
+                    } label: {
+                        Label("Fishing Stats", systemImage: "chart.bar")
+                    }
                     NavigationLink {
                         PersonalBestsListView()
                     } label: {
                         Label("Personal Bests", systemImage: "trophy")
                     }
-                    Label {
-                        HStack {
-                            Text("Fishing Stats")
-                            Spacer()
-                            Text("Coming soon")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                        }
-                    } icon: {
-                        Image(systemName: "chart.bar")
-                    }
-                    .foregroundStyle(.secondary)
                 }
 
                 Section("About") {
@@ -82,10 +73,16 @@ struct MoreView: View {
             contentType: .fishingLogbookBackup,
             defaultFilename: LogbookBackupExporter.defaultFilename
         ) { _ in }
-        .alert("Backup export unavailable", isPresented: exportPreparationAlertIsPresented) {
+        .fileExporter(
+            isPresented: $showingCSVExporter,
+            document: csvDocument,
+            contentType: .commaSeparatedText,
+            defaultFilename: LogbookCSVExporter.defaultFilename
+        ) { _ in }
+        .alert("Export unavailable", isPresented: exportPreparationAlertIsPresented) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(exportPreparationError ?? "We couldn't prepare your backup right now.")
+            Text(exportPreparationError ?? "We couldn't prepare your export right now.")
         }
     }
 
@@ -110,6 +107,15 @@ struct MoreView: View {
             showingBackupExporter = true
         } catch {
             exportPreparationError = "We couldn't prepare your backup right now."
+        }
+    }
+
+    private func prepareCSVExport() {
+        do {
+            csvDocument = try LogbookCSVExporter.makeDocument(context: modelContext)
+            showingCSVExporter = true
+        } catch {
+            exportPreparationError = "We couldn't prepare your CSV right now."
         }
     }
 }
