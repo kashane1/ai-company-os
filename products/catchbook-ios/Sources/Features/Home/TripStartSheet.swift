@@ -7,7 +7,7 @@ struct TripStartSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
-    @Query(sort: \Spot.createdAt) private var spots: [Spot]
+    @Query(sort: \Spot.title) private var spots: [Spot]
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
 
