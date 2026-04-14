@@ -532,7 +532,7 @@ final class CatchRecord {
     var caughtAt: Date
     var lureOrBait: String
     var method: String
-    var gear: String
+    var gear: String = ""
     var weightKg: Double?
     var lengthCm: Double?
     var waterDepthM: Double?
