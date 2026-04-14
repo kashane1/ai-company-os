@@ -5,6 +5,8 @@ topic: catchbook-location-model
 
 # Catchbook Location Model Brainstorm
 
+> **Amendment (2026-04-13):** Waterbody is an optional tag at every entry point — never a precondition for creating a spot, starting a trip, or surfacing post-trip follow-ups. Canonical-anchor semantics still apply **when** a waterbody is attached. See [ADR: Waterbody is never a gate](../decisions/2026-04-13-waterbody-is-never-a-gate.md).
+
 ## What We're Building
 Catchbook needs a clearer location model that improves memory recall without turning every logging flow into a mapping tool. The current issue exposed by the new Spots and Trips maps is that location data exists in multiple places with different meanings: trip condition snapshots may have coordinates, but spots and waterbodies often do not. That makes records feel more precise than the map layer can actually represent.
 

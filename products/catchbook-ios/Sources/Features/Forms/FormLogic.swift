@@ -16,8 +16,8 @@ struct WaterbodyFormDraft {
 }
 
 enum SpotFormLogic {
-    static func canSave(title: String, selectedWaterbodyID: UUID?) -> Bool {
-        !TripEditingLogic.normalizedText(title).isEmpty && selectedWaterbodyID != nil
+    static func canSave(title: String) -> Bool {
+        !TripEditingLogic.normalizedText(title).isEmpty
     }
 
     static func draft(

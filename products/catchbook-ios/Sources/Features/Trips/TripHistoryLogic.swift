@@ -28,6 +28,7 @@ struct WaterbodySummary: Identifiable {
 enum WaterbodySummaryCoordinateSource: Equatable {
     case canonicalWaterbody
     case legacySpotCentroid
+    case generalAreaCentroid
 
     var detailText: String {
         switch self {
@@ -35,9 +36,17 @@ enum WaterbodySummaryCoordinateSource: Equatable {
             return "Map anchored to the waterbody's saved canonical pin."
         case .legacySpotCentroid:
             return "Map anchored to a saved spot area until this waterbody gets its own canonical pin."
+        case .generalAreaCentroid:
+            return "Map anchored to the average location of your trips that aren't tagged to a specific waterbody."
         }
     }
 }
+
+/// Deterministic UUID used to identify the synthetic "General area" summary
+/// on the Trips map. Trips with no waterbody are grouped under this key so
+/// they stay visible even when no `Waterbody` row exists. See ADR
+/// 2026-04-13-waterbody-is-never-a-gate.
+private let generalAreaSyntheticID = UUID(uuidString: "00000000-0000-0000-0000-0000CA7C4600")!
 
 enum TripDateFilter: String, CaseIterable, Identifiable {
     case all
@@ -99,7 +108,7 @@ enum TripHistoryLogic {
         let tripGroups = Dictionary(grouping: trips) { $0.waterbody?.id }
         let tripIDs = Set(trips.map(\.id))
 
-        return tripGroups.compactMap { waterbodyID, groupedTrips in
+        var summaries: [WaterbodySummary] = tripGroups.compactMap { waterbodyID, groupedTrips in
             guard let waterbodyID else { return nil }
             guard let representativeWaterbody = explicitWaterbodies[waterbodyID] ?? groupedTrips.compactMap(\.waterbody).first else {
                 return nil
@@ -132,7 +141,20 @@ enum TripHistoryLogic {
                 spots: waterbodySpots
             )
         }
-        .sorted { lhs, rhs in
+
+        // Synthetic "General area" bucket for trips with no waterbody. Without
+        // this, nil-waterbody trips silently disappear from the Trips map even
+        // though they're perfectly valid records. See ADR
+        // 2026-04-13-waterbody-is-never-a-gate.
+        if let generalAreaSummary = generalAreaSummary(
+            nilWaterbodyTrips: tripGroups[nil] ?? [],
+            catches: catches,
+            tripIDs: tripIDs
+        ) {
+            summaries.append(generalAreaSummary)
+        }
+
+        return summaries.sorted { lhs, rhs in
             let lhsDate = lhs.lastTripDate ?? .distantPast
             let rhsDate = rhs.lastTripDate ?? .distantPast
             if lhsDate != rhsDate {
@@ -140,6 +162,43 @@ enum TripHistoryLogic {
             }
             return lhs.waterbodyName.localizedCaseInsensitiveCompare(rhs.waterbodyName) == .orderedAscending
         }
+    }
+
+    private static func generalAreaSummary(
+        nilWaterbodyTrips: [Trip],
+        catches: [CatchRecord],
+        tripIDs: Set<UUID>
+    ) -> WaterbodySummary? {
+        guard !nilWaterbodyTrips.isEmpty else { return nil }
+
+        // Need at least one resolvable coordinate to place the cluster on
+        // the map. If none of these trips have one, the bucket can't render
+        // and we skip it (the trips still appear in list-based views).
+        let coordinates = nilWaterbodyTrips.compactMap(\.resolvedCoordinate)
+        guard !coordinates.isEmpty else { return nil }
+
+        let avgLatitude = coordinates.map(\.latitude).reduce(0, +) / Double(coordinates.count)
+        let avgLongitude = coordinates.map(\.longitude).reduce(0, +) / Double(coordinates.count)
+        let center = CLLocationCoordinate2D(latitude: avgLatitude, longitude: avgLongitude)
+
+        let catchCount = catches.reduce(into: 0) { total, catchRecord in
+            guard let tripID = catchRecord.trip?.id, tripIDs.contains(tripID) else { return }
+            guard catchRecord.trip?.waterbody == nil else { return }
+            total += 1
+        }
+
+        return WaterbodySummary(
+            waterbodyID: generalAreaSyntheticID,
+            waterbodyName: "General area",
+            waterbodyType: .lake,
+            coordinate: center,
+            coordinateSource: .generalAreaCentroid,
+            tripCount: nilWaterbodyTrips.count,
+            catchCount: catchCount,
+            spotCount: 0,
+            lastTripDate: nilWaterbodyTrips.map(\.startAt).max(),
+            spots: []
+        )
     }
 
     static func mapRegion(for summaries: [WaterbodySummary]) -> MKCoordinateRegion {

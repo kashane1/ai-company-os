@@ -33,6 +33,7 @@
 		3A8BFBF474A8B993784F153F /* CatchFieldVisibilityEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5655555DE8AC7A6DF5AD976D /* CatchFieldVisibilityEditor.swift */; };
 		3AA0A8B24E2F69F752B2FB35 /* WeatherKitServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4314B83C1A91BB57573A4F6 /* WeatherKitServiceTests.swift */; };
 		3D1E9273F52EDD87F5A60A93 /* PersonalBestServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F672E5BC4B333982D7B7AB /* PersonalBestServiceTests.swift */; };
+		C1D1E1F101020304050607A1 /* WaterbodyAutoDetectionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D2E2F2A2B2C2D2E2F20102 /* WaterbodyAutoDetectionServiceTests.swift */; };
 		3E932E6B309304AD25033D6F /* PersistenceFailureHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23E64C47881FEC584459984 /* PersistenceFailureHandling.swift */; };
 		40632D961DD5DC4E62212154 /* NewWaterbodyForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7441E4E58FD7FAE5DDC15 /* NewWaterbodyForm.swift */; };
 		40FE623064536F60716C3D01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0BF229D722A1C61C76A638B /* Assets.xcassets */; };
@@ -58,6 +59,7 @@
 		8142F73C356ED83A372C090D /* TripEditingLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790577ECEBEE4E267B0ED399 /* TripEditingLogicTests.swift */; };
 		84091F9D365C4199C4C6C6B4 /* AppFormattersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C904B9B47B1C56C9C69EDF /* AppFormattersTests.swift */; };
 		884D70D3BB0005B32FEF32C1 /* PersonalBestService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B98FB2E208BD4E2E78E039 /* PersonalBestService.swift */; };
+		A0B0C0D0E0F0A1B1C1D1E1F1 /* WaterbodyAutoDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B2C2D2E2F2A3B3C3D3E3F3 /* WaterbodyAutoDetectionService.swift */; };
 		8D11CEDFDA0F7089D5FEEF99 /* FormLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E3F6CC7590D01C8DF414244 /* FormLogic.swift */; };
 		9221CF3AD0F2E6354D5BE028 /* CatchPhotoMetadataServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A01D614641B145F29FB2BEF7 /* CatchPhotoMetadataServiceTests.swift */; };
 		93212FB0232DF16AF39EEFFA /* ModelTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0550E64A741FDBD9D6767F /* ModelTestSupport.swift */; };
@@ -120,6 +122,7 @@
 		0B7F5FF1E8F92F02FFDB02A7 /* DeterministicInsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterministicInsightCard.swift; sourceTree = "<group>"; };
 		0DB3F07252AF6E4C58B493D5 /* CatchHistoryLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchHistoryLogicTests.swift; sourceTree = "<group>"; };
 		12F672E5BC4B333982D7B7AB /* PersonalBestServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestServiceTests.swift; sourceTree = "<group>"; };
+		C2D2E2F2A2B2C2D2E2F20102 /* WaterbodyAutoDetectionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterbodyAutoDetectionServiceTests.swift; sourceTree = "<group>"; };
 		17103AF7932F818FBF29FC3F /* CatchPhotoComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchPhotoComponents.swift; sourceTree = "<group>"; };
 		17C142ACA5FBE74B95074D15 /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
 		1887DA7ADEC8D7325D4510E1 /* KeyboardDoneToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardDoneToolbar.swift; sourceTree = "<group>"; };
@@ -146,6 +149,7 @@
 		646909ADD796ED34B18C7F29 /* SpotDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDetailViewTests.swift; sourceTree = "<group>"; };
 		74828E17661EF5A4C9F1AC7E /* WeatherAttributionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAttributionView.swift; sourceTree = "<group>"; };
 		76B98FB2E208BD4E2E78E039 /* PersonalBestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalBestService.swift; sourceTree = "<group>"; };
+		A2B2C2D2E2F2A3B3C3D3E3F3 /* WaterbodyAutoDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterbodyAutoDetectionService.swift; sourceTree = "<group>"; };
 		790577ECEBEE4E267B0ED399 /* TripEditingLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripEditingLogicTests.swift; sourceTree = "<group>"; };
 		79BCFA2117C31036BE2DE464 /* CatchHistoryLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchHistoryLogic.swift; sourceTree = "<group>"; };
 		7B47E7BDF85B80B15C5FB062 /* TripBrowseLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripBrowseLogicTests.swift; sourceTree = "<group>"; };
@@ -294,6 +298,7 @@
 				A5261B9AC086957AABF70159 /* LocationRecorder.swift */,
 				946CB2CF4C2D97F1D3E84384 /* LogbookBackupExporter.swift */,
 				76B98FB2E208BD4E2E78E039 /* PersonalBestService.swift */,
+				A2B2C2D2E2F2A3B3C3D3E3F3 /* WaterbodyAutoDetectionService.swift */,
 				7BDDEE0C8A1B245135C31298 /* WeatherKitService.swift */,
 			);
 			path = Services;
@@ -349,6 +354,7 @@
 				EE163737C354756109F698EA /* LocationRecorderTests.swift */,
 				F57EAFD44335BF6CECA163FB /* LogbookBackupExporterTests.swift */,
 				12F672E5BC4B333982D7B7AB /* PersonalBestServiceTests.swift */,
+				C2D2E2F2A2B2C2D2E2F20102 /* WaterbodyAutoDetectionServiceTests.swift */,
 				C4314B83C1A91BB57573A4F6 /* WeatherKitServiceTests.swift */,
 			);
 			path = Services;
@@ -626,6 +632,7 @@
 				93212FB0232DF16AF39EEFFA /* ModelTestSupport.swift in Sources */,
 				97435F3A4E39938195ED1C27 /* PersistenceFailureHandlingTests.swift in Sources */,
 				3D1E9273F52EDD87F5A60A93 /* PersonalBestServiceTests.swift in Sources */,
+				C1D1E1F101020304050607A1 /* WaterbodyAutoDetectionServiceTests.swift in Sources */,
 				FA25A9E41F95DDAC7DAA979D /* SeasonalNudgeCardTests.swift in Sources */,
 				F521B82F6C7955B1DB351B58 /* SpotDetailViewTests.swift in Sources */,
 				C4FC4553942CF814D4930AC0 /* SpotPresentationLogicTests.swift in Sources */,
@@ -682,6 +689,7 @@
 				40632D961DD5DC4E62212154 /* NewWaterbodyForm.swift in Sources */,
 				3E932E6B309304AD25033D6F /* PersistenceFailureHandling.swift in Sources */,
 				884D70D3BB0005B32FEF32C1 /* PersonalBestService.swift in Sources */,
+				A0B0C0D0E0F0A1B1C1D1E1F1 /* WaterbodyAutoDetectionService.swift in Sources */,
 				A5FFEF738E8D4062804FEF49 /* SpotPresentationLogic.swift in Sources */,
 				16969EE6B6D8779DAE8D3ECF /* SpotRecallSummary.swift in Sources */,
 				D3E19FD05543BA1545DFCB98 /* SpotsView.swift in Sources */,

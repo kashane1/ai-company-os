@@ -274,7 +274,10 @@ enum LogFeatureLogic {
     }
 
     static func shouldOfferCreateSpot(from trip: Trip) -> Bool {
-        trip.spot == nil && trip.waterbody != nil && trip.resolvedCoordinate != nil
+        // Waterbody is optional — see ADR 2026-04-13-waterbody-is-never-a-gate.
+        // Any trip with a resolvable coordinate and no spot gets the
+        // "create spot from this trip" prompt, regardless of waterbody.
+        trip.spot == nil && trip.resolvedCoordinate != nil
     }
 
     static func createSpotPrompt(for trip: Trip) -> String {

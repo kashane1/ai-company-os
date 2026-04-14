@@ -47,6 +47,9 @@ struct ActiveTripView: View {
     }
 
     private var catchesForWaterbody: [CatchRecord] {
+        // Returns [] when trip.waterbody is nil; the suggestion ranker in
+        // LogFeatureLogic.historySuggestions falls through to spot-level and
+        // global tiers. See ADR 2026-04-13-waterbody-is-never-a-gate.
         guard let waterbodyID = trip.waterbody?.id else { return [] }
         return allCatches.filter { $0.trip?.waterbody?.id == waterbodyID }
     }

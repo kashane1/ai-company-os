@@ -46,12 +46,13 @@ enum TripEditingLogic {
     }
 
     static func canSave(
-        selectedWaterbodyID: UUID?,
         isTripActive: Bool,
         startAt: Date,
         endAt: Date
     ) -> Bool {
-        selectedWaterbodyID != nil && (isTripActive || endAt >= startAt)
+        // Waterbody is optional — see ADR 2026-04-13-waterbody-is-never-a-gate.
+        // Trip is saveable as long as the date ordering is valid (or active).
+        isTripActive || endAt >= startAt
     }
 
     static func selectedSpotIDAfterWaterbodyChange(

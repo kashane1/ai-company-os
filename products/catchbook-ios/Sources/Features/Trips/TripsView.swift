@@ -698,8 +698,15 @@ private struct TripRow: View {
                     Label(durationText, systemImage: "timer")
                 }
 
+                // Waterbody is optional — fall back to spot title, then a
+                // muted "General area" so rows with nil waterbody don't look
+                // visually bare compared to their neighbors.
                 if let waterbodyName = trip.waterbody?.name {
                     Label(waterbodyName, systemImage: "water.waves")
+                } else if let spotTitle = trip.spot?.title {
+                    Label(spotTitle, systemImage: "mappin")
+                } else {
+                    Label("General area", systemImage: "map")
                 }
             }
             .font(.caption)
@@ -1603,7 +1610,6 @@ private struct TripEditorView: View {
 
     private var canSave: Bool {
         TripEditingLogic.canSave(
-            selectedWaterbodyID: selectedWaterbodyID,
             isTripActive: isTripActive,
             startAt: startAt,
             endAt: endAt
@@ -1626,9 +1632,12 @@ private struct TripEditorView: View {
     private var whereSection: some View {
         Section("Where") {
             Picker("Waterbody", selection: $selectedWaterbodyID) {
-                Text("Select water").tag(Optional<UUID>.none)
-                ForEach(waterbodies, id: \.id) { waterbody in
-                    Text(waterbody.name).tag(Optional(waterbody.id))
+                Text("None").tag(Optional<UUID>.none)
+                if !waterbodies.isEmpty {
+                    Divider()
+                    ForEach(waterbodies, id: \.id) { waterbody in
+                        Text(waterbody.name).tag(Optional(waterbody.id))
+                    }
                 }
             }
 

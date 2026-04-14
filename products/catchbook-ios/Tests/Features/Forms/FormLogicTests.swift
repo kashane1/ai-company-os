@@ -3,10 +3,13 @@ import XCTest
 @testable import Catchbook
 
 final class FormLogicTests: XCTestCase {
-    func testSpotFormLogicRequiresTrimmedTitleAndSelectedWaterbody() {
-        XCTAssertFalse(SpotFormLogic.canSave(title: "   ", selectedWaterbodyID: UUID()))
-        XCTAssertFalse(SpotFormLogic.canSave(title: "Dock", selectedWaterbodyID: nil))
-        XCTAssertTrue(SpotFormLogic.canSave(title: " Dock ", selectedWaterbodyID: UUID()))
+    func testSpotFormLogicRequiresOnlyTrimmedTitle() {
+        // Waterbody is fully optional — canSave depends only on a non-empty
+        // trimmed title. See ADR 2026-04-13-waterbody-is-never-a-gate.
+        XCTAssertFalse(SpotFormLogic.canSave(title: "   "))
+        XCTAssertFalse(SpotFormLogic.canSave(title: ""))
+        XCTAssertTrue(SpotFormLogic.canSave(title: "Dock"))
+        XCTAssertTrue(SpotFormLogic.canSave(title: " Dock "))
     }
 
     func testSpotFormDraftTrimsFields() {

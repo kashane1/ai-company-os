@@ -1,3 +1,4 @@
+import CoreLocation
 import SwiftData
 import SwiftUI
 
@@ -20,6 +21,8 @@ struct TripStartSheet: View {
     @State private var showingSpotForm = false
     @State private var persistenceErrorMessage: String?
     @State private var showingActiveTripAlert = false
+    @State private var waterbodyWasAutoDetected = false
+    @AppStorage("tripStart.lastDetection") private var lastDetectionJSON: String = ""
     @FocusState private var isTextInputFocused: Bool
 
     let context: TripStartContext
@@ -51,125 +54,109 @@ struct TripStartSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                if waterbodies.isEmpty {
-                    Section {
-                        SectionEmptyState(
-                            icon: "water.waves",
-                            title: "Add your first water",
-                            subtitle: "Create a waterbody to start logging trips and catches."
-                        )
-                        Button {
-                            showingWaterbodyForm = true
-                        } label: {
-                            Label("Add Waterbody", systemImage: "plus.circle.fill")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.appAccent)
-                        .listRowSeparator(.hidden)
-                    }
-                } else {
-                    Section {
-                        Picker("Waterbody", selection: $selectedWaterbodyID) {
-                            Text("Select water").tag(Optional<UUID>.none)
+                Section {
+                    Picker("Waterbody", selection: $selectedWaterbodyID) {
+                        Text("None").tag(Optional<UUID>.none)
+                        if !waterbodies.isEmpty {
+                            Divider()
                             ForEach(waterbodies, id: \.id) { waterbody in
                                 Text(waterbody.name).tag(Optional(waterbody.id))
                             }
                         }
-
-                        Picker("Spot", selection: $selectedSpotID) {
-                            Text("No specific spot").tag(Optional<UUID>.none)
-                            ForEach(filteredSpots, id: \.id) { spot in
-                                Text(spot.title).tag(Optional(spot.id))
-                            }
-                        }
-
-                        if let lastTimeHereCard {
-                            LastTimeHereCard(card: lastTimeHereCard)
-                                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                        }
-
-                        HStack(spacing: Spacing.sm) {
-                            Button {
-                                showingWaterbodyForm = true
-                            } label: {
-                                Label("New Water", systemImage: "plus")
-                                    .font(.footnote)
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-
-                            Button {
-                                showingSpotForm = true
-                            } label: {
-                                Label("New Spot", systemImage: "plus")
-                                    .font(.footnote)
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                        }
-                        .listRowSeparator(.hidden, edges: .bottom)
-                    } header: {
-                        Text("Where")
                     }
 
-                    Section {
-                        ConditionPreviewRow(preview: conditionPreview)
-                    } header: {
-                        Text("Conditions")
-                    } footer: {
-                        Text("Location and weather can degrade gracefully. Trip start still works offline and your spots stay yours.")
+                    if waterbodyWasAutoDetected, selectedWaterbodyID != nil {
+                        Text("Detected from your location")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
 
-                    Section {
-                        DisclosureGroup(
-                            isExpanded: $showingOptionalDetails,
-                            content: {
-                                TextField("Target species, separated by commas", text: $targetSpecies)
-                                    .textInputAutocapitalization(.words)
-                                    .focused($isTextInputFocused)
-                                    .accessibilityIdentifier("startTrip.targetSpeciesField")
-                                Text("Optional. Enter one or more targets. We turn them into quick-catch suggestions.")
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                TextField("Trip notes", text: $tripNotes, axis: .vertical)
-                                    .lineLimit(2...4)
-                                    .focused($isTextInputFocused)
-                            },
-                            label: {
-                                VStack(alignment: .leading, spacing: Spacing.xs) {
-                                    Text(LogFeatureLogic.startTripOptionalDetailsLabel)
-                                    if !showingOptionalDetails {
-                                        Text(LogFeatureLogic.startTripOptionalDetailsHint)
-                                            .font(.footnote)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                            }
-                        )
+                    Picker("Spot", selection: $selectedSpotID) {
+                        Text("No specific spot").tag(Optional<UUID>.none)
+                        ForEach(filteredSpots, id: \.id) { spot in
+                            Text(spot.title).tag(Optional(spot.id))
+                        }
+                    }
+
+                    if let lastTimeHereCard {
+                        LastTimeHereCard(card: lastTimeHereCard)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    }
+
+                    HStack(spacing: Spacing.sm) {
+                        Button {
+                            showingWaterbodyForm = true
+                        } label: {
+                            Label("New Water", systemImage: "plus")
+                                .font(.footnote)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
 
                         Button {
-                            if activeTrip != nil {
-                                showingActiveTripAlert = true
-                            } else {
-                                startTrip()
-                            }
+                            showingSpotForm = true
                         } label: {
-                            PrimaryActionLabel(title: "Start Trip", systemImage: "play.fill")
+                            Label("New Spot", systemImage: "plus")
+                                .font(.footnote)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.appAccent)
-                        .disabled(selectedWaterbody == nil)
-                        .accessibilityIdentifier("startTrip.button")
-                        .listRowSeparator(.hidden)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                    .listRowSeparator(.hidden, edges: .bottom)
+                } header: {
+                    Text("Where")
+                } footer: {
+                    Text("Waterbody and spot are optional. Start the trip whenever you're ready — we'll tag whatever we can from your location.")
+                }
 
-                        if selectedWaterbody == nil {
-                            Text("Select a waterbody to get started.")
+                Section {
+                    ConditionPreviewRow(preview: conditionPreview)
+                } header: {
+                    Text("Conditions")
+                } footer: {
+                    Text("Location and weather can degrade gracefully. Trip start still works offline and your spots stay yours.")
+                }
+
+                Section {
+                    DisclosureGroup(
+                        isExpanded: $showingOptionalDetails,
+                        content: {
+                            TextField("Target species, separated by commas", text: $targetSpecies)
+                                .textInputAutocapitalization(.words)
+                                .focused($isTextInputFocused)
+                                .accessibilityIdentifier("startTrip.targetSpeciesField")
+                            Text("Optional. Enter one or more targets. We turn them into quick-catch suggestions.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
-                                .listRowSeparator(.hidden)
+                            TextField("Trip notes", text: $tripNotes, axis: .vertical)
+                                .lineLimit(2...4)
+                                .focused($isTextInputFocused)
+                        },
+                        label: {
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
+                                Text(LogFeatureLogic.startTripOptionalDetailsLabel)
+                                if !showingOptionalDetails {
+                                    Text(LogFeatureLogic.startTripOptionalDetailsHint)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
                         }
+                    )
+
+                    Button {
+                        if activeTrip != nil {
+                            showingActiveTripAlert = true
+                        } else {
+                            startTrip()
+                        }
+                    } label: {
+                        PrimaryActionLabel(title: "Start Trip", systemImage: "play.fill")
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.appAccent)
+                    .accessibilityIdentifier("startTrip.button")
+                    .listRowSeparator(.hidden)
                 }
             }
             .navigationTitle("Start Trip")
@@ -187,14 +174,25 @@ struct TripStartSheet: View {
             }
         }
         .onAppear {
+            // Permission prompt is a side-effect, not async — keep in onAppear
+            // so it fires on every sheet appearance.
             locationRecorder.requestIfNeeded()
-            // Pre-select spot/waterbody from context (e.g., "Start Trip Here" from Spots)
+        }
+        .task {
+            // .task { } instead of Task { } in .onAppear so SwiftUI cancels
+            // the prefill automatically if the user dismisses mid-flight.
+            // Handles context preselection synchronously, then falls through
+            // to location-based prefill only if neither is set.
             if let spot = context.preselectedSpot {
                 selectedSpotID = spot.id
                 selectedWaterbodyID = spot.waterbody?.id
-            } else if let waterbody = context.preselectedWaterbody {
-                selectedWaterbodyID = waterbody.id
+                return
             }
+            if let waterbody = context.preselectedWaterbody {
+                selectedWaterbodyID = waterbody.id
+                return
+            }
+            await prefillWaterbodyFromLocation()
         }
         .sheet(isPresented: $showingWaterbodyForm) {
             NewWaterbodyForm { waterbody in
@@ -292,6 +290,105 @@ struct TripStartSheet: View {
                 persistenceErrorMessage = message
             }
         )
+    }
+
+    // MARK: - Waterbody Prefill
+
+    @MainActor
+    private func prefillWaterbodyFromLocation() async {
+        guard selectedWaterbodyID == nil else { return }
+        guard let coordinate = locationRecorder.lastLocation?.coordinate else { return }
+
+        // Cache gate: skip the network call if a recent detection is still
+        // valid within 500m / 24h. Kills ~80% of trip-start network calls
+        // for users who regularly fish the same waters.
+        if let cached = TripStartDetectionCache.load(from: lastDetectionJSON),
+           cached.isFresh(for: coordinate) {
+            applyDetected(
+                WaterbodyAutoDetectionService.Detected(
+                    name: cached.name,
+                    type: WaterbodyType(rawValue: cached.typeRawValue) ?? .lake,
+                    coordinate: CLLocationCoordinate2D(latitude: cached.latitude, longitude: cached.longitude)
+                )
+            )
+            return
+        }
+
+        guard let detected = await WaterbodyAutoDetectionService.detect(at: coordinate) else {
+            return
+        }
+
+        // Late result after user picked something or dismissed? Drop it.
+        guard !Task.isCancelled, selectedWaterbodyID == nil else { return }
+
+        applyDetected(detected)
+
+        // Update cache for next trip start.
+        lastDetectionJSON = TripStartDetectionCache(
+            name: detected.name,
+            typeRawValue: detected.type.rawValue,
+            latitude: detected.coordinate.latitude,
+            longitude: detected.coordinate.longitude,
+            timestamp: Date()
+        ).toJSON() ?? ""
+    }
+
+    @MainActor
+    private func applyDetected(_ detected: WaterbodyAutoDetectionService.Detected) {
+        var resolvedID: UUID?
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                let waterbody = try WaterbodyAutoDetectionService.findOrCreate(detected, in: modelContext)
+                resolvedID = waterbody.id
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                if let resolvedID {
+                    selectedWaterbodyID = resolvedID
+                    waterbodyWasAutoDetected = true
+                }
+            },
+            onFailure: { _ in
+                // Silent: prefill is non-critical; the form still works.
+            }
+        )
+    }
+}
+
+// MARK: - Detection Cache
+
+/// Lightweight cached last-detection result stored in @AppStorage as JSON.
+/// Guards TripStartSheet's prefill path from hitting the network on every
+/// appearance when the user is fishing the same spot repeatedly.
+private struct TripStartDetectionCache: Codable {
+    let name: String
+    let typeRawValue: String
+    let latitude: Double
+    let longitude: Double
+    let timestamp: Date
+
+    static let freshnessWindow: TimeInterval = 60 * 60 * 24 // 24 hours
+    static let freshnessRadiusMeters: Double = 500
+
+    static func load(from json: String) -> TripStartDetectionCache? {
+        guard !json.isEmpty, let data = json.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(TripStartDetectionCache.self, from: data)
+    }
+
+    func toJSON() -> String? {
+        guard let data = try? JSONEncoder().encode(self) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    func isFresh(for coordinate: CLLocationCoordinate2D) -> Bool {
+        let age = Date().timeIntervalSince(timestamp)
+        guard age >= 0, age < Self.freshnessWindow else { return false }
+        let cached = CLLocation(latitude: latitude, longitude: longitude)
+        let current = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        return cached.distance(from: current) <= Self.freshnessRadiusMeters
     }
 }
 
