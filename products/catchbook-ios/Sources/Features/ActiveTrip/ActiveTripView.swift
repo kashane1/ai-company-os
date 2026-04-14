@@ -806,7 +806,6 @@ struct TripEndedSummaryView: View {
         }
         .sheet(isPresented: $showingSpotForm) {
             NewSpotForm(
-                preselectedWaterbodyID: trip.waterbody?.id,
                 initialCoordinate: trip.resolvedCoordinate
             )
         }

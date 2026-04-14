@@ -9,33 +9,26 @@ struct NewSpotForm: View {
 
     @StateObject private var locationRecorder = LocationRecorder()
 
-    @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
-
     @State private var title = ""
     @State private var notes = ""
-    @State private var selectedWaterbodyID: UUID?
-    @State private var showingWaterbodyForm = false
     @State private var showingCoordinatePicker = false
     @State private var selectedCoordinate: CLLocationCoordinate2D?
     @State private var hasCustomizedCoordinate = false
     @State private var persistenceErrorMessage: String?
+    // Auto-detected waterbody for this spot. Captured silently from the pin
+    // coordinate; committed inside save() so cancelling leaves no phantom row.
+    // The user never sees or picks waterbody — it's a passive tag.
     @State private var pendingDetected: WaterbodyAutoDetectionService.Detected?
-    @State private var waterbodyWasAutoDetected = false
-    @State private var isDetectingWaterbody = false
 
-    var preselectedWaterbodyID: UUID?
     var initialCoordinate: CLLocationCoordinate2D?
     var onSaved: ((Spot) -> Void)?
 
     init(
-        preselectedWaterbodyID: UUID? = nil,
         initialCoordinate: CLLocationCoordinate2D? = nil,
         onSaved: ((Spot) -> Void)? = nil
     ) {
-        self.preselectedWaterbodyID = preselectedWaterbodyID
         self.initialCoordinate = initialCoordinate
         self.onSaved = onSaved
-        _selectedWaterbodyID = State(initialValue: preselectedWaterbodyID)
         _selectedCoordinate = State(initialValue: initialCoordinate)
         _hasCustomizedCoordinate = State(initialValue: initialCoordinate != nil)
     }
@@ -47,39 +40,6 @@ struct NewSpotForm: View {
                     TextField("Spot name", text: $title)
                         .textInputAutocapitalization(.words)
                         .submitLabel(.next)
-
-                    Picker("Waterbody", selection: $selectedWaterbodyID) {
-                        Text("None").tag(Optional<UUID>.none)
-                        if !waterbodies.isEmpty {
-                            Divider()
-                            ForEach(waterbodies, id: \.id) { waterbody in
-                                Text(waterbody.name).tag(Optional(waterbody.id))
-                            }
-                        }
-                    }
-
-                    if isDetectingWaterbody {
-                        HStack(spacing: Spacing.sm) {
-                            ProgressView()
-                                .controlSize(.small)
-                            Text("Detecting waterbody…")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    } else if waterbodyWasAutoDetected, pendingDetected != nil || selectedWaterbodyID != nil {
-                        Text("Detected from your location")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Button {
-                        showingWaterbodyForm = true
-                    } label: {
-                        Label("Add Waterbody", systemImage: "plus")
-                            .font(.footnote)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
 
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(2...4)
@@ -111,7 +71,7 @@ struct NewSpotForm: View {
                 } header: {
                     Text("Spot")
                 } footer: {
-                    Text("Private by default. Drop a pin and we'll try to guess the waterbody from Apple Maps. You can skip or change it any time.")
+                    Text("Private by default. Drop a pin to mark this spot.")
                 }
             }
             .navigationTitle("New Spot")
@@ -138,33 +98,11 @@ struct NewSpotForm: View {
             primeCoordinateIfNeeded()
         }
         .task(id: selectedCoordinate?.latitude) {
-            guard selectedCoordinate != nil,
-                  selectedWaterbodyID == nil,
-                  pendingDetected == nil else { return }
+            guard selectedCoordinate != nil, pendingDetected == nil else { return }
             await detectWaterbody()
         }
         .onChange(of: locationRecorder.lastLocation?.coordinate.latitude) { _, _ in
             primeCoordinateIfNeeded()
-        }
-        .onChange(of: selectedWaterbodyID) { oldValue, newValue in
-            primeCoordinateIfNeeded()
-            // User manually changed the picker → clear auto-detect state so
-            // the "Detected from your location" caption goes away and we
-            // don't overwrite their choice on the next save().
-            if oldValue != newValue, newValue != nil {
-                if let match = waterbodies.first(where: { $0.id == newValue }),
-                   pendingDetected?.name.lowercased() != match.name.lowercased() {
-                    pendingDetected = nil
-                    waterbodyWasAutoDetected = false
-                }
-            }
-        }
-        .sheet(isPresented: $showingWaterbodyForm) {
-            NewWaterbodyForm { waterbody in
-                selectedWaterbodyID = waterbody.id
-                pendingDetected = nil
-                waterbodyWasAutoDetected = false
-            }
         }
         .sheet(isPresented: $showingCoordinatePicker) {
             SpotCoordinatePickerSheet(
@@ -175,7 +113,6 @@ struct NewSpotForm: View {
                 hasCustomizedCoordinate = true
                 // New pin → re-run detection for the new location.
                 pendingDetected = nil
-                waterbodyWasAutoDetected = false
             }
         }
         .persistenceFailureAlert(message: $persistenceErrorMessage)
@@ -185,22 +122,18 @@ struct NewSpotForm: View {
         SpotFormLogic.canSave(title: title)
     }
 
-    private var selectedWaterbody: Waterbody? {
-        waterbodies.first(where: { $0.id == selectedWaterbodyID })
-    }
-
     private func save() {
         let draft = SpotFormLogic.draft(title: title, notes: notes, coordinate: selectedCoordinate)
         var spotToDeliver: Spot?
         PersistenceWriteCoordinator.perform(
             commit: {
                 let resolvedWaterbody: Waterbody?
-                if let userPicked = selectedWaterbody {
-                    resolvedWaterbody = userPicked
-                } else if let pendingDetected {
+                if let pendingDetected {
                     // Defer-commit: the auto-detected waterbody is only
                     // inserted now, inside the save transaction, so
-                    // dismissing the form leaves no phantom records.
+                    // dismissing the form leaves no phantom records. The
+                    // user never picked it — it's a passive tag derived
+                    // from the spot's coordinate.
                     resolvedWaterbody = try WaterbodyAutoDetectionService.findOrCreate(
                         pendingDetected,
                         in: modelContext
@@ -244,14 +177,7 @@ struct NewSpotForm: View {
             return location
         }
 
-        if let initialCoordinate {
-            return initialCoordinate
-        }
-
-        return coordinateIfPresent(
-            latitude: selectedWaterbody?.latitude,
-            longitude: selectedWaterbody?.longitude
-        )
+        return initialCoordinate
     }
 
     private func primeCoordinateIfNeeded() {
@@ -268,27 +194,15 @@ struct NewSpotForm: View {
     @MainActor
     private func detectWaterbody() async {
         guard let coordinate = selectedCoordinate ?? initialCoordinate else { return }
-        isDetectingWaterbody = true
-        defer { isDetectingWaterbody = false }
 
         guard let detected = await WaterbodyAutoDetectionService.detect(at: coordinate) else {
             return
         }
 
-        // Late result after the user dismissed or manually picked? Drop it.
-        guard !Task.isCancelled, selectedWaterbodyID == nil else { return }
+        // Late result after the user dismissed? Drop it.
+        guard !Task.isCancelled else { return }
 
         pendingDetected = detected
-        waterbodyWasAutoDetected = true
-
-        // If an existing Waterbody already matches by name, select it in the
-        // picker so the user sees the hit immediately. The actual findOrCreate
-        // call still happens inside save() so that cancelling the form never
-        // leaves a phantom row.
-        let lowered = detected.name.lowercased()
-        if let existing = waterbodies.first(where: { $0.name.lowercased() == lowered }) {
-            selectedWaterbodyID = existing.id
-        }
     }
 }
 

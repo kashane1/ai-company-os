@@ -180,6 +180,11 @@ private struct SpotRow: View {
                 .font(.subheadline.weight(.semibold))
 
             HStack(spacing: Spacing.md) {
+                // TODO: backfill canonical waterbody name from spot GPS for
+                // legacy spots that were created before auto-detection ran.
+                // New spots get tagged on save() via WaterbodyAutoDetectionService;
+                // older spots fall back to "Unknown" until a one-shot backfill
+                // pass runs over Spot.waterbody == nil rows.
                 Label(rowDetails.waterbodyName, systemImage: "water.waves")
                 if rowDetails.isPinned {
                     Label("Pinned", systemImage: "mappin")
