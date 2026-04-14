@@ -3,8 +3,7 @@ import SwiftUI
 
 @main
 struct CatchbookApp: App {
-    @State private var selectedTab: AppTab = .home
-    @State private var selectedTripID: UUID?
+    @State private var router = AppRouter()
 
     init() {
         // Instantiate the shared formatters singleton eagerly so its locale
@@ -14,7 +13,7 @@ struct CatchbookApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CatchbookRootView(selectedTab: $selectedTab, selectedTripID: $selectedTripID)
+            CatchbookRootView(router: router)
         }
         .modelContainer(for: [
             Waterbody.self,
@@ -30,39 +29,53 @@ struct CatchbookApp: App {
 
 private struct CatchbookRootView: View {
     @Environment(\.modelContext) private var modelContext
-    @Binding var selectedTab: AppTab
-    @Binding var selectedTripID: UUID?
+    @Bindable var router: AppRouter
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView(selectedTab: $selectedTab)
-                .tabItem {
-                    Label("Home", systemImage: "house")
-                }
-                .tag(AppTab.home)
-
-            TripsView(selectedTripID: $selectedTripID)
-                .tabItem {
-                    Label("Trips", systemImage: "clock.arrow.circlepath")
-                }
-                .tag(AppTab.trips)
-
-            LogView { trip in
-                selectedTripID = trip.id
-                selectedTab = .trips
+        TabView(selection: $router.selectedTab) {
+            NavigationStack(path: $router.homePath) {
+                HomeView()
+                    .navigationDestination(for: HomeDestination.self) { destination in
+                        switch destination {
+                        case let .activeTrip(trip):
+                            ActiveTripView(trip: trip) { endedTrip in
+                                router.homePath = []
+                                router.navigateToTripHistory(endedTrip)
+                            }
+                        }
+                    }
             }
-                .tabItem {
-                    Label("Log", systemImage: "plus.circle.fill")
-                }
-                .tag(AppTab.log)
+            .tabItem {
+                Label("Home", systemImage: "house")
+            }
+            .tag(AppTab.home)
 
-            SpotsView()
-                .tabItem {
-                    Label("Spots", systemImage: "mappin.and.ellipse")
-                }
-                .tag(AppTab.spots)
+            NavigationStack {
+                SpotsView()
+            }
+            .tabItem {
+                Label("Spots", systemImage: "mappin.and.ellipse")
+            }
+            .tag(AppTab.spots)
+
+            NavigationStack {
+                TripsView()
+            }
+            .tabItem {
+                Label("Trips", systemImage: "clock.arrow.circlepath")
+            }
+            .tag(AppTab.trips)
+
+            NavigationStack {
+                MoreView()
+            }
+            .tabItem {
+                Label("More", systemImage: "ellipsis")
+            }
+            .tag(AppTab.more)
         }
         .tint(.catchbookOcean)
+        .environment(router)
         .task {
             try? CatchPhotoMigrationService.runIfNeeded(context: modelContext)
         }

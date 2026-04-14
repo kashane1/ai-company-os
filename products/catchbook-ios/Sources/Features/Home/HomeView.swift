@@ -3,15 +3,11 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
-    @Binding var selectedTab: AppTab
+    @Environment(AppRouter.self) private var router
 
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
     @Query(sort: \PersonalBest.updatedAt, order: .reverse) private var personalBests: [PersonalBest]
-
-    @State private var backupDocument = LogbookBackupDocument(package: .placeholder())
-    @State private var showingBackupExporter = false
-    @State private var exportPreparationError: String?
 
     private var activeTrip: Trip? {
         HomeDashboardLogic.activeTrip(from: trips)
@@ -75,24 +71,24 @@ struct HomeView: View {
     private var totalTrips: Int { HomeDashboardLogic.completedTripCount(from: trips) }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.xl) {
-                    // Active Trip or Start CTA
-                    if let activeTrip {
-                        ActiveTripHero(
-                            activeTrip: activeTrip,
-                            catchCount: HomeDashboardLogic.catchCount(for: activeTrip.id, catches: catches)
-                        ) {
-                            selectedTab = .log
-                        }
-                        .padding(.horizontal)
-                    } else {
-                        StartTripCTA {
-                            selectedTab = .log
-                        }
-                        .padding(.horizontal)
+        @Bindable var router = router
+        ScrollView {
+            VStack(spacing: Spacing.xl) {
+                // Active Trip or Start CTA
+                if let activeTrip {
+                    ActiveTripHero(
+                        activeTrip: activeTrip,
+                        catchCount: HomeDashboardLogic.catchCount(for: activeTrip.id, catches: catches)
+                    ) {
+                        router.showActiveTrip(activeTrip)
                     }
+                    .padding(.horizontal)
+                } else {
+                    StartTripCTA {
+                        router.requestTripStart()
+                    }
+                    .padding(.horizontal)
+                }
 
                     // Quick Stats
                     if totalTrips > 0 {
@@ -218,46 +214,8 @@ struct HomeView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Home")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    let action = HomeToolbarAction.exportLogbookBackup
-                    Button(action.label) {
-                        prepareBackupExport()
-                    }
-                    .accessibilityIdentifier(action.accessibilityIdentifier)
-                }
-            }
-        }
-        .fileExporter(
-            isPresented: $showingBackupExporter,
-            document: backupDocument,
-            contentType: .fishingLogbookBackup,
-            defaultFilename: LogbookBackupExporter.defaultFilename
-        ) { _ in }
-        .alert("Backup export unavailable", isPresented: exportPreparationAlertIsPresented) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(exportPreparationError ?? "We couldn't prepare your backup right now.")
-        }
-    }
-
-    private var exportPreparationAlertIsPresented: Binding<Bool> {
-        Binding(
-            get: { exportPreparationError != nil },
-            set: { isPresented in
-                if !isPresented {
-                    exportPreparationError = nil
-                }
-            }
-        )
-    }
-
-    private func prepareBackupExport() {
-        do {
-            backupDocument = try LogbookBackupExporter.makeDocument(context: modelContext)
-            showingBackupExporter = true
-        } catch {
-            exportPreparationError = "We couldn't prepare your backup right now."
+        .sheet(item: $router.pendingTripStart) { context in
+            TripStartSheet(context: context)
         }
     }
 
