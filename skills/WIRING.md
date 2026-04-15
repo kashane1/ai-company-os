@@ -12,6 +12,12 @@ defines the `packages/tools/primitives/` convention for stateless,
 side-effect-free, typed helpers that any worker or canonical skill can
 import directly.
 
+**Install-surface + ECC kind/layout:** `docs/adr/2026-04-15-ecc-skill-decisions.md`
+records (§A) the deliberate non-goal of install-profile machinery with
+explicit trip-wire conditions, and (§B) binding kind/layout/registry-default
+decisions for the six canonical skills introduced by the ECC Gap
+Recommendations plan.
+
 ## Source-of-truth order
 
 ```
