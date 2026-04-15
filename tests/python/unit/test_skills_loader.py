@@ -248,6 +248,159 @@ def test_adapter_path_traversal_guard(tmp_path):
             skills_loader.load_registry(path=skills_root / "registry.yaml")
 
 
+def test_load_registry_is_cached_by_mtime(tmp_path):
+    """Phase 0.5d.2 — lru_cache keyed on (path, mtime_ns, inode, size).
+
+    Repeat calls with an unchanged file should reuse the cached parse.
+    Verified indirectly: we write the registry, load twice, then
+    confirm the second call returns the same underlying tuple
+    (via identity check on the internal cached object).
+    """
+    from packages.tools.skills.loader import (
+        _load_registry_cached,
+        invalidate_registry_cache,
+    )
+
+    skills_root = tmp_path / "skills"
+    (skills_root / "canonical" / "foo").mkdir(parents=True)
+    registry_file = skills_root / "registry.yaml"
+    registry_file.write_text(
+        yaml.safe_dump(
+            {
+                "skills": [
+                    {
+                        "id": "foo",
+                        "name": "Foo",
+                        "path": "canonical/foo/skill.md",
+                        "owner_agent": "gtm",
+                        "target_runtimes": ["claude"],
+                        "stage": "active",
+                        "kind": "validator",
+                        "fixture_status": "missing",
+                        "source": "internal",
+                    }
+                ]
+            }
+        )
+    )
+    invalidate_registry_cache()
+
+    first = skills_loader.load_registry(path=registry_file)
+    second = skills_loader.load_registry(path=registry_file)
+    # Public loader returns fresh lists, but the internal cache hit
+    # should produce identical contents.
+    assert first == second
+
+    # Probe the internal cache directly — same key, same tuple object.
+    import os
+
+    st = registry_file.resolve().stat()
+    cached_a = _load_registry_cached(
+        os.fspath(registry_file.resolve()),
+        st.st_mtime_ns,
+        st.st_ino,
+        st.st_size,
+    )
+    cached_b = _load_registry_cached(
+        os.fspath(registry_file.resolve()),
+        st.st_mtime_ns,
+        st.st_ino,
+        st.st_size,
+    )
+    assert cached_a is cached_b
+
+
+def test_load_registry_returns_fresh_list_not_cached_tuple(tmp_path):
+    """Callers must not corrupt the cache via list mutation."""
+    from packages.tools.skills.loader import invalidate_registry_cache
+
+    skills_root = tmp_path / "skills"
+    (skills_root / "canonical" / "foo").mkdir(parents=True)
+    registry_file = skills_root / "registry.yaml"
+    registry_file.write_text(
+        yaml.safe_dump(
+            {
+                "skills": [
+                    {
+                        "id": "foo",
+                        "name": "Foo",
+                        "path": "canonical/foo/skill.md",
+                        "owner_agent": "gtm",
+                        "target_runtimes": ["claude"],
+                        "stage": "active",
+                        "kind": "validator",
+                        "fixture_status": "missing",
+                        "source": "internal",
+                    }
+                ]
+            }
+        )
+    )
+    invalidate_registry_cache()
+
+    first = skills_loader.load_registry(path=registry_file)
+    first.clear()  # Mutate our copy.
+
+    second = skills_loader.load_registry(path=registry_file)
+    assert len(second) == 1  # Cache was NOT corrupted.
+    assert second[0].id == "foo"
+
+
+def test_load_agentic_prefers_registry_adapter_over_legacy_fallback(tmp_path):
+    """Phase 0.5d.2 — adapter path lookup honors the registry `adapters:` map."""
+    from packages.tools.skills.loader import invalidate_registry_cache
+
+    skills_root = tmp_path / "skills"
+    (skills_root / "canonical" / "foo").mkdir(parents=True)
+    custom_adapter_dir = skills_root / "adapters" / "acp"
+    custom_adapter_dir.mkdir(parents=True)
+    (custom_adapter_dir / "foo.md").write_text("# ACP adapter for foo\n")
+    registry_file = skills_root / "registry.yaml"
+    registry_file.write_text(
+        yaml.safe_dump(
+            {
+                "skills": [
+                    {
+                        "id": "foo",
+                        "name": "Foo",
+                        "path": "canonical/foo/skill.md",
+                        "owner_agent": "gtm",
+                        "target_runtimes": ["claude", "acp"],
+                        "stage": "active",
+                        "kind": "agentic",
+                        "fixture_status": "passing",
+                        "source": "internal",
+                        "adapters": {
+                            "acp": "adapters/acp/foo.md",
+                        },
+                    }
+                ]
+            }
+        )
+    )
+    invalidate_registry_cache()
+    import pytest as _pytest
+
+    def _patched_registry_path():
+        return registry_file
+
+    def _patched_skills_root():
+        return skills_root
+
+    monkeypatch = _pytest.MonkeyPatch()
+    monkeypatch.setattr(skills_loader, "_registry_path", _patched_registry_path)
+    monkeypatch.setattr(skills_loader, "_skills_root", _patched_skills_root)
+    try:
+        # Default runtime=claude falls back to the legacy path.
+        handle_claude = skills_loader.load_agentic("foo", runtime="claude")
+        assert handle_claude.adapter_path.endswith("adapters/claude/foo.md")
+        # runtime=acp honors the registry entry.
+        handle_acp = skills_loader.load_agentic("foo", runtime="acp")
+        assert handle_acp.adapter_path.endswith("adapters/acp/foo.md")
+    finally:
+        monkeypatch.undo()
+
+
 def test_adapter_path_guard_accepts_valid_entries(tmp_path):
     """Well-formed adapter paths load cleanly."""
     skills_root = tmp_path / "skills"

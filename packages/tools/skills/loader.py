@@ -15,7 +15,9 @@ allows unrated skills but tags every output with ``skill_unrated=true``.
 
 from __future__ import annotations
 
+import functools
 import importlib.util
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -110,8 +112,24 @@ def _skills_root() -> Path:
     return Path(__file__).resolve().parents[3] / "skills"
 
 
-def load_registry(path: Path | None = None) -> list[SkillSpec]:
-    registry_file = path or _registry_path()
+@functools.lru_cache(maxsize=None)
+def _load_registry_cached(
+    path_key: str, mtime_ns: int, inode: int, size: int
+) -> tuple[SkillSpec, ...]:
+    """Phase 0.5d.2 — cached registry parse.
+
+    Parses `registry.yaml` exactly once per (resolved path, mtime_ns,
+    inode, size) tuple. The inode + size belt-and-braces catches the
+    rare path where mtime didn't update (fast consecutive writes) and
+    the atomic `os.replace()` writer from `registry_writer.py` always
+    produces a new inode so the cache correctly invalidates on writes.
+
+    Returns an immutable `tuple[SkillSpec, ...]` — NOT a `list` —
+    because `lru_cache` hands back the same object on every hit. A
+    mutable list return would let one caller's `.sort()` or `.append()`
+    corrupt every subsequent reader.
+    """
+    registry_file = Path(path_key)
     raw = yaml.safe_load(registry_file.read_text()) or {}
     out: list[SkillSpec] = []
     for entry in raw.get("skills", []):
@@ -173,7 +191,33 @@ def load_registry(path: Path | None = None) -> list[SkillSpec]:
                 adapters=adapters_validated,
             )
         )
-    return out
+    return tuple(out)
+
+
+def load_registry(path: Path | None = None) -> list[SkillSpec]:
+    """Public loader entry point — returns a fresh list on every call.
+
+    The parsing is cached internally via `_load_registry_cached` on
+    `(resolved path, mtime_ns, inode, size)`. Callers get a fresh
+    `list` wrapping the cached immutable tuple so any `.sort()` /
+    `.append()` on their copy does NOT corrupt the cache.
+    """
+    p = (path or _registry_path()).resolve()
+    st = p.stat()
+    cached = _load_registry_cached(
+        os.fspath(p), st.st_mtime_ns, st.st_ino, st.st_size
+    )
+    return list(cached)
+
+
+def invalidate_registry_cache() -> None:
+    """Force a re-parse on the next load_registry call.
+
+    Used by `registry_writer.update_registry()` after an atomic write
+    so in-process callers immediately see the updated entries without
+    waiting for the mtime-based cache key to flip.
+    """
+    _load_registry_cached.cache_clear()
 
 
 def _find(skill_id: str, registry: list[SkillSpec] | None = None) -> SkillSpec:
@@ -240,12 +284,26 @@ def load_agentic(
     mode: SkillMode = "autonomous",
     synchronous: bool = False,
     registry: list[SkillSpec] | None = None,
+    runtime: str = "claude",
 ) -> AgenticSkillHandle:
     """Load an agentic skill for an LLM-driven runner.
 
     Refuses validator skills. Refuses when ``synchronous=True`` (hot-path
     caller). Returns an :class:`AgenticSkillHandle` carrying the adapter path
     and contract — actual prompt execution is the caller's responsibility.
+
+    Adapter path resolution (Phase 0.5d.2):
+
+    1. If ``spec.adapters[runtime]`` is set in the registry, use that
+       path (validated at registry-load time by ``_ADAPTER_PATH_PATTERN``).
+    2. Otherwise, fall back to the legacy hard-coded
+       ``adapters/claude/<skill_id>.md`` lookup.
+
+    The fallback is intentionally runtime-agnostic for Phase 0 — it
+    returns the Claude adapter path regardless of the ``runtime``
+    argument, preserving existing behavior. Phase 4 ships registry
+    entries populated with `adapters: {acp: ...}` for the skills that
+    gain ACP support; those entries override the fallback naturally.
     """
     if synchronous:
         raise SkillKindMismatch(
@@ -265,9 +323,15 @@ def load_agentic(
             "refuse to load in mode='autonomous'"
         )
 
-    adapter = (
-        _skills_root() / "adapters" / "claude" / f"{skill_id}.md"
-    )
+    # Phase 0.5d.2: registry-driven adapter path with legacy fallback.
+    registry_adapter = spec.adapters.get(runtime)
+    if registry_adapter is not None:
+        adapter = _skills_root() / registry_adapter
+    else:
+        # Legacy fallback — preserves existing behavior when no
+        # `adapters:` map is present on the skill entry.
+        adapter = _skills_root() / "adapters" / "claude" / f"{skill_id}.md"
+
     contract_file = _skills_root() / "canonical" / skill_id / "contract.yaml"
     contract: dict[str, Any] = {}
     if contract_file.exists():
