@@ -43,6 +43,20 @@ struct SpotRecentCatchSummary: Identifiable {
     let tripTitle: String?
 }
 
+extension SpotPinColor {
+    /// SwiftUI color used for this pin on the map and in filter buttons.
+    var color: Color {
+        switch self {
+        case .blue: return .catchbookOcean
+        case .green: return .catchbookForest
+        case .amber: return .catchbookAmber
+        case .red: return Color(red: 0.843, green: 0.259, blue: 0.259)
+        case .purple: return Color(red: 0.545, green: 0.361, blue: 0.745)
+        case .teal: return .catchbookAqua
+        }
+    }
+}
+
 enum SpotPresentationLogic {
     static let waterbodyColorPalette: [Color] = [
         .catchbookOcean,

@@ -1,6 +1,74 @@
+from enum import Enum
+
 from packages.db.approval_store import ApprovalStore
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.task_packet import RiskLevel, TaskPacket, WorkerLane
+
+
+class PolicyViolationCode(str, Enum):
+    """Canonical policy-violation codes (Phase 0.5d.1).
+
+    Every new raise site in ``packages/policies/`` SHOULD use an enum
+    member instead of a bare string. Backward compatibility: the
+    ``PolicyViolation`` constructor still accepts raw strings so this
+    rollout is additive and existing call sites keep working without
+    churn. The ``test_policy_violation_codes_enumerated`` guard in
+    ``tests/python/unit/test_approvals.py`` flags any new bare-string
+    raise site so the enum becomes the default by convention.
+
+    Members are grouped by the Phase that introduces them per
+    docs/plans/2026-04-14-feat-hermes-inspired-platform-upgrade-plan.md
+    section X1. Existing codes used in release_readiness.py and
+    claude_entrypoint.py are enumerated so the whole surface is
+    discoverable from one place.
+
+    Enum members inherit ``str`` so ``PolicyViolationCode.FOO == "foo"``
+    is True — callers that switch on ``exc.code`` keep working with
+    either the enum or the string form.
+    """
+
+    # --- Existing codes (kept for enum coverage of current raise sites) ---
+
+    # release_readiness.py
+    SUBMISSION_CHECKLIST_MISSING = "submission_checklist_missing"
+    SUBMISSION_CHECKLIST_INCOMPLETE = "submission_checklist_incomplete"
+    APPROVAL_AUDIT_UNAVAILABLE = "approval_audit_unavailable"
+    APPROVAL_AUDIT_FAILED = "approval_audit_failed"
+    APPROVAL_NOT_GRANTED = "approval_not_granted"
+    RELEASE_NOT_FOUND = "release_not_found"
+    RELEASE_NOT_READY = "release_not_ready"
+
+    # supervisor claude_entrypoint.py
+    INVALID_STRATEGIC_TASK_TYPE = "invalid_strategic_task_type"
+    STRATEGIC_TASK_LOST = "strategic_task_lost"
+    STRATEGIC_TASK_TYPE_DRIFT = "strategic_task_type_drift"
+
+    # --- Phase 3 (skill self-evolution loop) ---
+    FIXTURE_SKILL_DRIFT = "fixture_skill_drift"
+    REGRESSION_AGAINST_INCUMBENT = "regression_against_incumbent"
+    CONFIG_MUTATION_REQUIRES_HUMAN = "config_mutation_requires_human"
+    RUNTIME_EXPANSION_REQUIRES_HUMAN = "runtime_expansion_requires_human"
+    SKILL_NOT_SELF_EVOLVABLE = "skill_not_self_evolvable"
+    CONCURRENT_EVOLUTION_IN_PROGRESS = "concurrent_evolution_in_progress"
+    THIRD_FILE_SMUGGLING = "third_file_smuggling"
+
+    # --- Phase 4 (ACP peer-runtime dispatch) ---
+    ACP_PEER_NOT_ALLOWED = "acp_peer_not_allowed"
+    ACP_PEER_CRASH = "acp_peer_crash"
+    ACP_PROTOCOL_ERROR = "acp_protocol_error"
+    ACP_MAX_ATTEMPTS_EXCEEDED = "acp_max_attempts_exceeded"
+
+    # --- Phase 5 (command-scan policy) ---
+    COMMAND_SCAN_DENIED = "command_scan_denied"
+    COMMAND_SCAN_UNAVAILABLE = "command_scan_unavailable"
+    COMMAND_SCAN_REQUIRES_APPROVAL = "command_scan_requires_approval"
+
+    # --- Phase 6 (provider overlay registry) ---
+    PROVIDER_UNAVAILABLE = "provider_unavailable"
+    PROVIDER_NOT_REGISTERED = "provider_not_registered"
+
+    # --- Cross-cutting dispatch health ---
+    DISPATCH_HEALTH_PAYLOAD_OVERSIZED = "dispatch_health_payload_oversized"
 
 
 class PolicyViolation(RuntimeError):
@@ -8,11 +76,21 @@ class PolicyViolation(RuntimeError):
 
     Always carries a short machine-readable ``code`` alongside the human
     message so callers can switch on the reason without string parsing.
+
+    Accepts either a :class:`PolicyViolationCode` enum member (preferred
+    for new code) or a raw string (backward compat for existing call
+    sites and dynamic codes like ``f"claude_output_{exc.code}"``).
     """
 
-    def __init__(self, code: str, detail: str | None = None) -> None:
-        self.code = code
-        super().__init__(detail or code)
+    def __init__(
+        self,
+        code: "PolicyViolationCode | str",
+        detail: str | None = None,
+    ) -> None:
+        # Store the string value so existing ``exc.code == "foo"`` checks
+        # keep working. PolicyViolationCode(str, Enum) auto-coerces.
+        self.code = code.value if isinstance(code, PolicyViolationCode) else code
+        super().__init__(detail or self.code)
 
 
 APPROVAL_KEYWORDS = {

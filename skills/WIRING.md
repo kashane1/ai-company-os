@@ -2,6 +2,16 @@
 
 How canonical skills become Claude Code project skills.
 
+**Layout contract:** `docs/adr/2026-04-14-canonical-skill-layout.md` is
+the authoritative decision on per-skill-directory vs flat-file layouts.
+New skills use the per-skill-directory layout; Phase 0 flat-file skills
+stay flat and get fixtures via sibling `<skill-id>.fixtures.yaml` files.
+
+**Agent-callable primitives:** `docs/adr/2026-04-14-primitives-subpackage.md`
+defines the `packages/tools/primitives/` convention for stateless,
+side-effect-free, typed helpers that any worker or canonical skill can
+import directly.
+
 ## Source-of-truth order
 
 ```

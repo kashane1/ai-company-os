@@ -155,8 +155,9 @@ final class SeasonalNudgeCardTests: XCTestCase {
 
         let seasonalCards = cards.filter { $0.kind == .seasonalSpot }
         XCTAssertEqual(seasonalCards.count, 1)
+        // Spot name lives in the title ("Spring at River Bend"), season in the body.
+        XCTAssertTrue(seasonalCards.first?.title.contains("River Bend") ?? false)
         XCTAssertTrue(seasonalCards.first?.body.contains("Spring") ?? false)
-        XCTAssertTrue(seasonalCards.first?.body.contains("River Bend") ?? false)
     }
 
     func testSeasonalSpotDoesNotFireWithOnly2ProductiveTrips() {

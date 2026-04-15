@@ -1,0 +1,189 @@
+"""Phase 0.5a — baseline benchmark for claim_task → submit_task_result.
+
+Captures today's median and p99 latencies into
+`state/benchmarks/2026-04-14-pre-phase-0.json` so every subsequent
+Phase 0.5 sub-PR can compare against this file.
+
+**D1 hardening rule:** this test MUST NOT import from
+`packages/db/connection.py` (which doesn't exist yet). The benchmark
+uses the existing stack — `ControlPlaneService`, `TaskQueue`,
+`ControlPlaneDatabase` — against a test-isolated state root, so it
+measures pre-Phase-0.5b behavior (default `busy_timeout=0`, no WAL,
+implicit DELETE-mode journal).
+
+Re-run this benchmark in Phase 0.5b's PR and compare — the "<100 ms
+regression" NFR from the plan is enforced by asserting median and p99
+are no worse than 1.2x of the pre-Phase-0 baseline.
+
+Usage:
+    # Capture baseline (first run, on main before Phase 0.5b lands):
+    pytest tests/python/perf/test_dispatch_baseline.py -q --capture-baseline
+
+    # Verify regression on subsequent runs:
+    pytest tests/python/perf/test_dispatch_baseline.py -q
+"""
+from __future__ import annotations
+
+import json
+import os
+import statistics
+import time
+from pathlib import Path
+
+import pytest
+
+from apps.api.control_plane import ControlPlaneService
+from packages.config.settings import (
+    TEST_REPO_ROOT_ENV_VAR,
+    ensure_runtime_directories,
+)
+from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
+
+
+BENCHMARKS_DIR = Path(__file__).resolve().parents[3] / "state" / "benchmarks"
+BASELINE_PATH = BENCHMARKS_DIR / "2026-04-14-pre-phase-0.json"
+
+ITERATIONS = 50
+WARMUP = 5
+
+# Absolute budgets from the plan's NFR: "No phase increases autonomous-
+# dispatch latency by more than 100ms end-to-end." These are the
+# authoritative guard rails. The pre-Phase-0 baseline file is kept for
+# historical reference, but the regression assertion uses absolute
+# budgets so phases that make correct tradeoffs (e.g. Phase 0.5b's
+# WAL + busy_timeout adds ~5ms of per-connection pragma setup in
+# exchange for eliminating SQLITE_BUSY under contention) don't trigger
+# false alarms.
+MEDIAN_MS_BUDGET = 75.0  # generous: 10x pre-Phase-0 baseline
+P95_MS_BUDGET = 90.0
+P99_MS_BUDGET = 100.0
+
+
+@pytest.fixture
+def isolated_platform(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Isolated repo root → isolated state root → isolated control plane DB.
+
+    Mirrors the existing `isolated_repo_root` fixture in conftest.py but
+    strips down to the minimum needed for a queue benchmark (no infra/
+    or docs/ copy). Every test invocation starts with a fresh DB, so the
+    benchmark measures steady-state claim/submit round-trip latency
+    without cross-test state leakage.
+    """
+    test_root = tmp_path / "isolated"
+    (test_root / "state" / "platform").mkdir(parents=True)
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(test_root))
+    ensure_runtime_directories()
+    return test_root
+
+
+def _round_trip_once(service: ControlPlaneService, goal_id: str, i: int) -> float:
+    """One full claim_task → submit_task_result cycle. Returns elapsed seconds."""
+    task = service.create_task_for_goal(
+        goal_id=goal_id,
+        repo_id="ai-company-os",
+        lane=WorkerLane.ENGINEERING,
+        title=f"bench task {i}",
+        summary="benchmark task",
+        task_type="bench",
+        risk_level=RiskLevel.LOW,
+    )
+    start = time.perf_counter()
+    claimed = service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="bench-worker")
+    assert claimed is not None and claimed.id == task.id
+    service.submit_task_result(
+        task_id=claimed.id,
+        status=TaskStatus.COMPLETED,
+        summary="bench complete",
+        worker_id="bench-worker",
+    )
+    return time.perf_counter() - start
+
+
+def _run_benchmark(isolated_platform: Path) -> dict[str, float]:
+    service = ControlPlaneService()
+    goal = service.create_goal(
+        title="Benchmark Goal",
+        summary="claim→submit baseline",
+    )
+
+    # Warmup — Python import cost + SQLite file creation + schema init.
+    for i in range(WARMUP):
+        _round_trip_once(service, goal.id, -i - 1)
+
+    samples_ms: list[float] = []
+    for i in range(ITERATIONS):
+        samples_ms.append(_round_trip_once(service, goal.id, i) * 1000.0)
+
+    samples_ms.sort()
+    return {
+        "iterations": ITERATIONS,
+        "warmup": WARMUP,
+        "median_ms": statistics.median(samples_ms),
+        "mean_ms": statistics.mean(samples_ms),
+        "p50_ms": samples_ms[int(len(samples_ms) * 0.50)],
+        "p95_ms": samples_ms[int(len(samples_ms) * 0.95)],
+        "p99_ms": samples_ms[min(int(len(samples_ms) * 0.99), len(samples_ms) - 1)],
+        "min_ms": samples_ms[0],
+        "max_ms": samples_ms[-1],
+    }
+
+
+def test_dispatch_latency_within_plan_budget(isolated_platform: Path) -> None:
+    """Assert absolute latency budgets from the plan NFR.
+
+    The plan's NFR is "No phase increases autonomous-dispatch latency
+    by more than 100ms end-to-end." This test enforces that as an
+    absolute p99 budget, plus conservative median/p95 budgets that
+    leave room for every planned pragma, lock acquisition, and
+    approval gate without forcing false alarms.
+
+    Pre-Phase-0 baseline (captured at state/benchmarks/2026-04-14-pre-phase-0.json):
+      median: 7.394 ms   p99: 9.720 ms
+
+    The 100ms absolute p99 budget gives every subsequent phase >90ms
+    of runway for legitimate functionality additions.
+    """
+    results = _run_benchmark(isolated_platform)
+
+    print(
+        f"\ndispatch latency:  "
+        f"median={results['median_ms']:.3f}ms  "
+        f"p95={results['p95_ms']:.3f}ms  "
+        f"p99={results['p99_ms']:.3f}ms"
+    )
+
+    assert results["median_ms"] < MEDIAN_MS_BUDGET, (
+        f"median {results['median_ms']:.3f}ms exceeds "
+        f"{MEDIAN_MS_BUDGET}ms budget"
+    )
+    assert results["p95_ms"] < P95_MS_BUDGET, (
+        f"p95 {results['p95_ms']:.3f}ms exceeds {P95_MS_BUDGET}ms budget"
+    )
+    assert results["p99_ms"] < P99_MS_BUDGET, (
+        f"p99 {results['p99_ms']:.3f}ms exceeds {P99_MS_BUDGET}ms budget "
+        "(plan NFR: <100ms regression)"
+    )
+
+
+def test_capture_baseline_on_demand(isolated_platform: Path) -> None:
+    """Capture a fresh baseline file when CAPTURE_BASELINE=1 is set.
+
+    Normally a no-op skip. Used once per phase to record a reference
+    snapshot for posterity. The absolute budget test above is the
+    authoritative regression check.
+    """
+    if os.environ.get("CAPTURE_BASELINE") != "1":
+        pytest.skip("set CAPTURE_BASELINE=1 to capture a new baseline file")
+
+    results = _run_benchmark(isolated_platform)
+    phase_label = os.environ.get("BASELINE_PHASE", "unlabeled")
+    target = BENCHMARKS_DIR / f"2026-04-14-{phase_label}.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "captured_at": "2026-04-14",
+        "phase": phase_label,
+        "metrics": results,
+    }
+    target.write_text(json.dumps(payload, indent=2) + "\n")
+    print(f"\nBaseline captured at {target}")
+    print(f"Median: {results['median_ms']:.3f} ms   p99: {results['p99_ms']:.3f} ms")

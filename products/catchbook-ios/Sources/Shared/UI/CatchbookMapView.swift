@@ -9,11 +9,13 @@ struct CatchbookMapView<Item: Identifiable, AnnotationContent: View, OverlayCont
     private let entries: [Entry<Item>]
     private let annotationContent: (Item) -> AnnotationContent
     private let overlayContent: OverlayContent
+    private let onCameraChange: ((CLLocationCoordinate2D) -> Void)?
 
     init(
         items: [Item],
         position: Binding<MapCameraPosition>,
         coordinate: @escaping (Item) -> CLLocationCoordinate2D?,
+        onCameraChange: ((CLLocationCoordinate2D) -> Void)? = nil,
         @ViewBuilder annotationContent: @escaping (Item) -> AnnotationContent,
         @ViewBuilder overlay: () -> OverlayContent
     ) {
@@ -24,6 +26,7 @@ struct CatchbookMapView<Item: Identifiable, AnnotationContent: View, OverlayCont
         }
         self.annotationContent = annotationContent
         overlayContent = overlay()
+        self.onCameraChange = onCameraChange
     }
 
     var body: some View {
@@ -33,6 +36,9 @@ struct CatchbookMapView<Item: Identifiable, AnnotationContent: View, OverlayCont
                     annotationContent(entry.item)
                 }
             }
+        }
+        .onMapCameraChange(frequency: .continuous) { context in
+            onCameraChange?(context.camera.centerCoordinate)
         }
         .mapStyle(selectedMapStyle.mapStyle)
         .overlay(alignment: .topTrailing) {
@@ -63,12 +69,14 @@ extension CatchbookMapView where OverlayContent == EmptyView {
         items: [Item],
         position: Binding<MapCameraPosition>,
         coordinate: @escaping (Item) -> CLLocationCoordinate2D?,
+        onCameraChange: ((CLLocationCoordinate2D) -> Void)? = nil,
         @ViewBuilder annotationContent: @escaping (Item) -> AnnotationContent
     ) {
         self.init(
             items: items,
             position: position,
             coordinate: coordinate,
+            onCameraChange: onCameraChange,
             annotationContent: annotationContent,
             overlay: { EmptyView() }
         )

@@ -5,23 +5,26 @@ import SwiftUI
 struct TripStartSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppRouter.self) private var router
 
     @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
-    @Query(sort: \Spot.createdAt) private var spots: [Spot]
+    @Query(sort: \Spot.title) private var spots: [Spot]
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
 
     @StateObject private var locationRecorder = LocationRecorder()
+    // selectedWaterbodyID is silent state — it's set by background auto-detection
+    // (or by context preselection) so the trip gets tagged with a waterbody, but
+    // the user never sees or picks it. Kept here so startTrip() can attach it
+    // to the Trip model on creation.
     @State private var selectedWaterbodyID: UUID?
     @State private var selectedSpotID: UUID?
     @State private var targetSpecies = ""
     @State private var tripNotes = ""
     @State private var showingOptionalDetails = LogFeatureLogic.startTripOptionalDetailsInitiallyExpanded
-    @State private var showingWaterbodyForm = false
     @State private var showingSpotForm = false
     @State private var persistenceErrorMessage: String?
     @State private var showingActiveTripAlert = false
-    @State private var waterbodyWasAutoDetected = false
     @AppStorage("tripStart.lastDetection") private var lastDetectionJSON: String = ""
     @FocusState private var isTextInputFocused: Bool
 
@@ -55,25 +58,9 @@ struct TripStartSheet: View {
         NavigationStack {
             List {
                 Section {
-                    Picker("Waterbody", selection: $selectedWaterbodyID) {
-                        Text("None").tag(Optional<UUID>.none)
-                        if !waterbodies.isEmpty {
-                            Divider()
-                            ForEach(waterbodies, id: \.id) { waterbody in
-                                Text(waterbody.name).tag(Optional(waterbody.id))
-                            }
-                        }
-                    }
-
-                    if waterbodyWasAutoDetected, selectedWaterbodyID != nil {
-                        Text("Detected from your location")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-
                     Picker("Spot", selection: $selectedSpotID) {
                         Text("No specific spot").tag(Optional<UUID>.none)
-                        ForEach(filteredSpots, id: \.id) { spot in
+                        ForEach(spots, id: \.id) { spot in
                             Text(spot.title).tag(Optional(spot.id))
                         }
                     }
@@ -83,30 +70,19 @@ struct TripStartSheet: View {
                             .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     }
 
-                    HStack(spacing: Spacing.sm) {
-                        Button {
-                            showingWaterbodyForm = true
-                        } label: {
-                            Label("New Water", systemImage: "plus")
-                                .font(.footnote)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-
-                        Button {
-                            showingSpotForm = true
-                        } label: {
-                            Label("New Spot", systemImage: "plus")
-                                .font(.footnote)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
+                    Button {
+                        showingSpotForm = true
+                    } label: {
+                        Label("New Spot", systemImage: "plus")
+                            .font(.footnote)
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                     .listRowSeparator(.hidden, edges: .bottom)
                 } header: {
                     Text("Where")
                 } footer: {
-                    Text("Waterbody and spot are optional. Start the trip whenever you're ready — we'll tag whatever we can from your location.")
+                    Text("Spot is optional. Start the trip whenever you're ready — we'll tag whatever we can from your location.")
                 }
 
                 Section {
@@ -125,12 +101,14 @@ struct TripStartSheet: View {
                                 .textInputAutocapitalization(.words)
                                 .focused($isTextInputFocused)
                                 .accessibilityIdentifier("startTrip.targetSpeciesField")
+                                .characterLimit(CharacterLimits.tripTargetSpecies, text: $targetSpecies)
                             Text("Optional. Enter one or more targets. We turn them into quick-catch suggestions.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                             TextField("Trip notes", text: $tripNotes, axis: .vertical)
                                 .lineLimit(2...4)
                                 .focused($isTextInputFocused)
+                                .characterLimit(CharacterLimits.tripNotes, text: $tripNotes)
                         },
                         label: {
                             VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -194,13 +172,8 @@ struct TripStartSheet: View {
             }
             await prefillWaterbodyFromLocation()
         }
-        .sheet(isPresented: $showingWaterbodyForm) {
-            NewWaterbodyForm { waterbody in
-                selectedWaterbodyID = waterbody.id
-            }
-        }
         .sheet(isPresented: $showingSpotForm) {
-            NewSpotForm(preselectedWaterbodyID: selectedWaterbodyID) { spot in
+            NewSpotForm { spot in
                 selectedSpotID = spot.id
             }
         }
@@ -225,10 +198,6 @@ struct TripStartSheet: View {
 
     private var selectedSpot: Spot? {
         spots.first(where: { $0.id == selectedSpotID })
-    }
-
-    private var filteredSpots: [Spot] {
-        LogFeatureLogic.filteredSpots(spots: spots, selectedWaterbodyID: selectedWaterbodyID)
     }
 
     private func startTrip() {
@@ -263,6 +232,11 @@ struct TripStartSheet: View {
                     await ConditionCaptureService.enrichWithWeather(snapshot, location: location)
                     try? modelContext.save()
                 }
+                // Push the Active Trip screen immediately so the user lands
+                // on the live trip flow instead of Home. The Resume Trip card
+                // on Home still covers the case where the user leaves this
+                // screen and comes back.
+                router.showActiveTrip(trip)
                 dismiss()
             },
             onFailure: { message in
@@ -348,7 +322,6 @@ struct TripStartSheet: View {
             onSuccess: {
                 if let resolvedID {
                     selectedWaterbodyID = resolvedID
-                    waterbodyWasAutoDetected = true
                 }
             },
             onFailure: { _ in

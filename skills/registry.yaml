@@ -20,7 +20,15 @@ skills:
     target_runtimes: [claude, codex]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Phase 1 PR-1c: fixtures at
+    # skills/canonical/shared/product-artifact-chain.fixtures.yaml
+    # exercise validate_chain() from
+    # packages/tools/product_artifacts/validator.py against synthetic
+    # product directories (discovery / mvp-build / adversarial parent
+    # reference missing). Structural check in
+    # tests/python/unit/test_skill_reconciliation.py + verdict check
+    # in tests/python/unit/test_product_artifact_chain_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/product-artifact-chain.md
@@ -43,9 +51,24 @@ skills:
     path: canonical/handoffs/codex-claude-handoff.md
     owner_agent: any
     target_runtimes: [claude, codex]
-    stage: active
+    # Phase 1 PR-1d: stage updated from `active` to `deferred` to match
+    # the DEFERRED (2026-04-11) comment at the top of the skill file.
+    # The full enqueue → supervisor → worktree → diff-review → apply
+    # loop is paused for a solo operator in favor of a paste-based
+    # flow. The skill stays in the registry so its constraint contract
+    # can be frozen by fixtures (see below) — if/when the loop is
+    # un-deferred, the contract is still load-bearing.
+    stage: deferred
     kind: agentic
-    fixture_status: missing
+    # Phase 1 PR-1d: fixtures at
+    # skills/canonical/handoffs/codex-claude-handoff.fixtures.yaml
+    # freeze the skill's constraint contract — the specific strings
+    # every task packet must carry + the five operating phases +
+    # the forbidden_areas list. These are structural invariants that
+    # any future edit to the skill markdown must not weaken silently.
+    # Dedicated test at
+    # tests/python/unit/test_codex_claude_handoff_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/codex-claude-handoff.md
@@ -84,7 +107,15 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Phase 1 PR-1b: fixtures added at
+    # skills/canonical/shared/supervisor-goal-decomposition.fixtures.yaml
+    # (sibling-file layout per docs/adr/2026-04-14-canonical-skill-layout.md).
+    # Deterministic router in apps/worker-supervisor/main.py:plan_goal is
+    # exercised by tests/python/unit/test_supervisor_goal_decomposition_fixtures.py
+    # on every fixture case. Structural check in
+    # tests/python/unit/test_skill_reconciliation.py asserts fixture
+    # presence + parse. Dual gate unblocks autonomous dispatch.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/supervisor-goal-decomposition.md
@@ -261,17 +292,11 @@ skills:
     project_skill: .claude/skills/content-scheduler.md
 
   # ----- Phase 6 content intelligence feedback -----
-
-  - id: content-performance-review
-    name: Content Performance Review
-    path: canonical/content-performance-review/skill.md
-    owner_agent: gtm
-    target_runtimes: [claude]
-    stage: planned
-    kind: agentic
-    fixture_status: planned
-    source: internal
-    notes: "Deferred until 30+ posts published. See docs/plans/2026-04-13-feat-gtm-multi-platform-content-engine-plan.md"
+  # content-performance-review: removed from registry 2026-04-14.
+  # Deferred to docs/plans/2026-04-13-feat-gtm-multi-platform-content-engine-plan.md
+  # Re-register (with a valid fixture_status) when that plan reaches its Phase 6.
+  # Removing here because fixture_status: planned is not a valid literal and
+  # was crashing load_registry() on every call.
 
   # ----- Phase 4 observability + regression skills -----
 

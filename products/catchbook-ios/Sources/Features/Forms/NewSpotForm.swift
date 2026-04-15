@@ -9,35 +9,51 @@ struct NewSpotForm: View {
 
     @StateObject private var locationRecorder = LocationRecorder()
 
-    @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
-
-    @State private var title = ""
-    @State private var notes = ""
-    @State private var selectedWaterbodyID: UUID?
-    @State private var showingWaterbodyForm = false
+    @State private var title: String
+    @State private var notes: String
+    @State private var pinColor: SpotPinColor
     @State private var showingCoordinatePicker = false
     @State private var selectedCoordinate: CLLocationCoordinate2D?
-    @State private var hasCustomizedCoordinate = false
+    @State private var hasCustomizedCoordinate: Bool
     @State private var persistenceErrorMessage: String?
+    @State private var showingDeleteConfirmation = false
+    // Auto-detected waterbody for this spot. Captured silently from the pin
+    // coordinate; committed inside save() so cancelling leaves no phantom row.
+    // The user never sees or picks waterbody — it's a passive tag.
     @State private var pendingDetected: WaterbodyAutoDetectionService.Detected?
-    @State private var waterbodyWasAutoDetected = false
-    @State private var isDetectingWaterbody = false
 
-    var preselectedWaterbodyID: UUID?
     var initialCoordinate: CLLocationCoordinate2D?
+    var editingSpot: Spot?
     var onSaved: ((Spot) -> Void)?
+    var onDeleted: (() -> Void)?
+
+    private var isEditing: Bool { editingSpot != nil }
 
     init(
-        preselectedWaterbodyID: UUID? = nil,
         initialCoordinate: CLLocationCoordinate2D? = nil,
-        onSaved: ((Spot) -> Void)? = nil
+        editingSpot: Spot? = nil,
+        onSaved: ((Spot) -> Void)? = nil,
+        onDeleted: (() -> Void)? = nil
     ) {
-        self.preselectedWaterbodyID = preselectedWaterbodyID
         self.initialCoordinate = initialCoordinate
+        self.editingSpot = editingSpot
         self.onSaved = onSaved
-        _selectedWaterbodyID = State(initialValue: preselectedWaterbodyID)
-        _selectedCoordinate = State(initialValue: initialCoordinate)
-        _hasCustomizedCoordinate = State(initialValue: initialCoordinate != nil)
+        self.onDeleted = onDeleted
+
+        let existingCoordinate: CLLocationCoordinate2D? = {
+            guard let spot = editingSpot,
+                  let latitude = spot.latitude,
+                  let longitude = spot.longitude
+            else { return nil }
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }()
+        let seedCoordinate = existingCoordinate ?? initialCoordinate
+
+        _title = State(initialValue: editingSpot?.title ?? "")
+        _notes = State(initialValue: editingSpot?.notes ?? "")
+        _pinColor = State(initialValue: editingSpot?.pinColor ?? .blue)
+        _selectedCoordinate = State(initialValue: seedCoordinate)
+        _hasCustomizedCoordinate = State(initialValue: seedCoordinate != nil)
     }
 
     var body: some View {
@@ -47,42 +63,11 @@ struct NewSpotForm: View {
                     TextField("Spot name", text: $title)
                         .textInputAutocapitalization(.words)
                         .submitLabel(.next)
-
-                    Picker("Waterbody", selection: $selectedWaterbodyID) {
-                        Text("None").tag(Optional<UUID>.none)
-                        if !waterbodies.isEmpty {
-                            Divider()
-                            ForEach(waterbodies, id: \.id) { waterbody in
-                                Text(waterbody.name).tag(Optional(waterbody.id))
-                            }
-                        }
-                    }
-
-                    if isDetectingWaterbody {
-                        HStack(spacing: Spacing.sm) {
-                            ProgressView()
-                                .controlSize(.small)
-                            Text("Detecting waterbody…")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    } else if waterbodyWasAutoDetected, pendingDetected != nil || selectedWaterbodyID != nil {
-                        Text("Detected from your location")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Button {
-                        showingWaterbodyForm = true
-                    } label: {
-                        Label("Add Waterbody", systemImage: "plus")
-                            .font(.footnote)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                        .characterLimit(CharacterLimits.spotName, text: $title)
 
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(2...4)
+                        .characterLimit(CharacterLimits.spotNotes, text: $notes)
 
                     Button {
                         if selectedCoordinate == nil {
@@ -111,10 +96,51 @@ struct NewSpotForm: View {
                 } header: {
                     Text("Spot")
                 } footer: {
-                    Text("Private by default. Drop a pin and we'll try to guess the waterbody from Apple Maps. You can skip or change it any time.")
+                    Text("Private by default. Drop a pin to mark this spot.")
+                }
+
+                Section {
+                    HStack(spacing: Spacing.md) {
+                        ForEach(SpotPinColor.allCases) { color in
+                            Button {
+                                pinColor = color
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .strokeBorder(
+                                            pinColor == color ? Color.appAccent : Color.clear,
+                                            lineWidth: 2
+                                        )
+                                        .frame(width: 36, height: 36)
+                                    Image(systemName: "mappin.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(color.color)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("\(color.label) pin")
+                            .accessibilityAddTraits(pinColor == color ? [.isSelected] : [])
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.vertical, Spacing.xs)
+                } header: {
+                    Text("Pin Color")
+                } footer: {
+                    Text("Pick a color to help group and filter spots on the list view.")
+                }
+
+                if isEditing {
+                    Section {
+                        Button(role: .destructive) {
+                            showingDeleteConfirmation = true
+                        } label: {
+                            Label("Delete Spot", systemImage: "trash")
+                        }
+                    }
                 }
             }
-            .navigationTitle("New Spot")
+            .navigationTitle(isEditing ? "Edit Spot" : "New Spot")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -123,7 +149,7 @@ struct NewSpotForm: View {
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(isEditing ? "Done" : "Save") {
                         save()
                     }
                     .fontWeight(.semibold)
@@ -131,6 +157,12 @@ struct NewSpotForm: View {
                 }
             }
             .interactiveDismissDisabled(!title.isEmpty)
+            .alert("Delete Spot?", isPresented: $showingDeleteConfirmation) {
+                Button("Delete", role: .destructive) { deleteEditingSpot() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This removes the spot from your saved places. Trips and catches logged here stay, but will no longer be linked to this spot.")
+            }
         }
         .presentationDetents([.medium, .large])
         .onAppear {
@@ -138,33 +170,14 @@ struct NewSpotForm: View {
             primeCoordinateIfNeeded()
         }
         .task(id: selectedCoordinate?.latitude) {
-            guard selectedCoordinate != nil,
-                  selectedWaterbodyID == nil,
-                  pendingDetected == nil else { return }
+            // Editing preserves the existing waterbody tag — users who want
+            // re-detection can delete and recreate the spot.
+            guard !isEditing else { return }
+            guard selectedCoordinate != nil, pendingDetected == nil else { return }
             await detectWaterbody()
         }
         .onChange(of: locationRecorder.lastLocation?.coordinate.latitude) { _, _ in
             primeCoordinateIfNeeded()
-        }
-        .onChange(of: selectedWaterbodyID) { oldValue, newValue in
-            primeCoordinateIfNeeded()
-            // User manually changed the picker → clear auto-detect state so
-            // the "Detected from your location" caption goes away and we
-            // don't overwrite their choice on the next save().
-            if oldValue != newValue, newValue != nil {
-                if let match = waterbodies.first(where: { $0.id == newValue }),
-                   pendingDetected?.name.lowercased() != match.name.lowercased() {
-                    pendingDetected = nil
-                    waterbodyWasAutoDetected = false
-                }
-            }
-        }
-        .sheet(isPresented: $showingWaterbodyForm) {
-            NewWaterbodyForm { waterbody in
-                selectedWaterbodyID = waterbody.id
-                pendingDetected = nil
-                waterbodyWasAutoDetected = false
-            }
         }
         .sheet(isPresented: $showingCoordinatePicker) {
             SpotCoordinatePickerSheet(
@@ -175,7 +188,6 @@ struct NewSpotForm: View {
                 hasCustomizedCoordinate = true
                 // New pin → re-run detection for the new location.
                 pendingDetected = nil
-                waterbodyWasAutoDetected = false
             }
         }
         .persistenceFailureAlert(message: $persistenceErrorMessage)
@@ -185,39 +197,48 @@ struct NewSpotForm: View {
         SpotFormLogic.canSave(title: title)
     }
 
-    private var selectedWaterbody: Waterbody? {
-        waterbodies.first(where: { $0.id == selectedWaterbodyID })
-    }
-
     private func save() {
         let draft = SpotFormLogic.draft(title: title, notes: notes, coordinate: selectedCoordinate)
         var spotToDeliver: Spot?
         PersistenceWriteCoordinator.perform(
             commit: {
-                let resolvedWaterbody: Waterbody?
-                if let userPicked = selectedWaterbody {
-                    resolvedWaterbody = userPicked
-                } else if let pendingDetected {
-                    // Defer-commit: the auto-detected waterbody is only
-                    // inserted now, inside the save transaction, so
-                    // dismissing the form leaves no phantom records.
-                    resolvedWaterbody = try WaterbodyAutoDetectionService.findOrCreate(
-                        pendingDetected,
-                        in: modelContext
-                    )
+                if let editingSpot {
+                    // Edit path: mutate the existing record in place so
+                    // related trips/catches remain linked. Waterbody is left
+                    // untouched — see the .task guard above.
+                    editingSpot.title = draft.title
+                    editingSpot.notes = draft.notes
+                    editingSpot.latitude = draft.latitude
+                    editingSpot.longitude = draft.longitude
+                    editingSpot.pinColor = pinColor
+                    spotToDeliver = editingSpot
                 } else {
-                    resolvedWaterbody = nil
-                }
+                    let resolvedWaterbody: Waterbody?
+                    if let pendingDetected {
+                        // Defer-commit: the auto-detected waterbody is only
+                        // inserted now, inside the save transaction, so
+                        // dismissing the form leaves no phantom records. The
+                        // user never picked it — it's a passive tag derived
+                        // from the spot's coordinate.
+                        resolvedWaterbody = try WaterbodyAutoDetectionService.findOrCreate(
+                            pendingDetected,
+                            in: modelContext
+                        )
+                    } else {
+                        resolvedWaterbody = nil
+                    }
 
-                let spot = Spot(
-                    title: draft.title,
-                    waterbody: resolvedWaterbody,
-                    latitude: draft.latitude,
-                    longitude: draft.longitude,
-                    notes: draft.notes
-                )
-                modelContext.insert(spot)
-                spotToDeliver = spot
+                    let spot = Spot(
+                        title: draft.title,
+                        waterbody: resolvedWaterbody,
+                        latitude: draft.latitude,
+                        longitude: draft.longitude,
+                        notes: draft.notes,
+                        pinColor: pinColor
+                    )
+                    modelContext.insert(spot)
+                    spotToDeliver = spot
+                }
                 try modelContext.save()
             },
             rollback: {
@@ -235,6 +256,26 @@ struct NewSpotForm: View {
         )
     }
 
+    private func deleteEditingSpot() {
+        guard let editingSpot else { return }
+        PersistenceWriteCoordinator.perform(
+            commit: {
+                modelContext.delete(editingSpot)
+                try modelContext.save()
+            },
+            rollback: {
+                modelContext.rollback()
+            },
+            onSuccess: {
+                onDeleted?()
+                dismiss()
+            },
+            onFailure: { message in
+                persistenceErrorMessage = message
+            }
+        )
+    }
+
     private var preferredInitialCoordinate: CLLocationCoordinate2D? {
         if let selectedCoordinate {
             return selectedCoordinate
@@ -244,14 +285,7 @@ struct NewSpotForm: View {
             return location
         }
 
-        if let initialCoordinate {
-            return initialCoordinate
-        }
-
-        return coordinateIfPresent(
-            latitude: selectedWaterbody?.latitude,
-            longitude: selectedWaterbody?.longitude
-        )
+        return initialCoordinate
     }
 
     private func primeCoordinateIfNeeded() {
@@ -268,27 +302,15 @@ struct NewSpotForm: View {
     @MainActor
     private func detectWaterbody() async {
         guard let coordinate = selectedCoordinate ?? initialCoordinate else { return }
-        isDetectingWaterbody = true
-        defer { isDetectingWaterbody = false }
 
         guard let detected = await WaterbodyAutoDetectionService.detect(at: coordinate) else {
             return
         }
 
-        // Late result after the user dismissed or manually picked? Drop it.
-        guard !Task.isCancelled, selectedWaterbodyID == nil else { return }
+        // Late result after the user dismissed? Drop it.
+        guard !Task.isCancelled else { return }
 
         pendingDetected = detected
-        waterbodyWasAutoDetected = true
-
-        // If an existing Waterbody already matches by name, select it in the
-        // picker so the user sees the hit immediately. The actual findOrCreate
-        // call still happens inside save() so that cancelling the form never
-        // leaves a phantom row.
-        let lowered = detected.name.lowercased()
-        if let existing = waterbodies.first(where: { $0.name.lowercased() == lowered }) {
-            selectedWaterbodyID = existing.id
-        }
     }
 }
 

@@ -166,6 +166,7 @@ struct ActiveTripView: View {
                             saveCatch(action: .save, tallyOnly: quickCatchEntryMode == .tally)
                         }
                     }
+                    .characterLimit(CharacterLimits.catchSpecies, text: $species)
 
                 if !recentSpeciesSuggestions.isEmpty {
                     Text(
@@ -185,6 +186,7 @@ struct ActiveTripView: View {
                     TextField("Lure or bait", text: $lureOrBait)
                         .textInputAutocapitalization(.words)
                         .focused($focusedField, equals: .lureOrBait)
+                        .characterLimit(CharacterLimits.catchLureOrBait, text: $lureOrBait)
 
                     if !recentLureSuggestions.isEmpty {
                         SuggestionRow(label: "Lure", values: recentLureSuggestions) { value in
@@ -206,12 +208,14 @@ struct ActiveTripView: View {
                             TextField("Method", text: $method)
                                 .textInputAutocapitalization(.words)
                                 .focused($focusedField, equals: .method)
+                                .characterLimit(CharacterLimits.catchMethod, text: $method)
                         }
 
                         if visibleFields.contains(.gear) {
                             TextField("Gear", text: $gear)
                                 .textInputAutocapitalization(.words)
                                 .focused($focusedField, equals: .gear)
+                                .characterLimit(CharacterLimits.catchGear, text: $gear)
                             if !recentGearSuggestions.isEmpty {
                                 SuggestionRow(label: "Gear", values: recentGearSuggestions) { value in
                                     gear = value
@@ -238,6 +242,7 @@ struct ActiveTripView: View {
                             TextField("Note", text: $note, axis: .vertical)
                                 .lineLimit(2...4)
                                 .focused($focusedField, equals: .note)
+                                .characterLimit(CharacterLimits.catchNote, text: $note)
                         }
 
                         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -388,8 +393,23 @@ struct ActiveTripView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .navigationTitle("Current Trip")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             KeyboardDoneToolbar { focusedField = nil }
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: Spacing.sm) {
+                    Text("Current Trip")
+                        .font(.headline.weight(.semibold))
+                    Text("LIVE")
+                        .font(.caption.weight(.bold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .foregroundStyle(Color.appAccent)
+                        .background(Color.appAccent.opacity(0.15), in: Capsule())
+                        .accessibilityLabel("Trip is live")
+                }
+            }
         }
         .onAppear {
             primeDefaultsIfNeeded()
@@ -601,13 +621,13 @@ private struct ActiveTripStatusCard: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HStack(spacing: Spacing.sm) {
-                        AppBadge(text: "Live")
-                        TimelineView(.periodic(from: trip.startAt, by: 60)) { context in
-                            Text(HomeDashboardLogic.elapsedText(startAt: trip.startAt, now: context.date))
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
+                    // "LIVE" badge moved to the nav bar header so the user
+                    // always sees which screen they're on. The elapsed timer
+                    // stays here next to the trip title.
+                    TimelineView(.periodic(from: trip.startAt, by: 60)) { context in
+                        Text(HomeDashboardLogic.elapsedText(startAt: trip.startAt, now: context.date))
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
                     }
                     Text(trip.title)
                         .font(.headline)
@@ -806,7 +826,6 @@ struct TripEndedSummaryView: View {
         }
         .sheet(isPresented: $showingSpotForm) {
             NewSpotForm(
-                preselectedWaterbodyID: trip.waterbody?.id,
                 initialCoordinate: trip.resolvedCoordinate
             )
         }

@@ -139,6 +139,28 @@ enum MoonPhase: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum SpotPinColor: String, CaseIterable, Codable, Identifiable {
+    case blue
+    case green
+    case amber
+    case red
+    case purple
+    case teal
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .blue: return "Blue"
+        case .green: return "Green"
+        case .amber: return "Amber"
+        case .red: return "Red"
+        case .purple: return "Purple"
+        case .teal: return "Teal"
+        }
+    }
+}
+
 enum CatchDisposition: String, CaseIterable, Codable, Identifiable {
     case notRecorded
     case released
@@ -161,12 +183,14 @@ enum CatchDisposition: String, CaseIterable, Codable, Identifiable {
 @Model
 final class Waterbody {
     @Attribute(.unique) var id: UUID
-    var name: String
-    var typeRawValue: String
+    // Property-level defaults are required for SwiftData lightweight
+    // migration; see commit af263a1 and the ConditionSnapshot fix.
+    var name: String = ""
+    var typeRawValue: String = WaterbodyType.lake.rawValue
     var latitude: Double?
     var longitude: Double?
-    var isPrivate: Bool
-    var createdAt: Date
+    var isPrivate: Bool = true
+    var createdAt: Date = Date.distantPast
 
     init(
         name: String,
@@ -197,12 +221,15 @@ final class Waterbody {
 @Model
 final class Spot {
     @Attribute(.unique) var id: UUID
-    var title: String
+    var title: String = ""
     var latitude: Double?
     var longitude: Double?
-    var notes: String
-    var isPrivate: Bool
-    var createdAt: Date
+    var notes: String = ""
+    var isPrivate: Bool = true
+    var createdAt: Date = Date.distantPast
+    // Property-level default required for SwiftData lightweight migration —
+    // legacy rows backfill to the default pin color.
+    var pinColorRawValue: String = SpotPinColor.blue.rawValue
     var waterbody: Waterbody?
 
     init(
@@ -212,6 +239,7 @@ final class Spot {
         longitude: Double? = nil,
         notes: String = "",
         isPrivate: Bool = true,
+        pinColor: SpotPinColor = .blue,
         createdAt: Date = .now
     ) {
         self.id = UUID()
@@ -220,8 +248,14 @@ final class Spot {
         self.longitude = longitude
         self.notes = notes
         self.isPrivate = isPrivate
+        self.pinColorRawValue = pinColor.rawValue
         self.createdAt = createdAt
         self.waterbody = waterbody
+    }
+
+    var pinColor: SpotPinColor {
+        get { SpotPinColor(rawValue: pinColorRawValue) ?? .blue }
+        set { pinColorRawValue = newValue.rawValue }
     }
 
     var coordinateSummary: String {
@@ -235,7 +269,7 @@ final class Spot {
 @Model
 final class ConditionSnapshot {
     @Attribute(.unique) var id: UUID
-    var capturedAt: Date
+    var capturedAt: Date = Date.distantPast
     var latitude: Double?
     var longitude: Double?
     var placeSummary: String?
@@ -246,12 +280,16 @@ final class ConditionSnapshot {
     var windSummary: String?
     var cloudCoverSummary: String?
     var precipitationSummary: String?
-    var waterClarityRawValue: String
-    var moonPhaseRawValue: String
+    // Property-level defaults are required for SwiftData lightweight
+    // migration to backfill rows created before these columns existed.
+    // Init defaults only apply to new objects; see commit af263a1 for the
+    // same fix on CatchRecord.gear.
+    var waterClarityRawValue: String = WaterClarity.notRecorded.rawValue
+    var moonPhaseRawValue: String = MoonPhase.newMoon.rawValue
     var pressureHPa: Double?
-    var tideStateRawValue: String
-    var captureStatusRawValue: String
-    var sourceRawValue: String
+    var tideStateRawValue: String = TideState.notRecorded.rawValue
+    var captureStatusRawValue: String = ConditionCaptureStatus.fallback.rawValue
+    var sourceRawValue: String = ConditionSource.tripFallback.rawValue
 
     init(
         capturedAt: Date = .now,
@@ -444,11 +482,11 @@ final class ConditionSnapshot {
 @Model
 final class Trip {
     @Attribute(.unique) var id: UUID
-    var startAt: Date
+    var startAt: Date = Date.distantPast
     var endAt: Date?
-    var targetSpecies: String
-    var notes: String
-    var outcomeRawValue: String
+    var targetSpecies: String = ""
+    var notes: String = ""
+    var outcomeRawValue: String = TripOutcome.active.rawValue
     var waterbody: Waterbody?
     var spot: Spot?
     var conditionSnapshot: ConditionSnapshot?
@@ -528,15 +566,15 @@ final class Trip {
 @Model
 final class CatchRecord {
     @Attribute(.unique) var id: UUID
-    var species: String
-    var caughtAt: Date
-    var lureOrBait: String
-    var method: String
-    var gear: String
+    var species: String = ""
+    var caughtAt: Date = Date.distantPast
+    var lureOrBait: String = ""
+    var method: String = ""
+    var gear: String = ""
     var weightKg: Double?
     var lengthCm: Double?
     var waterDepthM: Double?
-    var note: String
+    var note: String = ""
     var dispositionRawValue: String = CatchDisposition.notRecorded.rawValue
     var photoReference: String?
     @Attribute(.externalStorage) var photoData: Data?
@@ -620,8 +658,8 @@ final class CatchRecord {
 @Model
 final class CatchPhoto {
     @Attribute(.unique) var id: UUID
-    var createdAt: Date
-    var sortOrder: Int
+    var createdAt: Date = Date.distantPast
+    var sortOrder: Int = 0
     var photoReference: String?
     var photoContentType: String?
     @Attribute(.externalStorage) var photoData: Data?
@@ -648,12 +686,12 @@ final class CatchPhoto {
 @Model
 final class PersonalBest {
     @Attribute(.unique) var id: UUID
-    var species: String
+    var species: String = ""
     var longestLengthCm: Double?
     var heaviestWeightKg: Double?
     var longestCatchID: UUID?
     var heaviestCatchID: UUID?
-    var updatedAt: Date
+    var updatedAt: Date = Date.distantPast
 
     init(
         species: String,
@@ -678,10 +716,10 @@ final class PersonalBest {
 @Model
 final class SavedLure {
     @Attribute(.unique) var id: UUID
-    var name: String
-    var color: String
-    var notes: String
-    var createdAt: Date
+    var name: String = ""
+    var color: String = ""
+    var notes: String = ""
+    var createdAt: Date = Date.distantPast
 
     init(name: String, color: String = "", notes: String = "") {
         self.id = UUID()

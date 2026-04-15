@@ -32,7 +32,6 @@ struct TripsView: View {
     @Binding private var selectedTripID: UUID?
     @State private var path = NavigationPath()
     @State private var historyMode: TripHistoryMode = .trips
-    @State private var selectedWaterbodyID: UUID?
     @State private var speciesQuery = ""
     @State private var dateFilter: TripDateFilter = .all
     @State private var seasonFilter: TripSeasonFilter = .all
@@ -45,17 +44,11 @@ struct TripsView: View {
         _selectedTripID = selectedTripID
     }
 
-    private var availableWaterbodies: [Waterbody] {
-        historyMode == .trips
-            ? TripHistoryLogic.availableWaterbodies(waterbodies: waterbodies, trips: trips)
-            : CatchHistoryLogic.availableWaterbodies(catches: catches)
-    }
-
     private var filteredTrips: [Trip] {
         TripHistoryLogic.filteredTrips(
             trips: trips,
             catches: catches,
-            selectedWaterbodyID: selectedWaterbodyID,
+            selectedWaterbodyID: nil,
             speciesQuery: speciesQuery,
             dateFilter: dateFilter,
             seasonFilter: seasonFilter,
@@ -68,7 +61,7 @@ struct TripsView: View {
             return TripHistoryLogic.availableLures(
                 trips: trips,
                 catches: catches,
-                selectedWaterbodyID: selectedWaterbodyID,
+                selectedWaterbodyID: nil,
                 speciesQuery: speciesQuery,
                 dateFilter: dateFilter,
                 seasonFilter: seasonFilter
@@ -79,7 +72,7 @@ struct TripsView: View {
             catches: catches,
             filter: CatchHistoryFilter(
                 query: speciesQuery,
-                selectedWaterbodyID: selectedWaterbodyID,
+                selectedWaterbodyID: nil,
                 dateFilter: dateFilter,
                 seasonFilter: seasonFilter,
                 selectedLure: selectedLure
@@ -90,7 +83,7 @@ struct TripsView: View {
     private var hasActiveFilters: Bool {
         if historyMode == .trips {
             return TripHistoryLogic.hasActiveFilters(
-                selectedWaterbodyID: selectedWaterbodyID,
+                selectedWaterbodyID: nil,
                 speciesQuery: speciesQuery,
                 dateFilter: dateFilter,
                 seasonFilter: seasonFilter,
@@ -101,7 +94,7 @@ struct TripsView: View {
         return CatchHistoryLogic.hasActiveFilters(
             CatchHistoryFilter(
                 query: speciesQuery,
-                selectedWaterbodyID: selectedWaterbodyID,
+                selectedWaterbodyID: nil,
                 dateFilter: dateFilter,
                 seasonFilter: seasonFilter,
                 selectedLure: selectedLure
@@ -133,7 +126,7 @@ struct TripsView: View {
             catches: catches,
             filter: CatchHistoryFilter(
                 query: speciesQuery,
-                selectedWaterbodyID: selectedWaterbodyID,
+                selectedWaterbodyID: nil,
                 dateFilter: dateFilter,
                 seasonFilter: seasonFilter,
                 selectedLure: selectedLure
@@ -153,7 +146,6 @@ struct TripsView: View {
     private var listSnapshot: TripsListSnapshot {
         TripsListSnapshot(
             historyMode: historyMode,
-            availableWaterbodies: availableWaterbodies,
             availableLures: availableLures,
             hasActiveFilters: hasActiveFilters,
             filteredTrips: filteredTrips,
@@ -266,7 +258,6 @@ struct TripsView: View {
             TripsListContent(
                 snapshot: listSnapshot,
                 historyMode: $historyMode,
-                selectedWaterbodyID: $selectedWaterbodyID,
                 dateFilter: $dateFilter,
                 seasonFilter: $seasonFilter,
                 speciesQuery: $speciesQuery,
@@ -299,7 +290,6 @@ struct TripsView: View {
     }
 
     private func clearFilters() {
-        selectedWaterbodyID = nil
         speciesQuery = ""
         dateFilter = .all
         seasonFilter = .all
@@ -333,7 +323,6 @@ private struct TripDestinationContent: View {
 
 private struct TripsListSnapshot {
     let historyMode: TripHistoryMode
-    let availableWaterbodies: [Waterbody]
     let availableLures: [String]
     let hasActiveFilters: Bool
     let filteredTrips: [Trip]
@@ -346,7 +335,6 @@ private struct TripsListSnapshot {
 private struct TripsListContent: View {
     let snapshot: TripsListSnapshot
     @Binding var historyMode: TripHistoryMode
-    @Binding var selectedWaterbodyID: UUID?
     @Binding var dateFilter: TripDateFilter
     @Binding var seasonFilter: TripSeasonFilter
     @Binding var speciesQuery: String
@@ -395,14 +383,6 @@ private struct TripsListContent: View {
 
     private var filtersSection: some View {
         Section("Filters") {
-            Picker("Water", selection: $selectedWaterbodyID) {
-                Text("All waters").tag(Optional<UUID>.none)
-                ForEach(snapshot.availableWaterbodies, id: \.id) { waterbody in
-                    Text(waterbody.name).tag(Optional(waterbody.id))
-                }
-            }
-            .pickerStyle(.menu)
-
             Picker("Date", selection: $dateFilter) {
                 ForEach(TripDateFilter.allCases) { filter in
                     Text(filter.label).tag(filter)
@@ -1557,13 +1537,11 @@ private struct TripEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @Query(sort: \Waterbody.createdAt) private var waterbodies: [Waterbody]
     @Query(sort: \Spot.createdAt) private var spots: [Spot]
 
     let trip: Trip
     let catchCount: Int
 
-    @State private var selectedWaterbodyID: UUID?
     @State private var selectedSpotID: UUID?
     @State private var startAt: Date
     @State private var endAt: Date
@@ -1586,7 +1564,6 @@ private struct TripEditorView: View {
     init(trip: Trip, catchCount: Int) {
         self.trip = trip
         self.catchCount = catchCount
-        _selectedWaterbodyID = State(initialValue: trip.waterbody?.id)
         _selectedSpotID = State(initialValue: trip.spot?.id)
         _startAt = State(initialValue: trip.startAt)
         _endAt = State(initialValue: trip.endAt ?? Date())
@@ -1604,9 +1581,7 @@ private struct TripEditorView: View {
         _tideState = State(initialValue: trip.conditionSnapshot?.tideState ?? .notRecorded)
     }
 
-    private var filteredSpots: [Spot] {
-        TripEditingLogic.filteredSpots(spots: spots, selectedWaterbodyID: selectedWaterbodyID)
-    }
+    private var filteredSpots: [Spot] { spots }
 
     private var canSave: Bool {
         TripEditingLogic.canSave(
@@ -1631,16 +1606,6 @@ private struct TripEditorView: View {
     @ViewBuilder
     private var whereSection: some View {
         Section("Where") {
-            Picker("Waterbody", selection: $selectedWaterbodyID) {
-                Text("None").tag(Optional<UUID>.none)
-                if !waterbodies.isEmpty {
-                    Divider()
-                    ForEach(waterbodies, id: \.id) { waterbody in
-                        Text(waterbody.name).tag(Optional(waterbody.id))
-                    }
-                }
-            }
-
             Picker("Spot", selection: $selectedSpotID) {
                 Text("General area").tag(Optional<UUID>.none)
                 ForEach(filteredSpots, id: \.id) { spot in
@@ -1661,9 +1626,11 @@ private struct TripEditorView: View {
             TextField("Target species, separated by commas", text: $targetSpecies)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+                .characterLimit(CharacterLimits.tripTargetSpecies, text: $targetSpecies)
             TextField("Notes", text: $notes, axis: .vertical)
                 .lineLimit(2...4)
                 .focused($isTextInputFocused)
+                .characterLimit(CharacterLimits.tripNotes, text: $notes)
         }
     }
 
@@ -1672,18 +1639,25 @@ private struct TripEditorView: View {
         Section {
             TextField("Place summary", text: $placeSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $placeSummary)
             TextField("Time window", text: $timeWindowSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $timeWindowSummary)
             TextField("Light", text: $lightLevelSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $lightLevelSummary)
             TextField("Weather", text: $weatherSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $weatherSummary)
             TextField("Wind", text: $windSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $windSummary)
             TextField("Cloud cover", text: $cloudCoverSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $cloudCoverSummary)
             TextField("Precipitation", text: $precipitationSummary)
                 .textInputAutocapitalization(.words)
+                .characterLimit(CharacterLimits.conditionSummary, text: $precipitationSummary)
             Picker("Water clarity", selection: $waterClarity) {
                 ForEach(WaterClarity.allCases) { option in
                     Text(option.label).tag(option)
@@ -1766,13 +1740,6 @@ private struct TripEditorView: View {
             }
         }
         .presentationDetents([.large])
-        .onChange(of: selectedWaterbodyID) { _, newValue in
-            selectedSpotID = TripEditingLogic.selectedSpotIDAfterWaterbodyChange(
-                selectedSpotID: selectedSpotID,
-                filteredSpots: filteredSpots
-            )
-            if newValue == nil { selectedSpotID = nil }
-        }
         .persistenceFailureAlert(message: $persistenceErrorMessage)
         .confirmationDialog(
             "Clear recorded location?",
@@ -1808,7 +1775,8 @@ private struct TripEditorView: View {
     }
 
     private func save() {
-        trip.waterbody = waterbodies.first(where: { $0.id == selectedWaterbodyID })
+        // Note: trip.waterbody is preserved as-is. Waterbody is no longer
+        // user-editable — it's a passive auto-detected tag from trip start.
         trip.spot = filteredSpots.first(where: { $0.id == selectedSpotID })
         trip.startAt = startAt
         trip.endAt = isTripActive ? nil : endAt
@@ -1998,6 +1966,7 @@ struct CatchEditorView: View {
             TextField("Species (optional)", text: $species)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+                .characterLimit(CharacterLimits.catchSpecies, text: $species)
             if !speciesSuggestions.isEmpty {
                 SuggestionRow(label: "Species", values: speciesSuggestions) { value in
                     species = value
@@ -2007,6 +1976,7 @@ struct CatchEditorView: View {
             TextField("Lure or bait", text: $lureOrBait)
                 .textInputAutocapitalization(.words)
                 .focused($isTextInputFocused)
+                .characterLimit(CharacterLimits.catchLureOrBait, text: $lureOrBait)
             if !lureSuggestions.isEmpty {
                 SuggestionRow(label: "Lure", values: lureSuggestions) { value in
                     lureOrBait = value
@@ -2018,11 +1988,13 @@ struct CatchEditorView: View {
                 TextField("Method", text: $method)
                     .textInputAutocapitalization(.words)
                     .focused($isTextInputFocused)
+                    .characterLimit(CharacterLimits.catchMethod, text: $method)
             }
             if visibleFields.contains(.gear) {
                 TextField("Gear", text: $gear)
                     .textInputAutocapitalization(.words)
                     .focused($isTextInputFocused)
+                    .characterLimit(CharacterLimits.catchGear, text: $gear)
                 if !gearSuggestions.isEmpty {
                     SuggestionRow(label: "Gear", values: gearSuggestions) { value in
                         gear = value
@@ -2055,6 +2027,7 @@ struct CatchEditorView: View {
                 TextField("Note", text: $note, axis: .vertical)
                     .lineLimit(2...4)
                     .focused($isTextInputFocused)
+                    .characterLimit(CharacterLimits.catchNote, text: $note)
             }
         }
     }

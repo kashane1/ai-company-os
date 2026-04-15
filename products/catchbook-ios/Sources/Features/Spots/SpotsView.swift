@@ -14,9 +14,15 @@ struct SpotsView: View {
     @State private var addSpotCoordinate: CLLocationCoordinate2D?
     @State private var showingNewSpotFromPin = false
     @State private var mapCenter: CLLocationCoordinate2D?
+    @State private var activePinColorFilters: Set<SpotPinColor> = []
 
     private var spotsWithCoordinates: [Spot] {
         SpotPresentationLogic.spotsWithCoordinates(from: spots)
+    }
+
+    private var filteredSpots: [Spot] {
+        guard !activePinColorFilters.isEmpty else { return spots }
+        return spots.filter { activePinColorFilters.contains($0.pinColor) }
     }
 
     var body: some View {
@@ -43,20 +49,21 @@ struct SpotsView: View {
                             position: $mapCameraPosition,
                             onSpotTapped: { spot in
                                 selectedSpotForDetail = spot
+                            },
+                            onCameraChange: { center in
+                                mapCenter = center
                             }
                         )
 
                         if isAddSpotMode {
-                            // Crosshair overlay for pin placement
-                            VStack(spacing: Spacing.sm) {
-                                Image(systemName: "plus")
-                                    .font(.title2.weight(.medium))
-                                    .foregroundStyle(.appAccent)
-                                    .frame(width: 44, height: 44)
-                                    .background(.ultraThinMaterial, in: Circle())
-                                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-                            }
-                            .allowsHitTesting(false)
+                            // Minimal pin marker for placement — small and
+                            // semi-transparent so the map remains readable.
+                            // Anchored so the pin's tip sits on the map center.
+                            Image(systemName: "mappin")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.appAccent.opacity(0.55))
+                                .offset(y: -9)
+                                .allowsHitTesting(false)
 
                             VStack {
                                 Spacer()
@@ -69,7 +76,7 @@ struct SpotsView: View {
                                     Button {
                                         confirmAddSpot()
                                     } label: {
-                                        Label("Add Spot Here", systemImage: "mappin.badge.plus")
+                                        Label("Add Spot Here", systemImage: "mappin.and.ellipse")
                                     }
                                     .buttonStyle(.borderedProminent)
                                     .tint(.appAccent)
@@ -81,12 +88,23 @@ struct SpotsView: View {
                         }
                     }
                 } else {
-                    List {
-                        ForEach(spots, id: \.id) { spot in
-                            NavigationLink {
-                                SpotDetailView(spot: spot)
-                            } label: {
-                                SpotRow(spot: spot)
+                    VStack(spacing: 0) {
+                        PinColorFilterBar(active: $activePinColorFilters)
+                        if filteredSpots.isEmpty {
+                            ContentUnavailableView {
+                                Label("No Matching Spots", systemImage: "line.3.horizontal.decrease.circle")
+                            } description: {
+                                Text("No spots match the selected pin colors. Tap a color to toggle it off.")
+                            }
+                        } else {
+                            List {
+                                ForEach(filteredSpots, id: \.id) { spot in
+                                    NavigationLink {
+                                        SpotDetailView(spot: spot)
+                                    } label: {
+                                        SpotRow(spot: spot)
+                                    }
+                                }
                             }
                         }
                     }
@@ -100,6 +118,11 @@ struct SpotsView: View {
                             showsMap.toggle()
                             if showsMap {
                                 refreshMapRegion()
+                            } else {
+                                // Leaving the map cancels any in-progress pin
+                                // placement so the state doesn't bleed across
+                                // views — see commit for the bug report.
+                                isAddSpotMode = false
                             }
                         } label: {
                             Label(
@@ -137,8 +160,10 @@ struct SpotsView: View {
             NewSpotForm()
         }
         .sheet(item: $selectedSpotForDetail) { spot in
-            SpotDetailView(spot: spot)
-                .presentationDetents([.medium, .large])
+            NavigationStack {
+                SpotDetailView(spot: spot)
+            }
+            .presentationDetents([.medium, .large])
         }
         .onChange(of: addSpotCoordinate != nil) { _, hasCoordinate in
             if hasCoordinate {
@@ -157,12 +182,65 @@ struct SpotsView: View {
     }
 
     private func confirmAddSpot() {
-        // Use the center of whatever region the map is currently showing.
-        // mapCameraPosition is an @State binding — its region center
-        // approximates where the crosshair is pointing.
-        let region = SpotPresentationLogic.mapRegion(for: spotsWithCoordinates)
-        addSpotCoordinate = mapCameraPosition.region?.center ?? region.center
+        // Prefer the live camera center tracked via onMapCameraChange.
+        // MapCameraPosition.region returns nil after user gestures, so it
+        // can't be relied on here — falling through to the default region
+        // center was the cause of spots stacking on the first one.
+        if let center = mapCenter {
+            addSpotCoordinate = center
+        } else if let region = mapCameraPosition.region {
+            addSpotCoordinate = region.center
+        } else {
+            addSpotCoordinate = SpotPresentationLogic.mapRegion(for: spotsWithCoordinates).center
+        }
         isAddSpotMode = false
+    }
+}
+
+// MARK: - Pin Color Filter Bar
+
+private struct PinColorFilterBar: View {
+    @Binding var active: Set<SpotPinColor>
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Spacing.sm) {
+                ForEach(SpotPinColor.allCases) { color in
+                    let isOn = active.contains(color)
+                    Button {
+                        if isOn {
+                            active.remove(color)
+                        } else {
+                            active.insert(color)
+                        }
+                    } label: {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(color.color)
+                            .padding(6)
+                            .background(
+                                Circle()
+                                    .strokeBorder(isOn ? color.color : Color.clear, lineWidth: 2)
+                            )
+                            .opacity(isOn || active.isEmpty ? 1.0 : 0.35)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(color.label) pin filter")
+                    .accessibilityAddTraits(isOn ? [.isSelected] : [])
+                }
+                if !active.isEmpty {
+                    Button("Clear") {
+                        active.removeAll()
+                    }
+                    .font(.caption.weight(.semibold))
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.sm)
+        }
+        .background(Color(.systemGroupedBackground))
     }
 }
 
@@ -180,6 +258,11 @@ private struct SpotRow: View {
                 .font(.subheadline.weight(.semibold))
 
             HStack(spacing: Spacing.md) {
+                // TODO: backfill canonical waterbody name from spot GPS for
+                // legacy spots that were created before auto-detection ran.
+                // New spots get tagged on save() via WaterbodyAutoDetectionService;
+                // older spots fall back to "Unknown" until a one-shot backfill
+                // pass runs over Spot.waterbody == nil rows.
                 Label(rowDetails.waterbodyName, systemImage: "water.waves")
                 if rowDetails.isPinned {
                     Label("Pinned", systemImage: "mappin")
@@ -224,19 +307,21 @@ private struct SpotsMapContent: View {
     let spots: [Spot]
     @Binding var position: MapCameraPosition
     var onSpotTapped: ((Spot) -> Void)?
+    var onCameraChange: ((CLLocationCoordinate2D) -> Void)?
 
     var body: some View {
         CatchbookMapView(
             items: spots,
             position: $position,
-            coordinate: Self.coordinate(for:)
+            coordinate: Self.coordinate(for:),
+            onCameraChange: onCameraChange
         ) { spot in
             Button {
                 onSpotTapped?(spot)
             } label: {
                 SpotMapAnnotation(
                     title: spot.title,
-                    color: SpotPresentationLogic.waterbodyColor(for: spot.waterbody?.id)
+                    color: spot.pinColor.color
                 )
             }
             .buttonStyle(.plain)
@@ -266,7 +351,10 @@ private struct SpotsMapContent: View {
 
 struct SpotDetailView: View {
     @Environment(AppRouter.self) private var router
+    @Environment(\.dismiss) private var dismiss
     let spot: Spot
+
+    @State private var showingEditSheet = false
 
     @Query(sort: \Trip.startAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \CatchRecord.caughtAt, order: .reverse) private var catches: [CatchRecord]
@@ -477,6 +565,23 @@ struct SpotDetailView: View {
         }
         .navigationTitle(spot.title)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Edit") {
+                    showingEditSheet = true
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditSheet) {
+            NewSpotForm(
+                editingSpot: spot,
+                onDeleted: {
+                    // Pop/close the detail view once the underlying spot is
+                    // gone — the view is still holding a now-deleted model.
+                    dismiss()
+                }
+            )
+        }
     }
 
     static func lastTimeHereCard(
