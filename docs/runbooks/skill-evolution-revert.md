@@ -145,16 +145,69 @@ Record the walk-through in
 `docs/solutions/integration-issues/skill-evolution-revert-dryrun-<date>.md`
 and reference it from the Phase 3 Definition of Done checklist.
 
+## Rotate the approval-signing key
+
+On macOS, the HMAC signing secret lives in the login Keychain under
+`service=ai-company-os`, `account=approval_signing_key`. To rotate
+it (because the current key is suspected compromised, or because
+you rebuilt the venv binary and the old ACL no longer matches):
+
+```bash
+.venv/bin/python apps/approval-reviewer/main.py rotate-keychain \
+  --confirm rotate \
+  --trusted-binary /Users/simons/ai-company-os/.venv/bin/python \
+  --trusted-binary /Users/simons/ai-company-os/apps/approval-reviewer/main.py
+```
+
+**Rotation invalidates every outstanding unburned token.** Any
+skill-evolution task that was blocked waiting for approval at the
+time of rotation will fail on its next poll with a signature-
+mismatch error. Re-enqueue those tasks after rotation is complete.
+
+The `--confirm rotate` guard is mandatory to prevent
+"I typed the wrong command" accidents — rotation is destructive
+for pending approvals and should be a deliberate action.
+
+To verify rotation succeeded:
+
+```bash
+security find-generic-password -s ai-company-os \
+  -a approval_signing_key -w
+```
+
+Should print a 64-char hex string (32 bytes). If it prints nothing
+or fails with "could not be found," the rotation didn't land and
+you should re-run it.
+
+If you need to bootstrap the Keychain item on a fresh machine
+for the first time:
+
+```bash
+.venv/bin/python apps/approval-reviewer/main.py bootstrap-keychain
+```
+
+This refuses to clobber an existing item — use `rotate-keychain`
+for the "replace existing" flow. Both commands default the
+trusted-binaries list to the current `sys.executable` plus the
+CLI script's resolved path, so a worker running under the same
+venv will have ACL access without prompting.
+
+On non-macOS systems, the filesystem fallback at
+`state/checkpoints/platform/approval_signing_key` is used
+instead. Rotation on non-macOS means deleting that file and
+letting the next worker call bootstrap it:
+
+```bash
+rm state/checkpoints/platform/approval_signing_key
+```
+
 ## Appendix B — what this runbook does NOT cover
 
 - **Revert a proposal that was signed by a forged token.** The HMAC
-  burn path makes this structurally impossible in the first landing,
-  but the mitigation if the signing key itself leaks is "rotate the
-  key" — see `packages/tools/primitives/approvals.py:_load_signing_secret`
-  for the key file path. Rotating the key invalidates every
-  outstanding unsigned token on the system; handle that consequence
-  separately. The larger fix is the Keychain migration plan at
-  `docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md`.
+  burn path + Keychain ACL make this structurally unlikely in the
+  current landing. If the signing key itself leaks, use
+  `rotate-keychain` above to invalidate every outstanding token.
+  Re-enqueue blocked tasks after rotation.
 - **Revert an in-flight proposal whose worker process has frozen
   mid-poll.** The kill-switch check is bounded by `poll_interval_seconds`
   (default 5 s); a truly frozen worker is a separate incident. Kill
