@@ -21,7 +21,26 @@ def test_default_worker_specs_includes_api_worker() -> None:
 
     specs = runtime_supervisor_main.default_worker_specs()
 
-    assert len(specs) == 4
-    assert specs[-1].lane == "api"
-    assert specs[-1].worker_id == "worker-api"
-    assert str(specs[-1].script_path).endswith("apps/api/server.py")
+    # Phase 3 appended the skill_evolution worker as the fifth spec,
+    # keeping the first four in the same order so the launchd config
+    # is stable for existing workers. The api worker is now specs[-2].
+    assert len(specs) == 5
+    lanes = [spec.lane for spec in specs]
+    assert lanes == [
+        "engineering",
+        "ios",
+        "appstore",
+        "api",
+        "skill_evolution",
+    ]
+
+    api_spec = specs[-2]
+    assert api_spec.worker_id == "worker-api"
+    assert str(api_spec.script_path).endswith("apps/api/server.py")
+
+    evolution_spec = specs[-1]
+    assert evolution_spec.lane == "skill_evolution"
+    assert evolution_spec.worker_id == "worker-skill-evolution"
+    assert str(evolution_spec.script_path).endswith(
+        "apps/worker-skill-evolution/main.py"
+    )

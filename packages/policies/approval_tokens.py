@@ -46,6 +46,13 @@ P0_ACTIONS: frozenset[str] = frozenset(
         "merge_protected_branch",
         "billing_charge",
         "dns_change",
+        # Phase 3 — skill self-evolution applies are at least as
+        # dangerous as protected-branch merges: the approved diff is
+        # canonical skill code that the worker imports on its next
+        # run. Security-sentinel H2 on the first Phase 3 PR flagged
+        # this as a missing P0 classification. 5-min TTL + second-
+        # factor requirement applies.
+        "skill_evolution_apply",
     }
 )
 

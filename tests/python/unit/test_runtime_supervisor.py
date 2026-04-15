@@ -54,7 +54,9 @@ def test_runtime_supervisor_starts_three_bounded_worker_processes(
 ) -> None:
     runtime_supervisor_main = load_runtime_supervisor_main()
     created_commands: list[list[str]] = []
-    pid_counter = iter([101, 102, 103, 104])
+    # Phase 3 — supervisor now starts five workers. Keep the same
+    # pattern but extend the pid counter and the expected lane list.
+    pid_counter = iter([101, 102, 103, 104, 105])
 
     def fake_process_factory(command, **kwargs):
         created_commands.append(command)
@@ -64,18 +66,20 @@ def test_runtime_supervisor_starts_three_bounded_worker_processes(
     supervisor.start_all()
     status = supervisor.status()
 
-    assert [worker.lane for worker in status.workers] == ["engineering", "ios", "appstore", "api"]
+    expected_lanes = ["engineering", "ios", "appstore", "api", "skill_evolution"]
+    assert [worker.lane for worker in status.workers] == expected_lanes
     assert all(worker.state == "running" for worker in status.workers)
     assert all(worker.pid is not None for worker in status.workers)
-    assert len(created_commands) == 4
+    assert len(created_commands) == 5
     assert created_commands[0][1].endswith("apps/worker-engineering/main.py")
     assert created_commands[1][1].endswith("apps/worker-ios/main.py")
     assert created_commands[2][1].endswith("apps/worker-appstore/main.py")
     assert created_commands[3][1].endswith("apps/api/server.py")
+    assert created_commands[4][1].endswith("apps/worker-skill-evolution/main.py")
 
     payload = json.loads(supervisor.status_path.read_text())
     assert payload["state"] == "running"
-    assert [worker["lane"] for worker in payload["workers"]] == ["engineering", "ios", "appstore", "api"]
+    assert [worker["lane"] for worker in payload["workers"]] == expected_lanes
 
 
 def test_runtime_supervisor_records_worker_exit_without_restart(
@@ -87,19 +91,19 @@ def test_runtime_supervisor_records_worker_exit_without_restart(
         "worker-ios": FakeProcess(pid=202, poll_results=[None], wait_result=0),
         "worker-appstore": FakeProcess(pid=203, poll_results=[None], wait_result=0),
         "api": FakeProcess(pid=204, poll_results=[None], wait_result=0),
+        "worker-skill-evolution": FakeProcess(
+            pid=205, poll_results=[None], wait_result=0
+        ),
     }
     created_workers: list[str] = []
 
     def fake_process_factory(command, **kwargs):
         worker_name = Path(command[1]).parent.name
         created_workers.append(worker_name)
-        if worker_name == "worker-engineering":
-            return processes["worker-engineering"]
-        if worker_name == "worker-ios":
-            return processes["worker-ios"]
-        if worker_name == "worker-appstore":
-            return processes["worker-appstore"]
-        return processes["api"]
+        # Names map: the api worker's script lives under apps/api/, so
+        # worker_name == "api" (not "worker-api"); every other entry
+        # uses the worker-* dir name directly.
+        return processes.get(worker_name, processes["api"])
 
     supervisor = runtime_supervisor_main.RuntimeSupervisor(process_factory=fake_process_factory)
     supervisor.start_all()
@@ -108,7 +112,13 @@ def test_runtime_supervisor_records_worker_exit_without_restart(
     engineering = next(status for status in statuses if status.lane == "engineering")
     ios = next(status for status in statuses if status.lane == "ios")
 
-    assert created_workers == ["worker-engineering", "worker-ios", "worker-appstore", "api"]
+    assert created_workers == [
+        "worker-engineering",
+        "worker-ios",
+        "worker-appstore",
+        "api",
+        "worker-skill-evolution",
+    ]
     assert engineering.state == "exited"
     assert engineering.exit_code == 7
     assert engineering.last_known_status == "exited"
@@ -120,11 +130,13 @@ def test_runtime_supervisor_stops_all_workers_cleanly_on_stop_request(
 ) -> None:
     runtime_supervisor_main = load_runtime_supervisor_main()
     stop_event = Event()
+    # Phase 3 — five workers. One FakeProcess per worker spec.
     all_processes = [
         FakeProcess(pid=301, poll_results=[None], wait_result=0),
         FakeProcess(pid=302, poll_results=[None], wait_result=0),
         FakeProcess(pid=303, poll_results=[None], wait_result=0),
         FakeProcess(pid=304, poll_results=[None], wait_result=0),
+        FakeProcess(pid=305, poll_results=[None], wait_result=0),
     ]
     processes = list(all_processes)
 
@@ -167,6 +179,7 @@ def test_runtime_supervisor_honors_external_stop_request_file(
         FakeProcess(pid=402, poll_results=[None], wait_result=0),
         FakeProcess(pid=403, poll_results=[None], wait_result=0),
         FakeProcess(pid=404, poll_results=[None], wait_result=0),
+        FakeProcess(pid=405, poll_results=[None], wait_result=0),
     ]
 
     def fake_process_factory(command, **kwargs):

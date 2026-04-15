@@ -50,4 +50,18 @@ def default_worker_specs() -> list[WorkerProcessSpec]:
             script_path=paths.repo_root / "apps" / "api" / "server.py",
             log_path=runtime_logs_root / "worker-api.log",
         ),
+        # Phase 3 — skill self-evolution worker. New lane; claim loop
+        # in apps/worker-skill-evolution/main.py; policy gate in
+        # packages/policies/skill_evolution.py. Appended last so the
+        # four-worker ordering from the Phase 0.5c split stays stable
+        # for the existing test_default_worker_specs_api.py contract
+        # (that test is updated in this same PR to assert 5 specs).
+        WorkerProcessSpec(
+            lane="skill_evolution",
+            worker_id="worker-skill-evolution",
+            script_path=(
+                paths.repo_root / "apps" / "worker-skill-evolution" / "main.py"
+            ),
+            log_path=runtime_logs_root / "worker-skill-evolution.log",
+        ),
     ]
