@@ -1,13 +1,18 @@
-Traceback (most recent call last):
-  File "<string>", line 34, in <module>
-    print(f'- {acp.PromptResponse.model_fields["stopReason"].annotation}')
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
-KeyError: 'stopReason'
 # ACP SDK API — agent-client-protocol 0.8.1 (hermes v0.7.0 pin)
 
 Introspected 2026-04-14 from /Users/simons/hermes/.venv (python 3.14).
-Hermes v0.7.0 pins agent-client-protocol>=0.8.1,<0.9 in pyproject.toml.
-0.9.x changed the AuthMethod union, so Phase 4 client MUST pin 0.8.x until hermes upgrades.
+Hermes v0.7.0 pins `agent-client-protocol>=0.8.1,<0.9` in `pyproject.toml`.
+
+`acp_adapter/server.py:12-40` imports these symbols from `acp.schema`:
+`AuthMethod, InitializeResponse, AgentCapabilities, SessionCapabilities,`
+`ClientCapabilities, Implementation, SessionForkCapabilities,`
+`SessionListCapabilities, AuthenticateResponse`. At 0.9.0 the `AuthMethod`
+symbol was removed from `acp.schema` in favor of the three-variant union
+`EnvVarAuthMethod | TerminalAuthMethod | AuthMethodAgent` — running
+`pip install "agent-client-protocol==0.9.0"` and re-running `python -m acp_adapter.entry`
+produces `ImportError: cannot import name 'AuthMethod' from 'acp.schema'`.
+Phase 4 client MUST pin `>=0.8.1,<0.9` until a future hermes release
+updates its own imports.
 
 ## Public surface of acp.__init__
 
@@ -100,6 +105,31 @@ Hermes v0.7.0 pins agent-client-protocol>=0.8.1,<0.9 in pyproject.toml.
 - mod    utils
 
 ## PROTOCOL_VERSION
-- PROTOCOL_VERSION = 1
+
+- `PROTOCOL_VERSION = 1` (int, 16-bit unsigned per
+  `InitializeRequest.protocolVersion: Annotated[int, Ge(ge=0), Le(le=65535)]`).
 
 ## PromptResponse.stopReason literal values
+
+- captured from class signature (field lookup by name failed —
+  pydantic v2 exposes camelCase JSON field via alias, not attr):
+  `(*, _meta: Dict[str, Any] | None = None, stopReason: Literal['end_turn', 'max_tokens', 'max_turn_requests', 'refusal', 'cancelled'], usage: acp.schema.Usage | None = None) -> None`
+
+Verified values per the inlined Literal in `PromptResponse(*, ..., stopReason:`
+Literal['end_turn','max_tokens','max_turn_requests','refusal','cancelled'])`.
+There is **no 'error' variant**. JSON-RPC errors surface as typed
+exceptions raised by `conn.prompt(...)`, not as a stop_reason value.
+Phase 4 client must wrap prompt calls in `try/except` against the SDK
+error taxonomy (see `acp.exceptions` below), not check for a sentinel stop_reason.
+
+## RequestError shape
+
+- `(code: 'int', message: 'str', data: 'Any | None' = None) -> 'None'`
+
+## acp.exceptions public surface
+
+```
+Any
+RequestError
+annotations
+```

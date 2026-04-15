@@ -6,7 +6,9 @@
 
 See also:
 - [`acp-sdk-api.md`](2026-04-hermes-spike/acp-sdk-api.md) — verified `agent-client-protocol==0.8.1` public surface (hermes pin)
-- [`install-failures.md`](2026-04-hermes-spike/install-failures.md) — N/A, install succeeded
+
+(The clone, `uv sync`, SDK install, and handshake all succeeded on the
+first attempt. No `install-failures.md` is committed.)
 
 ## Environment under test
 
@@ -14,7 +16,7 @@ See also:
 |---|---|---|
 | Hermes ref | `abf1e98` (tag `v2026.4.3`, `chore: release v0.7.0`) | `git clone --branch v2026.4.3 --depth 1`. Tag emits a cosmetic "not a commit" warning, but the checked-out commit IS the v0.7.0 release. |
 | Python | 3.14.3 | `uv sync` ignored the 3.11 preference because `hermes/pyproject.toml` allows 3.11+. |
-| ACP SDK | `agent-client-protocol==0.8.1` | Hermes pins `>=0.8.1,<0.9` in `pyproject.toml`. `0.9.0` removes the `AuthMethod` symbol — importing `acp_adapter/server.py` fails on 0.9.x with `ImportError: cannot import name 'AuthMethod' from 'acp.schema'`. |
+| ACP SDK | `agent-client-protocol==0.8.1` | Hermes pins `>=0.8.1,<0.9` in `pyproject.toml`. The single verified incompatibility with 0.9.0 is a direct import in `~/hermes/acp_adapter/server.py:12-40` — `from acp.schema import ... AuthMethod ...`. Reproducing: `uv pip install "agent-client-protocol==0.9.0"; python -m acp_adapter.entry` → `ImportError: cannot import name 'AuthMethod' from 'acp.schema'`. I did NOT audit every other `from acp` import in the hermes codebase against the 0.9 changelog, so this is "first symbol blocks; others may too," not "only this symbol blocks." Treat the pin as necessary but do not assume it is sufficient for a future hermes release that catches up to 0.9. |
 | Our repo | main at commit after `eeb633c` | Canonical skills unchanged from PR #6 landing. |
 
 ## Findings against the seven required items
@@ -29,7 +31,7 @@ Hermes's skill discovery is `agent.skill_utils.iter_skill_index_files(skills_dir
 - `agent/prompt_builder.py:600` — **external_dirs** (the one we care about)
 - `agent/skill_commands.py:176` — `scan_dir.rglob("SKILL.md")`
 
-`skills/canonical/` contains **zero** files named `SKILL.md`. It contains 11 files named `skill.md` (lowercase) in per-skill-dir layout, plus 8 flat files in `canonical/shared/` named `<skill-id>.md`. None match.
+`skills/canonical/` contains **zero** files named `SKILL.md`. It contains 12 files named `skill.md` (lowercase) in per-skill-dir layout (`find skills/canonical -name skill.md | wc -l` confirms), plus 8 flat files in `canonical/shared/` named `<skill-id>.md`. None match.
 
 This means Hermes pointed at `external_dirs: [skills/canonical]` will register **zero** slash commands, zero context stanzas, zero anything. The three Phase 1 targets (`supervisor-goal-decomposition`, `product-artifact-chain`, `codex-claude-handoff`) are all in the flat layout, and would need two separate rewrites (file rename + layout move) to be visible at all.
 
@@ -136,15 +138,72 @@ The second option is cleaner under the existing `skills/adapters/` convention an
 
 ### 6. Telegram slash command registration status
 
-**Not verified empirically this session** — the Telegram gateway requires a bot token and live Telegram reachability that I don't have locally. Per the handoff, the bug (upstream issue #8110) is already known. Carrying the assumption forward unchanged: Telegram command registration is broken in v0.7.0. This is **not blocking** for Phase 4 because we're consuming Hermes via ACP, not Telegram.
+**Deferred, not answered.** The Telegram gateway requires a bot token and live Telegram reachability that I don't have locally; the seven-question brief included this item but Phase 4 does not depend on it (we're consuming Hermes via ACP, not Telegram). This spike therefore does not verify the status empirically. Treat as a flag on any future plan that wants Hermes as a user-facing chat frontend.
 
-Action: treat as a flag on any future plan that wants Hermes as a user-facing chat frontend. Phase 4 does not need it.
+The handoff carries the known upstream bug (#8110) as the working assumption; I have not re-verified that either. A follow-up spike that actually needs Telegram should start from the assumption that the status is unknown.
 
 ### 7. ACP server handshake sanity
 
 **✅ WORKS.** This is the most important finding for Phase 4 feasibility.
 
-Spike script ([`/tmp/hermes_handshake.py`](file:///tmp/hermes_handshake.py), reproduced inline in the commit message):
+Spike script (inlined below so this doc is reproducible after `/tmp` is reaped):
+
+```python
+# hermes_handshake.py — Phase 2 Finding #7 ACP handshake sanity check.
+import asyncio, os, sys, traceback
+import acp
+from acp.schema import InitializeRequest, ClientCapabilities, Implementation
+
+
+class MinimalClient(acp.Client):
+    pass
+
+
+async def main() -> int:
+    hermes_root = "/Users/simons/hermes"
+    python_bin = f"{hermes_root}/.venv/bin/python"
+    env = {
+        "PATH": os.environ.get("PATH", ""),
+        "HOME": os.environ.get("HOME", ""),
+        "PYTHONUNBUFFERED": "1",
+    }
+    print(f"[spike] spawning: {python_bin} -m acp_adapter.entry", file=sys.stderr)
+    try:
+        async with acp.spawn_agent_process(
+            lambda agent: MinimalClient(),
+            python_bin,
+            "-m",
+            "acp_adapter.entry",
+            env=env,
+            cwd=hermes_root,
+        ) as (conn, proc):
+            print(f"[spike] subprocess pid={proc.pid}, sending InitializeRequest", file=sys.stderr)
+            init_req = InitializeRequest(
+                protocolVersion=acp.PROTOCOL_VERSION,
+                clientCapabilities=ClientCapabilities(),
+                clientInfo=Implementation(name="ai-company-os-spike", version="0.0.1"),
+            )
+            try:
+                init_resp = await asyncio.wait_for(conn.initialize(init_req), timeout=20.0)
+            except asyncio.TimeoutError:
+                print("[spike] RESULT: TIMEOUT on initialize", file=sys.stderr)
+                return 2
+            print(f"[spike] RESULT: OK", file=sys.stderr)
+            print(f"[spike]   agent_info  = {init_resp.agentInfo}", file=sys.stderr)
+            print(f"[spike]   protocol    = v{init_resp.protocolVersion}", file=sys.stderr)
+            print(f"[spike]   capabilities= {init_resp.agentCapabilities}", file=sys.stderr)
+            return 0
+    except Exception as e:
+        print(f"[spike] RESULT: FAIL ({type(e).__name__}): {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(asyncio.run(main()))
+```
+
+Output:
 
 ```
 [spike] spawning: /Users/simons/hermes/.venv/bin/python -m acp_adapter.entry
@@ -212,6 +271,37 @@ Reasoning:
 
 **Corollary**: update the Phase 0 ADR to reflect that **per-skill-dir layout is also Claude-only** until a hermes adapter exists, and that Phase 4 does not depend on such an adapter. That's a one-paragraph ADR amendment, not a new plan.
 
+### Skill discovery spike script
+
+Also inlined so the doc is reproducible without the `/tmp` scripts:
+
+```python
+# hermes_skill_discovery.py — Phase 2 Findings #1-5 skill discovery check.
+import sys, traceback
+sys.path.insert(0, "/Users/simons/hermes")
+from pathlib import Path
+
+canonical = Path("/Users/simons/ai-company-os/skills/canonical")
+print(f"[discover] scanning {canonical}\n")
+
+from agent.skill_utils import iter_skill_index_files
+
+print("[discover] Looking for SKILL.md (hermes's expected filename):")
+skill_md_hits = list(iter_skill_index_files(canonical, "SKILL.md"))
+for p in skill_md_hits:
+    print(f"  HIT: {p.relative_to(canonical)}")
+if not skill_md_hits:
+    print("  (none found)")
+print()
+
+print("[discover] Looking for skill.md (our canonical filename):")
+skill_lc_hits = list(iter_skill_index_files(canonical, "skill.md"))
+for p in skill_lc_hits:
+    print(f"  HIT: {p.relative_to(canonical)}")
+if not skill_lc_hits:
+    print("  (none found)")
+```
+
 ## Reproduction
 
 ```bash
@@ -230,18 +320,16 @@ skills:
     - /Users/simons/ai-company-os/skills/canonical
 YAML
 
-# Handshake (Phase 4 feasibility)
-~/hermes/.venv/bin/python /tmp/hermes_handshake.py   # expect exit 0
-
-# Skill discovery (Phase 2 findings #1-5)
-~/hermes/.venv/bin/python /tmp/hermes_skill_discovery.py   # expect "zero SKILL.md"
+# Save the two scripts above into /tmp (or anywhere) and run:
+~/hermes/.venv/bin/python /tmp/hermes_handshake.py        # expect exit 0
+~/hermes/.venv/bin/python /tmp/hermes_skill_discovery.py  # expect "zero SKILL.md"
 ```
 
 ## Clean-up state
 
 - `~/hermes/` — left in place, will be deleted by the user or the next Hermes-touching spike
 - `~/.hermes/cli-config.yaml` — left in place for Phase 4 development convenience
-- `/tmp/hermes_handshake.py`, `/tmp/hermes_skill_discovery.py` — ephemeral, will be removed on next `/tmp` reap
+- Both spike scripts inlined above — the `/tmp/*.py` copies will be reaped by macOS and that is fine
 - `agent-client-protocol==0.8.1` — installed into `~/hermes/.venv` only; not added to this repo's pyproject.toml. Phase 4 will add the pin to `packages/tools/acp/pyproject.toml` when the client module lands.
 
 ---
