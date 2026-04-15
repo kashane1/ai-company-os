@@ -66,6 +66,7 @@ from __future__ import annotations
 
 import os
 import secrets
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -98,6 +99,23 @@ SKILL_EVOLUTION_ACTION = "skill_evolution_apply"
 SKILL_EVOLUTION_APPROVAL_TYPE = "skill_evolution"
 
 SIGNING_KEY_ENV_VAR = "AI_COMPANY_OS_APPROVAL_SIGNING_KEY"
+
+# When set, skips the macOS Keychain read path and goes straight to
+# the filesystem fallback. Intended for CI (non-macOS runners) and
+# for hermetic unit tests that need to exercise the filesystem code
+# without touching the real user Keychain. Never set this in
+# production on a Mac — the whole point of the Keychain migration
+# is that the filesystem path is no longer defensible under the
+# Phase 3 same-uid threat model.
+FORCE_FILE_ENV_VAR = "AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE"
+
+# macOS Keychain item identity. The "service" field is what
+# ``security find-generic-password -s`` looks up; the "account" field
+# is what ``-a`` matches. Both are scoped to the user's login
+# keychain by default, which is what we want — the system keychain
+# would require root.
+KEYCHAIN_SERVICE = "ai-company-os"
+KEYCHAIN_ACCOUNT = "approval_signing_key"
 
 
 ApprovalOutcome = Literal["pending", "approved", "rejected", "expired"]
@@ -399,8 +417,15 @@ __all__ = [
     "TokenExpired",
     "TokenNotFound",
     "TokenSignatureInvalid",
+    "KeychainError",
+    "KeychainNotFound",
+    "KeychainAccessDenied",
+    "KeychainAlreadyExists",
     "SKILL_EVOLUTION_ACTION",
     "SKILL_EVOLUTION_APPROVAL_TYPE",
+    "KEYCHAIN_SERVICE",
+    "KEYCHAIN_ACCOUNT",
+    "FORCE_FILE_ENV_VAR",
     "request_evolution_approval",
     "poll_evolution_approval",
     "submit_evolution_approval",
@@ -435,76 +460,382 @@ def _default_device_binding() -> str:
     return socket.gethostname() or "unknown-host"
 
 
+# ---------------------------------------------------------------------- #
+# Keychain error taxonomy                                                 #
+# ---------------------------------------------------------------------- #
+
+
+class KeychainError(RuntimeError):
+    """Base class for macOS Keychain interaction failures."""
+
+
+class KeychainNotFound(KeychainError):
+    """The Keychain item (service, account) does not exist.
+
+    Typically means the operator hasn't run ``bootstrap-keychain`` on
+    this machine yet. Distinct from access-denied because the
+    resolution is different (bootstrap vs. fix the ACL).
+    """
+
+
+class KeychainAccessDenied(KeychainError):
+    """The Keychain item exists but this process is not on its ACL.
+
+    This is the expected-and-good failure mode when a compromised
+    sibling worker runs from an unexpected binary and tries to read
+    the signing key. :func:`_load_signing_secret` deliberately
+    refuses to fall through to the filesystem path in this case —
+    silent fallback would undo the point of the migration.
+    """
+
+
+class KeychainAlreadyExists(KeychainError):
+    """Bootstrap refused to overwrite an existing item.
+
+    Rotation uses :func:`_rotate_keychain_secret` (delete + create).
+    A plain ``bootstrap-keychain`` call refuses to clobber so the
+    operator has to make rotation an explicit action.
+    """
+
+
+# ---------------------------------------------------------------------- #
+# Signing secret resolution                                               #
+# ---------------------------------------------------------------------- #
+
+
 def _load_signing_secret() -> bytes:
     """Resolve the HMAC secret used to sign + verify approval tokens.
 
-    Precedence:
+    Resolution order:
 
     1. ``AI_COMPANY_OS_APPROVAL_SIGNING_KEY`` env var — hex-encoded,
        must decode to at least 32 bytes after stripping whitespace.
-       Empty string, whitespace-only, and non-hex input all raise.
-    2. ``state/checkpoints/platform/approval_signing_key`` file —
-       must exist as a regular file (not a symlink), owner-only (mode
-       0600), and at least 32 bytes.
-    3. First-call bootstrap: atomically create the file via
-       ``O_CREAT|O_EXCL|O_WRONLY|O_NOFOLLOW`` with mode 0600, write a
-       fresh 32-byte key, return it.
+       Empty / whitespace-only / non-hex input all raise. Highest
+       precedence so CI and hermetic unit tests stay platform-
+       independent without touching any real secret store.
 
-    Hardening applied per security-sentinel findings C2 on the first
-    Phase 3 PR:
+    2. **macOS: Keychain** (generic-password item at
+       ``service=ai-company-os``, ``account=approval_signing_key``).
+       Read via ``security find-generic-password -w``. The Keychain
+       item is bootstrapped by ``approval-reviewer bootstrap-keychain``
+       with a binary ACL that names only the specific Python
+       interpreter and CLI binaries allowed to read it without a
+       user prompt. A same-uid compromised sibling worker run from an
+       unexpected path is denied by Keychain Services out-of-process.
 
-    - **Symlink attack:** ``O_NOFOLLOW`` on both read and bootstrap
-      paths rejects a symlink replacement at the key path. Without
-      this, an attacker who got the platform_state_root writable
-      during an earlier-worker compromise could plant a symlink to
-      `/tmp/attacker_key` and make the worker sign with a known key.
-    - **Bootstrap race:** ``O_EXCL`` refuses to touch an existing
-      file, so two concurrent first-callers cannot clobber each
-      other. The loser gets a ``FileExistsError`` and falls back to
-      the read path on retry.
-    - **write-then-chmod race:** ``os.open(..., mode=0o600)`` sets
-      mode atomically at create. The previous ``write_bytes()``
-      followed by ``chmod()`` left a window where the file was
-      readable under the process's umask (typically 0644).
-    - **Empty-key acceptance:** an env var that is whitespace-only
-      silently produced ``b""`` as the HMAC key. Now rejected with
-      ``ValueError``. The minimum length is 32 bytes (256 bits) —
-      matching ``secrets.token_bytes(32)`` used in bootstrap.
+       On :class:`KeychainNotFound`, the function raises with an
+       operator-facing hint to run ``bootstrap-keychain``. On
+       :class:`KeychainAccessDenied`, it raises WITHOUT falling
+       through to the filesystem — silent fallback would let a
+       compromised caller bypass the ACL by letting Keychain deny
+       and then reading the filesystem key. The operator must
+       explicitly add the denied binary to the ACL, or set
+       ``AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE=1`` to acknowledge
+       they want the filesystem path.
 
-    This is still filesystem-based secret storage. A same-uid
-    compromised process can still read the key by calling
-    ``os.open(..., O_NOFOLLOW)`` itself. The architectural fix is
-    to move the key into macOS Keychain; see
-    ``docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md``
-    for the follow-up plan. The hardening above closes the
-    easy-wins (symlink, race, empty key) without blocking that
-    migration.
+    3. **Non-macOS or ``AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE=1``:
+       filesystem fallback.** File at
+       ``state/checkpoints/platform/approval_signing_key``, owner-only
+       (mode 0600), atomic exclusive bootstrap via
+       ``O_CREAT|O_EXCL|O_WRONLY|O_NOFOLLOW``. The symlink / race /
+       mode hardening from the previous Phase 3 PR is preserved.
+
+    Threat-model delta vs. the previous filesystem-only version
+    (security-sentinel C1 on PR #8):
+
+    - **Before:** a same-uid compromised process could read the
+      signing key via ``os.open(..., O_NOFOLLOW)`` and sign
+      arbitrary tokens. The HMAC gate was decoration against that
+      threat.
+    - **After:** same-uid reads go through Keychain Services, which
+      enforces a binary-path ACL out-of-process. A process run from
+      a path not on the ACL gets denied even at the same uid.
+
+    See ``docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md``
+    for the full migration plan and the list of open questions that
+    did NOT fit in this landing (notably: signature-at-rest, which
+    is a separate follow-up).
     """
     raw = os.environ.get(SIGNING_KEY_ENV_VAR)
     if raw is not None:
-        stripped = raw.strip()
-        if not stripped:
-            raise ValueError(
-                f"{SIGNING_KEY_ENV_VAR} is empty or whitespace-only; "
-                f"unset it or provide a hex-encoded 32+ byte key"
-            )
-        try:
-            secret_from_env = bytes.fromhex(stripped)
-        except ValueError as exc:
-            raise ValueError(
-                f"{SIGNING_KEY_ENV_VAR} is not valid hex: {exc}"
-            ) from exc
-        if len(secret_from_env) < 32:
-            raise ValueError(
-                f"{SIGNING_KEY_ENV_VAR} decoded to {len(secret_from_env)} "
-                f"bytes; minimum is 32 (256 bits)"
-            )
-        return secret_from_env
+        return _decode_env_secret(raw)
 
+    if _keychain_is_preferred():
+        try:
+            return _read_keychain_secret()
+        except KeychainNotFound as exc:
+            raise RuntimeError(
+                "Approval signing key not found in macOS Keychain. "
+                "Run `.venv/bin/python apps/approval-reviewer/main.py "
+                "bootstrap-keychain` once on this machine to create it, "
+                "then retry. See "
+                "docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md "
+                "for the full procedure."
+            ) from exc
+        except KeychainAccessDenied as exc:
+            raise RuntimeError(
+                "Refusing to sign with filesystem fallback: Keychain "
+                "access denied for this process. If this process is "
+                "legitimately allowed to sign approval tokens, re-run "
+                "`bootstrap-keychain` and include this binary in the "
+                "ACL. Filesystem fallback is intentionally disabled on "
+                "macOS to preserve the Phase 3 threat-model guarantees. "
+                f"Underlying error: {exc}"
+            ) from exc
+
+    return _read_filesystem_secret()
+
+
+def _decode_env_secret(raw: str) -> bytes:
+    """Validate and decode the hex-encoded signing secret from env."""
+    stripped = raw.strip()
+    if not stripped:
+        raise ValueError(
+            f"{SIGNING_KEY_ENV_VAR} is empty or whitespace-only; "
+            f"unset it or provide a hex-encoded 32+ byte key"
+        )
+    try:
+        secret = bytes.fromhex(stripped)
+    except ValueError as exc:
+        raise ValueError(
+            f"{SIGNING_KEY_ENV_VAR} is not valid hex: {exc}"
+        ) from exc
+    if len(secret) < 32:
+        raise ValueError(
+            f"{SIGNING_KEY_ENV_VAR} decoded to {len(secret)} bytes; "
+            f"minimum is 32 (256 bits)"
+        )
+    return secret
+
+
+def _keychain_is_preferred() -> bool:
+    """True iff this platform should read the signing secret from
+    Keychain. macOS only, unless the force-file override is set."""
+    if sys.platform != "darwin":
+        return False
+    if os.environ.get(FORCE_FILE_ENV_VAR):
+        return False
+    return True
+
+
+def _read_keychain_secret() -> bytes:
+    """Read the generic-password item from the login keychain.
+
+    Shells out to ``/usr/bin/security`` with ``find-generic-password
+    -w`` to print the raw password to stdout. Decodes the printed hex
+    back to bytes. Raises :class:`KeychainNotFound` on exit code 44
+    (errSecItemNotFound), :class:`KeychainAccessDenied` on any other
+    non-zero exit with stderr matching known access-denied markers,
+    :class:`KeychainError` otherwise.
+
+    ``subprocess`` is lazy-imported inside the function body to
+    satisfy the primitives subpackage's "no top-level subprocess
+    import" convention (AST-enforced by
+    ``test_primitives_conventions.py``).
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            [
+                "/usr/bin/security",
+                "find-generic-password",
+                "-s",
+                KEYCHAIN_SERVICE,
+                "-a",
+                KEYCHAIN_ACCOUNT,
+                "-w",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10.0,
+        )
+    except FileNotFoundError as exc:
+        raise KeychainError(
+            f"/usr/bin/security not available ({exc}); is this macOS?"
+        ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise KeychainError(
+            f"keychain lookup timed out after {exc.timeout}s"
+        ) from exc
+
+    if result.returncode == 0:
+        printed = result.stdout.strip()
+        if not printed:
+            raise KeychainError(
+                "keychain returned exit 0 but no payload"
+            )
+        return _decode_env_secret(printed)
+
+    # Non-zero. errSecItemNotFound is 44 on modern macOS, 25293 on
+    # some older releases. Treat both as KeychainNotFound.
+    if result.returncode in (44, 25293):
+        raise KeychainNotFound(
+            f"{KEYCHAIN_SERVICE}/{KEYCHAIN_ACCOUNT} not found in "
+            f"login keychain"
+        )
+
+    stderr = result.stderr or ""
+    if _is_access_denied_stderr(stderr):
+        raise KeychainAccessDenied(
+            f"keychain access denied: {stderr.strip()}"
+        )
+    raise KeychainError(
+        f"/usr/bin/security exited {result.returncode}: {stderr.strip()}"
+    )
+
+
+def _is_access_denied_stderr(stderr: str) -> bool:
+    """Match the known access-denied error markers from
+    ``/usr/bin/security``.
+
+    The CLI doesn't expose a stable exit code for "item exists but
+    the caller isn't on the ACL" — it returns whatever OSStatus the
+    underlying SecKeychainItemCopyContent call produces, which
+    varies across macOS versions. Matching on stderr text is
+    fragile but it's the only option stdlib gives us. The markers
+    below come from the macOS Sonoma + Tahoe ``security(1)`` output.
+    """
+    lowered = stderr.lower()
+    markers = (
+        "interaction is not allowed",
+        "user interaction is not allowed",
+        "authorization",
+        "not authorized",
+        "operation not permitted",
+        "-25308",  # errSecInteractionNotAllowed
+        "-128",    # userCanceledErr
+    )
+    return any(m in lowered for m in markers)
+
+
+def _bootstrap_keychain_secret(
+    *, trusted_binaries: list[str] | None = None
+) -> bytes:
+    """Create a fresh Keychain item with the signing secret.
+
+    Refuses to clobber an existing item — callers that want to rotate
+    must call :func:`_delete_keychain_secret` first. ``trusted_binaries``
+    adds ``-T /path/to/bin`` entries to the ACL; if empty, the operator
+    will be prompted on every read (which is the wrong default for a
+    worker running under launchd — always pass at least the venv python
+    and the approval-reviewer entrypoint).
+
+    Returns the 32-byte secret (hex-decoded from the stored value).
+    """
+    import subprocess
+
+    # Check first — security add-generic-password will happily
+    # overwrite with -U, which is exactly what we want to prevent.
+    try:
+        _read_keychain_secret()
+    except KeychainNotFound:
+        pass
+    else:
+        raise KeychainAlreadyExists(
+            f"{KEYCHAIN_SERVICE}/{KEYCHAIN_ACCOUNT} already exists in "
+            f"the login keychain. Use rotate-keychain to replace it, "
+            f"or delete it manually via "
+            f"`security delete-generic-password -s {KEYCHAIN_SERVICE} "
+            f"-a {KEYCHAIN_ACCOUNT}`."
+        )
+
+    secret_hex = secrets.token_bytes(32).hex()
+    cmd = [
+        "/usr/bin/security",
+        "add-generic-password",
+        "-s",
+        KEYCHAIN_SERVICE,
+        "-a",
+        KEYCHAIN_ACCOUNT,
+        "-w",
+        secret_hex,
+        "-D",
+        "ai-company-os approval signing key",
+    ]
+    for binary in trusted_binaries or []:
+        cmd.extend(["-T", binary])
+
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=10.0,
+    )
+    if result.returncode != 0:
+        raise KeychainError(
+            f"failed to bootstrap keychain item: "
+            f"exit={result.returncode} stderr={result.stderr.strip()}"
+        )
+    return bytes.fromhex(secret_hex)
+
+
+def _delete_keychain_secret() -> None:
+    """Remove the Keychain item, if present. Idempotent — a missing
+    item is not an error (matches ``rm -f`` semantics). Any other
+    non-zero exit raises :class:`KeychainError`.
+    """
+    import subprocess
+
+    result = subprocess.run(
+        [
+            "/usr/bin/security",
+            "delete-generic-password",
+            "-s",
+            KEYCHAIN_SERVICE,
+            "-a",
+            KEYCHAIN_ACCOUNT,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=10.0,
+    )
+    if result.returncode == 0:
+        return
+    if result.returncode in (44, 25293):
+        return  # already gone
+    raise KeychainError(
+        f"failed to delete keychain item: "
+        f"exit={result.returncode} stderr={result.stderr.strip()}"
+    )
+
+
+def _rotate_keychain_secret(
+    *, trusted_binaries: list[str] | None = None
+) -> bytes:
+    """Delete the existing Keychain item and bootstrap a fresh one.
+
+    Every outstanding unburned token is permanently invalidated by
+    rotation because the HMAC key has changed — workers blocked on
+    approvals will start seeing signature-mismatch errors on their
+    next poll. That's the intended behavior; operators MUST
+    re-enqueue those proposals after rotating.
+    """
+    _delete_keychain_secret()
+    return _bootstrap_keychain_secret(trusted_binaries=trusted_binaries)
+
+
+# ---------------------------------------------------------------------- #
+# Filesystem fallback — unchanged hardening from PR #8                    #
+# ---------------------------------------------------------------------- #
+
+
+def _read_filesystem_secret() -> bytes:
+    """Read the signing secret from the hardened filesystem path,
+    bootstrapping it atomically on first use.
+
+    This is the non-macOS path and the explicit-override escape hatch
+    (``AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE=1``). Production macOS
+    should never reach this branch — :func:`_load_signing_secret`
+    routes to Keychain and refuses to fall through on access-denied.
+    All the hardening from PR #8 is preserved verbatim: symlink
+    refusal via ``O_NOFOLLOW``, atomic bootstrap via ``O_CREAT|O_EXCL``,
+    mode 0600 enforced on both write (atomic at create) and read
+    (via ``fstat``), and minimum 32-byte length.
+    """
     paths = load_runtime_paths()
     key_path = paths.platform_state_root / "approval_signing_key"
 
-    # Read path — refuse to follow symlinks, refuse group/world access.
     try:
         read_fd = os.open(
             os.fspath(key_path),
@@ -513,8 +844,6 @@ def _load_signing_secret() -> bytes:
     except FileNotFoundError:
         read_fd = None
     except OSError as exc:
-        # ELOOP from O_NOFOLLOW → the path is a symlink. Treat as a
-        # hard security failure, not a missing file.
         raise RuntimeError(
             f"refusing to load approval signing key from {key_path}: "
             f"path is a symlink or otherwise unsafe ({exc})"
@@ -549,9 +878,7 @@ def _load_signing_secret() -> bytes:
             0o600,
         )
     except FileExistsError:
-        # Lost the race with a concurrent bootstrap. Re-enter the
-        # read path — the other writer's key is now authoritative.
-        return _load_signing_secret()
+        return _read_filesystem_secret()
 
     try:
         os.write(bootstrap_fd, secret)

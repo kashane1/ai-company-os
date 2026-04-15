@@ -274,6 +274,11 @@ def test_signing_secret_bootstrap_writes_mode_0600(tmp_path, monkeypatch) -> Non
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
     monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
+    # These tests exercise the filesystem fallback — force it on
+    # macOS by setting the escape-hatch env var. Without this, the
+    # function routes to Keychain and the filesystem hardening
+    # path never runs.
+    monkeypatch.setenv("AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE", "1")
     ensure_runtime_directories()
 
     secret = _load_signing_secret()
@@ -297,6 +302,11 @@ def test_signing_secret_refuses_symlink(tmp_path, monkeypatch) -> None:
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
     monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
+    # These tests exercise the filesystem fallback — force it on
+    # macOS by setting the escape-hatch env var. Without this, the
+    # function routes to Keychain and the filesystem hardening
+    # path never runs.
+    monkeypatch.setenv("AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE", "1")
     ensure_runtime_directories()
 
     paths = load_runtime_paths()
@@ -321,6 +331,11 @@ def test_signing_secret_refuses_group_readable_file(tmp_path, monkeypatch) -> No
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
     monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
+    # These tests exercise the filesystem fallback — force it on
+    # macOS by setting the escape-hatch env var. Without this, the
+    # function routes to Keychain and the filesystem hardening
+    # path never runs.
+    monkeypatch.setenv("AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE", "1")
     ensure_runtime_directories()
 
     paths = load_runtime_paths()
@@ -331,6 +346,303 @@ def test_signing_secret_refuses_group_readable_file(tmp_path, monkeypatch) -> No
 
     with pytest.raises(RuntimeError, match="group/world permissions"):
         _load_signing_secret()
+
+
+# ---------------------------------------------------------------------- #
+# Keychain migration — mocked subprocess, platform-independent            #
+# ---------------------------------------------------------------------- #
+
+
+class _FakeCompletedProcess:
+    def __init__(self, returncode: int, stdout: str = "", stderr: str = ""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+def _install_fake_security(monkeypatch, handler):
+    """Patch ``subprocess.run`` inside approvals._read/_bootstrap_keychain_secret
+    with a test-controlled handler. The real ``/usr/bin/security``
+    binary is never invoked — the Keychain code paths are unit-
+    testable without touching the user's real keychain."""
+    import subprocess as _subprocess
+
+    real_run = _subprocess.run
+
+    def fake_run(cmd, **kwargs):
+        if cmd and cmd[0] == "/usr/bin/security":
+            return handler(cmd, kwargs)
+        return real_run(cmd, **kwargs)
+
+    monkeypatch.setattr(_subprocess, "run", fake_run)
+
+
+def _force_keychain_platform(monkeypatch):
+    """Force the function to take the Keychain branch regardless of
+    the real platform. Sets sys.platform to 'darwin' and clears the
+    force-file escape hatch. Used by every keychain test so Linux
+    CI runners exercise the branch too."""
+    import sys as _sys
+
+    monkeypatch.setattr(_sys, "platform", "darwin")
+    monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE", raising=False)
+    monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
+
+
+def test_keychain_hit_returns_decoded_secret(tmp_path, monkeypatch) -> None:
+    """Successful `security find-generic-password -w` call returns
+    the stored hex; _load_signing_secret decodes it to bytes."""
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    fixed_hex = "aa" * 32
+
+    def handler(cmd, kwargs):
+        assert "find-generic-password" in cmd
+        assert "-s" in cmd and "ai-company-os" in cmd
+        assert "-a" in cmd and "approval_signing_key" in cmd
+        return _FakeCompletedProcess(0, stdout=fixed_hex + "\n")
+
+    _install_fake_security(monkeypatch, handler)
+    secret = _load_signing_secret()
+    assert secret == bytes.fromhex(fixed_hex)
+
+
+def test_keychain_not_found_raises_with_bootstrap_hint(
+    tmp_path, monkeypatch
+) -> None:
+    """Exit code 44 (errSecItemNotFound) surfaces as an operator-
+    facing RuntimeError naming the bootstrap command, NOT a silent
+    fall-through to the filesystem."""
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    def handler(cmd, kwargs):
+        return _FakeCompletedProcess(
+            44, stderr="security: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\n"
+        )
+
+    _install_fake_security(monkeypatch, handler)
+    with pytest.raises(RuntimeError, match="bootstrap-keychain"):
+        _load_signing_secret()
+
+
+def test_keychain_access_denied_refuses_filesystem_fallback(
+    tmp_path, monkeypatch
+) -> None:
+    """Security-sentinel C1 guarantee: when Keychain denies access,
+    the function raises — it does NOT fall through to the filesystem
+    path. Silent fallback would defeat the whole migration because
+    a compromised caller could get denied at Keychain and then read
+    the filesystem key."""
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    # Also create a filesystem key so we can prove the function is
+    # refusing to read it even though it exists.
+    paths = ensure_runtime_directories()
+    key_path = paths.platform_state_root / "approval_signing_key"
+    key_path.write_bytes(b"\x99" * 32)
+    import os as _os
+
+    _os.chmod(key_path, 0o600)
+
+    def handler(cmd, kwargs):
+        return _FakeCompletedProcess(
+            51,
+            stderr="security: User interaction is not allowed.\n",
+        )
+
+    _install_fake_security(monkeypatch, handler)
+    with pytest.raises(RuntimeError, match="Refusing to sign with filesystem fallback"):
+        _load_signing_secret()
+
+
+def test_force_file_env_var_routes_to_filesystem_on_macos(
+    tmp_path, monkeypatch
+) -> None:
+    """The explicit escape hatch
+    ``AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE=1`` takes the filesystem
+    path even on macOS. Required for CI and for the first-landing
+    dry-run procedure."""
+    import sys as _sys
+
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
+    monkeypatch.setattr(_sys, "platform", "darwin")
+    monkeypatch.setenv("AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE", "1")
+    ensure_runtime_directories()
+
+    # If the function took the Keychain branch it would fail (no
+    # handler installed). Taking the filesystem branch bootstraps a
+    # key and returns 32 bytes.
+    secret = _load_signing_secret()
+    assert len(secret) == 32
+
+
+def test_non_darwin_platform_routes_to_filesystem(tmp_path, monkeypatch) -> None:
+    """Non-macOS platforms (Linux CI, Windows) always take the
+    filesystem path — the Keychain branch is darwin-only."""
+    import sys as _sys
+
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
+    monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE", raising=False)
+    monkeypatch.setattr(_sys, "platform", "linux")
+    ensure_runtime_directories()
+
+    secret = _load_signing_secret()
+    assert len(secret) == 32
+
+
+def test_env_var_has_highest_precedence_even_on_macos(
+    tmp_path, monkeypatch
+) -> None:
+    """The env-var override short-circuits both Keychain AND
+    filesystem paths. Highest precedence, cross-platform."""
+    import sys as _sys
+
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    monkeypatch.setattr(_sys, "platform", "darwin")
+    monkeypatch.setenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", "bb" * 32)
+    monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE", raising=False)
+    ensure_runtime_directories()
+
+    # No subprocess handler installed — if the env path didn't
+    # short-circuit, the Keychain branch would fire and error.
+    secret = _load_signing_secret()
+    assert secret == bytes.fromhex("bb" * 32)
+
+
+def test_keychain_timeout_raises_keychain_error(tmp_path, monkeypatch) -> None:
+    """A hanging `security` invocation must be bounded. If it
+    exceeds the 10-second timeout, KeychainError is raised (which
+    the wrapper surfaces as a RuntimeError)."""
+    import subprocess as _subprocess
+
+    from packages.tools.primitives.approvals import (
+        _read_keychain_secret,
+        KeychainError,
+    )
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    def raising(cmd, **kwargs):
+        raise _subprocess.TimeoutExpired(cmd=cmd, timeout=10.0)
+
+    monkeypatch.setattr(_subprocess, "run", raising)
+    with pytest.raises(KeychainError, match="timed out"):
+        _read_keychain_secret()
+
+
+def test_bootstrap_refuses_existing_keychain_item(tmp_path, monkeypatch) -> None:
+    """bootstrap-keychain must refuse to clobber an existing item —
+    rotation is a deliberate, separate action."""
+    from packages.tools.primitives.approvals import (
+        _bootstrap_keychain_secret,
+        KeychainAlreadyExists,
+    )
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    def handler(cmd, kwargs):
+        if "find-generic-password" in cmd:
+            # Item exists — return a valid-looking payload.
+            return _FakeCompletedProcess(0, stdout="cc" * 32 + "\n")
+        # add-generic-password should never be reached.
+        raise AssertionError(
+            f"bootstrap clobbered existing item: {cmd}"
+        )
+
+    _install_fake_security(monkeypatch, handler)
+    with pytest.raises(KeychainAlreadyExists):
+        _bootstrap_keychain_secret(trusted_binaries=["/usr/bin/python3"])
+
+
+def test_bootstrap_creates_item_when_absent(tmp_path, monkeypatch) -> None:
+    """bootstrap-keychain on a fresh machine runs
+    `security add-generic-password` with the expected -T flags
+    and returns the 32-byte secret."""
+    from packages.tools.primitives.approvals import _bootstrap_keychain_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    added: list[list[str]] = []
+
+    def handler(cmd, kwargs):
+        if "find-generic-password" in cmd:
+            return _FakeCompletedProcess(44, stderr="not found")
+        if "add-generic-password" in cmd:
+            added.append(cmd)
+            return _FakeCompletedProcess(0)
+        raise AssertionError(f"unexpected security call: {cmd}")
+
+    _install_fake_security(monkeypatch, handler)
+    secret = _bootstrap_keychain_secret(
+        trusted_binaries=["/opt/venv/bin/python", "/opt/app/cli"]
+    )
+    assert len(secret) == 32
+    assert len(added) == 1
+    cmd = added[0]
+    assert "-T" in cmd
+    assert "/opt/venv/bin/python" in cmd
+    assert "/opt/app/cli" in cmd
+
+
+def test_rotate_deletes_then_creates(tmp_path, monkeypatch) -> None:
+    """rotate-keychain = delete + bootstrap. Old tokens become
+    unverifiable, which is the intended consequence of rotation."""
+    from packages.tools.primitives.approvals import _rotate_keychain_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    calls: list[str] = []
+    state = {"exists": True}
+
+    def handler(cmd, kwargs):
+        if "delete-generic-password" in cmd:
+            calls.append("delete")
+            state["exists"] = False
+            return _FakeCompletedProcess(0)
+        if "find-generic-password" in cmd:
+            calls.append("find")
+            if state["exists"]:
+                return _FakeCompletedProcess(0, stdout="dd" * 32 + "\n")
+            return _FakeCompletedProcess(44, stderr="not found")
+        if "add-generic-password" in cmd:
+            calls.append("add")
+            state["exists"] = True
+            return _FakeCompletedProcess(0)
+        raise AssertionError(f"unexpected security call: {cmd}")
+
+    _install_fake_security(monkeypatch, handler)
+    secret = _rotate_keychain_secret(trusted_binaries=["/opt/venv/bin/python"])
+    assert len(secret) == 32
+    # Sequence must be delete → find (during bootstrap's pre-check) → add
+    assert calls == ["delete", "find", "add"]
 
 
 def test_reject_without_hmac_flips_record(isolated_state: Path) -> None:
