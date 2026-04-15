@@ -47,19 +47,26 @@ enough metadata to let a reviewer locate the artifacts.
 Secret handling
 ---------------
 
-The HMAC signing secret comes from :func:`_load_signing_secret` which
-reads:
+The HMAC signing secret comes from :func:`_load_signing_secret`,
+which has three sources in precedence order:
 
-1. The ``AI_COMPANY_OS_APPROVAL_SIGNING_KEY`` environment variable, if set
-2. Otherwise, a machine-local file at
-   ``state/checkpoints/platform/approval_signing_key`` that is:
-   - Gitignored (the whole ``state/checkpoints/`` tree is gitignored)
-   - Mode 0600
-   - Populated on first call with ``secrets.token_bytes(32)`` if missing
+1. ``AI_COMPANY_OS_APPROVAL_SIGNING_KEY`` env var (hex-encoded,
+   ≥32 bytes after ``strip``). Highest precedence, cross-platform.
+   Used for hermetic unit tests and CI environments that don't
+   want to touch any real secret store.
+2. **macOS: login Keychain** via ``/usr/bin/security`` at
+   ``service=ai-company-os``, ``account=approval_signing_key``.
+   Bootstrapped by ``apps/approval-reviewer/main.py bootstrap-keychain``
+   with a binary-path ACL. On Keychain access-denied the function
+   refuses to fall through to the filesystem — silent fallback
+   would defeat the migration.
+3. **Non-macOS or ``AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE=1``:**
+   filesystem file at ``state/checkpoints/platform/approval_signing_key``
+   with ``O_CREAT|O_EXCL|O_WRONLY|O_NOFOLLOW`` atomic bootstrap,
+   mode 0600 enforced on read and write, ≥32 bytes.
 
-This is the minimum viable secret bootstrap. A macOS Keychain-backed
-version is a follow-up — the contract is small enough that swapping
-out :func:`_load_signing_secret` is a one-place change.
+See ``docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md``
+for the full threat-model rationale of the Keychain migration.
 """
 
 from __future__ import annotations
@@ -420,6 +427,7 @@ __all__ = [
     "KeychainError",
     "KeychainNotFound",
     "KeychainAccessDenied",
+    "KeychainUserCancelled",
     "KeychainAlreadyExists",
     "SKILL_EVOLUTION_ACTION",
     "SKILL_EVOLUTION_APPROVAL_TYPE",
@@ -489,12 +497,25 @@ class KeychainAccessDenied(KeychainError):
     """
 
 
+class KeychainUserCancelled(KeychainError):
+    """The user clicked Deny / Cancel on the Keychain dialog.
+
+    Distinct from :class:`KeychainAccessDenied` because the recovery
+    path is different: the fix is to re-run the verify command in a
+    terminal and click "Always Allow" on the dialog, not to re-run
+    ``bootstrap-keychain``. Raised when stderr contains
+    ``-128`` / ``userCanceledErr``.
+    """
+
+
 class KeychainAlreadyExists(KeychainError):
     """Bootstrap refused to overwrite an existing item.
 
-    Rotation uses :func:`_rotate_keychain_secret` (delete + create).
-    A plain ``bootstrap-keychain`` call refuses to clobber so the
-    operator has to make rotation an explicit action.
+    Rotation uses :func:`_rotate_keychain_secret` (which inlines
+    the delete step and then calls the bootstrap path). A plain
+    ``bootstrap-keychain`` call refuses to clobber so the operator
+    has to make rotation an explicit action with its own
+    ``--confirm rotate`` gate.
     """
 
 
@@ -560,7 +581,11 @@ def _load_signing_secret() -> bytes:
     if raw is not None:
         return _decode_env_secret(raw)
 
-    if _keychain_is_preferred():
+    # Keychain path — macOS only, unless the FORCE_FILE escape hatch
+    # is set. Inlined from the old _keychain_is_preferred() helper
+    # because one call site and three lines don't earn their
+    # indirection. (Simplicity review item on PR #9.)
+    if sys.platform == "darwin" and not os.environ.get(FORCE_FILE_ENV_VAR):
         try:
             return _read_keychain_secret()
         except KeychainNotFound as exc:
@@ -572,15 +597,48 @@ def _load_signing_secret() -> bytes:
                 "docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md "
                 "for the full procedure."
             ) from exc
+        except KeychainUserCancelled as exc:
+            raise RuntimeError(
+                "Keychain dialog was cancelled. Run this command in a "
+                "terminal and click 'Always Allow' on the dialog: "
+                f"`security find-generic-password -s {KEYCHAIN_SERVICE} "
+                f"-a {KEYCHAIN_ACCOUNT} -w`. That persists the choice "
+                "so subsequent reads are silent. Underlying error: "
+                f"{exc}"
+            ) from exc
         except KeychainAccessDenied as exc:
             raise RuntimeError(
                 "Refusing to sign with filesystem fallback: Keychain "
                 "access denied for this process. If this process is "
                 "legitimately allowed to sign approval tokens, re-run "
                 "`bootstrap-keychain` and include this binary in the "
-                "ACL. Filesystem fallback is intentionally disabled on "
+                "ACL, or click 'Always Allow' on the Keychain dialog "
+                "the next time you run the verify command in a TTY. "
+                "Filesystem fallback is intentionally disabled on "
                 "macOS to preserve the Phase 3 threat-model guarantees. "
                 f"Underlying error: {exc}"
+            ) from exc
+        except KeychainError as exc:
+            # Catch-all for `/usr/bin/security` failures that aren't
+            # cleanly classified (timeout, missing binary, unrecognized
+            # non-zero exit, malformed stdout). Security-sentinel H1
+            # on PR #9: the security invariant holds (no silent
+            # fallback) because we re-raise, but the error message
+            # needs to be operator-actionable, not raw subprocess
+            # diagnostics.
+            raise RuntimeError(
+                "Unable to read approval signing key from macOS "
+                "Keychain, and filesystem fallback is intentionally "
+                "disabled on macOS. If this is the first read on a "
+                "new machine and you're seeing a dialog-related error, "
+                "run the verify command in a terminal and click "
+                "'Always Allow'. If your Keychain daemon is hung or "
+                "unreachable, you can set "
+                "AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE=1 to take the "
+                "filesystem path — but only as an explicit acknowledgement "
+                "that you want to bypass the Phase 3 threat-model "
+                "guarantees. Underlying error: "
+                f"{type(exc).__name__}: {exc}"
             ) from exc
 
     return _read_filesystem_secret()
@@ -606,16 +664,6 @@ def _decode_env_secret(raw: str) -> bytes:
             f"minimum is 32 (256 bits)"
         )
     return secret
-
-
-def _keychain_is_preferred() -> bool:
-    """True iff this platform should read the signing secret from
-    Keychain. macOS only, unless the force-file override is set."""
-    if sys.platform != "darwin":
-        return False
-    if os.environ.get(FORCE_FILE_ENV_VAR):
-        return False
-    return True
 
 
 def _read_keychain_secret() -> bytes:
@@ -676,6 +724,10 @@ def _read_keychain_secret() -> bytes:
         )
 
     stderr = result.stderr or ""
+    if _is_user_cancelled_stderr(stderr):
+        raise KeychainUserCancelled(
+            f"user cancelled the Keychain dialog: {stderr.strip()}"
+        )
     if _is_access_denied_stderr(stderr):
         raise KeychainAccessDenied(
             f"keychain access denied: {stderr.strip()}"
@@ -691,22 +743,62 @@ def _is_access_denied_stderr(stderr: str) -> bool:
 
     The CLI doesn't expose a stable exit code for "item exists but
     the caller isn't on the ACL" — it returns whatever OSStatus the
-    underlying SecKeychainItemCopyContent call produces, which
-    varies across macOS versions. Matching on stderr text is
-    fragile but it's the only option stdlib gives us. The markers
-    below come from the macOS Sonoma + Tahoe ``security(1)`` output.
+    underlying SecKeychainItemCopyContent call produces. Matching
+    on stderr is fragile but it's the only option stdlib gives us.
+
+    Marker list deliberately narrow (three-reviewer consensus on
+    the PR #9 remediation pass):
+
+    - ``"interaction is not allowed"`` — errSecInteractionNotAllowed
+      when a process tries to read without a TTY available for the
+      Keychain dialog. This is the production symptom when a
+      launchd-started worker hasn't been pre-authorized.
+    - ``"not authorized"`` — the generic "caller isn't on the ACL"
+      text that several errSec* codes map to.
+    - ``"-25308"`` — OSStatus numeric for errSecInteractionNotAllowed.
+      Numeric markers are locale-independent and survive any
+      localization of the English error strings; add more numeric
+      markers (``"-25293"`` for errSecAuthFailed, etc.) as we
+      encounter them in production.
+
+    Markers deliberately NOT included:
+
+    - ``"authorization"`` as a bare substring — too broad, would
+      match "unknown authorization type" and similar non-denial
+      errors. False-positive risk is high because a match here
+      means we tell the operator to run ``bootstrap-keychain``
+      when the real problem is something else.
+    - ``"operation not permitted"`` — this is EPERM language, not
+      Keychain language, and fires for sandbox/TCC errors that
+      are NOT ACL denials.
+    - ``"-128"`` / ``userCanceledErr`` — semantically distinct
+      from ACL denial. When the user clicks "Deny" or "Cancel"
+      on the first Keychain dialog, they're making an active
+      choice, and the recovery path is "run the verify command
+      manually and click Always Allow," not "re-run bootstrap-
+      keychain." Mapped separately via :class:`KeychainUserCancelled`
+      below.
     """
     lowered = stderr.lower()
     markers = (
         "interaction is not allowed",
-        "user interaction is not allowed",
-        "authorization",
         "not authorized",
-        "operation not permitted",
-        "-25308",  # errSecInteractionNotAllowed
-        "-128",    # userCanceledErr
+        "-25308",
     )
     return any(m in lowered for m in markers)
+
+
+def _is_user_cancelled_stderr(stderr: str) -> bool:
+    """Match the user-cancelled-the-dialog error markers.
+
+    Distinct from :func:`_is_access_denied_stderr` because the
+    recovery path is different: the operator ran an interactive
+    ``security find-generic-password -w`` and clicked Deny/Cancel
+    on the Keychain dialog. The fix is to re-run the command and
+    click "Always Allow" instead. Nothing wrong with the ACL.
+    """
+    lowered = stderr.lower()
+    return "-128" in lowered or "usercanceled" in lowered
 
 
 def _bootstrap_keychain_secret(
@@ -714,19 +806,44 @@ def _bootstrap_keychain_secret(
 ) -> bytes:
     """Create a fresh Keychain item with the signing secret.
 
-    Refuses to clobber an existing item — callers that want to rotate
-    must call :func:`_delete_keychain_secret` first. ``trusted_binaries``
-    adds ``-T /path/to/bin`` entries to the ACL; if empty, the operator
-    will be prompted on every read (which is the wrong default for a
-    worker running under launchd — always pass at least the venv python
-    and the approval-reviewer entrypoint).
+    Refuses to clobber an existing item. Two guards are in place:
+
+    1. **Pre-flight existence check.** ``_read_keychain_secret()``
+       is called first; if it succeeds (item exists), we raise
+       :class:`KeychainAlreadyExists` with a hint to run
+       ``rotate-keychain``. This gives an unambiguous structured
+       error — no stderr parsing.
+    2. **Add-time duplicate detection.** Even if the pre-flight
+       check says "not found," a concurrent bootstrap could create
+       the item between our read and our write. ``security
+       add-generic-password`` without ``-U`` fails on conflict
+       with ``errSecDuplicateItem`` (exit 45), and we parse that
+       specific exit code back into :class:`KeychainAlreadyExists`
+       so the caller sees a consistent error regardless of which
+       guard fires. Kieran-python follow-up from PR #9 review.
+
+    The ``-U`` flag is deliberately NOT passed — without it,
+    ``add-generic-password`` fails fast on an existing item. The
+    pre-flight check catches the common case; the errSecDuplicateItem
+    parsing catches the TOCTOU-race case.
+
+    ``trusted_binaries`` adds ``-T /path/to/bin`` entries to the
+    ACL. Note that for our subprocess-to-``/usr/bin/security``
+    model, these entries are LARGELY COSMETIC — the actual calling
+    process at read time is ``/usr/bin/security``, not any binary
+    on the trusted list. The real silent-read authorization comes
+    from the operator clicking "Always Allow" on the first
+    Keychain dialog, which persists. Pass ``[sys.executable]`` as
+    a reasonable default so future refactors that call the
+    ``SecKeychain*`` C API directly (which would make the ACL
+    meaningful) inherit a sensible starting point.
 
     Returns the 32-byte secret (hex-decoded from the stored value).
     """
     import subprocess
 
-    # Check first — security add-generic-password will happily
-    # overwrite with -U, which is exactly what we want to prevent.
+    # Pre-flight: refuse to clobber an existing item. Returns a
+    # structured KeychainAlreadyExists with an actionable hint.
     try:
         _read_keychain_secret()
     except KeychainNotFound:
@@ -734,8 +851,8 @@ def _bootstrap_keychain_secret(
     else:
         raise KeychainAlreadyExists(
             f"{KEYCHAIN_SERVICE}/{KEYCHAIN_ACCOUNT} already exists in "
-            f"the login keychain. Use rotate-keychain to replace it, "
-            f"or delete it manually via "
+            f"the login keychain. Use `rotate-keychain --confirm rotate` "
+            f"to replace it, or delete it manually via "
             f"`security delete-generic-password -s {KEYCHAIN_SERVICE} "
             f"-a {KEYCHAIN_ACCOUNT}`."
         )
@@ -762,40 +879,22 @@ def _bootstrap_keychain_secret(
         text=True,
         timeout=10.0,
     )
-    if result.returncode != 0:
-        raise KeychainError(
-            f"failed to bootstrap keychain item: "
-            f"exit={result.returncode} stderr={result.stderr.strip()}"
-        )
-    return bytes.fromhex(secret_hex)
-
-
-def _delete_keychain_secret() -> None:
-    """Remove the Keychain item, if present. Idempotent — a missing
-    item is not an error (matches ``rm -f`` semantics). Any other
-    non-zero exit raises :class:`KeychainError`.
-    """
-    import subprocess
-
-    result = subprocess.run(
-        [
-            "/usr/bin/security",
-            "delete-generic-password",
-            "-s",
-            KEYCHAIN_SERVICE,
-            "-a",
-            KEYCHAIN_ACCOUNT,
-        ],
-        capture_output=True,
-        text=True,
-        timeout=10.0,
-    )
     if result.returncode == 0:
-        return
-    if result.returncode in (44, 25293):
-        return  # already gone
+        return bytes.fromhex(secret_hex)
+
+    # errSecDuplicateItem — somebody else bootstrapped between our
+    # pre-flight check and this add call. Surface as the same
+    # structured error as the pre-flight branch.
+    stderr = (result.stderr or "").lower()
+    if result.returncode == 45 or "already exists" in stderr:
+        raise KeychainAlreadyExists(
+            f"{KEYCHAIN_SERVICE}/{KEYCHAIN_ACCOUNT} was created by "
+            f"another process between pre-flight and add — likely a "
+            f"concurrent bootstrap. Use `rotate-keychain --confirm "
+            f"rotate` to replace with a fresh key."
+        )
     raise KeychainError(
-        f"failed to delete keychain item: "
+        f"failed to bootstrap keychain item: "
         f"exit={result.returncode} stderr={result.stderr.strip()}"
     )
 
@@ -810,8 +909,33 @@ def _rotate_keychain_secret(
     approvals will start seeing signature-mismatch errors on their
     next poll. That's the intended behavior; operators MUST
     re-enqueue those proposals after rotating.
+
+    Delete step is inlined here (single call site; the old
+    ``_delete_keychain_secret`` helper was cut during the PR #9
+    simplicity pass). Idempotent — a missing item is not an error,
+    matches ``rm -f`` semantics.
     """
-    _delete_keychain_secret()
+    import subprocess
+
+    delete_result = subprocess.run(
+        [
+            "/usr/bin/security",
+            "delete-generic-password",
+            "-s",
+            KEYCHAIN_SERVICE,
+            "-a",
+            KEYCHAIN_ACCOUNT,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=10.0,
+    )
+    if delete_result.returncode not in (0, 44, 25293):
+        raise KeychainError(
+            f"failed to delete keychain item during rotate: "
+            f"exit={delete_result.returncode} "
+            f"stderr={delete_result.stderr.strip()}"
+        )
     return _bootstrap_keychain_secret(trusted_binaries=trusted_binaries)
 
 

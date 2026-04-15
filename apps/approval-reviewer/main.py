@@ -30,6 +30,23 @@ Keychain (bootstrapped by the first ``bootstrap-keychain`` run);
 on non-macOS platforms or with ``AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE=1``
 it falls back to a hardened filesystem file.
 
+Trust model notes:
+
+- On macOS, the actual authorization for silent reads is the
+  operator clicking "Always Allow" on the first Keychain dialog
+  (typically triggered by running
+  ``security find-generic-password -s ai-company-os
+  -a approval_signing_key -w`` in a terminal after
+  ``bootstrap-keychain``). The ``-T``/``--trusted-binary`` flags
+  are largely cosmetic under the "Python subprocess-to-security-CLI"
+  model, because the calling binary at read time is always
+  ``/usr/bin/security``, not any path on the trusted list.
+- The ``bootstrap-keychain`` success message tells the operator
+  to run the verify command and click Always Allow. This is the
+  load-bearing step; skipping it means launchd-started workers
+  hit ``KeychainInteractionNotAllowed`` on every read because
+  they don't have a TTY to answer the dialog.
+
 Deliberately NOT here (all follow-up):
 
 - ``rich``-printed side-by-side diffs. First landing uses plain
@@ -287,15 +304,30 @@ def cmd_bootstrap_keychain(args: argparse.Namespace) -> int:
     invalidating outstanding tokens.
 
     ``--trusted-binary`` may be passed multiple times; each value is
-    added to the Keychain item's ACL as an always-allow entry. At
-    minimum, the operator should pass the Python interpreter path
-    the supervisor launches workers with and this CLI's own
-    resolved binary path. If neither is passed, we default to
-    ``sys.executable`` plus the current script's path — that works
-    for the common case of running `bootstrap-keychain` from the
-    same venv that the worker uses.
+    passed as a ``-T`` flag to ``security add-generic-password``.
+
+    Note on the trust model (kieran review of PR #9): in our
+    "Python subprocess-to-security-CLI" architecture, the actual
+    calling process at read time is ``/usr/bin/security``, NOT any
+    binary on the trusted list. The ACL entries listed here are
+    largely cosmetic today — the real authorization comes from the
+    operator clicking "Always Allow" on the first Keychain dialog,
+    which persists. A future refactor that calls the
+    ``SecKeychain*`` C API directly via ctypes would make the
+    trusted list actually load-bearing, at which point this
+    default becomes meaningful.
+
+    Default: ``[sys.executable]`` only. The previous default also
+    included ``Path(__file__).resolve()`` (the CLI script path),
+    but Keychain's ``SecTrustedApplicationCreateFromPath``
+    validates that the path exists and then hashes the file for
+    later comparison. Passing a ``.py`` file is accepted (it's a
+    real file) but is non-functional at read time because the
+    calling binary at read time is ``/usr/bin/security``, not a
+    Python script. Dropping the ``.py`` from the default removes
+    confusing UX without changing real behavior.
     """
-    trusted = args.trusted_binary or [sys.executable, str(Path(__file__).resolve())]
+    trusted = args.trusted_binary or [sys.executable]
 
     if sys.platform != "darwin":
         print(
@@ -328,10 +360,29 @@ def cmd_bootstrap_keychain(args: argparse.Namespace) -> int:
     for binary in trusted:
         print(f"    - {binary}")
     print()
-    print("verify with:")
+    print("NEXT STEP — authorize reads (one time, then persists):")
     print(
-        f"  security find-generic-password -s {KEYCHAIN_SERVICE} "
+        "  Run the following command in a terminal. macOS will show a"
+    )
+    print(
+        "  Keychain dialog asking to allow access. Click 'Always Allow'."
+    )
+    print(
+        f"    security find-generic-password -s {KEYCHAIN_SERVICE} "
         f"-a {KEYCHAIN_ACCOUNT} -w"
+    )
+    print()
+    print(
+        "  That single click is what actually grants silent read"
+    )
+    print(
+        "  access for subsequent worker invocations. Without it, every"
+    )
+    print(
+        "  read triggers a dialog that launchd-started workers cannot"
+    )
+    print(
+        "  answer, and they'll error with KeychainInteractionNotAllowed."
     )
     return 0
 
@@ -356,7 +407,7 @@ def cmd_rotate_keychain(args: argparse.Namespace) -> int:
         )
         return 2
 
-    trusted = args.trusted_binary or [sys.executable, str(Path(__file__).resolve())]
+    trusted = args.trusted_binary or [sys.executable]
 
     if sys.platform != "darwin":
         print(

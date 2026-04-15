@@ -610,6 +610,127 @@ def test_bootstrap_creates_item_when_absent(tmp_path, monkeypatch) -> None:
     assert "/opt/app/cli" in cmd
 
 
+def test_keychain_user_cancelled_has_distinct_recovery_hint(
+    tmp_path, monkeypatch
+) -> None:
+    """PR #9 review: clicking Deny on the Keychain dialog
+    (-128 userCanceledErr) must surface a dialog-specific
+    recovery message, NOT the ACL-refresh message that
+    KeychainAccessDenied produces. The fixes are different:
+    for user-cancelled the operator runs the verify command in
+    a TTY and clicks Always Allow; for access-denied they
+    re-run bootstrap-keychain with the right --trusted-binary."""
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    def handler(cmd, kwargs):
+        return _FakeCompletedProcess(
+            -128,
+            stderr="security: SecKeychainItemCopyContent (-128)\n",
+        )
+
+    _install_fake_security(monkeypatch, handler)
+    with pytest.raises(RuntimeError, match="Always Allow"):
+        _load_signing_secret()
+
+
+def test_keychain_bare_error_has_actionable_hint(
+    tmp_path, monkeypatch
+) -> None:
+    """Security-sentinel H1 on PR #9: any KeychainError that
+    isn't NotFound/AccessDenied/UserCancelled (timeout, missing
+    binary, malformed stdout, unclassified non-zero exit) must
+    surface as a RuntimeError naming FORCE_FILE as the escape
+    hatch, NOT propagate as a raw KeychainError. The security
+    invariant (no silent fallback) holds either way, but the
+    operator UX must be actionable."""
+    import subprocess as _subprocess
+
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    def raising(cmd, **kwargs):
+        raise _subprocess.TimeoutExpired(cmd=cmd, timeout=10.0)
+
+    monkeypatch.setattr(_subprocess, "run", raising)
+    with pytest.raises(
+        RuntimeError, match="AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE"
+    ):
+        _load_signing_secret()
+
+
+def test_bootstrap_detects_duplicate_item_at_add_time(
+    tmp_path, monkeypatch
+) -> None:
+    """TOCTOU race: the pre-flight check says not-found, but a
+    concurrent bootstrap creates the item before our add call.
+    `security add-generic-password` without -U returns exit 45
+    (errSecDuplicateItem) in that case, and we map it back to
+    KeychainAlreadyExists so the caller sees a consistent error
+    regardless of which guard fires."""
+    from packages.tools.primitives.approvals import (
+        _bootstrap_keychain_secret,
+        KeychainAlreadyExists,
+    )
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    def handler(cmd, kwargs):
+        if "find-generic-password" in cmd:
+            return _FakeCompletedProcess(44, stderr="not found")
+        if "add-generic-password" in cmd:
+            return _FakeCompletedProcess(
+                45,
+                stderr=(
+                    "security: add-generic-password: The specified "
+                    "item already exists in the keychain.\n"
+                ),
+            )
+        raise AssertionError(f"unexpected security call: {cmd}")
+
+    _install_fake_security(monkeypatch, handler)
+    with pytest.raises(KeychainAlreadyExists, match="concurrent bootstrap"):
+        _bootstrap_keychain_secret(trusted_binaries=["/usr/bin/python3"])
+
+
+def test_access_denied_marker_list_does_not_match_unrelated_errors(
+    tmp_path, monkeypatch
+) -> None:
+    """Simplicity review: the old marker list matched
+    `"authorization"` as a bare substring, which is too broad.
+    The trimmed list must not match unrelated errors that happen
+    to contain the word 'authorization' — those should fall
+    through to the bare-KeychainError path and get the generic
+    wrapper, not the "re-run bootstrap-keychain" hint which
+    would be misleading."""
+    from packages.tools.primitives.approvals import _load_signing_secret
+
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
+    ensure_runtime_directories()
+    _force_keychain_platform(monkeypatch)
+
+    def handler(cmd, kwargs):
+        return _FakeCompletedProcess(
+            50, stderr="security: unknown authorization type 'foo'\n"
+        )
+
+    _install_fake_security(monkeypatch, handler)
+    with pytest.raises(RuntimeError) as exc:
+        _load_signing_secret()
+    msg = str(exc.value)
+    assert "Refusing to sign" not in msg
+    assert "re-run `bootstrap-keychain`" not in msg
+    assert "AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE" in msg
+
+
 def test_rotate_deletes_then_creates(tmp_path, monkeypatch) -> None:
     """rotate-keychain = delete + bootstrap. Old tokens become
     unverifiable, which is the intended consequence of rotation."""
