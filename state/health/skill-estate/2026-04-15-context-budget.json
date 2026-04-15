@@ -1,0 +1,128 @@
+{
+  "lanes": [
+    {
+      "lane": "gtm",
+      "skill_count": 8,
+      "total_tokens": 16664
+    },
+    {
+      "lane": "supervisor",
+      "skill_count": 9,
+      "total_tokens": 13664
+    },
+    {
+      "lane": "engineering",
+      "skill_count": 5,
+      "total_tokens": 9512
+    },
+    {
+      "lane": "any",
+      "skill_count": 3,
+      "total_tokens": 9269
+    },
+    {
+      "lane": "ios",
+      "skill_count": 2,
+      "total_tokens": 2952
+    },
+    {
+      "lane": "appstore",
+      "skill_count": 1,
+      "total_tokens": 2378
+    }
+  ],
+  "notes": [
+    "system_prompt lane v1 does not include MCP instruction blocks from .mcp.json/settings; deferred to v2 per todo 014."
+  ],
+  "schema_version": "1",
+  "system_prompt": {
+    "claude_md_tokens": 1909,
+    "mcp_block_tokens": 0,
+    "project_skill_pointer_tokens": 3145,
+    "total_tokens": 5054
+  },
+  "tokenizer": "char_count_fallback",
+  "tokenizer_version": "builtin",
+  "top_largest": [
+    {
+      "adapter_tokens": 1944,
+      "canonical_tokens": 4353,
+      "lane": "gtm",
+      "project_skill_tokens": 215,
+      "skill_id": "gtm-artifact-refresh",
+      "total_tokens": 6512
+    },
+    {
+      "adapter_tokens": 1497,
+      "canonical_tokens": 3693,
+      "lane": "gtm",
+      "project_skill_tokens": 203,
+      "skill_id": "niche-research-brief",
+      "total_tokens": 5393
+    },
+    {
+      "adapter_tokens": 1818,
+      "canonical_tokens": 2543,
+      "lane": "any",
+      "project_skill_tokens": 269,
+      "skill_id": "codex-claude-handoff",
+      "total_tokens": 4630
+    },
+    {
+      "adapter_tokens": 814,
+      "canonical_tokens": 2566,
+      "lane": "engineering",
+      "project_skill_tokens": 0,
+      "skill_id": "post-run-validation",
+      "total_tokens": 3380
+    },
+    {
+      "adapter_tokens": 543,
+      "canonical_tokens": 1650,
+      "lane": "appstore",
+      "project_skill_tokens": 185,
+      "skill_id": "app-store-positioning-pack",
+      "total_tokens": 2378
+    },
+    {
+      "adapter_tokens": 544,
+      "canonical_tokens": 1637,
+      "lane": "supervisor",
+      "project_skill_tokens": 197,
+      "skill_id": "verification-loop",
+      "total_tokens": 2378
+    },
+    {
+      "adapter_tokens": 550,
+      "canonical_tokens": 1614,
+      "lane": "supervisor",
+      "project_skill_tokens": 186,
+      "skill_id": "supervisor-goal-decomposition",
+      "total_tokens": 2350
+    },
+    {
+      "adapter_tokens": 497,
+      "canonical_tokens": 1650,
+      "lane": "any",
+      "project_skill_tokens": 196,
+      "skill_id": "search-first",
+      "total_tokens": 2343
+    },
+    {
+      "adapter_tokens": 605,
+      "canonical_tokens": 1491,
+      "lane": "any",
+      "project_skill_tokens": 200,
+      "skill_id": "documentation-lookup",
+      "total_tokens": 2296
+    },
+    {
+      "adapter_tokens": 481,
+      "canonical_tokens": 1427,
+      "lane": "supervisor",
+      "project_skill_tokens": 188,
+      "skill_id": "repo-onboarding",
+      "total_tokens": 2096
+    }
+  ]
+}

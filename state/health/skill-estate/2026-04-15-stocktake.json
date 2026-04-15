@@ -1,0 +1,16 @@
+{
+  "drift_items": [
+    {
+      "affected_path": "canonical/post-run-validation/skill.md",
+      "detail": "canonical file canonical/post-run-validation/skill.md has no registry entry; either add a registry row or delete the file",
+      "drift_type": "orphan_canonical",
+      "skill_id": "post-run-validation"
+    }
+  ],
+  "known_drift": [
+    "post-run-validation"
+  ],
+  "registry_entries_checked": 28,
+  "schema_version": "1",
+  "tokenizer": null
+}

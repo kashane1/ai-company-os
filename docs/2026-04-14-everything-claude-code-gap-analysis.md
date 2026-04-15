@@ -317,3 +317,34 @@ If we want a simple decision:
   - [skills/canonical/shared/post-run-validation.md](/Users/simons/ai-company-os/skills/canonical/shared/post-run-validation.md:1)
 - External reference:
   - [affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code)
+
+---
+
+## Appendix — 2026-04-15 (ECC Gap Recommendations plan closed)
+
+The four open recommendations from this gap analysis are now closed
+by [docs/plans/2026-04-15-feat-ecc-gap-recommendations-plan.md](/Users/simons/ai-company-os/docs/plans/2026-04-15-feat-ecc-gap-recommendations-plan.md).
+
+| § | Recommendation                | Status         | How                                                                                         |
+| - | ----------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
+| 1 | Research-first execution      | **closed**     | Three canonical agentic skills shipped in Phase 1: `search-first`, `documentation-lookup`, `repo-onboarding`. Trigger phrases added to CLAUDE.md with a binding disambiguation rule. |
+| 2 | Skill-estate hygiene          | **closed**     | Two canonical validators shipped in Phase 2: `skill-stocktake` (3 MVP drift types) and `context-budget` (report-only v1, no thresholds). Seven new primitives under `packages/tools/primitives/` including `_safe_paths`, `_serialization`, `_state_writer`, `_contracts`, `followup_issue_writer`, `registry_drift`, `context_budget`. Loader refactored to import the adapter-path guard from primitives (dependency inversion). |
+| 3 | Continuous learning           | (prior closure)| Closed by [Hermes Phase 3](/Users/simons/ai-company-os/docs/plans/2026-04-14-feat-hermes-inspired-platform-upgrade-plan.md) (`worker-skill-evolution`, PR #8, commit `1ce62bb`). |
+| 4 | Verification loop             | **closed**     | One canonical agentic skill shipped in Phase 3: `verification-loop`. Composes reconciliation + skill-stocktake + changed-surface into a 5-state severity aggregator (`{info, warn, fail, error, skipped}`) with `pass` / `soft_fail` / `hard_fail` verdict. Two entry points: runner primitive (advisory, never raises) + policy wrapper (raises `VERIFICATION_LOOP_HARD_FAIL` for CI). |
+| 5 | Install-surface strategy      | **deferred**   | Formally deferred in [docs/adr/2026-04-15-ecc-skill-decisions.md](/Users/simons/ai-company-os/docs/adr/2026-04-15-ecc-skill-decisions.md) §A with four explicit trip-wire conditions. Any PR reintroducing install-profile / manifest / marketplace machinery must first supersede §A with evidence that a trip-wire has fired. |
+
+### Phase 4 baseline metrics
+
+- Registry: **26 canonical skill entries** (22 pre-existing + 3 Phase 1 + 2 Phase 2 + 1 Phase 3 – `content-performance-review` removed earlier).
+- Stocktake drift: **1 item**, tagged as `known_drift` (`post-run-validation` registry `path:` vs actual dir; pre-existing debt).
+- Verification-loop verdict on the live repo: **`pass`**.
+- Context-budget tokenizer: **`char_count_fallback`** (tiktoken not installed in this env; `o200k_base` preferred when available).
+- Context-budget top 3 skills by token total: `gtm-artifact-refresh`, `niche-research-brief`, `codex-claude-handoff`.
+- Per-lane token totals: `gtm` 16,664 · `supervisor` 13,664 · `engineering` 9,512 · `any` 9,269 · `ios` 2,952 · `appstore` 2,378.
+- System-prompt lane (CLAUDE.md + project-skill pointers): **5,054 tokens**. MCP instruction blocks not yet included (deferred to v2 with a TODO per todo 014).
+
+Baseline artifacts:
+- [state/health/skill-estate/2026-04-15-stocktake.json](/Users/simons/ai-company-os/state/health/skill-estate/2026-04-15-stocktake.json)
+- [state/health/skill-estate/2026-04-15-context-budget.json](/Users/simons/ai-company-os/state/health/skill-estate/2026-04-15-context-budget.json)
+- [state/health/skill-estate/2026-04-15-ecc-gap-baseline.json](/Users/simons/ai-company-os/state/health/skill-estate/2026-04-15-ecc-gap-baseline.json) (composite)
+- [state/artifacts/verification-loop/2026-04-15-ecc-gap-baseline/report.json](/Users/simons/ai-company-os/state/artifacts/verification-loop/2026-04-15-ecc-gap-baseline/report.json)
