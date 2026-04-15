@@ -18,30 +18,30 @@ from __future__ import annotations
 import functools
 import importlib.util
 import os
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Literal
 
 import yaml
 
+# Phase 0.5d.1 guard lifted to primitives per ECC Gap Recommendations
+# todo 004. Importing from primitives (not defining locally) inverts
+# the dependency so `registry_drift.py` and `context_budget.py` can
+# share the same compiled regex without importing from
+# packages/tools/skills/ — which the primitives ADR forbids.
+from packages.tools.primitives._safe_paths import adapter_path_pattern
+
+# Backwards-compat alias: existing callers inside this module (and any
+# out-of-tree reader that imported the private symbol) keep working.
+# Compiled at import time here because loader.py is NOT a primitive and
+# is not subject to the "no module-level compile" convention; only the
+# primitives subpackage is.
+_ADAPTER_PATH_PATTERN = adapter_path_pattern()
+
 
 SkillKind = Literal["validator", "agentic"]
 SkillMode = Literal["autonomous", "manual"]
 FixtureStatus = Literal["passing", "failing", "missing"]
-
-# Phase 0.5d.1: path-traversal guard on registry adapter entries.
-# Any `adapters:` map value must match this pattern to prevent a
-# malicious registry entry from resolving `../../../etc/passwd`.
-#
-# The registry stores adapter paths as `adapters/<runtime>/<skill-id>.md`
-# — the paths are relative to `skills/`, not the repo root, because the
-# loader resolves them via `_skills_root() / adapter_path`. The runtime
-# slug and skill id must both be kebab-case identifiers with no dots or
-# slashes beyond the two structural separators.
-_ADAPTER_PATH_PATTERN = re.compile(
-    r"^adapters/[a-z][a-z0-9_]*/[a-z0-9][a-z0-9_-]*\.md$"
-)
 
 
 class SkillLoadError(RuntimeError):

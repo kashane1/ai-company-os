@@ -1,0 +1,33 @@
+# Phase 2b adversarial fixture — path traversal via registry entry.
+#
+# Asserts that a malicious registry entry with a traversal path
+# (e.g., "../../etc/passwd") is refused by safe_join and produces a
+# note in the report rather than a file read outside the skills
+# tree.
+
+- name: adversarial_path_traversal
+  description: |
+    A registry entry whose adapters.claude path contains a ..
+    escape is refused by safe_join; the report surfaces a note but
+    does not read outside the skills root.
+  input:
+    scenario: synthetic
+    files:
+      - relpath: canonical/my-skill/skill.md
+        content: "# My Skill"
+    registry:
+      skills:
+        - id: my-skill
+          name: My Skill
+          path: canonical/my-skill/skill.md
+          owner_agent: any
+          target_runtimes: [claude]
+          stage: active
+          kind: agentic
+          fixture_status: missing
+          source: internal
+          adapters:
+            claude: "../../etc/passwd"
+  expected:
+    verdict: pass
+    notes_contain: "refused by safe_join"

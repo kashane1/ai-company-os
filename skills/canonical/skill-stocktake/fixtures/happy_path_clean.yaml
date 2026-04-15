@@ -1,0 +1,29 @@
+# Phase 2a fixture — skill-stocktake happy-path (synthetic clean registry).
+#
+# Feeds a minimal synthetic registry into the validator and asserts
+# drift_items is empty. The test materializes a tmp skills root that
+# matches the registry entries; this fixture drives the scenario.
+
+- name: happy_path_clean_registry
+  description: |
+    A synthetic registry with one canonical skill, its canonical file
+    present on disk, and no project_skill pointer, produces an empty
+    drift list.
+  input:
+    scenario: synthetic
+    canonical_dirs:
+      - my-skill
+    registry:
+      skills:
+        - id: my-skill
+          name: My Skill
+          path: canonical/my-skill/skill.md
+          owner_agent: any
+          target_runtimes: [claude]
+          stage: active
+          kind: agentic
+          fixture_status: missing
+          source: internal
+  expected:
+    verdict: pass
+    drift_count: 0

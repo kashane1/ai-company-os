@@ -1,0 +1,39 @@
+# Phase 2b fixture — context-budget tiktoken unavailable.
+#
+# Exercises the char-count fallback path. The test monkeypatches
+# tiktoken to be unavailable; the expected tokenizer field is
+# "char_count_fallback" and the measurement must still produce a
+# non-empty report.
+
+- name: boundary_tiktoken_unavailable
+  description: |
+    When tiktoken cannot be imported, the primitive falls back to
+    len(text) // 4 and marks the tokenizer field accordingly.
+  input:
+    scenario: synthetic
+    force_fallback_tokenizer: true
+    files:
+      - relpath: canonical/my-skill/skill.md
+        content: |
+          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    registry:
+      skills:
+        - id: my-skill
+          name: My Skill
+          path: canonical/my-skill/skill.md
+          owner_agent: any
+          target_runtimes: [claude]
+          stage: active
+          kind: agentic
+          fixture_status: missing
+          source: internal
+  expected:
+    verdict: pass
+    tokenizer: char_count_fallback
+    lane_count: 1

@@ -1,0 +1,18 @@
+inputs:
+  - name: registry_path
+    type: string
+    required: false
+outputs:
+  - name: verdict
+    type: enum
+    values: [pass]
+    note: v1 is report-only; verdict is always "pass"
+  - name: report
+    type: object
+    fields:
+      - tokenizer
+      - tokenizer_version
+      - lanes
+      - top_largest
+      - system_prompt
+      - notes

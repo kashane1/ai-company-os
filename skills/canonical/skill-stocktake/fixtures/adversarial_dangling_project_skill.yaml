@@ -1,0 +1,28 @@
+# Phase 2a fixture — skill-stocktake dangling project_skill detection.
+
+- name: adversarial_dangling_project_skill
+  description: |
+    A registry entry that points at a .claude/skills/<id>.md file that
+    does not exist on disk produces one dangling_project_skill drift
+    item.
+  input:
+    scenario: synthetic
+    canonical_dirs:
+      - my-skill
+    registry:
+      skills:
+        - id: my-skill
+          name: My Skill
+          path: canonical/my-skill/skill.md
+          owner_agent: any
+          target_runtimes: [claude]
+          stage: active
+          kind: agentic
+          fixture_status: missing
+          source: internal
+          project_skill: .claude/skills/does-not-exist.md
+  expected:
+    verdict: fail
+    drift_count: 1
+    drift_types:
+      - dangling_project_skill

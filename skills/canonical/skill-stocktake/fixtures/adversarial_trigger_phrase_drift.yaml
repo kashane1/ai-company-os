@@ -1,0 +1,23 @@
+# Phase 2a fixture — skill-stocktake trigger-phrase drift.
+
+- name: adversarial_trigger_phrase_drift
+  description: |
+    A synthetic CLAUDE.md with a trigger-phrase line pointing at
+    skills/adapters/claude/ghost.md (which does not exist) produces
+    one trigger_phrase_drift item. A docs/ target in the same file
+    is NOT flagged.
+  input:
+    scenario: synthetic_with_claude_md
+    canonical_dirs: []
+    registry:
+      skills: []
+    claude_md: |
+      # CLAUDE.md
+      ## Trigger phrases → skills
+      - "phrase 1" → `skills/adapters/claude/ghost.md`
+      - "phrase 2" → `docs/codex-cloud-dispatch.md`
+  expected:
+    verdict: fail
+    drift_count: 1
+    drift_types:
+      - trigger_phrase_drift

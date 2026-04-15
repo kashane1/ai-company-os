@@ -1,0 +1,17 @@
+# Phase 2a fixture — skill-stocktake orphan canonical detection.
+
+- name: adversarial_orphan_canonical
+  description: |
+    A canonical file on disk with no registry entry produces one
+    orphan_canonical drift item.
+  input:
+    scenario: synthetic
+    canonical_dirs:
+      - ghost-skill
+    registry:
+      skills: []
+  expected:
+    verdict: fail
+    drift_count: 1
+    drift_types:
+      - orphan_canonical

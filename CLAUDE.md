@@ -68,6 +68,8 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **search-first** — look for existing code/patterns before building custom; produces a reuse | extend | custom recommendation
 - **documentation-lookup** — look up library/framework docs via Context7 with a 3-call-per-question budget and allowlisted WebFetch fallback
 - **repo-onboarding** — produce a bounded structured brief (architecture, key files, conventions, footguns) for a repo area
+- **skill-stocktake** — structural audit of the skill registry, canonical files, project-skill pointers, and CLAUDE.md trigger phrases
+- **context-budget** — per-lane token totals across adapters, canonical bodies, and project-skill pointers (v1 reports numbers, not verdicts)
 
 ## Trigger phrases → skills
 
@@ -91,6 +93,8 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "search first" / "find existing solution" / "is there already a way to do this" / "look before you build" → `skills/adapters/claude/search-first.md`
 - "look up the docs" / "pull the framework docs" / "check the SDK reference" / "what's the current API for" → `skills/adapters/claude/documentation-lookup.md`
 - "onboard me to this area" / "give me the lay of the land" / "what's in this part of the repo" / "quick brief on <area>" → `skills/adapters/claude/repo-onboarding.md`
+- "audit the skill estate" / "run a skill stocktake" / "check for orphan skills" / "find drift in the skill registry" → `skills/adapters/claude/skill-stocktake.md`
+- "check the context budget" / "how bloated are the skill lanes" / "which lane is trending toward prompt bloat" → `skills/adapters/claude/context-budget.md`
 
 Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 

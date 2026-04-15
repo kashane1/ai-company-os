@@ -1,0 +1,19 @@
+inputs:
+  - name: registry_path
+    type: string
+    required: false
+  - name: known_drift
+    type: list
+    required: false
+outputs:
+  - name: verdict
+    type: enum
+    values: [pass, fail]
+  - name: report
+    type: object
+  - name: drift_count
+    type: integer
+drift_types:
+  - orphan_canonical
+  - dangling_project_skill
+  - trigger_phrase_drift

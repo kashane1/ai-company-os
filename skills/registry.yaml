@@ -354,6 +354,36 @@ skills:
       claude: adapters/claude/repo-onboarding.md
     project_skill: .claude/skills/repo-onboarding.md
 
+  # ----- ECC Gap Recommendations Phase 2 — skill-estate hygiene -----
+
+  - id: skill-stocktake
+    name: Skill Stocktake
+    path: canonical/skill-stocktake/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: validator
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/skill-stocktake.md
+    project_skill: .claude/skills/skill-stocktake.md
+
+  - id: context-budget
+    name: Context Budget
+    path: canonical/context-budget/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: validator
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/context-budget.md
+    project_skill: .claude/skills/context-budget.md
+
   # ----- Phase 3 skill self-evolution loop -----
 
   - id: skill-self-evolution

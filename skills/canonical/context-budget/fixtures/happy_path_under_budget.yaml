@@ -1,0 +1,56 @@
+# Phase 2b fixture — context-budget happy path.
+#
+# Feeds a synthetic tiny registry and asserts the report shape: a
+# lanes list sorted by total_tokens descending, a non-empty
+# top_largest list, and verdict == "pass".
+
+- name: happy_path_under_budget
+  description: |
+    Synthetic registry with two skills across two lanes produces a
+    report with both lanes represented, sorted by total_tokens, and
+    a top_largest list sized accordingly.
+  input:
+    scenario: synthetic
+    files:
+      - relpath: canonical/my-skill/skill.md
+        content: |
+          # My Skill
+          A small canonical body for testing.
+      - relpath: canonical/other-skill/skill.md
+        content: |
+          # Other Skill
+          Slightly longer body for the second lane so the sort order
+          is verifiable. Extra lorem ipsum to pad the total tokens
+          above the first skill and make the ranking deterministic.
+      - relpath: adapters/claude/other-skill.md
+        content: |
+          # Other adapter body padding lorem ipsum
+    registry:
+      skills:
+        - id: my-skill
+          name: My Skill
+          path: canonical/my-skill/skill.md
+          owner_agent: supervisor
+          target_runtimes: [claude]
+          stage: active
+          kind: agentic
+          fixture_status: missing
+          source: internal
+        - id: other-skill
+          name: Other Skill
+          path: canonical/other-skill/skill.md
+          owner_agent: gtm
+          target_runtimes: [claude]
+          stage: active
+          kind: agentic
+          fixture_status: missing
+          source: internal
+          adapters:
+            claude: adapters/claude/other-skill.md
+  expected:
+    verdict: pass
+    lane_count: 2
+    lanes_contain:
+      - supervisor
+      - gtm
+    top_largest_min_count: 1
