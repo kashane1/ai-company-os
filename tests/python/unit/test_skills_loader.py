@@ -132,3 +132,26 @@ def test_load_missing_skill_raises(monkeypatch, fake_registry):
     _patch_loader(monkeypatch, fake_registry)
     with pytest.raises(skills_loader.SkillNotFound):
         skills_loader.load_validator("nope")
+
+
+def test_real_registry_loads_without_crash():
+    """Phase 0.0 regression guard.
+
+    Before 2026-04-14, the real `skills/registry.yaml` contained a
+    `fixture_status: planned` literal that crashed `load_registry()` on
+    every call because `planned` isn't in the loader's validated set
+    (`passing`|`failing`|`missing`). Every downstream caller was broken.
+
+    This test asserts the real registry loads cleanly and returns
+    non-empty. If someone reintroduces an invalid fixture_status, this
+    test fails fast instead of every worker crashing at dispatch time.
+    """
+    specs = skills_loader.load_registry()
+    assert len(specs) > 0
+    # No entry should have a fixture_status outside the validated literal set.
+    valid = {"passing", "failing", "missing"}
+    for spec in specs:
+        assert spec.fixture_status in valid, (
+            f"skill {spec.id!r} has invalid fixture_status "
+            f"{spec.fixture_status!r}; must be one of {valid}"
+        )
