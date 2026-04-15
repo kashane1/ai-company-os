@@ -10,6 +10,11 @@ class WorkerLane(str, Enum):
     IOS = "ios"
     APPSTORE = "appstore"
     GTM = "gtm"
+    # Phase 3 — skill self-evolution worker lane. Proposes patches to
+    # canonical skills as structured diffs; never auto-applies. Gated by
+    # packages/policies/skill_evolution.py and a human-signed HMAC
+    # approval token issued through packages/tools/primitives/approvals.py.
+    SKILL_EVOLUTION = "skill_evolution"
 
 
 # Phase 2.1 — GTM task types. These are referenced by task.task_type (the
