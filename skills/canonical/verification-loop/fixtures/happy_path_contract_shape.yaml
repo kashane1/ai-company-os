@@ -1,0 +1,45 @@
+# Phase 3 structural fixture — verification-loop contract shape.
+#
+# Freezes the canonical markdown + contract.yaml of verification-loop
+# against the plan invariants (severity enum, 3 MVP sub-checks, 5-state
+# severity aggregation, caller-mapping table).
+
+- name: happy_path_contract_shape
+  description: |
+    The canonical skill must declare the 3 MVP sub-checks, the 5-state
+    severity enum, the caller-mapping table, and the god-object split
+    trigger.
+  input:
+    skill_file: canonical/verification-loop/skill.md
+    contract_file: canonical/verification-loop/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "reconciliation"
+      - "skill_stocktake"
+      - "changed_surface"
+      - "pass"
+      - "soft_fail"
+      - "hard_fail"
+      - "info"
+      - "warn"
+      - "fail"
+      - "error"
+      - "skipped"
+      - "VERIFICATION_LOOP_HARD_FAIL"
+      - "verification_loop_runner"
+      - "God-object trigger"
+    required_sections:
+      - "## Purpose"
+      - "## Sub-checks (MVP — 3, not 6)"
+      - "## Severity enum (5-state per todos 009 + 010)"
+      - "## Caller → entry-point mapping (per todo 013)"
+      - "## Boundaries and failure modes"
+    required_contract_inputs:
+      - since_ref
+      - lookback_task_runs
+    required_contract_outputs:
+      - verdict
+      - sub_checks
+      - infra_errors
+    required_contract_violations:
+      - VERIFICATION_LOOP_HARD_FAIL

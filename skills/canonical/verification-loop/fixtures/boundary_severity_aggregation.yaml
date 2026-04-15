@@ -1,0 +1,18 @@
+# Phase 3 boundary fixture — severity aggregation rules.
+#
+# Freezes the aggregator rule so a future edit cannot silently
+# promote `error` to `hard_fail` or demote `fail` to `soft_fail`.
+
+- name: boundary_severity_aggregation
+  description: |
+    Canonical body documents: fail → hard_fail; error → soft_fail
+    (never hard_fail); warn → soft_fail; skipped never affects
+    verdict.
+  input:
+    skill_file: canonical/verification-loop/skill.md
+  expected:
+    required_strings_in_skill:
+      - "fail` vs `error` split"
+      - "skipped"
+      - "never affects the verdict"
+      - "crashed (platform bug)"

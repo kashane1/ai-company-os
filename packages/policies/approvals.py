@@ -75,6 +75,9 @@ class PolicyViolationCode(str, Enum):
     NOT_A_DOC_LOOKUP = "not_a_doc_lookup"
     INVALID_AREA_PATH = "invalid_area_path"
 
+    # --- ECC Gap Recommendations Phase 3 (verification-loop) ---
+    VERIFICATION_LOOP_HARD_FAIL = "verification_loop_hard_fail"
+
 
 class PolicyViolation(RuntimeError):
     """Raised when a policy check refuses to authorize an action.

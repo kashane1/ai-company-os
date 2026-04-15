@@ -70,6 +70,7 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **repo-onboarding** — produce a bounded structured brief (architecture, key files, conventions, footguns) for a repo area
 - **skill-stocktake** — structural audit of the skill registry, canonical files, project-skill pointers, and CLAUDE.md trigger phrases
 - **context-budget** — per-lane token totals across adapters, canonical bodies, and project-skill pointers (v1 reports numbers, not verdicts)
+- **verification-loop** — pre-PR / pre-release quality-gate sweep composing reconciliation + stocktake + changed-surface into a single verdict
 
 ## Trigger phrases → skills
 
@@ -95,6 +96,7 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "onboard me to this area" / "give me the lay of the land" / "what's in this part of the repo" / "quick brief on <area>" → `skills/adapters/claude/repo-onboarding.md`
 - "audit the skill estate" / "run a skill stocktake" / "check for orphan skills" / "find drift in the skill registry" → `skills/adapters/claude/skill-stocktake.md`
 - "check the context budget" / "how bloated are the skill lanes" / "which lane is trending toward prompt bloat" → `skills/adapters/claude/context-budget.md`
+- "run the verification loop" / "pre-PR sweep" / "check if this is ready to merge" / "run all the quality gates" → `skills/adapters/claude/verification-loop.md`
 
 Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 

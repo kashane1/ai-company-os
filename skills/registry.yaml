@@ -384,6 +384,20 @@ skills:
       claude: adapters/claude/context-budget.md
     project_skill: .claude/skills/context-budget.md
 
+  - id: verification-loop
+    name: Verification Loop
+    path: canonical/verification-loop/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/verification-loop.md
+    project_skill: .claude/skills/verification-loop.md
+
   # ----- Phase 3 skill self-evolution loop -----
 
   - id: skill-self-evolution

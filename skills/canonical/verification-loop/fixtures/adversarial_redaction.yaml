@@ -1,0 +1,15 @@
+# Phase 3 adversarial fixture — redaction pass for task-run records.
+
+- name: adversarial_redaction_contract
+  description: |
+    The canonical body must document the redaction rule for task-run
+    records (fields matching /secret|token|password|key/i plus
+    task.payload and error.traceback are stripped before reporting).
+  input:
+    skill_file: canonical/verification-loop/skill.md
+  expected:
+    required_strings_in_skill:
+      - "secret|token|password|key"
+      - "task.payload"
+      - "error.traceback"
+      - "redact"
