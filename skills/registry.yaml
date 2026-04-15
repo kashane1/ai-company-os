@@ -84,7 +84,15 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Phase 1 PR-1b: fixtures added at
+    # skills/canonical/shared/supervisor-goal-decomposition.fixtures.yaml
+    # (sibling-file layout per docs/adr/2026-04-14-canonical-skill-layout.md).
+    # Deterministic router in apps/worker-supervisor/main.py:plan_goal is
+    # exercised by tests/python/unit/test_supervisor_goal_decomposition_fixtures.py
+    # on every fixture case. Structural check in
+    # tests/python/unit/test_skill_reconciliation.py asserts fixture
+    # presence + parse. Dual gate unblocks autonomous dispatch.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/supervisor-goal-decomposition.md

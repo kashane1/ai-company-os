@@ -1,0 +1,57 @@
+# Phase 1 PR-1b fixtures for supervisor-goal-decomposition.
+#
+# Canonical location: alongside the flat skill file, per the layout ADR
+# at docs/adr/2026-04-14-canonical-skill-layout.md. The skill itself is
+# LLM-backed (kind: agentic) but its router behavior is deterministic —
+# `apps/worker-supervisor/main.py:plan_goal` is pure Python that routes
+# on keyword matches. Each case below is executed by
+# `tests/python/unit/test_supervisor_goal_decomposition_fixtures.py`
+# which imports plan_goal, builds a Goal from `input.goal`, and asserts
+# the returned task matches `expected`.
+#
+# Format: YAML list of cases. Each case has `name`, `description`,
+# `input.goal` (fields passed to Goal), and `expected` (fields to assert
+# on the returned TaskPacket).
+
+- name: happy_path
+  description: Typical engineering goal routes to ENGINEERING lane with LOW risk and no approval.
+  input:
+    goal:
+      id: goal-happy-001
+      title: Refactor the SQLite connection bootstrap helper
+      summary: Consolidate PRAGMA application into one helper module.
+  expected:
+    lane: engineering
+    risk_level: low
+    requires_approval: false
+    tests_required: true
+
+- name: boundary_ios_routing
+  description: Goal mentioning iOS keywords routes to IOS lane with MEDIUM risk.
+  input:
+    goal:
+      id: goal-boundary-001
+      title: Add SwiftUI confirmation dialog to trip delete flow
+      summary: Wire a SwiftUI alert before destructive SwiftData delete.
+  expected:
+    lane: ios
+    risk_level: medium
+    requires_approval: false
+    tests_required: true
+
+- name: adversarial_appstore_approval_escalation
+  description: |
+    Goal mentioning App Store submission routes to APPSTORE lane with HIGH
+    risk, and the `submit` keyword trips the `requires_human_approval` gate
+    so the final task is flagged requires_approval=true — this is the
+    security-critical path the router must NOT bypass.
+  input:
+    goal:
+      id: goal-adversarial-001
+      title: Prepare App Store submission for Catchbook 1.3.0
+      summary: Submit the build to App Store Connect for review.
+  expected:
+    lane: appstore
+    risk_level: high
+    requires_approval: true
+    tests_required: false
