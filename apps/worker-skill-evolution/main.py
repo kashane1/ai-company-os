@@ -50,11 +50,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import sys
 import time
 from dataclasses import asdict, dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from threading import Event
 from typing import Any, Mapping
 
@@ -92,13 +93,17 @@ WORKER_ID = "worker-skill-evolution"
 KILL_SWITCH_NAME = "skill_evolution_frozen"
 
 # Poll cadence + deadline for the in-worker approval wait. Tests pass
-# much smaller values via ``execute_claimed_task``. Production default
-# is 15 minutes — longer than a quick human decision, shorter than a
-# deep review. A proposal that needs longer review should be rejected
-# and re-enqueued with better context rather than held by a running
-# worker.
+# much smaller values via ``execute_claimed_task``.
+#
+# Production default is 240 s — shorter than the 300 s P0 token TTL
+# (skill_evolution_apply is in P0_ACTIONS, see
+# packages/policies/approval_tokens.py) so the worker times out and
+# blocks the task cleanly BEFORE the token itself expires. A reviewer
+# who wants longer to decide should reject the current token with a
+# note and re-enqueue the proposal for the next worker run; the
+# previous 15-minute default did not match the 5-minute TTL.
 DEFAULT_POLL_INTERVAL_SECONDS = 5.0
-DEFAULT_MAX_WAIT_SECONDS = 900.0
+DEFAULT_MAX_WAIT_SECONDS = 240.0
 
 
 class SkillEvolutionFrozenError(RuntimeError):
@@ -164,7 +169,70 @@ def _refuse_if_blocked(_service: ControlPlaneService, _worker_id: str) -> str | 
 # ---------------------------------------------------------------------- #
 
 
+# Kebab-case identifiers for task_id and target_skill_id. These are
+# used verbatim as filesystem path components, so the pattern is
+# strict: lowercase letters, digits, hyphens, underscores only. No
+# dots (which allow ``..``), no slashes, no spaces, no Unicode. The
+# pattern must also reject empty strings and anything longer than
+# 128 chars — long enough for any real id, short enough to rule out
+# blob-style injection. Security-sentinel H3 + M2 on the first
+# Phase 3 PR.
+_SAFE_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]{0,127}$")
+
+
+class SidecarValidationError(ValueError):
+    """Raised when a proposal sidecar fails input sanitization.
+
+    Distinct from ``ValueError`` so the worker can map it to a
+    specific failure code without catching unrelated coercion errors.
+    """
+
+
+def _require_safe_id(value: str, *, kind: str) -> str:
+    if not isinstance(value, str) or not _SAFE_ID_PATTERN.match(value):
+        raise SidecarValidationError(
+            f"{kind} {value!r} is not a safe identifier; expected "
+            f"kebab/snake-case matching {_SAFE_ID_PATTERN.pattern}"
+        )
+    return value
+
+
+def _require_safe_path(value: object, *, field: str) -> str:
+    if not isinstance(value, str):
+        raise SidecarValidationError(
+            f"{field} entry must be a string, got {type(value).__name__}"
+        )
+    if not value:
+        raise SidecarValidationError(f"{field} entry is empty")
+    if "\x00" in value:
+        raise SidecarValidationError(
+            f"{field} entry {value!r} contains a null byte"
+        )
+    pp = PurePosixPath(value)
+    if pp.is_absolute():
+        raise SidecarValidationError(
+            f"{field} entry {value!r} is absolute; only repo-relative "
+            f"POSIX paths are allowed"
+        )
+    if ".." in pp.parts:
+        raise SidecarValidationError(
+            f"{field} entry {value!r} contains '..'; path traversal "
+            f"is forbidden"
+        )
+    # Reject non-normalized forms — ``./foo``, ``foo//bar``, trailing
+    # slash — so the policy layer sees a canonical path. Comparing
+    # ``str(PurePosixPath(value))`` catches all of these in one shot.
+    normalized = str(pp)
+    if normalized != value:
+        raise SidecarValidationError(
+            f"{field} entry {value!r} is not in normalized POSIX form "
+            f"(expected {normalized!r})"
+        )
+    return value
+
+
 def _sidecar_path(task_id: str) -> Path:
+    _require_safe_id(task_id, kind="task_id")
     paths = load_runtime_paths()
     return (
         paths.platform_state_root
@@ -180,45 +248,56 @@ def load_sidecar(task_id: str) -> ProposalSidecar:
     sidecar is missing — the worker converts that to a
     ``TaskStatus.FAILED`` with a ``missing_proposal_sidecar`` failure
     code.
+
+    Raises :class:`SidecarValidationError` if any path in the sidecar
+    is absolute, contains ``..``, contains a null byte, or isn't in
+    normalized POSIX form. The sidecar file itself lives under
+    ``state/checkpoints/platform/`` which is attacker-writable by a
+    compromised sibling worker, so every field it produces must be
+    treated as untrusted input. Security-sentinel H3 + M2 on the
+    first Phase 3 PR.
     """
+    # _sidecar_path already validates task_id.
     path = _sidecar_path(task_id)
     if not path.exists():
         raise FileNotFoundError(
             f"no proposal sidecar for task {task_id!r} at {path}"
         )
     payload = json.loads(path.read_text())
+
+    target_skill_id = _require_safe_id(
+        str(payload["target_skill_id"]), kind="target_skill_id"
+    )
+    # Reject any runtime that isn't a known-good slug. The policy
+    # layer also enforces [claude] only, but we defend in depth.
+    raw_runtimes = payload.get("target_runtimes", [])
+    if not isinstance(raw_runtimes, list):
+        raise SidecarValidationError(
+            f"target_runtimes must be a list, got "
+            f"{type(raw_runtimes).__name__}"
+        )
+    target_runtimes = tuple(
+        _require_safe_id(str(r), kind="target_runtime") for r in raw_runtimes
+    )
+
+    def _safe_path_tuple(key: str) -> tuple[str, ...]:
+        raw = payload.get(key, [])
+        if not isinstance(raw, list):
+            raise SidecarValidationError(
+                f"{key} must be a list, got {type(raw).__name__}"
+            )
+        return tuple(_require_safe_path(p, field=key) for p in raw)
+
     return ProposalSidecar(
-        target_skill_id=str(payload["target_skill_id"]),
+        target_skill_id=target_skill_id,
         rationale=str(payload.get("rationale", "")),
-        diff_paths=tuple(payload.get("diff_paths", [])),
-        target_runtimes=tuple(payload.get("target_runtimes", [])),
-        added_paths=tuple(payload.get("added_paths", [])),
-        removed_paths=tuple(payload.get("removed_paths", [])),
+        diff_paths=_safe_path_tuple("diff_paths"),
+        target_runtimes=target_runtimes,
+        added_paths=_safe_path_tuple("added_paths"),
+        removed_paths=_safe_path_tuple("removed_paths"),
         diff_blob=str(payload.get("diff_blob", "")),
         input_snapshot_sha256=str(payload.get("input_snapshot_sha256", "")),
     )
-
-
-def write_sidecar(task_id: str, sidecar: ProposalSidecar) -> Path:
-    """Persist a sidecar. Used by tests and by upstream callers that
-    want to enqueue a skill-evolution task with a pre-computed diff.
-    """
-    path = _sidecar_path(task_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    payload: dict[str, Any] = {
-        "target_skill_id": sidecar.target_skill_id,
-        "rationale": sidecar.rationale,
-        "diff_paths": list(sidecar.diff_paths),
-        "target_runtimes": list(sidecar.target_runtimes),
-        "added_paths": list(sidecar.added_paths),
-        "removed_paths": list(sidecar.removed_paths),
-        "diff_blob": sidecar.diff_blob,
-        "input_snapshot_sha256": sidecar.input_snapshot_sha256,
-    }
-    tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(payload, indent=2, sort_keys=True))
-    tmp.replace(path)
-    return path
 
 
 # ---------------------------------------------------------------------- #
@@ -362,7 +441,10 @@ def _run_one(
     the worker also submitted to the control plane so callers can
     assert on the terminal state.
     """
-    # 1. Load sidecar.
+    # 1. Load sidecar. A missing file is a genuine missing-input case;
+    #    a validation failure on attacker-writable path fields is a
+    #    different failure class that should surface loudly so the
+    #    operator can tell the two apart during incident review.
     try:
         sidecar = load_sidecar(task.id)
     except FileNotFoundError as exc:
@@ -372,6 +454,14 @@ def _run_one(
             control_plane,
             summary=f"missing_proposal_sidecar: {exc}",
             failure_codes=["missing_proposal_sidecar"],
+        )
+    except SidecarValidationError as exc:
+        return _fail(
+            task,
+            worker_id,
+            control_plane,
+            summary=f"sidecar_validation_failed: {exc}",
+            failure_codes=["sidecar_validation_failed"],
         )
 
     # 2. Build a typed ProposedDiff and run the policy.

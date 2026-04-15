@@ -146,6 +146,7 @@ def request_evolution_approval(
     target_skill_id: str,
     rationale: str,
     artifact_dir: Path,
+    expected_device_fingerprint: str | None = None,
     task_id: str | None = None,
     task_run_id: str | None = None,
     approval_store: ApprovalStore | None = None,
@@ -197,6 +198,15 @@ def request_evolution_approval(
     )
     approvals.save(record)
 
+    # Bind the expected device fingerprint at issue time so the
+    # burn-side check in ``verify_and_burn_token`` actually fires.
+    # Security-sentinel H1 on the first Phase 3 PR: the earlier
+    # version left ``expected_device_fingerprint=None``, which
+    # short-circuited the burn-side check and accepted any device.
+    # Default to the issuing host so a reviewer signing from the
+    # same box satisfies the check without manual configuration;
+    # callers can override to enforce a different device.
+    binding = expected_device_fingerprint or _default_device_binding()
     secret = _load_signing_secret()
     token = issue_token(
         approval_id=approval_id,
@@ -204,6 +214,7 @@ def request_evolution_approval(
         action=SKILL_EVOLUTION_ACTION,
         secret=secret,
         store=tokens,
+        expected_device_fingerprint=binding,
     )
 
     return ApprovalRequest(
@@ -293,6 +304,24 @@ def submit_evolution_approval(
     tokens = token_store or ApprovalTokenStore()
     approvals = approval_store or ApprovalStore()
 
+    # Pre-flight: load the token and verify the approval_id BEFORE
+    # calling verify_and_burn_token. The underlying burn is a
+    # read-modify-write that persists ``burn_count=1`` BEFORE this
+    # wrapper would have had a chance to reject on approval_id
+    # mismatch — which, pre-fix, meant an attacker (or a CLI bug)
+    # could permanently burn a legitimate token by submitting with
+    # a wrong approval_id, DoS'ing the real reviewer. Blocker #2 from
+    # the kieran-python review of the first Phase 3 PR.
+    try:
+        pre_check = tokens.load(token_id)
+    except FileNotFoundError as exc:
+        raise TokenNotFound(token_id) from exc
+    if pre_check.approval_id != approval_id:
+        raise TokenSignatureInvalid(
+            f"token approval_id {pre_check.approval_id!r} != "
+            f"{approval_id!r} — refusing to burn"
+        )
+
     # Raises on any HMAC/burn/expiry failure; re-raised to the CLI.
     burned: ApprovalToken = verify_and_burn_token(
         token_id=token_id,
@@ -301,9 +330,12 @@ def submit_evolution_approval(
         secret=secret,
         store=tokens,
     )
-    if burned.approval_id != approval_id:
+    # Defensive post-check — should be a tautology after the pre-check
+    # above. Kept so a future refactor that drops the pre-check fails
+    # loudly instead of silently.
+    if burned.approval_id != approval_id:  # pragma: no cover
         raise TokenSignatureInvalid(
-            f"token approval_id {burned.approval_id!r} != {approval_id!r}"
+            f"post-burn approval_id {burned.approval_id!r} != {approval_id!r}"
         )
 
     updated = approvals.update_status(
@@ -385,31 +417,144 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _default_device_binding() -> str:
+    """Hostname as a default device fingerprint for token issue.
+
+    A reviewer signing from the same host the worker ran on passes
+    the binding check without any manual wiring; a reviewer signing
+    from elsewhere must explicitly override both
+    ``expected_device_fingerprint`` (at issue time) and
+    ``--device`` on the CLI (at burn time). This is the minimum
+    viable binding — a hostname is trivially spoofable by a
+    process running on a different host, but defends against the
+    "stolen signature file, replayed from a different machine"
+    scenario that matters most against the Phase 3 threat model.
+    """
+    import socket
+
+    return socket.gethostname() or "unknown-host"
+
+
 def _load_signing_secret() -> bytes:
     """Resolve the HMAC secret used to sign + verify approval tokens.
 
     Precedence:
 
-    1. ``AI_COMPANY_OS_APPROVAL_SIGNING_KEY`` env var (hex-encoded).
-    2. ``state/checkpoints/platform/approval_signing_key`` file.
-    3. First-call bootstrap: generate a fresh 32-byte key, write it
-       with mode 0600, return it.
+    1. ``AI_COMPANY_OS_APPROVAL_SIGNING_KEY`` env var — hex-encoded,
+       must decode to at least 32 bytes after stripping whitespace.
+       Empty string, whitespace-only, and non-hex input all raise.
+    2. ``state/checkpoints/platform/approval_signing_key`` file —
+       must exist as a regular file (not a symlink), owner-only (mode
+       0600), and at least 32 bytes.
+    3. First-call bootstrap: atomically create the file via
+       ``O_CREAT|O_EXCL|O_WRONLY|O_NOFOLLOW`` with mode 0600, write a
+       fresh 32-byte key, return it.
 
-    The hex form in env is to keep `.env` files plaintext-friendly.
+    Hardening applied per security-sentinel findings C2 on the first
+    Phase 3 PR:
+
+    - **Symlink attack:** ``O_NOFOLLOW`` on both read and bootstrap
+      paths rejects a symlink replacement at the key path. Without
+      this, an attacker who got the platform_state_root writable
+      during an earlier-worker compromise could plant a symlink to
+      `/tmp/attacker_key` and make the worker sign with a known key.
+    - **Bootstrap race:** ``O_EXCL`` refuses to touch an existing
+      file, so two concurrent first-callers cannot clobber each
+      other. The loser gets a ``FileExistsError`` and falls back to
+      the read path on retry.
+    - **write-then-chmod race:** ``os.open(..., mode=0o600)`` sets
+      mode atomically at create. The previous ``write_bytes()``
+      followed by ``chmod()`` left a window where the file was
+      readable under the process's umask (typically 0644).
+    - **Empty-key acceptance:** an env var that is whitespace-only
+      silently produced ``b""`` as the HMAC key. Now rejected with
+      ``ValueError``. The minimum length is 32 bytes (256 bits) —
+      matching ``secrets.token_bytes(32)`` used in bootstrap.
+
+    This is still filesystem-based secret storage. A same-uid
+    compromised process can still read the key by calling
+    ``os.open(..., O_NOFOLLOW)`` itself. The architectural fix is
+    to move the key into macOS Keychain; see
+    ``docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md``
+    for the follow-up plan. The hardening above closes the
+    easy-wins (symlink, race, empty key) without blocking that
+    migration.
     """
     raw = os.environ.get(SIGNING_KEY_ENV_VAR)
-    if raw:
-        return bytes.fromhex(raw.strip())
+    if raw is not None:
+        stripped = raw.strip()
+        if not stripped:
+            raise ValueError(
+                f"{SIGNING_KEY_ENV_VAR} is empty or whitespace-only; "
+                f"unset it or provide a hex-encoded 32+ byte key"
+            )
+        try:
+            secret_from_env = bytes.fromhex(stripped)
+        except ValueError as exc:
+            raise ValueError(
+                f"{SIGNING_KEY_ENV_VAR} is not valid hex: {exc}"
+            ) from exc
+        if len(secret_from_env) < 32:
+            raise ValueError(
+                f"{SIGNING_KEY_ENV_VAR} decoded to {len(secret_from_env)} "
+                f"bytes; minimum is 32 (256 bits)"
+            )
+        return secret_from_env
 
     paths = load_runtime_paths()
     key_path = paths.platform_state_root / "approval_signing_key"
-    if key_path.exists():
-        return key_path.read_bytes()
 
+    # Read path — refuse to follow symlinks, refuse group/world access.
+    try:
+        read_fd = os.open(
+            os.fspath(key_path),
+            os.O_RDONLY | os.O_NOFOLLOW,
+        )
+    except FileNotFoundError:
+        read_fd = None
+    except OSError as exc:
+        # ELOOP from O_NOFOLLOW → the path is a symlink. Treat as a
+        # hard security failure, not a missing file.
+        raise RuntimeError(
+            f"refusing to load approval signing key from {key_path}: "
+            f"path is a symlink or otherwise unsafe ({exc})"
+        ) from exc
+
+    if read_fd is not None:
+        try:
+            st = os.fstat(read_fd)
+            if st.st_mode & 0o077:
+                raise RuntimeError(
+                    f"refusing to load approval signing key from "
+                    f"{key_path}: mode {oct(st.st_mode & 0o777)} has "
+                    f"group/world permissions; expected 0600"
+                )
+            secret_from_file = os.read(read_fd, 4096)
+        finally:
+            os.close(read_fd)
+        if len(secret_from_file) < 32:
+            raise RuntimeError(
+                f"approval signing key at {key_path} is "
+                f"{len(secret_from_file)} bytes; minimum is 32"
+            )
+        return secret_from_file
+
+    # Bootstrap path — atomic exclusive create with strict mode.
     key_path.parent.mkdir(parents=True, exist_ok=True)
     secret = secrets.token_bytes(32)
-    key_path.write_bytes(secret)
-    # 0600 — no group/world read. On macOS this is the same as the
-    # Keychain-less fallback for .env and is sufficient for local dev.
-    os.chmod(key_path, 0o600)
+    try:
+        bootstrap_fd = os.open(
+            os.fspath(key_path),
+            os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW,
+            0o600,
+        )
+    except FileExistsError:
+        # Lost the race with a concurrent bootstrap. Re-enter the
+        # read path — the other writer's key is now authoritative.
+        return _load_signing_secret()
+
+    try:
+        os.write(bootstrap_fd, secret)
+    finally:
+        os.close(bootstrap_fd)
     return secret

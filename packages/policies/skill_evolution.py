@@ -39,14 +39,14 @@ staging any artifact. It composes:
    :class:`PolicyViolationCode.FIXTURE_SKILL_DRIFT`.
 
 The Voyager/DSPy regression gate
-(``check_regression_fixture_gate``, ``REGRESSION_AGAINST_INCUMBENT``)
-is declared in :class:`packages.policies.approvals.PolicyViolationCode`
-but its implementation is deferred to a follow-up PR. Running the
-proposed validator against the incumbent's fixture set requires a
-sandboxed import harness that is larger than the rest of Phase 3
-combined; doing it right deserves its own change. The stub raises
-``NotImplementedError`` so any accidental call lights up loudly
-instead of silently passing.
+(``PolicyViolationCode.REGRESSION_AGAINST_INCUMBENT``) is explicitly
+NOT implemented in this module's first landing. It needs a sandboxed
+two-validator import harness that loads the proposed and incumbent
+modules in the same process without state bleed — larger than the
+rest of Phase 3 combined. Until it lands, the HMAC-token reviewer is
+the regression gate, confirming manually before signing. A future
+PR that adds the harness will wire it into ``check_evolution_allowed``
+in the same change.
 
 Design notes
 ------------
@@ -66,7 +66,7 @@ from __future__ import annotations
 
 import fnmatch
 from dataclasses import dataclass, field
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Sequence
 
 from packages.db.locks.skill_evolution import SkillEvolutionLockStore
@@ -211,7 +211,11 @@ def check_evolution_allowed(
 # ---------------------------------------------------------------------- #
 
 
-def check_fixture_skill_atomicity(diff: ProposedDiff) -> None:
+def check_fixture_skill_atomicity(
+    diff: ProposedDiff,
+    *,
+    canonical_root: Path | None = None,
+) -> None:
     """Reject diffs that change validator.py without touching fixtures,
     or vice versa.
 
@@ -221,6 +225,20 @@ def check_fixture_skill_atomicity(diff: ProposedDiff) -> None:
     moves only one side is almost always either a mis-targeted patch
     or an adversarial attempt to break the validator's contract while
     leaving its tests green.
+
+    The "does the skill have an incumbent validator" check hits the
+    filesystem, not ``diff.removed_paths``. An earlier draft of this
+    function gated the fixture-only branch on "validator.py appears
+    in removed_paths", which only fires when the diff *deletes* the
+    validator — exactly the opposite of the realistic drift case,
+    where a proposal adds a new fixture to an existing skill and the
+    validator is on disk but not in ``diff.paths``. The kieran-python
+    review of the initial Phase 3 PR caught this as Blocker #1.
+
+    ``canonical_root`` is injected in tests that want to assert
+    against an isolated tree; production callers omit it and the
+    function resolves the real ``skills/canonical/`` path from the
+    module location.
     """
     prefix = f"skills/canonical/{diff.target_skill_id}/"
     touches_validator = any(
@@ -229,54 +247,63 @@ def check_fixture_skill_atomicity(diff: ProposedDiff) -> None:
     touches_fixtures = any(
         p.startswith(prefix + "fixtures/") for p in diff.paths
     )
+
     if touches_validator and not touches_fixtures:
         raise PolicyViolation(
             PolicyViolationCode.FIXTURE_SKILL_DRIFT,
             f"validator.py changed without a corresponding fixtures/ edit "
             f"under {prefix}",
         )
+
     if touches_fixtures and not touches_validator:
-        # New-skill case: creating a brand-new validator + fixtures
-        # together is fine. Only reject when the skill has an
-        # incumbent validator and the diff changes fixtures without it.
-        validator_existed = prefix + "validator.py" in diff.removed_paths
-        created_new_skill = all(
-            p in diff.added_paths
-            for p in diff.paths
-            if p.startswith(prefix)
-        )
-        if validator_existed and not created_new_skill:
+        # A fixture-only diff is legitimate ONLY when the target skill
+        # has no incumbent validator on disk (i.e. the proposal is
+        # creating a brand-new skill and the worker happens to ship
+        # fixtures before the validator in the same PR — which is
+        # unusual but not forbidden by the registry gate, since new-
+        # skill creation is blocked upstream by the allowlist check
+        # at `_check_self_evolvable`). When an incumbent validator
+        # exists, a fixture-only diff is always drift.
+        root = canonical_root or _default_canonical_root()
+        incumbent_validator = root / diff.target_skill_id / "validator.py"
+        if incumbent_validator.exists():
             raise PolicyViolation(
                 PolicyViolationCode.FIXTURE_SKILL_DRIFT,
                 f"fixtures/ changed without the corresponding validator.py "
-                f"edit under {prefix}",
+                f"edit under {prefix} (incumbent validator at "
+                f"{incumbent_validator} is not in the proposed diff)",
             )
+        # No incumbent → legitimate new-skill fixture staging. The
+        # allowlist check (`_check_self_evolvable`) will still refuse
+        # the proposal because the skill isn't in the registry with
+        # `self_evolvable: true`, so in practice this branch is
+        # unreachable at runtime. Kept for clarity of intent.
 
 
-def check_regression_fixture_gate(diff: ProposedDiff) -> None:
-    """Placeholder for the Voyager/DSPy regression-fixture gate.
-
-    The plan's research insights call for running the proposed
-    validator against the incumbent's fixture set and refusing if any
-    verdict regresses. Implementing that correctly requires a
-    sandboxed import harness that loads two validator modules under
-    the same Python process without state bleed — larger than the
-    rest of Phase 3 combined.
-
-    This stub exists so:
-
-    1. The symbol is importable by the composite entry point if a
-       future PR wires it in.
-    2. Any accidental call today raises loudly instead of silently
-       passing (which would be worse than not having the check at
-       all — it would imply a guarantee the worker hasn't earned).
+def _default_canonical_root() -> Path:
+    """Resolve the real ``skills/canonical/`` directory from the
+    module's location on disk. Factored out so tests can avoid
+    monkeypatching Path.exists — they inject ``canonical_root``
+    explicitly via the kwarg on :func:`check_fixture_skill_atomicity`.
     """
-    raise NotImplementedError(
-        "check_regression_fixture_gate is deferred to a follow-up PR. "
-        "Phase 3 first landing does not run regression-against-incumbent; "
-        "the reviewer is expected to confirm this manually when signing "
-        "the HMAC approval token."
-    )
+    return Path(__file__).resolve().parents[2] / "skills" / "canonical"
+
+
+# NOTE: the Voyager/DSPy regression-fixture gate
+# (PolicyViolationCode.REGRESSION_AGAINST_INCUMBENT) is explicitly
+# deferred to a follow-up PR. It needs a sandboxed two-validator
+# import harness to load the proposed and incumbent validator modules
+# in the same Python process without state bleed — larger than the
+# rest of Phase 3 combined, and out of scope for this landing.
+#
+# Until that lands, the HMAC-token reviewer is the regression gate:
+# they're expected to manually confirm the proposed validator does
+# not lose ground on the incumbent's fixture set before signing.
+# There is no stub function here — a stub that raises
+# NotImplementedError would invite a future PR to wire it into the
+# composite "just to make the symbol exist," which is the wrong
+# direction. When the real implementation lands it should be added
+# to the composite in the same PR.
 
 
 # ---------------------------------------------------------------------- #

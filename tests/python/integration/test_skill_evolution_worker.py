@@ -17,6 +17,7 @@ other worker-app tests in this repo.
 from __future__ import annotations
 
 import importlib.util
+import socket
 import sys
 from pathlib import Path
 
@@ -132,20 +133,36 @@ def _enqueue_evolution_task(
     )
 
 
-def _write_sidecar(worker_module, task_id: str, *, target: str = "demo-evolvable-skill") -> None:
-    sidecar = worker_module.ProposalSidecar(
-        target_skill_id=target,
-        rationale="fixing a fixture edge case",
-        diff_paths=(
+def _write_sidecar(
+    worker_module, task_id: str, *, target: str = "demo-evolvable-skill"
+) -> None:
+    """Write a well-formed sidecar JSON file for the given task.
+
+    Writes directly via json.dumps — no round-trip through a
+    ``write_sidecar`` helper, which was cut during the simplicity
+    pass because tests were its only caller."""
+    import json as _json
+
+    from packages.config.settings import load_runtime_paths
+
+    sidecar_dir = (
+        load_runtime_paths().platform_state_root
+        / "skill_evolution_proposals"
+    )
+    sidecar_dir.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "target_skill_id": target,
+        "rationale": "fixing a fixture edge case",
+        "diff_paths": [
             f"skills/canonical/{target}/skill.md",
             f"skills/canonical/{target}/validator.py",
             f"skills/canonical/{target}/fixtures/new_case.yaml",
-        ),
-        target_runtimes=("claude",),
-        diff_blob="--- a/x\n+++ b/x\n+new line\n",
-        input_snapshot_sha256="deadbeef",
-    )
-    worker_module.write_sidecar(task_id, sidecar)
+        ],
+        "target_runtimes": ["claude"],
+        "diff_blob": "--- a/x\n+++ b/x\n+new line\n",
+        "input_snapshot_sha256": "deadbeef",
+    }
+    (sidecar_dir / f"{task_id}.json").write_text(_json.dumps(payload))
 
 
 # ---------------------------------------------------------------------- #
@@ -156,42 +173,63 @@ def _write_sidecar(worker_module, task_id: str, *, target: str = "demo-evolvable
 def test_end_to_end_approved(
     worker, control_plane, stub_registry, isolated_env, monkeypatch
 ) -> None:
-    """The worker stages artifacts, requests approval, polls. We flip
-    the approval to ``approved`` on the second poll. The worker must
-    complete the task and write the ``applied.flag`` marker."""
+    """Happy path via the REAL HMAC burn path.
+
+    Simulates the reviewer by calling
+    ``packages.tools.primitives.approvals.submit_evolution_approval``
+    with the actual token_id + signature the worker issued, going
+    through ``verify_and_burn_token`` end to end. Kieran-python
+    review Blocker #5 on the first Phase 3 PR: the original version
+    of this test flipped the approval record directly via
+    ``update_status``, never exercising the HMAC path. That version
+    would have passed even if every HMAC check was broken."""
+    from packages.db.approval_token_store import ApprovalTokenStore
+    from packages.tools.primitives.approvals import (
+        submit_evolution_approval,
+    )
+
     _enqueue_evolution_task(control_plane, task_id="task-ok-1")
     _write_sidecar(worker, "task-ok-1")
 
-    # Share an isolated lock store so tests don't race against a
-    # long-lived singleton across the process.
     lock_store = SkillEvolutionLockStore(ControlPlaneDatabase())
+    token_store = ApprovalTokenStore()
+    approvals = ApprovalStore()
 
-    # Fake clock — every call advances 1 s. The worker's inner poll
-    # uses monotonic via now_fn and sleeps via sleep_fn.
     ticks = {"value": 0.0}
 
     def fake_now() -> float:
         return ticks["value"]
 
-    approvals = ApprovalStore()
-
     def fake_sleep(seconds: float) -> None:
         ticks["value"] += seconds
-        # On the second poll iteration, flip the underlying approval
-        # record to approved. This simulates a reviewer signing the
-        # HMAC token out-of-band.
+        # On every poll cycle, look for a pending skill-evolution
+        # approval and sign it with the real HMAC path. The test
+        # reads back the token_id via ApprovalTokenStore (what the
+        # reviewer would receive out-of-band from the worker's task
+        # output log) and calls submit_evolution_approval, which
+        # burns the token via verify_and_burn_token.
         pending = approvals.db.fetch_all(
-            f"SELECT id FROM approvals WHERE status = {approvals.db.placeholder('s')} "
+            f"SELECT id FROM approvals "
+            f"WHERE status = {approvals.db.placeholder('s')} "
             f"AND approval_type = {approvals.db.placeholder('t')}",
             {"s": "pending", "t": "skill_evolution"},
         )
         for row in pending:
-            approvals.update_status(
-                row["id"],
-                ApprovalStatus.APPROVED,
+            approval_id = row["id"]
+            token_records = token_store.list_by_approval(approval_id)
+            if not token_records:
+                continue
+            token = token_records[0]
+            # Device fingerprint defaults to hostname at issue time;
+            # match it here so the burn-side check passes. This is
+            # the exact flow a legitimate reviewer follows.
+            submit_evolution_approval(
+                approval_id=approval_id,
+                token_id=token.token_id,
+                provided_signature=token.signature,
+                device_fingerprint=socket.gethostname() or "unknown-host",
                 decided_by="test-reviewer",
-                decided_at="2026-04-14T00:00:00+00:00",
-                decision_notes="simulated sign",
+                decision_notes="real-hmac sign path",
             )
 
     result = worker.execute_claimed_task(
@@ -208,8 +246,18 @@ def test_end_to_end_approved(
     assert result.status is TaskStatus.COMPLETED
     assert result.approval_id is not None
 
+    # Verify the token was actually burned (burn_count == 1) — this
+    # is the critical regression check. A broken HMAC path would
+    # either never reach this point OR would leave burn_count == 0.
+    all_tokens = token_store.list_by_approval(result.approval_id)
+    assert len(all_tokens) == 1
+    assert all_tokens[0].burn_count == 1
+    assert all_tokens[0].device_fingerprint is not None
+
     # applied.flag written to the staged dir.
-    artifact_dirs = list((isolated_env / "state" / "artifacts" / "skill-evolution").iterdir())
+    artifact_dirs = list(
+        (isolated_env / "state" / "artifacts" / "skill-evolution").iterdir()
+    )
     assert len(artifact_dirs) == 1
     assert (artifact_dirs[0] / "applied.flag").exists()
     assert (artifact_dirs[0] / "diff.patch").exists()
@@ -398,6 +446,117 @@ def test_policy_denied_on_non_self_evolvable_target(
     approvals = ApprovalStore()
     with pytest.raises(FileNotFoundError):
         approvals.load("skill-evo-task-denied-1")
+
+
+# ---------------------------------------------------------------------- #
+# Sidecar sanitization — Security-sentinel H3 + M2                        #
+# ---------------------------------------------------------------------- #
+
+
+def _write_raw_sidecar(task_id: str, payload: dict) -> None:
+    import json as _json
+
+    from packages.config.settings import load_runtime_paths
+
+    sidecar_dir = (
+        load_runtime_paths().platform_state_root
+        / "skill_evolution_proposals"
+    )
+    sidecar_dir.mkdir(parents=True, exist_ok=True)
+    (sidecar_dir / f"{task_id}.json").write_text(_json.dumps(payload))
+
+
+def test_sidecar_with_absolute_path_is_rejected(
+    worker, control_plane, stub_registry, isolated_env
+) -> None:
+    """Security-sentinel H3: absolute paths in the sidecar must be
+    rejected before the policy layer sees them."""
+    _enqueue_evolution_task(control_plane, task_id="task-abs-1")
+    _write_raw_sidecar(
+        "task-abs-1",
+        {
+            "target_skill_id": "demo-evolvable-skill",
+            "rationale": "absolute path attack",
+            "diff_paths": ["/etc/passwd"],
+            "target_runtimes": ["claude"],
+        },
+    )
+    result = worker.execute_claimed_task(
+        worker_id="worker-skill-evolution", service=control_plane
+    )
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
+    assert "sidecar_validation_failed" in result.failure_codes
+
+
+def test_sidecar_with_parent_traversal_is_rejected(
+    worker, control_plane, stub_registry, isolated_env
+) -> None:
+    _enqueue_evolution_task(control_plane, task_id="task-trav-1")
+    _write_raw_sidecar(
+        "task-trav-1",
+        {
+            "target_skill_id": "demo-evolvable-skill",
+            "rationale": "parent traversal attack",
+            "diff_paths": [
+                "skills/canonical/demo-evolvable-skill/../../../"
+                "packages/policies/skill_evolution.py"
+            ],
+            "target_runtimes": ["claude"],
+        },
+    )
+    result = worker.execute_claimed_task(
+        worker_id="worker-skill-evolution", service=control_plane
+    )
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
+    assert "sidecar_validation_failed" in result.failure_codes
+
+
+def test_sidecar_with_unsafe_target_skill_id_is_rejected(
+    worker, control_plane, stub_registry, isolated_env
+) -> None:
+    """target_skill_id must match the safe-id regex. Otherwise an
+    attacker-chosen id could inject path components that land the
+    policy's ``skills/canonical/<id>/`` prefix check into an
+    unexpected directory."""
+    _enqueue_evolution_task(control_plane, task_id="task-bad-id-1")
+    _write_raw_sidecar(
+        "task-bad-id-1",
+        {
+            "target_skill_id": "demo/../evil",
+            "rationale": "path injection via id",
+            "diff_paths": ["skills/canonical/demo/skill.md"],
+            "target_runtimes": ["claude"],
+        },
+    )
+    result = worker.execute_claimed_task(
+        worker_id="worker-skill-evolution", service=control_plane
+    )
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
+    assert "sidecar_validation_failed" in result.failure_codes
+
+
+def test_sidecar_with_null_byte_is_rejected(
+    worker, control_plane, stub_registry, isolated_env
+) -> None:
+    _enqueue_evolution_task(control_plane, task_id="task-null-1")
+    _write_raw_sidecar(
+        "task-null-1",
+        {
+            "target_skill_id": "demo-evolvable-skill",
+            "rationale": "null byte attack",
+            "diff_paths": ["skills/canonical/demo/skill.md\x00.md"],
+            "target_runtimes": ["claude"],
+        },
+    )
+    result = worker.execute_claimed_task(
+        worker_id="worker-skill-evolution", service=control_plane
+    )
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
+    assert "sidecar_validation_failed" in result.failure_codes
 
 
 # ---------------------------------------------------------------------- #

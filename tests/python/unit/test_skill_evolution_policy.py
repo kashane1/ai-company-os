@@ -17,7 +17,6 @@ from packages.policies.skill_evolution import (
     ProposedDiff,
     check_evolution_allowed,
     check_fixture_skill_atomicity,
-    check_regression_fixture_gate,
 )
 from packages.tools.skills.loader import SkillSpec
 
@@ -224,6 +223,15 @@ def test_fixtures_subdir_allowed(empty_db: SkillEvolutionLockStore) -> None:
 # ---------------------------------------------------------------------- #
 
 
+def _canonical_with_incumbent(tmp_path, skill_id: str = "demo"):
+    """Build a temp ``skills/canonical/<skill_id>/validator.py`` tree
+    so ``check_fixture_skill_atomicity`` sees a real incumbent."""
+    skill_dir = tmp_path / skill_id
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "validator.py").write_text("# incumbent validator\n")
+    return tmp_path
+
+
 def test_validator_without_fixture_is_drift() -> None:
     diff = ProposedDiff(
         target_skill_id="demo",
@@ -234,15 +242,31 @@ def test_validator_without_fixture_is_drift() -> None:
     assert exc.value.code == PolicyViolationCode.FIXTURE_SKILL_DRIFT.value
 
 
-def test_fixture_without_validator_is_drift() -> None:
+def test_fixture_only_diff_is_drift_when_incumbent_exists(tmp_path) -> None:
+    """Realistic drift case (kieran review, Blocker #1): a proposal
+    that adds a new fixture to an existing skill, without touching
+    the validator, should be rejected. The earlier implementation
+    gated on ``removed_paths``, which never fires for this case."""
+    root = _canonical_with_incumbent(tmp_path)
     diff = ProposedDiff(
         target_skill_id="demo",
-        paths=frozenset({"skills/canonical/demo/fixtures/case.yaml"}),
-        removed_paths=frozenset({"skills/canonical/demo/validator.py"}),
+        paths=frozenset({"skills/canonical/demo/fixtures/new_case.yaml"}),
     )
     with pytest.raises(PolicyViolation) as exc:
-        check_fixture_skill_atomicity(diff)
+        check_fixture_skill_atomicity(diff, canonical_root=root)
     assert exc.value.code == PolicyViolationCode.FIXTURE_SKILL_DRIFT.value
+
+
+def test_fixture_only_diff_passes_when_no_incumbent(tmp_path) -> None:
+    """When no ``validator.py`` exists on disk yet, a fixture-only
+    diff is legitimate new-skill staging. The allowlist check
+    (tested elsewhere) still refuses in practice because the skill
+    isn't in the registry, but atomicity itself must not raise."""
+    diff = ProposedDiff(
+        target_skill_id="brand-new",
+        paths=frozenset({"skills/canonical/brand-new/fixtures/case.yaml"}),
+    )
+    check_fixture_skill_atomicity(diff, canonical_root=tmp_path)  # no raise
 
 
 def test_atomic_diff_passes_fixture_check() -> None:
@@ -340,13 +364,9 @@ def test_concurrent_proposal_is_rejected(
     )
 
 
-# ---------------------------------------------------------------------- #
-# Regression-fixture gate (placeholder)                                   #
-# ---------------------------------------------------------------------- #
-
-
-def test_regression_fixture_gate_raises_not_implemented() -> None:
-    """The Voyager/DSPy gate is explicitly deferred to a follow-up PR.
-    The stub must raise loudly if anyone accidentally wires it in."""
-    with pytest.raises(NotImplementedError):
-        check_regression_fixture_gate(_ok_diff())
+# The Voyager/DSPy regression-fixture gate is explicitly NOT
+# implemented in the Phase 3 first landing. It will land as its own
+# PR alongside a sandboxed two-validator import harness. See the
+# module-level comment in packages/policies/skill_evolution.py for
+# the design rationale. Until then, the HMAC-token reviewer is the
+# regression gate — they confirm manually before signing.

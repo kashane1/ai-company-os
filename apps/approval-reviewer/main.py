@@ -86,7 +86,19 @@ def cmd_list(args: argparse.Namespace) -> int:
         print(f"artifact    : {record.review_artifact_path}")
         if token is not None:
             print(f"token_id    : {token.token_id}")
-            print(f"signature   : {token.signature}")
+            # SECURITY: do NOT print the signature. The signature is
+            # the unlock secret for the HMAC gate. Printing it here
+            # would leak it to any terminal capture, log redirect,
+            # tmux scrollback, or shoulder surfer. Reviewer must
+            # retrieve the signature from an out-of-band channel
+            # (the worker's task-output log, a password manager
+            # entry seeded when the proposal was staged, etc.) and
+            # paste it explicitly into `approval-reviewer sign`.
+            print(
+                "signature   : "
+                "(hidden — retrieve from worker task output and "
+                "pass via --signature)"
+            )
         else:
             print("token_id    : (missing — worker did not issue a token)")
         print()
@@ -153,14 +165,22 @@ def cmd_show(args: argparse.Namespace) -> int:
 def cmd_sign(args: argparse.Namespace) -> int:
     """Verify HMAC + flip the approval record to ``approved``.
 
-    The reviewer passes ``--token-id`` and ``--signature`` — both are
-    what the worker wrote into the approval request when it was
-    staged. The CLI can read them off the matching
-    :class:`ApprovalTokenStore` entry, so ``--token-id`` is optional
-    (we pick the most recent token for the approval id).
+    The reviewer MUST pass ``--token-id`` AND ``--signature`` as
+    explicit arguments. The CLI deliberately does NOT fall back to
+    loading the signature from the :class:`ApprovalTokenStore` on
+    disk — that fallback (in the first Phase 3 PR) collapsed the
+    HMAC gate to decoration because the signature was stored next
+    to the key under the same uid as the worker, turning
+    ``approval-reviewer sign <id>`` with no args into a free
+    approval. Security-sentinel C1 on the first Phase 3 PR.
+
+    The reviewer gets the signature from the task-output log the
+    worker wrote when it staged the proposal. Future work moves the
+    key and the signature into macOS Keychain so even a file-read
+    attack fails; see
+    ``docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md``.
     """
     store = ApprovalStore()
-    tokens = ApprovalTokenStore()
     try:
         record = store.load(args.approval_id)
     except FileNotFoundError:
@@ -182,25 +202,20 @@ def cmd_sign(args: argparse.Namespace) -> int:
         )
         return 2
 
-    token_id = args.token_id
-    signature = args.signature
-    if token_id is None or signature is None:
-        candidates = tokens.list_by_approval(args.approval_id)
-        if not candidates:
-            print(
-                f"error: no token on file for approval {args.approval_id!r}",
-                file=sys.stderr,
-            )
-            return 2
-        latest = sorted(candidates, key=lambda t: t.issued_at, reverse=True)[0]
-        token_id = token_id or latest.token_id
-        signature = signature or latest.signature
+    # Both args are required by the parser, but defend in depth.
+    if not args.token_id or not args.signature:
+        print(
+            "error: --token-id and --signature are both required. "
+            "Retrieve them from the worker's task-output log.",
+            file=sys.stderr,
+        )
+        return 2
 
     try:
         decision = submit_evolution_approval(
             approval_id=args.approval_id,
-            token_id=token_id,
-            provided_signature=signature,
+            token_id=args.token_id,
+            provided_signature=args.signature,
             device_fingerprint=args.device or _default_device(),
             decided_by=args.reviewer or _default_reviewer(),
             decision_notes=args.note,
@@ -279,14 +294,30 @@ def _list_pending_skill_evolution(store: ApprovalStore) -> list:
 
 
 def _default_reviewer() -> str:
-    """Build a short default "who is signing" string from env.
+    """Build a short default "who is signing" string from the real
+    process uid, not the ``USER`` environment variable.
 
-    Falls through to ``human@<hostname>`` when ``USER`` is unset (CI
-    containers). The reviewer can always override with ``--reviewer``.
+    Security-sentinel H4 on the first Phase 3 PR: ``os.environ["USER"]``
+    is trivially forgeable — any caller can run
+    ``USER=alice approval-reviewer sign ...`` and the approval record
+    forever claims ``decided_by="alice@..."``. Reading the user name
+    from ``pwd.getpwuid(os.getuid())`` pulls from the passwd database
+    and cannot be spoofed via env.
+
+    The reviewer can still override with ``--reviewer`` — that's a
+    deliberate audit channel (e.g. a sudo session running as a
+    different operator), and the override is recorded verbatim in
+    the decision_notes.
     """
     import os
+    import pwd
 
-    user = os.environ.get("USER") or "human"
+    try:
+        user = pwd.getpwuid(os.getuid()).pw_name
+    except KeyError:
+        # Edge case: uid not in passwd (some containers). Fall back
+        # to a sentinel, not to env — env remains untrusted.
+        user = f"uid-{os.getuid()}"
     host = socket.gethostname() or "unknown-host"
     return f"{user}@{host}"
 
@@ -321,13 +352,21 @@ def build_parser() -> argparse.ArgumentParser:
     p_sign.add_argument("approval_id")
     p_sign.add_argument(
         "--token-id",
-        default=None,
-        help="override the token_id (defaults to latest token for approval)",
+        required=True,
+        help=(
+            "token_id from the worker's task-output log when the "
+            "proposal was staged. REQUIRED — the CLI does not fall "
+            "back to the on-disk token store."
+        ),
     )
     p_sign.add_argument(
         "--signature",
-        default=None,
-        help="override the signature (defaults to the one on file)",
+        required=True,
+        help=(
+            "HMAC signature from the worker's task-output log. "
+            "REQUIRED — the CLI does not fall back to the on-disk "
+            "token store. See the module docstring for why."
+        ),
     )
     p_sign.add_argument(
         "--reviewer",
