@@ -3,22 +3,49 @@
 A small, deliberately boring command-line tool that a human runs to:
 
 1. ``list`` — show every pending skill-evolution approval with its
-   staged artifact dir, rationale, and the magic-link token the
-   reviewer will burn when signing.
+   staged artifact dir, rationale, and the token_id the reviewer
+   will use when signing. The signature is deliberately NOT printed.
 2. ``show <approval_id>`` — render the proposal artifact dir
    contents (diff, rationale, manifest) so the reviewer can read
    what they're about to sign without leaving the terminal.
-3. ``sign <approval_id>`` — verify the HMAC signature on the token
-   and flip the underlying :class:`ApprovalRecord` to ``approved``.
-   The worker's next poll will see the new status and proceed.
+3. ``sign <approval_id> --token-id X --signature Y`` — verify the
+   HMAC signature and flip the underlying :class:`ApprovalRecord`
+   to ``approved``. Both arguments are MANDATORY — the reviewer
+   retrieves them from the worker's task-output log out-of-band.
 4. ``reject <approval_id> --reason "..."`` — mark the approval
    ``rejected`` so the worker can quarantine the staged artifact
    and re-queue or give up.
+5. ``bootstrap-keychain`` — first-run command on a new macOS
+   machine that creates the signing-secret entry in the login
+   Keychain with a binary-path ACL. Refuses to clobber an
+   existing item.
+6. ``rotate-keychain`` — delete the existing Keychain item and
+   bootstrap a fresh one. Every outstanding unburned token
+   becomes unverifiable after this runs, by design.
 
 The CLI reads its HMAC signing secret via the same
 :func:`packages.tools.primitives.approvals._load_signing_secret`
-path the worker uses, so a single machine can sign the tokens it
-issues without any out-of-band key transport.
+path the worker uses. On macOS, that goes through the login
+Keychain (bootstrapped by the first ``bootstrap-keychain`` run);
+on non-macOS platforms or with ``AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE=1``
+it falls back to a hardened filesystem file.
+
+Trust model notes:
+
+- On macOS, the actual authorization for silent reads is the
+  operator clicking "Always Allow" on the first Keychain dialog
+  (typically triggered by running
+  ``security find-generic-password -s ai-company-os
+  -a approval_signing_key -w`` in a terminal after
+  ``bootstrap-keychain``). The ``-T``/``--trusted-binary`` flags
+  are largely cosmetic under the "Python subprocess-to-security-CLI"
+  model, because the calling binary at read time is always
+  ``/usr/bin/security``, not any path on the trusted list.
+- The ``bootstrap-keychain`` success message tells the operator
+  to run the verify command and click Always Allow. This is the
+  load-bearing step; skipping it means launchd-started workers
+  hit ``KeychainInteractionNotAllowed`` on every read because
+  they don't have a TTY to answer the dialog.
 
 Deliberately NOT here (all follow-up):
 
@@ -27,9 +54,12 @@ Deliberately NOT here (all follow-up):
 - GitHub PR integration (Option C). Sign today = write the decision
   to :class:`ApprovalStore`. A future wrapper can open a PR from
   the same approval_id without changing this CLI.
-- macOS Keychain prompts. The signing secret lives on disk mode 0600
-  for the first landing; Keychain is a one-place swap in
-  ``_load_signing_secret``.
+- Second-factor enforcement for P0 tokens. ``skill_evolution_apply``
+  is in ``P0_ACTIONS`` so the token carries the 5-min TTL, but the
+  CLI's ``sign`` command still completes in one call. Full
+  second-factor wiring is a separate small PR that adds a
+  ``confirm`` subcommand and makes ``submit_evolution_approval``
+  two-step for P0 actions.
 """
 
 from __future__ import annotations
@@ -51,7 +81,13 @@ from packages.db.approval_token_store import ApprovalTokenStore
 from packages.schemas.approval import ApprovalStatus
 from packages.tools.primitives.approvals import (
     ApprovalTokenError,
+    KEYCHAIN_ACCOUNT,
+    KEYCHAIN_SERVICE,
+    KeychainAlreadyExists,
+    KeychainError,
     SKILL_EVOLUTION_APPROVAL_TYPE,
+    _bootstrap_keychain_secret,
+    _rotate_keychain_secret,
     reject_evolution_approval,
     submit_evolution_approval,
 )
@@ -260,6 +296,146 @@ def cmd_reject(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_bootstrap_keychain(args: argparse.Namespace) -> int:
+    """Create the approval-signing Keychain item on this machine.
+
+    Refuses to run if an item already exists — rotation is a
+    separate subcommand so the operator has to be explicit about
+    invalidating outstanding tokens.
+
+    ``--trusted-binary`` may be passed multiple times; each value is
+    passed as a ``-T`` flag to ``security add-generic-password``.
+
+    Note on the trust model (kieran review of PR #9): in our
+    "Python subprocess-to-security-CLI" architecture, the actual
+    calling process at read time is ``/usr/bin/security``, NOT any
+    binary on the trusted list. The ACL entries listed here are
+    largely cosmetic today — the real authorization comes from the
+    operator clicking "Always Allow" on the first Keychain dialog,
+    which persists. A future refactor that calls the
+    ``SecKeychain*`` C API directly via ctypes would make the
+    trusted list actually load-bearing, at which point this
+    default becomes meaningful.
+
+    Default: ``[sys.executable]`` only. The previous default also
+    included ``Path(__file__).resolve()`` (the CLI script path),
+    but Keychain's ``SecTrustedApplicationCreateFromPath``
+    validates that the path exists and then hashes the file for
+    later comparison. Passing a ``.py`` file is accepted (it's a
+    real file) but is non-functional at read time because the
+    calling binary at read time is ``/usr/bin/security``, not a
+    Python script. Dropping the ``.py`` from the default removes
+    confusing UX without changing real behavior.
+    """
+    trusted = args.trusted_binary or [sys.executable]
+
+    if sys.platform != "darwin":
+        print(
+            "error: bootstrap-keychain only makes sense on macOS. "
+            "On Linux/Windows the filesystem fallback is used; run "
+            "any worker command once to bootstrap the file, or set "
+            "AI_COMPANY_OS_APPROVAL_SIGNING_KEY in the environment.",
+            file=sys.stderr,
+        )
+        return 2
+
+    try:
+        secret = _bootstrap_keychain_secret(trusted_binaries=trusted)
+    except KeychainAlreadyExists as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        print(
+            "hint: run `approval-reviewer rotate-keychain` to replace "
+            "the existing item with a fresh secret. Rotation "
+            "invalidates every outstanding unburned token.",
+            file=sys.stderr,
+        )
+        return 2
+    except KeychainError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"bootstrapped: {KEYCHAIN_SERVICE}/{KEYCHAIN_ACCOUNT}")
+    print(f"  secret length: {len(secret)} bytes")
+    print("  trusted binaries:")
+    for binary in trusted:
+        print(f"    - {binary}")
+    print()
+    print("NEXT STEP — authorize reads (one time, then persists):")
+    print(
+        "  Run the following command in a terminal. macOS will show a"
+    )
+    print(
+        "  Keychain dialog asking to allow access. Click 'Always Allow'."
+    )
+    print(
+        f"    security find-generic-password -s {KEYCHAIN_SERVICE} "
+        f"-a {KEYCHAIN_ACCOUNT} -w"
+    )
+    print()
+    print(
+        "  That single click is what actually grants silent read"
+    )
+    print(
+        "  access for subsequent worker invocations. Without it, every"
+    )
+    print(
+        "  read triggers a dialog that launchd-started workers cannot"
+    )
+    print(
+        "  answer, and they'll error with KeychainInteractionNotAllowed."
+    )
+    return 0
+
+
+def cmd_rotate_keychain(args: argparse.Namespace) -> int:
+    """Replace the approval-signing Keychain item with a fresh
+    secret. Every outstanding unburned token becomes unverifiable
+    by design — this is the key-rotation primitive, not an
+    idempotent upsert.
+
+    Requires ``--confirm rotate`` on the command line. Sign-off is a
+    deliberate bar so an operator doesn't accidentally invalidate
+    every pending approval while they were trying to run
+    ``bootstrap-keychain``.
+    """
+    if args.confirm != "rotate":
+        print(
+            "error: rotate-keychain requires --confirm rotate. "
+            "This operation invalidates every outstanding unburned "
+            "token on this machine.",
+            file=sys.stderr,
+        )
+        return 2
+
+    trusted = args.trusted_binary or [sys.executable]
+
+    if sys.platform != "darwin":
+        print(
+            "error: rotate-keychain only makes sense on macOS.",
+            file=sys.stderr,
+        )
+        return 2
+
+    try:
+        secret = _rotate_keychain_secret(trusted_binaries=trusted)
+    except KeychainError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"rotated: {KEYCHAIN_SERVICE}/{KEYCHAIN_ACCOUNT}")
+    print(f"  new secret length: {len(secret)} bytes")
+    print("  trusted binaries:")
+    for binary in trusted:
+        print(f"    - {binary}")
+    print()
+    print(
+        "NOTE: every outstanding unburned token is now invalid. "
+        "Re-enqueue any skill-evolution tasks that were waiting for "
+        "approval at the time of this rotation."
+    )
+    return 0
+
+
 # ---------------------------------------------------------------------- #
 # Helpers                                                                 #
 # ---------------------------------------------------------------------- #
@@ -398,6 +574,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="decided_by string (defaults to USER@hostname)",
     )
     p_reject.set_defaults(func=cmd_reject)
+
+    p_bootstrap = sub.add_parser(
+        "bootstrap-keychain",
+        help="create the approval-signing Keychain item (macOS, first run)",
+    )
+    p_bootstrap.add_argument(
+        "--trusted-binary",
+        action="append",
+        default=None,
+        help=(
+            "absolute path of a binary to add to the Keychain item ACL. "
+            "Pass multiple times. Defaults to the current python "
+            "interpreter plus this CLI script."
+        ),
+    )
+    p_bootstrap.set_defaults(func=cmd_bootstrap_keychain)
+
+    p_rotate = sub.add_parser(
+        "rotate-keychain",
+        help="delete + recreate the approval-signing Keychain item",
+    )
+    p_rotate.add_argument(
+        "--confirm",
+        required=True,
+        help="must be literally `rotate` — guards against accidental invalidation",
+    )
+    p_rotate.add_argument(
+        "--trusted-binary",
+        action="append",
+        default=None,
+        help="same as bootstrap-keychain — ACL for the new item",
+    )
+    p_rotate.set_defaults(func=cmd_rotate_keychain)
 
     return parser
 

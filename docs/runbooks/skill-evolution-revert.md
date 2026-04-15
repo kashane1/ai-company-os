@@ -145,16 +145,85 @@ Record the walk-through in
 `docs/solutions/integration-issues/skill-evolution-revert-dryrun-<date>.md`
 and reference it from the Phase 3 Definition of Done checklist.
 
+## macOS Keychain operations
+
+The HMAC signing secret lives in the login Keychain under
+`service=ai-company-os`, `account=approval_signing_key`. Three
+scenarios:
+
+### First-time bootstrap on a fresh machine
+
+```bash
+.venv/bin/python apps/approval-reviewer/main.py bootstrap-keychain
+# Then, one time only, authorize silent reads:
+security find-generic-password -s ai-company-os -a approval_signing_key -w
+# macOS shows a dialog. Click "Always Allow".
+```
+
+**The Always Allow click is the load-bearing step.** Without it,
+launchd-started workers can't read the key — they have no TTY to
+answer the dialog and fail with `KeychainInteractionNotAllowed`.
+`bootstrap-keychain` itself doesn't need it because bootstrap is
+a write, not a read. Only the first read triggers the dialog.
+
+### Rotate the key (compromised or brew-upgraded)
+
+```bash
+.venv/bin/python apps/approval-reviewer/main.py rotate-keychain \
+  --confirm rotate
+```
+
+**Every outstanding unburned token is invalidated.** Workers
+blocked waiting for approval at the time of rotation fail with a
+signature-mismatch error on their next poll. Re-enqueue those
+tasks after rotation.
+
+`--confirm rotate` is mandatory to prevent accidental rotation
+when the operator meant `bootstrap-keychain`.
+
+Verify the new key is readable:
+
+```bash
+security find-generic-password -s ai-company-os -a approval_signing_key -w
+```
+
+Should print 64 hex chars. You may need to click Always Allow
+again after rotation because the stored item is new.
+
+### `brew upgrade python` or venv rebuild
+
+Not currently a problem in practice — the ACL entry we create
+(`[sys.executable]`) is largely cosmetic under our
+"subprocess-to-security-CLI" model. Real authorization comes
+from the one-time Always Allow click, which persists in the
+user's keychain and survives binary upgrades.
+
+**However**, if a future PR switches to the `SecKeychain*` C API
+via ctypes (which would make the ACL actually load-bearing),
+`brew upgrade python` will invalidate the ACL entry on the old
+binary path. Recovery at that point is `rotate-keychain --confirm
+rotate` with the new binary path on the default
+`sys.executable`. Document this in the runbook when that PR
+lands.
+
+### Non-macOS (Linux CI, Docker)
+
+Filesystem fallback at `state/checkpoints/platform/approval_signing_key`
+is used. Rotation is:
+
+```bash
+rm state/checkpoints/platform/approval_signing_key
+```
+
+The next worker call bootstraps a fresh file atomically.
+
 ## Appendix B — what this runbook does NOT cover
 
 - **Revert a proposal that was signed by a forged token.** The HMAC
-  burn path makes this structurally impossible in the first landing,
-  but the mitigation if the signing key itself leaks is "rotate the
-  key" — see `packages/tools/primitives/approvals.py:_load_signing_secret`
-  for the key file path. Rotating the key invalidates every
-  outstanding unsigned token on the system; handle that consequence
-  separately. The larger fix is the Keychain migration plan at
-  `docs/plans/2026-04-15-macos-keychain-approval-signing-migration.md`.
+  burn path + Keychain ACL make this structurally unlikely in the
+  current landing. If the signing key itself leaks, use
+  `rotate-keychain` above to invalidate every outstanding token.
+  Re-enqueue blocked tasks after rotation.
 - **Revert an in-flight proposal whose worker process has frozen
   mid-poll.** The kill-switch check is bounded by `poll_interval_seconds`
   (default 5 s); a truly frozen worker is a separate incident. Kill
