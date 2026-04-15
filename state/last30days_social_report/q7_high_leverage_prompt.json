@@ -1,0 +1,2556 @@
+{
+  "artifacts": {
+    "grounding": []
+  },
+  "clusters": [
+    {
+      "candidate_ids": [
+        "https://github.com/creatorx02/ai-agent-for-youtube-social-media-automation/pull/1"
+      ],
+      "cluster_id": "cluster-1",
+      "representative_ids": [
+        "https://github.com/creatorx02/ai-agent-for-youtube-social-media-automation/pull/1"
+      ],
+      "score": 67.10491803278688,
+      "sources": [
+        "github"
+      ],
+      "title": "Implement AI Content Growth Agent for YouTube & Social Media Automation"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/justaghost/content_creation/pull/115"
+      ],
+      "cluster_id": "cluster-2",
+      "representative_ids": [
+        "https://github.com/justaghost/content_creation/pull/115"
+      ],
+      "score": 60.786567164179104,
+      "sources": [
+        "github"
+      ],
+      "title": "Add AI video generation pipeline (Pollo AI + Runway)"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/chanbistec/social-poster/issues/1"
+      ],
+      "cluster_id": "cluster-3",
+      "representative_ids": [
+        "https://github.com/chanbistec/social-poster/issues/1"
+      ],
+      "score": 51.68382352941177,
+      "sources": [
+        "github"
+      ],
+      "title": "\ud83e\udd9e MVP Platform \u2014 Multi-tenant Social Media Posting"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/roserenuu/jesus-forever-yours/pull/31"
+      ],
+      "cluster_id": "cluster-4",
+      "representative_ids": [
+        "https://github.com/roserenuu/jesus-forever-yours/pull/31"
+      ],
+      "score": 51.278571428571425,
+      "sources": [
+        "github"
+      ],
+      "title": "Add last30days research skill adapted for JFY brand"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/aliammari1/awesome-ai-tools/pull/26"
+      ],
+      "cluster_id": "cluster-5",
+      "representative_ids": [
+        "https://github.com/aliammari1/awesome-ai-tools/pull/26"
+      ],
+      "score": 48.30161290322581,
+      "sources": [
+        "github"
+      ],
+      "title": "Add SocialBu to Content Creation section"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/ismaelloveexcel/ai-dan-framework/pull/2"
+      ],
+      "cluster_id": "cluster-6",
+      "representative_ids": [
+        "https://github.com/ismaelloveexcel/ai-dan-framework/pull/2"
+      ],
+      "score": 42.17936507936508,
+      "sources": [
+        "github"
+      ],
+      "title": "Restructure AI-DAN-FRAMEWORK into AIDAN-OS: lean solo-operator business OS"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/jhengy/content-aggregator/issues/449"
+      ],
+      "cluster_id": "cluster-7",
+      "representative_ids": [
+        "https://github.com/jhengy/content-aggregator/issues/449"
+      ],
+      "score": 41.381967213114756,
+      "sources": [
+        "github"
+      ],
+      "title": "Daily Content Summary 2026-04-07"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/mertbuilds/claudemarketplaces.com/issues/43"
+      ],
+      "cluster_id": "cluster-8",
+      "representative_ids": [
+        "https://github.com/mertbuilds/claudemarketplaces.com/issues/43"
+      ],
+      "score": 36.5984126984127,
+      "sources": [
+        "github"
+      ],
+      "title": "[Skill Submission] Wonda \u2014 AI Content Creation & Social Media Automation CLI"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/tap919/content-creation-engine-/pull/9"
+      ],
+      "cluster_id": "cluster-9",
+      "representative_ids": [
+        "https://github.com/tap919/content-creation-engine-/pull/9"
+      ],
+      "score": 35.4953125,
+      "sources": [
+        "github"
+      ],
+      "title": "Add provider abstraction layer, advanced repurposing engine, campaign management, and multi-platform distribution"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/masterleeaus/worksuite-saas---project-management-system_laravel/issues/171"
+      ],
+      "cluster_id": "cluster-10",
+      "representative_ids": [
+        "https://github.com/masterleeaus/worksuite-saas---project-management-system_laravel/issues/171"
+      ],
+      "score": 30.092307692307692,
+      "sources": [
+        "github"
+      ],
+      "title": "Integrate AI Social Media Pro (v5.1.0) \u2014 Full Social Platform \u2014 into TitanSocial"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/mosscorp/mosscorp/issues/26"
+      ],
+      "cluster_id": "cluster-11",
+      "representative_ids": [
+        "https://github.com/mosscorp/mosscorp/issues/26"
+      ],
+      "score": 24.88939393939394,
+      "sources": [
+        "github"
+      ],
+      "title": "Build: CalorieLens MVP \u2014 Camera-First AI Calorie Scanner"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/franknguyenaff-png/git/issues/1"
+      ],
+      "cluster_id": "cluster-12",
+      "representative_ids": [
+        "https://github.com/franknguyenaff-png/git/issues/1"
+      ],
+      "score": 22.978125,
+      "sources": [
+        "github"
+      ],
+      "title": "Fiction Goldmine Engine Review \u2013 Unlock Passive Income with AI-Powered Book Creation"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/paperclipai/paperclip/issues/2354"
+      ],
+      "cluster_id": "cluster-13",
+      "representative_ids": [
+        "https://github.com/paperclipai/paperclip/issues/2354"
+      ],
+      "score": 22.08064516129032,
+      "sources": [
+        "github"
+      ],
+      "title": "Feature Request: Support for Kiro-CLI Integration with Paperclip AI"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/cline/mcp-marketplace/issues/1007"
+      ],
+      "cluster_id": "cluster-14",
+      "representative_ids": [
+        "https://github.com/cline/mcp-marketplace/issues/1007"
+      ],
+      "score": 20.081159420289858,
+      "sources": [
+        "github"
+      ],
+      "title": "[Server Submission]: Social Neuron \u2014 AI Social Media Content Lifecycle"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/duanyytop/agents-radar/issues/213"
+      ],
+      "cluster_id": "cluster-15",
+      "representative_ids": [
+        "https://github.com/duanyytop/agents-radar/issues/213"
+      ],
+      "score": 19.42295081967213,
+      "sources": [
+        "github"
+      ],
+      "title": "\ud83e\udd9e OpenClaw Ecosystem Digest 2026-03-18"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/frankxai/frankx.ai-vercel-website/pull/21"
+      ],
+      "cluster_id": "cluster-16",
+      "representative_ids": [
+        "https://github.com/frankxai/frankx.ai-vercel-website/pull/21"
+      ],
+      "score": 6.353076923076923,
+      "sources": [
+        "github"
+      ],
+      "title": "feat: Rebuild Vibe OS as complete AI music production system"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/marcusquinn/aidevops/pull/14075"
+      ],
+      "cluster_id": "cluster-17",
+      "representative_ids": [
+        "https://github.com/marcusquinn/aidevops/pull/14075"
+      ],
+      "score": 5.992727272727273,
+      "sources": [
+        "github"
+      ],
+      "title": "GH#13978: tighten cro-chapter-06.md (182\u2192143 lines)"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/muffy86/autonomous-ai-orchestration-agent/pull/37"
+      ],
+      "cluster_id": "cluster-18",
+      "representative_ids": [
+        "https://github.com/muffy86/autonomous-ai-orchestration-agent/pull/37"
+      ],
+      "score": 5.512388059701493,
+      "sources": [
+        "github"
+      ],
+      "title": "feat: Advanced Browser AI Configuration System"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/jovieinc/jovie/pull/6304"
+      ],
+      "cluster_id": "cluster-19",
+      "representative_ids": [
+        "https://github.com/jovieinc/jovie/pull/6304"
+      ],
+      "score": 4.8228169014084505,
+      "sources": [
+        "github"
+      ],
+      "title": "feat(dashboard): refine chat workspace surfaces"
+    },
+    {
+      "candidate_ids": [
+        "https://github.com/dstolts/covenai/pull/1"
+      ],
+      "cluster_id": "cluster-20",
+      "representative_ids": [
+        "https://github.com/dstolts/covenai/pull/1"
+      ],
+      "score": 3.502083333333333,
+      "sources": [
+        "github"
+      ],
+      "title": "CovenAI: Full project scaffold and Phase 1 prep"
+    }
+  ],
+  "errors_by_source": {},
+  "generated_at": "2026-04-15T00:08:29.873222+00:00",
+  "items_by_source": {
+    "github": [
+      {
+        "author": "Copilot",
+        "body": "Implement AI Content Growth Agent for YouTube & Social Media Automation\nBuilds a complete automated content engine from scratch (repo was previously empty). The agent runs a continuous cycle \u2014 **Research \u2192 Strategy \u2192 Creation \u2192 SEO \u2192 Monetisation \u2192 Distribution \u2192 Tracking** \u2014 across YouTube, TikTok, Instagram, Facebook, and X.\n\n## Core Modules\n\n- **`agents/research_agen",
+        "container": "CreatorX02/AI-AGENT-FOR-YOUTUBE-SOCIAL-MEDIA-AUTOMATION",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 3,
+          "reactions": 0
+        },
+        "engagement_score": 18,
+        "freshness": 79,
+        "item_id": "GH23",
+        "local_rank_score": 0.521,
+        "local_relevance": 0.47,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "closed",
+          "top_comments": []
+        },
+        "published_at": "2026-04-05",
+        "relevance_hint": 0.59,
+        "snippet": "Builds a complete automated content engine from scratch (repo was previously empty). The agent runs a continuous cycle \u2014 **Research \u2192 Strategy \u2192 Creation \u2192 SEO \u2192 Monetisation \u2192 Distribution \u2192 Tracking** \u2014 across YouTube, TikTok, Instagram, Facebook, and X.\n\n## Core Modules\n\n- **`agents/research_agen",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Implement AI Content Growth Agent for YouTube & Social Media Automation",
+        "url": "https://github.com/CreatorX02/AI-AGENT-FOR-YOUTUBE-SOCIAL-MEDIA-AUTOMATION/pull/1",
+        "why_relevant": "GitHub PR: Implement AI Content Growth Agent for YouTube & Social Media"
+      },
+      {
+        "author": "usamaejaz",
+        "body": "Add SocialBu to Content Creation section\n## What is SocialBu?\n\n[SocialBu](https://socialbu.com/) is an AI-powered social media management platform that helps teams schedule, publish, monitor, and automate their social media presence across X (Twitter), Instagram, LinkedIn, Facebook, TikTok, Pinterest, Google Business, and Threads.\n\n## Why",
+        "container": "aliammari1/awesome-ai-tools",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 3,
+          "reactions": 0
+        },
+        "engagement_score": 18,
+        "freshness": 41,
+        "item_id": "GH28",
+        "local_rank_score": 0.491,
+        "local_relevance": 0.57,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "closed",
+          "top_comments": []
+        },
+        "published_at": "2026-03-17",
+        "relevance_hint": 0.45,
+        "snippet": "## What is SocialBu?\n\n[SocialBu](https://socialbu.com/) is an AI-powered social media management platform that helps teams schedule, publish, monitor, and automate their social media presence across X (Twitter), Instagram, LinkedIn, Facebook, TikTok, Pinterest, Google Business, and Threads.\n\n## Why",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Add SocialBu to Content Creation section",
+        "url": "https://github.com/aliammari1/awesome-ai-tools/pull/26",
+        "why_relevant": "GitHub PR: Add SocialBu to Content Creation section"
+      },
+      {
+        "author": "tgdn",
+        "body": "[Skill Submission] Wonda \u2014 AI Content Creation & Social Media Automation CLI\n## Wonda \u2014 AI Content Creation & Social Media Automation CLI\n\n**Repo:** https://github.com/degausai/wonda\n**Type:** Claude Code Skill + Marketplace\n**Author:** Wonda ([@degausai](https://github.com/degausai))\n**Stars:** 42\n**skills.sh:** [skills.sh/degausai/wonda](https://skills.sh/degausai/wonda) (",
+        "container": "mertbuilds/claudemarketplaces.com",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 0,
+          "reactions": 0
+        },
+        "freshness": 94,
+        "item_id": "GH11",
+        "local_rank_score": 0.4235,
+        "local_relevance": 0.29,
+        "metadata": {
+          "is_pr": false,
+          "labels": [],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-04-12",
+        "relevance_hint": 0.73,
+        "snippet": "## Wonda \u2014 AI Content Creation & Social Media Automation CLI\n\n**Repo:** https://github.com/degausai/wonda\n**Type:** Claude Code Skill + Marketplace\n**Author:** Wonda ([@degausai](https://github.com/degausai))\n**Stars:** 42\n**skills.sh:** [skills.sh/degausai/wonda](https://skills.sh/degausai/wonda) (",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "[Skill Submission] Wonda \u2014 AI Content Creation & Social Media Automation CLI",
+        "url": "https://github.com/mertbuilds/claudemarketplaces.com/issues/43",
+        "why_relevant": "GitHub issue: [Skill Submission] Wonda \u2014 AI Content Creation & Social Medi"
+      },
+      {
+        "author": "Claude",
+        "body": "Add provider abstraction layer, advanced repurposing engine, campaign management, and multi-platform distribution\nTransforms the content engine into a full campaign management platform with open-source AI integrations and unified multi-platform distribution.\n\n## Provider Abstraction Layer\n\nCreated unified interfaces for AI service providers enabling easy switching between open-source and paid APIs:\n\n- **Audio p",
+        "container": "tap919/Content-Creation-Engine-",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 0,
+          "reactions": 0
+        },
+        "freshness": 83,
+        "item_id": "GH30",
+        "local_rank_score": 0.396,
+        "local_relevance": 0.29,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "closed",
+          "top_comments": []
+        },
+        "published_at": "2026-04-07",
+        "relevance_hint": 0.25,
+        "snippet": "Transforms the content engine into a full campaign management platform with open-source AI integrations and unified multi-platform distribution.\n\n## Provider Abstraction Layer\n\nCreated unified interfaces for AI service providers enabling easy switching between open-source and paid APIs:\n\n- **Audio p",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Add provider abstraction layer, advanced repurposing engine, campaign management, and multi-platform distribution",
+        "url": "https://github.com/tap919/Content-Creation-Engine-/pull/9",
+        "why_relevant": "GitHub PR: Add provider abstraction layer, advanced repurposing engine,"
+      },
+      {
+        "author": "Masterleeaus",
+        "body": "Integrate AI Social Media Pro (v5.1.0) \u2014 Full Social Platform \u2014 into TitanSocial\n## Extension: AI Social Media Pro \u2014 v5.1.0\n**Source:** `codetouse/SocialMedia_extracted/`\n**Destination module:** `TitanSocial` (new module \u2014 see #189)\n\n---\n\n## \u26a0\ufe0f Module Change\nPreviously assigned to TitanCreate. **Reassigned to TitanSocial** \u2014 the dedicated social media and marketing module.\n\n---",
+        "container": "Masterleeaus/Worksuite-Saas---Project-Management-System_Laravel",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 0,
+          "reactions": 0
+        },
+        "freshness": 89,
+        "item_id": "GH26",
+        "local_rank_score": 0.359,
+        "local_relevance": 0.21,
+        "metadata": {
+          "is_pr": false,
+          "labels": [],
+          "state": "closed",
+          "top_comments": []
+        },
+        "published_at": "2026-04-10",
+        "relevance_hint": 0.44,
+        "snippet": "## Extension: AI Social Media Pro \u2014 v5.1.0\n**Source:** `codetouse/SocialMedia_extracted/`\n**Destination module:** `TitanSocial` (new module \u2014 see #189)\n\n---\n\n## \u26a0\ufe0f Module Change\nPreviously assigned to TitanCreate. **Reassigned to TitanSocial** \u2014 the dedicated social media and marketing module.\n\n---",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Integrate AI Social Media Pro (v5.1.0) \u2014 Full Social Platform \u2014 into TitanSocial",
+        "url": "https://github.com/Masterleeaus/Worksuite-Saas---Project-Management-System_Laravel/issues/171",
+        "why_relevant": "GitHub issue: Integrate AI Social Media Pro (v5.1.0) \u2014 Full Social Platfor"
+      },
+      {
+        "author": "mosscorp",
+        "body": "Build: CalorieLens MVP \u2014 Camera-First AI Calorie Scanner\n## Overview\nBuild the CalorieLens MVP: a camera-first, friction-zero AI calorie and macro tracker. CEO-approved (Cycle 4, HIGH priority).\n\n## Core User Flow\n1. User opens app \u2192 taps camera button\n2. Points camera at food \u2192 taps capture\n3. AI identifies food and returns calories + macros in <3 second",
+        "container": "mosscorp/mosscorp",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 76,
+          "reactions": 0
+        },
+        "engagement_score": 100,
+        "freshness": 47,
+        "item_id": "GH24",
+        "local_rank_score": 0.354,
+        "local_relevance": 0.21,
+        "metadata": {
+          "is_pr": false,
+          "labels": [
+            "stage:building",
+            "agent:ios-developer"
+          ],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-03-20",
+        "relevance_hint": 0.66,
+        "snippet": "## Overview\nBuild the CalorieLens MVP: a camera-first, friction-zero AI calorie and macro tracker. CEO-approved (Cycle 4, HIGH priority).\n\n## Core User Flow\n1. User opens app \u2192 taps camera button\n2. Points camera at food \u2192 taps capture\n3. AI identifies food and returns calories + macros in <3 second",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Build: CalorieLens MVP \u2014 Camera-First AI Calorie Scanner",
+        "url": "https://github.com/mosscorp/mosscorp/issues/26",
+        "why_relevant": "GitHub issue: Build: CalorieLens MVP \u2014 Camera-First AI Calorie Scanner"
+      },
+      {
+        "author": "JustAGhosT",
+        "body": "Add AI video generation pipeline (Pollo AI + Runway)\n## Summary\n- **New API routes**: `POST /api/video/generate` and `GET /api/video/status/[taskId]` for AI video generation via Pollo AI (character images) + Runway Act-Two (motion video)\n- **Prisma schema**: Added `VideoJob` model to track generation tasks\n- **Naming convention**: Fixed resource namin",
+        "container": "JustAGhosT/content_creation",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 4,
+          "reactions": 0
+        },
+        "engagement_score": 25,
+        "freshness": 76,
+        "item_id": "GH27",
+        "local_rank_score": 0.35150000000000003,
+        "local_relevance": 0.21,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "closed",
+          "top_comments": []
+        },
+        "published_at": "2026-04-03",
+        "relevance_hint": 0.51,
+        "snippet": "## Summary\n- **New API routes**: `POST /api/video/generate` and `GET /api/video/status/[taskId]` for AI video generation via Pollo AI (character images) + Runway Act-Two (motion video)\n- **Prisma schema**: Added `VideoJob` model to track generation tasks\n- **Naming convention**: Fixed resource namin",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Add AI video generation pipeline (Pollo AI + Runway)",
+        "url": "https://github.com/JustAGhosT/content_creation/pull/115",
+        "why_relevant": "GitHub PR: Add AI video generation pipeline (Pollo AI + Runway)"
+      },
+      {
+        "author": "chanbistec",
+        "body": "\ud83e\udd9e MVP Platform \u2014 Multi-tenant Social Media Posting\n# Proposal: MVP Platform\n\n## Problem\n\nWe have a working content pipeline (area6-health-tips) that generates AI images, reels, and posts \u2014 but publishing to each platform is manual scripting. As Chandima onboards more businesses, each with separate social accounts, this doesn't scale. There's no way",
+        "container": "chanbistec/social-poster",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 0,
+          "reactions": 0
+        },
+        "freshness": 65,
+        "item_id": "GH21",
+        "local_rank_score": 0.351,
+        "local_relevance": 0.29,
+        "metadata": {
+          "is_pr": false,
+          "labels": [
+            "specclaw"
+          ],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-03-29",
+        "relevance_hint": 0.36,
+        "snippet": "# Proposal: MVP Platform\n\n## Problem\n\nWe have a working content pipeline (area6-health-tips) that generates AI images, reels, and posts \u2014 but publishing to each platform is manual scripting. As Chandima onboards more businesses, each with separate social accounts, this doesn't scale. There's no way",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "\ud83e\udd9e MVP Platform \u2014 Multi-tenant Social Media Posting",
+        "url": "https://github.com/chanbistec/social-poster/issues/1",
+        "why_relevant": "GitHub issue: \ud83e\udd9e MVP Platform \u2014 Multi-tenant Social Media Posting"
+      },
+      {
+        "author": "github-actions[bot]",
+        "body": "Daily Content Summary 2026-04-07\n# \ud83d\udcf0 Daily Content Summary - 2026-04-07\n### Executive Summary\n\n**Key Insights**\nThe technology landscape is currently defined by a paradoxical reliance on artificial intelligence alongside a growing crisis of trust in its implementation. While **Anthropic** has surged to a **$30 billion** run-rate re",
+        "container": "jhengy/content-aggregator",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 1,
+          "reactions": 0
+        },
+        "engagement_score": 0,
+        "freshness": 83,
+        "item_id": "GH15",
+        "local_rank_score": 0.35050000000000003,
+        "local_relevance": 0.22,
+        "metadata": {
+          "is_pr": false,
+          "labels": [
+            "automated"
+          ],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-04-07",
+        "relevance_hint": 0.47,
+        "snippet": "# \ud83d\udcf0 Daily Content Summary - 2026-04-07\n### Executive Summary\n\n**Key Insights**\nThe technology landscape is currently defined by a paradoxical reliance on artificial intelligence alongside a growing crisis of trust in its implementation. While **Anthropic** has surged to a **$30 billion** run-rate re",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Daily Content Summary 2026-04-07",
+        "url": "https://github.com/jhengy/content-aggregator/issues/449",
+        "why_relevant": "GitHub issue: Daily Content Summary 2026-04-07"
+      },
+      {
+        "author": "naelmohammad",
+        "body": "Feature Request: Support for Kiro-CLI Integration with Paperclip AI\nIntegrate Kiro-CLI directly into Paperclip AI to provide users with advanced command-line capabilities for content processing, file management, and workflow automation. This integration will enhance Paperclip AI's functionality by embedding Kiro-CLI's powerful command-line interface and utilities di",
+        "container": "paperclipai/paperclip",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 1,
+          "reactions": 0
+        },
+        "engagement_score": 0,
+        "freshness": 70,
+        "item_id": "GH12",
+        "local_rank_score": 0.318,
+        "local_relevance": 0.22,
+        "metadata": {
+          "is_pr": false,
+          "labels": [],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-03-31",
+        "relevance_hint": 0.62,
+        "snippet": "Integrate Kiro-CLI directly into Paperclip AI to provide users with advanced command-line capabilities for content processing, file management, and workflow automation. This integration will enhance Paperclip AI's functionality by embedding Kiro-CLI's powerful command-line interface and utilities di",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Feature Request: Support for Kiro-CLI Integration with Paperclip AI",
+        "url": "https://github.com/paperclipai/paperclip/issues/2354",
+        "why_relevant": "GitHub issue: Feature Request: Support for Kiro-CLI Integration with Paper"
+      },
+      {
+        "author": "ajaknumber4",
+        "body": "[Server Submission]: Social Neuron \u2014 AI Social Media Content Lifecycle\n### GitHub Repository URL\n\nhttps://github.com/socialneuron/mcp-server\n\n### Logo Image\n\n![Social Neuron Logo](https://socialneuron.com/logo-icon.png)\n\n(1024\u00d71024 PNG \u2014 can be resized to 400\u00d7400 if needed)\n\n### Installation Testing\n\n- [x] I have tested that Cline can successfully set up this server us",
+        "container": "cline/mcp-marketplace",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 0,
+          "reactions": 0
+        },
+        "freshness": 49,
+        "item_id": "GH12",
+        "local_rank_score": 0.311,
+        "local_relevance": 0.29,
+        "metadata": {
+          "is_pr": false,
+          "labels": [],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-03-21",
+        "relevance_hint": 0.66,
+        "snippet": "### GitHub Repository URL\n\nhttps://github.com/socialneuron/mcp-server\n\n### Logo Image\n\n![Social Neuron Logo](https://socialneuron.com/logo-icon.png)\n\n(1024\u00d71024 PNG \u2014 can be resized to 400\u00d7400 if needed)\n\n### Installation Testing\n\n- [x] I have tested that Cline can successfully set up this server us",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "[Server Submission]: Social Neuron \u2014 AI Social Media Content Lifecycle",
+        "url": "https://github.com/cline/mcp-marketplace/issues/1007",
+        "why_relevant": "GitHub issue: [Server Submission]: Social Neuron \u2014 AI Social Media Content"
+      },
+      {
+        "author": "Copilot",
+        "body": "Restructure AI-DAN-FRAMEWORK into AIDAN-OS: lean solo-operator business OS\nReplaces a 350KB+ enterprise multi-agent demo (15+ agents, 87 n8n workflows, CrewAI/LangChain stack) with a focused solo-operator OS targeting one principle: **one product \u2192 $500 MRR \u2192 then scale**.\n\n## Deleted\n- `n8n_workflows/` \u2014 87+ workflow JSONs + docs\n- `agents/sales/`, `agents/marketing/`, `a",
+        "container": "ismaelloveexcel/AI-DAN-FRAMEWORK",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 5,
+          "reactions": 0
+        },
+        "engagement_score": 28,
+        "freshness": 71,
+        "item_id": "GH21",
+        "local_rank_score": 0.3095,
+        "local_relevance": 0.16,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "closed",
+          "top_comments": []
+        },
+        "published_at": "2026-04-01",
+        "relevance_hint": 0.57,
+        "snippet": "Replaces a 350KB+ enterprise multi-agent demo (15+ agents, 87 n8n workflows, CrewAI/LangChain stack) with a focused solo-operator OS targeting one principle: **one product \u2192 $500 MRR \u2192 then scale**.\n\n## Deleted\n- `n8n_workflows/` \u2014 87+ workflow JSONs + docs\n- `agents/sales/`, `agents/marketing/`, `a",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Restructure AI-DAN-FRAMEWORK into AIDAN-OS: lean solo-operator business OS",
+        "url": "https://github.com/ismaelloveexcel/AI-DAN-FRAMEWORK/pull/2",
+        "why_relevant": "GitHub PR: Restructure AI-DAN-FRAMEWORK into AIDAN-OS: lean solo-operat"
+      },
+      {
+        "author": "franknguyenaff-png",
+        "body": "Fiction Goldmine Engine Review \u2013 Unlock Passive Income with AI-Powered Book Creation\n## Fiction Goldmine Engine Review - Introduction\nDiscover how Fiction Goldmine Engine empowers anyone to create and publish profitable fiction books using AI, revolutionizing online publishing. This comprehensive **Fiction Goldmine Engine Review** delves into its core functionalities and benefits,",
+        "container": "franknguyenaff-png/GIT",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 0,
+          "reactions": 0
+        },
+        "freshness": 79,
+        "item_id": "GH11",
+        "local_rank_score": 0.3015,
+        "local_relevance": 0.16,
+        "metadata": {
+          "is_pr": false,
+          "labels": [],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-04-05",
+        "relevance_hint": 0.6,
+        "snippet": "## Fiction Goldmine Engine Review - Introduction\nDiscover how Fiction Goldmine Engine empowers anyone to create and publish profitable fiction books using AI, revolutionizing online publishing. This comprehensive **Fiction Goldmine Engine Review** delves into its core functionalities and benefits,",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Fiction Goldmine Engine Review \u2013 Unlock Passive Income with AI-Powered Book Creation",
+        "url": "https://github.com/franknguyenaff-png/GIT/issues/1",
+        "why_relevant": "GitHub issue: Fiction Goldmine Engine Review \u2013 Unlock Passive Income with"
+      },
+      {
+        "author": "frankxai",
+        "body": "feat: Rebuild Vibe OS as complete AI music production system\n## Summary\n\n- **Rebuilt `/products/vibe-os`** from generic \"Creative State Management\" placeholder into a fully realized AI Music Production System with 11 sections: Hero, Social Proof, How It Works (5-step workflow), 4 AI Agent Showcase, Real Suno Prompt Preview, Transformation Features, 5 Core Mod\n[vc]: #epBcVFSfq3EC+rPE/RzRfyY63mQZognq+qtMcROTaGY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJmcmFua3gtYWktdmVyY2VsLXdlYnNpdGUiLCJwcm9qZWN0SWQiOiJwcmpfTkhWSUtadGdsTmlkT0UxRkppcTZlWXg1UWpJTCIsImluc3BlY3RvclVybCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9mcmFua3gtcHJvamVjdHMvZnJhbmt4... ## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request significantly enhances the Vibe OS product offering by ... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a Next.js app layout and interactive client app page for Vibe OS, introduces multiple new UI components (agents, prompt preview, pricing...",
+        "container": "frankxai/frankx.ai-vercel-website",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 4,
+          "reactions": 1
+        },
+        "engagement_score": 12,
+        "freshness": 55,
+        "item_id": "GH3",
+        "local_rank_score": 0.29250000000000004,
+        "local_relevance": 0.22,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "open",
+          "top_comments": [
+            {
+              "author": "vercel[bot]",
+              "excerpt": "[vc]: #epBcVFSfq3EC+rPE/RzRfyY63mQZognq+qtMcROTaGY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJmcmFua3gtYWktdmVyY2VsLXdlYnNpdGUiLCJwcm9qZWN0SWQiOiJwcmpfTkhWSUtadGdsTmlkT0UxRkppcTZlWXg1UWpJTCIsImluc3BlY3RvclVybCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9mcmFua3gtcHJvamVjdHMvZnJhbmt4...",
+              "score": 0
+            },
+            {
+              "author": "gemini-code-assist[bot]",
+              "excerpt": "## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request significantly enhances the Vibe OS product offering by ...",
+              "score": 0
+            },
+            {
+              "author": "coderabbitai[bot]",
+              "excerpt": "<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a Next.js app layout and interactive client app page for Vibe OS, introduces multiple new UI components (agents, prompt preview, pricing...",
+              "score": 0
+            },
+            {
+              "author": "gemini-code-assist[bot]",
+              "excerpt": "> [!WARNING]\n> Gemini encountered an error creating the review. You can try again by commenting `/gemini review`.",
+              "score": 0
+            }
+          ]
+        },
+        "published_at": "2026-03-24",
+        "relevance_hint": 0.78,
+        "snippet": "[vc]: #epBcVFSfq3EC+rPE/RzRfyY63mQZognq+qtMcROTaGY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJmcmFua3gtYWktdmVyY2VsLXdlYnNpdGUiLCJwcm9qZWN0SWQiOiJwcmpfTkhWSUtadGdsTmlkT0UxRkppcTZlWXg1UWpJTCIsImluc3BlY3RvclVybCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9mcmFua3gtcHJvamVjdHMvZnJhbmt4... ## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request significantly enhances the Vibe OS product offering by ... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a Next.js app layout and interactive client app page for Vibe OS, introduces multiple new UI components (agents, prompt preview, pricing...",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "feat: Rebuild Vibe OS as complete AI music production system",
+        "url": "https://github.com/frankxai/frankx.ai-vercel-website/pull/21",
+        "why_relevant": "GitHub PR: feat: Rebuild Vibe OS as complete AI music production system"
+      },
+      {
+        "author": "roserenuu",
+        "body": "Add last30days research skill adapted for JFY brand\n## Summary\\n\\n- Adapts [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) into a brand-tailored research skill for @jesusforeveryours\\n- Covers multi-platform research (Reddit, X, YouTube, TikTok, Instagram, web) focused on Christian content trends, devotional communities, and",
+        "container": "roserenuu/Jesus-Forever-Yours",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 2,
+          "reactions": 0
+        },
+        "engagement_score": 11,
+        "freshness": 58,
+        "item_id": "GH14",
+        "local_rank_score": 0.2925,
+        "local_relevance": 0.21,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-03-25",
+        "relevance_hint": 0.5,
+        "snippet": "## Summary\\n\\n- Adapts [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) into a brand-tailored research skill for @jesusforeveryours\\n- Covers multi-platform research (Reddit, X, YouTube, TikTok, Instagram, web) focused on Christian content trends, devotional communities, and",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "Add last30days research skill adapted for JFY brand",
+        "url": "https://github.com/roserenuu/Jesus-Forever-Yours/pull/31",
+        "why_relevant": "GitHub PR: Add last30days research skill adapted for JFY brand"
+      },
+      {
+        "author": "alex-solovyev",
+        "body": "GH#13978: tighten cro-chapter-06.md (182\u2192143 lines)\n## Summary\n\n- Tightened `.agents/marketing-sales/cro-chapter-06.md` from 182 \u2192 143 lines (21% reduction, 39 lines removed)\n- Merged single-line bold-label paragraphs into dense inline pairs throughout\n- Consolidated 6-question numbered list to inline format; collapsed rating distribution bar from 5\n<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- This is an auto-generated comment: rate limited by coderabbit.ai -->\n\n> [!WARNING]\n> ## Rate limit exceeded\n> \n> `@alex-solovyev` has exceeded the limit for the number of commits that can be reviewed per hour. Please wait **... ## \ud83d\udd0d Code Quality Report\n\n\u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report\n\nSonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells\n\nMon Mar 30 10:08:37 UTC 2026: Code review monitoring started\nMon Mar 30 10:08:37 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1\n## \ud83d\udcc8 Current Quality... ## \ud83d\udd0d Code Quality Report\n\n\u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report\n\nSonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells\n\nMon Mar 30 10:12:23 UTC 2026: Code review monitoring started\nMon Mar 30 10:12:24 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1\n## \ud83d\udcc8 Current Quality...",
+        "container": "marcusquinn/aidevops",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 5,
+          "reactions": 1
+        },
+        "engagement_score": 14,
+        "freshness": 67,
+        "item_id": "GH5",
+        "local_rank_score": 0.28550000000000003,
+        "local_relevance": 0.16,
+        "metadata": {
+          "is_pr": true,
+          "labels": [
+            "origin:interactive"
+          ],
+          "state": "closed",
+          "top_comments": [
+            {
+              "author": "coderabbitai[bot]",
+              "excerpt": "<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- This is an auto-generated comment: rate limited by coderabbit.ai -->\n\n> [!WARNING]\n> ## Rate limit exceeded\n> \n> `@alex-solovyev` has exceeded the limit for the number of commits that can be reviewed per hour. Please wait **...",
+              "score": 0
+            },
+            {
+              "author": "github-actions[bot]",
+              "excerpt": "## \ud83d\udd0d Code Quality Report\n\n\u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report\n\nSonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells\n\nMon Mar 30 10:08:37 UTC 2026: Code review monitoring started\nMon Mar 30 10:08:37 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1\n## \ud83d\udcc8 Current Quality...",
+              "score": 0
+            },
+            {
+              "author": "github-actions[bot]",
+              "excerpt": "## \ud83d\udd0d Code Quality Report\n\n\u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report\n\nSonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells\n\nMon Mar 30 10:12:23 UTC 2026: Code review monitoring started\nMon Mar 30 10:12:24 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1\n## \ud83d\udcc8 Current Quality...",
+              "score": 0
+            },
+            {
+              "author": "sonarqubecloud[bot]",
+              "excerpt": "## [![Quality Gate Passed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-passed-20px.png 'Quality Gate Passed')](https://sonarcloud.io/dashboard?id=marcusquinn_aidevops&pullRequest=14075) **Quality Gate passed**  \nIssues  \n![](https://sonarsource.gith...",
+              "score": 0
+            },
+            {
+              "author": "alex-solovyev",
+              "excerpt": "## Implementation Summary\n\n**What done:**\n- Tightened `.agents/marketing-sales/cro-chapter-06.md` from 182 \u2192 145 lines (20% reduction, 37 lines removed)\n- Merged single-line bold-label paragraphs into dense inline pairs throughout all sections\n- Consolidated 6-question numbered list to inline format...",
+              "score": 0
+            }
+          ]
+        },
+        "published_at": "2026-03-30",
+        "relevance_hint": 0.65,
+        "snippet": "<!-- This is an auto-generated comment: summarize by coderabbit.ai --> <!-- This is an auto-generated comment: rate limited by coderabbit.ai --> > [!WARNING] > ## Rate limit exceeded > > `@alex-solovyev` has exceeded the limit for the number of commits that can be reviewed per hour. Please wait **... ## \ud83d\udd0d Code Quality Report \u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report SonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells Mon Mar 30 10:08:37 UTC 2026: Code review monitoring started Mon Mar 30 10:08:37 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1 ## \ud83d\udcc8 Current Quality... ## \ud83d\udd0d Code Quality Report \u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report SonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells Mon Mar 30 10:12:23 UTC 2026:...",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "GH#13978: tighten cro-chapter-06.md (182\u2192143 lines)",
+        "url": "https://github.com/marcusquinn/aidevops/pull/14075",
+        "why_relevant": "GitHub PR: GH#13978: tighten cro-chapter-06.md (182\u2192143 lines)"
+      },
+      {
+        "author": "itstimwhite",
+        "body": "feat(dashboard): refine chat workspace surfaces\n## Summary\n- refine the main chat, profile chat, and right drawer surfaces toward the Linear-style dashboard shell\n- tighten chat utility states including markdown, error, attachment, empty, loading, and tool-card treatments\n- polish the shared drawer primitives and profile sidebar presentation used\n[vc]: #v1gY0ImizVDJ5QpvdxuLcWA2KFthA3lTsYHanR+LiwY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJrcmFrb3ciLCJwcm9qZWN0SWQiOiJwcmpfa2ttMjkxVXhBQTg4MnRPVWRBUUJNbXQwcHRGYiIsInJvb3REaXJlY3RvcnkiOm51bGwsImxpdmVGZWVkYmFjayI6eyJyZXNvbHZlZCI6MCwidW5yZXNvbHZlZCI6MCwidG90YWwiOjAs... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nThis PR introduces a new `ChatWorkspaceSurface` wrapper component and applies extensive UI styling updates across chat, dashboard, profile, a... ## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](https://sonarcloud.io/dashboard?id=JovieInc_Jovie&pullRequest=6304) **Quality Gate failed**  \nFailed conditions  \n![](https://sonarsource....",
+        "container": "JovieInc/Jovie",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 6,
+          "reactions": 2
+        },
+        "engagement_score": 22,
+        "freshness": 49,
+        "item_id": "GH4",
+        "local_rank_score": 0.281,
+        "local_relevance": 0.21,
+        "metadata": {
+          "is_pr": true,
+          "labels": [
+            "testing",
+            "needs-human"
+          ],
+          "state": "closed",
+          "top_comments": [
+            {
+              "author": "vercel[bot]",
+              "excerpt": "[vc]: #v1gY0ImizVDJ5QpvdxuLcWA2KFthA3lTsYHanR+LiwY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJrcmFrb3ciLCJwcm9qZWN0SWQiOiJwcmpfa2ttMjkxVXhBQTg4MnRPVWRBUUJNbXQwcHRGYiIsInJvb3REaXJlY3RvcnkiOm51bGwsImxpdmVGZWVkYmFjayI6eyJyZXNvbHZlZCI6MCwidW5yZXNvbHZlZCI6MCwidG90YWwiOjAs...",
+              "score": 0
+            },
+            {
+              "author": "coderabbitai[bot]",
+              "excerpt": "<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nThis PR introduces a new `ChatWorkspaceSurface` wrapper component and applies extensive UI styling updates across chat, dashboard, profile, a...",
+              "score": 0
+            },
+            {
+              "author": "sonarqubecloud[bot]",
+              "excerpt": "## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](https://sonarcloud.io/dashboard?id=JovieInc_Jovie&pullRequest=6304) **Quality Gate failed**  \nFailed conditions  \n![](https://sonarsource....",
+              "score": 0
+            },
+            {
+              "author": "sentry[bot]",
+              "excerpt": ":white_check_mark: All tests passed.",
+              "score": 0
+            },
+            {
+              "author": "github-actions[bot]",
+              "excerpt": "## CI Summary\n\nA crisp snapshot of this PR run \u2014 executed vs. skipped, with timing for every key lane.\n\n\n| Job | Status | Context | Time |\n| --- | ------ | ------- | ---- |\n| **PR Ready (merge gate)** | \u2705 Passed | Executed | 3s |\n| Env Example Guard | \u2705 Passed | Executed | 6s |\n| Guardrails | \u2705 Pass...",
+              "score": 0
+            }
+          ]
+        },
+        "published_at": "2026-03-21",
+        "relevance_hint": 0.67,
+        "snippet": "[vc]: #v1gY0ImizVDJ5QpvdxuLcWA2KFthA3lTsYHanR+LiwY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJrcmFrb3ciLCJwcm9qZWN0SWQiOiJwcmpfa2ttMjkxVXhBQTg4MnRPVWRBUUJNbXQwcHRGYiIsInJvb3REaXJlY3RvcnkiOm51bGwsImxpdmVGZWVkYmFjayI6eyJyZXNvbHZlZCI6MCwidW5yZXNvbHZlZCI6MCwidG90YWwiOjAs... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nThis PR introduces a new `ChatWorkspaceSurface` wrapper component and applies extensive UI styling updates across chat, dashboard, profile, a... ## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](https://sonarcloud.io/dashboard?id=JovieInc_Jovie&pullRequest=6304) **Quality Gate failed**  \nFailed conditions  \n![](https://sonarsource....",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "feat(dashboard): refine chat workspace surfaces",
+        "url": "https://github.com/JovieInc/Jovie/pull/6304",
+        "why_relevant": "GitHub PR: feat(dashboard): refine chat workspace surfaces"
+      },
+      {
+        "author": "dstolts",
+        "body": "CovenAI: Full project scaffold and Phase 1 prep\n## Summary\nComplete autonomous build session -- all Phase 1 prep work done while Dan was AFK.\n\n### What's included:\n- **Next.js 16 app** with 8 routes (landing, leaderboard, join, profile, challenges, teams, tiers, about), dark theme, CovenAI branding\n- **13 AI-generated brand assets** via Imagen 4:",
+        "container": "dstolts/covenai",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 0,
+          "reactions": 0
+        },
+        "freshness": 55,
+        "item_id": "GH15",
+        "local_rank_score": 0.274,
+        "local_relevance": 0.21,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-03-24",
+        "relevance_hint": 0.43,
+        "snippet": "## Summary\nComplete autonomous build session -- all Phase 1 prep work done while Dan was AFK.\n\n### What's included:\n- **Next.js 16 app** with 8 routes (landing, leaderboard, join, profile, challenges, teams, tiers, about), dark theme, CovenAI branding\n- **13 AI-generated brand assets** via Imagen 4:",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "CovenAI: Full project scaffold and Phase 1 prep",
+        "url": "https://github.com/dstolts/covenai/pull/1",
+        "why_relevant": "GitHub PR: CovenAI: Full project scaffold and Phase 1 prep"
+      },
+      {
+        "author": "muffy86",
+        "body": "feat: Advanced Browser AI Configuration System\n<!-- CURSOR_AGENT_PR_BODY_BEGIN -->\n## Description\n\nThis PR adds a **complete, production-ready browser AI automation system** with advanced features including local AI models, voice commands, browser automation, analytics, security, and comprehensive documentation.\n\n## \ud83d\ude80 What's Included\n\n### \ud83e\udd16 AI M\n# CodeCapy Review \u208d\u1422\u2022(\u072b)\u2022\u1422\u208e\n- PR: #37\n- Commit: 3d7fd16\n\n## Codebase Summary\nChat SDK is an open-source Next.js AI chatbot template that now includes an advanced browser AI configuration system. The PR introduces extensive documentation and configuration files that guide users through setting up the... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a browser-centric AI toolkit: extensive docs and guides, configurable search/bookmarklets/filters, a Manifest V3 Chrome extension, multi... ## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request delivers a comprehensive browser configuration system a...",
+        "container": "muffy86/Autonomous-AI-orchestration-agent",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 9,
+          "reactions": 1
+        },
+        "engagement_score": 21,
+        "freshness": 43,
+        "item_id": "GH4",
+        "local_rank_score": 0.2715,
+        "local_relevance": 0.22,
+        "metadata": {
+          "is_pr": true,
+          "labels": [],
+          "state": "open",
+          "top_comments": [
+            {
+              "author": "codecapyai[bot]",
+              "excerpt": "# CodeCapy Review \u208d\u1422\u2022(\u072b)\u2022\u1422\u208e\n- PR: #37\n- Commit: 3d7fd16\n\n## Codebase Summary\nChat SDK is an open-source Next.js AI chatbot template that now includes an advanced browser AI configuration system. The PR introduces extensive documentation and configuration files that guide users through setting up the...",
+              "score": 0
+            },
+            {
+              "author": "coderabbitai[bot]",
+              "excerpt": "<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a browser-centric AI toolkit: extensive docs and guides, configurable search/bookmarklets/filters, a Manifest V3 Chrome extension, multi...",
+              "score": 0
+            },
+            {
+              "author": "gemini-code-assist[bot]",
+              "excerpt": "## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request delivers a comprehensive browser configuration system a...",
+              "score": 0
+            },
+            {
+              "author": "codecapyai[bot]",
+              "excerpt": "\ud83d\ude80 Launching Scrapybara desktop...",
+              "score": 0
+            },
+            {
+              "author": "codecapyai[bot]",
+              "excerpt": "\u274c Something went wrong: \n```\nstatus_code: 500, body: {'detail': 'Error creating instance: HTTPSConnectionPool(host=\\'dd71ce9e4c14175cfb2d4b4d613159f4.sk1.us-west-1.eks.amazonaws.com\\', port=443): Max retries exceeded with url: /api/v1/namespaces/scrapybara-instances/services (Caused by NameResolutio...",
+              "score": 0
+            }
+          ]
+        },
+        "published_at": "2026-03-18",
+        "relevance_hint": 0.81,
+        "snippet": "# CodeCapy Review \u208d\u1422\u2022(\u072b)\u2022\u1422\u208e - PR: #37 - Commit: 3d7fd16 ## Codebase Summary Chat SDK is an open-source Next.js AI chatbot template that now includes an advanced browser AI configuration system. The PR introduces extensive documentation and configuration files that guide users through setting up the... <!-- This is an auto-generated comment: summarize by coderabbit.ai --> <!-- walkthrough_start --> <details> <summary>\ud83d\udcdd Walkthrough</summary> ## Walkthrough Adds a browser-centric AI toolkit: extensive docs and guides, configurable search/bookmarklets/filters, a Manifest V3 Chrome extension, multi... ## Summary of Changes Hello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed! This...",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "feat: Advanced Browser AI Configuration System",
+        "url": "https://github.com/muffy86/Autonomous-AI-orchestration-agent/pull/37",
+        "why_relevant": "GitHub PR: feat: Advanced Browser AI Configuration System"
+      },
+      {
+        "author": "github-actions[bot]",
+        "body": "\ud83e\udd9e OpenClaw Ecosystem Digest 2026-03-18\n# OpenClaw Ecosystem Digest 2026-03-18\n\n> Issues: 500 | PRs: 500 | Projects covered: 13 | Generated: 2026-03-18 00:10 UTC\n\n- [OpenClaw](https://github\u200b.com/openclaw/openclaw)\n- [NanoBot](https://github\u200b.com/HKUDS/nanobot)\n- [Zeroclaw](https://github\u200b.com/zeroclaw-labs/zeroclaw)\n- [PicoClaw](https://",
+        "container": "duanyytop/agents-radar",
+        "date_confidence": "high",
+        "engagement": {
+          "comments": 0,
+          "reactions": 0
+        },
+        "freshness": 43,
+        "item_id": "GH1",
+        "local_rank_score": 0.1335,
+        "local_relevance": 0.04,
+        "metadata": {
+          "is_pr": false,
+          "labels": [
+            "openclaw-en"
+          ],
+          "state": "open",
+          "top_comments": []
+        },
+        "published_at": "2026-03-18",
+        "relevance_hint": 0.6,
+        "snippet": "# OpenClaw Ecosystem Digest 2026-03-18\n\n> Issues: 500 | PRs: 500 | Projects covered: 13 | Generated: 2026-03-18 00:10 UTC\n\n- [OpenClaw](https://github\u200b.com/openclaw/openclaw)\n- [NanoBot](https://github\u200b.com/HKUDS/nanobot)\n- [Zeroclaw](https://github\u200b.com/zeroclaw-labs/zeroclaw)\n- [PicoClaw](https://",
+        "source": "github",
+        "source_quality": 0.6,
+        "title": "\ud83e\udd9e OpenClaw Ecosystem Digest 2026-03-18",
+        "url": "https://github.com/duanyytop/agents-radar/issues/213",
+        "why_relevant": "GitHub issue: \ud83e\udd9e OpenClaw Ecosystem Digest 2026-03-18"
+      }
+    ],
+    "hackernews": [],
+    "reddit": [],
+    "youtube": []
+  },
+  "provider_runtime": {
+    "planner_model": "gemini-3.1-flash-lite-preview",
+    "reasoning_provider": "gemini",
+    "rerank_model": "gemini-3.1-flash-lite-preview"
+  },
+  "query_plan": {
+    "cluster_mode": "workflow",
+    "freshness_mode": "evergreen_ok",
+    "intent": "how_to",
+    "notes": [
+      "Focus on identifying the gap between generic AI content and high-performing creator-led strategies.",
+      "Synthesize findings into actionable content pillars for AI founders targeting B2B operators."
+    ],
+    "raw_topic": "How are people actually using AI for social media marketing on TikTok, Instagram, and X? Focus on recurring hooks, creator formats, audience pain points, objections, and the kinds of AI use cases that get the strongest engagement. Then synthesize what an AI company should post about if it wants to attract founders and operators.",
+    "source_weights": {
+      "github": 0.1,
+      "hackernews": 0.1,
+      "polymarket": 0.5,
+      "reddit": 0.15,
+      "youtube": 0.15
+    },
+    "subqueries": [
+      {
+        "label": "AI social media workflows",
+        "ranking_query": "How are creators and marketers using AI to automate content production for TikTok, Instagram, and X?",
+        "search_query": "AI tools for TikTok Instagram X content creation",
+        "sources": [
+          "reddit",
+          "youtube",
+          "hackernews",
+          "github"
+        ],
+        "weight": 0.5
+      },
+      {
+        "label": "Audience pain points and objections",
+        "ranking_query": "What are the common audience objections and pain points regarding AI-generated content on social media platforms?",
+        "search_query": "AI social media marketing criticism engagement pain points",
+        "sources": [
+          "reddit",
+          "youtube",
+          "hackernews",
+          "github"
+        ],
+        "weight": 0.3
+      },
+      {
+        "label": "High engagement AI formats",
+        "ranking_query": "Which AI-driven content formats and hooks are currently driving the highest engagement on TikTok, Instagram, and X?",
+        "search_query": "viral AI social media marketing strategies creator formats",
+        "sources": [
+          "reddit",
+          "youtube",
+          "hackernews",
+          "github"
+        ],
+        "weight": 0.2
+      }
+    ]
+  },
+  "range_from": "2026-03-16",
+  "range_to": "2026-04-15",
+  "ranked_candidates": [
+    {
+      "candidate_id": "https://github.com/creatorx02/ai-agent-for-youtube-social-media-automation/pull/1",
+      "cluster_id": "cluster-1",
+      "engagement": 18,
+      "explanation": "Provides a concrete example of an end-to-end AI content engine workflow, which is highly relevant for understanding how creators automate production.",
+      "final_score": 67.10491803278688,
+      "freshness": 79,
+      "fun_explanation": "Standard automation boilerplate; lacks the personality needed for social media engagement.",
+      "fun_score": 25.0,
+      "item_id": "GH23",
+      "local_relevance": 0.47,
+      "metadata": {
+        "github_stars": {
+          "CreatorX02/AI-AGENT-FOR-YOUTUBE-SOCIAL-MEDIA-AUTOMATION": 0
+        },
+        "provenance": [
+          {
+            "item_id": "GH23",
+            "native_rank": 1,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 1
+      },
+      "rerank_score": 85.0,
+      "rrf_score": 0.000819672131147541,
+      "snippet": "Builds a complete automated content engine from scratch (repo was previously empty). The agent runs a continuous cycle \u2014 **Research \u2192 Strategy \u2192 Creation \u2192 SEO \u2192 Monetisation \u2192 Distribution \u2192 Tracking** \u2014 across YouTube, TikTok, Instagram, Facebook, and X.\n\n## Core Modules\n\n- **`agents/research_agen",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "Copilot",
+          "body": "Implement AI Content Growth Agent for YouTube & Social Media Automation\nBuilds a complete automated content engine from scratch (repo was previously empty). The agent runs a continuous cycle \u2014 **Research \u2192 Strategy \u2192 Creation \u2192 SEO \u2192 Monetisation \u2192 Distribution \u2192 Tracking** \u2014 across YouTube, TikTok, Instagram, Facebook, and X.\n\n## Core Modules\n\n- **`agents/research_agen",
+          "container": "CreatorX02/AI-AGENT-FOR-YOUTUBE-SOCIAL-MEDIA-AUTOMATION",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 3,
+            "reactions": 0
+          },
+          "engagement_score": 18,
+          "freshness": 79,
+          "item_id": "GH23",
+          "local_rank_score": 0.521,
+          "local_relevance": 0.47,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "closed",
+            "top_comments": []
+          },
+          "published_at": "2026-04-05",
+          "relevance_hint": 0.59,
+          "snippet": "Builds a complete automated content engine from scratch (repo was previously empty). The agent runs a continuous cycle \u2014 **Research \u2192 Strategy \u2192 Creation \u2192 SEO \u2192 Monetisation \u2192 Distribution \u2192 Tracking** \u2014 across YouTube, TikTok, Instagram, Facebook, and X.\n\n## Core Modules\n\n- **`agents/research_agen",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Implement AI Content Growth Agent for YouTube & Social Media Automation",
+          "url": "https://github.com/CreatorX02/AI-AGENT-FOR-YOUTUBE-SOCIAL-MEDIA-AUTOMATION/pull/1",
+          "why_relevant": "GitHub PR: Implement AI Content Growth Agent for YouTube & Social Media"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "Implement AI Content Growth Agent for YouTube & Social Media Automation",
+      "url": "https://github.com/CreatorX02/AI-AGENT-FOR-YOUTUBE-SOCIAL-MEDIA-AUTOMATION/pull/1"
+    },
+    {
+      "candidate_id": "https://github.com/justaghost/content_creation/pull/115",
+      "cluster_id": "cluster-2",
+      "engagement": 25,
+      "explanation": "Practical technical implementation of an AI video generation pipeline, directly addressing the 'how-to' aspect of content production.",
+      "final_score": 60.786567164179104,
+      "freshness": 76,
+      "fun_explanation": "Functional, but naming a video job 'Pollo AI' is the only thing keeping it from being dry.",
+      "fun_score": 30.0,
+      "item_id": "GH27",
+      "local_relevance": 0.21,
+      "metadata": {
+        "github_stars": {
+          "JustAGhosT/content_creation": 0
+        },
+        "provenance": [
+          {
+            "item_id": "GH27",
+            "native_rank": 7,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 7
+      },
+      "rerank_score": 75.0,
+      "rrf_score": 0.0007462686567164179,
+      "snippet": "## Summary\n- **New API routes**: `POST /api/video/generate` and `GET /api/video/status/[taskId]` for AI video generation via Pollo AI (character images) + Runway Act-Two (motion video)\n- **Prisma schema**: Added `VideoJob` model to track generation tasks\n- **Naming convention**: Fixed resource namin",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "JustAGhosT",
+          "body": "Add AI video generation pipeline (Pollo AI + Runway)\n## Summary\n- **New API routes**: `POST /api/video/generate` and `GET /api/video/status/[taskId]` for AI video generation via Pollo AI (character images) + Runway Act-Two (motion video)\n- **Prisma schema**: Added `VideoJob` model to track generation tasks\n- **Naming convention**: Fixed resource namin",
+          "container": "JustAGhosT/content_creation",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 4,
+            "reactions": 0
+          },
+          "engagement_score": 25,
+          "freshness": 76,
+          "item_id": "GH27",
+          "local_rank_score": 0.35150000000000003,
+          "local_relevance": 0.21,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "closed",
+            "top_comments": []
+          },
+          "published_at": "2026-04-03",
+          "relevance_hint": 0.51,
+          "snippet": "## Summary\n- **New API routes**: `POST /api/video/generate` and `GET /api/video/status/[taskId]` for AI video generation via Pollo AI (character images) + Runway Act-Two (motion video)\n- **Prisma schema**: Added `VideoJob` model to track generation tasks\n- **Naming convention**: Fixed resource namin",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Add AI video generation pipeline (Pollo AI + Runway)",
+          "url": "https://github.com/JustAGhosT/content_creation/pull/115",
+          "why_relevant": "GitHub PR: Add AI video generation pipeline (Pollo AI + Runway)"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "Add AI video generation pipeline (Pollo AI + Runway)",
+      "url": "https://github.com/JustAGhosT/content_creation/pull/115"
+    },
+    {
+      "candidate_id": "https://github.com/chanbistec/social-poster/issues/1",
+      "cluster_id": "cluster-3",
+      "explanation": "Highlights the scaling pain points of manual vs. automated publishing, which is a key insight for founders and operators.",
+      "final_score": 51.68382352941177,
+      "freshness": 65,
+      "fun_explanation": "The lobster emoji adds a touch of personality to an otherwise standard scaling problem.",
+      "fun_score": 45.0,
+      "item_id": "GH21",
+      "local_relevance": 0.29,
+      "metadata": {
+        "github_stars": {
+          "chanbistec/social-poster": 0
+        },
+        "provenance": [
+          {
+            "item_id": "GH21",
+            "native_rank": 8,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 8
+      },
+      "rerank_score": 70.0,
+      "rrf_score": 0.0007352941176470588,
+      "snippet": "# Proposal: MVP Platform\n\n## Problem\n\nWe have a working content pipeline (area6-health-tips) that generates AI images, reels, and posts \u2014 but publishing to each platform is manual scripting. As Chandima onboards more businesses, each with separate social accounts, this doesn't scale. There's no way",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "chanbistec",
+          "body": "\ud83e\udd9e MVP Platform \u2014 Multi-tenant Social Media Posting\n# Proposal: MVP Platform\n\n## Problem\n\nWe have a working content pipeline (area6-health-tips) that generates AI images, reels, and posts \u2014 but publishing to each platform is manual scripting. As Chandima onboards more businesses, each with separate social accounts, this doesn't scale. There's no way",
+          "container": "chanbistec/social-poster",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 0,
+            "reactions": 0
+          },
+          "freshness": 65,
+          "item_id": "GH21",
+          "local_rank_score": 0.351,
+          "local_relevance": 0.29,
+          "metadata": {
+            "is_pr": false,
+            "labels": [
+              "specclaw"
+            ],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-03-29",
+          "relevance_hint": 0.36,
+          "snippet": "# Proposal: MVP Platform\n\n## Problem\n\nWe have a working content pipeline (area6-health-tips) that generates AI images, reels, and posts \u2014 but publishing to each platform is manual scripting. As Chandima onboards more businesses, each with separate social accounts, this doesn't scale. There's no way",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "\ud83e\udd9e MVP Platform \u2014 Multi-tenant Social Media Posting",
+          "url": "https://github.com/chanbistec/social-poster/issues/1",
+          "why_relevant": "GitHub issue: \ud83e\udd9e MVP Platform \u2014 Multi-tenant Social Media Posting"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "\ud83e\udd9e MVP Platform \u2014 Multi-tenant Social Media Posting",
+      "url": "https://github.com/chanbistec/social-poster/issues/1"
+    },
+    {
+      "candidate_id": "https://github.com/roserenuu/jesus-forever-yours/pull/31",
+      "cluster_id": "cluster-4",
+      "engagement": 11,
+      "explanation": "Relevant for its focus on multi-platform research and trend tracking, though specific to a niche brand.",
+      "final_score": 51.278571428571425,
+      "freshness": 58,
+      "fun_explanation": "Very niche, dry technical implementation of research skills.",
+      "fun_score": 20.0,
+      "item_id": "GH14",
+      "local_relevance": 0.21,
+      "metadata": {
+        "github_stars": {
+          "roserenuu/Jesus-Forever-Yours": 0
+        },
+        "provenance": [
+          {
+            "item_id": "GH14",
+            "native_rank": 10,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 10
+      },
+      "rerank_score": 65.0,
+      "rrf_score": 0.0007142857142857143,
+      "snippet": "## Summary\\n\\n- Adapts [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) into a brand-tailored research skill for @jesusforeveryours\\n- Covers multi-platform research (Reddit, X, YouTube, TikTok, Instagram, web) focused on Christian content trends, devotional communities, and",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "roserenuu",
+          "body": "Add last30days research skill adapted for JFY brand\n## Summary\\n\\n- Adapts [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) into a brand-tailored research skill for @jesusforeveryours\\n- Covers multi-platform research (Reddit, X, YouTube, TikTok, Instagram, web) focused on Christian content trends, devotional communities, and",
+          "container": "roserenuu/Jesus-Forever-Yours",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 2,
+            "reactions": 0
+          },
+          "engagement_score": 11,
+          "freshness": 58,
+          "item_id": "GH14",
+          "local_rank_score": 0.2925,
+          "local_relevance": 0.21,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-03-25",
+          "relevance_hint": 0.5,
+          "snippet": "## Summary\\n\\n- Adapts [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) into a brand-tailored research skill for @jesusforeveryours\\n- Covers multi-platform research (Reddit, X, YouTube, TikTok, Instagram, web) focused on Christian content trends, devotional communities, and",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Add last30days research skill adapted for JFY brand",
+          "url": "https://github.com/roserenuu/Jesus-Forever-Yours/pull/31",
+          "why_relevant": "GitHub PR: Add last30days research skill adapted for JFY brand"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "Add last30days research skill adapted for JFY brand",
+      "url": "https://github.com/roserenuu/Jesus-Forever-Yours/pull/31"
+    },
+    {
+      "candidate_id": "https://github.com/aliammari1/awesome-ai-tools/pull/26",
+      "cluster_id": "cluster-5",
+      "engagement": 18,
+      "explanation": "Useful for identifying tools used in social media management, though it lacks the depth on 'how' creators are actually using them for engagement.",
+      "final_score": 48.30161290322581,
+      "freshness": 41,
+      "fun_explanation": "Purely informational directory listing; zero wit.",
+      "fun_score": 15.0,
+      "item_id": "GH28",
+      "local_relevance": 0.57,
+      "metadata": {
+        "github_stars": {
+          "aliammari1/awesome-ai-tools": 83
+        },
+        "provenance": [
+          {
+            "item_id": "GH28",
+            "native_rank": 2,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 2
+      },
+      "rerank_score": 60.0,
+      "rrf_score": 0.0008064516129032258,
+      "snippet": "## What is SocialBu?\n\n[SocialBu](https://socialbu.com/) is an AI-powered social media management platform that helps teams schedule, publish, monitor, and automate their social media presence across X (Twitter), Instagram, LinkedIn, Facebook, TikTok, Pinterest, Google Business, and Threads.\n\n## Why",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "usamaejaz",
+          "body": "Add SocialBu to Content Creation section\n## What is SocialBu?\n\n[SocialBu](https://socialbu.com/) is an AI-powered social media management platform that helps teams schedule, publish, monitor, and automate their social media presence across X (Twitter), Instagram, LinkedIn, Facebook, TikTok, Pinterest, Google Business, and Threads.\n\n## Why",
+          "container": "aliammari1/awesome-ai-tools",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 3,
+            "reactions": 0
+          },
+          "engagement_score": 18,
+          "freshness": 41,
+          "item_id": "GH28",
+          "local_rank_score": 0.491,
+          "local_relevance": 0.57,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "closed",
+            "top_comments": []
+          },
+          "published_at": "2026-03-17",
+          "relevance_hint": 0.45,
+          "snippet": "## What is SocialBu?\n\n[SocialBu](https://socialbu.com/) is an AI-powered social media management platform that helps teams schedule, publish, monitor, and automate their social media presence across X (Twitter), Instagram, LinkedIn, Facebook, TikTok, Pinterest, Google Business, and Threads.\n\n## Why",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Add SocialBu to Content Creation section",
+          "url": "https://github.com/aliammari1/awesome-ai-tools/pull/26",
+          "why_relevant": "GitHub PR: Add SocialBu to Content Creation section"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "Add SocialBu to Content Creation section",
+      "url": "https://github.com/aliammari1/awesome-ai-tools/pull/26"
+    },
+    {
+      "candidate_id": "https://github.com/ismaelloveexcel/ai-dan-framework/pull/2",
+      "cluster_id": "cluster-6",
+      "engagement": 28,
+      "explanation": "Offers a perspective on the 'solo-operator' business model, which is useful for synthesizing advice for founders, but lacks specific social media tactics.",
+      "final_score": 42.17936507936508,
+      "freshness": 71,
+      "fun_explanation": "The 'one product -> $500 MRR' philosophy is the kind of punchy, founder-focused content that actually works.",
+      "fun_score": 65.0,
+      "item_id": "GH21",
+      "local_relevance": 0.16,
+      "metadata": {
+        "github_stars": {
+          "ismaelloveexcel/AI-DAN-FRAMEWORK": 0
+        },
+        "provenance": [
+          {
+            "item_id": "GH21",
+            "native_rank": 3,
+            "source": "github",
+            "subquery_label": "High engagement AI formats"
+          }
+        ]
+      },
+      "native_ranks": {
+        "High engagement AI formats:github": 3
+      },
+      "rerank_score": 45.0,
+      "rrf_score": 0.0003174603174603175,
+      "snippet": "Replaces a 350KB+ enterprise multi-agent demo (15+ agents, 87 n8n workflows, CrewAI/LangChain stack) with a focused solo-operator OS targeting one principle: **one product \u2192 $500 MRR \u2192 then scale**.\n\n## Deleted\n- `n8n_workflows/` \u2014 87+ workflow JSONs + docs\n- `agents/sales/`, `agents/marketing/`, `a",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "Copilot",
+          "body": "Restructure AI-DAN-FRAMEWORK into AIDAN-OS: lean solo-operator business OS\nReplaces a 350KB+ enterprise multi-agent demo (15+ agents, 87 n8n workflows, CrewAI/LangChain stack) with a focused solo-operator OS targeting one principle: **one product \u2192 $500 MRR \u2192 then scale**.\n\n## Deleted\n- `n8n_workflows/` \u2014 87+ workflow JSONs + docs\n- `agents/sales/`, `agents/marketing/`, `a",
+          "container": "ismaelloveexcel/AI-DAN-FRAMEWORK",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 5,
+            "reactions": 0
+          },
+          "engagement_score": 28,
+          "freshness": 71,
+          "item_id": "GH21",
+          "local_rank_score": 0.3095,
+          "local_relevance": 0.16,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "closed",
+            "top_comments": []
+          },
+          "published_at": "2026-04-01",
+          "relevance_hint": 0.57,
+          "snippet": "Replaces a 350KB+ enterprise multi-agent demo (15+ agents, 87 n8n workflows, CrewAI/LangChain stack) with a focused solo-operator OS targeting one principle: **one product \u2192 $500 MRR \u2192 then scale**.\n\n## Deleted\n- `n8n_workflows/` \u2014 87+ workflow JSONs + docs\n- `agents/sales/`, `agents/marketing/`, `a",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Restructure AI-DAN-FRAMEWORK into AIDAN-OS: lean solo-operator business OS",
+          "url": "https://github.com/ismaelloveexcel/AI-DAN-FRAMEWORK/pull/2",
+          "why_relevant": "GitHub PR: Restructure AI-DAN-FRAMEWORK into AIDAN-OS: lean solo-operat"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "High engagement AI formats"
+      ],
+      "title": "Restructure AI-DAN-FRAMEWORK into AIDAN-OS: lean solo-operator business OS",
+      "url": "https://github.com/ismaelloveexcel/AI-DAN-FRAMEWORK/pull/2"
+    },
+    {
+      "candidate_id": "https://github.com/jhengy/content-aggregator/issues/449",
+      "cluster_id": "cluster-7",
+      "engagement": 0,
+      "explanation": "Provides high-level industry context regarding trust in AI, which is useful for understanding audience objections.",
+      "final_score": 41.381967213114756,
+      "freshness": 83,
+      "fun_explanation": "Corporate-style executive summary; lacks the 'hook' required for social media.",
+      "fun_score": 20.0,
+      "item_id": "GH15",
+      "local_relevance": 0.22,
+      "metadata": {
+        "github_stars": {
+          "jhengy/content-aggregator": 19
+        },
+        "provenance": [
+          {
+            "item_id": "GH15",
+            "native_rank": 1,
+            "source": "github",
+            "subquery_label": "High engagement AI formats"
+          }
+        ]
+      },
+      "native_ranks": {
+        "High engagement AI formats:github": 1
+      },
+      "rerank_score": 50.0,
+      "rrf_score": 0.00032786885245901645,
+      "snippet": "# \ud83d\udcf0 Daily Content Summary - 2026-04-07\n### Executive Summary\n\n**Key Insights**\nThe technology landscape is currently defined by a paradoxical reliance on artificial intelligence alongside a growing crisis of trust in its implementation. While **Anthropic** has surged to a **$30 billion** run-rate re",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "github-actions[bot]",
+          "body": "Daily Content Summary 2026-04-07\n# \ud83d\udcf0 Daily Content Summary - 2026-04-07\n### Executive Summary\n\n**Key Insights**\nThe technology landscape is currently defined by a paradoxical reliance on artificial intelligence alongside a growing crisis of trust in its implementation. While **Anthropic** has surged to a **$30 billion** run-rate re",
+          "container": "jhengy/content-aggregator",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 1,
+            "reactions": 0
+          },
+          "engagement_score": 0,
+          "freshness": 83,
+          "item_id": "GH15",
+          "local_rank_score": 0.35050000000000003,
+          "local_relevance": 0.22,
+          "metadata": {
+            "is_pr": false,
+            "labels": [
+              "automated"
+            ],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-04-07",
+          "relevance_hint": 0.47,
+          "snippet": "# \ud83d\udcf0 Daily Content Summary - 2026-04-07\n### Executive Summary\n\n**Key Insights**\nThe technology landscape is currently defined by a paradoxical reliance on artificial intelligence alongside a growing crisis of trust in its implementation. While **Anthropic** has surged to a **$30 billion** run-rate re",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Daily Content Summary 2026-04-07",
+          "url": "https://github.com/jhengy/content-aggregator/issues/449",
+          "why_relevant": "GitHub issue: Daily Content Summary 2026-04-07"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "High engagement AI formats"
+      ],
+      "title": "Daily Content Summary 2026-04-07",
+      "url": "https://github.com/jhengy/content-aggregator/issues/449"
+    },
+    {
+      "candidate_id": "https://github.com/mertbuilds/claudemarketplaces.com/issues/43",
+      "cluster_id": "cluster-8",
+      "explanation": "Mentions an automation CLI tool, but provides limited information on the actual content strategy or engagement hooks.",
+      "final_score": 36.5984126984127,
+      "freshness": 94,
+      "fun_explanation": "CLI tools for content creation are useful, but the presentation is purely functional.",
+      "fun_score": 40.0,
+      "item_id": "GH11",
+      "local_relevance": 0.29,
+      "metadata": {
+        "github_stars": {
+          "mertbuilds/claudemarketplaces.com": 90
+        },
+        "provenance": [
+          {
+            "item_id": "GH11",
+            "native_rank": 3,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 3
+      },
+      "rerank_score": 40.0,
+      "rrf_score": 0.0007936507936507937,
+      "snippet": "## Wonda \u2014 AI Content Creation & Social Media Automation CLI\n\n**Repo:** https://github.com/degausai/wonda\n**Type:** Claude Code Skill + Marketplace\n**Author:** Wonda ([@degausai](https://github.com/degausai))\n**Stars:** 42\n**skills.sh:** [skills.sh/degausai/wonda](https://skills.sh/degausai/wonda) (",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "tgdn",
+          "body": "[Skill Submission] Wonda \u2014 AI Content Creation & Social Media Automation CLI\n## Wonda \u2014 AI Content Creation & Social Media Automation CLI\n\n**Repo:** https://github.com/degausai/wonda\n**Type:** Claude Code Skill + Marketplace\n**Author:** Wonda ([@degausai](https://github.com/degausai))\n**Stars:** 42\n**skills.sh:** [skills.sh/degausai/wonda](https://skills.sh/degausai/wonda) (",
+          "container": "mertbuilds/claudemarketplaces.com",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 0,
+            "reactions": 0
+          },
+          "freshness": 94,
+          "item_id": "GH11",
+          "local_rank_score": 0.4235,
+          "local_relevance": 0.29,
+          "metadata": {
+            "is_pr": false,
+            "labels": [],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-04-12",
+          "relevance_hint": 0.73,
+          "snippet": "## Wonda \u2014 AI Content Creation & Social Media Automation CLI\n\n**Repo:** https://github.com/degausai/wonda\n**Type:** Claude Code Skill + Marketplace\n**Author:** Wonda ([@degausai](https://github.com/degausai))\n**Stars:** 42\n**skills.sh:** [skills.sh/degausai/wonda](https://skills.sh/degausai/wonda) (",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "[Skill Submission] Wonda \u2014 AI Content Creation & Social Media Automation CLI",
+          "url": "https://github.com/mertbuilds/claudemarketplaces.com/issues/43",
+          "why_relevant": "GitHub issue: [Skill Submission] Wonda \u2014 AI Content Creation & Social Medi"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "[Skill Submission] Wonda \u2014 AI Content Creation & Social Media Automation CLI",
+      "url": "https://github.com/mertbuilds/claudemarketplaces.com/issues/43"
+    },
+    {
+      "candidate_id": "https://github.com/tap919/content-creation-engine-/pull/9",
+      "cluster_id": "cluster-9",
+      "explanation": "Focuses on the technical architecture of a content engine rather than the creative or engagement-driven aspects requested.",
+      "final_score": 35.4953125,
+      "freshness": 83,
+      "fun_explanation": "Technical architecture talk; misses the mark on audience pain points.",
+      "fun_score": 25.0,
+      "item_id": "GH30",
+      "local_relevance": 0.29,
+      "metadata": {
+        "github_stars": {
+          "tap919/Content-Creation-Engine-": 0
+        },
+        "provenance": [
+          {
+            "item_id": "GH30",
+            "native_rank": 4,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 4
+      },
+      "rerank_score": 40.0,
+      "rrf_score": 0.00078125,
+      "snippet": "Transforms the content engine into a full campaign management platform with open-source AI integrations and unified multi-platform distribution.\n\n## Provider Abstraction Layer\n\nCreated unified interfaces for AI service providers enabling easy switching between open-source and paid APIs:\n\n- **Audio p",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "Claude",
+          "body": "Add provider abstraction layer, advanced repurposing engine, campaign management, and multi-platform distribution\nTransforms the content engine into a full campaign management platform with open-source AI integrations and unified multi-platform distribution.\n\n## Provider Abstraction Layer\n\nCreated unified interfaces for AI service providers enabling easy switching between open-source and paid APIs:\n\n- **Audio p",
+          "container": "tap919/Content-Creation-Engine-",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 0,
+            "reactions": 0
+          },
+          "freshness": 83,
+          "item_id": "GH30",
+          "local_rank_score": 0.396,
+          "local_relevance": 0.29,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "closed",
+            "top_comments": []
+          },
+          "published_at": "2026-04-07",
+          "relevance_hint": 0.25,
+          "snippet": "Transforms the content engine into a full campaign management platform with open-source AI integrations and unified multi-platform distribution.\n\n## Provider Abstraction Layer\n\nCreated unified interfaces for AI service providers enabling easy switching between open-source and paid APIs:\n\n- **Audio p",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Add provider abstraction layer, advanced repurposing engine, campaign management, and multi-platform distribution",
+          "url": "https://github.com/tap919/Content-Creation-Engine-/pull/9",
+          "why_relevant": "GitHub PR: Add provider abstraction layer, advanced repurposing engine,"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "Add provider abstraction layer, advanced repurposing engine, campaign management, and multi-platform distribution",
+      "url": "https://github.com/tap919/Content-Creation-Engine-/pull/9"
+    },
+    {
+      "candidate_id": "https://github.com/masterleeaus/worksuite-saas---project-management-system_laravel/issues/171",
+      "cluster_id": "cluster-10",
+      "explanation": "Too focused on software module integration rather than the actual usage of AI for social media marketing.",
+      "final_score": 30.092307692307692,
+      "freshness": 89,
+      "fun_explanation": "Purely administrative module reassignment; zero entertainment value.",
+      "fun_score": 10.0,
+      "item_id": "GH26",
+      "local_relevance": 0.21,
+      "metadata": {
+        "github_stars": {
+          "Masterleeaus/Worksuite-Saas---Project-Management-System_Laravel": 0
+        },
+        "provenance": [
+          {
+            "item_id": "GH26",
+            "native_rank": 5,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 5
+      },
+      "rerank_score": 30.0,
+      "rrf_score": 0.0007692307692307692,
+      "snippet": "## Extension: AI Social Media Pro \u2014 v5.1.0\n**Source:** `codetouse/SocialMedia_extracted/`\n**Destination module:** `TitanSocial` (new module \u2014 see #189)\n\n---\n\n## \u26a0\ufe0f Module Change\nPreviously assigned to TitanCreate. **Reassigned to TitanSocial** \u2014 the dedicated social media and marketing module.\n\n---",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "Masterleeaus",
+          "body": "Integrate AI Social Media Pro (v5.1.0) \u2014 Full Social Platform \u2014 into TitanSocial\n## Extension: AI Social Media Pro \u2014 v5.1.0\n**Source:** `codetouse/SocialMedia_extracted/`\n**Destination module:** `TitanSocial` (new module \u2014 see #189)\n\n---\n\n## \u26a0\ufe0f Module Change\nPreviously assigned to TitanCreate. **Reassigned to TitanSocial** \u2014 the dedicated social media and marketing module.\n\n---",
+          "container": "Masterleeaus/Worksuite-Saas---Project-Management-System_Laravel",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 0,
+            "reactions": 0
+          },
+          "freshness": 89,
+          "item_id": "GH26",
+          "local_rank_score": 0.359,
+          "local_relevance": 0.21,
+          "metadata": {
+            "is_pr": false,
+            "labels": [],
+            "state": "closed",
+            "top_comments": []
+          },
+          "published_at": "2026-04-10",
+          "relevance_hint": 0.44,
+          "snippet": "## Extension: AI Social Media Pro \u2014 v5.1.0\n**Source:** `codetouse/SocialMedia_extracted/`\n**Destination module:** `TitanSocial` (new module \u2014 see #189)\n\n---\n\n## \u26a0\ufe0f Module Change\nPreviously assigned to TitanCreate. **Reassigned to TitanSocial** \u2014 the dedicated social media and marketing module.\n\n---",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Integrate AI Social Media Pro (v5.1.0) \u2014 Full Social Platform \u2014 into TitanSocial",
+          "url": "https://github.com/Masterleeaus/Worksuite-Saas---Project-Management-System_Laravel/issues/171",
+          "why_relevant": "GitHub issue: Integrate AI Social Media Pro (v5.1.0) \u2014 Full Social Platfor"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "Integrate AI Social Media Pro (v5.1.0) \u2014 Full Social Platform \u2014 into TitanSocial",
+      "url": "https://github.com/Masterleeaus/Worksuite-Saas---Project-Management-System_Laravel/issues/171"
+    },
+    {
+      "candidate_id": "https://github.com/mosscorp/mosscorp/issues/26",
+      "cluster_id": "cluster-11",
+      "engagement": 100,
+      "explanation": "Off-target; this is about a calorie tracking app, not social media marketing.",
+      "final_score": 24.88939393939394,
+      "freshness": 47,
+      "fun_explanation": "Strong hook: 'friction-zero' and 'CEO-approved' are exactly the kind of punchy copy that founders love.",
+      "fun_score": 75.0,
+      "item_id": "GH24",
+      "local_relevance": 0.21,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH24",
+            "native_rank": 6,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 6
+      },
+      "rerank_score": 20.0,
+      "rrf_score": 0.0007575757575757576,
+      "snippet": "## Overview\nBuild the CalorieLens MVP: a camera-first, friction-zero AI calorie and macro tracker. CEO-approved (Cycle 4, HIGH priority).\n\n## Core User Flow\n1. User opens app \u2192 taps camera button\n2. Points camera at food \u2192 taps capture\n3. AI identifies food and returns calories + macros in <3 second",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "mosscorp",
+          "body": "Build: CalorieLens MVP \u2014 Camera-First AI Calorie Scanner\n## Overview\nBuild the CalorieLens MVP: a camera-first, friction-zero AI calorie and macro tracker. CEO-approved (Cycle 4, HIGH priority).\n\n## Core User Flow\n1. User opens app \u2192 taps camera button\n2. Points camera at food \u2192 taps capture\n3. AI identifies food and returns calories + macros in <3 second",
+          "container": "mosscorp/mosscorp",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 76,
+            "reactions": 0
+          },
+          "engagement_score": 100,
+          "freshness": 47,
+          "item_id": "GH24",
+          "local_rank_score": 0.354,
+          "local_relevance": 0.21,
+          "metadata": {
+            "is_pr": false,
+            "labels": [
+              "stage:building",
+              "agent:ios-developer"
+            ],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-03-20",
+          "relevance_hint": 0.66,
+          "snippet": "## Overview\nBuild the CalorieLens MVP: a camera-first, friction-zero AI calorie and macro tracker. CEO-approved (Cycle 4, HIGH priority).\n\n## Core User Flow\n1. User opens app \u2192 taps camera button\n2. Points camera at food \u2192 taps capture\n3. AI identifies food and returns calories + macros in <3 second",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Build: CalorieLens MVP \u2014 Camera-First AI Calorie Scanner",
+          "url": "https://github.com/mosscorp/mosscorp/issues/26",
+          "why_relevant": "GitHub issue: Build: CalorieLens MVP \u2014 Camera-First AI Calorie Scanner"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "Build: CalorieLens MVP \u2014 Camera-First AI Calorie Scanner",
+      "url": "https://github.com/mosscorp/mosscorp/issues/26"
+    },
+    {
+      "candidate_id": "https://github.com/franknguyenaff-png/git/issues/1",
+      "cluster_id": "cluster-12",
+      "explanation": "Promotional content for a book creation engine; lacks depth on social media engagement.",
+      "final_score": 22.978125,
+      "freshness": 79,
+      "fun_explanation": "A bit clickbaity with the 'passive income' angle, but at least it understands the audience's greed.",
+      "fun_score": 35.0,
+      "item_id": "GH11",
+      "local_relevance": 0.16,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH11",
+            "native_rank": 4,
+            "source": "github",
+            "subquery_label": "High engagement AI formats"
+          }
+        ]
+      },
+      "native_ranks": {
+        "High engagement AI formats:github": 4
+      },
+      "rerank_score": 20.0,
+      "rrf_score": 0.00031250000000000006,
+      "snippet": "## Fiction Goldmine Engine Review - Introduction\nDiscover how Fiction Goldmine Engine empowers anyone to create and publish profitable fiction books using AI, revolutionizing online publishing. This comprehensive **Fiction Goldmine Engine Review** delves into its core functionalities and benefits,",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "franknguyenaff-png",
+          "body": "Fiction Goldmine Engine Review \u2013 Unlock Passive Income with AI-Powered Book Creation\n## Fiction Goldmine Engine Review - Introduction\nDiscover how Fiction Goldmine Engine empowers anyone to create and publish profitable fiction books using AI, revolutionizing online publishing. This comprehensive **Fiction Goldmine Engine Review** delves into its core functionalities and benefits,",
+          "container": "franknguyenaff-png/GIT",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 0,
+            "reactions": 0
+          },
+          "freshness": 79,
+          "item_id": "GH11",
+          "local_rank_score": 0.3015,
+          "local_relevance": 0.16,
+          "metadata": {
+            "is_pr": false,
+            "labels": [],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-04-05",
+          "relevance_hint": 0.6,
+          "snippet": "## Fiction Goldmine Engine Review - Introduction\nDiscover how Fiction Goldmine Engine empowers anyone to create and publish profitable fiction books using AI, revolutionizing online publishing. This comprehensive **Fiction Goldmine Engine Review** delves into its core functionalities and benefits,",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Fiction Goldmine Engine Review \u2013 Unlock Passive Income with AI-Powered Book Creation",
+          "url": "https://github.com/franknguyenaff-png/GIT/issues/1",
+          "why_relevant": "GitHub issue: Fiction Goldmine Engine Review \u2013 Unlock Passive Income with"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "High engagement AI formats"
+      ],
+      "title": "Fiction Goldmine Engine Review \u2013 Unlock Passive Income with AI-Powered Book Creation",
+      "url": "https://github.com/franknguyenaff-png/GIT/issues/1"
+    },
+    {
+      "candidate_id": "https://github.com/paperclipai/paperclip/issues/2354",
+      "cluster_id": "cluster-13",
+      "engagement": 0,
+      "explanation": "Feature request for CLI integration; lacks relevance to social media marketing strategy.",
+      "final_score": 22.08064516129032,
+      "freshness": 70,
+      "fun_explanation": "Standard feature request; dry and technical.",
+      "fun_score": 20.0,
+      "item_id": "GH12",
+      "local_relevance": 0.22,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH12",
+            "native_rank": 2,
+            "source": "github",
+            "subquery_label": "High engagement AI formats"
+          }
+        ]
+      },
+      "native_ranks": {
+        "High engagement AI formats:github": 2
+      },
+      "rerank_score": 20.0,
+      "rrf_score": 0.0003225806451612904,
+      "snippet": "Integrate Kiro-CLI directly into Paperclip AI to provide users with advanced command-line capabilities for content processing, file management, and workflow automation. This integration will enhance Paperclip AI's functionality by embedding Kiro-CLI's powerful command-line interface and utilities di",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "naelmohammad",
+          "body": "Feature Request: Support for Kiro-CLI Integration with Paperclip AI\nIntegrate Kiro-CLI directly into Paperclip AI to provide users with advanced command-line capabilities for content processing, file management, and workflow automation. This integration will enhance Paperclip AI's functionality by embedding Kiro-CLI's powerful command-line interface and utilities di",
+          "container": "paperclipai/paperclip",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 1,
+            "reactions": 0
+          },
+          "engagement_score": 0,
+          "freshness": 70,
+          "item_id": "GH12",
+          "local_rank_score": 0.318,
+          "local_relevance": 0.22,
+          "metadata": {
+            "is_pr": false,
+            "labels": [],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-03-31",
+          "relevance_hint": 0.62,
+          "snippet": "Integrate Kiro-CLI directly into Paperclip AI to provide users with advanced command-line capabilities for content processing, file management, and workflow automation. This integration will enhance Paperclip AI's functionality by embedding Kiro-CLI's powerful command-line interface and utilities di",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "Feature Request: Support for Kiro-CLI Integration with Paperclip AI",
+          "url": "https://github.com/paperclipai/paperclip/issues/2354",
+          "why_relevant": "GitHub issue: Feature Request: Support for Kiro-CLI Integration with Paper"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "High engagement AI formats"
+      ],
+      "title": "Feature Request: Support for Kiro-CLI Integration with Paperclip AI",
+      "url": "https://github.com/paperclipai/paperclip/issues/2354"
+    },
+    {
+      "candidate_id": "https://github.com/cline/mcp-marketplace/issues/1007",
+      "cluster_id": "cluster-14",
+      "explanation": "Too generic; mentions a content lifecycle server but lacks actionable details on workflows or engagement.",
+      "final_score": 20.081159420289858,
+      "freshness": 49,
+      "fun_explanation": "Social Neuron is a decent name, but the content is just a standard submission.",
+      "fun_score": 40.0,
+      "item_id": "GH12",
+      "local_relevance": 0.29,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH12",
+            "native_rank": 9,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 9
+      },
+      "rerank_score": 20.0,
+      "rrf_score": 0.0007246376811594203,
+      "snippet": "### GitHub Repository URL\n\nhttps://github.com/socialneuron/mcp-server\n\n### Logo Image\n\n![Social Neuron Logo](https://socialneuron.com/logo-icon.png)\n\n(1024\u00d71024 PNG \u2014 can be resized to 400\u00d7400 if needed)\n\n### Installation Testing\n\n- [x] I have tested that Cline can successfully set up this server us",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "ajaknumber4",
+          "body": "[Server Submission]: Social Neuron \u2014 AI Social Media Content Lifecycle\n### GitHub Repository URL\n\nhttps://github.com/socialneuron/mcp-server\n\n### Logo Image\n\n![Social Neuron Logo](https://socialneuron.com/logo-icon.png)\n\n(1024\u00d71024 PNG \u2014 can be resized to 400\u00d7400 if needed)\n\n### Installation Testing\n\n- [x] I have tested that Cline can successfully set up this server us",
+          "container": "cline/mcp-marketplace",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 0,
+            "reactions": 0
+          },
+          "freshness": 49,
+          "item_id": "GH12",
+          "local_rank_score": 0.311,
+          "local_relevance": 0.29,
+          "metadata": {
+            "is_pr": false,
+            "labels": [],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-03-21",
+          "relevance_hint": 0.66,
+          "snippet": "### GitHub Repository URL\n\nhttps://github.com/socialneuron/mcp-server\n\n### Logo Image\n\n![Social Neuron Logo](https://socialneuron.com/logo-icon.png)\n\n(1024\u00d71024 PNG \u2014 can be resized to 400\u00d7400 if needed)\n\n### Installation Testing\n\n- [x] I have tested that Cline can successfully set up this server us",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "[Server Submission]: Social Neuron \u2014 AI Social Media Content Lifecycle",
+          "url": "https://github.com/cline/mcp-marketplace/issues/1007",
+          "why_relevant": "GitHub issue: [Server Submission]: Social Neuron \u2014 AI Social Media Content"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "[Server Submission]: Social Neuron \u2014 AI Social Media Content Lifecycle",
+      "url": "https://github.com/cline/mcp-marketplace/issues/1007"
+    },
+    {
+      "candidate_id": "https://github.com/duanyytop/agents-radar/issues/213",
+      "cluster_id": "cluster-15",
+      "explanation": "A list of projects that does not provide the requested insights into hooks, formats, or pain points.",
+      "final_score": 19.42295081967213,
+      "freshness": 43,
+      "fun_explanation": "The 'OpenClaw' branding is slightly edgy, which helps it stand out in a sea of boring digests.",
+      "fun_score": 50.0,
+      "item_id": "GH1",
+      "local_relevance": 0.04,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH1",
+            "native_rank": 1,
+            "source": "github",
+            "subquery_label": "Audience pain points and objections"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Audience pain points and objections:github": 1
+      },
+      "rerank_score": 20.0,
+      "rrf_score": 0.0004918032786885246,
+      "snippet": "# OpenClaw Ecosystem Digest 2026-03-18\n\n> Issues: 500 | PRs: 500 | Projects covered: 13 | Generated: 2026-03-18 00:10 UTC\n\n- [OpenClaw](https://github\u200b.com/openclaw/openclaw)\n- [NanoBot](https://github\u200b.com/HKUDS/nanobot)\n- [Zeroclaw](https://github\u200b.com/zeroclaw-labs/zeroclaw)\n- [PicoClaw](https://",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "github-actions[bot]",
+          "body": "\ud83e\udd9e OpenClaw Ecosystem Digest 2026-03-18\n# OpenClaw Ecosystem Digest 2026-03-18\n\n> Issues: 500 | PRs: 500 | Projects covered: 13 | Generated: 2026-03-18 00:10 UTC\n\n- [OpenClaw](https://github\u200b.com/openclaw/openclaw)\n- [NanoBot](https://github\u200b.com/HKUDS/nanobot)\n- [Zeroclaw](https://github\u200b.com/zeroclaw-labs/zeroclaw)\n- [PicoClaw](https://",
+          "container": "duanyytop/agents-radar",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 0,
+            "reactions": 0
+          },
+          "freshness": 43,
+          "item_id": "GH1",
+          "local_rank_score": 0.1335,
+          "local_relevance": 0.04,
+          "metadata": {
+            "is_pr": false,
+            "labels": [
+              "openclaw-en"
+            ],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-03-18",
+          "relevance_hint": 0.6,
+          "snippet": "# OpenClaw Ecosystem Digest 2026-03-18\n\n> Issues: 500 | PRs: 500 | Projects covered: 13 | Generated: 2026-03-18 00:10 UTC\n\n- [OpenClaw](https://github\u200b.com/openclaw/openclaw)\n- [NanoBot](https://github\u200b.com/HKUDS/nanobot)\n- [Zeroclaw](https://github\u200b.com/zeroclaw-labs/zeroclaw)\n- [PicoClaw](https://",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "\ud83e\udd9e OpenClaw Ecosystem Digest 2026-03-18",
+          "url": "https://github.com/duanyytop/agents-radar/issues/213",
+          "why_relevant": "GitHub issue: \ud83e\udd9e OpenClaw Ecosystem Digest 2026-03-18"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "Audience pain points and objections"
+      ],
+      "title": "\ud83e\udd9e OpenClaw Ecosystem Digest 2026-03-18",
+      "url": "https://github.com/duanyytop/agents-radar/issues/213"
+    },
+    {
+      "candidate_id": "https://github.com/frankxai/frankx.ai-vercel-website/pull/21",
+      "cluster_id": "cluster-16",
+      "engagement": 12,
+      "explanation": "Focuses on AI music production, which is not the primary focus of the research.",
+      "final_score": 6.353076923076923,
+      "freshness": 55,
+      "fun_explanation": "Vibe OS is a fun name, but the content is just an automated PR summary.",
+      "fun_score": 30.0,
+      "item_id": "GH3",
+      "local_relevance": 0.22,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH3",
+            "native_rank": 5,
+            "source": "github",
+            "subquery_label": "High engagement AI formats"
+          }
+        ]
+      },
+      "native_ranks": {
+        "High engagement AI formats:github": 5
+      },
+      "rerank_score": 15.0,
+      "rrf_score": 0.00030769230769230776,
+      "snippet": "[vc]: #epBcVFSfq3EC+rPE/RzRfyY63mQZognq+qtMcROTaGY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJmcmFua3gtYWktdmVyY2VsLXdlYnNpdGUiLCJwcm9qZWN0SWQiOiJwcmpfTkhWSUtadGdsTmlkT0UxRkppcTZlWXg1UWpJTCIsImluc3BlY3RvclVybCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9mcmFua3gtcHJvamVjdHMvZnJhbmt4... ## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request significantly enhances the Vibe OS product offering by ... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a Next.js app layout and interactive client app page for Vibe OS, introduces multiple new UI components (agents, prompt preview, pricing...",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "frankxai",
+          "body": "feat: Rebuild Vibe OS as complete AI music production system\n## Summary\n\n- **Rebuilt `/products/vibe-os`** from generic \"Creative State Management\" placeholder into a fully realized AI Music Production System with 11 sections: Hero, Social Proof, How It Works (5-step workflow), 4 AI Agent Showcase, Real Suno Prompt Preview, Transformation Features, 5 Core Mod\n[vc]: #epBcVFSfq3EC+rPE/RzRfyY63mQZognq+qtMcROTaGY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJmcmFua3gtYWktdmVyY2VsLXdlYnNpdGUiLCJwcm9qZWN0SWQiOiJwcmpfTkhWSUtadGdsTmlkT0UxRkppcTZlWXg1UWpJTCIsImluc3BlY3RvclVybCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9mcmFua3gtcHJvamVjdHMvZnJhbmt4... ## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request significantly enhances the Vibe OS product offering by ... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a Next.js app layout and interactive client app page for Vibe OS, introduces multiple new UI components (agents, prompt preview, pricing...",
+          "container": "frankxai/frankx.ai-vercel-website",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 4,
+            "reactions": 1
+          },
+          "engagement_score": 12,
+          "freshness": 55,
+          "item_id": "GH3",
+          "local_rank_score": 0.29250000000000004,
+          "local_relevance": 0.22,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "open",
+            "top_comments": [
+              {
+                "author": "vercel[bot]",
+                "excerpt": "[vc]: #epBcVFSfq3EC+rPE/RzRfyY63mQZognq+qtMcROTaGY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJmcmFua3gtYWktdmVyY2VsLXdlYnNpdGUiLCJwcm9qZWN0SWQiOiJwcmpfTkhWSUtadGdsTmlkT0UxRkppcTZlWXg1UWpJTCIsImluc3BlY3RvclVybCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9mcmFua3gtcHJvamVjdHMvZnJhbmt4...",
+                "score": 0
+              },
+              {
+                "author": "gemini-code-assist[bot]",
+                "excerpt": "## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request significantly enhances the Vibe OS product offering by ...",
+                "score": 0
+              },
+              {
+                "author": "coderabbitai[bot]",
+                "excerpt": "<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a Next.js app layout and interactive client app page for Vibe OS, introduces multiple new UI components (agents, prompt preview, pricing...",
+                "score": 0
+              },
+              {
+                "author": "gemini-code-assist[bot]",
+                "excerpt": "> [!WARNING]\n> Gemini encountered an error creating the review. You can try again by commenting `/gemini review`.",
+                "score": 0
+              }
+            ]
+          },
+          "published_at": "2026-03-24",
+          "relevance_hint": 0.78,
+          "snippet": "[vc]: #epBcVFSfq3EC+rPE/RzRfyY63mQZognq+qtMcROTaGY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJmcmFua3gtYWktdmVyY2VsLXdlYnNpdGUiLCJwcm9qZWN0SWQiOiJwcmpfTkhWSUtadGdsTmlkT0UxRkppcTZlWXg1UWpJTCIsImluc3BlY3RvclVybCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9mcmFua3gtcHJvamVjdHMvZnJhbmt4... ## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request significantly enhances the Vibe OS product offering by ... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a Next.js app layout and interactive client app page for Vibe OS, introduces multiple new UI components (agents, prompt preview, pricing...",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "feat: Rebuild Vibe OS as complete AI music production system",
+          "url": "https://github.com/frankxai/frankx.ai-vercel-website/pull/21",
+          "why_relevant": "GitHub PR: feat: Rebuild Vibe OS as complete AI music production system"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "High engagement AI formats"
+      ],
+      "title": "feat: Rebuild Vibe OS as complete AI music production system",
+      "url": "https://github.com/frankxai/frankx.ai-vercel-website/pull/21"
+    },
+    {
+      "candidate_id": "https://github.com/marcusquinn/aidevops/pull/14075",
+      "cluster_id": "cluster-17",
+      "engagement": 14,
+      "explanation": "Irrelevant; appears to be a code review log.",
+      "final_score": 5.992727272727273,
+      "freshness": 67,
+      "fun_explanation": "An error message about rate limits is the opposite of shareable content.",
+      "fun_score": 5.0,
+      "item_id": "GH5",
+      "local_relevance": 0.16,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH5",
+            "native_rank": 6,
+            "source": "github",
+            "subquery_label": "High engagement AI formats"
+          }
+        ]
+      },
+      "native_ranks": {
+        "High engagement AI formats:github": 6
+      },
+      "rerank_score": 10.0,
+      "rrf_score": 0.0003030303030303031,
+      "snippet": "<!-- This is an auto-generated comment: summarize by coderabbit.ai --> <!-- This is an auto-generated comment: rate limited by coderabbit.ai --> > [!WARNING] > ## Rate limit exceeded > > `@alex-solovyev` has exceeded the limit for the number of commits that can be reviewed per hour. Please wait **... ## \ud83d\udd0d Code Quality Report \u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report SonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells Mon Mar 30 10:08:37 UTC 2026: Code review monitoring started Mon Mar 30 10:08:37 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1 ## \ud83d\udcc8 Current Quality... ## \ud83d\udd0d Code Quality Report \u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report SonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells Mon Mar 30 10:12:23 UTC 2026:...",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "alex-solovyev",
+          "body": "GH#13978: tighten cro-chapter-06.md (182\u2192143 lines)\n## Summary\n\n- Tightened `.agents/marketing-sales/cro-chapter-06.md` from 182 \u2192 143 lines (21% reduction, 39 lines removed)\n- Merged single-line bold-label paragraphs into dense inline pairs throughout\n- Consolidated 6-question numbered list to inline format; collapsed rating distribution bar from 5\n<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- This is an auto-generated comment: rate limited by coderabbit.ai -->\n\n> [!WARNING]\n> ## Rate limit exceeded\n> \n> `@alex-solovyev` has exceeded the limit for the number of commits that can be reviewed per hour. Please wait **... ## \ud83d\udd0d Code Quality Report\n\n\u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report\n\nSonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells\n\nMon Mar 30 10:08:37 UTC 2026: Code review monitoring started\nMon Mar 30 10:08:37 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1\n## \ud83d\udcc8 Current Quality... ## \ud83d\udd0d Code Quality Report\n\n\u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report\n\nSonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells\n\nMon Mar 30 10:12:23 UTC 2026: Code review monitoring started\nMon Mar 30 10:12:24 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1\n## \ud83d\udcc8 Current Quality...",
+          "container": "marcusquinn/aidevops",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 5,
+            "reactions": 1
+          },
+          "engagement_score": 14,
+          "freshness": 67,
+          "item_id": "GH5",
+          "local_rank_score": 0.28550000000000003,
+          "local_relevance": 0.16,
+          "metadata": {
+            "is_pr": true,
+            "labels": [
+              "origin:interactive"
+            ],
+            "state": "closed",
+            "top_comments": [
+              {
+                "author": "coderabbitai[bot]",
+                "excerpt": "<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- This is an auto-generated comment: rate limited by coderabbit.ai -->\n\n> [!WARNING]\n> ## Rate limit exceeded\n> \n> `@alex-solovyev` has exceeded the limit for the number of commits that can be reviewed per hour. Please wait **...",
+                "score": 0
+              },
+              {
+                "author": "github-actions[bot]",
+                "excerpt": "## \ud83d\udd0d Code Quality Report\n\n\u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report\n\nSonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells\n\nMon Mar 30 10:08:37 UTC 2026: Code review monitoring started\nMon Mar 30 10:08:37 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1\n## \ud83d\udcc8 Current Quality...",
+                "score": 0
+              },
+              {
+                "author": "github-actions[bot]",
+                "excerpt": "## \ud83d\udd0d Code Quality Report\n\n\u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report\n\nSonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells\n\nMon Mar 30 10:12:23 UTC 2026: Code review monitoring started\nMon Mar 30 10:12:24 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1\n## \ud83d\udcc8 Current Quality...",
+                "score": 0
+              },
+              {
+                "author": "sonarqubecloud[bot]",
+                "excerpt": "## [![Quality Gate Passed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-passed-20px.png 'Quality Gate Passed')](https://sonarcloud.io/dashboard?id=marcusquinn_aidevops&pullRequest=14075) **Quality Gate passed**  \nIssues  \n![](https://sonarsource.gith...",
+                "score": 0
+              },
+              {
+                "author": "alex-solovyev",
+                "excerpt": "## Implementation Summary\n\n**What done:**\n- Tightened `.agents/marketing-sales/cro-chapter-06.md` from 182 \u2192 145 lines (20% reduction, 37 lines removed)\n- Merged single-line bold-label paragraphs into dense inline pairs throughout all sections\n- Consolidated 6-question numbered list to inline format...",
+                "score": 0
+              }
+            ]
+          },
+          "published_at": "2026-03-30",
+          "relevance_hint": 0.65,
+          "snippet": "<!-- This is an auto-generated comment: summarize by coderabbit.ai --> <!-- This is an auto-generated comment: rate limited by coderabbit.ai --> > [!WARNING] > ## Rate limit exceeded > > `@alex-solovyev` has exceeded the limit for the number of commits that can be reviewed per hour. Please wait **... ## \ud83d\udd0d Code Quality Report \u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report SonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells Mon Mar 30 10:08:37 UTC 2026: Code review monitoring started Mon Mar 30 10:08:37 UTC 2026: SonarCloud - Bugs: 0, Vulnerabilities: 0, Code Smells: 1 ## \ud83d\udcc8 Current Quality... ## \ud83d\udd0d Code Quality Report \u001b[0;35m[MONITOR]\u001b[0m Code Review Monitoring Report SonarCloud: 0 bugs, 0 vulnerabilities, 1 code smells Mon Mar 30 10:12:23 UTC 2026:...",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "GH#13978: tighten cro-chapter-06.md (182\u2192143 lines)",
+          "url": "https://github.com/marcusquinn/aidevops/pull/14075",
+          "why_relevant": "GitHub PR: GH#13978: tighten cro-chapter-06.md (182\u2192143 lines)"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "High engagement AI formats"
+      ],
+      "title": "GH#13978: tighten cro-chapter-06.md (182\u2192143 lines)",
+      "url": "https://github.com/marcusquinn/aidevops/pull/14075"
+    },
+    {
+      "candidate_id": "https://github.com/muffy86/autonomous-ai-orchestration-agent/pull/37",
+      "cluster_id": "cluster-18",
+      "engagement": 21,
+      "explanation": "Irrelevant; focuses on browser AI configuration for a chatbot template.",
+      "final_score": 5.512388059701493,
+      "freshness": 43,
+      "fun_explanation": "The capybara emoji (CodeCapy) is a top-tier social media move for developer engagement.",
+      "fun_score": 55.0,
+      "item_id": "GH4",
+      "local_relevance": 0.22,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH4",
+            "native_rank": 7,
+            "source": "github",
+            "subquery_label": "High engagement AI formats"
+          }
+        ]
+      },
+      "native_ranks": {
+        "High engagement AI formats:github": 7
+      },
+      "rerank_score": 10.0,
+      "rrf_score": 0.0002985074626865672,
+      "snippet": "# CodeCapy Review \u208d\u1422\u2022(\u072b)\u2022\u1422\u208e - PR: #37 - Commit: 3d7fd16 ## Codebase Summary Chat SDK is an open-source Next.js AI chatbot template that now includes an advanced browser AI configuration system. The PR introduces extensive documentation and configuration files that guide users through setting up the... <!-- This is an auto-generated comment: summarize by coderabbit.ai --> <!-- walkthrough_start --> <details> <summary>\ud83d\udcdd Walkthrough</summary> ## Walkthrough Adds a browser-centric AI toolkit: extensive docs and guides, configurable search/bookmarklets/filters, a Manifest V3 Chrome extension, multi... ## Summary of Changes Hello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed! This...",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "muffy86",
+          "body": "feat: Advanced Browser AI Configuration System\n<!-- CURSOR_AGENT_PR_BODY_BEGIN -->\n## Description\n\nThis PR adds a **complete, production-ready browser AI automation system** with advanced features including local AI models, voice commands, browser automation, analytics, security, and comprehensive documentation.\n\n## \ud83d\ude80 What's Included\n\n### \ud83e\udd16 AI M\n# CodeCapy Review \u208d\u1422\u2022(\u072b)\u2022\u1422\u208e\n- PR: #37\n- Commit: 3d7fd16\n\n## Codebase Summary\nChat SDK is an open-source Next.js AI chatbot template that now includes an advanced browser AI configuration system. The PR introduces extensive documentation and configuration files that guide users through setting up the... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a browser-centric AI toolkit: extensive docs and guides, configurable search/bookmarklets/filters, a Manifest V3 Chrome extension, multi... ## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request delivers a comprehensive browser configuration system a...",
+          "container": "muffy86/Autonomous-AI-orchestration-agent",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 9,
+            "reactions": 1
+          },
+          "engagement_score": 21,
+          "freshness": 43,
+          "item_id": "GH4",
+          "local_rank_score": 0.2715,
+          "local_relevance": 0.22,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "open",
+            "top_comments": [
+              {
+                "author": "codecapyai[bot]",
+                "excerpt": "# CodeCapy Review \u208d\u1422\u2022(\u072b)\u2022\u1422\u208e\n- PR: #37\n- Commit: 3d7fd16\n\n## Codebase Summary\nChat SDK is an open-source Next.js AI chatbot template that now includes an advanced browser AI configuration system. The PR introduces extensive documentation and configuration files that guide users through setting up the...",
+                "score": 0
+              },
+              {
+                "author": "coderabbitai[bot]",
+                "excerpt": "<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nAdds a browser-centric AI toolkit: extensive docs and guides, configurable search/bookmarklets/filters, a Manifest V3 Chrome extension, multi...",
+                "score": 0
+              },
+              {
+                "author": "gemini-code-assist[bot]",
+                "excerpt": "## Summary of Changes\n\nHello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed!\n\nThis pull request delivers a comprehensive browser configuration system a...",
+                "score": 0
+              },
+              {
+                "author": "codecapyai[bot]",
+                "excerpt": "\ud83d\ude80 Launching Scrapybara desktop...",
+                "score": 0
+              },
+              {
+                "author": "codecapyai[bot]",
+                "excerpt": "\u274c Something went wrong: \n```\nstatus_code: 500, body: {'detail': 'Error creating instance: HTTPSConnectionPool(host=\\'dd71ce9e4c14175cfb2d4b4d613159f4.sk1.us-west-1.eks.amazonaws.com\\', port=443): Max retries exceeded with url: /api/v1/namespaces/scrapybara-instances/services (Caused by NameResolutio...",
+                "score": 0
+              }
+            ]
+          },
+          "published_at": "2026-03-18",
+          "relevance_hint": 0.81,
+          "snippet": "# CodeCapy Review \u208d\u1422\u2022(\u072b)\u2022\u1422\u208e - PR: #37 - Commit: 3d7fd16 ## Codebase Summary Chat SDK is an open-source Next.js AI chatbot template that now includes an advanced browser AI configuration system. The PR introduces extensive documentation and configuration files that guide users through setting up the... <!-- This is an auto-generated comment: summarize by coderabbit.ai --> <!-- walkthrough_start --> <details> <summary>\ud83d\udcdd Walkthrough</summary> ## Walkthrough Adds a browser-centric AI toolkit: extensive docs and guides, configurable search/bookmarklets/filters, a Manifest V3 Chrome extension, multi... ## Summary of Changes Hello, I'm Gemini Code Assist[^1]! I'm currently reviewing this pull request and will post my feedback shortly. In the meantime, here's a summary to help you and other reviewers quickly get up to speed! This...",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "feat: Advanced Browser AI Configuration System",
+          "url": "https://github.com/muffy86/Autonomous-AI-orchestration-agent/pull/37",
+          "why_relevant": "GitHub PR: feat: Advanced Browser AI Configuration System"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "High engagement AI formats"
+      ],
+      "title": "feat: Advanced Browser AI Configuration System",
+      "url": "https://github.com/muffy86/Autonomous-AI-orchestration-agent/pull/37"
+    },
+    {
+      "candidate_id": "https://github.com/jovieinc/jovie/pull/6304",
+      "cluster_id": "cluster-19",
+      "engagement": 22,
+      "explanation": "Irrelevant; appears to be an auto-generated PR comment for a dashboard.",
+      "final_score": 4.8228169014084505,
+      "freshness": 49,
+      "fun_explanation": "Standard dashboard refinement; completely invisible to the average user.",
+      "fun_score": 15.0,
+      "item_id": "GH4",
+      "local_relevance": 0.21,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH4",
+            "native_rank": 11,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 11
+      },
+      "rerank_score": 5.0,
+      "rrf_score": 0.0007042253521126761,
+      "snippet": "[vc]: #v1gY0ImizVDJ5QpvdxuLcWA2KFthA3lTsYHanR+LiwY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJrcmFrb3ciLCJwcm9qZWN0SWQiOiJwcmpfa2ttMjkxVXhBQTg4MnRPVWRBUUJNbXQwcHRGYiIsInJvb3REaXJlY3RvcnkiOm51bGwsImxpdmVGZWVkYmFjayI6eyJyZXNvbHZlZCI6MCwidW5yZXNvbHZlZCI6MCwidG90YWwiOjAs... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nThis PR introduces a new `ChatWorkspaceSurface` wrapper component and applies extensive UI styling updates across chat, dashboard, profile, a... ## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](https://sonarcloud.io/dashboard?id=JovieInc_Jovie&pullRequest=6304) **Quality Gate failed**  \nFailed conditions  \n![](https://sonarsource....",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "itstimwhite",
+          "body": "feat(dashboard): refine chat workspace surfaces\n## Summary\n- refine the main chat, profile chat, and right drawer surfaces toward the Linear-style dashboard shell\n- tighten chat utility states including markdown, error, attachment, empty, loading, and tool-card treatments\n- polish the shared drawer primitives and profile sidebar presentation used\n[vc]: #v1gY0ImizVDJ5QpvdxuLcWA2KFthA3lTsYHanR+LiwY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJrcmFrb3ciLCJwcm9qZWN0SWQiOiJwcmpfa2ttMjkxVXhBQTg4MnRPVWRBUUJNbXQwcHRGYiIsInJvb3REaXJlY3RvcnkiOm51bGwsImxpdmVGZWVkYmFjayI6eyJyZXNvbHZlZCI6MCwidW5yZXNvbHZlZCI6MCwidG90YWwiOjAs... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nThis PR introduces a new `ChatWorkspaceSurface` wrapper component and applies extensive UI styling updates across chat, dashboard, profile, a... ## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](https://sonarcloud.io/dashboard?id=JovieInc_Jovie&pullRequest=6304) **Quality Gate failed**  \nFailed conditions  \n![](https://sonarsource....",
+          "container": "JovieInc/Jovie",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 6,
+            "reactions": 2
+          },
+          "engagement_score": 22,
+          "freshness": 49,
+          "item_id": "GH4",
+          "local_rank_score": 0.281,
+          "local_relevance": 0.21,
+          "metadata": {
+            "is_pr": true,
+            "labels": [
+              "testing",
+              "needs-human"
+            ],
+            "state": "closed",
+            "top_comments": [
+              {
+                "author": "vercel[bot]",
+                "excerpt": "[vc]: #v1gY0ImizVDJ5QpvdxuLcWA2KFthA3lTsYHanR+LiwY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJrcmFrb3ciLCJwcm9qZWN0SWQiOiJwcmpfa2ttMjkxVXhBQTg4MnRPVWRBUUJNbXQwcHRGYiIsInJvb3REaXJlY3RvcnkiOm51bGwsImxpdmVGZWVkYmFjayI6eyJyZXNvbHZlZCI6MCwidW5yZXNvbHZlZCI6MCwidG90YWwiOjAs...",
+                "score": 0
+              },
+              {
+                "author": "coderabbitai[bot]",
+                "excerpt": "<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nThis PR introduces a new `ChatWorkspaceSurface` wrapper component and applies extensive UI styling updates across chat, dashboard, profile, a...",
+                "score": 0
+              },
+              {
+                "author": "sonarqubecloud[bot]",
+                "excerpt": "## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](https://sonarcloud.io/dashboard?id=JovieInc_Jovie&pullRequest=6304) **Quality Gate failed**  \nFailed conditions  \n![](https://sonarsource....",
+                "score": 0
+              },
+              {
+                "author": "sentry[bot]",
+                "excerpt": ":white_check_mark: All tests passed.",
+                "score": 0
+              },
+              {
+                "author": "github-actions[bot]",
+                "excerpt": "## CI Summary\n\nA crisp snapshot of this PR run \u2014 executed vs. skipped, with timing for every key lane.\n\n\n| Job | Status | Context | Time |\n| --- | ------ | ------- | ---- |\n| **PR Ready (merge gate)** | \u2705 Passed | Executed | 3s |\n| Env Example Guard | \u2705 Passed | Executed | 6s |\n| Guardrails | \u2705 Pass...",
+                "score": 0
+              }
+            ]
+          },
+          "published_at": "2026-03-21",
+          "relevance_hint": 0.67,
+          "snippet": "[vc]: #v1gY0ImizVDJ5QpvdxuLcWA2KFthA3lTsYHanR+LiwY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJrcmFrb3ciLCJwcm9qZWN0SWQiOiJwcmpfa2ttMjkxVXhBQTg4MnRPVWRBUUJNbXQwcHRGYiIsInJvb3REaXJlY3RvcnkiOm51bGwsImxpdmVGZWVkYmFjayI6eyJyZXNvbHZlZCI6MCwidW5yZXNvbHZlZCI6MCwidG90YWwiOjAs... <!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- walkthrough_start -->\n\n<details>\n<summary>\ud83d\udcdd Walkthrough</summary>\n\n## Walkthrough\n\nThis PR introduces a new `ChatWorkspaceSurface` wrapper component and applies extensive UI styling updates across chat, dashboard, profile, a... ## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](https://sonarcloud.io/dashboard?id=JovieInc_Jovie&pullRequest=6304) **Quality Gate failed**  \nFailed conditions  \n![](https://sonarsource....",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "feat(dashboard): refine chat workspace surfaces",
+          "url": "https://github.com/JovieInc/Jovie/pull/6304",
+          "why_relevant": "GitHub PR: feat(dashboard): refine chat workspace surfaces"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "feat(dashboard): refine chat workspace surfaces",
+      "url": "https://github.com/JovieInc/Jovie/pull/6304"
+    },
+    {
+      "candidate_id": "https://github.com/dstolts/covenai/pull/1",
+      "cluster_id": "cluster-20",
+      "explanation": "Irrelevant; project scaffolding for a different type of application.",
+      "final_score": 3.502083333333333,
+      "freshness": 55,
+      "fun_explanation": "The 'Dan was AFK' narrative adds a human element that makes the technical build feel like a story.",
+      "fun_score": 60.0,
+      "item_id": "GH15",
+      "local_relevance": 0.21,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "GH15",
+            "native_rank": 12,
+            "source": "github",
+            "subquery_label": "AI social media workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI social media workflows:github": 12
+      },
+      "rerank_score": 5.0,
+      "rrf_score": 0.0006944444444444445,
+      "snippet": "## Summary\nComplete autonomous build session -- all Phase 1 prep work done while Dan was AFK.\n\n### What's included:\n- **Next.js 16 app** with 8 routes (landing, leaderboard, join, profile, challenges, teams, tiers, about), dark theme, CovenAI branding\n- **13 AI-generated brand assets** via Imagen 4:",
+      "source": "github",
+      "source_items": [
+        {
+          "author": "dstolts",
+          "body": "CovenAI: Full project scaffold and Phase 1 prep\n## Summary\nComplete autonomous build session -- all Phase 1 prep work done while Dan was AFK.\n\n### What's included:\n- **Next.js 16 app** with 8 routes (landing, leaderboard, join, profile, challenges, teams, tiers, about), dark theme, CovenAI branding\n- **13 AI-generated brand assets** via Imagen 4:",
+          "container": "dstolts/covenai",
+          "date_confidence": "high",
+          "engagement": {
+            "comments": 0,
+            "reactions": 0
+          },
+          "freshness": 55,
+          "item_id": "GH15",
+          "local_rank_score": 0.274,
+          "local_relevance": 0.21,
+          "metadata": {
+            "is_pr": true,
+            "labels": [],
+            "state": "open",
+            "top_comments": []
+          },
+          "published_at": "2026-03-24",
+          "relevance_hint": 0.43,
+          "snippet": "## Summary\nComplete autonomous build session -- all Phase 1 prep work done while Dan was AFK.\n\n### What's included:\n- **Next.js 16 app** with 8 routes (landing, leaderboard, join, profile, challenges, teams, tiers, about), dark theme, CovenAI branding\n- **13 AI-generated brand assets** via Imagen 4:",
+          "source": "github",
+          "source_quality": 0.6,
+          "title": "CovenAI: Full project scaffold and Phase 1 prep",
+          "url": "https://github.com/dstolts/covenai/pull/1",
+          "why_relevant": "GitHub PR: CovenAI: Full project scaffold and Phase 1 prep"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "github"
+      ],
+      "subquery_labels": [
+        "AI social media workflows"
+      ],
+      "title": "CovenAI: Full project scaffold and Phase 1 prep",
+      "url": "https://github.com/dstolts/covenai/pull/1"
+    }
+  ],
+  "topic": "How are people actually using AI for social media marketing on TikTok, Instagram, and X? Focus on recurring hooks, creator formats, audience pain points, objections, and the kinds of AI use cases that get the strongest engagement. Then synthesize what an AI company should post about if it wants to attract founders and operators.",
+  "warnings": [
+    "Top evidence is highly concentrated in one source."
+  ]
+}

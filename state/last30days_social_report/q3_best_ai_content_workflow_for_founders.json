@@ -1,0 +1,906 @@
+{
+  "artifacts": {
+    "grounding": []
+  },
+  "clusters": [
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/aitooltesting/comments/1sbl0t3/my_favourite_ai_mcp_workflows_as_a_solo_founder"
+      ],
+      "cluster_id": "cluster-1",
+      "representative_ids": [
+        "https://reddit.com/r/aitooltesting/comments/1sbl0t3/my_favourite_ai_mcp_workflows_as_a_solo_founder"
+      ],
+      "score": 74.11515151515151,
+      "sources": [
+        "reddit"
+      ],
+      "title": "My favourite AI MCP workflows as a solo founder (primary focus on marketing)"
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/digitalmarketing/comments/1sjhka9/traditional_seo_vs_ai_answer_engines_do_you"
+      ],
+      "cluster_id": "cluster-2",
+      "representative_ids": [
+        "https://reddit.com/r/digitalmarketing/comments/1sjhka9/traditional_seo_vs_ai_answer_engines_do_you"
+      ],
+      "score": 51.98730158730159,
+      "sources": [
+        "reddit"
+      ],
+      "title": "Traditional SEO vs. AI Answer Engines: Do you really need a new workflow if you already have an SEO team?"
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/askmarketing/comments/1saix4m/are_solo_founders_just_building_ai_content_farms"
+      ],
+      "cluster_id": "cluster-3",
+      "representative_ids": [
+        "https://reddit.com/r/askmarketing/comments/1saix4m/are_solo_founders_just_building_ai_content_farms"
+      ],
+      "score": 40.3625,
+      "sources": [
+        "reddit"
+      ],
+      "title": "Are solo founders just building \"AI content farms\" now?  (Observations from a solo dev in China)"
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/ai_agents/comments/1skgt1y/i_think_most_ai_seo_tools_are_solving_the_wrong"
+      ],
+      "cluster_id": "cluster-4",
+      "representative_ids": [
+        "https://reddit.com/r/ai_agents/comments/1skgt1y/i_think_most_ai_seo_tools_are_solving_the_wrong"
+      ],
+      "score": 37.11290322580645,
+      "sources": [
+        "reddit"
+      ],
+      "title": "I think most \u201cAI SEO\u201d tools are solving the wrong problem"
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/appbusiness/comments/1shycts/we_scaled_6_apps_to_1m_mrr_using_ugc_and_creator"
+      ],
+      "cluster_id": "cluster-5",
+      "representative_ids": [
+        "https://reddit.com/r/appbusiness/comments/1shycts/we_scaled_6_apps_to_1m_mrr_using_ugc_and_creator"
+      ],
+      "score": 30.53934426229508,
+      "sources": [
+        "reddit"
+      ],
+      "title": "We scaled 6 apps to $1M+ MRR using UGC and creator marketing instead of paid ads. Here's everything we learned"
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/jenova_ai/comments/1siccf1/best_ai_for_logo_design_strategic_style_matching"
+      ],
+      "cluster_id": "cluster-6",
+      "representative_ids": [
+        "https://reddit.com/r/jenova_ai/comments/1siccf1/best_ai_for_logo_design_strategic_style_matching"
+      ],
+      "score": 6.791538461538461,
+      "sources": [
+        "reddit"
+      ],
+      "title": "Best AI for Logo Design: Strategic Style Matching, Brand Discovery & Complete Identity Systems"
+    }
+  ],
+  "errors_by_source": {},
+  "generated_at": "2026-04-15T00:08:33.899516+00:00",
+  "items_by_source": {
+    "hackernews": [],
+    "reddit": [
+      {
+        "body": "We scaled 6 apps to $1M+ MRR using UGC and creator marketing instead of paid ads. Here's everything we learned\nOver the past year and a half my co-founder and I have managed creator marketing campaigns for apps across fitness, AI, education, fintech, dating, and wellness. Some context on results so this isn't just theory:\n\n\\- Calorie tracking app (the most viral app we worked with): $0 to $3M+ MRR, 250M views/month, 5M+ users\n\n\\- AI app builder: $0 to $1.3M ARR in 2.5 months, 36M views\n\n\\- Invoicing app: 0 to 200+ videos/month, hit $1.5M MRR\n\n\\- Gym tracker: expanded into Brazil, 3X return, became their\nWow thanks for the write up! Pretty good insights! Thanks for sharing Again thanks for the insights.\n\nI have some questions if you have time to answer.\n\nYou control the account mean, you actually own the account and share the UGCs yourself or do the creators handle this",
+        "container": "AppBusiness",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 113,
+          "score": 116,
+          "upvote_ratio": 0.98
+        },
+        "engagement_score": 100,
+        "freshness": 89,
+        "item_id": "R2",
+        "local_rank_score": 0.5305,
+        "local_relevance": 0.32,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": [
+            {
+              "author": "Bulky-Package9584",
+              "excerpt": "Wow thanks for the write up!",
+              "score": 4
+            },
+            {
+              "author": "andre_instaparty",
+              "excerpt": "Pretty good insights! Thanks for sharing ",
+              "score": 3
+            },
+            {
+              "author": "Bulky-Package9584",
+              "excerpt": "Again thanks for the insights.\n\nI have some questions if you have time to answer.\n\nYou control the account mean, you actually own the account and share the UGCs yourself or do the creators handle this",
+              "score": 2
+            },
+            {
+              "author": "DisastrousSummer3405",
+              "excerpt": "Really appreciate the detail you put into this, lots of insightful and valuable info that\u2019s not easy to find anywhere. Is there a way we can contact you and your content company for a potential ugc pa",
+              "score": 2
+            },
+            {
+              "author": "Rare_Ad6128",
+              "excerpt": "Sorry I\u2019m really new at this, where do u go to find UGC creators?",
+              "score": 2
+            },
+            {
+              "author": "__tiide",
+              "excerpt": "I\u2019ve just launched my app and I\u2019m about to start UGC so this was a great read. Thank you!",
+              "score": 2
+            },
+            {
+              "author": "BoismeneTomas",
+              "excerpt": "Do you have any course you recommend? Not much info about this anywhere. I am launching my app and  I need help",
+              "score": 2
+            },
+            {
+              "author": "Kitchen_Cable6192",
+              "excerpt": "Can you recommend any UGC?",
+              "score": 2
+            },
+            {
+              "author": "gorgeousbeauty-116",
+              "excerpt": "What are your fees if you were to do this 1x/day?",
+              "score": 2
+            },
+            {
+              "author": "Apart-Scene-4219",
+              "excerpt": "Nice writeup ",
+              "score": 2
+            }
+          ]
+        },
+        "published_at": "2026-04-10",
+        "relevance_hint": 0.365,
+        "snippet": "Wow thanks for the write up! Pretty good insights! Thanks for sharing Again thanks for the insights.\n\nI have some questions if you have time to answer.\n\nYou control the account mean, you actually own the account and share the UGCs yourself or do the creators handle this",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "We scaled 6 apps to $1M+ MRR using UGC and creator marketing instead of paid ads. Here's everything we learned",
+        "url": "https://www.reddit.com/r/AppBusiness/comments/1shycts/we_scaled_6_apps_to_1m_mrr_using_ugc_and_creator/",
+        "why_relevant": "Reddit public search"
+      },
+      {
+        "body": "I think most \u201cAI SEO\u201d tools are solving the wrong problem\nBeen spending an unhealthy amount of time testing programmatic SEO, AI blogging flows, and these new \u201cAEO/GEO\u201d tools.\n\nCurrent take:\n\nmost of them are solving the wrong problem.\n\nEveryone is obsessed with the writing part.\n\nBut writing was never the real bottleneck.\n\nThe real bottleneck is whether the page becomes something search engines and AI systems can actually crawl, trust, connect, and surface.\n\nA few things I\u2019ve started believing pretty strongly:\n\n1. Programmatic SEO still works. Bad pSE\nThe line about \u201cSEO getting punished for being lazy\u201d is brutal but accurate. for years people got away with thin posts + exact match titles + random backlinks. That bar feels higher now. I have also used [EarlySEO](http://aiseoblogging.com/) its pretty good The useful part of AEO discussion for me is not the label itself. the label got overhyped fast.\nThe useful part is it forces people to ask: \u201cis my site actually deep enough to deserve retrieval?\u201d most",
+        "container": "AI_Agents",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 33,
+          "score": 35,
+          "upvote_ratio": 0.94
+        },
+        "engagement_score": 72,
+        "freshness": 95,
+        "item_id": "R3",
+        "local_rank_score": 0.5175,
+        "local_relevance": 0.32,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": [
+            {
+              "author": "jia-ren",
+              "excerpt": "The line about \u201cSEO getting punished for being lazy\u201d is brutal but accurate. for years people got away with thin posts + exact match titles + random backlinks. That bar feels higher now.",
+              "score": 3
+            },
+            {
+              "author": "DifferentIssue1",
+              "excerpt": "I have also used [EarlySEO](http://aiseoblogging.com/) its pretty good",
+              "score": 2
+            },
+            {
+              "author": "Minute-Process-6028",
+              "excerpt": "The useful part of AEO discussion for me is not the label itself. the label got overhyped fast.\nThe useful part is it forces people to ask: \u201cis my site actually deep enough to deserve retrieval?\u201d most",
+              "score": 2
+            },
+            {
+              "author": "aiSightline",
+              "excerpt": "Well said and hard to disagree with. The point about community mentions being part of the retrieval layer now is underrated. It's wild how Reddit threads, founder discussions, niche roundups... AI pla",
+              "score": 2
+            },
+            {
+              "author": "AutoModerator",
+              "excerpt": "Thank you for your submission, for any questions regarding AI, please check out our wiki at https://www.reddit.com/r/ai_agents/wiki (this is currently in test and we are actively adding to the wiki)\n\n",
+              "score": 1
+            },
+            {
+              "author": "wemmbu_mace",
+              "excerpt": "ngl most \u201cAI SEO\u201d tools are just glorified content boxes. They generate text, sure. But structure, internal linking, schema, publishing hygiene, refresh logic, cannibalization control that\u2019s where tea",
+              "score": 1
+            },
+            {
+              "author": "Okaoka_12",
+              "excerpt": "i mostly agree but i do think AEO changes workflow a bit. not fundamentals maybe, but workflow yes. before it was rank page. now it\u2019s also: does this site actually cover the surrounding entity graph e",
+              "score": 1
+            },
+            {
+              "author": "OkCommunity5266",
+              "excerpt": "pSEO still works.    \nCopy-paste pSEO doesn\u2019t.    \nThat\u2019s honestly the whole conversation.",
+              "score": 1
+            },
+            {
+              "author": "TannerTot69",
+              "excerpt": "Yeah, this is why system building matters way more than just pumping out content. Anyone can generate drafts now, but the real win is having a setup for structure, internal links, publishing, refreshi",
+              "score": 1
+            },
+            {
+              "author": "4lleah",
+              "excerpt": "Internal linking is way more important than most of these tools act like it is.\nThey treat every article like a standalone asset when in reality the site needs to behave like a connected knowledge bas",
+              "score": 1
+            }
+          ]
+        },
+        "published_at": "2026-04-13",
+        "relevance_hint": 0.108,
+        "snippet": "The line about \u201cSEO getting punished for being lazy\u201d is brutal but accurate. for years people got away with thin posts + exact match titles + random backlinks. That bar feels higher now. I have also used [EarlySEO](http://aiseoblogging.com/) its pretty good The useful part of AEO discussion for me is not the label itself. the label got overhyped fast.\nThe useful part is it forces people to ask: \u201cis my site actually deep enough to deserve retrieval?\u201d most",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "I think most \u201cAI SEO\u201d tools are solving the wrong problem",
+        "url": "https://www.reddit.com/r/AI_Agents/comments/1skgt1y/i_think_most_ai_seo_tools_are_solving_the_wrong/",
+        "why_relevant": "Reddit public search"
+      },
+      {
+        "body": "Traditional SEO vs. AI Answer Engines: Do you really need a new workflow if you already have an SEO team?\nI was having coffee with a founder friend this week, and we got into an interesting debate. He asked: if a company already has a solid SEO team, great writers, and a decent content workflow, where do these new \"Answer Engine Optimisation\" (AEO) or AI-search strategies fit in? Is it just buzzwords?\n\nIt was a fair question. The best answer I had was that the gap seems to be between \u201cwe rank high on Google\u201d and \u201cwe are actually shipping content that AI answer engines (like Perplexity or ChatGPT sea",
+        "container": "DigitalMarketing",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 27,
+          "score": 4,
+          "upvote_ratio": 0.83
+        },
+        "engagement_score": 40,
+        "freshness": 94,
+        "item_id": "R6",
+        "local_rank_score": 0.483,
+        "local_relevance": 0.32,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": []
+        },
+        "published_at": "2026-04-12",
+        "relevance_hint": 0.059,
+        "snippet": "I was having coffee with a founder friend this week, and we got into an interesting debate. He asked: if a company already has a solid SEO team, great writers, and a decent content workflow, where do these new \"Answer Engine Optimisation\" (AEO) or AI-search strategies fit in? Is it just buzzwords?\n\nIt was a fair question. The best answer I had was that the gap seems to be between \u201cwe rank high on",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "Traditional SEO vs. AI Answer Engines: Do you really need a new workflow if you already have an SEO team?",
+        "url": "https://www.reddit.com/r/DigitalMarketing/comments/1sjhka9/traditional_seo_vs_ai_answer_engines_do_you/",
+        "why_relevant": "Reddit public search"
+      },
+      {
+        "body": "Are solo founders just building \"AI content farms\" now?  (Observations from a solo dev in China)\n**Context:** I tried sharing this in another sub but was guided here to start a discussion. I\u2019m a solo developer and operator based in China. Over the last few years, I\u2019ve been observing how one-person businesses operate here compared to the Western market. I see a dangerous trend in how people talk about AI and \"vibe marketing,\" and I want to hear your thoughts on this.\n\n>\n\n# Vibe Marketing for a One-Person Company Is Not Content Automation\n\nIf you think vibe marketing means using AI to mass-pr",
+        "container": "AskMarketing",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 8,
+          "score": 1,
+          "upvote_ratio": 0.67
+        },
+        "engagement_score": 15,
+        "freshness": 73,
+        "item_id": "R7",
+        "local_rank_score": 0.464,
+        "local_relevance": 0.41,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": []
+        },
+        "published_at": "2026-04-02",
+        "relevance_hint": 0.017,
+        "snippet": "**Context:** I tried sharing this in another sub but was guided here to start a discussion. I\u2019m a solo developer and operator based in China. Over the last few years, I\u2019ve been observing how one-person businesses operate here compared to the Western market. I see a dangerous trend in how people talk about AI and \"vibe marketing,\" and I want to hear your thoughts on this.\n\n>\n\n# Vibe Marketing for a",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "Are solo founders just building \"AI content farms\" now?  (Observations from a solo dev in China)",
+        "url": "https://www.reddit.com/r/AskMarketing/comments/1saix4m/are_solo_founders_just_building_ai_content_farms/",
+        "why_relevant": "Reddit public search"
+      },
+      {
+        "body": "Best AI for Logo Design: Strategic Style Matching, Brand Discovery & Complete Identity Systems\nhttps://preview.redd.it/3c97rbu1jiug1.png?width=1818&format=png&auto=webp&s=b98e1f85b1a4698c812d938a4fac09de2286629e\n\nIf you're looking for the best AI for logo design, [**AI Logo Generator**](https://www.jenova.ai/a/logo-generator) combines the strategic thinking of a creative director with the speed and accessibility of AI \u2014 analyzing your brand's industry, audience, and personality before generating a single pixel. Over 27,000 founders, small business owners, and creative professionals have u",
+        "container": "jenova_ai",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 0,
+          "score": 1,
+          "upvote_ratio": 1.0
+        },
+        "engagement_score": 0,
+        "freshness": 91,
+        "item_id": "R8",
+        "local_rank_score": 0.4355,
+        "local_relevance": 0.32,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": []
+        },
+        "published_at": "2026-04-11",
+        "relevance_hint": 0.001,
+        "snippet": "https://preview.redd.it/3c97rbu1jiug1.png?width=1818&format=png&auto=webp&s=b98e1f85b1a4698c812d938a4fac09de2286629e\n\nIf you're looking for the best AI for logo design, [**AI Logo Generator**](https://www.jenova.ai/a/logo-generator) combines the strategic thinking of a creative director with the speed and accessibility of AI \u2014 analyzing your brand's industry, audience, and personality before gener",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "Best AI for Logo Design: Strategic Style Matching, Brand Discovery & Complete Identity Systems",
+        "url": "https://www.reddit.com/r/jenova_ai/comments/1siccf1/best_ai_for_logo_design_strategic_style_matching/",
+        "why_relevant": "Reddit public search"
+      },
+      {
+        "body": "My favourite AI MCP workflows as a solo founder (primary focus on marketing)\nSolo founder here, I am currently at a very early stage of my start-up where I am still experimenting with different workflows to see what works and what doesn't\n\nSince I did not want to put in effort into automating something I am not 100% sure of yet, I started using MCPs primarily on Claude or Manus\n\nThese are a few I really found worth the extra API credits:\n\n1. Notion MCP: My entire knowledgebase is on Notion from customer feedback to marketing assets to a make-shift CRM with demo notes whi",
+        "container": "AIToolTesting",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 5,
+          "score": 8,
+          "upvote_ratio": 0.8
+        },
+        "engagement_score": 33,
+        "freshness": 76,
+        "item_id": "R5",
+        "local_rank_score": 0.43100000000000005,
+        "local_relevance": 0.32,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": []
+        },
+        "published_at": "2026-04-03",
+        "relevance_hint": 0.02,
+        "snippet": "Solo founder here, I am currently at a very early stage of my start-up where I am still experimenting with different workflows to see what works and what doesn't\n\nSince I did not want to put in effort into automating something I am not 100% sure of yet, I started using MCPs primarily on Claude or Manus\n\nThese are a few I really found worth the extra API credits:\n\n1. Notion MCP: My entire knowledge",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "My favourite AI MCP workflows as a solo founder (primary focus on marketing)",
+        "url": "https://www.reddit.com/r/AIToolTesting/comments/1sbl0t3/my_favourite_ai_mcp_workflows_as_a_solo_founder/",
+        "why_relevant": "Reddit public search"
+      }
+    ]
+  },
+  "provider_runtime": {
+    "planner_model": "gemini-3.1-flash-lite-preview",
+    "reasoning_provider": "gemini",
+    "rerank_model": "gemini-3.1-flash-lite-preview"
+  },
+  "query_plan": {
+    "cluster_mode": "workflow",
+    "freshness_mode": "evergreen_ok",
+    "intent": "how_to",
+    "notes": [
+      "Focusing on practical tool stacks and automation patterns used by founders.",
+      "GitHub queries target automation scripts and content generation frameworks."
+    ],
+    "raw_topic": "best AI content workflow for founders",
+    "source_weights": {
+      "github": 0.2,
+      "hackernews": 0.4,
+      "reddit": 0.4
+    },
+    "subqueries": [
+      {
+        "label": "AI content automation stack",
+        "ranking_query": "What are the most effective AI content creation workflows for startup founders?",
+        "search_query": "AI content workflow founders automation tools",
+        "sources": [
+          "reddit",
+          "hackernews"
+        ],
+        "weight": 1.0
+      }
+    ]
+  },
+  "range_from": "2026-03-16",
+  "range_to": "2026-04-15",
+  "ranked_candidates": [
+    {
+      "candidate_id": "https://reddit.com/r/aitooltesting/comments/1sbl0t3/my_favourite_ai_mcp_workflows_as_a_solo_founder",
+      "cluster_id": "cluster-1",
+      "engagement": 33,
+      "explanation": "Highly relevant; provides specific, practical AI workflows (MCPs) for a solo founder focused on marketing, directly addressing the 'how-to' intent.",
+      "final_score": 74.11515151515151,
+      "freshness": 76,
+      "fun_explanation": "Dry, functional documentation of a workflow. Useful, but lacks any personality or humor.",
+      "fun_score": 25.0,
+      "item_id": "R5",
+      "local_relevance": 0.32,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R5",
+            "native_rank": 6,
+            "source": "reddit",
+            "subquery_label": "AI content automation stack"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI content automation stack:reddit": 6
+      },
+      "rerank_score": 95.0,
+      "rrf_score": 0.006060606060606061,
+      "snippet": "Solo founder here, I am currently at a very early stage of my start-up where I am still experimenting with different workflows to see what works and what doesn't\n\nSince I did not want to put in effort into automating something I am not 100% sure of yet, I started using MCPs primarily on Claude or Manus\n\nThese are a few I really found worth the extra API credits:\n\n1. Notion MCP: My entire knowledge",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "My favourite AI MCP workflows as a solo founder (primary focus on marketing)\nSolo founder here, I am currently at a very early stage of my start-up where I am still experimenting with different workflows to see what works and what doesn't\n\nSince I did not want to put in effort into automating something I am not 100% sure of yet, I started using MCPs primarily on Claude or Manus\n\nThese are a few I really found worth the extra API credits:\n\n1. Notion MCP: My entire knowledgebase is on Notion from customer feedback to marketing assets to a make-shift CRM with demo notes whi",
+          "container": "AIToolTesting",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 5,
+            "score": 8,
+            "upvote_ratio": 0.8
+          },
+          "engagement_score": 33,
+          "freshness": 76,
+          "item_id": "R5",
+          "local_rank_score": 0.43100000000000005,
+          "local_relevance": 0.32,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": []
+          },
+          "published_at": "2026-04-03",
+          "relevance_hint": 0.02,
+          "snippet": "Solo founder here, I am currently at a very early stage of my start-up where I am still experimenting with different workflows to see what works and what doesn't\n\nSince I did not want to put in effort into automating something I am not 100% sure of yet, I started using MCPs primarily on Claude or Manus\n\nThese are a few I really found worth the extra API credits:\n\n1. Notion MCP: My entire knowledge",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "My favourite AI MCP workflows as a solo founder (primary focus on marketing)",
+          "url": "https://www.reddit.com/r/AIToolTesting/comments/1sbl0t3/my_favourite_ai_mcp_workflows_as_a_solo_founder/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "AI content automation stack"
+      ],
+      "title": "My favourite AI MCP workflows as a solo founder (primary focus on marketing)",
+      "url": "https://www.reddit.com/r/AIToolTesting/comments/1sbl0t3/my_favourite_ai_mcp_workflows_as_a_solo_founder/"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/digitalmarketing/comments/1sjhka9/traditional_seo_vs_ai_answer_engines_do_you",
+      "cluster_id": "cluster-2",
+      "engagement": 40,
+      "explanation": "Somewhat relevant as it discusses the strategic shift in content workflows for founders, but lacks a concrete 'how-to' implementation guide.",
+      "final_score": 51.98730158730159,
+      "freshness": 94,
+      "fun_explanation": "Standard industry debate. It's professional discourse, not entertainment.",
+      "fun_score": 30.0,
+      "item_id": "R6",
+      "local_relevance": 0.32,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R6",
+            "native_rank": 3,
+            "source": "reddit",
+            "subquery_label": "AI content automation stack"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI content automation stack:reddit": 3
+      },
+      "rerank_score": 55.0,
+      "rrf_score": 0.006349206349206349,
+      "snippet": "I was having coffee with a founder friend this week, and we got into an interesting debate. He asked: if a company already has a solid SEO team, great writers, and a decent content workflow, where do these new \"Answer Engine Optimisation\" (AEO) or AI-search strategies fit in? Is it just buzzwords?\n\nIt was a fair question. The best answer I had was that the gap seems to be between \u201cwe rank high on",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "Traditional SEO vs. AI Answer Engines: Do you really need a new workflow if you already have an SEO team?\nI was having coffee with a founder friend this week, and we got into an interesting debate. He asked: if a company already has a solid SEO team, great writers, and a decent content workflow, where do these new \"Answer Engine Optimisation\" (AEO) or AI-search strategies fit in? Is it just buzzwords?\n\nIt was a fair question. The best answer I had was that the gap seems to be between \u201cwe rank high on Google\u201d and \u201cwe are actually shipping content that AI answer engines (like Perplexity or ChatGPT sea",
+          "container": "DigitalMarketing",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 27,
+            "score": 4,
+            "upvote_ratio": 0.83
+          },
+          "engagement_score": 40,
+          "freshness": 94,
+          "item_id": "R6",
+          "local_rank_score": 0.483,
+          "local_relevance": 0.32,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": []
+          },
+          "published_at": "2026-04-12",
+          "relevance_hint": 0.059,
+          "snippet": "I was having coffee with a founder friend this week, and we got into an interesting debate. He asked: if a company already has a solid SEO team, great writers, and a decent content workflow, where do these new \"Answer Engine Optimisation\" (AEO) or AI-search strategies fit in? Is it just buzzwords?\n\nIt was a fair question. The best answer I had was that the gap seems to be between \u201cwe rank high on",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "Traditional SEO vs. AI Answer Engines: Do you really need a new workflow if you already have an SEO team?",
+          "url": "https://www.reddit.com/r/DigitalMarketing/comments/1sjhka9/traditional_seo_vs_ai_answer_engines_do_you/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "AI content automation stack"
+      ],
+      "title": "Traditional SEO vs. AI Answer Engines: Do you really need a new workflow if you already have an SEO team?",
+      "url": "https://www.reddit.com/r/DigitalMarketing/comments/1sjhka9/traditional_seo_vs_ai_answer_engines_do_you/"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/askmarketing/comments/1saix4m/are_solo_founders_just_building_ai_content_farms",
+      "cluster_id": "cluster-3",
+      "engagement": 15,
+      "explanation": "Provides philosophical context on founder AI usage but is more of a discussion/critique than a practical workflow guide.",
+      "final_score": 40.3625,
+      "freshness": 73,
+      "fun_explanation": "Has a bit of edge by calling out 'vibe marketing' and 'content farms', which adds a touch of personality.",
+      "fun_score": 45.0,
+      "item_id": "R7",
+      "local_relevance": 0.41,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R7",
+            "native_rank": 4,
+            "source": "reddit",
+            "subquery_label": "AI content automation stack"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI content automation stack:reddit": 4
+      },
+      "rerank_score": 40.0,
+      "rrf_score": 0.00625,
+      "snippet": "**Context:** I tried sharing this in another sub but was guided here to start a discussion. I\u2019m a solo developer and operator based in China. Over the last few years, I\u2019ve been observing how one-person businesses operate here compared to the Western market. I see a dangerous trend in how people talk about AI and \"vibe marketing,\" and I want to hear your thoughts on this.\n\n>\n\n# Vibe Marketing for a",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "Are solo founders just building \"AI content farms\" now?  (Observations from a solo dev in China)\n**Context:** I tried sharing this in another sub but was guided here to start a discussion. I\u2019m a solo developer and operator based in China. Over the last few years, I\u2019ve been observing how one-person businesses operate here compared to the Western market. I see a dangerous trend in how people talk about AI and \"vibe marketing,\" and I want to hear your thoughts on this.\n\n>\n\n# Vibe Marketing for a One-Person Company Is Not Content Automation\n\nIf you think vibe marketing means using AI to mass-pr",
+          "container": "AskMarketing",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 8,
+            "score": 1,
+            "upvote_ratio": 0.67
+          },
+          "engagement_score": 15,
+          "freshness": 73,
+          "item_id": "R7",
+          "local_rank_score": 0.464,
+          "local_relevance": 0.41,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": []
+          },
+          "published_at": "2026-04-02",
+          "relevance_hint": 0.017,
+          "snippet": "**Context:** I tried sharing this in another sub but was guided here to start a discussion. I\u2019m a solo developer and operator based in China. Over the last few years, I\u2019ve been observing how one-person businesses operate here compared to the Western market. I see a dangerous trend in how people talk about AI and \"vibe marketing,\" and I want to hear your thoughts on this.\n\n>\n\n# Vibe Marketing for a",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "Are solo founders just building \"AI content farms\" now?  (Observations from a solo dev in China)",
+          "url": "https://www.reddit.com/r/AskMarketing/comments/1saix4m/are_solo_founders_just_building_ai_content_farms/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "AI content automation stack"
+      ],
+      "title": "Are solo founders just building \"AI content farms\" now?  (Observations from a solo dev in China)",
+      "url": "https://www.reddit.com/r/AskMarketing/comments/1saix4m/are_solo_founders_just_building_ai_content_farms/"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/ai_agents/comments/1skgt1y/i_think_most_ai_seo_tools_are_solving_the_wrong",
+      "cluster_id": "cluster-4",
+      "engagement": 72,
+      "explanation": "Weak; focuses on critiquing SEO tools rather than providing a functional content creation workflow for founders.",
+      "final_score": 37.11290322580645,
+      "freshness": 95,
+      "fun_explanation": "The brutal honesty about 'lazy' SEO provides a slight spark of wit in an otherwise technical discussion.",
+      "fun_score": 50.0,
+      "item_id": "R3",
+      "local_relevance": 0.32,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R3",
+            "native_rank": 2,
+            "source": "reddit",
+            "subquery_label": "AI content automation stack"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI content automation stack:reddit": 2
+      },
+      "rerank_score": 30.0,
+      "rrf_score": 0.0064516129032258064,
+      "snippet": "The line about \u201cSEO getting punished for being lazy\u201d is brutal but accurate. for years people got away with thin posts + exact match titles + random backlinks. That bar feels higher now. I have also used [EarlySEO](http://aiseoblogging.com/) its pretty good The useful part of AEO discussion for me is not the label itself. the label got overhyped fast.\nThe useful part is it forces people to ask: \u201cis my site actually deep enough to deserve retrieval?\u201d most",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "I think most \u201cAI SEO\u201d tools are solving the wrong problem\nBeen spending an unhealthy amount of time testing programmatic SEO, AI blogging flows, and these new \u201cAEO/GEO\u201d tools.\n\nCurrent take:\n\nmost of them are solving the wrong problem.\n\nEveryone is obsessed with the writing part.\n\nBut writing was never the real bottleneck.\n\nThe real bottleneck is whether the page becomes something search engines and AI systems can actually crawl, trust, connect, and surface.\n\nA few things I\u2019ve started believing pretty strongly:\n\n1. Programmatic SEO still works. Bad pSE\nThe line about \u201cSEO getting punished for being lazy\u201d is brutal but accurate. for years people got away with thin posts + exact match titles + random backlinks. That bar feels higher now. I have also used [EarlySEO](http://aiseoblogging.com/) its pretty good The useful part of AEO discussion for me is not the label itself. the label got overhyped fast.\nThe useful part is it forces people to ask: \u201cis my site actually deep enough to deserve retrieval?\u201d most",
+          "container": "AI_Agents",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 33,
+            "score": 35,
+            "upvote_ratio": 0.94
+          },
+          "engagement_score": 72,
+          "freshness": 95,
+          "item_id": "R3",
+          "local_rank_score": 0.5175,
+          "local_relevance": 0.32,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": [
+              {
+                "author": "jia-ren",
+                "excerpt": "The line about \u201cSEO getting punished for being lazy\u201d is brutal but accurate. for years people got away with thin posts + exact match titles + random backlinks. That bar feels higher now.",
+                "score": 3
+              },
+              {
+                "author": "DifferentIssue1",
+                "excerpt": "I have also used [EarlySEO](http://aiseoblogging.com/) its pretty good",
+                "score": 2
+              },
+              {
+                "author": "Minute-Process-6028",
+                "excerpt": "The useful part of AEO discussion for me is not the label itself. the label got overhyped fast.\nThe useful part is it forces people to ask: \u201cis my site actually deep enough to deserve retrieval?\u201d most",
+                "score": 2
+              },
+              {
+                "author": "aiSightline",
+                "excerpt": "Well said and hard to disagree with. The point about community mentions being part of the retrieval layer now is underrated. It's wild how Reddit threads, founder discussions, niche roundups... AI pla",
+                "score": 2
+              },
+              {
+                "author": "AutoModerator",
+                "excerpt": "Thank you for your submission, for any questions regarding AI, please check out our wiki at https://www.reddit.com/r/ai_agents/wiki (this is currently in test and we are actively adding to the wiki)\n\n",
+                "score": 1
+              },
+              {
+                "author": "wemmbu_mace",
+                "excerpt": "ngl most \u201cAI SEO\u201d tools are just glorified content boxes. They generate text, sure. But structure, internal linking, schema, publishing hygiene, refresh logic, cannibalization control that\u2019s where tea",
+                "score": 1
+              },
+              {
+                "author": "Okaoka_12",
+                "excerpt": "i mostly agree but i do think AEO changes workflow a bit. not fundamentals maybe, but workflow yes. before it was rank page. now it\u2019s also: does this site actually cover the surrounding entity graph e",
+                "score": 1
+              },
+              {
+                "author": "OkCommunity5266",
+                "excerpt": "pSEO still works.    \nCopy-paste pSEO doesn\u2019t.    \nThat\u2019s honestly the whole conversation.",
+                "score": 1
+              },
+              {
+                "author": "TannerTot69",
+                "excerpt": "Yeah, this is why system building matters way more than just pumping out content. Anyone can generate drafts now, but the real win is having a setup for structure, internal links, publishing, refreshi",
+                "score": 1
+              },
+              {
+                "author": "4lleah",
+                "excerpt": "Internal linking is way more important than most of these tools act like it is.\nThey treat every article like a standalone asset when in reality the site needs to behave like a connected knowledge bas",
+                "score": 1
+              }
+            ]
+          },
+          "published_at": "2026-04-13",
+          "relevance_hint": 0.108,
+          "snippet": "The line about \u201cSEO getting punished for being lazy\u201d is brutal but accurate. for years people got away with thin posts + exact match titles + random backlinks. That bar feels higher now. I have also used [EarlySEO](http://aiseoblogging.com/) its pretty good The useful part of AEO discussion for me is not the label itself. the label got overhyped fast.\nThe useful part is it forces people to ask: \u201cis my site actually deep enough to deserve retrieval?\u201d most",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "I think most \u201cAI SEO\u201d tools are solving the wrong problem",
+          "url": "https://www.reddit.com/r/AI_Agents/comments/1skgt1y/i_think_most_ai_seo_tools_are_solving_the_wrong/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "AI content automation stack"
+      ],
+      "title": "I think most \u201cAI SEO\u201d tools are solving the wrong problem",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1skgt1y/i_think_most_ai_seo_tools_are_solving_the_wrong/"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/appbusiness/comments/1shycts/we_scaled_6_apps_to_1m_mrr_using_ugc_and_creator",
+      "cluster_id": "cluster-5",
+      "engagement": 100,
+      "explanation": "Off-target; focuses on UGC and creator marketing rather than AI-driven content automation workflows.",
+      "final_score": 30.53934426229508,
+      "freshness": 89,
+      "fun_explanation": "Purely informational business case study. Zero attempt at humor.",
+      "fun_score": 20.0,
+      "item_id": "R2",
+      "local_relevance": 0.32,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R2",
+            "native_rank": 1,
+            "source": "reddit",
+            "subquery_label": "AI content automation stack"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI content automation stack:reddit": 1
+      },
+      "rerank_score": 20.0,
+      "rrf_score": 0.006557377049180328,
+      "snippet": "Wow thanks for the write up! Pretty good insights! Thanks for sharing Again thanks for the insights.\n\nI have some questions if you have time to answer.\n\nYou control the account mean, you actually own the account and share the UGCs yourself or do the creators handle this",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "We scaled 6 apps to $1M+ MRR using UGC and creator marketing instead of paid ads. Here's everything we learned\nOver the past year and a half my co-founder and I have managed creator marketing campaigns for apps across fitness, AI, education, fintech, dating, and wellness. Some context on results so this isn't just theory:\n\n\\- Calorie tracking app (the most viral app we worked with): $0 to $3M+ MRR, 250M views/month, 5M+ users\n\n\\- AI app builder: $0 to $1.3M ARR in 2.5 months, 36M views\n\n\\- Invoicing app: 0 to 200+ videos/month, hit $1.5M MRR\n\n\\- Gym tracker: expanded into Brazil, 3X return, became their\nWow thanks for the write up! Pretty good insights! Thanks for sharing Again thanks for the insights.\n\nI have some questions if you have time to answer.\n\nYou control the account mean, you actually own the account and share the UGCs yourself or do the creators handle this",
+          "container": "AppBusiness",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 113,
+            "score": 116,
+            "upvote_ratio": 0.98
+          },
+          "engagement_score": 100,
+          "freshness": 89,
+          "item_id": "R2",
+          "local_rank_score": 0.5305,
+          "local_relevance": 0.32,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": [
+              {
+                "author": "Bulky-Package9584",
+                "excerpt": "Wow thanks for the write up!",
+                "score": 4
+              },
+              {
+                "author": "andre_instaparty",
+                "excerpt": "Pretty good insights! Thanks for sharing ",
+                "score": 3
+              },
+              {
+                "author": "Bulky-Package9584",
+                "excerpt": "Again thanks for the insights.\n\nI have some questions if you have time to answer.\n\nYou control the account mean, you actually own the account and share the UGCs yourself or do the creators handle this",
+                "score": 2
+              },
+              {
+                "author": "DisastrousSummer3405",
+                "excerpt": "Really appreciate the detail you put into this, lots of insightful and valuable info that\u2019s not easy to find anywhere. Is there a way we can contact you and your content company for a potential ugc pa",
+                "score": 2
+              },
+              {
+                "author": "Rare_Ad6128",
+                "excerpt": "Sorry I\u2019m really new at this, where do u go to find UGC creators?",
+                "score": 2
+              },
+              {
+                "author": "__tiide",
+                "excerpt": "I\u2019ve just launched my app and I\u2019m about to start UGC so this was a great read. Thank you!",
+                "score": 2
+              },
+              {
+                "author": "BoismeneTomas",
+                "excerpt": "Do you have any course you recommend? Not much info about this anywhere. I am launching my app and  I need help",
+                "score": 2
+              },
+              {
+                "author": "Kitchen_Cable6192",
+                "excerpt": "Can you recommend any UGC?",
+                "score": 2
+              },
+              {
+                "author": "gorgeousbeauty-116",
+                "excerpt": "What are your fees if you were to do this 1x/day?",
+                "score": 2
+              },
+              {
+                "author": "Apart-Scene-4219",
+                "excerpt": "Nice writeup ",
+                "score": 2
+              }
+            ]
+          },
+          "published_at": "2026-04-10",
+          "relevance_hint": 0.365,
+          "snippet": "Wow thanks for the write up! Pretty good insights! Thanks for sharing Again thanks for the insights.\n\nI have some questions if you have time to answer.\n\nYou control the account mean, you actually own the account and share the UGCs yourself or do the creators handle this",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "We scaled 6 apps to $1M+ MRR using UGC and creator marketing instead of paid ads. Here's everything we learned",
+          "url": "https://www.reddit.com/r/AppBusiness/comments/1shycts/we_scaled_6_apps_to_1m_mrr_using_ugc_and_creator/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "AI content automation stack"
+      ],
+      "title": "We scaled 6 apps to $1M+ MRR using UGC and creator marketing instead of paid ads. Here's everything we learned",
+      "url": "https://www.reddit.com/r/AppBusiness/comments/1shycts/we_scaled_6_apps_to_1m_mrr_using_ugc_and_creator/"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/jenova_ai/comments/1siccf1/best_ai_for_logo_design_strategic_style_matching",
+      "cluster_id": "cluster-6",
+      "engagement": 0,
+      "explanation": "Off-target; focuses on logo design tools rather than a broader AI content creation workflow for founders.",
+      "final_score": 6.791538461538461,
+      "freshness": 91,
+      "fun_explanation": "Standard marketing copy for a tool. Very dry and promotional.",
+      "fun_score": 15.0,
+      "item_id": "R8",
+      "local_relevance": 0.32,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R8",
+            "native_rank": 5,
+            "source": "reddit",
+            "subquery_label": "AI content automation stack"
+          }
+        ]
+      },
+      "native_ranks": {
+        "AI content automation stack:reddit": 5
+      },
+      "rerank_score": 15.0,
+      "rrf_score": 0.006153846153846154,
+      "snippet": "https://preview.redd.it/3c97rbu1jiug1.png?width=1818&format=png&auto=webp&s=b98e1f85b1a4698c812d938a4fac09de2286629e\n\nIf you're looking for the best AI for logo design, [**AI Logo Generator**](https://www.jenova.ai/a/logo-generator) combines the strategic thinking of a creative director with the speed and accessibility of AI \u2014 analyzing your brand's industry, audience, and personality before gener",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "Best AI for Logo Design: Strategic Style Matching, Brand Discovery & Complete Identity Systems\nhttps://preview.redd.it/3c97rbu1jiug1.png?width=1818&format=png&auto=webp&s=b98e1f85b1a4698c812d938a4fac09de2286629e\n\nIf you're looking for the best AI for logo design, [**AI Logo Generator**](https://www.jenova.ai/a/logo-generator) combines the strategic thinking of a creative director with the speed and accessibility of AI \u2014 analyzing your brand's industry, audience, and personality before generating a single pixel. Over 27,000 founders, small business owners, and creative professionals have u",
+          "container": "jenova_ai",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 0,
+            "score": 1,
+            "upvote_ratio": 1.0
+          },
+          "engagement_score": 0,
+          "freshness": 91,
+          "item_id": "R8",
+          "local_rank_score": 0.4355,
+          "local_relevance": 0.32,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": []
+          },
+          "published_at": "2026-04-11",
+          "relevance_hint": 0.001,
+          "snippet": "https://preview.redd.it/3c97rbu1jiug1.png?width=1818&format=png&auto=webp&s=b98e1f85b1a4698c812d938a4fac09de2286629e\n\nIf you're looking for the best AI for logo design, [**AI Logo Generator**](https://www.jenova.ai/a/logo-generator) combines the strategic thinking of a creative director with the speed and accessibility of AI \u2014 analyzing your brand's industry, audience, and personality before gener",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "Best AI for Logo Design: Strategic Style Matching, Brand Discovery & Complete Identity Systems",
+          "url": "https://www.reddit.com/r/jenova_ai/comments/1siccf1/best_ai_for_logo_design_strategic_style_matching/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "AI content automation stack"
+      ],
+      "title": "Best AI for Logo Design: Strategic Style Matching, Brand Discovery & Complete Identity Systems",
+      "url": "https://www.reddit.com/r/jenova_ai/comments/1siccf1/best_ai_for_logo_design_strategic_style_matching/"
+    }
+  ],
+  "topic": "best AI content workflow for founders",
+  "warnings": [
+    "Top evidence is highly concentrated in one source."
+  ]
+}

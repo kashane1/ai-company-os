@@ -1,0 +1,1303 @@
+{
+  "artifacts": {
+    "grounding": []
+  },
+  "clusters": [
+    {
+      "candidate_ids": [
+        "https://youtube.com/watch?v=o_n5ed5fe1i"
+      ],
+      "cluster_id": "cluster-1",
+      "representative_ids": [
+        "https://youtube.com/watch?v=o_n5ed5fe1i"
+      ],
+      "score": 71.40384615384616,
+      "sources": [
+        "youtube"
+      ],
+      "title": "If I Started Social Media From Scratch in 2026, I\u2019d Do This"
+    },
+    {
+      "candidate_ids": [
+        "https://youtube.com/watch?v=dugoa6zigte"
+      ],
+      "cluster_id": "cluster-2",
+      "representative_ids": [
+        "https://youtube.com/watch?v=dugoa6zigte"
+      ],
+      "score": 65.47950819672131,
+      "sources": [
+        "youtube"
+      ],
+      "title": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE)"
+    },
+    {
+      "candidate_ids": [
+        "https://youtube.com/watch?v=rnztaqclcey"
+      ],
+      "cluster_id": "cluster-3",
+      "representative_ids": [
+        "https://youtube.com/watch?v=rnztaqclcey"
+      ],
+      "score": 50.45967741935484,
+      "sources": [
+        "youtube"
+      ],
+      "title": "12 Steps to Creating Viral Social Media Content With AI"
+    },
+    {
+      "candidate_ids": [
+        "https://youtube.com/watch?v=oqwhxdgkat8"
+      ],
+      "cluster_id": "cluster-4",
+      "representative_ids": [
+        "https://youtube.com/watch?v=oqwhxdgkat8"
+      ],
+      "score": 44.421875,
+      "sources": [
+        "youtube"
+      ],
+      "title": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind"
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/u_fitmanagement/comments/1s6svnf/the_ai_visibility_playbook_for_gym_owners_how_to"
+      ],
+      "cluster_id": "cluster-5",
+      "representative_ids": [
+        "https://reddit.com/r/u_fitmanagement/comments/1s6svnf/the_ai_visibility_playbook_for_gym_owners_how_to"
+      ],
+      "score": 43.69047619047619,
+      "sources": [
+        "reddit"
+      ],
+      "title": "The AI Visibility Playbook for Gym Owners: How to Use AEO (Answer Engine Optimization) to Get Your Gym Recommended by AI"
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/honestsidehustles/comments/1rvtu3v/i_taught_my_kids_10_and_13_to_build_apps_using_ai"
+      ],
+      "cluster_id": "cluster-6",
+      "representative_ids": [
+        "https://reddit.com/r/honestsidehustles/comments/1rvtu3v/i_taught_my_kids_10_and_13_to_build_apps_using_ai"
+      ],
+      "score": 37.30967741935484,
+      "sources": [
+        "reddit"
+      ],
+      "title": "I taught my kids (10 and 13) to build apps using AI. They're already making $200/month from it."
+    },
+    {
+      "candidate_ids": [
+        "https://youtube.com/watch?v=osn_mjopmxc"
+      ],
+      "cluster_id": "cluster-7",
+      "representative_ids": [
+        "https://youtube.com/watch?v=osn_mjopmxc"
+      ],
+      "score": 32.44047619047619,
+      "sources": [
+        "youtube"
+      ],
+      "title": "How I Built A $1.4 Million/Month AI App At Age 18"
+    },
+    {
+      "candidate_ids": [
+        "https://youtube.com/watch?v=uid5tklwz60"
+      ],
+      "cluster_id": "cluster-8",
+      "representative_ids": [
+        "https://youtube.com/watch?v=uid5tklwz60"
+      ],
+      "score": 21.386363636363637,
+      "sources": [
+        "youtube"
+      ],
+      "title": "Yale students create AI-powered social network"
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/startups/comments/1sivput/im_a_serial_founder_heres_how_i_come_up_with"
+      ],
+      "cluster_id": "cluster-9",
+      "representative_ids": [
+        "https://reddit.com/r/startups/comments/1sivput/im_a_serial_founder_heres_how_i_come_up_with"
+      ],
+      "score": 7.298852459016393,
+      "sources": [
+        "reddit"
+      ],
+      "title": "I'm a Serial Founder. Here's how I come up with Business Ideas. I will not promote."
+    },
+    {
+      "candidate_ids": [
+        "https://reddit.com/r/hoboken/comments/1s83j2r/officially_hello_hoboken_from_bricks_minifigs"
+      ],
+      "cluster_id": "cluster-10",
+      "representative_ids": [
+        "https://reddit.com/r/hoboken/comments/1s83j2r/officially_hello_hoboken_from_bricks_minifigs"
+      ],
+      "score": 5.6615625,
+      "sources": [
+        "reddit"
+      ],
+      "title": "Officially, HELLO Hoboken from Bricks & Minifigs! Opening late spring/Early summer at 900 Monroe St (we're also hiring...see inside for more details!)"
+    }
+  ],
+  "errors_by_source": {},
+  "generated_at": "2026-04-15T00:08:54.208645+00:00",
+  "items_by_source": {
+    "reddit": [
+      {
+        "body": "I'm a Serial Founder. Here's how I come up with Business Ideas. I will not promote.\n**NO AI WAS USED IN WRITING THIS** I have been working on this post for over a year, it's all my own content, nothing from a model.  I'll leave a screenshot showing the markdown files with dates in the comments.\n\nHello my name's Troy. I'm a serial founder who's been either a founder or founding employee at 9 startups with the total valuation of said startups north of $1bn. My current startup that I co-founded is currently at $5m in ARR and growing rapidly. I used to be a teacher and have been re\nFor people saying this is too long, this is an entire startup guide book distilled into a short essay.\n\n  \nThis is the real deal. I was thinking I would love an interactive LLM software or coach that a post that isn't spam, wtf? Proof of no AI (file editing from > 1 year ago): [https://imgur.com/a/qHPiC6e](https://imgur.com/a/qHPiC6e)\n\nAnd here's the \"business venn diagram\" graphic I made mentioned in section 1.2: [https://im",
+        "container": "startups",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 135,
+          "score": 783,
+          "upvote_ratio": 0.96
+        },
+        "engagement_score": 100,
+        "freshness": 91,
+        "item_id": "R2",
+        "local_rank_score": 0.516,
+        "local_relevance": 0.29,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": [
+            {
+              "author": "dangero",
+              "excerpt": "For people saying this is too long, this is an entire startup guide book distilled into a short essay.\n\n  \nThis is the real deal. I was thinking I would love an interactive LLM software or coach that ",
+              "score": 70
+            },
+            {
+              "author": "julian88888888",
+              "excerpt": "a post that isn't spam, wtf?",
+              "score": 63
+            },
+            {
+              "author": "ssbmomelette",
+              "excerpt": "Proof of no AI (file editing from > 1 year ago): [https://imgur.com/a/qHPiC6e](https://imgur.com/a/qHPiC6e)\n\nAnd here's the \"business venn diagram\" graphic I made mentioned in section 1.2: [https://im",
+              "score": 56
+            },
+            {
+              "author": "leolock567",
+              "excerpt": "I think an important factor when evaluating ideas is timing. Is the pain point painful enough at this point in time or should I wait? Is the market ready for my solution at this point in time? Is the ",
+              "score": 6
+            },
+            {
+              "author": "ChocolateExciting682",
+              "excerpt": "Hey Troy, can I ask you how do you separate passion from delusion early on? Like what were the actual signs that told you the market wanted what you were building?",
+              "score": 5
+            },
+            {
+              "author": "alexandre-boudot",
+              "excerpt": "the pain vs enjoyment split is the most useful framing ive seen on this sub in a while, ran two businesses and the enjoyment one felt better day to day but the pain one printed money because customers",
+              "score": 3
+            },
+            {
+              "author": "jimmytoan",
+              "excerpt": "the ideation framework is solid, but what I always struggle with is the gap between 'this idea validates on paper' and 'I'm genuinely excited enough to grind on this for 5+ years' - did any of your 9 ",
+              "score": 3
+            },
+            {
+              "author": "1hassond",
+              "excerpt": "Thank you for this nugget of gold. I'm a founder at Antler, and this is pretty much 70-80% of what we got taught there in one article",
+              "score": 3
+            },
+            {
+              "author": "Capitalist0",
+              "excerpt": "my best product ideas came from automating my own annoying tasks. was spending 4hrs/week on manual data exports, finally automated it, then realized tons of other founders have the same problem. the a",
+              "score": 2
+            },
+            {
+              "author": "gogosomewhere",
+              "excerpt": "Thanks, man. This is a good post. \n\nI agree with most of what you say here, but here is my particular situation. I'm building a physical mindfulness device for adults with ADHD - the long-term product",
+              "score": 2
+            }
+          ]
+        },
+        "published_at": "2026-04-11",
+        "relevance_hint": 0.87,
+        "snippet": "For people saying this is too long, this is an entire startup guide book distilled into a short essay.\n\n  \nThis is the real deal. I was thinking I would love an interactive LLM software or coach that a post that isn't spam, wtf? Proof of no AI (file editing from > 1 year ago): [https://imgur.com/a/qHPiC6e](https://imgur.com/a/qHPiC6e)\n\nAnd here's the \"business venn diagram\" graphic I made mentioned in section 1.2: [https://im",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "I'm a Serial Founder. Here's how I come up with Business Ideas. I will not promote.",
+        "url": "https://www.reddit.com/r/startups/comments/1sivput/im_a_serial_founder_heres_how_i_come_up_with/",
+        "why_relevant": "Reddit public search"
+      },
+      {
+        "body": "I taught my kids (10 and 13) to build apps using AI. They're already making $200/month from it.\nA while back I started thinking seriously about what skills my kids actually need to enter the world in 5\u201310 years. The answer felt obvious: AI fluency isn't optional anymore - it's the baseline. So instead of signing them up for another course, I made them co-founders.\n\nI've been building and shipping products professionally for 20 years. The plan was simple: use a real project to teach them how AI tools work, how products get built, and how distribution actually happens - by doing it together,\nthe part about \"warming up the account before posting\" is something most adults launching on TikTok completely skip and then wonder why they get zero traction.\n\nalso Claude Code plus Freepik for the v So you built an educational app, then generated AI influencer content about said app to drive downloads... With a 10 and 13 year old?! \n\nI can't even get my 10 year old to brush her teeth most morning can u teach me?",
+        "container": "HonestSideHustles",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 111,
+          "score": 331,
+          "upvote_ratio": 0.93
+        },
+        "engagement_score": 85,
+        "freshness": 41,
+        "item_id": "R3",
+        "local_rank_score": 0.4995,
+        "local_relevance": 0.48,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": [
+            {
+              "author": "QuiverbertPupilstein",
+              "excerpt": "the part about \"warming up the account before posting\" is something most adults launching on TikTok completely skip and then wonder why they get zero traction.\n\nalso Claude Code plus Freepik for the v",
+              "score": 5
+            },
+            {
+              "author": "BoatyFace101",
+              "excerpt": "So you built an educational app, then generated AI influencer content about said app to drive downloads... With a 10 and 13 year old?! \n\nI can't even get my 10 year old to brush her teeth most morning",
+              "score": 5
+            },
+            {
+              "author": "liquidgold26",
+              "excerpt": "can u teach me?",
+              "score": 3
+            },
+            {
+              "author": "MiladAtef",
+              "excerpt": "that is really amazing",
+              "score": 2
+            },
+            {
+              "author": "neal5eth",
+              "excerpt": "great! happy to learn it\\~!",
+              "score": 2
+            },
+            {
+              "author": "Medical_boy_1295",
+              "excerpt": "Scam",
+              "score": 2
+            },
+            {
+              "author": "AutoModerator",
+              "excerpt": "Welcome to r/HonestSideHustles!\n\nNew here? Start with this helpful resource:\n[Top Earning Guides & Bonuses](https://docs.google.com/spreadsheets/d/1o3MLbRKtedUtLtYJ98gUJn5AP0JQHEylL5EwZ82l4t8/edit?usp",
+              "score": 1
+            },
+            {
+              "author": "AutoModerator",
+              "excerpt": "Welcome to r/HonestSideHustles!\n\nNew here? Start with this helpful resource:\n[Top Earning Guides & Bonuses](https://docs.google.com/spreadsheets/d/1o3MLbRKtedUtLtYJ98gUJn5AP0JQHEylL5EwZ82l4t8/edit?usp",
+              "score": 1
+            },
+            {
+              "author": "uzzy28",
+              "excerpt": "Millions of views on multiple videos yet such a low conversion rate? Having a hard time understanding this",
+              "score": 1
+            },
+            {
+              "author": "Electronic-Fox6867",
+              "excerpt": "Underrated post. Great advice! I\u2019m currently swimming in the content creation zone. No app yet, but hopefully soon! ",
+              "score": 1
+            }
+          ]
+        },
+        "published_at": "2026-03-17",
+        "relevance_hint": 0.619,
+        "snippet": "the part about \"warming up the account before posting\" is something most adults launching on TikTok completely skip and then wonder why they get zero traction.\n\nalso Claude Code plus Freepik for the v So you built an educational app, then generated AI influencer content about said app to drive downloads... With a 10 and 13 year old?! \n\nI can't even get my 10 year old to brush her teeth most morning can u teach me?",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "I taught my kids (10 and 13) to build apps using AI. They're already making $200/month from it.",
+        "url": "https://www.reddit.com/r/HonestSideHustles/comments/1rvtu3v/i_taught_my_kids_10_and_13_to_build_apps_using_ai/",
+        "why_relevant": "Reddit public search"
+      },
+      {
+        "body": "The AI Visibility Playbook for Gym Owners: How to Use AEO (Answer Engine Optimization) to Get Your Gym Recommended by AI\n*How independent gym owners, boutique studio operators, gym entrepreneurs, and personal trainers can position their businesses to be recommended by AI tools like ChatGPT, Google AI Overviews, and voice assistants.*\n\nThe way people search for gyms is changing dramatically.\n\nFor years, gym owners focused on\u00a0**SEO (Search Engine Optimization)**\u00a0\u2014 trying to rank higher on Google search results by optimizing their websites and blogs.\n\nBut today, a new frontier is emerging.\n\nIt\u2019s called\u00a0**AEO \u2014 Answer",
+        "container": "u_fitmanagement",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 0,
+          "score": 1,
+          "upvote_ratio": 1.0
+        },
+        "engagement_score": 0,
+        "freshness": 65,
+        "item_id": "R8",
+        "local_rank_score": 0.351,
+        "local_relevance": 0.29,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": []
+        },
+        "published_at": "2026-03-29",
+        "relevance_hint": 0.001,
+        "snippet": "*How independent gym owners, boutique studio operators, gym entrepreneurs, and personal trainers can position their businesses to be recommended by AI tools like ChatGPT, Google AI Overviews, and voice assistants.*\n\nThe way people search for gyms is changing dramatically.\n\nFor years, gym owners focused on\u00a0**SEO (Search Engine Optimization)**\u00a0\u2014 trying to rank higher on Google search results by opti",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "The AI Visibility Playbook for Gym Owners: How to Use AEO (Answer Engine Optimization) to Get Your Gym Recommended by AI",
+        "url": "https://www.reddit.com/r/u_fitmanagement/comments/1s6svnf/the_ai_visibility_playbook_for_gym_owners_how_to/",
+        "why_relevant": "Reddit public search"
+      },
+      {
+        "body": "Officially, HELLO Hoboken from Bricks & Minifigs! Opening late spring/Early summer at 900 Monroe St (we're also hiring...see inside for more details!)\nHey everyone! My name is Matt and I'm posting from my regular reddit account that I've had since 2007, just as an exercise in transparency, truth, and anti-bot/AI straightforwardness. Please do feel free to comb and parse my entire comment history, there's lots of exciting opinions in there on Jeep Wranglers, Star Blazers, Kurt Vonnegut, LOTR, Star Wars, Cobra Kai, the Patriots, and a slew of other stuff. Bottom line is I want y'all to see the Realness of this.\n\nAnyway, I've lived in town since",
+        "container": "Hoboken",
+        "date_confidence": "high",
+        "engagement": {
+          "num_comments": 61,
+          "score": 132,
+          "upvote_ratio": 0.97
+        },
+        "engagement_score": 69,
+        "freshness": 67,
+        "item_id": "R7",
+        "local_rank_score": 0.3405,
+        "local_relevance": 0.16,
+        "metadata": {
+          "comment_insights": [],
+          "top_comments": []
+        },
+        "published_at": "2026-03-30",
+        "relevance_hint": 0.28,
+        "snippet": "Hey everyone! My name is Matt and I'm posting from my regular reddit account that I've had since 2007, just as an exercise in transparency, truth, and anti-bot/AI straightforwardness. Please do feel free to comb and parse my entire comment history, there's lots of exciting opinions in there on Jeep Wranglers, Star Blazers, Kurt Vonnegut, LOTR, Star Wars, Cobra Kai, the Patriots, and a slew of othe",
+        "source": "reddit",
+        "source_quality": 0.6,
+        "title": "Officially, HELLO Hoboken from Bricks & Minifigs! Opening late spring/Early summer at 900 Monroe St (we're also hiring...see inside for more details!)",
+        "url": "https://www.reddit.com/r/Hoboken/comments/1s83j2r/officially_hello_hoboken_from_bricks_minifigs/",
+        "why_relevant": "Reddit public search"
+      }
+    ],
+    "youtube": [
+      {
+        "author": "AI Master",
+        "body": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE)\n#sponsored by Sign up to VEED to free! https://bit.ly/4eDMZpL\n\ud83d\ude80 Become an AI Master \u2013 All-in-one AI Learning https://aimaster.me/  \n\ud83d\udcf9Get a Custom Promo Video From AI Master https://collab.aimaster.me/   \n\nIn this video, I\u2019ll take you behind the scenes of my AI-powered workflow, from idea generation to research, scripting, editing, and even creating blog posts. The best part? Almost all the tools I use are completely FREE! Whether you\u2019re a YouTuber, blogger, or social media creator, this step-by-",
+        "date_confidence": "low",
+        "engagement": {
+          "comments": 129,
+          "likes": 5019,
+          "views": 193079
+        },
+        "engagement_score": 44,
+        "freshness": 40,
+        "item_id": "duGOA6ZiGtE",
+        "local_rank_score": 0.521,
+        "local_relevance": 0.58,
+        "metadata": {},
+        "published_at": "2024-09-29",
+        "relevance_hint": 0.76,
+        "snippet": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE) #sponsored by Sign up to VEED to free! https://bit.ly/4eDMZpL \ud83d\ude80 Become an AI Master \u2013 All-in-one AI Learning https://aimaster.me/ \ud83d\udcf9Get a Custom Promo Video From AI Master https://collab.aimaster.me/ In this video, I\u2019ll take you behind the scenes of my AI-powered workflow, from idea generation to research, scripting, editing, and even creating blog posts. The best part? Almost all the tools I use are completely FREE! Whether you\u2019re a YouTuber, blogger, or social media creator, this step-by-",
+        "source": "youtube",
+        "source_quality": 0.85,
+        "title": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE)",
+        "url": "https://www.youtube.com/watch?v=duGOA6ZiGtE",
+        "why_relevant": "YouTube: How I Use AI to Automate Content Creation - Step-by-Step (FU"
+      },
+      {
+        "author": "Mindvalley Talks",
+        "body": "12 Steps to Creating Viral Social Media Content With AI\nUnlock your potential with Mindvalley. Start your free 7 day trial https://go.mindvalley.com/JEk8Suyq. Is AI here to take your job? Or are you leveraging it to supercharge your business and become 20 times more productive? In this powerful talk from Mindvalley University, Tallinn 2023, Domenic Ashburn(@Mr.Grateful) shares how he went from Zero to 180K followers on Instagram by using AI primarily as a tool for content creation. Tune in as he shares 12 steps and AI tools to use.\n\nBecome a Mindvall",
+        "date_confidence": "low",
+        "engagement": {
+          "comments": 75,
+          "likes": 3281,
+          "views": 86692
+        },
+        "engagement_score": 21,
+        "freshness": 40,
+        "item_id": "rNZtAQClCEY",
+        "local_rank_score": 0.4850000000000001,
+        "local_relevance": 0.56,
+        "metadata": {},
+        "published_at": "2024-01-08",
+        "relevance_hint": 0.76,
+        "snippet": "12 Steps to Creating Viral Social Media Content With AI Unlock your potential with Mindvalley. Start your free 7 day trial https://go.mindvalley.com/JEk8Suyq. Is AI here to take your job? Or are you leveraging it to supercharge your business and become 20 times more productive? In this powerful talk from Mindvalley University, Tallinn 2023, Domenic Ashburn(@Mr.Grateful) shares how he went from Zero to 180K followers on Instagram by using AI primarily as a tool for content creation. Tune in as he shares 12 steps and AI tools to use. Become a Mindvall",
+        "source": "youtube",
+        "source_quality": 0.85,
+        "title": "12 Steps to Creating Viral Social Media Content With AI",
+        "url": "https://www.youtube.com/watch?v=rNZtAQClCEY",
+        "why_relevant": "YouTube: 12 Steps to Creating Viral Social Media Content With AI"
+      },
+      {
+        "author": "CNBC Make It",
+        "body": "How I Built A $1.4 Million/Month AI App At Age 18\nZach Yadegari, 18, is the co-founder and CEO of Cal AI, a calorie-tracking mobile app that uses AI to analyze photos of food. The app launched in May 2024 and has been downloaded 8.3 million times as of July 2025. Now, Cal AI is a 30-person company that brings in roughly $1.4 million in gross profit per month \u2014 after the Apple and Google Play app stores take their respective cuts \u2014 according to documents reviewed by CNBC Make It.\n\nProduced & Shot by: Valentina Duarte\nSenior Director of Video: Je",
+        "date_confidence": "low",
+        "engagement": {
+          "comments": 1000,
+          "likes": 19199,
+          "views": 799419
+        },
+        "engagement_score": 100,
+        "freshness": 40,
+        "item_id": "OsN_MJopMxc",
+        "local_rank_score": 0.395,
+        "local_relevance": 0.3,
+        "metadata": {},
+        "published_at": "2025-09-06",
+        "relevance_hint": 0.35,
+        "snippet": "How I Built A $1.4 Million/Month AI App At Age 18 Zach Yadegari, 18, is the co-founder and CEO of Cal AI, a calorie-tracking mobile app that uses AI to analyze photos of food. The app launched in May 2024 and has been downloaded 8.3 million times as of July 2025. Now, Cal AI is a 30-person company that brings in roughly $1.4 million in gross profit per month \u2014 after the Apple and Google Play app stores take their respective cuts \u2014 according to documents reviewed by CNBC Make It. Produced & Shot by: Valentina Duarte Senior Director of Video: Je",
+        "source": "youtube",
+        "source_quality": 0.85,
+        "title": "How I Built A $1.4 Million/Month AI App At Age 18",
+        "url": "https://www.youtube.com/watch?v=OsN_MJopMxc",
+        "why_relevant": "YouTube: How I Built A $1.4 Million/Month AI App At Age 18"
+      },
+      {
+        "author": "GaryVee",
+        "body": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind\nToday's video is a keynote Q&A with @AndrewCordle where I discuss the massive impact AI will have on our world. We talk about why your personal brand is the ultimate funnel, the rapid decline of Google search, and why posting content consistently is one of the most important skills you can build for your business. I also get into why you shouldn't just post about one niche, how your smart fridge will order its own groceries in the future, and my best advice on parenting in this new era. Hope you",
+        "date_confidence": "low",
+        "engagement": {
+          "comments": 250,
+          "likes": 5114,
+          "views": 179260
+        },
+        "engagement_score": 47,
+        "freshness": 40,
+        "item_id": "OQwHXDgKaT8",
+        "local_rank_score": 0.38099999999999995,
+        "local_relevance": 0.36,
+        "metadata": {},
+        "published_at": "2025-08-12",
+        "relevance_hint": 0.65,
+        "snippet": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind Today's video is a keynote Q&A with @AndrewCordle where I discuss the massive impact AI will have on our world. We talk about why your personal brand is the ultimate funnel, the rapid decline of Google search, and why posting content consistently is one of the most important skills you can build for your business. I also get into why you shouldn't just post about one niche, how your smart fridge will order its own groceries in the future, and my best advice on parenting in this new era. Hope you",
+        "source": "youtube",
+        "source_quality": 0.85,
+        "title": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind",
+        "url": "https://www.youtube.com/watch?v=OQwHXDgKaT8",
+        "why_relevant": "YouTube: AI + Social Media = The Biggest Opportunity of Our Lifetime"
+      },
+      {
+        "author": "Kallaway",
+        "body": "If I Started Social Media From Scratch in 2026, I\u2019d Do This\nGet my free guide on how to build a winning content system (1B+ views, 1M+ followers): https://shortformsystem.co \nUse Sandcastles to grow 10x faster on social media (try free): https://sandcastles.ai\nWork with me: https://shortform.academy\n\nIn this video, I breakdown the exact step by step process I'd use to win on social media in 2026. My editor went absolutely supersayan on this so hope you like it\n\nRESOURCES MENTIONED:\n\n\u2022 Content Games Breakdown: https://www.content.game/c/socialmediagames",
+        "date_confidence": "low",
+        "engagement": {
+          "comments": 220,
+          "likes": 2989,
+          "views": 77454
+        },
+        "engagement_score": 23,
+        "freshness": 40,
+        "item_id": "o_n5ED5fE1I",
+        "local_rank_score": 0.357,
+        "local_relevance": 0.36,
+        "metadata": {},
+        "published_at": "2026-02-11",
+        "relevance_hint": 0.76,
+        "snippet": "If I Started Social Media From Scratch in 2026, I\u2019d Do This Get my free guide on how to build a winning content system (1B+ views, 1M+ followers): https://shortformsystem.co Use Sandcastles to grow 10x faster on social media (try free): https://sandcastles.ai Work with me: https://shortform.academy In this video, I breakdown the exact step by step process I'd use to win on social media in 2026. My editor went absolutely supersayan on this so hope you like it RESOURCES MENTIONED: \u2022 Content Games Breakdown: https://www.content.game/c/socialmediagames",
+        "source": "youtube",
+        "source_quality": 0.85,
+        "title": "If I Started Social Media From Scratch in 2026, I\u2019d Do This",
+        "url": "https://www.youtube.com/watch?v=o_n5ED5fE1I",
+        "why_relevant": "YouTube: If I Started Social Media From Scratch in 2026, I\u2019d Do This"
+      },
+      {
+        "author": "NBC News",
+        "body": "Yale students create AI-powered social network\nSeniors from Yale University have launched an AI-powered social network called \"Series,\" to reinvent the way people connect. NBC News' Maya Eaglin speaks to the cofounders about how the network works and why it started.\u00a0\n\nFor more context and news coverage of the most important stories of our day, click here: https://www.nbcnews.com\n\n\u00bb Subscribe to NBC News: http://nbcnews.to/SubscribeToNBC\n\u00bb Watch more NBC video: http://bit.ly/MoreNBCNews\n\nNBC News Digital is a collection of innovative and powe",
+        "date_confidence": "low",
+        "engagement": {
+          "comments": 179,
+          "likes": 1173,
+          "views": 44185
+        },
+        "engagement_score": 0,
+        "freshness": 40,
+        "item_id": "UiD5TklwZ60",
+        "local_rank_score": 0.24300000000000002,
+        "local_relevance": 0.22,
+        "metadata": {},
+        "published_at": "2025-06-14",
+        "relevance_hint": 0.5,
+        "snippet": "Yale students create AI-powered social network Seniors from Yale University have launched an AI-powered social network called \"Series,\" to reinvent the way people connect. NBC News' Maya Eaglin speaks to the cofounders about how the network works and why it started. For more context and news coverage of the most important stories of our day, click here: https://www.nbcnews.com \u00bb Subscribe to NBC News: http://nbcnews.to/SubscribeToNBC \u00bb Watch more NBC video: http://bit.ly/MoreNBCNews NBC News Digital is a collection of innovative and powe",
+        "source": "youtube",
+        "source_quality": 0.85,
+        "title": "Yale students create AI-powered social network",
+        "url": "https://www.youtube.com/watch?v=UiD5TklwZ60",
+        "why_relevant": "YouTube: Yale students create AI-powered social network"
+      }
+    ]
+  },
+  "provider_runtime": {
+    "planner_model": "gemini-3.1-flash-lite-preview",
+    "reasoning_provider": "gemini",
+    "rerank_model": "gemini-3.1-flash-lite-preview"
+  },
+  "query_plan": {
+    "cluster_mode": "workflow",
+    "freshness_mode": "evergreen_ok",
+    "intent": "how_to",
+    "notes": [
+      "Focusing on practical implementation and tool stacks used by founders.",
+      "GitHub included to capture open-source automation scripts or CLI tools for social media."
+    ],
+    "raw_topic": "how founders use AI for social media",
+    "source_weights": {
+      "github": 0.2,
+      "hackernews": 0.2,
+      "polymarket": 0.0,
+      "reddit": 0.3,
+      "youtube": 0.3
+    },
+    "subqueries": [
+      {
+        "label": "Founder AI workflows",
+        "ranking_query": "How are startup founders using AI tools to automate their social media content creation and distribution?",
+        "search_query": "founders AI social media automation workflow",
+        "sources": [
+          "youtube",
+          "reddit"
+        ],
+        "weight": 1.0
+      }
+    ]
+  },
+  "range_from": "2026-03-16",
+  "range_to": "2026-04-15",
+  "ranked_candidates": [
+    {
+      "candidate_id": "https://youtube.com/watch?v=o_n5ed5fe1i",
+      "cluster_id": "cluster-1",
+      "engagement": 23,
+      "explanation": "Highly relevant, recent, and provides a step-by-step guide on building a content system using AI tools for social media growth.",
+      "final_score": 71.40384615384616,
+      "freshness": 40,
+      "fun_explanation": "Standard influencer lead-gen funnel; zero personality, pure sales pitch.",
+      "fun_score": 15.0,
+      "item_id": "o_n5ED5fE1I",
+      "local_relevance": 0.36,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "o_n5ED5fE1I",
+            "native_rank": 5,
+            "source": "youtube",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:youtube": 5
+      },
+      "rerank_score": 95.0,
+      "rrf_score": 0.004615384615384615,
+      "snippet": "If I Started Social Media From Scratch in 2026, I\u2019d Do This Get my free guide on how to build a winning content system (1B+ views, 1M+ followers): https://shortformsystem.co Use Sandcastles to grow 10x faster on social media (try free): https://sandcastles.ai Work with me: https://shortform.academy In this video, I breakdown the exact step by step process I'd use to win on social media in 2026. My editor went absolutely supersayan on this so hope you like it RESOURCES MENTIONED: \u2022 Content Games Breakdown: https://www.content.game/c/socialmediagames",
+      "source": "youtube",
+      "source_items": [
+        {
+          "author": "Kallaway",
+          "body": "If I Started Social Media From Scratch in 2026, I\u2019d Do This\nGet my free guide on how to build a winning content system (1B+ views, 1M+ followers): https://shortformsystem.co \nUse Sandcastles to grow 10x faster on social media (try free): https://sandcastles.ai\nWork with me: https://shortform.academy\n\nIn this video, I breakdown the exact step by step process I'd use to win on social media in 2026. My editor went absolutely supersayan on this so hope you like it\n\nRESOURCES MENTIONED:\n\n\u2022 Content Games Breakdown: https://www.content.game/c/socialmediagames",
+          "date_confidence": "low",
+          "engagement": {
+            "comments": 220,
+            "likes": 2989,
+            "views": 77454
+          },
+          "engagement_score": 23,
+          "freshness": 40,
+          "item_id": "o_n5ED5fE1I",
+          "local_rank_score": 0.357,
+          "local_relevance": 0.36,
+          "metadata": {},
+          "published_at": "2026-02-11",
+          "relevance_hint": 0.76,
+          "snippet": "If I Started Social Media From Scratch in 2026, I\u2019d Do This Get my free guide on how to build a winning content system (1B+ views, 1M+ followers): https://shortformsystem.co Use Sandcastles to grow 10x faster on social media (try free): https://sandcastles.ai Work with me: https://shortform.academy In this video, I breakdown the exact step by step process I'd use to win on social media in 2026. My editor went absolutely supersayan on this so hope you like it RESOURCES MENTIONED: \u2022 Content Games Breakdown: https://www.content.game/c/socialmediagames",
+          "source": "youtube",
+          "source_quality": 0.85,
+          "title": "If I Started Social Media From Scratch in 2026, I\u2019d Do This",
+          "url": "https://www.youtube.com/watch?v=o_n5ED5fE1I",
+          "why_relevant": "YouTube: If I Started Social Media From Scratch in 2026, I\u2019d Do This"
+        }
+      ],
+      "source_quality": 0.85,
+      "sources": [
+        "youtube"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "If I Started Social Media From Scratch in 2026, I\u2019d Do This",
+      "url": "https://www.youtube.com/watch?v=o_n5ED5fE1I"
+    },
+    {
+      "candidate_id": "https://youtube.com/watch?v=dugoa6zigte",
+      "cluster_id": "cluster-2",
+      "engagement": 44,
+      "explanation": "Provides a practical, step-by-step workflow for AI-powered content creation, though slightly older than the most recent content.",
+      "final_score": 65.47950819672131,
+      "freshness": 40,
+      "fun_explanation": "Dry tutorial content; feels like a corporate manual read aloud.",
+      "fun_score": 10.0,
+      "item_id": "duGOA6ZiGtE",
+      "local_relevance": 0.58,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "duGOA6ZiGtE",
+            "native_rank": 1,
+            "source": "youtube",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:youtube": 1
+      },
+      "rerank_score": 85.0,
+      "rrf_score": 0.0049180327868852455,
+      "snippet": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE) #sponsored by Sign up to VEED to free! https://bit.ly/4eDMZpL \ud83d\ude80 Become an AI Master \u2013 All-in-one AI Learning https://aimaster.me/ \ud83d\udcf9Get a Custom Promo Video From AI Master https://collab.aimaster.me/ In this video, I\u2019ll take you behind the scenes of my AI-powered workflow, from idea generation to research, scripting, editing, and even creating blog posts. The best part? Almost all the tools I use are completely FREE! Whether you\u2019re a YouTuber, blogger, or social media creator, this step-by-",
+      "source": "youtube",
+      "source_items": [
+        {
+          "author": "AI Master",
+          "body": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE)\n#sponsored by Sign up to VEED to free! https://bit.ly/4eDMZpL\n\ud83d\ude80 Become an AI Master \u2013 All-in-one AI Learning https://aimaster.me/  \n\ud83d\udcf9Get a Custom Promo Video From AI Master https://collab.aimaster.me/   \n\nIn this video, I\u2019ll take you behind the scenes of my AI-powered workflow, from idea generation to research, scripting, editing, and even creating blog posts. The best part? Almost all the tools I use are completely FREE! Whether you\u2019re a YouTuber, blogger, or social media creator, this step-by-",
+          "date_confidence": "low",
+          "engagement": {
+            "comments": 129,
+            "likes": 5019,
+            "views": 193079
+          },
+          "engagement_score": 44,
+          "freshness": 40,
+          "item_id": "duGOA6ZiGtE",
+          "local_rank_score": 0.521,
+          "local_relevance": 0.58,
+          "metadata": {},
+          "published_at": "2024-09-29",
+          "relevance_hint": 0.76,
+          "snippet": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE) #sponsored by Sign up to VEED to free! https://bit.ly/4eDMZpL \ud83d\ude80 Become an AI Master \u2013 All-in-one AI Learning https://aimaster.me/ \ud83d\udcf9Get a Custom Promo Video From AI Master https://collab.aimaster.me/ In this video, I\u2019ll take you behind the scenes of my AI-powered workflow, from idea generation to research, scripting, editing, and even creating blog posts. The best part? Almost all the tools I use are completely FREE! Whether you\u2019re a YouTuber, blogger, or social media creator, this step-by-",
+          "source": "youtube",
+          "source_quality": 0.85,
+          "title": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE)",
+          "url": "https://www.youtube.com/watch?v=duGOA6ZiGtE",
+          "why_relevant": "YouTube: How I Use AI to Automate Content Creation - Step-by-Step (FU"
+        }
+      ],
+      "source_quality": 0.85,
+      "sources": [
+        "youtube"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "How I Use AI to Automate Content Creation - Step-by-Step (FULL GUIDE)",
+      "url": "https://www.youtube.com/watch?v=duGOA6ZiGtE"
+    },
+    {
+      "candidate_id": "https://youtube.com/watch?v=rnztaqclcey",
+      "cluster_id": "cluster-3",
+      "engagement": 21,
+      "explanation": "Offers a 12-step guide, but the content is from 2024, making it less current for a 'last-30-days' research pipeline.",
+      "final_score": 50.45967741935484,
+      "freshness": 40,
+      "fun_explanation": "Generic 'viral' clickbait title; lacks any actual wit or humor.",
+      "fun_score": 12.0,
+      "item_id": "rNZtAQClCEY",
+      "local_relevance": 0.56,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "rNZtAQClCEY",
+            "native_rank": 2,
+            "source": "youtube",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:youtube": 2
+      },
+      "rerank_score": 60.0,
+      "rrf_score": 0.004838709677419355,
+      "snippet": "12 Steps to Creating Viral Social Media Content With AI Unlock your potential with Mindvalley. Start your free 7 day trial https://go.mindvalley.com/JEk8Suyq. Is AI here to take your job? Or are you leveraging it to supercharge your business and become 20 times more productive? In this powerful talk from Mindvalley University, Tallinn 2023, Domenic Ashburn(@Mr.Grateful) shares how he went from Zero to 180K followers on Instagram by using AI primarily as a tool for content creation. Tune in as he shares 12 steps and AI tools to use. Become a Mindvall",
+      "source": "youtube",
+      "source_items": [
+        {
+          "author": "Mindvalley Talks",
+          "body": "12 Steps to Creating Viral Social Media Content With AI\nUnlock your potential with Mindvalley. Start your free 7 day trial https://go.mindvalley.com/JEk8Suyq. Is AI here to take your job? Or are you leveraging it to supercharge your business and become 20 times more productive? In this powerful talk from Mindvalley University, Tallinn 2023, Domenic Ashburn(@Mr.Grateful) shares how he went from Zero to 180K followers on Instagram by using AI primarily as a tool for content creation. Tune in as he shares 12 steps and AI tools to use.\n\nBecome a Mindvall",
+          "date_confidence": "low",
+          "engagement": {
+            "comments": 75,
+            "likes": 3281,
+            "views": 86692
+          },
+          "engagement_score": 21,
+          "freshness": 40,
+          "item_id": "rNZtAQClCEY",
+          "local_rank_score": 0.4850000000000001,
+          "local_relevance": 0.56,
+          "metadata": {},
+          "published_at": "2024-01-08",
+          "relevance_hint": 0.76,
+          "snippet": "12 Steps to Creating Viral Social Media Content With AI Unlock your potential with Mindvalley. Start your free 7 day trial https://go.mindvalley.com/JEk8Suyq. Is AI here to take your job? Or are you leveraging it to supercharge your business and become 20 times more productive? In this powerful talk from Mindvalley University, Tallinn 2023, Domenic Ashburn(@Mr.Grateful) shares how he went from Zero to 180K followers on Instagram by using AI primarily as a tool for content creation. Tune in as he shares 12 steps and AI tools to use. Become a Mindvall",
+          "source": "youtube",
+          "source_quality": 0.85,
+          "title": "12 Steps to Creating Viral Social Media Content With AI",
+          "url": "https://www.youtube.com/watch?v=rNZtAQClCEY",
+          "why_relevant": "YouTube: 12 Steps to Creating Viral Social Media Content With AI"
+        }
+      ],
+      "source_quality": 0.85,
+      "sources": [
+        "youtube"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "12 Steps to Creating Viral Social Media Content With AI",
+      "url": "https://www.youtube.com/watch?v=rNZtAQClCEY"
+    },
+    {
+      "candidate_id": "https://youtube.com/watch?v=oqwhxdgkat8",
+      "cluster_id": "cluster-4",
+      "engagement": 47,
+      "explanation": "Discusses the importance of AI and social media for founders, but is more of a high-level keynote than a practical 'how-to' workflow guide.",
+      "final_score": 44.421875,
+      "freshness": 40,
+      "fun_explanation": "Standard GaryVee keynote; high energy but repetitive business advice.",
+      "fun_score": 20.0,
+      "item_id": "OQwHXDgKaT8",
+      "local_relevance": 0.36,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "OQwHXDgKaT8",
+            "native_rank": 4,
+            "source": "youtube",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:youtube": 4
+      },
+      "rerank_score": 50.0,
+      "rrf_score": 0.0046875,
+      "snippet": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind Today's video is a keynote Q&A with @AndrewCordle where I discuss the massive impact AI will have on our world. We talk about why your personal brand is the ultimate funnel, the rapid decline of Google search, and why posting content consistently is one of the most important skills you can build for your business. I also get into why you shouldn't just post about one niche, how your smart fridge will order its own groceries in the future, and my best advice on parenting in this new era. Hope you",
+      "source": "youtube",
+      "source_items": [
+        {
+          "author": "GaryVee",
+          "body": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind\nToday's video is a keynote Q&A with @AndrewCordle where I discuss the massive impact AI will have on our world. We talk about why your personal brand is the ultimate funnel, the rapid decline of Google search, and why posting content consistently is one of the most important skills you can build for your business. I also get into why you shouldn't just post about one niche, how your smart fridge will order its own groceries in the future, and my best advice on parenting in this new era. Hope you",
+          "date_confidence": "low",
+          "engagement": {
+            "comments": 250,
+            "likes": 5114,
+            "views": 179260
+          },
+          "engagement_score": 47,
+          "freshness": 40,
+          "item_id": "OQwHXDgKaT8",
+          "local_rank_score": 0.38099999999999995,
+          "local_relevance": 0.36,
+          "metadata": {},
+          "published_at": "2025-08-12",
+          "relevance_hint": 0.65,
+          "snippet": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind Today's video is a keynote Q&A with @AndrewCordle where I discuss the massive impact AI will have on our world. We talk about why your personal brand is the ultimate funnel, the rapid decline of Google search, and why posting content consistently is one of the most important skills you can build for your business. I also get into why you shouldn't just post about one niche, how your smart fridge will order its own groceries in the future, and my best advice on parenting in this new era. Hope you",
+          "source": "youtube",
+          "source_quality": 0.85,
+          "title": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind",
+          "url": "https://www.youtube.com/watch?v=OQwHXDgKaT8",
+          "why_relevant": "YouTube: AI + Social Media = The Biggest Opportunity of Our Lifetime"
+        }
+      ],
+      "source_quality": 0.85,
+      "sources": [
+        "youtube"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "AI + Social Media = The Biggest Opportunity of Our Lifetime | GaryVee @ Aspire4More Mastermind",
+      "url": "https://www.youtube.com/watch?v=OQwHXDgKaT8"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/u_fitmanagement/comments/1s6svnf/the_ai_visibility_playbook_for_gym_owners_how_to",
+      "cluster_id": "cluster-5",
+      "engagement": 0,
+      "explanation": "Relevant to AI strategy for business owners, but focuses on AEO (Answer Engine Optimization) rather than social media content creation workflows.",
+      "final_score": 43.69047619047619,
+      "freshness": 65,
+      "fun_explanation": "Purely technical SEO advice; dry as a protein shake without water.",
+      "fun_score": 15.0,
+      "item_id": "R8",
+      "local_relevance": 0.29,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R8",
+            "native_rank": 3,
+            "source": "reddit",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:reddit": 3
+      },
+      "rerank_score": 55.0,
+      "rrf_score": 0.0047619047619047615,
+      "snippet": "*How independent gym owners, boutique studio operators, gym entrepreneurs, and personal trainers can position their businesses to be recommended by AI tools like ChatGPT, Google AI Overviews, and voice assistants.*\n\nThe way people search for gyms is changing dramatically.\n\nFor years, gym owners focused on\u00a0**SEO (Search Engine Optimization)**\u00a0\u2014 trying to rank higher on Google search results by opti",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "The AI Visibility Playbook for Gym Owners: How to Use AEO (Answer Engine Optimization) to Get Your Gym Recommended by AI\n*How independent gym owners, boutique studio operators, gym entrepreneurs, and personal trainers can position their businesses to be recommended by AI tools like ChatGPT, Google AI Overviews, and voice assistants.*\n\nThe way people search for gyms is changing dramatically.\n\nFor years, gym owners focused on\u00a0**SEO (Search Engine Optimization)**\u00a0\u2014 trying to rank higher on Google search results by optimizing their websites and blogs.\n\nBut today, a new frontier is emerging.\n\nIt\u2019s called\u00a0**AEO \u2014 Answer",
+          "container": "u_fitmanagement",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 0,
+            "score": 1,
+            "upvote_ratio": 1.0
+          },
+          "engagement_score": 0,
+          "freshness": 65,
+          "item_id": "R8",
+          "local_rank_score": 0.351,
+          "local_relevance": 0.29,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": []
+          },
+          "published_at": "2026-03-29",
+          "relevance_hint": 0.001,
+          "snippet": "*How independent gym owners, boutique studio operators, gym entrepreneurs, and personal trainers can position their businesses to be recommended by AI tools like ChatGPT, Google AI Overviews, and voice assistants.*\n\nThe way people search for gyms is changing dramatically.\n\nFor years, gym owners focused on\u00a0**SEO (Search Engine Optimization)**\u00a0\u2014 trying to rank higher on Google search results by opti",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "The AI Visibility Playbook for Gym Owners: How to Use AEO (Answer Engine Optimization) to Get Your Gym Recommended by AI",
+          "url": "https://www.reddit.com/r/u_fitmanagement/comments/1s6svnf/the_ai_visibility_playbook_for_gym_owners_how_to/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "The AI Visibility Playbook for Gym Owners: How to Use AEO (Answer Engine Optimization) to Get Your Gym Recommended by AI",
+      "url": "https://www.reddit.com/r/u_fitmanagement/comments/1s6svnf/the_ai_visibility_playbook_for_gym_owners_how_to/"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/honestsidehustles/comments/1rvtu3v/i_taught_my_kids_10_and_13_to_build_apps_using_ai",
+      "cluster_id": "cluster-6",
+      "engagement": 85,
+      "explanation": "Mentions using AI for influencer content, but it is anecdotal and lacks a structured workflow guide.",
+      "final_score": 37.30967741935484,
+      "freshness": 41,
+      "fun_explanation": "The comment about the 10-year-old not brushing teeth adds a relatable, funny human touch.",
+      "fun_score": 65.0,
+      "item_id": "R3",
+      "local_relevance": 0.48,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R3",
+            "native_rank": 2,
+            "source": "reddit",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:reddit": 2
+      },
+      "rerank_score": 40.0,
+      "rrf_score": 0.004838709677419355,
+      "snippet": "the part about \"warming up the account before posting\" is something most adults launching on TikTok completely skip and then wonder why they get zero traction.\n\nalso Claude Code plus Freepik for the v So you built an educational app, then generated AI influencer content about said app to drive downloads... With a 10 and 13 year old?! \n\nI can't even get my 10 year old to brush her teeth most morning can u teach me?",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "I taught my kids (10 and 13) to build apps using AI. They're already making $200/month from it.\nA while back I started thinking seriously about what skills my kids actually need to enter the world in 5\u201310 years. The answer felt obvious: AI fluency isn't optional anymore - it's the baseline. So instead of signing them up for another course, I made them co-founders.\n\nI've been building and shipping products professionally for 20 years. The plan was simple: use a real project to teach them how AI tools work, how products get built, and how distribution actually happens - by doing it together,\nthe part about \"warming up the account before posting\" is something most adults launching on TikTok completely skip and then wonder why they get zero traction.\n\nalso Claude Code plus Freepik for the v So you built an educational app, then generated AI influencer content about said app to drive downloads... With a 10 and 13 year old?! \n\nI can't even get my 10 year old to brush her teeth most morning can u teach me?",
+          "container": "HonestSideHustles",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 111,
+            "score": 331,
+            "upvote_ratio": 0.93
+          },
+          "engagement_score": 85,
+          "freshness": 41,
+          "item_id": "R3",
+          "local_rank_score": 0.4995,
+          "local_relevance": 0.48,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": [
+              {
+                "author": "QuiverbertPupilstein",
+                "excerpt": "the part about \"warming up the account before posting\" is something most adults launching on TikTok completely skip and then wonder why they get zero traction.\n\nalso Claude Code plus Freepik for the v",
+                "score": 5
+              },
+              {
+                "author": "BoatyFace101",
+                "excerpt": "So you built an educational app, then generated AI influencer content about said app to drive downloads... With a 10 and 13 year old?! \n\nI can't even get my 10 year old to brush her teeth most morning",
+                "score": 5
+              },
+              {
+                "author": "liquidgold26",
+                "excerpt": "can u teach me?",
+                "score": 3
+              },
+              {
+                "author": "MiladAtef",
+                "excerpt": "that is really amazing",
+                "score": 2
+              },
+              {
+                "author": "neal5eth",
+                "excerpt": "great! happy to learn it\\~!",
+                "score": 2
+              },
+              {
+                "author": "Medical_boy_1295",
+                "excerpt": "Scam",
+                "score": 2
+              },
+              {
+                "author": "AutoModerator",
+                "excerpt": "Welcome to r/HonestSideHustles!\n\nNew here? Start with this helpful resource:\n[Top Earning Guides & Bonuses](https://docs.google.com/spreadsheets/d/1o3MLbRKtedUtLtYJ98gUJn5AP0JQHEylL5EwZ82l4t8/edit?usp",
+                "score": 1
+              },
+              {
+                "author": "AutoModerator",
+                "excerpt": "Welcome to r/HonestSideHustles!\n\nNew here? Start with this helpful resource:\n[Top Earning Guides & Bonuses](https://docs.google.com/spreadsheets/d/1o3MLbRKtedUtLtYJ98gUJn5AP0JQHEylL5EwZ82l4t8/edit?usp",
+                "score": 1
+              },
+              {
+                "author": "uzzy28",
+                "excerpt": "Millions of views on multiple videos yet such a low conversion rate? Having a hard time understanding this",
+                "score": 1
+              },
+              {
+                "author": "Electronic-Fox6867",
+                "excerpt": "Underrated post. Great advice! I\u2019m currently swimming in the content creation zone. No app yet, but hopefully soon! ",
+                "score": 1
+              }
+            ]
+          },
+          "published_at": "2026-03-17",
+          "relevance_hint": 0.619,
+          "snippet": "the part about \"warming up the account before posting\" is something most adults launching on TikTok completely skip and then wonder why they get zero traction.\n\nalso Claude Code plus Freepik for the v So you built an educational app, then generated AI influencer content about said app to drive downloads... With a 10 and 13 year old?! \n\nI can't even get my 10 year old to brush her teeth most morning can u teach me?",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "I taught my kids (10 and 13) to build apps using AI. They're already making $200/month from it.",
+          "url": "https://www.reddit.com/r/HonestSideHustles/comments/1rvtu3v/i_taught_my_kids_10_and_13_to_build_apps_using_ai/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "I taught my kids (10 and 13) to build apps using AI. They're already making $200/month from it.",
+      "url": "https://www.reddit.com/r/HonestSideHustles/comments/1rvtu3v/i_taught_my_kids_10_and_13_to_build_apps_using_ai/"
+    },
+    {
+      "candidate_id": "https://youtube.com/watch?v=osn_mjopmxc",
+      "cluster_id": "cluster-7",
+      "engagement": 100,
+      "explanation": "Focuses on building an AI app rather than using AI tools for social media content creation.",
+      "final_score": 32.44047619047619,
+      "freshness": 40,
+      "fun_explanation": "Impressive stats, but it's just a 'look how rich I am' flex video.",
+      "fun_score": 25.0,
+      "item_id": "OsN_MJopMxc",
+      "local_relevance": 0.3,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "OsN_MJopMxc",
+            "native_rank": 3,
+            "source": "youtube",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:youtube": 3
+      },
+      "rerank_score": 30.0,
+      "rrf_score": 0.0047619047619047615,
+      "snippet": "How I Built A $1.4 Million/Month AI App At Age 18 Zach Yadegari, 18, is the co-founder and CEO of Cal AI, a calorie-tracking mobile app that uses AI to analyze photos of food. The app launched in May 2024 and has been downloaded 8.3 million times as of July 2025. Now, Cal AI is a 30-person company that brings in roughly $1.4 million in gross profit per month \u2014 after the Apple and Google Play app stores take their respective cuts \u2014 according to documents reviewed by CNBC Make It. Produced & Shot by: Valentina Duarte Senior Director of Video: Je",
+      "source": "youtube",
+      "source_items": [
+        {
+          "author": "CNBC Make It",
+          "body": "How I Built A $1.4 Million/Month AI App At Age 18\nZach Yadegari, 18, is the co-founder and CEO of Cal AI, a calorie-tracking mobile app that uses AI to analyze photos of food. The app launched in May 2024 and has been downloaded 8.3 million times as of July 2025. Now, Cal AI is a 30-person company that brings in roughly $1.4 million in gross profit per month \u2014 after the Apple and Google Play app stores take their respective cuts \u2014 according to documents reviewed by CNBC Make It.\n\nProduced & Shot by: Valentina Duarte\nSenior Director of Video: Je",
+          "date_confidence": "low",
+          "engagement": {
+            "comments": 1000,
+            "likes": 19199,
+            "views": 799419
+          },
+          "engagement_score": 100,
+          "freshness": 40,
+          "item_id": "OsN_MJopMxc",
+          "local_rank_score": 0.395,
+          "local_relevance": 0.3,
+          "metadata": {},
+          "published_at": "2025-09-06",
+          "relevance_hint": 0.35,
+          "snippet": "How I Built A $1.4 Million/Month AI App At Age 18 Zach Yadegari, 18, is the co-founder and CEO of Cal AI, a calorie-tracking mobile app that uses AI to analyze photos of food. The app launched in May 2024 and has been downloaded 8.3 million times as of July 2025. Now, Cal AI is a 30-person company that brings in roughly $1.4 million in gross profit per month \u2014 after the Apple and Google Play app stores take their respective cuts \u2014 according to documents reviewed by CNBC Make It. Produced & Shot by: Valentina Duarte Senior Director of Video: Je",
+          "source": "youtube",
+          "source_quality": 0.85,
+          "title": "How I Built A $1.4 Million/Month AI App At Age 18",
+          "url": "https://www.youtube.com/watch?v=OsN_MJopMxc",
+          "why_relevant": "YouTube: How I Built A $1.4 Million/Month AI App At Age 18"
+        }
+      ],
+      "source_quality": 0.85,
+      "sources": [
+        "youtube"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "How I Built A $1.4 Million/Month AI App At Age 18",
+      "url": "https://www.youtube.com/watch?v=OsN_MJopMxc"
+    },
+    {
+      "candidate_id": "https://youtube.com/watch?v=uid5tklwz60",
+      "cluster_id": "cluster-8",
+      "engagement": 0,
+      "explanation": "Discusses an AI-powered social network, which is off-topic for the intent of how founders use AI for their own social media marketing.",
+      "final_score": 21.386363636363637,
+      "freshness": 40,
+      "fun_explanation": "Standard news report; informative but lacks any creative spark.",
+      "fun_score": 15.0,
+      "item_id": "UiD5TklwZ60",
+      "local_relevance": 0.22,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "UiD5TklwZ60",
+            "native_rank": 6,
+            "source": "youtube",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:youtube": 6
+      },
+      "rerank_score": 20.0,
+      "rrf_score": 0.004545454545454545,
+      "snippet": "Yale students create AI-powered social network Seniors from Yale University have launched an AI-powered social network called \"Series,\" to reinvent the way people connect. NBC News' Maya Eaglin speaks to the cofounders about how the network works and why it started. For more context and news coverage of the most important stories of our day, click here: https://www.nbcnews.com \u00bb Subscribe to NBC News: http://nbcnews.to/SubscribeToNBC \u00bb Watch more NBC video: http://bit.ly/MoreNBCNews NBC News Digital is a collection of innovative and powe",
+      "source": "youtube",
+      "source_items": [
+        {
+          "author": "NBC News",
+          "body": "Yale students create AI-powered social network\nSeniors from Yale University have launched an AI-powered social network called \"Series,\" to reinvent the way people connect. NBC News' Maya Eaglin speaks to the cofounders about how the network works and why it started.\u00a0\n\nFor more context and news coverage of the most important stories of our day, click here: https://www.nbcnews.com\n\n\u00bb Subscribe to NBC News: http://nbcnews.to/SubscribeToNBC\n\u00bb Watch more NBC video: http://bit.ly/MoreNBCNews\n\nNBC News Digital is a collection of innovative and powe",
+          "date_confidence": "low",
+          "engagement": {
+            "comments": 179,
+            "likes": 1173,
+            "views": 44185
+          },
+          "engagement_score": 0,
+          "freshness": 40,
+          "item_id": "UiD5TklwZ60",
+          "local_rank_score": 0.24300000000000002,
+          "local_relevance": 0.22,
+          "metadata": {},
+          "published_at": "2025-06-14",
+          "relevance_hint": 0.5,
+          "snippet": "Yale students create AI-powered social network Seniors from Yale University have launched an AI-powered social network called \"Series,\" to reinvent the way people connect. NBC News' Maya Eaglin speaks to the cofounders about how the network works and why it started. For more context and news coverage of the most important stories of our day, click here: https://www.nbcnews.com \u00bb Subscribe to NBC News: http://nbcnews.to/SubscribeToNBC \u00bb Watch more NBC video: http://bit.ly/MoreNBCNews NBC News Digital is a collection of innovative and powe",
+          "source": "youtube",
+          "source_quality": 0.85,
+          "title": "Yale students create AI-powered social network",
+          "url": "https://www.youtube.com/watch?v=UiD5TklwZ60",
+          "why_relevant": "YouTube: Yale students create AI-powered social network"
+        }
+      ],
+      "source_quality": 0.85,
+      "sources": [
+        "youtube"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "Yale students create AI-powered social network",
+      "url": "https://www.youtube.com/watch?v=UiD5TklwZ60"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/startups/comments/1sivput/im_a_serial_founder_heres_how_i_come_up_with",
+      "cluster_id": "cluster-9",
+      "engagement": 100,
+      "explanation": "Off-topic; discusses business idea generation and explicitly mentions 'no AI'.",
+      "final_score": 7.298852459016393,
+      "freshness": 91,
+      "fun_explanation": "A bit defensive about AI, which is mildly amusing but mostly just a long post.",
+      "fun_score": 30.0,
+      "item_id": "R2",
+      "local_relevance": 0.29,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R2",
+            "native_rank": 1,
+            "source": "reddit",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:reddit": 1
+      },
+      "rerank_score": 10.0,
+      "rrf_score": 0.0049180327868852455,
+      "snippet": "For people saying this is too long, this is an entire startup guide book distilled into a short essay.\n\n  \nThis is the real deal. I was thinking I would love an interactive LLM software or coach that a post that isn't spam, wtf? Proof of no AI (file editing from > 1 year ago): [https://imgur.com/a/qHPiC6e](https://imgur.com/a/qHPiC6e)\n\nAnd here's the \"business venn diagram\" graphic I made mentioned in section 1.2: [https://im",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "I'm a Serial Founder. Here's how I come up with Business Ideas. I will not promote.\n**NO AI WAS USED IN WRITING THIS** I have been working on this post for over a year, it's all my own content, nothing from a model.  I'll leave a screenshot showing the markdown files with dates in the comments.\n\nHello my name's Troy. I'm a serial founder who's been either a founder or founding employee at 9 startups with the total valuation of said startups north of $1bn. My current startup that I co-founded is currently at $5m in ARR and growing rapidly. I used to be a teacher and have been re\nFor people saying this is too long, this is an entire startup guide book distilled into a short essay.\n\n  \nThis is the real deal. I was thinking I would love an interactive LLM software or coach that a post that isn't spam, wtf? Proof of no AI (file editing from > 1 year ago): [https://imgur.com/a/qHPiC6e](https://imgur.com/a/qHPiC6e)\n\nAnd here's the \"business venn diagram\" graphic I made mentioned in section 1.2: [https://im",
+          "container": "startups",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 135,
+            "score": 783,
+            "upvote_ratio": 0.96
+          },
+          "engagement_score": 100,
+          "freshness": 91,
+          "item_id": "R2",
+          "local_rank_score": 0.516,
+          "local_relevance": 0.29,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": [
+              {
+                "author": "dangero",
+                "excerpt": "For people saying this is too long, this is an entire startup guide book distilled into a short essay.\n\n  \nThis is the real deal. I was thinking I would love an interactive LLM software or coach that ",
+                "score": 70
+              },
+              {
+                "author": "julian88888888",
+                "excerpt": "a post that isn't spam, wtf?",
+                "score": 63
+              },
+              {
+                "author": "ssbmomelette",
+                "excerpt": "Proof of no AI (file editing from > 1 year ago): [https://imgur.com/a/qHPiC6e](https://imgur.com/a/qHPiC6e)\n\nAnd here's the \"business venn diagram\" graphic I made mentioned in section 1.2: [https://im",
+                "score": 56
+              },
+              {
+                "author": "leolock567",
+                "excerpt": "I think an important factor when evaluating ideas is timing. Is the pain point painful enough at this point in time or should I wait? Is the market ready for my solution at this point in time? Is the ",
+                "score": 6
+              },
+              {
+                "author": "ChocolateExciting682",
+                "excerpt": "Hey Troy, can I ask you how do you separate passion from delusion early on? Like what were the actual signs that told you the market wanted what you were building?",
+                "score": 5
+              },
+              {
+                "author": "alexandre-boudot",
+                "excerpt": "the pain vs enjoyment split is the most useful framing ive seen on this sub in a while, ran two businesses and the enjoyment one felt better day to day but the pain one printed money because customers",
+                "score": 3
+              },
+              {
+                "author": "jimmytoan",
+                "excerpt": "the ideation framework is solid, but what I always struggle with is the gap between 'this idea validates on paper' and 'I'm genuinely excited enough to grind on this for 5+ years' - did any of your 9 ",
+                "score": 3
+              },
+              {
+                "author": "1hassond",
+                "excerpt": "Thank you for this nugget of gold. I'm a founder at Antler, and this is pretty much 70-80% of what we got taught there in one article",
+                "score": 3
+              },
+              {
+                "author": "Capitalist0",
+                "excerpt": "my best product ideas came from automating my own annoying tasks. was spending 4hrs/week on manual data exports, finally automated it, then realized tons of other founders have the same problem. the a",
+                "score": 2
+              },
+              {
+                "author": "gogosomewhere",
+                "excerpt": "Thanks, man. This is a good post. \n\nI agree with most of what you say here, but here is my particular situation. I'm building a physical mindfulness device for adults with ADHD - the long-term product",
+                "score": 2
+              }
+            ]
+          },
+          "published_at": "2026-04-11",
+          "relevance_hint": 0.87,
+          "snippet": "For people saying this is too long, this is an entire startup guide book distilled into a short essay.\n\n  \nThis is the real deal. I was thinking I would love an interactive LLM software or coach that a post that isn't spam, wtf? Proof of no AI (file editing from > 1 year ago): [https://imgur.com/a/qHPiC6e](https://imgur.com/a/qHPiC6e)\n\nAnd here's the \"business venn diagram\" graphic I made mentioned in section 1.2: [https://im",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "I'm a Serial Founder. Here's how I come up with Business Ideas. I will not promote.",
+          "url": "https://www.reddit.com/r/startups/comments/1sivput/im_a_serial_founder_heres_how_i_come_up_with/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "I'm a Serial Founder. Here's how I come up with Business Ideas. I will not promote.",
+      "url": "https://www.reddit.com/r/startups/comments/1sivput/im_a_serial_founder_heres_how_i_come_up_with/"
+    },
+    {
+      "candidate_id": "https://reddit.com/r/hoboken/comments/1s83j2r/officially_hello_hoboken_from_bricks_minifigs",
+      "cluster_id": "cluster-10",
+      "engagement": 69,
+      "explanation": "Irrelevant; a local business announcement that mentions AI only in the context of not using it.",
+      "final_score": 5.6615625,
+      "freshness": 67,
+      "fun_explanation": "The 'anti-bot' transparency flex is a clever way to build trust in a cynical age.",
+      "fun_score": 55.0,
+      "item_id": "R7",
+      "local_relevance": 0.16,
+      "metadata": {
+        "provenance": [
+          {
+            "item_id": "R7",
+            "native_rank": 4,
+            "source": "reddit",
+            "subquery_label": "Founder AI workflows"
+          }
+        ]
+      },
+      "native_ranks": {
+        "Founder AI workflows:reddit": 4
+      },
+      "rerank_score": 5.0,
+      "rrf_score": 0.0046875,
+      "snippet": "Hey everyone! My name is Matt and I'm posting from my regular reddit account that I've had since 2007, just as an exercise in transparency, truth, and anti-bot/AI straightforwardness. Please do feel free to comb and parse my entire comment history, there's lots of exciting opinions in there on Jeep Wranglers, Star Blazers, Kurt Vonnegut, LOTR, Star Wars, Cobra Kai, the Patriots, and a slew of othe",
+      "source": "reddit",
+      "source_items": [
+        {
+          "body": "Officially, HELLO Hoboken from Bricks & Minifigs! Opening late spring/Early summer at 900 Monroe St (we're also hiring...see inside for more details!)\nHey everyone! My name is Matt and I'm posting from my regular reddit account that I've had since 2007, just as an exercise in transparency, truth, and anti-bot/AI straightforwardness. Please do feel free to comb and parse my entire comment history, there's lots of exciting opinions in there on Jeep Wranglers, Star Blazers, Kurt Vonnegut, LOTR, Star Wars, Cobra Kai, the Patriots, and a slew of other stuff. Bottom line is I want y'all to see the Realness of this.\n\nAnyway, I've lived in town since",
+          "container": "Hoboken",
+          "date_confidence": "high",
+          "engagement": {
+            "num_comments": 61,
+            "score": 132,
+            "upvote_ratio": 0.97
+          },
+          "engagement_score": 69,
+          "freshness": 67,
+          "item_id": "R7",
+          "local_rank_score": 0.3405,
+          "local_relevance": 0.16,
+          "metadata": {
+            "comment_insights": [],
+            "top_comments": []
+          },
+          "published_at": "2026-03-30",
+          "relevance_hint": 0.28,
+          "snippet": "Hey everyone! My name is Matt and I'm posting from my regular reddit account that I've had since 2007, just as an exercise in transparency, truth, and anti-bot/AI straightforwardness. Please do feel free to comb and parse my entire comment history, there's lots of exciting opinions in there on Jeep Wranglers, Star Blazers, Kurt Vonnegut, LOTR, Star Wars, Cobra Kai, the Patriots, and a slew of othe",
+          "source": "reddit",
+          "source_quality": 0.6,
+          "title": "Officially, HELLO Hoboken from Bricks & Minifigs! Opening late spring/Early summer at 900 Monroe St (we're also hiring...see inside for more details!)",
+          "url": "https://www.reddit.com/r/Hoboken/comments/1s83j2r/officially_hello_hoboken_from_bricks_minifigs/",
+          "why_relevant": "Reddit public search"
+        }
+      ],
+      "source_quality": 0.6,
+      "sources": [
+        "reddit"
+      ],
+      "subquery_labels": [
+        "Founder AI workflows"
+      ],
+      "title": "Officially, HELLO Hoboken from Bricks & Minifigs! Opening late spring/Early summer at 900 Monroe St (we're also hiring...see inside for more details!)",
+      "url": "https://www.reddit.com/r/Hoboken/comments/1s83j2r/officially_hello_hoboken_from_bricks_minifigs/"
+    }
+  ],
+  "topic": "how founders use AI for social media",
+  "warnings": []
+}
