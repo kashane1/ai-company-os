@@ -16,7 +16,8 @@ allows unrated skills but tags every output with ``skill_unrated=true``.
 from __future__ import annotations
 
 import importlib.util
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -26,6 +27,19 @@ import yaml
 SkillKind = Literal["validator", "agentic"]
 SkillMode = Literal["autonomous", "manual"]
 FixtureStatus = Literal["passing", "failing", "missing"]
+
+# Phase 0.5d.1: path-traversal guard on registry adapter entries.
+# Any `adapters:` map value must match this pattern to prevent a
+# malicious registry entry from resolving `../../../etc/passwd`.
+#
+# The registry stores adapter paths as `adapters/<runtime>/<skill-id>.md`
+# — the paths are relative to `skills/`, not the repo root, because the
+# loader resolves them via `_skills_root() / adapter_path`. The runtime
+# slug and skill id must both be kebab-case identifiers with no dots or
+# slashes beyond the two structural separators.
+_ADAPTER_PATH_PATTERN = re.compile(
+    r"^adapters/[a-z][a-z0-9_]*/[a-z0-9][a-z0-9_-]*\.md$"
+)
 
 
 class SkillLoadError(RuntimeError):
@@ -55,6 +69,17 @@ class SkillSpec:
     stage: str
     fixture_status: FixtureStatus
     source: str  # "internal" or "external:<repo>@<commit>"
+    # Phase 0.5d.1: skill-self-evolution allowlist flag (X10). Default
+    # is False — only skills that explicitly opt in can be proposed by
+    # the Phase 3 skill-evolution worker. Forget-proof by construction:
+    # new skills inherit the safe default automatically.
+    self_evolvable: bool = False
+    # Phase 0.5d.1: per-runtime adapter path map. Optional today; empty
+    # dict means "use the legacy hard-coded adapters/claude/<id>.md path".
+    # Phase 0.5d.2 softens the loader to honor this map when populated.
+    # Keys are runtime slugs (claude, codex, acp); values are repo-relative
+    # paths matching the _ADAPTER_PATH_PATTERN traversal guard.
+    adapters: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -90,16 +115,49 @@ def load_registry(path: Path | None = None) -> list[SkillSpec]:
     raw = yaml.safe_load(registry_file.read_text()) or {}
     out: list[SkillSpec] = []
     for entry in raw.get("skills", []):
+        skill_id = entry.get("id")
         kind = entry.get("kind", "agentic")
         if kind not in ("validator", "agentic"):
             raise SkillLoadError(
-                f"skill {entry.get('id')!r}: invalid kind {kind!r}"
+                f"skill {skill_id!r}: invalid kind {kind!r}"
             )
         status = entry.get("fixture_status", "missing")
         if status not in ("passing", "failing", "missing"):
             raise SkillLoadError(
-                f"skill {entry.get('id')!r}: invalid fixture_status {status!r}"
+                f"skill {skill_id!r}: invalid fixture_status {status!r}"
             )
+
+        # Phase 0.5d.1: parse the optional `adapters:` map and validate
+        # every value against _ADAPTER_PATH_PATTERN. Any entry that
+        # doesn't match the regex is a hard load error — prevents a
+        # malicious registry entry from resolving outside skills/adapters/.
+        adapters_raw = entry.get("adapters") or {}
+        if not isinstance(adapters_raw, dict):
+            raise SkillLoadError(
+                f"skill {skill_id!r}: adapters must be a mapping, "
+                f"got {type(adapters_raw).__name__}"
+            )
+        adapters_validated: dict[str, str] = {}
+        for runtime_slug, adapter_path in adapters_raw.items():
+            if not isinstance(adapter_path, str):
+                raise SkillLoadError(
+                    f"skill {skill_id!r}: adapters[{runtime_slug!r}] must "
+                    f"be a string, got {type(adapter_path).__name__}"
+                )
+            if not _ADAPTER_PATH_PATTERN.match(adapter_path):
+                raise SkillLoadError(
+                    f"skill {skill_id!r}: adapters[{runtime_slug!r}] "
+                    f"value {adapter_path!r} does not match "
+                    f"{_ADAPTER_PATH_PATTERN.pattern!r} "
+                    "(path-traversal guard)"
+                )
+            adapters_validated[runtime_slug] = adapter_path
+
+        # Phase 0.5d.1: self_evolvable defaults to False. Only explicit
+        # `self_evolvable: true` opts the skill into the skill-evolution
+        # worker's allowlist. Forget-proof by construction.
+        self_evolvable = bool(entry.get("self_evolvable", False))
+
         out.append(
             SkillSpec(
                 id=entry["id"],
@@ -111,6 +169,8 @@ def load_registry(path: Path | None = None) -> list[SkillSpec]:
                 stage=entry.get("stage", "active"),
                 fixture_status=status,
                 source=entry.get("source", "internal"),
+                self_evolvable=self_evolvable,
+                adapters=adapters_validated,
             )
         )
     return out

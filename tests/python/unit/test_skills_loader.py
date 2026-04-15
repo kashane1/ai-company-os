@@ -155,3 +155,131 @@ def test_real_registry_loads_without_crash():
             f"skill {spec.id!r} has invalid fixture_status "
             f"{spec.fixture_status!r}; must be one of {valid}"
         )
+
+
+def test_self_evolvable_defaults_to_false_for_existing_skills():
+    """Phase 0.5d.1 — X10 allowlist model, default-safe.
+
+    Every existing skill in the registry should have
+    `self_evolvable=False` (not opted into skill-evolution). Only
+    explicitly opted-in skills can be evolved by the Phase 3 worker.
+    """
+    specs = skills_loader.load_registry()
+    assert all(not spec.self_evolvable for spec in specs), (
+        "No existing skill should be self_evolvable without explicit "
+        "human review. Only skills flipped to `self_evolvable: true` "
+        "in registry.yaml by a human-authored PR may be evolved."
+    )
+
+
+def test_self_evolvable_parses_from_registry(tmp_path):
+    """self_evolvable: true parses correctly when set."""
+    skills_root = tmp_path / "skills"
+    (skills_root / "canonical" / "test-skill").mkdir(parents=True)
+    (skills_root / "canonical" / "test-skill" / "validator.py").write_text(
+        "def run(payload):\n    return {'ok': True}\n"
+    )
+    (skills_root / "registry.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "skills": [
+                    {
+                        "id": "test-skill",
+                        "name": "Test",
+                        "path": "canonical/test-skill/skill.md",
+                        "owner_agent": "gtm",
+                        "target_runtimes": ["claude"],
+                        "stage": "active",
+                        "kind": "validator",
+                        "fixture_status": "passing",
+                        "source": "internal",
+                        "self_evolvable": True,
+                    }
+                ]
+            }
+        )
+    )
+    specs = skills_loader.load_registry(path=skills_root / "registry.yaml")
+    assert len(specs) == 1
+    assert specs[0].self_evolvable is True
+
+
+def test_adapter_path_traversal_guard(tmp_path):
+    """Phase 0.5d.1 — malicious registry entry must not resolve `../../etc/passwd`.
+
+    The loader's _ADAPTER_PATH_PATTERN rejects any adapters[] value
+    that doesn't match `^skills/adapters/[a-z]+/[a-z0-9_-]+\\.md$`.
+    """
+    skills_root = tmp_path / "skills"
+    (skills_root / "canonical" / "test-skill").mkdir(parents=True)
+
+    evil_paths = [
+        "../../../etc/passwd",
+        "adapters/../../etc/passwd",
+        "adapters/claude/../../../secrets.md",
+        "/etc/passwd",
+        "file:///etc/passwd",
+        "adapters/claude/good.md/../../bad",
+        "skills/adapters/claude/test.md",  # absolute-ish: must be relative to skills/
+    ]
+
+    for evil in evil_paths:
+        (skills_root / "registry.yaml").write_text(
+            yaml.safe_dump(
+                {
+                    "skills": [
+                        {
+                            "id": "test-skill",
+                            "name": "Test",
+                            "path": "canonical/test-skill/skill.md",
+                            "owner_agent": "gtm",
+                            "target_runtimes": ["claude"],
+                            "stage": "active",
+                            "kind": "agentic",
+                            "fixture_status": "missing",
+                            "source": "internal",
+                            "adapters": {"claude": evil},
+                        }
+                    ]
+                }
+            )
+        )
+        with pytest.raises(skills_loader.SkillLoadError, match="path-traversal guard"):
+            skills_loader.load_registry(path=skills_root / "registry.yaml")
+
+
+def test_adapter_path_guard_accepts_valid_entries(tmp_path):
+    """Well-formed adapter paths load cleanly."""
+    skills_root = tmp_path / "skills"
+    (skills_root / "canonical" / "test-skill").mkdir(parents=True)
+
+    valid_paths = [
+        "adapters/claude/test-skill.md",
+        "adapters/codex/test-skill.md",
+        "adapters/acp/test-skill.md",
+        "adapters/claude/some_long_name.md",
+    ]
+
+    for good in valid_paths:
+        (skills_root / "registry.yaml").write_text(
+            yaml.safe_dump(
+                {
+                    "skills": [
+                        {
+                            "id": "test-skill",
+                            "name": "Test",
+                            "path": "canonical/test-skill/skill.md",
+                            "owner_agent": "gtm",
+                            "target_runtimes": ["claude"],
+                            "stage": "active",
+                            "kind": "agentic",
+                            "fixture_status": "missing",
+                            "source": "internal",
+                            "adapters": {"claude": good},
+                        }
+                    ]
+                }
+            )
+        )
+        specs = skills_loader.load_registry(path=skills_root / "registry.yaml")
+        assert specs[0].adapters["claude"] == good
