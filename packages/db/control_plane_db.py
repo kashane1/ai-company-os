@@ -11,6 +11,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from packages.config.settings import DATABASE_URL_ENV_VAR, load_runtime_paths
+from packages.db.connection import open_platform_db
 from packages.db.contracts import APPROVALS_TABLE, EVENTS_TABLE, GOALS_TABLE, TASKS_TABLE, TASK_QUEUE_TABLE
 
 try:
@@ -65,8 +66,11 @@ class ControlPlaneDatabase:
             return
 
         db_path = Path(self.config.dsn)
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        connection = sqlite3.connect(db_path)
+        # Route through the canonical platform bootstrap (Phase 0.5b).
+        # Applies WAL, busy_timeout=30000, synchronous=NORMAL, and the
+        # rest of the platform-standard pragmas consistently. See
+        # packages/db/connection.py for the full rationale.
+        connection = open_platform_db(db_path)
         connection.row_factory = sqlite3.Row
         try:
             self.ensure_schema(connection)
