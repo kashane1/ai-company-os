@@ -309,3 +309,30 @@ skills:
     kind: validator
     fixture_status: passing
     source: internal
+
+  # ----- Phase 3 skill self-evolution loop -----
+
+  - id: skill-self-evolution
+    name: Skill Self-Evolution
+    path: canonical/skill-self-evolution/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # self_evolvable is intentionally false. Evolving the evolution
+    # skill itself requires a human-authored PR — this is the Phase 3
+    # privilege-escalation gate. The allowlist check in
+    # packages/policies/skill_evolution.py raises SKILL_NOT_SELF_EVOLVABLE
+    # if the worker ever tries to target this skill id.
+    self_evolvable: false
+    # fixture_status: missing — the three fixtures under
+    # skills/canonical/skill-self-evolution/fixtures/ are structural
+    # descriptions of the worker's contract (what inputs lead to which
+    # policy verdict), not replay fixtures in the loader's sense. A
+    # dedicated per-fixture verdict test
+    # (tests/python/unit/test_skill_self_evolution_fixtures.py) exercises
+    # check_evolution_allowed against each case. Flipping fixture_status
+    # to "passing" is a follow-up PR once the structural reconciliation
+    # check is updated to accept the verdict-table fixture schema.
+    fixture_status: missing
+    source: internal

@@ -1,0 +1,21 @@
+name: happy_path_patch_existing
+description: |
+  The worker receives a proposal to patch an existing self-evolvable
+  skill. The diff touches skill.md + fixtures/ + validator.py together
+  (atomic), all paths are inside the target skill's canonical dir, no
+  config/infra files are touched, target_runtimes stays [claude], no
+  concurrent proposal exists. Every check in check_evolution_allowed
+  passes; the worker proceeds to stage the artifact and request an
+  approval token.
+input:
+  target_skill_id: "demo-evolvable-skill"
+  diff_paths:
+    - "skills/canonical/demo-evolvable-skill/skill.md"
+    - "skills/canonical/demo-evolvable-skill/validator.py"
+    - "skills/canonical/demo-evolvable-skill/fixtures/new_case.yaml"
+  target_runtimes: ["claude"]
+  registry_self_evolvable: true
+  lock_held_by_other: false
+expected:
+  verdict: allow
+  reason_code: null

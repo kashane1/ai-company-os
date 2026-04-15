@@ -1,0 +1,22 @@
+name: boundary_new_skill
+description: |
+  A proposal that tries to create a brand-new canonical skill. Even if
+  every file in the diff stays under skills/canonical/<new-id>/, the
+  policy rejects the proposal because there is no registry entry with
+  self_evolvable: true for an id that does not exist yet. Creating
+  skills via the evolution worker is explicitly out of scope —
+  registry.yaml lives on the config denylist, so there is no way for
+  an agent to opt itself in without a human PR.
+input:
+  target_skill_id: "brand-new-skill"
+  diff_paths:
+    - "skills/canonical/brand-new-skill/skill.md"
+    - "skills/canonical/brand-new-skill/contract.yaml"
+    - "skills/canonical/brand-new-skill/validator.py"
+    - "skills/canonical/brand-new-skill/fixtures/happy_path.yaml"
+  target_runtimes: ["claude"]
+  registry_self_evolvable: null  # no registry entry at all
+  lock_held_by_other: false
+expected:
+  verdict: deny
+  reason_code: "skill_not_self_evolvable"
