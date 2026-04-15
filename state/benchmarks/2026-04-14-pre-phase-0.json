@@ -1,0 +1,16 @@
+{
+  "captured_at": "2026-04-14",
+  "phase": "pre-phase-0",
+  "notes": "Baseline captured before Phase 0.5b SQLite WAL bootstrap. D1 hardening: this benchmark MUST NOT import packages/db/connection.py.",
+  "metrics": {
+    "iterations": 50,
+    "warmup": 5,
+    "median_ms": 7.394250000288594,
+    "mean_ms": 7.456526659807423,
+    "p50_ms": 7.401833001495106,
+    "p95_ms": 8.350957999937236,
+    "p99_ms": 9.719541998492787,
+    "min_ms": 6.370540999341756,
+    "max_ms": 9.719541998492787
+  }
+}
