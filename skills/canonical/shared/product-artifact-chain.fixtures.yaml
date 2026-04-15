@@ -1,0 +1,102 @@
+# Phase 1 PR-1c fixtures for product-artifact-chain.
+#
+# Exercises `packages/tools/product_artifacts/validator.py:validate_chain`
+# against synthetic product directories. The dedicated test at
+# `tests/python/unit/test_product_artifact_chain_fixtures.py` builds a
+# temp product dir from each fixture's `input.files` map, runs the
+# validator at `input.phase`, and asserts the shape of the returned
+# ChainReport.
+#
+# Canonical layout: sibling file next to the flat skill markdown per
+# docs/adr/2026-04-14-canonical-skill-layout.md.
+
+- name: happy_path_discovery
+  description: |
+    Discovery-phase product with founder-brief and product-brief both
+    present, product-brief correctly references founder-brief. No
+    downstream nodes required at this phase. Expected: is_ok=True,
+    zero violations.
+  input:
+    product_id: test-product
+    phase: discovery
+    files:
+      founder-brief.md: |
+        # Founder Brief: Test Product
+
+        The founder's core hypothesis for the product.
+      product-brief.md: |
+        # Product Brief: Test Product
+
+        Derived from founder-brief.md — expands the hypothesis into
+        product scope.
+  expected:
+    is_ok: true
+    present_nodes_contains:
+      - founder-brief
+      - product-brief
+    missing_nodes: []
+    violation_count: 0
+
+- name: boundary_mvp_build_missing_downstream
+  description: |
+    mvp-build phase with founder-brief, product-brief, mvp-spec, and
+    monetization-strategy present but NO app-store-* files yet. Those
+    are required only from the app-store-submission phase, so at
+    mvp-build they should be silently absent with no violations.
+  input:
+    product_id: test-product
+    phase: mvp-build
+    files:
+      founder-brief.md: |
+        # Founder Brief
+      product-brief.md: |
+        # Product Brief
+
+        Based on founder-brief.md.
+      mvp-spec.md: |
+        # MVP Spec
+
+        Derived from product-brief.md.
+      monetization-strategy.md: |
+        # Monetization
+
+        Based on product-brief.md.
+  expected:
+    is_ok: true
+    present_nodes_contains:
+      - founder-brief
+      - product-brief
+      - mvp-spec
+      - monetization-strategy
+    missing_nodes: []
+    violation_count: 0
+
+- name: adversarial_parent_reference_missing
+  description: |
+    product-brief.md present but does NOT mention founder-brief
+    as its parent. The validator should emit a
+    `parent_reference_missing` violation for product-brief.
+    This is the integrity path — downstream artifacts must cite
+    their upstream parent so the chain stays legible and
+    review-able.
+  input:
+    product_id: test-product
+    phase: discovery
+    files:
+      founder-brief.md: |
+        # Founder Brief
+
+        Hypothesis details.
+      product-brief.md: |
+        # Product Brief
+
+        This product brief was written in a vacuum with no reference
+        to any upstream artifact. Scope includes feature X and Y.
+  expected:
+    is_ok: false
+    present_nodes_contains:
+      - founder-brief
+      - product-brief
+    missing_nodes: []
+    violation_count_at_least: 1
+    has_violation_code: parent_reference_missing

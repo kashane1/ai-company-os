@@ -20,7 +20,15 @@ skills:
     target_runtimes: [claude, codex]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Phase 1 PR-1c: fixtures at
+    # skills/canonical/shared/product-artifact-chain.fixtures.yaml
+    # exercise validate_chain() from
+    # packages/tools/product_artifacts/validator.py against synthetic
+    # product directories (discovery / mvp-build / adversarial parent
+    # reference missing). Structural check in
+    # tests/python/unit/test_skill_reconciliation.py + verdict check
+    # in tests/python/unit/test_product_artifact_chain_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/product-artifact-chain.md
