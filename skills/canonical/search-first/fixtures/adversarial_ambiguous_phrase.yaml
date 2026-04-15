@@ -1,0 +1,22 @@
+# Phase 1 adversarial fixture — search-first ambiguous phrase.
+#
+# Per [todo 013] and the CLAUDE.md disambiguation rule: if multiple
+# trigger phrases could apply to a user's message, Claude MUST ask
+# which skill to invoke rather than guess. The canonical skill body
+# must instruct disambiguation when overlap with `Explore`,
+# `documentation-lookup`, or `repo-onboarding` is possible.
+
+- name: adversarial_ambiguous_phrase
+  description: |
+    The canonical skill must explicitly document cases where it should
+    NOT be invoked (debugging, open-ended search, library docs) and
+    must reference sibling skills and the Explore agent so the operator
+    can see the boundary.
+  input:
+    skill_file: canonical/search-first/skill.md
+  expected:
+    required_strings_in_skill:
+      - "Do NOT invoke this skill for"
+      - "Explore"
+      - "documentation-lookup"
+      - "ask the operator which skill to invoke"

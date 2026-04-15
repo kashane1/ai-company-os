@@ -1,0 +1,19 @@
+# Phase 1 boundary fixture — documentation-lookup web fallback.
+#
+# Freezes the boundary contract: Context7 miss must fall through to
+# WebFetch with an allowlisted URL; web fallback is always confidence:low;
+# any non-allowlisted URL is rejected.
+
+- name: boundary_web_fallback_shape
+  description: |
+    The canonical skill must document the allowlisted fallback set and
+    the "confidence: low" invariant for web fallback.
+  input:
+    skill_file: canonical/documentation-lookup/skill.md
+  expected:
+    required_strings_in_skill:
+      - "web_fallback"
+      - "confidence"
+      - "low"
+      - "docs.python.org"
+      - "allowlist"

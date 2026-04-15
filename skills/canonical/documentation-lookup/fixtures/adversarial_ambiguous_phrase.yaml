@@ -1,0 +1,19 @@
+# Phase 1 adversarial fixture — documentation-lookup ambiguous phrase.
+#
+# Per [todo 013] and the CLAUDE.md disambiguation rule: when overlap
+# with search-first ("check the repo's own code") or skill-stocktake
+# ("check the docs" referring to skill docs) is possible, Claude must
+# ask rather than guess.
+
+- name: adversarial_ambiguous_phrase
+  description: |
+    The canonical skill must document its non-use cases (repo code,
+    business logic) and reference sibling skills so the boundary is
+    visible to the operator.
+  input:
+    skill_file: canonical/documentation-lookup/skill.md
+  expected:
+    required_strings_in_skill:
+      - "Do NOT invoke this skill for"
+      - "search-first"
+      - "ask the operator which skill to invoke"

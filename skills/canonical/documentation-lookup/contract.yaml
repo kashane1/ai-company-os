@@ -1,0 +1,22 @@
+inputs:
+  - name: library_name
+    type: string
+    required: true
+    validation: '^[a-zA-Z0-9._/@-]+$'
+  - name: specific_question
+    type: string
+    required: true
+outputs:
+  - name: resolved_library_id
+    type: string
+  - name: doc_excerpt_path
+    type: string
+  - name: source
+    type: enum
+    values: [context7, web_fallback]
+  - name: confidence
+    type: enum
+    values: [high, medium, low]
+violations:
+  - code: NOT_A_DOC_LOOKUP
+    raised_when: library_name fails regex OR question is a debugging ask

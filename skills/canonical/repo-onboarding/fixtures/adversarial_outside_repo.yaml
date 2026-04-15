@@ -1,0 +1,29 @@
+# Phase 1 adversarial fixture — repo-onboarding path traversal.
+#
+# Freezes the invariant: area_path outside the repo root (e.g.,
+# /Users/simons/.ssh) raises INVALID_AREA_PATH. The single enum
+# member covers both "outside repo" and "does not exist" cases.
+
+- name: adversarial_outside_repo
+  description: |
+    The canonical skill must document that area_path is validated
+    against git rev-parse --show-toplevel and that outside-repo
+    paths raise INVALID_AREA_PATH. The contract must declare the
+    violation and the sensitive-filename blocklist.
+  input:
+    skill_file: canonical/repo-onboarding/skill.md
+    contract_file: canonical/repo-onboarding/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "INVALID_AREA_PATH"
+      - "git rev-parse --show-toplevel"
+      - "outside the repo"
+      - ".env*"
+      - "*.pem"
+    required_contract_violations:
+      - INVALID_AREA_PATH
+    required_blocklist_entries:
+      - ".env*"
+      - "*.pem"
+      - "*.key"
+      - "id_*"

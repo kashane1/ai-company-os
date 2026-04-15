@@ -1,0 +1,20 @@
+# Phase 1 adversarial fixture — repo-onboarding ambiguous phrase.
+#
+# Per [todo 013] CLAUDE.md disambiguation rule: if a user's phrase
+# could match multiple skills (e.g., "tell me about packages/policies/"
+# could be repo-onboarding OR Explore OR search-first), Claude must
+# ask which skill to invoke rather than guess.
+
+- name: adversarial_ambiguous_phrase
+  description: |
+    The canonical skill must document its non-use cases and point at
+    the Explore agent and sibling skills for overlapping scopes.
+  input:
+    skill_file: canonical/repo-onboarding/skill.md
+  expected:
+    required_strings_in_skill:
+      - "Do NOT invoke this skill for"
+      - "Explore"
+      - "search-first"
+      - "documentation-lookup"
+      - "ask the operator which skill to invoke"

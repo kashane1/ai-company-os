@@ -310,6 +310,50 @@ skills:
     fixture_status: passing
     source: internal
 
+  # ----- ECC Gap Recommendations Phase 1 — research-first skills -----
+
+  - id: search-first
+    name: Search First
+    path: canonical/search-first/skill.md
+    owner_agent: any
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/search-first.md
+    project_skill: .claude/skills/search-first.md
+
+  - id: documentation-lookup
+    name: Documentation Lookup
+    path: canonical/documentation-lookup/skill.md
+    owner_agent: any
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/documentation-lookup.md
+    project_skill: .claude/skills/documentation-lookup.md
+
+  - id: repo-onboarding
+    name: Repo Onboarding
+    path: canonical/repo-onboarding/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/repo-onboarding.md
+    project_skill: .claude/skills/repo-onboarding.md
+
   # ----- Phase 3 skill self-evolution loop -----
 
   - id: skill-self-evolution

@@ -1,0 +1,38 @@
+inputs:
+  - name: area_path
+    type: string
+    required: true
+    validation: must_be_inside_repo_root
+  - name: max_bullets
+    type: integer
+    default: 10
+    max: 10
+outputs:
+  - name: brief_path
+    type: string
+  - name: architecture_bullets
+    type: list
+    max_length: 10
+    item_max_chars: 400
+  - name: key_files
+    type: list
+    max_length: 10
+    item_shape:
+      - name: path
+        type: string
+      - name: line
+        type: integer
+      - name: why
+        type: string
+  - name: conventions_refs
+    type: list
+  - name: footguns
+    type: list
+    max_length: 3
+    item_max_chars: 400
+limits:
+  - total_brief_size_bytes: 4096
+  - sensitive_filename_blocklist: ['.env*', '*.pem', '*.key', 'id_*']
+violations:
+  - code: INVALID_AREA_PATH
+    raised_when: area_path is outside repo root OR contains '..' escape OR does not exist

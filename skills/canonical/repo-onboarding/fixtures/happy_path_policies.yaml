@@ -1,0 +1,38 @@
+# Phase 1 structural fixture — repo-onboarding happy path
+# (packages/policies/).
+#
+# Freezes the contract that a brief on packages/policies/ must cover
+# PolicyViolationCode and name the pre-existing bare-string debt in
+# release_readiness.py as a footgun.
+
+- name: happy_path_policies_shape
+  description: |
+    The canonical skill must declare the required outputs
+    (architecture_bullets, key_files, conventions_refs, footguns) and
+    the 10-bullet cap.
+  input:
+    skill_file: canonical/repo-onboarding/skill.md
+    contract_file: canonical/repo-onboarding/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "architecture_bullets"
+      - "key_files"
+      - "conventions_refs"
+      - "footguns"
+      - "10 bullets"
+      - "4 KB"
+      - "PolicyViolationCode"
+    required_sections:
+      - "## Purpose"
+      - "## Contract"
+      - "## Procedure"
+      - "## Boundaries and failure modes"
+    required_contract_inputs:
+      - area_path
+      - max_bullets
+    required_contract_outputs:
+      - brief_path
+      - architecture_bullets
+      - key_files
+      - conventions_refs
+      - footguns

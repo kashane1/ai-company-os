@@ -1,0 +1,26 @@
+inputs:
+  - name: task_description
+    type: string
+    required: true
+  - name: scope_hint
+    type: string
+    required: true
+    validation: non_empty
+outputs:
+  - name: search_summary_path
+    type: string
+  - name: candidates
+    type: list
+    item_shape:
+      - name: source
+        type: string
+      - name: relevance
+        type: string
+      - name: excerpt
+        type: string
+  - name: recommendation
+    type: enum
+    values: [reuse, extend, custom]
+violations:
+  - code: INSUFFICIENT_SCOPE
+    raised_when: scope_hint is missing or empty

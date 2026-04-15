@@ -1,0 +1,36 @@
+# Phase 1 structural fixture — documentation-lookup happy path
+# (Context7 hit).
+#
+# Freezes the contract that the canonical skill declares Context7 as
+# the primary source, the 3-call budget as a hard cap, and the
+# /org/project id shape.
+
+- name: happy_path_context7_shape
+  description: |
+    The canonical skill markdown must document Context7 as the primary
+    doc source, the 3-call-per-question budget, and the
+    `resolve-library-id` + `query-docs` one-shot pattern.
+  input:
+    skill_file: canonical/documentation-lookup/skill.md
+    contract_file: canonical/documentation-lookup/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "Context7"
+      - "3-call-per-question budget"
+      - "resolve-library-id"
+      - "query-docs"
+      - "highest-benchmark-score"
+      - "/org/project"
+    required_sections:
+      - "## Purpose"
+      - "## Contract"
+      - "## Procedure"
+      - "## Boundaries and failure modes"
+    required_contract_inputs:
+      - library_name
+      - specific_question
+    required_contract_outputs:
+      - resolved_library_id
+      - doc_excerpt_path
+      - source
+      - confidence

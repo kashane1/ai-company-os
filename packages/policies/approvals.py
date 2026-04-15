@@ -70,6 +70,11 @@ class PolicyViolationCode(str, Enum):
     # --- Cross-cutting dispatch health ---
     DISPATCH_HEALTH_PAYLOAD_OVERSIZED = "dispatch_health_payload_oversized"
 
+    # --- ECC Gap Recommendations Phase 1 (research-first skills) ---
+    INSUFFICIENT_SCOPE = "insufficient_scope"
+    NOT_A_DOC_LOOKUP = "not_a_doc_lookup"
+    INVALID_AREA_PATH = "invalid_area_path"
+
 
 class PolicyViolation(RuntimeError):
     """Raised when a policy check refuses to authorize an action.

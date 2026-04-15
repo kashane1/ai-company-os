@@ -1,0 +1,21 @@
+# Phase 1 adversarial fixture — search-first scope too broad.
+#
+# Freezes the invariant that a missing or empty `scope_hint` raises
+# INSUFFICIENT_SCOPE. Without this invariant, an unbounded search would
+# be allowed, which is exactly the ad-hoc investigation the skill exists
+# to prevent.
+
+- name: adversarial_scope_too_broad
+  description: |
+    The canonical skill MUST document that a missing or empty scope_hint
+    raises PolicyViolation(PolicyViolationCode.INSUFFICIENT_SCOPE). The
+    contract.yaml MUST also declare the INSUFFICIENT_SCOPE violation.
+  input:
+    skill_file: canonical/search-first/skill.md
+    contract_file: canonical/search-first/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "INSUFFICIENT_SCOPE"
+      - "missing or empty"
+    required_contract_violations:
+      - INSUFFICIENT_SCOPE

@@ -1,0 +1,41 @@
+# Phase 1 structural fixture — search-first happy path (local match).
+#
+# This fixture freezes the SHAPE of the search-first canonical skill,
+# not the verdict of any particular LLM invocation. It parses the skill
+# markdown and asserts required sections, contract fields, and procedure
+# steps are present. Any edit that weakens the contract (drops a section,
+# removes `scope_hint` from inputs, removes the INSUFFICIENT_SCOPE raise
+# rule) fails CI.
+
+- name: happy_path_local_match_shape
+  description: |
+    The canonical skill markdown must declare the contract inputs
+    (task_description + scope_hint), the six local sources to search in
+    order, and the reuse | extend | custom recommendation enum.
+  input:
+    skill_file: canonical/search-first/skill.md
+    contract_file: canonical/search-first/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "`task_description`"
+      - "`scope_hint`"
+      - "reuse"
+      - "extend"
+      - "custom"
+      - "docs/solutions/"
+      - "skills/canonical/"
+      - "packages/tools/primitives/"
+      - "INSUFFICIENT_SCOPE"
+      - "state/artifacts/search-first/"
+    required_sections:
+      - "## Purpose"
+      - "## Contract"
+      - "## Procedure"
+      - "## Boundaries and failure modes"
+    required_contract_inputs:
+      - task_description
+      - scope_hint
+    required_contract_outputs:
+      - search_summary_path
+      - candidates
+      - recommendation

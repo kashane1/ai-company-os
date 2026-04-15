@@ -1,0 +1,21 @@
+# Phase 1 adversarial fixture — documentation-lookup business-logic
+# rejection.
+#
+# Freezes the invariant that business-logic debugging questions are
+# rejected with NOT_A_DOC_LOOKUP. Without this invariant, the skill
+# becomes a general-purpose bug-fixing agent and loses its bound.
+
+- name: adversarial_business_logic_debug
+  description: |
+    The canonical skill must document that debugging questions raise
+    NOT_A_DOC_LOOKUP, and the contract must declare the violation.
+  input:
+    skill_file: canonical/documentation-lookup/skill.md
+    contract_file: canonical/documentation-lookup/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "NOT_A_DOC_LOOKUP"
+      - "debugging"
+      - "business-logic"
+    required_contract_violations:
+      - NOT_A_DOC_LOOKUP

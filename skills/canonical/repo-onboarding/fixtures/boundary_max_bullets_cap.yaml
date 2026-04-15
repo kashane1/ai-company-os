@@ -1,0 +1,14 @@
+# Phase 1 boundary fixture — repo-onboarding cap enforcement.
+
+- name: boundary_max_bullets_cap
+  description: |
+    The canonical skill must declare the 10-bullet cap, the 400-char
+    per-bullet cap, the 3-footgun cap, and the 4 KB total-size cap.
+  input:
+    skill_file: canonical/repo-onboarding/skill.md
+  expected:
+    required_strings_in_skill:
+      - "10 bullets"
+      - "400 chars"
+      - "Three is the cap"
+      - "≤ 4 KB"

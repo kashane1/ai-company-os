@@ -1,0 +1,21 @@
+# Phase 1 structural fixture — search-first happy path (no local match).
+#
+# Freezes the contract that the skill must document the "fall through to
+# web search" step and the `custom` recommendation path. Without this,
+# the skill could silently narrow to local-only search and never tell
+# the operator that the procedure allows for external sources.
+
+- name: happy_path_no_match_shape
+  description: |
+    The canonical skill markdown must document a fall-through step to
+    external search (via learnings-researcher) and must permit the
+    `custom` recommendation when no local prior art is found.
+  input:
+    skill_file: canonical/search-first/skill.md
+  expected:
+    required_strings_in_skill:
+      - "learnings-researcher"
+      - "custom"
+      - "Cap at 3 queries"
+    required_procedure_steps_contain:
+      - "Fall through to web search"

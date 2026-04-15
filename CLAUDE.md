@@ -65,8 +65,15 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **content-factory** — generate finished slide images from authored backlog items (Gemini backgrounds + Pillow text overlay)
 - **content-scheduler** — push generated slides to Postiz as draft posts for human review
 - **content-performance-review** — (planned) analyze content performance and propose improvements to hooks, archetype weights, and platform strategy
+- **search-first** — look for existing code/patterns before building custom; produces a reuse | extend | custom recommendation
+- **documentation-lookup** — look up library/framework docs via Context7 with a 3-call-per-question budget and allowlisted WebFetch fallback
+- **repo-onboarding** — produce a bounded structured brief (architecture, key files, conventions, footguns) for a repo area
 
 ## Trigger phrases → skills
+
+**Disambiguation rule (binding):** If multiple trigger phrases could
+apply to a user's message, Claude MUST ask which skill to invoke
+rather than guess. Do not silently route to the first match.
 
 When the user's message matches one of these patterns (including paraphrases), read and follow the named skill's Claude adapter before doing anything else:
 
@@ -81,6 +88,9 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "refresh the GTM artifacts" / "update the content backlog" / "propagate the research" / "refresh content from brief" / "balance the content mix" → `skills/adapters/claude/gtm-artifact-refresh.md`
 - "create content" / "generate slides" / "make posts" / "run the content factory" / "generate images for the backlog" → `skills/adapters/claude/content-factory.md`
 - "schedule posts" / "push to postiz" / "send to drafts" / "schedule content" / "queue drafts" → `skills/adapters/claude/content-scheduler.md`
+- "search first" / "find existing solution" / "is there already a way to do this" / "look before you build" → `skills/adapters/claude/search-first.md`
+- "look up the docs" / "pull the framework docs" / "check the SDK reference" / "what's the current API for" → `skills/adapters/claude/documentation-lookup.md`
+- "onboard me to this area" / "give me the lay of the land" / "what's in this part of the repo" / "quick brief on <area>" → `skills/adapters/claude/repo-onboarding.md`
 
 Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 
