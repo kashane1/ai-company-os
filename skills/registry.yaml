@@ -51,9 +51,24 @@ skills:
     path: canonical/handoffs/codex-claude-handoff.md
     owner_agent: any
     target_runtimes: [claude, codex]
-    stage: active
+    # Phase 1 PR-1d: stage updated from `active` to `deferred` to match
+    # the DEFERRED (2026-04-11) comment at the top of the skill file.
+    # The full enqueue → supervisor → worktree → diff-review → apply
+    # loop is paused for a solo operator in favor of a paste-based
+    # flow. The skill stays in the registry so its constraint contract
+    # can be frozen by fixtures (see below) — if/when the loop is
+    # un-deferred, the contract is still load-bearing.
+    stage: deferred
     kind: agentic
-    fixture_status: missing
+    # Phase 1 PR-1d: fixtures at
+    # skills/canonical/handoffs/codex-claude-handoff.fixtures.yaml
+    # freeze the skill's constraint contract — the specific strings
+    # every task packet must carry + the five operating phases +
+    # the forbidden_areas list. These are structural invariants that
+    # any future edit to the skill markdown must not weaken silently.
+    # Dedicated test at
+    # tests/python/unit/test_codex_claude_handoff_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/codex-claude-handoff.md

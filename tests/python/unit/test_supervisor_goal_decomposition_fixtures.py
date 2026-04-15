@@ -16,25 +16,42 @@ dispatch when `worker-supervisor` routes tasks to lanes.
 """
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-SUPERVISOR_APP = REPO_ROOT / "apps" / "worker-supervisor"
-if str(SUPERVISOR_APP) not in sys.path:
-    sys.path.insert(0, str(SUPERVISOR_APP))
-
-from main import plan_goal  # type: ignore[import-not-found]  # noqa: E402
-
-from packages.schemas.task_packet import (  # noqa: E402
+from packages.schemas.task_packet import (
     Goal,
     RiskLevel,
     TaskPacket,
     WorkerLane,
 )
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+WORKER_SUPERVISOR_MAIN = REPO_ROOT / "apps" / "worker-supervisor" / "main.py"
+
+
+def _load_worker_supervisor_main() -> Any:
+    """Import apps/worker-supervisor/main.py under a unique module name.
+
+    We CANNOT use `from main import plan_goal` because multiple apps in
+    this repo have a `main.py` and bare-name imports pollute sys.modules.
+    Matches the existing `load_runtime_supervisor_main` helper pattern
+    in tests/python/unit/test_default_worker_specs_api.py.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "worker_supervisor_main_goal_decomposition_fixture",
+        WORKER_SUPERVISOR_MAIN,
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 FIXTURES_PATH = (
@@ -59,13 +76,14 @@ def _case_id(case: dict) -> str:
 
 @pytest.mark.parametrize("case", _load_cases(), ids=_case_id)
 def test_plan_goal_matches_fixture(case: dict) -> None:
+    worker_supervisor_main = _load_worker_supervisor_main()
     goal_fields = case["input"]["goal"]
     goal = Goal(
         id=goal_fields["id"],
         title=goal_fields["title"],
         summary=goal_fields["summary"],
     )
-    tasks = plan_goal(goal)
+    tasks = worker_supervisor_main.plan_goal(goal)
     assert len(tasks) == 1, (
         f"plan_goal must return exactly one task per goal today, "
         f"got {len(tasks)}"

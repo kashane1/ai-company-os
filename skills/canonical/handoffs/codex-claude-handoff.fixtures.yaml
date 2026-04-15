@@ -1,0 +1,67 @@
+# Phase 1 PR-1d fixtures for codex-claude-handoff.
+#
+# This skill is currently `stage: deferred` — its Phase 1 paused the
+# full enqueue → supervisor → worktree → diff-review → apply loop in
+# favor of a simpler paste-based flow with a solo operator. See the
+# DEFERRED comment at the top of skills/canonical/handoffs/codex-claude-handoff.md.
+#
+# Even while deferred, the skill's CONSTRAINT CONTRACT — the list of
+# strings every task packet this skill produces must include — is a
+# load-bearing invariant. If the skill is ever un-deferred, the
+# constraint strings are the last line of defense against scope creep
+# and policy bypass. This fixture freezes the current contract so any
+# change to the skill markdown that weakens it fails CI.
+#
+# Each case's `input` is the skill file path (relative to skills/),
+# and `expected.constraint_strings` is the list of literal strings
+# the skill's "Constraints every packet must include" section MUST
+# contain verbatim.
+
+- name: happy_path_constraints_contract
+  description: |
+    The skill file at skills/canonical/handoffs/codex-claude-handoff.md
+    enumerates the constraints every Codex-dispatched task packet MUST
+    carry. These are boundary invariants (worktree scope, file edit
+    limits, no-commit rule, policy/schema protection). A test reads the
+    skill file and asserts each string appears verbatim in the
+    "Constraints every packet must include" section.
+  input:
+    skill_file: canonical/handoffs/codex-claude-handoff.md
+    section_heading: "Constraints every packet must include"
+  expected:
+    constraint_strings:
+      - "Operate only inside the managed worktree"
+      - "Edit only"
+      - "Do not modify packages/policies/"
+      - "Leave all changes uncommitted for manual inspection"
+
+- name: boundary_phase_enumeration
+  description: |
+    The skill's operating protocol must enumerate five distinct phases
+    (Select, Pre-flight, Dispatch, Monitor and review, Apply). Any
+    weakening that drops a phase (e.g., removing the review step)
+    should fail CI.
+  input:
+    skill_file: canonical/handoffs/codex-claude-handoff.md
+  expected:
+    phase_headings_contains:
+      - "Phase 1 — Select"
+      - "Phase 2 — Pre-flight"
+      - "Phase 3 — Dispatch"
+      - "Phase 4 — Monitor and review"
+      - "Phase 5 — Apply"
+
+- name: adversarial_forbidden_areas_declared
+  description: |
+    The skill frontmatter's `forbidden_areas` list must include
+    `packages/policies/` and `packages/schemas/` — these are the
+    platform-critical directories an agent-driven handoff must never
+    touch without a dedicated review. Any removal from this list is
+    a security regression.
+  input:
+    skill_file: canonical/handoffs/codex-claude-handoff.md
+  expected:
+    forbidden_areas_must_include:
+      - packages/policies/
+      - packages/schemas/
+      - infra/
