@@ -228,6 +228,66 @@ def _find(skill_id: str, registry: list[SkillSpec] | None = None) -> SkillSpec:
     raise SkillNotFound(f"skill {skill_id!r} not in registry")
 
 
+def discover_fixtures(spec: SkillSpec) -> list[Path]:
+    """Phase 0.5e — resolve every fixture file belonging to a skill.
+
+    Dual-layout discovery per `docs/adr/2026-04-14-canonical-skill-layout.md`:
+
+    1. Per-skill-directory layout:
+       `skills/canonical/<skill-id>/fixtures/*.{yaml,yml,json}`
+
+    2. Flat Phase 0 layout with sibling fixture file:
+       `skills/canonical/<parent-dir>/<skill-id>.fixtures.yaml`
+
+    3. Flat Phase 0 layout with shared fixtures subdir (future escape
+       hatch, supported so a parent dir like `canonical/shared/` can
+       opt into a shared `fixtures/` pool):
+       `skills/canonical/<parent-dir>/fixtures/<skill-id>/*.{yaml,yml,json}`
+
+    Returns a sorted list of absolute paths. Empty list means no
+    fixtures found — the reconciliation check from Phase 1 flags
+    `passing` skills with zero discovered fixtures as drift.
+
+    This function does NOT parse or validate the fixture files. It
+    only locates them. The caller is responsible for YAML/JSON parse.
+    """
+    skills_root = _skills_root()
+
+    # Layout 1: per-skill dir.
+    dir_layout_fixtures = skills_root / "canonical" / spec.id / "fixtures"
+    found: list[Path] = []
+    if dir_layout_fixtures.is_dir():
+        for ext in ("yaml", "yml", "json"):
+            found.extend(dir_layout_fixtures.glob(f"*.{ext}"))
+
+    # Layout 2 + 3: flat file with sibling fixture(s). The parent dir
+    # is derived from `spec.path` — e.g. `canonical/shared/product-artifact-chain.md`
+    # has parent `canonical/shared/`.
+    if spec.path:
+        flat_skill_file = skills_root / spec.path
+        parent_dir = flat_skill_file.parent
+        sibling = parent_dir / f"{spec.id}.fixtures.yaml"
+        if sibling.exists():
+            found.append(sibling)
+        shared_fixtures = parent_dir / "fixtures" / spec.id
+        if shared_fixtures.is_dir():
+            for ext in ("yaml", "yml", "json"):
+                found.extend(shared_fixtures.glob(f"*.{ext}"))
+
+    # Deduplicate (dir-layout fixtures can also be picked up by
+    # layout-2 scan if someone puts the per-skill dir under
+    # canonical/shared/, which isn't valid but is cheap to handle).
+    seen: set[Path] = set()
+    deduped: list[Path] = []
+    for path in found:
+        resolved = path.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        deduped.append(path)
+    return sorted(deduped)
+
+
 def load_validator(
     skill_id: str,
     *,
