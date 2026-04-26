@@ -19,6 +19,7 @@ dependencies = [
 test = [
     "pytest>=8.3,<9",
     "pytest-cov>=6,<7",
+    "python-multipart>=0.0.20,<1",
 ]
 
 [tool.setuptools]
