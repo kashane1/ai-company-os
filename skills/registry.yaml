@@ -398,6 +398,17 @@ skills:
       claude: adapters/claude/verification-loop.md
     project_skill: .claude/skills/verification-loop.md
 
+  - id: verification-loop-runtime
+    name: Verification Loop (Runtime)
+    path: canonical/verification-loop-runtime/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+
   # ----- Phase 3 skill self-evolution loop -----
 
   - id: skill-self-evolution

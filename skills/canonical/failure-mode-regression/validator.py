@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,7 @@ from typing import Any
 
 DEDUPE_WINDOW = timedelta(hours=24)
 SELF_FAILURE_CODE = "capture_pipeline_self_failure"
+POSTMORTEM_EMIT_DISABLED_ENV_VAR = "AI_COMPANY_OS_DISABLE_POSTMORTEM_EMIT"
 
 
 def _parse(ts: str) -> datetime:
@@ -71,6 +73,91 @@ def _save_index(root: Path, data: dict) -> None:
     tmp.replace(idx)
 
 
+def _postmortem_id(failure_code: str, fixture_path: str, created_at: str) -> str:
+    """Stable ID = sha10 of (failure_code, fixture_path, created_at).
+
+    Filesystem-safe; no embedded ISO timestamps; no `__` delimiters.
+    """
+    digest = hashlib.sha1(f"{failure_code}|{fixture_path}|{created_at}".encode()).hexdigest()
+    return digest[:10]
+
+
+def _emit_postmortem_stub(
+    *,
+    failure_code: str,
+    lane: str,
+    redacted_excerpt: str,
+    redaction_hits: int,
+    fixture_path: Path,
+    now_iso: str,
+    postmortems_root: Path | None = None,
+) -> tuple[bool, str | None]:
+    """Best-effort PostMortem stub emission. Returns (success, warning_or_none).
+
+    Failure here MUST NOT change the parent fixture-capture verdict.
+    Idempotent within 24h via O_EXCL lockfile under
+    ``state/postmortems/.dedup/<failure_code>.lock`` (M2 fix).
+    """
+    if os.environ.get(POSTMORTEM_EMIT_DISABLED_ENV_VAR) == "1":
+        return False, "postmortem_emit_disabled"
+
+    try:
+        from packages.config.settings import ensure_runtime_directories
+        from packages.db.postmortem_store import PostMortemStore
+        from packages.schemas.postmortem import PostMortem
+
+        if postmortems_root is None:
+            paths = ensure_runtime_directories()
+            postmortems_root = paths.postmortems_root
+        else:
+            postmortems_root.mkdir(parents=True, exist_ok=True)
+
+        # M2 fix: O_EXCL lockfile dedup, not read-modify-write on index.json.
+        dedup_dir = postmortems_root / ".dedup"
+        dedup_dir.mkdir(parents=True, exist_ok=True)
+        lock_path = dedup_dir / f"{failure_code}.lock"
+        try:
+            fd = os.open(
+                str(lock_path),
+                os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+                0o600,
+            )
+        except FileExistsError:
+            try:
+                age = (datetime.now(timezone.utc).timestamp() - lock_path.stat().st_mtime)
+            except OSError:
+                age = 0
+            if age < 86400:
+                return False, "postmortem_dedup_skip"
+            lock_path.unlink(missing_ok=True)
+            fd = os.open(
+                str(lock_path),
+                os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+                0o600,
+            )
+        try:
+            os.write(fd, now_iso.encode("utf-8"))
+        finally:
+            os.close(fd)
+
+        pm_id = _postmortem_id(failure_code, str(fixture_path), now_iso)
+        record = PostMortem(
+            id=pm_id,
+            created_at=now_iso,
+            updated_at=now_iso,
+            failure_code=failure_code,
+            lane=lane,
+            fixture_path=str(fixture_path),
+            excerpt_redacted=redacted_excerpt,
+            redaction_hits=redaction_hits,
+        )
+        store = PostMortemStore(root=postmortems_root)
+        store.save(record)
+        return True, None
+    except Exception as exc:
+        return False, f"postmortem_emit_failed:{type(exc).__name__}"
+
+
 def run(payload: dict) -> dict:
     try:
         code = payload["failure_code"]
@@ -120,12 +207,34 @@ def run(payload: dict) -> dict:
         }
         _save_index(fixtures_root, index)
 
-        return {
+        # PostMortem stub emission (Phase 2 of harness learning loop).
+        # Best-effort; failures here must NOT change the parent verdict.
+        warnings: list[str] = []
+        postmortems_root_override = payload.get("postmortems_root")
+        emit_root = (
+            Path(postmortems_root_override) if postmortems_root_override else None
+        )
+        ok, warning = _emit_postmortem_stub(
+            failure_code=code,
+            lane=lane,
+            redacted_excerpt=redacted_excerpt,
+            redaction_hits=excerpt_hits + payload_hits,
+            fixture_path=fixture_path,
+            now_iso=now.isoformat(),
+            postmortems_root=emit_root,
+        )
+        if warning:
+            warnings.append(warning)
+
+        result: dict[str, Any] = {
             "verdict": "ok",
             "failure_code": code,
             "fixture_path": str(fixture_path),
             "reason": "",
         }
+        if warnings:
+            result["warnings"] = warnings
+        return result
     except Exception as exc:
         # Do NOT recursively self-capture.
         return {
