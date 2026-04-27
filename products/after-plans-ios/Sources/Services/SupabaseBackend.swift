@@ -190,10 +190,23 @@ struct SupabaseIdentityService: IdentityServiceProtocol {
         }
 
         // First call after anonymous sign-in: bootstrap a profile.
+        // Retry once on 42501 because supabase-swift can occasionally race
+        // the PostgREST Authorization header against a freshly created
+        // anonymous session — the insert goes out before auth.uid() is
+        // populated server-side, and RLS rejects it. Settling 200ms and
+        // re-fetching the session resolves it.
         let firstName = String(userID.uuidString.prefix(8))
-        try await client.from("profiles").insert(
-            ProfileRow(id: userID, firstName: firstName, visibilityDefault: "same_context_only")
-        ).execute()
+        let row = ProfileRow(
+            id: userID, firstName: firstName,
+            visibilityDefault: "same_context_only",
+        )
+        do {
+            try await client.from("profiles").insert(row).execute()
+        } catch {
+            try await Task.sleep(nanoseconds: 200_000_000)
+            _ = try await client.auth.session
+            try await client.from("profiles").insert(row).execute()
+        }
 
         return UserProfile(
             id: userID,
