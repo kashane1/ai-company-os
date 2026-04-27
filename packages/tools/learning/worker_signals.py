@@ -288,7 +288,17 @@ def load_recent_signals(query: SignalQuery | None = None) -> dict[str, list[str]
             str(postmortems_root),
             str(audit_log_path),
         )
-        now_bucket = int(time.time() / _MEMOIZATION_TTL_SECONDS)
+        # Bucket key honors caller-supplied `now_iso` when present so the
+        # cache doesn't churn against a fixed test clock. In production
+        # (no override) we bucket on wall-clock time.
+        if query.now_iso:
+            try:
+                ts = _parse_iso(query.now_iso).timestamp()
+            except Exception:
+                ts = time.time()
+        else:
+            ts = time.time()
+        now_bucket = int(ts / _MEMOIZATION_TTL_SECONDS)
         return _cached_signals(query_key, now_bucket)
     except Exception:
         return {}

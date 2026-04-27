@@ -66,7 +66,7 @@ def _run_sub_check(name: str, body: Any) -> SubCheckResult:
 def _stale_postmortems_check(
     *,
     now_iso: str | None = None,
-    threshold_days: int = 14,
+    threshold_days: int | None = None,
 ) -> SubCheckResult:
     """Scan ``state/postmortems/`` for OPEN records older than ``threshold_days``.
 
@@ -91,7 +91,7 @@ def _stale_postmortems_check(
     )
     from packages.schemas.postmortem import PostMortemStatus
 
-    threshold = threshold_days if threshold_days != 14 else STALE_THRESHOLD_DAYS
+    threshold = threshold_days if threshold_days is not None else STALE_THRESHOLD_DAYS
     iso = now_iso or now_utc_iso()
     store = PostMortemStore()
 
@@ -164,7 +164,7 @@ def _aggregate(
 def run(
     *,
     now_iso: str | None = None,
-    threshold_days: int = 14,
+    threshold_days: int | None = None,
 ) -> VerificationLoopRuntimeReport:
     """Compose the runtime-evidence sub-checks. NEVER raises."""
     sub_checks = (

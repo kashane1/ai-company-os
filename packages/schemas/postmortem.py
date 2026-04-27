@@ -15,8 +15,20 @@ so call sites cannot accidentally leave PII or secrets unredacted.
 
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass, field
 from enum import Enum
+
+
+# Tightly bounded character class for failure_code so the value is safe
+# to interpolate into filesystem paths (lockfile, dedup index, fixture
+# filename). Stops path-traversal payloads at the schema boundary.
+_FAILURE_CODE_RE = re.compile(r"^[a-z0-9][a-z0-9_]{0,63}$")
+
+
+def is_safe_failure_code(value: str) -> bool:
+    """True if ``value`` is safe to interpolate into a filesystem path."""
+    return bool(_FAILURE_CODE_RE.fullmatch(value or ""))
 
 
 class PostMortemSeverity(str, Enum):
@@ -111,27 +123,33 @@ class PostMortem:
 
     @classmethod
     def from_dict(cls, payload: dict[str, object]) -> "PostMortem":
+        # Optional fields use "is not None" uniformly so empty strings
+        # round-trip as empty strings, not nulls (kieran C1 fix).
+        def _opt_str(key: str) -> str | None:
+            v = payload.get(key)
+            return None if v is None else str(v)
+
+        def _opt_int(key: str) -> int | None:
+            v = payload.get(key)
+            return None if v is None else int(v)
+
         return cls(
             id=str(payload["id"]),
             created_at=str(payload["created_at"]),
             updated_at=str(payload["updated_at"]),
             failure_code=str(payload["failure_code"]),
             lane=str(payload["lane"]),
-            task_id=str(payload["task_id"]) if payload.get("task_id") else None,
-            task_run_id=str(payload["task_run_id"]) if payload.get("task_run_id") else None,
-            fixture_path=str(payload["fixture_path"]) if payload.get("fixture_path") else None,
-            excerpt_redacted=str(payload["excerpt_redacted"])
-            if payload.get("excerpt_redacted") is not None
-            else None,
-            redaction_hits=int(payload["redaction_hits"])
-            if payload.get("redaction_hits") is not None
-            else None,
+            task_id=_opt_str("task_id"),
+            task_run_id=_opt_str("task_run_id"),
+            fixture_path=_opt_str("fixture_path"),
+            excerpt_redacted=_opt_str("excerpt_redacted"),
+            redaction_hits=_opt_int("redaction_hits"),
             severity=PostMortemSeverity(str(payload.get("severity", PostMortemSeverity.WARN.value))),
             root_cause_category=RootCauseCategory(
                 str(payload.get("root_cause_category", RootCauseCategory.UNKNOWN.value))
             ),
             remediation_action=str(payload.get("remediation_action", "")),
-            owner=str(payload["owner"]) if payload.get("owner") else None,
+            owner=_opt_str("owner"),
             status=PostMortemStatus(str(payload.get("status", PostMortemStatus.OPEN.value))),
             notes=str(payload.get("notes", "")),
             schema_version=str(payload.get("schema_version", "1")),

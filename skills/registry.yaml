@@ -408,6 +408,8 @@ skills:
     fixture_status: missing
     self_evolvable: false
     source: internal
+    adapters:
+      claude: adapters/claude/verification-loop-runtime.md
 
   # ----- Phase 3 skill self-evolution loop -----
 

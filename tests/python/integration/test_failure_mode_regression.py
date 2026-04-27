@@ -227,6 +227,45 @@ def test_postmortem_redacts_user_path_in_fixture_path(tmp_path: Path):
     assert "[REDACTED-USER]" in body["fixture_path"]
 
 
+def test_path_traversal_failure_code_is_rejected(tmp_path: Path):
+    """A failure_code containing path-traversal characters is rejected at the gate."""
+    validator = _load()
+    out = validator.run(
+        {
+            "failure_code": "../../etc/evil",
+            "lane": "engineering",
+            "excerpt": "x",
+            "payload": {},
+            "fixtures_root": str(tmp_path / "fixtures"),
+            "postmortems_root": str(tmp_path / "postmortems"),
+            "now": "2026-04-27T08:00:00+00:00",
+        }
+    )
+    assert out["verdict"] == "fail"
+    assert out["failure_code"] == "capture_pipeline_self_failure"
+    assert "unsafe_failure_code" in out["reason"]
+    # No fixture files written.
+    assert not list((tmp_path / "fixtures").glob("**/*.json")) if (tmp_path / "fixtures").exists() else True
+
+
+def test_empty_string_optional_fields_round_trip(tmp_path: Path):
+    """from_dict no longer coerces '' to None for optional string fields (kieran C1 fix)."""
+    from packages.schemas.postmortem import PostMortem
+
+    payload = {
+        "id": "abc1234567",
+        "created_at": "2026-04-27T10:00:00+00:00",
+        "updated_at": "2026-04-27T10:00:00+00:00",
+        "failure_code": "lint_failed",
+        "lane": "engineering",
+        "task_id": "",
+        "owner": "",
+    }
+    pm = PostMortem.from_dict(payload)
+    assert pm.task_id == ""
+    assert pm.owner == ""
+
+
 def test_self_failure_does_not_recurse(tmp_path: Path):
     validator = _load()
     # failure_code is required — passing None through raises KeyError.

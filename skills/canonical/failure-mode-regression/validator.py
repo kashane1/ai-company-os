@@ -161,6 +161,18 @@ def _emit_postmortem_stub(
 def run(payload: dict) -> dict:
     try:
         code = payload["failure_code"]
+        # Path-traversal gate: failure_code is interpolated into the
+        # fixture filename, the dedup lockfile, and the PostMortem id.
+        # Reject anything outside the safe character class at the entry.
+        from packages.schemas.postmortem import is_safe_failure_code
+
+        if not isinstance(code, str) or not is_safe_failure_code(code):
+            return {
+                "verdict": "fail",
+                "failure_code": SELF_FAILURE_CODE,
+                "fixture_path": "",
+                "reason": f"unsafe_failure_code:{code!r}",
+            }
         lane = payload.get("lane", "unknown")
         excerpt = payload.get("excerpt", "") or ""
         inner_payload = payload.get("payload") or {}
