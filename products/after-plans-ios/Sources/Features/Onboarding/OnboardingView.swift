@@ -45,7 +45,7 @@ struct OnboardingView: View {
         OnboardingStep(
             id: 4,
             title: "Start with what just ended.",
-            body: "Pick your current context, then see a live feed right away. Location is only used when it helps you find the right plans.",
+            body: "Pick your current context, then see a live feed right away — built around the people you were just with, not a generic crowd.",
             accent: "Context first",
             icon: "sparkles.rectangle.stack.fill"
         ),

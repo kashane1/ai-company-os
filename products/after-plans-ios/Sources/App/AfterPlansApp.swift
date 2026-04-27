@@ -25,6 +25,9 @@ struct RootView: View {
             }
         }
         .background(Color.appBackground.ignoresSafeArea())
+        .onOpenURL { url in
+            _ = store.handleIncomingURL(url)
+        }
     }
 }
 

@@ -17,9 +17,7 @@ final class AfterPlansStore: ObservableObject {
 
     let reportReasons: [SafetyReason]
 
-    private let composerService: PlanComposerService
-    private let participationService: PlanParticipationService
-    private let inviteService: InviteService
+    private let backend: AfterPlansBackend
     private let analyticsService: AnalyticsService
 
     init(
@@ -34,10 +32,8 @@ final class AfterPlansStore: ObservableObject {
         inviteShareStates: [UUID: InviteShareState] = [:],
         reportLog: [String] = [],
         reportReasons: [SafetyReason],
-        composerService: PlanComposerService,
-        participationService: PlanParticipationService,
-        inviteService: InviteService,
-        analyticsService: AnalyticsService
+        backend: AfterPlansBackend,
+        analyticsService: AnalyticsService = NoopAnalyticsService()
     ) {
         self.hasCompletedOnboarding = hasCompletedOnboarding
         self.selectedTab = selectedTab
@@ -50,59 +46,74 @@ final class AfterPlansStore: ObservableObject {
         self.inviteShareStates = inviteShareStates
         self.reportLog = reportLog
         self.reportReasons = reportReasons
-        self.composerService = composerService
-        self.participationService = participationService
-        self.inviteService = inviteService
+        self.backend = backend
         self.analyticsService = analyticsService
     }
 
-    static func bootstrap() -> AfterPlansStore {
-        let auth = InMemoryAuthService()
-        let contexts = InMemoryContextService().suggestedContexts()
+    static func bootstrap(kind: AfterPlansBackendKind = AfterPlansConfiguration.defaultBackend) -> AfterPlansStore {
+        // For inMemory we need a single seed shared between the store's
+        // @Published cache and the backend's actor — the seed contains UUIDs
+        // that must match. For supabase, the cache is empty until the first
+        // feed() call hydrates it.
+        switch kind {
+        case .inMemory:
+            let seed = InMemoryBackendSeed.default
+            return AfterPlansStore(
+                currentUser: seed.user,
+                availableContexts: seed.contexts,
+                selectedContext: seed.contexts.first,
+                plans: seed.plans,
+                reportReasons: seed.reasons,
+                backend: InMemoryBackendFactory.make(seed: seed)
+            )
+        case .supabase:
+            let seed = InMemoryBackendSeed.default
+            return AfterPlansStore(
+                currentUser: seed.user,
+                availableContexts: seed.contexts,
+                selectedContext: seed.contexts.first,
+                plans: [],
+                reportReasons: seed.reasons,
+                backend: AfterPlansConfiguration.makeBackend(kind)
+            )
+        }
+    }
+
+    /// Test-only convenience: build a store wired to an in-memory backend
+    /// seeded with the supplied state. Lets unit tests inject specific plans
+    /// and contexts without standing up a custom backend manually.
+    static func testStore(
+        currentUser: UserProfile,
+        availableContexts: [ContextOption],
+        selectedContext: ContextOption?,
+        plans: [AfterPlan],
+        reportReasons: [SafetyReason] = InMemorySafetyService().reportReasons
+    ) -> AfterPlansStore {
+        let seed = InMemoryBackendSeed(
+            user: currentUser,
+            contexts: availableContexts,
+            plans: plans,
+            reasons: reportReasons
+        )
+        let backend = InMemoryBackendFactory.make(seed: seed)
         return AfterPlansStore(
-            currentUser: auth.currentUser(),
-            availableContexts: contexts,
-            selectedContext: contexts.first,
-            plans: InMemoryDiscoveryFeedService(contexts: contexts).seededPlans(),
-            reportReasons: InMemorySafetyService().reportReasons,
-            composerService: InMemoryPlanComposerService(),
-            participationService: InMemoryPlanParticipationService(),
-            inviteService: InMemoryInviteService(),
-            analyticsService: NoopAnalyticsService()
+            currentUser: currentUser,
+            availableContexts: availableContexts,
+            selectedContext: selectedContext,
+            plans: plans,
+            reportReasons: reportReasons,
+            backend: backend
         )
     }
 
-    var feedPlans: [AfterPlan] {
-        continuation.rankedPlans
-    }
-
-    var currentContextPlans: [AfterPlan] {
-        continuation.currentContextPlans
-    }
-
-    var secondaryFeedPlans: [AfterPlan] {
-        continuation.secondaryPlans
-    }
-
-    var focusedPlan: AfterPlan? {
-        continuation.focusedPlan
-    }
-
-    var livePlans: [AfterPlan] {
-        continuation.livePlans
-    }
-
-    var historyPlans: [AfterPlan] {
-        continuation.historyPlans
-    }
-
-    var recentPartners: [String] {
-        continuation.recentPartners
-    }
-
-    var recapSummary: RecapSummary {
-        continuation.recapSummary
-    }
+    var feedPlans: [AfterPlan] { continuation.rankedPlans }
+    var currentContextPlans: [AfterPlan] { continuation.currentContextPlans }
+    var secondaryFeedPlans: [AfterPlan] { continuation.secondaryPlans }
+    var focusedPlan: AfterPlan? { continuation.focusedPlan }
+    var livePlans: [AfterPlan] { continuation.livePlans }
+    var historyPlans: [AfterPlan] { continuation.historyPlans }
+    var recentPartners: [String] { continuation.recentPartners }
+    var recapSummary: RecapSummary { continuation.recapSummary }
 
     func affinity(for planID: UUID) -> PlanAffinity? {
         continuation.affinity(for: planID)
@@ -136,8 +147,12 @@ final class AfterPlansStore: ObservableObject {
         continuation.plan(with: id)
     }
 
+    /// Local-only preview rendering. The contract `invite_preview` op is
+    /// available on `backend.invites` for cases where the server needs to
+    /// stamp the invite code or audience headline; SwiftUI surfaces compute
+    /// the preview directly from the plan to keep `body` synchronous.
     func invitePreview(for plan: AfterPlan) -> InvitePreview {
-        inviteService.preview(for: plan)
+        InMemoryInviteService().preview(for: plan)
     }
 
     func inviteShareState(for planID: UUID) -> InviteShareState? {
@@ -148,84 +163,87 @@ final class AfterPlansStore: ObservableObject {
         plan.inviteChannels
     }
 
-    func join(_ planID: UUID) {
-        mutatePlan(id: planID) { [participationService, currentUser] plan in
-            participationService.apply(.join, to: plan, currentUser: currentUser)
+    @discardableResult
+    func handleIncomingURL(_ url: URL) -> Bool {
+        guard url.scheme == "afterplans", url.host == "join" else { return false }
+
+        let planIDString = url.pathComponents.dropFirst().first
+        guard
+            let planIDString,
+            let planID = UUID(uuidString: planIDString),
+            let plan = plan(with: planID)
+        else {
+            lastActionMessage = "That invite is no longer available."
+            selectedTab = .home
+            return false
         }
+
+        hasCompletedOnboarding = true
+        selectedTab = .home
+        focusedPlanID = plan.id
+        if let context = availableContexts.first(where: { $0.title == plan.contextTitle }) {
+            selectedContext = context
+        }
+        lastActionMessage = "Opened invite for \(plan.title)."
+        analyticsService.record(event: "invite_link_opened")
+        return true
+    }
+
+    func join(_ planID: UUID) async {
+        guard let updated = try? await backend.plans.join(planID: planID) else { return }
+        upsertPlan(updated)
         focus(on: planID)
-        if let plan = plan(with: planID) {
-            lastActionMessage = "You're in for \(plan.title)."
-        }
+        lastActionMessage = "You're in for \(updated.title)."
         analyticsService.record(event: "join_tapped")
     }
 
-    func expressInterest(in planID: UUID) {
-        mutatePlan(id: planID) { [participationService, currentUser] plan in
-            participationService.apply(.interested, to: plan, currentUser: currentUser)
-        }
+    func expressInterest(in planID: UUID) async {
+        guard let updated = try? await backend.plans.expressInterest(planID: planID) else { return }
+        upsertPlan(updated)
         focus(on: planID)
-        if let plan = plan(with: planID) {
-            lastActionMessage = "Marked interest in \(plan.title)."
-        }
+        lastActionMessage = "Marked interest in \(updated.title)."
         analyticsService.record(event: "interested_tapped")
     }
 
-    func suggestDefaultPlace(for planID: UUID) {
+    func suggestDefaultPlace(for planID: UUID) async {
         guard let existingPlan = plans.first(where: { $0.id == planID }) else { return }
         let defaults = ["Tea House", "Corner Slice", "Mercado", "Rooftop Coffee"]
         let suggestion = defaults[existingPlan.placeSuggestions.count % defaults.count]
 
-        mutatePlan(id: planID) { [participationService, currentUser] current in
-            participationService.apply(.suggestPlace(suggestion), to: current, currentUser: currentUser)
-        }
+        guard let updated = try? await backend.plans.suggestPlace(planID: planID, place: suggestion) else { return }
+        upsertPlan(updated)
         focus(on: planID)
-        if let plan = plan(with: planID) {
-            lastActionMessage = "Suggested \(suggestion) for \(plan.title)."
-        }
+        lastActionMessage = "Suggested \(suggestion) for \(updated.title)."
         analyticsService.record(event: "suggest_place_tapped")
     }
 
-    func confirm(_ planID: UUID) {
-        mutatePlan(id: planID) { [participationService, currentUser] plan in
-            participationService.apply(.confirm, to: plan, currentUser: currentUser)
-        }
+    func confirm(_ planID: UUID) async {
+        guard let updated = try? await backend.plans.confirm(planID: planID) else { return }
+        upsertPlan(updated)
         focus(on: planID)
-        if let plan = plan(with: planID) {
-            lastActionMessage = "\(plan.title) is now locked for \(plan.timeLabel)."
-        }
+        lastActionMessage = "\(updated.title) is now locked for \(updated.timeLabel)."
         analyticsService.record(event: "plan_confirmed")
     }
 
-    func markPlanActive(_ planID: UUID) {
-        mutatePlan(id: planID) { plan in
-            var updated = plan
-            updated.lifecycle = .active
-            if updated.participationState == .joined {
-                updated.participationState = .confirmed
-            }
-            return updated
-        }
+    func markPlanActive(_ planID: UUID) async {
+        guard let updated = try? await backend.plans.markActive(planID: planID) else { return }
+        upsertPlan(updated)
         focus(on: planID)
-        if let plan = plan(with: planID) {
-            lastActionMessage = "\(plan.title) is now in motion."
-        }
+        lastActionMessage = "\(updated.title) is now in motion."
         analyticsService.record(event: "plan_active")
     }
 
-    func wrapPlan(_ planID: UUID) {
-        mutatePlan(id: planID) { plan in
-            var updated = plan
-            updated.lifecycle = .closed
-            return updated
-        }
-        if let plan = plan(with: planID) {
-            lastActionMessage = "\(plan.title) is wrapped. Check your activity for the recap."
-        }
+    func wrapPlan(_ planID: UUID) async {
+        guard let updated = try? await backend.plans.wrap(planID: planID) else { return }
+        upsertPlan(updated)
+        lastActionMessage = "\(updated.title) is wrapped. Check your activity for the recap."
         analyticsService.record(event: "plan_closed")
     }
 
-    func prepareInviteShare(for planID: UUID, channel: InviteShareChannel) {
+    func prepareInviteShare(for planID: UUID, channel: InviteShareChannel) async {
         guard let plan = plan(with: planID), plan.inviteChannels.contains(channel) else { return }
+
+        try? await backend.invites.recordShare(planID: planID, channel: channel)
 
         let state = InviteShareState(
             channel: channel,
@@ -239,30 +257,33 @@ final class AfterPlansStore: ObservableObject {
         analyticsService.record(event: "invite_share_prepared")
     }
 
-    func runConfirmationAction(for planID: UUID) {
+    func runConfirmationAction(for planID: UUID) async {
         guard let plan = plan(with: planID) else { return }
 
         switch plan.confirmationAction {
         case .join:
-            join(planID)
+            await join(planID)
         case .confirm:
-            confirm(planID)
+            await confirm(planID)
         case .markActive:
-            markPlanActive(planID)
+            await markPlanActive(planID)
         case .wrapPlan:
-            wrapPlan(planID)
+            await wrapPlan(planID)
         case .none:
             break
         }
     }
 
     @discardableResult
-    func createPlan(from draft: CreatePlanDraft) -> Bool {
+    func createPlan(from draft: CreatePlanDraft) async -> Bool {
         guard draft.validationMessage(hasContext: selectedContext != nil) == nil, let selectedContext else {
             return false
         }
 
-        let plan = composerService.createPlan(from: draft, in: selectedContext, host: currentUser)
+        guard let plan = try? await backend.plans.createPlan(from: draft, in: selectedContext.id) else {
+            return false
+        }
+
         plans.insert(plan, at: 0)
         focus(on: plan.id)
         lastActionMessage = "Your plan is live for \(selectedContext.title)."
@@ -271,13 +292,17 @@ final class AfterPlansStore: ObservableObject {
         return true
     }
 
-    func reportPlan(_ plan: AfterPlan) {
+    func reportPlan(_ plan: AfterPlan) async {
+        try? await backend.reports.reportPlan(plan.id, reasonID: "unspecified", note: nil)
         reportLog.append("Reported plan: \(plan.title)")
         focus(on: plan.id)
         analyticsService.record(event: "report_submitted")
     }
 
-    func reportUser(named name: String) {
+    func reportUser(named name: String) async {
+        // Without a stable userID for the named participant in the in-memory
+        // shell, we record a local log entry only. The cloud backend will
+        // accept the userID lookup once participant IDs are stable.
         reportLog.append("Reported user: \(name)")
         analyticsService.record(event: "report_submitted")
     }
@@ -301,9 +326,12 @@ final class AfterPlansStore: ObservableObject {
         )
     }
 
-    private func mutatePlan(id: UUID, transform: (AfterPlan) -> AfterPlan) {
-        guard let index = plans.firstIndex(where: { $0.id == id }) else { return }
-        plans[index] = transform(plans[index])
+    private func upsertPlan(_ plan: AfterPlan) {
+        if let index = plans.firstIndex(where: { $0.id == plan.id }) {
+            plans[index] = plan
+        } else {
+            plans.insert(plan, at: 0)
+        }
     }
 
     private func focus(on planID: UUID) {

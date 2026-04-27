@@ -25,7 +25,7 @@ struct ConfirmationRoomView: View {
                         // CTA with extra breathing room
                         VStack(spacing: Spacing.sm) {
                             Button(plan.confirmationActionTitle) {
-                                store.runConfirmationAction(for: plan.id)
+                                Task { await store.runConfirmationAction(for: plan.id) }
                             }
                             .buttonStyle(ActionPillButtonStyle(prominent: true))
                             .disabled(!plan.canTakeConfirmationAction)

@@ -3,26 +3,32 @@ import XCTest
 
 @MainActor
 final class AfterPlansStoreTests: XCTestCase {
-    func testJoinMovesOpenPlanTowardFormingAndAddsCurrentUser() throws {
-        let user = UserProfile(
+    private func testUser(name: String = "Maya") -> UserProfile {
+        UserProfile(
             id: UUID(),
-            firstName: "Maya",
+            firstName: name,
             descriptor: "Verified",
             visibilityDefault: .sameContextOnly,
             trustHeadline: "Identity-light, but real"
         )
-        let context = ContextOption(
+    }
+
+    private func testContext(title: String = "Pottery Night") -> ContextOption {
+        ContextOption(
             id: UUID(),
             type: .meetup,
-            title: "Pottery Night",
+            title: title,
             venueName: "Clay House Studio",
             endedAtLabel: "Ended 10 min ago",
             proximityLabel: "3 min away",
             trustNote: "Same context first."
         )
-        let openPlan = AfterPlan(
+    }
+
+    private func openPlan(in context: ContextOption, title: String = "Tea after class") -> AfterPlan {
+        AfterPlan(
             id: UUID(),
-            title: "Tea after class",
+            title: title,
             summary: "Simple next move",
             contextTitle: context.title,
             hostName: "Nia",
@@ -41,22 +47,22 @@ final class AfterPlansStoreTests: XCTestCase {
             placeSuggestions: [],
             participationState: .browsing
         )
+    }
 
-        let store = AfterPlansStore(
+    func testJoinMovesOpenPlanTowardFormingAndAddsCurrentUser() async throws {
+        let user = testUser()
+        let context = testContext()
+        let plan = openPlan(in: context)
+        let store = AfterPlansStore.testStore(
             currentUser: user,
             availableContexts: [context],
             selectedContext: context,
-            plans: [openPlan],
-            reportReasons: InMemorySafetyService().reportReasons,
-            composerService: InMemoryPlanComposerService(),
-            participationService: InMemoryPlanParticipationService(),
-            inviteService: InMemoryInviteService(),
-            analyticsService: NoopAnalyticsService()
+            plans: [plan]
         )
 
-        store.join(openPlan.id)
+        await store.join(plan.id)
 
-        let updated = try XCTUnwrap(store.plan(with: openPlan.id))
+        let updated = try XCTUnwrap(store.plan(with: plan.id))
         XCTAssertEqual(updated.lifecycle, .forming)
         XCTAssertEqual(updated.participationState, .joined)
         XCTAssertTrue(updated.participants.contains(where: { $0.name == "Maya" }))
@@ -72,7 +78,7 @@ final class AfterPlansStoreTests: XCTestCase {
         XCTAssertFalse(store.feedPlans.contains(where: { $0.hostName == host }))
     }
 
-    func testCreatePlanPinsItAsCurrentMoveAndSetsFeedbackMessage() throws {
+    func testCreatePlanPinsItAsCurrentMoveAndSetsFeedbackMessage() async throws {
         let store = AfterPlansStore.bootstrap()
         let draft = CreatePlanDraft(
             mode: .defaultOption,
@@ -83,7 +89,8 @@ final class AfterPlansStoreTests: XCTestCase {
             visibility: .sameContextOnly
         )
 
-        XCTAssertTrue(store.createPlan(from: draft))
+        let created = await store.createPlan(from: draft)
+        XCTAssertTrue(created)
 
         let focused = try XCTUnwrap(store.focusedPlan)
         XCTAssertEqual(focused.title, "Tea after pottery")
@@ -102,140 +109,60 @@ final class AfterPlansStoreTests: XCTestCase {
         XCTAssertEqual(store.lastActionMessage, "Showing what's next after \(newContext.title).")
     }
 
-    func testPlanCanProgressFullLifecycleIncludingWrap() throws {
-        let user = UserProfile(
-            id: UUID(),
-            firstName: "Maya",
-            descriptor: "Verified",
-            visibilityDefault: .sameContextOnly,
-            trustHeadline: "Identity-light, but real"
-        )
-        let context = ContextOption(
-            id: UUID(),
-            type: .meetup,
-            title: "Pottery Night",
-            venueName: "Clay House Studio",
-            endedAtLabel: "Ended 10 min ago",
-            proximityLabel: "3 min away",
-            trustNote: "Same context first."
-        )
-        let openPlan = AfterPlan(
-            id: UUID(),
-            title: "Tea after class",
-            summary: "Simple next move",
-            contextTitle: context.title,
-            hostName: "Nia",
-            hostDescriptor: "Host",
-            mode: .defaultOption,
-            visibility: .sameContextOnly,
-            lifecycle: .open,
-            timeLabel: "Now",
-            venueLabel: "Tea House",
-            distanceLabel: "3 min walk",
-            trustBlurb: "Visible to the pottery group first.",
-            participants: [
-                ParticipantSummary(id: UUID(), name: "Nia", descriptor: "Hosting", isOrganizer: true, isKnown: true),
-            ],
-            interestedCount: 1,
-            placeSuggestions: [],
-            participationState: .browsing
-        )
-
-        let store = AfterPlansStore(
+    func testPlanCanProgressFullLifecycleIncludingWrap() async throws {
+        let user = testUser()
+        let context = testContext()
+        let plan = openPlan(in: context)
+        let store = AfterPlansStore.testStore(
             currentUser: user,
             availableContexts: [context],
             selectedContext: context,
-            plans: [openPlan],
-            reportReasons: InMemorySafetyService().reportReasons,
-            composerService: InMemoryPlanComposerService(),
-            participationService: InMemoryPlanParticipationService(),
-            inviteService: InMemoryInviteService(),
-            analyticsService: NoopAnalyticsService()
+            plans: [plan]
         )
 
-        store.join(openPlan.id)
-        store.confirm(openPlan.id)
-        store.markPlanActive(openPlan.id)
-        XCTAssertEqual(try XCTUnwrap(store.plan(with: openPlan.id)).lifecycle, .active)
+        await store.join(plan.id)
+        await store.confirm(plan.id)
+        await store.markPlanActive(plan.id)
+        XCTAssertEqual(try XCTUnwrap(store.plan(with: plan.id)).lifecycle, .active)
 
-        store.wrapPlan(openPlan.id)
-        let closed = try XCTUnwrap(store.plan(with: openPlan.id))
+        await store.wrapPlan(plan.id)
+        let closed = try XCTUnwrap(store.plan(with: plan.id))
         XCTAssertEqual(closed.lifecycle, .closed)
         XCTAssertTrue(store.lastActionMessage?.contains("wrapped") == true)
         XCTAssertFalse(closed.recapLine.isEmpty)
     }
 
-    func testPlanCanProgressFromOpenToFormingToConfirmedToActive() throws {
-        let user = UserProfile(
-            id: UUID(),
-            firstName: "Maya",
-            descriptor: "Verified",
-            visibilityDefault: .sameContextOnly,
-            trustHeadline: "Identity-light, but real"
-        )
-        let context = ContextOption(
-            id: UUID(),
-            type: .meetup,
-            title: "Pottery Night",
-            venueName: "Clay House Studio",
-            endedAtLabel: "Ended 10 min ago",
-            proximityLabel: "3 min away",
-            trustNote: "Same context first."
-        )
-        let openPlan = AfterPlan(
-            id: UUID(),
-            title: "Tea after class",
-            summary: "Simple next move",
-            contextTitle: context.title,
-            hostName: "Nia",
-            hostDescriptor: "Host",
-            mode: .defaultOption,
-            visibility: .sameContextOnly,
-            lifecycle: .open,
-            timeLabel: "Now",
-            venueLabel: "Tea House",
-            distanceLabel: "3 min walk",
-            trustBlurb: "Visible to the pottery group first.",
-            participants: [
-                ParticipantSummary(id: UUID(), name: "Nia", descriptor: "Hosting", isOrganizer: true, isKnown: true),
-            ],
-            interestedCount: 1,
-            placeSuggestions: [],
-            participationState: .browsing
-        )
-
-        let store = AfterPlansStore(
+    func testPlanCanProgressFromOpenToFormingToConfirmedToActive() async throws {
+        let user = testUser()
+        let context = testContext()
+        let plan = openPlan(in: context)
+        let store = AfterPlansStore.testStore(
             currentUser: user,
             availableContexts: [context],
             selectedContext: context,
-            plans: [openPlan],
-            reportReasons: InMemorySafetyService().reportReasons,
-            composerService: InMemoryPlanComposerService(),
-            participationService: InMemoryPlanParticipationService(),
-            inviteService: InMemoryInviteService(),
-            analyticsService: NoopAnalyticsService()
+            plans: [plan]
         )
 
-        store.join(openPlan.id)
-        XCTAssertEqual(try XCTUnwrap(store.plan(with: openPlan.id)).lifecycle, .forming)
+        await store.join(plan.id)
+        XCTAssertEqual(try XCTUnwrap(store.plan(with: plan.id)).lifecycle, .forming)
 
-        store.confirm(openPlan.id)
-        XCTAssertEqual(try XCTUnwrap(store.plan(with: openPlan.id)).lifecycle, .confirmed)
+        await store.confirm(plan.id)
+        XCTAssertEqual(try XCTUnwrap(store.plan(with: plan.id)).lifecycle, .confirmed)
 
-        store.markPlanActive(openPlan.id)
-        let active = try XCTUnwrap(store.plan(with: openPlan.id))
+        await store.markPlanActive(plan.id)
+        let active = try XCTUnwrap(store.plan(with: plan.id))
         XCTAssertEqual(active.lifecycle, .active)
         XCTAssertEqual(store.lastActionMessage, "Tea after class is now in motion.")
     }
 
-    func testPreparingInviteShareStoresBoundedShareStateForCurrentLoopPlan() throws {
+    func testPreparingInviteShareStoresBoundedShareStateForCurrentLoopPlan() async throws {
         let store = AfterPlansStore.bootstrap()
         let plan = try XCTUnwrap(store.currentContextPlans.first)
 
         XCTAssertTrue(plan.canShareInvite)
         XCTAssertEqual(store.inviteChannels(for: plan), plan.inviteChannels)
 
-        store.prepareInviteShare(for: plan.id, channel: plan.inviteChannels[0])
+        await store.prepareInviteShare(for: plan.id, channel: plan.inviteChannels[0])
 
         let state = try XCTUnwrap(store.inviteShareState(for: plan.id))
         XCTAssertEqual(state.channel, plan.inviteChannels[0])
@@ -243,67 +170,59 @@ final class AfterPlansStoreTests: XCTestCase {
         XCTAssertEqual(store.lastActionMessage, state.statusTitle)
     }
 
-    func testClosedPlanCannotPrepareInviteShare() {
-        let user = UserProfile(
-            id: UUID(),
-            firstName: "Maya",
-            descriptor: "Verified",
-            visibilityDefault: .sameContextOnly,
-            trustHeadline: "Identity-light, but real"
-        )
-        let context = ContextOption(
-            id: UUID(),
-            type: .meetup,
-            title: "Pottery Night",
-            venueName: "Clay House Studio",
-            endedAtLabel: "Ended 10 min ago",
-            proximityLabel: "3 min away",
-            trustNote: "Same context first."
-        )
-        let closedPlan = AfterPlan(
-            id: UUID(),
-            title: "Tea after class",
-            summary: "Simple next move",
-            contextTitle: context.title,
-            hostName: "Nia",
-            hostDescriptor: "Host",
-            mode: .defaultOption,
-            visibility: .sameContextOnly,
-            lifecycle: .closed,
-            timeLabel: "Now",
-            venueLabel: "Tea House",
-            distanceLabel: "3 min walk",
-            trustBlurb: "Visible to the pottery group first.",
-            participants: [
-                ParticipantSummary(id: UUID(), name: "Nia", descriptor: "Hosting", isOrganizer: true, isKnown: true),
-            ],
-            interestedCount: 1,
-            placeSuggestions: [],
-            participationState: .browsing
-        )
+    func testIncomingInviteLinkFocusesPlanAndRestoresItsContext() throws {
+        let store = AfterPlansStore.bootstrap()
+        let plan = try XCTUnwrap(store.secondaryFeedPlans.first)
+        store.hasCompletedOnboarding = false
 
-        let store = AfterPlansStore(
+        let handled = store.handleIncomingURL(plan.shareable.url)
+
+        XCTAssertTrue(handled)
+        XCTAssertTrue(store.hasCompletedOnboarding)
+        XCTAssertEqual(store.selectedTab, .home)
+        XCTAssertEqual(store.focusedPlanID, plan.id)
+        XCTAssertEqual(store.selectedContext?.title, plan.contextTitle)
+        XCTAssertEqual(store.lastActionMessage, "Opened invite for \(plan.title).")
+    }
+
+    func testUnavailableIncomingInviteReportsUnavailableInvite() {
+        let store = AfterPlansStore.bootstrap()
+        let url = URL(string: "afterplans://join/\(UUID().uuidString)")!
+
+        XCTAssertFalse(store.handleIncomingURL(url))
+        XCTAssertEqual(store.selectedTab, .home)
+        XCTAssertEqual(store.lastActionMessage, "That invite is no longer available.")
+    }
+
+    func testNonInviteURLIsIgnored() {
+        let store = AfterPlansStore.bootstrap()
+
+        XCTAssertFalse(store.handleIncomingURL(URL(string: "afterplans://profile")!))
+        XCTAssertNil(store.lastActionMessage)
+    }
+
+    func testClosedPlanCannotPrepareInviteShare() async {
+        let user = testUser()
+        let context = testContext()
+        var closedPlan = openPlan(in: context)
+        closedPlan.lifecycle = .closed
+        let store = AfterPlansStore.testStore(
             currentUser: user,
             availableContexts: [context],
             selectedContext: context,
-            plans: [closedPlan],
-            reportReasons: InMemorySafetyService().reportReasons,
-            composerService: InMemoryPlanComposerService(),
-            participationService: InMemoryPlanParticipationService(),
-            inviteService: InMemoryInviteService(),
-            analyticsService: NoopAnalyticsService()
+            plans: [closedPlan]
         )
 
-        store.prepareInviteShare(for: closedPlan.id, channel: .sameContext)
+        await store.prepareInviteShare(for: closedPlan.id, channel: .sameContext)
 
         XCTAssertNil(store.inviteShareState(for: closedPlan.id))
     }
 
-    func testCurrentLoopPlanCanReachSafetyActionsThroughStore() throws {
+    func testCurrentLoopPlanCanReachSafetyActionsThroughStore() async throws {
         let store = AfterPlansStore.bootstrap()
         let plan = try XCTUnwrap(store.currentContextPlans.first)
 
-        store.reportPlan(plan)
+        await store.reportPlan(plan)
 
         XCTAssertEqual(store.focusedPlanID, plan.id)
         XCTAssertEqual(store.reportLog.last, "Reported plan: \(plan.title)")

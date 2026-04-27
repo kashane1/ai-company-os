@@ -9,20 +9,30 @@ settings:
     SWIFT_VERSION: 5.0
     CURRENT_PROJECT_VERSION: 1
     MARKETING_VERSION: 0.1.0
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.5.0
 targets:
   AfterPlans:
     type: application
     platform: iOS
+    dependencies:
+      - package: Supabase
+        product: Supabase
     sources:
       - path: Sources
     info:
       path: Info.plist
       properties:
         CFBundleDisplayName: After Plans
-        NSLocationWhenInUseUsageDescription: After Plans uses your location while you use the app to anchor what just ended and surface nearby continuation options.
+        CFBundleURLTypes:
+          - CFBundleURLName: io.aicompanyos.products.afterplans
+            CFBundleURLSchemes:
+              - afterplans
         UIApplicationSupportsIndirectInputEvents: YES
         UILaunchScreen:
-          {}
+          UIColorName: LaunchBackground
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.afterplans
@@ -30,12 +40,30 @@ targets:
         TARGETED_DEVICE_FAMILY: 1
         SUPPORTS_MACCATALYST: NO
         DEVELOPMENT_ASSET_PATHS: "\"\""
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
     scheme:
       gatherCoverageData: true
       coverageTargets:
         - AfterPlans
       testTargets:
         - AfterPlansTests
+      # Local-dev Supabase wiring. The anon key is the well-known default JWT
+      # (iss=supabase-demo) shipped by every local `supabase start` install —
+      # not a secret. The integration test reads URL+KEY directly. The app
+      # reads AFTERPLANS_BACKEND to decide between InMemory and Supabase;
+      # leave it disabled for in-memory (default), enable to point the app at
+      # the local stack.
+      environmentVariables:
+        - variable: AFTERPLANS_SUPABASE_URL
+          value: http://127.0.0.1:54321
+          isEnabled: true
+        - variable: AFTERPLANS_SUPABASE_KEY
+          value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+          isEnabled: true
+        - variable: AFTERPLANS_BACKEND
+          value: supabase
+          isEnabled: false
   AfterPlansTests:
     type: bundle.unit-test
     platform: iOS
