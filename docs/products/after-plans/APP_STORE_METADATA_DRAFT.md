@@ -66,11 +66,15 @@ after,plans,continuation,join,nearby,social,group,meetup,what next,after dinner,
 
 ### Support URL
 
-TBD — needs landing page or support page before submission.
+https://kashane1.github.io/afterplans-support/
+
+Canonical source: [legal/SUPPORT.md](legal/SUPPORT.md). Published mirror at
+[github.com/kashane1/afterplans-support](https://github.com/kashane1/afterplans-support).
+Swap to a custom-domain URL when one is purchased.
 
 ### Marketing URL
 
-TBD — needs landing page before submission.
+TBD — optional for App Store Connect; worth standing up once a domain exists.
 
 ## Screenshots
 
@@ -121,27 +125,44 @@ Provide a test account with pre-seeded plans and context so the reviewer can exp
 
 ### Privacy Policy URL
 
-TBD — required before submission.
+https://kashane1.github.io/afterplans-privacy/
+
+Canonical source: [legal/PRIVACY_POLICY.md](legal/PRIVACY_POLICY.md). Published
+mirror at [github.com/kashane1/afterplans-privacy](https://github.com/kashane1/afterplans-privacy).
+Swap to a custom-domain URL when one is purchased.
 
 ### Privacy Nutrition Labels
 
+Reconciled 2026-04-25 against the actual shipping posture (no location, no
+contacts, no photos, no third-party analytics; identity-light backend on
+Supabase anonymous auth).
+
 | Data type | Collected | Purpose | Linked to identity |
 |-----------|-----------|---------|-------------------|
-| Name | Yes | App functionality | Yes |
-| Email address | Yes | App functionality | Yes |
-| Phone number | Optional | App functionality | Yes |
-| Photos | Yes (profile only) | App functionality | Yes |
-| Coarse location | Yes (when in use) | App functionality | Yes |
-| User content | Yes (plan titles and descriptions) | App functionality | Yes |
-| Identifiers | Yes (device ID) | Analytics | No |
+| Name (first name only) | Yes | App functionality | Yes |
+| User content (plan titles, descriptions, place suggestions, report notes) | Yes | App functionality | Yes |
+| User ID (server-issued UUID) | Yes | App functionality | Yes |
 
-Data not collected: precise location, health, fitness, financial, contacts (optional only), browsing history, search history, diagnostics beyond basic analytics.
+Data **not** collected:
+
+- Email address
+- Phone number
+- Physical address
+- Photos, video, audio
+- Contacts
+- Precise or coarse location
+- Health, fitness, financial, sensitive info
+- Browsing history, search history
+- Device IDs, advertising IDs
+- Diagnostics, performance, crash data (beyond Apple's standard, which the
+  user opts into via iOS settings — we do not run our own crash analytics)
 
 ### Data Use Declarations
 
 - Data is not sold to data brokers or advertising networks
 - Data is not used for tracking across other apps or websites
-- Location data is used only to anchor context relevance, not to broadcast user position
+- No third-party advertising or analytics SDKs
+- No location data of any kind
 
 ## Age Rating Questionnaire Answers
 
