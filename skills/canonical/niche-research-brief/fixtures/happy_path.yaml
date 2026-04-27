@@ -1,0 +1,38 @@
+# Contract-freeze fixture for niche-research-brief.
+#
+# Skill is kind: agentic — the work is LLM-driven, so there is no
+# replay test. This fixture freezes the contract surface (required
+# input/output fields, allowed-edit boundaries, dependencies) so any
+# future edit that weakens the contract fails CI.
+#
+# See tests/python/unit/test_niche_research_brief_fixtures.py.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/niche-research-brief/skill.md
+  expected:
+    required_input_fields:
+      - "`product_id`"
+      - "`niche`"
+      - "`platforms`"
+      - "`focus_areas`"
+    required_output_fields:
+      - "`brief_path`"
+      - "`memory_path`"
+      - "`topics_discovered`"
+      - "`run_number`"
+    required_section_headings:
+      - "## Purpose"
+      - "## Contract"
+      - "## Allowed edit boundaries"
+      - "## Forbidden areas"
+      - "## Dependencies"
+      - "## Memory file"
+      - "## Instructions"
+    required_forbidden_areas:
+      - "`apps/`"
+      - "`packages/`"
+      - "`infra/`"
+      - "`state/`"
+      - "`products/`"

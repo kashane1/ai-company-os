@@ -174,3 +174,81 @@ Write the complete pack to `state/artifacts/appstore/<product-id>/positioning-pa
 - No feature claims exceed mvp-spec.md scope
 - Character limits respected for name and subtitle candidates
 - Screenshot story references only real screens
+
+## Failure modes
+
+- **Missing product artifact.** If any of `founder-brief.md`,
+  `product-brief.md`, `mvp-spec.md`, or `app-store-positioning.md` is
+  missing, halt and emit a blocking message naming the missing file.
+  Do NOT fabricate positioning from assumed product behavior.
+- **Character-limit violation.** Apple enforces 30 chars for app name
+  and 30 chars for subtitle. Any candidate exceeding these limits must
+  be rejected at generation time, not surfaced as a finding.
+- **Feature overreach.** If a candidate claim implies a feature absent
+  from `mvp-spec.md`, drop the candidate and document the gap. The
+  positioning pack must never promise capability the product doesn't
+  ship.
+- **Stale positioning input.** If `app-store-positioning.md` was last
+  edited before the most recent `mvp-spec.md` revision, treat the
+  positioning input as potentially out-of-date — flag a `## Gaps and
+  uncertainties` entry asking the founder to confirm direction before
+  the pack is consumed.
+
+## Worked example
+
+For a minimal product brief (Catchbook discovery phase), the output
+shape is:
+
+```markdown
+# Positioning Pack: Catchbook
+
+## Source artifacts
+- founder-brief.md: A private catch + spot log for solo anglers.
+- product-brief.md: Local-first SwiftUI app, no social feed.
+- mvp-spec.md: Catch list, spot list, waterbody picker, photo capture.
+- app-store-positioning.md: Existing direction toward "private journal".
+
+## Name direction
+| Candidate | Rationale |
+|-----------|-----------|
+| Catchbook | Founder's preferred name; reflects "log of catches". |
+| Anglerbook | Generalizes the audience, but loses "catch" specificity. |
+| Tackle Diary | Different metaphor; captures "personal record" angle. |
+
+## Subtitle candidates
+| Candidate | Complements |
+|-----------|-------------|
+| Private Catch & Spot Log | Pairs with Catchbook (note: "catch" appears in both — flag for pairing review). |
+| Your Quiet Fishing Journal | Avoids word repeat; emphasizes private journal angle. |
+| Local-First Catch Tracker | Pairs with Anglerbook better than Catchbook. |
+
+## Screenshot story
+| Frame | Screen | Caption | Proves |
+|-------|--------|---------|--------|
+| 1 | Catch list | Every fish, your way | Hook: low-friction capture |
+| 2 | Spot picker | Pick the waterbody, not the pin | Core loop: spot is canonical |
+| ...   | ...    | ...     | ...    |
+
+## Keyword angle
+- Primary: fishing log, catch tracker, fishing journal
+- Secondary: angler diary, fly fishing log, freshwater fishing
+- Avoid: social, leaderboard, share, community
+
+## Metadata notes
+- Description angle: Lead with "private" and "local-first" — primary
+  differentiator vs incumbents (FishBrain, FishAngler).
+- What's New framing: For 1.0, focus on the journal-first philosophy.
+- Promotional text: Tie to fishing season opening (regional).
+- Privacy messaging: No accounts, no data leaves the device.
+
+## Gaps and uncertainties
+- Founder confirmation needed on whether "Catchbook" is final name
+  given subtitle pairing tension noted above.
+```
+
+## References
+
+- Apple naming guidelines: https://developer.apple.com/app-store/product-page/
+- Product artifact chain: `skills/canonical/shared/product-artifact-chain.md`
+- Sibling handoff skill: `skills/canonical/handoffs/ios-to-appstore-handoff.md`
+- Catchbook positioning input: `docs/products/catchbook/app-store-positioning.md`

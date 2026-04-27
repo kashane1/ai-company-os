@@ -103,3 +103,89 @@ The iOS lane's job is done when:
 - no source code was modified during this process
 
 The App Store worker picks up from here using the release candidate record.
+
+## Required release-candidate-record fields
+
+The YAML record at `state/checkpoints/platform/releases/<product-id>-<version>.json`
+MUST include every field below. Missing any field blocks the App Store
+worker; validation reports the missing field by name.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `product_id` | string | Matches an entry in `infra/products.json`. |
+| `version` | string | Marketing version (e.g. `1.0.0`). |
+| `build_number` | int or string | CFBundleVersion. Must increase monotonically against the last submitted build. |
+| `features` | list of string | One-line summaries; reference task IDs where available. |
+| `fixes` | list of string | Bug-fix summaries. May be empty. |
+| `known_issues` | list of string | Empty list is allowed; missing key is not. |
+| `metadata_draft_path` | string | Resolves to a real file under `state/artifacts/appstore/`. |
+| `build_validated` | bool | Must be `true`. A `false` value should never reach this record — fail the handoff before writing instead. |
+| `handoff_timestamp` | ISO 8601 string | UTC. |
+| `status` | enum | One of `pending_appstore_review`, `submitted`, `in_review`, `approved`, `rejected`. Initial value is `pending_appstore_review`. |
+
+## Screenshot readiness check
+
+Before writing the release-candidate record, scan the App Store
+screenshot set declared by `app-store-positioning.md`:
+
+- Every required device size has a screenshot (per current Apple
+  requirements: 6.7" iPhone, 6.5" iPhone, 5.5" iPhone, plus iPad sizes
+  if iPad is supported).
+- Screenshots reflect the current build (no UI elements that have been
+  removed; no missing UI elements that this release adds).
+- If any screenshot is missing or stale, surface as a blocking
+  finding under "Screenshot gaps" in the metadata draft and pause
+  the handoff.
+
+## TestFlight transition note
+
+This skill produces a release candidate record in
+`pending_appstore_review` state. The App Store worker is responsible
+for the TestFlight build upload, internal-tester distribution, and
+the eventual `submitted` → `in_review` → `approved`/`rejected`
+transitions. The iOS lane MUST NOT advance the status field beyond
+`pending_appstore_review`.
+
+## Failure modes
+
+- **Build validation incomplete.** If any of (compile, tests, archive)
+  failed, do NOT create the release candidate record. Emit a blocking
+  message naming which gate failed.
+- **Metadata reference broken.** If `app-store-positioning.md` is
+  missing or has not been updated since the last submitted version,
+  the metadata draft must include `## Positioning gap` flagging this;
+  the handoff continues but the App Store worker will pause until the
+  gap is addressed.
+- **Build number regression.** If `build_number` is ≤ the last submitted
+  build, halt — Apple will reject the upload. Bump the build number
+  and re-archive before proceeding.
+- **Source modification during handoff.** Re-running `git status` after
+  step 4 must show zero uncommitted changes under `products/`. If it
+  does, abort and ask the operator which changes are intentional.
+
+## Worked example
+
+For Catchbook v1.0.0, build 42, release-candidate record:
+
+```yaml
+product_id: catchbook
+version: 1.0.0
+build_number: 42
+features:
+  - "Spot detection from waterbody name + GPS (mvp-spec §3.2)"
+  - "Catch list with weight, length, species (mvp-spec §3.4)"
+fixes:
+  - "SwiftData migration adds optional `species` to `Catch` (issue #38)"
+known_issues: []
+metadata_draft_path: state/artifacts/appstore/catchbook-1.0.0-metadata-draft.md
+build_validated: true
+handoff_timestamp: 2026-04-27T16:00:00Z
+status: pending_appstore_review
+```
+
+## References
+
+- Apple App Store screenshot specs: https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications
+- Build number guidance: https://developer.apple.com/library/archive/qa/qa1827/_index.html
+- Positioning input: `skills/canonical/shared/app-store-positioning-pack.md`
+- Sibling polish skill: `skills/canonical/products/catchbook/ios-ui-polish-review.md`

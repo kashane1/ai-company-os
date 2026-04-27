@@ -1,0 +1,39 @@
+# Contract-freeze fixture for gtm-artifact-refresh.
+#
+# Skill is kind: agentic. This fixture protects the contract surface
+# against silent body drift.
+#
+# See tests/python/unit/test_gtm_artifact_refresh_fixtures.py.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/gtm-artifact-refresh/skill.md
+  expected:
+    required_input_fields:
+      - "`product_id`"
+      - "`niche`"
+      - "`mode`"
+      - "`platforms`"
+    required_output_fields:
+      - "`artifacts_updated`"
+      - "`backlog_items_added`"
+      - "`mix_balanced`"
+      - "`mix_report`"
+    required_section_headings:
+      - "## Purpose"
+      - "## Contract"
+      - "## Allowed edit boundaries"
+      - "## Forbidden areas"
+    required_allowed_edit_paths:
+      - "content-taxonomy.md"
+      - "voice.md"
+      - "hook-library.md"
+      - "hashtag-strategy.md"
+      - "content-backlog.yaml"
+      - "campaign-calendar.md"
+    required_forbidden_areas:
+      - "`apps/`"
+      - "`packages/`"
+      - "`infra/`"
+      - "`state/`"

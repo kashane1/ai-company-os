@@ -115,3 +115,88 @@ Write to `state/artifacts/ios/<feature-name>-polish-review.md`.
 - Review document exists
 - Every finding has a file reference
 - All checklist categories were addressed
+
+## Severity taxonomy
+
+Use these exact severity labels — the validator and downstream tooling
+key off the headings, so divergence breaks parsing.
+
+| Severity | Heading in review doc | Definition |
+|----------|------------------------|------------|
+| blocking | `## Blocking issues` | Must be fixed before release. Examples: tappable area below 44pt on a primary action, no error state for a network call, content clipped on smallest supported device, accessibility label missing on critical control. |
+| should-fix | `## Should-fix issues` | Degrades quality but not a release blocker. Examples: inconsistent spacing across two sister screens, missing dynamic-type support on secondary text, generic empty-state copy that could be more specific. |
+| nice-to-have | `## Nice-to-have improvements` | Polish that elevates the experience. Examples: tighter copy, micro-interactions, improved transitions, better dark-mode contrast on non-critical surfaces. |
+| no-issues | `## Items checked with no issues` | Explicit confirmation that a checklist category passed. Required to demonstrate full coverage. |
+
+A finding with no severity heading is invalid output. The post-review
+worker can refuse to triage findings that lack severity classification.
+
+## Required output template
+
+Every review document MUST include all four severity sections, even if
+empty. An empty section is rendered as:
+
+```markdown
+## Should-fix issues
+
+_None._
+```
+
+This is intentional — it forces the reviewer to confirm coverage
+rather than silently omit.
+
+## Failure modes
+
+- **Source files missing.** If a referenced source path does not exist
+  in `products/catchbook-ios/`, halt the review and emit a single
+  finding under "Blocking issues" naming the missing path. Do NOT
+  fabricate findings against guessed file content.
+- **No simulator screenshot available.** Many polish checks (clipping,
+  dark mode, dynamic type) need visual evidence. If screenshots cannot
+  be obtained, the review document must include a top-level note:
+  "_Visual checks performed via static-source inspection only;
+  re-run with simulator screenshots before release._"
+- **Spec-implementation drift.** If the implementation diverges from
+  `mvp-spec.md` acceptance criteria, surface as a Blocking issue and
+  link to both the spec line and the source line. Do not silently
+  re-derive the intended behavior.
+
+## Worked example
+
+For a hypothetical `TripDetailView` review, the output structure would be:
+
+```markdown
+# iOS UI Polish Review: TripDetailView
+
+## Summary
+TripDetailView meets MVP acceptance criteria. Two blocking issues
+(tappable area, missing error state). Three should-fix items around
+dynamic-type and locale formatting.
+
+## Blocking issues
+- products/catchbook-ios/Catchbook/Trips/TripDetailView.swift:142 —
+  Edit button frame is 36×36pt; iOS HIG requires ≥44pt.
+- products/catchbook-ios/Catchbook/Trips/TripDetailView.swift:201 —
+  No error state for `loadCatches()` failure; user sees indefinite
+  spinner.
+
+## Should-fix issues
+- products/catchbook-ios/Catchbook/Trips/TripDetailView.swift:78 —
+  Date label uses fixed font size 14pt; should respect dynamic type.
+- ...
+
+## Nice-to-have improvements
+_None._
+
+## Items checked with no issues
+- Layout & spacing: padding consistent across detail rows.
+- Colors: theme palette honored throughout.
+- ...
+```
+
+## References
+
+- HIG: https://developer.apple.com/design/human-interface-guidelines/
+- Catchbook spec: `docs/products/catchbook/mvp-spec.md`
+- iOS architecture: `docs/products/catchbook/ios-architecture.md`
+- Sibling handoff skill: `skills/canonical/handoffs/ios-to-appstore-handoff.md`

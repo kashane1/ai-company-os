@@ -1,0 +1,25 @@
+# Contract-freeze fixture for ios-ui-polish-review.
+#
+# Locks the contract surface (severity taxonomy headings, output
+# template, failure-mode handling) against silent body drift.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/products/catchbook/ios-ui-polish-review.md
+  expected:
+    required_section_headings:
+      - "## Severity taxonomy"
+      - "## Required output template"
+      - "## Failure modes"
+      - "## Worked example"
+      - "## References"
+    required_severity_labels:
+      - "## Blocking issues"
+      - "## Should-fix issues"
+      - "## Nice-to-have improvements"
+      - "## Items checked with no issues"
+    required_failure_modes:
+      - "Source files missing"
+      - "No simulator screenshot available"
+      - "Spec-implementation drift"
