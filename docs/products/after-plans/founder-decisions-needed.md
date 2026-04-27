@@ -1,14 +1,12 @@
 # After Plans — Founder Decisions Needed Before Submission
 
-Four decisions are blocking the App Store lane (per the LAUNCH_PLAN.md
-handoff checklist). Each is summarized below with a recommendation and
-the trade-offs you need to weigh.
+Four decisions were blocking the App Store lane (per the LAUNCH_PLAN.md
+handoff checklist). Three are now approved (subtitle, age rating,
+moderation operating path). The fourth — initial seeded launch contexts —
+is intentionally deferred while the founder explores a user-built context
+model that may replace pre-seeding entirely. See section 3.
 
-This document is designed so you can sit down for 15 minutes and approve
-all four in one pass. Mark your decision in the "Approved" box at the
-bottom of each section. Sign and date at the end.
-
-Last updated: 2026-04-26
+Last updated: 2026-04-27
 
 ---
 
@@ -41,7 +39,7 @@ draft, so the brand voice stays coherent.
 **Constraint:** App Store subtitle limit is 30 characters. All three
 options are within budget ("Keep the moment going" is 21 chars).
 
-**Approved:** [ ]   **Choice:** ____________________
+**Approved:** [x]   **Choice:** Keep the moment going  *(approved 2026-04-27)*
 
 ---
 
@@ -68,11 +66,47 @@ is intended for users 17 and older.
   defaults (stricter visibility, age-gated invite flows, moderation SLA),
   more complex App Privacy disclosures, and likely a longer review.
 
-**Approved:** [ ]   **Choice:** [ ] 17+   [ ] 12+   [ ] Other: ______
+**Approved:** [x]   **Choice:** [x] 17+   [ ] 12+   [ ] Other: ______  *(approved 2026-04-27)*
 
 ---
 
-## 3. Initial Seeded Launch Contexts
+## 3. Initial Seeded Launch Contexts — DEFERRED
+
+**Status (2026-04-27):** deferred. The founder is exploring a different
+shape of the same problem — instead of the platform pre-seeding 3–5
+hand-picked contexts, each new user goes through a brief onboarding
+where they declare their most common recurring activities and are then
+prompted to either join an existing context or invite people to fill a
+new one. The pre-seeded model below is preserved as the fallback if the
+user-built model doesn't pan out.
+
+This needs a brainstorm before any of it ships. Open questions worth
+working through there:
+
+- Cold-start: a brand new user with no friends on the app has an empty
+  feed and no context to join. Does the onboarding gracefully convert
+  them into context-creators with shareable invites, or do we still need
+  a thin layer of platform-curated public contexts as a safety net?
+- Discovery: how does a user find existing contexts they could join
+  without breaking the bounded-visibility promise?
+- De-duplication: two users in the same city declare "Wednesday Run
+  Club" — does the app surface this and let them merge, or do parallel
+  contexts with the same name coexist?
+- Quality floor: if context creation is fully user-driven, what stops
+  someone from creating a low-quality or bad-actor context? Is creation
+  rate-limited, invite-only, or moderated post-hoc?
+- Where the "seed" energy comes from: in the pre-seeded model, the
+  founder vouches for each context. In the user-built model, that
+  vouching is distributed — works only if the very first wave of users
+  is high-quality.
+
+**Approved:** [ ] *(deferred, pending brainstorm — see open questions above)*
+
+---
+
+### 3 (fallback). Initial Seeded Launch Contexts — pre-seeded model
+
+Kept here as a fallback if the user-built model doesn't pan out.
 
 **The question:** Which 3–5 real-world communities or groups should be
 seeded as the very first contexts in the production database?
@@ -169,12 +203,15 @@ procedures" — that promise needs an owner before the app ships.
 - Hard-block is **irreversible to the user**; document the reasoning
   every time.
 
-**Approved:** [ ]
+**Approved:** [x] *(approved 2026-04-27 — recommendation accepted in full)*
 
-**Triage owner:** ____________________
-**SLA (severe):** ____________________
-**SLA (other):** ____________________
-**Backup owner / pause plan when triage owner unavailable:** ____________________
+**Triage owner:** Kashane (founder)
+**SLA (severe):** acknowledge within 24 hours, action within 48 hours
+**SLA (other):** acknowledge within 72 hours
+**Backup owner / pause plan when triage owner unavailable:** TBD — at any
+extended unavailability, either pre-arrange a backup triage owner or
+pause the app's discoverability before the gap. To be revisited before
+TestFlight expands beyond a small invite-only group.
 
 ---
 
@@ -182,19 +219,23 @@ procedures" — that promise needs an owner before the app ships.
 
 | Role | Name | Date | Notes |
 |------|------|------|-------|
-| Founder | | | |
+| Founder | Kashane | 2026-04-27 | Approved sections 1, 2, 4. Section 3 deferred pending brainstorm on a user-built context model. |
 
-Once all four sections are approved, update:
+Status of downstream updates:
 
-- [ ] [APP_STORE_METADATA_DRAFT.md](APP_STORE_METADATA_DRAFT.md) —
-  subtitle, age rating, age-rating questionnaire confirmation
+- [x] [APP_STORE_METADATA_DRAFT.md](APP_STORE_METADATA_DRAFT.md) —
+  subtitle ("Keep the moment going") and age rating (17+) already match
+  the approved decisions; verified 2026-04-27
 - [ ] [APP_STORE_METADATA_DRAFT.md](APP_STORE_METADATA_DRAFT.md) — fill
-  in the demo account credentials and contact info from the moderation
-  triage owner
-- [ ] [LAUNCH_PLAN.md](LAUNCH_PLAN.md) — check off the four handoff
-  checklist items
-- [ ] Seeded contexts inserted into the production Supabase project
-  (after it's provisioned) via a migration similar to `seed.sql`
-- [ ] [legal/PRIVACY_POLICY.md](legal/PRIVACY_POLICY.md) and
-  [legal/SUPPORT.md](legal/SUPPORT.md) — sync the support email if it
-  changes from the placeholder
+  in the demo account credentials and the App Review contact info
+  (founder name + phone). Email = ksakhakorn@gmail.com (the moderation
+  triage owner is the same as the support contact)
+- [x] [LAUNCH_PLAN.md](LAUNCH_PLAN.md) — three of four handoff checklist
+  items checked off; launch contexts intentionally left unchecked
+- [ ] Seeded contexts decision pending the brainstorm on the user-built
+  context model. If/when the pre-seeded model is chosen instead, those
+  contexts get inserted via a migration similar to `seed.sql` after the
+  cloud Supabase project is provisioned
+- [x] [legal/PRIVACY_POLICY.md](legal/PRIVACY_POLICY.md) and
+  [legal/SUPPORT.md](legal/SUPPORT.md) — already use
+  ksakhakorn@gmail.com; no sync needed

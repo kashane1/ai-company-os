@@ -178,7 +178,7 @@ Data **not** collected:
 | Medical or treatment information | None |
 | Unrestricted web access | No |
 
-These answers should yield a 12+ or 17+ rating. Recommend selecting 17+ manually to match the eligibility posture in TRUST_SAFETY_GUARDRAILS.md.
+These answers should yield a 12+ or 17+ rating. **Decision (2026-04-27): select 17+** to match the eligibility posture in TRUST_SAFETY_GUARDRAILS.md and the user-facing language in legal/PRIVACY_POLICY.md. See [founder-decisions-needed.md](founder-decisions-needed.md) section 2.
 
 ## Pre-Submission Checklist
 
