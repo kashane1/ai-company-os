@@ -1,0 +1,39 @@
+# Contract-freeze fixture for ios-to-appstore-handoff.
+#
+# Locks the release-candidate-record schema, screenshot readiness check,
+# and TestFlight transition note against silent drift.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/handoffs/ios-to-appstore-handoff.md
+  expected:
+    required_section_headings:
+      - "## Required release-candidate-record fields"
+      - "## Screenshot readiness check"
+      - "## TestFlight transition note"
+      - "## Failure modes"
+      - "## Worked example"
+      - "## References"
+    required_record_fields:
+      - "`product_id`"
+      - "`version`"
+      - "`build_number`"
+      - "`features`"
+      - "`fixes`"
+      - "`known_issues`"
+      - "`metadata_draft_path`"
+      - "`build_validated`"
+      - "`handoff_timestamp`"
+      - "`status`"
+    required_failure_modes:
+      - "Build validation incomplete"
+      - "Metadata reference broken"
+      - "Build number regression"
+      - "Source modification during handoff"
+    required_status_values:
+      - "pending_appstore_review"
+      - "submitted"
+      - "in_review"
+      - "approved"
+      - "rejected"

@@ -1,0 +1,35 @@
+# Contract-freeze fixture for content-factory.
+#
+# Skill is kind: agentic but composes deterministic Python helpers
+# (gemini_images, text_overlay). This fixture protects the contract
+# surface — input/output fields and the documented helper dependencies.
+#
+# See tests/python/unit/test_content_factory_fixtures.py.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/content-factory/skill.md
+  expected:
+    required_input_fields:
+      - "`product_id`"
+      - "`item_numbers`"
+    required_output_fields:
+      - "`output_dir`"
+      - "`slides_generated`"
+      - "`items_processed`"
+    required_section_headings:
+      - "## Purpose"
+      - "## Contract"
+      - "## Allowed edit boundaries"
+      - "## Forbidden areas"
+      - "## Dependencies"
+      - "## Instructions"
+    required_helper_dependencies:
+      - "gemini_images"
+      - "text_overlay"
+      - "compose_post"
+    required_phase_headings:
+      - "Phase 1 — Load and validate"
+      - "Phase 2 — Generate slides"
+      - "Phase 3 — Preview and update status"

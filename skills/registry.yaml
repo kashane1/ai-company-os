@@ -81,7 +81,12 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Contract-freeze fixture at
+    # skills/canonical/products/catchbook/fixtures/ios-ui-polish-review/happy_path.yaml
+    # asserts the severity taxonomy headings, output template, and
+    # failure-mode handling are still present in the canonical body.
+    # See tests/python/unit/test_ios_ui_polish_review_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/ios-ui-polish-review.md
@@ -94,7 +99,11 @@ skills:
     target_runtimes: [claude, codex]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Contract-freeze fixture at
+    # skills/canonical/handoffs/fixtures/ios-to-appstore-handoff/happy_path.yaml
+    # locks the release-candidate-record schema and the TestFlight
+    # transition note. See tests/python/unit/test_ios_to_appstore_handoff_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/ios-to-appstore-handoff.md
@@ -141,7 +150,11 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Contract-freeze fixture at
+    # skills/canonical/shared/fixtures/app-store-positioning-pack/happy_path.yaml
+    # locks failure modes, character limits, and pack output structure.
+    # See tests/python/unit/test_app_store_positioning_pack_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/app-store-positioning-pack.md
@@ -187,9 +200,13 @@ skills:
 
   - id: content-voice-guardrail
     name: Content Voice Guardrail
+    # Internal-only: composed dependency invoked by gtm-artifact-refresh
+    # and apps/worker-gtm/gtm/runner.py:57. Not directly callable by Claude;
+    # therefore target_runtimes is empty and no Claude adapter exists.
     path: canonical/content-voice-guardrail/skill.md
     owner_agent: gtm
-    target_runtimes: [claude]
+    target_runtimes: []
+    invoked_by: [gtm-artifact-refresh]
     stage: active
     kind: agentic
     fixture_status: passing
@@ -197,9 +214,12 @@ skills:
 
   - id: social-post-safety
     name: Social Post Safety
+    # Internal-only: composed dependency invoked by content-scheduler
+    # and apps/worker-gtm/gtm/runner.py:81 as a hard pre-publish gate.
     path: canonical/social-post-safety/skill.md
     owner_agent: gtm
-    target_runtimes: [claude]
+    target_runtimes: []
+    invoked_by: [content-scheduler, gtm-artifact-refresh]
     stage: active
     kind: validator
     fixture_status: passing
@@ -207,9 +227,13 @@ skills:
 
   - id: aso-keyword-refresh
     name: ASO Keyword Refresh
+    # Internal-only: orphan as of 2026-04-27 (zero direct invocations
+    # anywhere in apps/ or other skill adapters). If still unused by
+    # 2026-05-27, delete via a follow-up cleanup plan or re-wire.
     path: canonical/aso-keyword-refresh/skill.md
     owner_agent: gtm
-    target_runtimes: [claude]
+    target_runtimes: []
+    invoked_by: []
     stage: active
     kind: agentic
     fixture_status: passing
@@ -217,9 +241,13 @@ skills:
 
   - id: creator-outreach-draft
     name: Creator Outreach Draft
+    # Internal-only: orphan as of 2026-04-27 (zero direct invocations
+    # anywhere in apps/ or other skill adapters). If still unused by
+    # 2026-05-27, delete via a follow-up cleanup plan or re-wire.
     path: canonical/creator-outreach-draft/skill.md
     owner_agent: gtm
-    target_runtimes: [claude]
+    target_runtimes: []
+    invoked_by: []
     stage: active
     kind: agentic
     fixture_status: passing
@@ -227,9 +255,14 @@ skills:
 
   - id: approval-token-audit
     name: Approval Token Audit
+    # Internal-only: composed dependency invoked by
+    # packages/policies/release_readiness.py:121 (Phase 3.2a) and
+    # referenced from apps/api/approval_endpoint.py. Not directly
+    # callable by Claude.
     path: canonical/approval-token-audit/skill.md
     owner_agent: supervisor
-    target_runtimes: [claude]
+    target_runtimes: []
+    invoked_by: [release_readiness, approval_endpoint]
     stage: active
     kind: validator
     fixture_status: passing
@@ -244,7 +277,12 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Contract-freeze fixture at
+    # skills/canonical/niche-research-brief/fixtures/happy_path.yaml
+    # exercised by tests/python/unit/test_niche_research_brief_fixtures.py.
+    # Asserts required input/output fields, section headings, and
+    # forbidden-area declarations are still present in the canonical body.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/niche-research-brief.md
@@ -257,7 +295,11 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Contract-freeze fixture at
+    # skills/canonical/gtm-artifact-refresh/fixtures/happy_path.yaml.
+    # Asserts contract surface (input/output fields, allowed-edit paths,
+    # forbidden areas) against silent body drift.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/gtm-artifact-refresh.md
@@ -272,7 +314,10 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Contract-freeze fixture protects the documented helper-dependency
+    # surface (gemini_images, text_overlay, compose_post) and phase
+    # headings. See tests/python/unit/test_content_factory_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/content-factory.md
@@ -285,7 +330,11 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Contract-freeze fixture protects the postiz_client helper
+    # surface and the social-post-safety hard-gate dependency
+    # (the prior Postiz envelope-shape regression motivated this guard).
+    # See tests/python/unit/test_content_scheduler_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/content-scheduler.md

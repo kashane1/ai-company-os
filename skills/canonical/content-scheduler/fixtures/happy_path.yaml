@@ -1,0 +1,41 @@
+# Contract-freeze fixture for content-scheduler.
+#
+# Skill is kind: agentic but composes deterministic Python helpers
+# (postiz_client) AND invokes the social-post-safety hard gate.
+# This fixture protects the contract surface against silent drift —
+# especially the social-post-safety hard-gate dependency (the prior
+# regression in docs/solutions/integration-issues/social-media-publishing-nuances.md
+# motivated this guard).
+#
+# See tests/python/unit/test_content_scheduler_fixtures.py.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/content-scheduler/skill.md
+  expected:
+    required_input_fields:
+      - "`product_id`"
+      - "`item_numbers`"
+      - "`channel_ids`"
+      - "`scheduled_date`"
+    required_output_fields:
+      - "`posts_created`"
+      - "`platforms`"
+      - "`post_ids`"
+    required_section_headings:
+      - "## Purpose"
+      - "## Contract"
+      - "## Dependencies"
+      - "## Instructions"
+    required_helper_dependencies:
+      - "postiz_client"
+      - "list_channels"
+      - "upload_media"
+      - "create_draft_post"
+    required_hard_gate_references:
+      - "social-post-safety"
+    required_phase_headings:
+      - "Phase 1 — Load and validate"
+      - "Phase 2 — Upload and create drafts"
+      - "Phase 3 — Update status"

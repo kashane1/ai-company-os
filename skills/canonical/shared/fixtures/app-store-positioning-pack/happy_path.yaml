@@ -1,0 +1,28 @@
+# Contract-freeze fixture for app-store-positioning-pack.
+#
+# Locks the failure modes, character limits, and pack output structure.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/shared/app-store-positioning-pack.md
+  expected:
+    required_section_headings:
+      - "## Instructions"
+      - "## Failure modes"
+      - "## Worked example"
+      - "## References"
+    required_pack_sections:
+      - "## Name direction"
+      - "## Subtitle candidates"
+      - "## Screenshot story"
+      - "## Keyword angle"
+      - "## Metadata notes"
+      - "## Gaps and uncertainties"
+    required_failure_modes:
+      - "Missing product artifact"
+      - "Character-limit violation"
+      - "Feature overreach"
+      - "Stale positioning input"
+    required_character_limits:
+      - "30 characters or fewer"
