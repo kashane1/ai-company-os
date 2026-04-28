@@ -11,26 +11,22 @@ final class MockHealthKitService: HealthKitServiceProtocol {
     private let seed: UInt64
     private let calendar: Calendar
     private let simulateNoData: Bool
-    private var authorizedTiers: Set<HealthDataTier> = []
+    private(set) var authorizationKnown: Bool
 
     init(
         seed: UInt64 = 42,
         calendar: Calendar = .lifeClockUTC,
         simulateNoData: Bool = false,
-        preAuthorize: Bool = true
+        preAuthorized: Bool = true
     ) {
         self.seed = seed
         self.calendar = calendar
         self.simulateNoData = simulateNoData
-        if preAuthorize { authorizedTiers.insert(.core) }
+        self.authorizationKnown = preAuthorized
     }
 
-    func requestAuthorization(for tier: HealthDataTier) async throws {
-        authorizedTiers.insert(tier)
-    }
-
-    func authorizationKnown(for tier: HealthDataTier) -> Bool {
-        authorizedTiers.contains(tier)
+    func requestAuthorization() async throws {
+        authorizationKnown = true
     }
 
     func dailySnapshot(for date: Date) async -> DailyHealthSnapshot? {
@@ -41,11 +37,9 @@ final class MockHealthKitService: HealthKitServiceProtocol {
         snapshot.stepCount = 3_500 + Int(rng.uniform() * 9_500)
         snapshot.exerciseMinutes = Int(rng.uniform() * 60)
         snapshot.activeEnergyKcal = 200 + rng.uniform() * 600
-        snapshot.workoutsCount = rng.uniform() > 0.7 ? 1 : 0
         snapshot.sleepHours = 6.0 + rng.uniform() * 2.5
         snapshot.sleepConsistencyScore = rng.uniform()
         snapshot.restingHeartRate = 55 + Int(rng.uniform() * 25)
-        snapshot.heartRateAvg = 70 + Int(rng.uniform() * 20)
         snapshot.distanceMeters = Double(snapshot.stepCount ?? 0) * 0.78
         snapshot.sourceCompleteness = 0.8 // sample data is mostly complete
         return snapshot

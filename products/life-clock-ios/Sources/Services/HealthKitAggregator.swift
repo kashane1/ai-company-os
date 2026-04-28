@@ -14,22 +14,16 @@ struct HealthKitAggregator {
         stepCount: Double?,
         exerciseMinutes: Double?,
         activeEnergyKcal: Double?,
-        workoutsCount: Int?,
         sleepHours: Double?,
         restingHeartRate: Double?,
-        heartRateAvg: Double?,
-        weightKg: Double?,
-        vo2Max: Double?
+        weightKg: Double?
     ) -> DailyHealthSnapshot {
         let snapshot = DailyHealthSnapshot(date: date)
         if let s = stepCount { snapshot.stepCount = Int(s.rounded()) }
         snapshot.exerciseMinutes = exerciseMinutes.map { Int($0.rounded()) }
         snapshot.activeEnergyKcal = activeEnergyKcal
-        snapshot.workoutsCount = workoutsCount
         snapshot.sleepHours = sleepHours
         snapshot.restingHeartRate = restingHeartRate.map { Int($0.rounded()) }
-        snapshot.heartRateAvg = heartRateAvg.map { Int($0.rounded()) }
-        snapshot.vo2Max = vo2Max
         if let s = stepCount { snapshot.distanceMeters = s * 0.78 }
         // weightKg is captured on UserProfile, not the daily snapshot — but it
         // counts toward source completeness if present.

@@ -23,21 +23,31 @@ final class LifeClockStore {
     var healthAuthorizationKnown: Bool = false
     var healthDataAvailable: Bool = true
     var todayHabits: HabitLog?
+    /// Surfaces the last `requestAuthorization` failure so TestFlight users
+    /// can debug entitlement / Info.plist misconfig instead of seeing a
+    /// silent denial. nil after a successful (or never-attempted) request.
+    var lastHealthAuthError: String?
+    /// True once today's snapshot has been fetched and contains at least one
+    /// non-nil signal. Drives Profile "Available" / "No data" rows.
+    var hasTodaySignal: Bool = false
 
     @ObservationIgnored private let healthService: HealthKitServiceProtocol
     @ObservationIgnored let clock: EngineClock
     @ObservationIgnored private let clockEngine: ClockEngine
     @ObservationIgnored private let questEngine: QuestEngine
 
+    /// `healthService` is required — no default. Forcing injection avoids a
+    /// class of bugs where two different service instances back the auth-flag
+    /// UI and the live queries.
     init(
-        healthService: HealthKitServiceProtocol = MockHealthKitService(),
+        healthService: HealthKitServiceProtocol,
         engineClock: EngineClock = .live
     ) {
         self.healthService = healthService
         self.clock = engineClock
         self.clockEngine = ClockEngine(clock: engineClock)
         self.questEngine = QuestEngine(clock: engineClock)
-        self.healthAuthorizationKnown = healthService.authorizationKnown(for: .core)
+        self.healthAuthorizationKnown = healthService.authorizationKnown
         self.healthDataAvailable = healthService.isHealthDataAvailable
     }
 
@@ -80,8 +90,13 @@ final class LifeClockStore {
             baseline.confidenceRaw = result.confidence.rawValue
             todayDrivers = result.drivers
             ledger = result.drivers.sorted { $0.deltaMinutes > $1.deltaMinutes }
+            hasTodaySignal = snapshot.stepCount != nil
+                || snapshot.exerciseMinutes != nil
+                || snapshot.sleepHours != nil
+                || snapshot.restingHeartRate != nil
         } else {
             todayDrivers = []
+            hasTodaySignal = false
         }
         todayEstimate = baseline
         todayQuests = questEngine.generateDailyQuests(profile: profile, snapshot: snapshot, habits: todayHabits)
@@ -93,16 +108,23 @@ final class LifeClockStore {
     // MARK: - HealthKit authorization
 
     func requestHealthAuthorization() async {
-        guard healthDataAvailable else { return }
+        guard healthDataAvailable else {
+            lastHealthAuthError = "Apple Health is not available on this device."
+            return
+        }
         do {
-            try await healthService.requestAuthorization(for: .core)
+            try await healthService.requestAuthorization()
+            lastHealthAuthError = nil
             healthAuthorizationKnown = true
             await refreshFromHealthKit()
+        } catch HealthKitError.unavailable {
+            lastHealthAuthError = "Apple Health is not available on this device."
         } catch {
-            // Authorization denial is silent on iOS for read scopes — there
-            // is no error to inspect. We still mark "asked" so Profile shows
-            // the right copy.
-            healthAuthorizationKnown = healthService.authorizationKnown(for: .core)
+            // A real throw here is almost always entitlement misconfig or a
+            // missing NSHealthShareUsageDescription — debuggable, not a silent
+            // user denial. Read denials don't throw; iOS hides them.
+            lastHealthAuthError = "Apple Health request failed: \(error.localizedDescription)"
+            healthAuthorizationKnown = healthService.authorizationKnown
         }
     }
 

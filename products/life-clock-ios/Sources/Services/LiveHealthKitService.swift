@@ -8,14 +8,15 @@ import HealthKit
 ///
 /// Authorization is silent on read denials (Apple privacy design). We persist
 /// "have we asked" via UserDefaults so the Profile screen can show
-/// "Not configured" → "Available" honestly, never "Connected" / "Denied".
+/// "Not configured" → "Available" / "No data" honestly, never "Connected" /
+/// "Denied".
 @MainActor
 final class LiveHealthKitService: HealthKitServiceProtocol {
     private let store = HKHealthStore()
     private let calendar: Calendar
     private let userDefaults: UserDefaults
 
-    private static let askedKeyPrefix = "lc.hk.requested."
+    private static let askedKey = "lc.hk.requestedCore"
 
     private let coreReadTypes: Set<HKObjectType> = {
         var types: Set<HKObjectType> = []
@@ -37,9 +38,6 @@ final class LiveHealthKitService: HealthKitServiceProtocol {
         if let sleep = HKCategoryType.categoryType(forIdentifier: .sleepAnalysis) {
             types.insert(sleep)
         }
-        if let workoutType = HKObjectType.workoutType() as HKObjectType? {
-            types.insert(workoutType)
-        }
         return types
     }()
 
@@ -54,20 +52,29 @@ final class LiveHealthKitService: HealthKitServiceProtocol {
         HKHealthStore.isHealthDataAvailable()
     }
 
-    func requestAuthorization(for tier: HealthDataTier) async throws {
+    /// Real authorization. Throws on `.unavailable` *and* on store-level
+    /// errors (entitlement misconfiguration, missing usage description) so
+    /// they surface in TestFlight logs instead of looking like silent denials.
+    func requestAuthorization() async throws {
         guard isHealthDataAvailable else { throw HealthKitError.unavailable }
         try await store.requestAuthorization(toShare: [], read: coreReadTypes)
-        userDefaults.set(true, forKey: Self.askedKeyPrefix + tier.rawValue)
+        userDefaults.set(true, forKey: Self.askedKey)
     }
 
-    func authorizationKnown(for tier: HealthDataTier) -> Bool {
-        userDefaults.bool(forKey: Self.askedKeyPrefix + tier.rawValue)
+    var authorizationKnown: Bool {
+        userDefaults.bool(forKey: Self.askedKey)
     }
 
     // MARK: - Snapshot reads
 
+    /// Always queries when HealthKit is available — does not gate on
+    /// `authorizationKnown`. HealthKit returns empty for unauthorized reads
+    /// (silent by privacy design); empty maps to nil snapshot which the UI
+    /// renders as "missing data". Gating here would mean a user who granted
+    /// permission outside the app (or whose UserDefaults flag was lost) saw
+    /// permanent ghost-empty state.
     func dailySnapshot(for date: Date) async -> DailyHealthSnapshot? {
-        guard isHealthDataAvailable, authorizationKnown(for: .core) else { return nil }
+        guard isHealthDataAvailable else { return nil }
         let dayStart = calendar.startOfDay(for: date)
         guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return nil }
 
@@ -77,31 +84,26 @@ final class LiveHealthKitService: HealthKitServiceProtocol {
         async let restingHR = averageQuantity(.restingHeartRate, unit: HKUnit(from: "count/min"), start: dayStart, end: dayEnd)
         async let weight = mostRecentQuantity(.bodyMass, unit: .gramUnit(with: .kilo), start: dayStart, end: dayEnd)
         async let sleep = sleepHours(start: dayStart, end: dayEnd)
-        async let workouts = workoutCount(start: dayStart, end: dayEnd)
 
-        let s = await steps
-        let e = await exercise
-        let a = await activeEnergy
-        let r = await restingHR
-        let w = await weight
-        let z = await sleep
-        let wk = await workouts
+        let stepCount = await steps
+        let exerciseMinutes = await exercise
+        let energy = await activeEnergy
+        let resting = await restingHR
+        let weightKg = await weight
+        let sleepHrs = await sleep
 
-        // Treat a fully-empty day as missing data, not as "denied".
-        if s == nil, e == nil, a == nil, r == nil, w == nil, z == nil, wk == nil {
+        // A fully-empty day is nil (missing data), not synthetic zeros.
+        if stepCount == nil, exerciseMinutes == nil, energy == nil, resting == nil, weightKg == nil, sleepHrs == nil {
             return nil
         }
         return HealthKitAggregator.aggregate(
             date: dayStart,
-            stepCount: s,
-            exerciseMinutes: e,
-            activeEnergyKcal: a,
-            workoutsCount: wk,
-            sleepHours: z,
-            restingHeartRate: r,
-            heartRateAvg: nil,
-            weightKg: w,
-            vo2Max: nil
+            stepCount: stepCount,
+            exerciseMinutes: exerciseMinutes,
+            activeEnergyKcal: energy,
+            sleepHours: sleepHrs,
+            restingHeartRate: resting,
+            weightKg: weightKg
         )
     }
 
@@ -196,16 +198,6 @@ final class LiveHealthKitService: HealthKitServiceProtocol {
                     .filter { asleep.contains($0.value) }
                     .reduce(0.0) { $0 + $1.endDate.timeIntervalSince($1.startDate) }
                 continuation.resume(returning: totalSeconds > 0 ? totalSeconds / 3600 : nil)
-            }
-            store.execute(query)
-        }
-    }
-
-    private func workoutCount(start: Date, end: Date) async -> Int? {
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
-        return await withCheckedContinuation { continuation in
-            let query = HKSampleQuery(sampleType: .workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
-                continuation.resume(returning: samples?.count)
             }
             store.execute(query)
         }

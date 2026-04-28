@@ -48,12 +48,9 @@ final class DailyHealthSnapshot {
     var distanceMeters: Double? = nil
     var exerciseMinutes: Int? = nil
     var activeEnergyKcal: Double? = nil
-    var workoutsCount: Int? = nil
     var sleepHours: Double? = nil
     var sleepConsistencyScore: Double? = nil
     var restingHeartRate: Int? = nil
-    var heartRateAvg: Int? = nil
-    var vo2Max: Double? = nil
     var sourceCompleteness: Double = 0.0
 
     init(date: Date) {

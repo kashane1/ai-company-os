@@ -40,12 +40,16 @@ struct ProfileView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
-                        dataRow(name: "Steps", status: status(for: store.todayDrivers.contains { $0.driverType == "movement" }))
-                        dataRow(name: "Sleep", status: status(for: store.todayDrivers.contains { $0.driverType == "sleep" }))
-                        dataRow(name: "Exercise minutes", status: status(for: store.todayDrivers.contains { $0.driverType == "exercise" }))
-                        Text("If a row reads \"No data\", open iOS Settings → Health → Data Access & Devices → Life Clock to review what's shared.")
+                        let signal = store.hasTodaySignal ? "Available" : "No data today"
+                        dataRow(name: "Apple Health (steps, sleep, exercise, resting HR)", status: signal)
+                        Text("If \"No data\" persists, open iOS Settings → Health → Data Access & Devices → Life Clock to review what's shared.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                    }
+                    if let error = store.lastHealthAuthError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
                     }
                 }
 
@@ -81,11 +85,6 @@ struct ProfileView: View {
             Spacer()
             Text(status).font(.caption).foregroundStyle(.secondary)
         }
-    }
-
-    private func status(for hasData: Bool) -> String {
-        // Honest: we don't know "denied" vs "no data" for read scopes.
-        hasData ? "Available" : "No data"
     }
 
     private func connectAppleHealth() {

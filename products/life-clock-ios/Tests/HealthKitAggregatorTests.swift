@@ -10,17 +10,13 @@ final class HealthKitAggregatorTests: XCTestCase {
             stepCount: 9_000,
             exerciseMinutes: 35,
             activeEnergyKcal: 420,
-            workoutsCount: 1,
             sleepHours: 7.5,
             restingHeartRate: 60,
-            heartRateAvg: 72,
-            weightKg: 78,
-            vo2Max: 42
+            weightKg: 78
         )
         XCTAssertEqual(snap.stepCount, 9_000)
         XCTAssertEqual(snap.exerciseMinutes, 35)
         XCTAssertEqual(snap.activeEnergyKcal, 420)
-        XCTAssertEqual(snap.workoutsCount, 1)
         XCTAssertEqual(snap.sleepHours, 7.5)
         XCTAssertEqual(snap.restingHeartRate, 60)
         XCTAssertEqual(snap.sourceCompleteness, 1.0, accuracy: 0.0001)
@@ -33,12 +29,9 @@ final class HealthKitAggregatorTests: XCTestCase {
             stepCount: 8_000,
             exerciseMinutes: nil,
             activeEnergyKcal: nil,
-            workoutsCount: nil,
             sleepHours: nil,
             restingHeartRate: nil,
-            heartRateAvg: nil,
-            weightKg: nil,
-            vo2Max: nil
+            weightKg: nil
         )
         XCTAssertEqual(snap.stepCount, 8_000)
         XCTAssertNil(snap.exerciseMinutes)
@@ -53,12 +46,9 @@ final class HealthKitAggregatorTests: XCTestCase {
             stepCount: nil,
             exerciseMinutes: nil,
             activeEnergyKcal: nil,
-            workoutsCount: nil,
             sleepHours: nil,
             restingHeartRate: nil,
-            heartRateAvg: nil,
-            weightKg: nil,
-            vo2Max: nil
+            weightKg: nil
         )
         XCTAssertEqual(snap.sourceCompleteness, 0.0)
         XCTAssertNil(snap.stepCount)
@@ -66,7 +56,6 @@ final class HealthKitAggregatorTests: XCTestCase {
     }
 
     func testCompletenessIsBoundedAtOne() {
-        // No way to exceed 1.0 — defensive check on `min(1.0, score)`.
         let score = HealthKitAggregator.computeCompleteness(
             stepCount: 1, exerciseMinutes: 1, sleepHours: 1, restingHeartRate: 1, weightKg: 1
         )
@@ -79,26 +68,22 @@ final class HealthKitAggregatorTests: XCTestCase {
             stepCount: 8_999.7,
             exerciseMinutes: 19.4,
             activeEnergyKcal: 100,
-            workoutsCount: 0,
             sleepHours: 6.5,
             restingHeartRate: 59.6,
-            heartRateAvg: 71.2,
-            weightKg: 80,
-            vo2Max: 40
+            weightKg: 80
         )
         XCTAssertEqual(snap.stepCount, 9_000)        // .7 rounds up
         XCTAssertEqual(snap.exerciseMinutes, 19)     // .4 rounds down
         XCTAssertEqual(snap.restingHeartRate, 60)    // .6 rounds up
-        XCTAssertEqual(snap.heartRateAvg, 71)        // .2 rounds down
     }
 }
 
 final class MockHealthKitServiceAuthorizationTests: XCTestCase {
     func testRequestAuthorizationFlipsFlag() async throws {
-        let service = MockHealthKitService(preAuthorize: false)
-        XCTAssertFalse(service.authorizationKnown(for: .core))
-        try await service.requestAuthorization(for: .core)
-        XCTAssertTrue(service.authorizationKnown(for: .core))
+        let service = MockHealthKitService(preAuthorized: false)
+        XCTAssertFalse(service.authorizationKnown)
+        try await service.requestAuthorization()
+        XCTAssertTrue(service.authorizationKnown)
     }
 
     func testSimulateNoDataReturnsNilSnapshot() async {
