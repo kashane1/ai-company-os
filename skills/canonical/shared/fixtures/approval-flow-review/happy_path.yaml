@@ -1,0 +1,38 @@
+# Contract-freeze fixture for approval-flow-review.
+#
+# Locks the verdict taxonomy, required fields, and failure modes
+# against silent body drift. Skill is currently stage: deferred —
+# this fixture freezes the contract so activation is a registry flip
+# rather than a body re-derivation.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/shared/approval-flow-review.md
+  expected:
+    required_input_fields:
+      - "action"
+      - "actor"
+      - "context"
+      - "risk_level"
+    required_output_fields:
+      - "verdict"
+      - "reason"
+      - "preconditions_missing"
+      - "policy_rules_referenced"
+    required_verdict_values:
+      - "approved"
+      - "needs_clarification"
+      - "escalate_to_founder"
+    required_section_headings:
+      - "## Instructions"
+      - "## Failure modes"
+      - "## Worked example"
+      - "## References"
+    required_failure_modes:
+      - "policy_unavailable"
+      - "schema_drift"
+      - "ambiguous_action"
+      - "conflicting_rules"
+    required_safety_clauses:
+      - "Never default to approval"

@@ -109,6 +109,26 @@ skills:
       claude: adapters/claude/ios-to-appstore-handoff.md
     project_skill: .claude/skills/ios-to-appstore-handoff.md
 
+  - id: ios-build-and-sign
+    name: iOS Build and Sign
+    path: canonical/products/catchbook/ios-build-and-sign.md
+    owner_agent: ios
+    target_runtimes: [claude, codex]
+    stage: active
+    kind: agentic
+    # First skill in the registry to ship BOTH a Codex adapter (owns
+    # fastlane invocation + retry) AND a Claude adapter (validates the
+    # emitted artifact against product config). Division of labor is
+    # documented in the canonical body and each adapter declares its
+    # narrow slice. Contract-freeze fixture at
+    # skills/canonical/products/catchbook/fixtures/ios-build-and-sign/happy_path.yaml.
+    fixture_status: passing
+    source: internal
+    adapters:
+      codex: adapters/codex/ios-build-and-sign.md
+      claude: adapters/claude/ios-build-and-sign.md
+    project_skill: .claude/skills/ios-build-and-sign.md
+
   - id: supervisor-goal-decomposition
     name: Supervisor Goal Decomposition
     path: canonical/shared/supervisor-goal-decomposition.md
@@ -196,6 +216,29 @@ skills:
     adapters:
       codex: adapters/codex/post-run-validation.md
 
+  - id: test-coverage-audit
+    name: Test Coverage Audit
+    path: canonical/shared/test-coverage-audit.md
+    owner_agent: engineering
+    target_runtimes: [claude, codex]
+    # stage: deferred — registered ahead of coverage tooling
+    # configuration. Codex adapter expects `coverage` (Python) and
+    # `xccov` (iOS) wired into the build, neither of which is
+    # configured today. Activate by flipping to `active` once both
+    # lanes have working coverage commands.
+    stage: deferred
+    kind: agentic
+    # Contract-freeze fixture at
+    # skills/canonical/shared/fixtures/test-coverage-audit/happy_path.yaml
+    # locks the verdict taxonomy, output shape, and the
+    # "failing open is forbidden" safety clause.
+    fixture_status: passing
+    source: internal
+    adapters:
+      codex: adapters/codex/test-coverage-audit.md
+      claude: adapters/claude/test-coverage-audit.md
+    project_skill: .claude/skills/test-coverage-audit.md
+
   # ----- Phase 2.5 GTM skill pack -----
 
   - id: content-voice-guardrail
@@ -267,6 +310,27 @@ skills:
     kind: validator
     fixture_status: passing
     source: internal
+
+  - id: approval-flow-review
+    name: Approval Flow Review
+    path: canonical/shared/approval-flow-review.md
+    owner_agent: supervisor
+    # stage: deferred — registered ahead of activation. Activate by
+    # flipping to `active` once a real call site exists (proposed:
+    # control-plane hook that pre-validates every approval request
+    # before adding it to the founder queue).
+    stage: deferred
+    target_runtimes: [claude]
+    kind: agentic
+    # Contract-freeze fixture at
+    # skills/canonical/shared/fixtures/approval-flow-review/happy_path.yaml
+    # locks the verdict taxonomy, required fields, failure modes, and
+    # the "never default to approved" safety clause.
+    fixture_status: passing
+    source: internal
+    adapters:
+      claude: adapters/claude/approval-flow-review.md
+    project_skill: .claude/skills/approval-flow-review.md
 
   # ----- Phase 3 content intelligence skills -----
 
