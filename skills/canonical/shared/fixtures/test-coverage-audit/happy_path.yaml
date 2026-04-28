@@ -1,0 +1,40 @@
+# Contract-freeze fixture for test-coverage-audit.
+#
+# Locks the verdict taxonomy, output shape, and failure-mode taxonomy
+# while the skill is stage: deferred. Activation flips registry only —
+# the contract surface is already protected.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/shared/test-coverage-audit.md
+  expected:
+    required_input_fields:
+      - "worktree_path"
+      - "changed_files"
+      - "coverage_report_path"
+    required_output_fields:
+      - "coverage_percent"
+      - "policy_verdict"
+      - "tests_to_add"
+      - "exemption_reason"
+    required_verdict_values:
+      - "meets_policy"
+      - "needs_tests"
+      - "valid_exception"
+    required_section_headings:
+      - "## Instructions"
+      - "## Failure modes"
+      - "## Worked example"
+      - "## References"
+    required_failure_modes:
+      - "coverage_tool_unavailable"
+      - "policy_unavailable"
+      - "diff_empty"
+      - "invalid_no_test_reason"
+      - "partial_lane_coverage"
+    required_lane_coverage_keys:
+      - "python"
+      - "ios"
+    required_safety_clauses:
+      - "Failing open is forbidden"
