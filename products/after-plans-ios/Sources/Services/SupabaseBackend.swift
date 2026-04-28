@@ -82,7 +82,7 @@ private struct PlanParticipantRow: Codable {
 
 private struct PlanInsert: Encodable {
     let id: UUID
-    let context_id: UUID
+    let context_id: UUID?
     let host_id: UUID
     let title: String
     let summary: String?
@@ -92,6 +92,8 @@ private struct PlanInsert: Encodable {
     let time_label: String?
     let venue_label: String?
     let distance_label: String?
+    let activity_id: UUID?
+    let venue_id: UUID?
 }
 
 private struct ReportInsert: Encodable {
@@ -332,7 +334,10 @@ struct SupabasePlanService: PlanServiceProtocol {
 
         let insert = PlanInsert(
             id: id,
-            context_id: contextID,
+            // For publicMatch plans context_id is intentionally null —
+            // visibility flows from declared activity + venue, not from
+            // direct context membership.
+            context_id: draft.visibility == .publicMatch ? nil : contextID,
             host_id: session.user.id,
             title: title,
             summary: draft.summary.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -341,7 +346,9 @@ struct SupabasePlanService: PlanServiceProtocol {
             lifecycle: PlanLifecycleState.open.wire,
             time_label: draft.timeHint,
             venue_label: venue,
-            distance_label: nil
+            distance_label: nil,
+            activity_id: draft.activityID,
+            venue_id: draft.venueID
         )
         try await client.from("plans").insert(insert).execute()
         try await client.from("plan_participants").insert(

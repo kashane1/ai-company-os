@@ -340,17 +340,48 @@ final class AfterPlansStore: ObservableObject {
 
     @discardableResult
     func createPlan(from draft: CreatePlanDraft) async -> Bool {
-        guard draft.validationMessage(hasContext: selectedContext != nil) == nil, let selectedContext else {
+        var draft = draft
+        let isPublicMatch = draft.visibility == .publicMatch
+
+        // For publicMatch plans we materialize a freeform venue from
+        // the typed-in hint so the plan can carry a real venue_id. Real
+        // typeahead-resolved venues come through Phase 6's UI seam; v1
+        // accepts freeform-only and lets the worker reconcile later.
+        if isPublicMatch && draft.venueID == nil {
+            let trimmed = draft.trimmedVenueHint
+            if !trimmed.isEmpty {
+                let freeform = StubVenueSearchService().freeformVenue(named: trimmed)
+                if let stored = try? await backend.venues.upsertVenue(freeform) {
+                    draft.venueID = stored.id
+                }
+            }
+        }
+
+        guard draft.validationMessage(hasContext: selectedContext != nil) == nil else {
             return false
         }
 
-        guard let plan = try? await backend.plans.createPlan(from: draft, in: selectedContext.id) else {
+        // contextID is required by the protocol; SupabaseBackend nulls
+        // it out for publicMatch plans before insert. For non-public
+        // plans we still need a real selectedContext.
+        let routingContextID: ContextID
+        if let selected = selectedContext {
+            routingContextID = selected.id
+        } else if isPublicMatch, let fallback = availableContexts.first?.id {
+            routingContextID = fallback
+        } else {
+            return false
+        }
+
+        guard let plan = try? await backend.plans.createPlan(from: draft, in: routingContextID) else {
             return false
         }
 
         plans.insert(plan, at: 0)
         focus(on: plan.id)
-        lastActionMessage = "Your plan is live for \(selectedContext.title)."
+        lastActionMessage = isPublicMatch
+            ? "Your plan is live for everyone who declared this activity."
+            : "Your plan is live for \(selectedContext?.title ?? "your context")."
         selectedTab = .home
         analyticsService.record(event: "plan_created")
         return true
