@@ -25,12 +25,8 @@ struct QuestEngine {
         if let movement = movementQuest(today: today, snapshot: snapshot) {
             quests.append(movement)
         }
-        if let sleep = sleepQuest(today: today, profile: profile, snapshot: snapshot) {
-            quests.append(sleep)
-        }
-        if let risk = riskReductionQuest(today: today, habits: habits) {
-            quests.append(risk)
-        }
+        quests.append(sleepQuest(today: today, profile: profile, snapshot: snapshot))
+        quests.append(riskReductionQuest(today: today, habits: habits))
 
         if quests.isEmpty {
             quests.append(consistencyFallback(today: today))
@@ -66,7 +62,7 @@ struct QuestEngine {
         return quest
     }
 
-    private func sleepQuest(today: Date, profile: UserProfile, snapshot: DailyHealthSnapshot?) -> Quest? {
+    private func sleepQuest(today: Date, profile: UserProfile, snapshot: DailyHealthSnapshot?) -> Quest {
         let target = profile.sleepGoalHours
         let detail = "Be in bed within an hour of your usual time. Consistency matters more than total hours."
         let quest = Quest(
@@ -81,7 +77,7 @@ struct QuestEngine {
         return quest
     }
 
-    private func riskReductionQuest(today: Date, habits: HabitLog?) -> Quest? {
+    private func riskReductionQuest(today: Date, habits: HabitLog?) -> Quest {
         // If user already logged a heavy alcohol day, suggest a recovery focus
         // — gentle, not punitive.
         if habits?.alcoholLevel.lowercased() == "heavy" {

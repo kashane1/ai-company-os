@@ -6,31 +6,34 @@ import Observation
 ///
 /// Side effects belong in `bootstrap()`, not `init` — `@State`-held stores get
 /// re-initialized on every parent rebuild, and side effects in `init` leak.
+///
+/// `@MainActor` because the store mutates UI-bound properties after async
+/// awaits in `bootstrap()`. Required under Swift 6 strict concurrency.
+@MainActor
 @Observable
 final class LifeClockStore {
     var profile: UserProfile?
     var todayEstimate: LifeClockEstimate?
-    var todayDriversToday: [TimeLedgerEntry] = []
+    var todayDrivers: [TimeLedgerEntry] = []
     var todayQuests: [Quest] = []
     var ledger: [TimeLedgerEntry] = []
     var weekly: WeeklyReport?
     var hasCompletedOnboarding: Bool = false
     var toneMode: ToneMode = .coach
-    var permissions: [String: String] = [:] // dataType → status string
 
     @ObservationIgnored private let healthService: HealthKitServiceProtocol
+    @ObservationIgnored let clock: EngineClock
     @ObservationIgnored private let clockEngine: ClockEngine
     @ObservationIgnored private let questEngine: QuestEngine
-    @ObservationIgnored private let calendar: Calendar
 
     init(
         healthService: HealthKitServiceProtocol = MockHealthKitService(),
         engineClock: EngineClock = .live
     ) {
         self.healthService = healthService
+        self.clock = engineClock
         self.clockEngine = ClockEngine(clock: engineClock)
         self.questEngine = QuestEngine(clock: engineClock)
-        self.calendar = engineClock.calendar
     }
 
     // MARK: - Bootstrap
@@ -40,8 +43,8 @@ final class LifeClockStore {
         // so this fires every cold start — acknowledged in README.
         if profile == nil {
             let sample = UserProfile(
-                birthDate: Calendar.lifeClockUTC.date(from: DateComponents(year: 1990, month: 6, day: 12))
-                    ?? Date(timeIntervalSince1970: 0),
+                birthDate: clock.calendar.date(from: DateComponents(year: 1990, month: 6, day: 12))
+                    ?? clock.now(),
                 biologicalSex: "unspecified",
                 toneMode: toneMode.rawValue
             )
@@ -54,7 +57,7 @@ final class LifeClockStore {
 
         guard let profile else { return }
 
-        let now = Date()
+        let now = clock.now()
         let snapshot = await healthService.dailySnapshot(for: now)
 
         let baseline = clockEngine.calculateBaseline(profile: profile)
@@ -62,7 +65,7 @@ final class LifeClockStore {
             let result = clockEngine.calculateDailyDelta(snapshot: snapshot, habits: nil, profile: profile)
             baseline.dailyTimeDeltaMinutes = result.deltaMinutes
             baseline.confidenceRaw = result.confidence.rawValue
-            todayDriversToday = result.drivers
+            todayDrivers = result.drivers
             ledger = result.drivers.sorted { $0.deltaMinutes > $1.deltaMinutes }
         }
         todayEstimate = baseline
@@ -75,11 +78,12 @@ final class LifeClockStore {
     // MARK: - Mutations driven by the UI
 
     func completeOnboarding(profile: UserProfile, tone: ToneMode) {
+        let now = clock.now()
         self.profile = profile
         self.toneMode = tone
         profile.toneMode = tone.rawValue
-        profile.disclaimerAcceptedAt = Date()
-        profile.onboardingCompletedAt = Date()
+        profile.disclaimerAcceptedAt = now
+        profile.onboardingCompletedAt = now
         hasCompletedOnboarding = true
     }
 
@@ -89,11 +93,12 @@ final class LifeClockStore {
     }
 
     func toggleQuestCompletion(_ quest: Quest) {
+        let now = clock.now()
         if quest.completedAt == nil {
-            quest.completedAt = Date()
+            quest.completedAt = now
             ledger.insert(
                 TimeLedgerEntry(
-                    date: Date(),
+                    date: now,
                     title: "Completed quest: \(quest.title)",
                     deltaMinutes: quest.rewardEstimateMinutes,
                     source: "manual",

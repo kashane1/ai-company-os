@@ -6,7 +6,7 @@ final class QuestEngineTests: XCTestCase {
     private let birthDate = Date(timeIntervalSince1970: 631_152_000)
 
     private func makeEngine() -> QuestEngine {
-        QuestEngine(clock: .fixed(fixedDate, seed: 42))
+        QuestEngine(clock: .fixed(fixedDate))
     }
 
     private func makeProfile() -> UserProfile {

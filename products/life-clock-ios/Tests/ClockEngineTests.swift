@@ -6,7 +6,7 @@ final class ClockEngineTests: XCTestCase {
     private let birthDate = Date(timeIntervalSince1970: 631_152_000)   // 1990-01-01
 
     private func makeEngine() -> ClockEngine {
-        ClockEngine(clock: .fixed(fixedDate, seed: 42))
+        ClockEngine(clock: .fixed(fixedDate))
     }
 
     // MARK: - Determinism

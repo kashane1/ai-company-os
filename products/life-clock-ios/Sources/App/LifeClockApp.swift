@@ -26,7 +26,6 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
-    @Environment(LifeClockStore.self) private var store
     @State private var selection: AppTab = .today
 
     var body: some View {

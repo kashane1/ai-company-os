@@ -274,12 +274,14 @@ struct ClockEngine {
     }
 
     private func nextBestLever(driverTotals: [String: Int]) -> String {
-        // Suggest the smallest absolute-impact lever we haven't seen positively.
+        // Suggest the next lever the user hasn't already shown a positive
+        // delta on. Iteration order matters for determinism — use a sorted
+        // list, never a Set.
         let positiveDrivers = Set(driverTotals.filter { $0.value > 0 }.keys)
         let candidates = ["movement", "sleep", "strength", "exercise"]
         for candidate in candidates where !positiveDrivers.contains(candidate) {
             return candidate
         }
-        return positiveDrivers.first ?? "consistency"
+        return positiveDrivers.sorted().first ?? "consistency"
     }
 }

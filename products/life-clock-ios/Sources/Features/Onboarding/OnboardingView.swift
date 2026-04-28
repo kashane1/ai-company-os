@@ -3,7 +3,11 @@ import SwiftUI
 struct OnboardingView: View {
     @Environment(LifeClockStore.self) private var store
     @State private var step: Int = 0
-    @State private var birthDate: Date = Calendar.lifeClockUTC.date(from: DateComponents(year: 1990, month: 6, day: 12)) ?? Date()
+    @State private var birthDate: Date = {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "UTC")!
+        return cal.date(from: DateComponents(year: 1990, month: 6, day: 12)) ?? Date(timeIntervalSince1970: 0)
+    }()
     @State private var biologicalSex: String = "unspecified"
     @State private var smokingStatus: String = "none"
     @State private var alcoholFrequency: String = "rare"

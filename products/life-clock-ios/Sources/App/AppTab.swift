@@ -1,14 +1,12 @@
 import Foundation
 import SwiftUI
 
-enum AppTab: String, CaseIterable, Identifiable {
+enum AppTab: String {
     case today
     case ledger
     case quests
     case weekly
     case profile
-
-    var id: String { rawValue }
 
     var title: String {
         switch self {

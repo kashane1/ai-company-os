@@ -1,6 +1,6 @@
 import Foundation
 
-enum ToneMode: String, CaseIterable, Codable, Identifiable {
+enum ToneMode: String, CaseIterable, Identifiable {
     case gentle
     case coach
     case mementoMori = "memento_mori"

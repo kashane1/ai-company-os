@@ -63,12 +63,12 @@ struct TodayView: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             Text("Top drivers today")
                 .font(.headline)
-            if store.todayDriversToday.isEmpty {
+            if store.todayDrivers.isEmpty {
                 Text("No data yet — check back tomorrow.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(store.todayDriversToday.prefix(3), id: \.id) { driver in
+                ForEach(store.todayDrivers.prefix(3), id: \.id) { driver in
                     HStack {
                         Text(driver.title).lineLimit(1)
                         Spacer()

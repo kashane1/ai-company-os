@@ -4,8 +4,6 @@ struct ProfileView: View {
     @Environment(LifeClockStore.self) private var store
 
     var body: some View {
-        @Bindable var bindable = store
-
         NavigationStack {
             Form {
                 Section("Tone") {
@@ -41,7 +39,7 @@ struct ProfileView: View {
                     DisclaimerBanner()
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
-                    Text("Life Clock v\(LifeClockConfiguration.appName) 0.1.0")
+                    Text("\(LifeClockConfiguration.appName) · Version 0.1.0")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
