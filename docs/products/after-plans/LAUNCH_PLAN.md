@@ -80,10 +80,10 @@ This checklist defines what must be done before the App Store lane can execute. 
 
 ### Founder Decisions Required
 
-- [ ] approve subtitle — recommended "Keep the moment going" (see APP_STORE_POSITIONING.md)
-- [ ] approve age rating — recommended 17+ (see APP_STORE_POSITIONING.md, TRUST_SAFETY_GUARDRAILS.md)
-- [ ] approve launch contexts — which communities/groups get seeded first
-- [ ] confirm moderation operating path — who triages reports, response window
+- [x] approve subtitle — "Keep the moment going" (approved 2026-04-27, see [founder-decisions-needed.md](founder-decisions-needed.md))
+- [x] approve age rating — 17+ (approved 2026-04-27, see [founder-decisions-needed.md](founder-decisions-needed.md))
+- [ ] approve launch contexts — **deferred** pending brainstorm on a user-built context model (see [founder-decisions-needed.md](founder-decisions-needed.md) section 3)
+- [x] confirm moderation operating path — founder triages, 24h ack / 48h action SLA on severe (approved 2026-04-27, see [founder-decisions-needed.md](founder-decisions-needed.md))
 
 ### Artifacts Ready For Use
 

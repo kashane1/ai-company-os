@@ -102,8 +102,10 @@ struct CreatePlanView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Publish") {
-                    if store.createPlan(from: draft) {
-                        dismiss()
+                    Task {
+                        if await store.createPlan(from: draft) {
+                            dismiss()
+                        }
                     }
                 }
                 .disabled(validationMessage != nil)

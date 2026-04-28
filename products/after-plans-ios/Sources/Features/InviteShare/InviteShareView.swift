@@ -55,7 +55,7 @@ struct InviteShareView: View {
                             ForEach(channels) { channel in
                                 if channel == .nearbyQR {
                                     Button {
-                                        store.prepareInviteShare(for: plan.id, channel: channel)
+                                        Task { await store.prepareInviteShare(for: plan.id, channel: channel) }
                                         isShowingQR = true
                                     } label: {
                                         channelRowLabel(channel)
@@ -70,6 +70,11 @@ struct InviteShareView: View {
                                         channelRowLabel(channel)
                                     }
                                     .buttonStyle(.plain)
+                                    .simultaneousGesture(
+                                        TapGesture().onEnded {
+                                            Task { await store.prepareInviteShare(for: plan.id, channel: channel) }
+                                        }
+                                    )
                                 }
                             }
                         }

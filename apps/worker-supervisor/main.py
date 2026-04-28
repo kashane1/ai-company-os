@@ -8,6 +8,7 @@ if str(ROOT) not in sys.path:
 from packages.policies.approvals import requires_human_approval
 from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.task_packet import Goal, RiskLevel, TaskPacket, WorkerLane
+from packages.tools.learning.worker_signals import augment_packet_constraints
 
 
 def plan_goal(goal: Goal) -> list[TaskPacket]:
@@ -36,6 +37,11 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
         lane = WorkerLane.ENGINEERING
         risk = RiskLevel.LOW
 
+    base_constraints = [
+        "Use an isolated worktree for repo mutations.",
+        "Report structured results back to the platform.",
+        "Do not bypass shared policy.",
+    ]
     task = TaskPacket(
         id=f"{goal.id}-001",
         goal_id=goal.id,
@@ -43,11 +49,10 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
         title=goal.title,
         summary=goal.summary,
         risk_level=risk,
-        constraints=[
-            "Use an isolated worktree for repo mutations.",
-            "Report structured results back to the platform.",
-            "Do not bypass shared policy.",
-        ],
+        constraints=augment_packet_constraints(
+            lane=lane.value,
+            base_constraints=base_constraints,
+        ),
         tests_required=lane in {WorkerLane.ENGINEERING, WorkerLane.IOS},
         test_lane=(
             TestLane.IOS

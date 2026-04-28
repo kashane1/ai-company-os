@@ -143,11 +143,11 @@ struct PlanDetailView: View {
                 if plan.canJoin || plan.canExpressInterest {
                     HStack(spacing: Spacing.sm) {
                         if plan.canJoin {
-                            Button(plan.joinActionTitle) { store.join(plan.id) }
+                            Button(plan.joinActionTitle) { Task { await store.join(plan.id) } }
                                 .buttonStyle(ActionPillButtonStyle(prominent: true))
                         }
                         if plan.canExpressInterest {
-                            Button(plan.interestedActionTitle) { store.expressInterest(in: plan.id) }
+                            Button(plan.interestedActionTitle) { Task { await store.expressInterest(in: plan.id) } }
                                 .buttonStyle(ActionPillButtonStyle())
                         }
                     }
@@ -156,7 +156,7 @@ struct PlanDetailView: View {
                 if plan.canSuggestPlace || plan.canShareInvite {
                     HStack(spacing: Spacing.sm) {
                         if plan.canSuggestPlace {
-                            Button(plan.suggestPlaceActionTitle) { store.suggestDefaultPlace(for: plan.id) }
+                            Button(plan.suggestPlaceActionTitle) { Task { await store.suggestDefaultPlace(for: plan.id) } }
                                 .buttonStyle(ActionPillButtonStyle())
                         }
                         if plan.canShareInvite {
@@ -174,7 +174,7 @@ struct PlanDetailView: View {
 
                 if canWrap {
                     Button(plan.confirmationActionTitle) {
-                        store.wrapPlan(plan.id)
+                        Task { await store.wrapPlan(plan.id) }
                     }
                     .buttonStyle(ActionPillButtonStyle())
 

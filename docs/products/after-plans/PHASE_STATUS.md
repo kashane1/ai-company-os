@@ -2,9 +2,13 @@
 
 ## Current Phase
 
-Phase 6 is complete. The v1 continuation-loop MVP is complete.
+Phase 7 is in progress. The C1 backend slice landed on 2026-04-25: the
+SupabaseBackend adapter is now proven against a live local Postgres + Auth +
+RLS stack, with a wire-level integration test gating the full lifecycle.
 
-Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking refinement, a lifecycle-state clarity pass across Home/detail/confirmation, a tighter invite/share-to-join scaffolding pass, and a trust/safety visibility refinement inside the active loop.
+Phase 6 (the v1 continuation-loop MVP) is complete.
+
+Phases 0 through 5 are complete. Phase 6 includes the known-people ranking refinement, a lifecycle-state clarity pass across Home/detail/confirmation, a tighter invite/share-to-join scaffolding pass, and a trust/safety visibility refinement inside the active loop.
 
 ## Completed Phases
 
@@ -46,6 +50,13 @@ Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking r
 - Phase 6: full scheme rerun green at 39 tests, 0 failures after the wrap-lifecycle slice
 - Phase 6: added handoff-to-text affordance on confirmed and active plans in the Confirmation Room so the core loop has a credible exit to real-world coordination via Messages
 - Phase 6: full scheme rerun green at 41 tests, 0 failures after the handoff-to-text slice
+- Phase 7 (C1 backend): platform-neutral contract finalized in `docs/products/after-plans/api/CONTRACT.md`; async `NetworkProtocols.swift` + `AfterPlansBackend` bundle landed; `InMemoryBackend` actor added so existing tests keep using the in-memory path; `AfterPlansStore` consumes the bundle and view actions are `async`
+- Phase 7 (C1 backend): local Supabase scaffold at `infra/supabase/` with `config.toml`, `migrations/0001_init.sql`, and `seed.sql`; `supabase-swift` SPM package linked in `project.yml`; `SupabaseBackend.swift` adapter implements identity (anonymous bootstrap), contexts, plan feed/get/create/join/expressInterest/suggestPlace/confirm/markActive/wrap, invite preview/resolve/recordShare, reports, blocks
+- Phase 7 (C1 backend): `AfterPlansConfiguration` reads `AFTERPLANS_BACKEND` / `AFTERPLANS_SUPABASE_URL` / `AFTERPLANS_SUPABASE_KEY` to switch between in-memory and Supabase at runtime; default remains in-memory so unit tests stay deterministic
+- Phase 7 (C1 backend): `SupabaseBackendIntegrationTests` exercises the full lifecycle (`currentUser → suggestedContexts → feed → createPlan → join → confirm → markActive → wrap`) against a live local Supabase, gated by env vars and skipped cleanly when absent; idempotent across reruns
+- Phase 7 (C1 backend): two wire-shape bugs surfaced and fixed during validation — RLS infinite recursion (`42P17`) on `plans`/`plan_participants`/`plan_place_suggestions` resolved by introducing three `security definer` helpers (`user_in_context`, `user_on_plan`, `user_can_see_plan`) and rewriting the recursive policies; supabase-swift cached-session FK violation (`23503`) on `profiles_id_fkey` after `db reset` resolved by adding `SupabaseBackendFactory.resetSessionForTesting(...)` invoked from the test's `setUp`
+- Phase 7 (C1 backend): manual UI walkthrough on iPhone 17 Pro simulator (iOS 26.4) confirmed the live wire path through onboarding, anonymous auth bootstrap, contexts query, and feed query against the local Supabase stack; createPlan-via-UI was blocked by a Simulator/computer-use input quirk (long-press accent intercept), not a backend bug — the same operations are fully covered by the green integration test
+- Phase 7 (C1 backend): full scheme rerun green at 51 tests, 0 failures (50 in-memory + 1 Supabase integration)
 
 ## Locked Decisions
 
@@ -86,6 +97,10 @@ Phases 0 through 5 are complete. Phase 6 now includes the known-people ranking r
 - `products/after-plans-ios/Tests/`
 
 ## Next Recommended Phase
+
+Phase 7 (C1 backend) is in progress; the local-Supabase wire path is proven.
+Remaining items in Phase 7 / before submission are tracked in
+[remaining-steps-before-ios-submission.md](remaining-steps-before-ios-submission.md).
 
 Phase 6 is complete. The v1 continuation-loop MVP is complete.
 

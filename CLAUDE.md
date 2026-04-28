@@ -71,6 +71,7 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **skill-stocktake** — structural audit of the skill registry, canonical files, project-skill pointers, and CLAUDE.md trigger phrases
 - **context-budget** — per-lane token totals across adapters, canonical bodies, and project-skill pointers (v1 reports numbers, not verdicts)
 - **verification-loop** — pre-PR / pre-release quality-gate sweep composing reconciliation + stocktake + changed-surface into a single verdict
+- **verification-loop-runtime** — runtime-evidence half of the verification-loop split; owns the `stale_postmortems` sub-check (operator hygiene, not registry drift)
 
 ## Trigger phrases → skills
 
@@ -97,6 +98,7 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "audit the skill estate" / "run a skill stocktake" / "check for orphan skills" / "find drift in the skill registry" → `skills/adapters/claude/skill-stocktake.md`
 - "check the context budget" / "how bloated are the skill lanes" / "which lane is trending toward prompt bloat" → `skills/adapters/claude/context-budget.md`
 - "run the verification loop" / "pre-PR sweep" / "check if this is ready to merge" / "run all the quality gates" → `skills/adapters/claude/verification-loop.md`
+- "check stale postmortems" / "audit operator hygiene" / "run the runtime verification loop" → `skills/canonical/verification-loop-runtime/skill.md`
 
 Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 

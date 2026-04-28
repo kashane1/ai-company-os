@@ -291,9 +291,9 @@ struct HomeView: View {
             plan: plan,
             affinity: store.affinity(for: plan.id),
             showContext: showContext,
-            onJoin: { store.join(plan.id) },
-            onInterested: { store.expressInterest(in: plan.id) },
-            onSuggestPlace: { store.suggestDefaultPlace(for: plan.id) }
+            onJoin: { Task { await store.join(plan.id) } },
+            onInterested: { Task { await store.expressInterest(in: plan.id) } },
+            onSuggestPlace: { Task { await store.suggestDefaultPlace(for: plan.id) } }
         )
     }
 }

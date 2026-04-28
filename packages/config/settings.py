@@ -67,6 +67,8 @@ class RuntimePaths:
     ios_artifacts_root: Path
     engineering_logs_root: Path
     ios_logs_root: Path
+    postmortems_root: Path
+    postmortem_audit_log_path: Path
     control_plane_db_path: Path
 
 
@@ -103,6 +105,8 @@ def load_runtime_paths(repo_root: Path | None = None) -> RuntimePaths:
         ios_artifacts_root=artifacts_root / "ios",
         engineering_logs_root=logs_root / "engineering",
         ios_logs_root=logs_root / "ios",
+        postmortems_root=state_root / "postmortems",
+        postmortem_audit_log_path=logs_root / "postmortems" / "audit.jsonl",
         control_plane_db_path=platform_state_root / "control_plane.sqlite3",
     )
 
@@ -132,6 +136,8 @@ def ensure_runtime_directories(repo_root: Path | None = None) -> RuntimePaths:
         paths.ios_artifacts_root,
         paths.engineering_logs_root,
         paths.ios_logs_root,
+        paths.postmortems_root,
+        paths.postmortem_audit_log_path.parent,
     ]
     for directory in directories:
         directory.mkdir(parents=True, exist_ok=True)

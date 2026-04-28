@@ -63,7 +63,7 @@ struct SafetyCenterView: View {
             actionRow(
                 label: "Report this plan",
                 icon: "flag",
-                action: { store.reportPlan(plan) }
+                action: { Task { await store.reportPlan(plan) } }
             )
 
             CardDivider()
@@ -71,7 +71,7 @@ struct SafetyCenterView: View {
             actionRow(
                 label: "Report \(plan.hostName)",
                 icon: "person.crop.circle.badge.exclamationmark",
-                action: { store.reportUser(named: plan.hostName) }
+                action: { Task { await store.reportUser(named: plan.hostName) } }
             )
 
             CardDivider()
