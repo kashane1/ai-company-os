@@ -144,6 +144,7 @@ private extension PlanVisibility {
         case "same_context_only":       self = .sameContextOnly
         case "known_people":            self = .knownPeople
         case "invite_only":             self = .inviteOnly
+        case "public":                  self = .publicMatch
         case "friends_of_participants": self = .friendsOfParticipants
         default:                        self = .sameContextOnly
         }
@@ -153,6 +154,7 @@ private extension PlanVisibility {
         case .sameContextOnly:       return "same_context_only"
         case .knownPeople:           return "known_people"
         case .inviteOnly:            return "invite_only"
+        case .publicMatch:           return "public"
         case .friendsOfParticipants: return "friends_of_participants"
         }
     }

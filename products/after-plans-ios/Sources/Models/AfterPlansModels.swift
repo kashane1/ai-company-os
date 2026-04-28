@@ -86,13 +86,17 @@ enum PlanMode: String, CaseIterable, Identifiable {
 enum PlanVisibility: String, CaseIterable, Identifiable {
     case sameContextOnly
     case inviteOnly
+    case publicMatch  // wire: "public" — Swift `public` is reserved
+    // Legacy values kept so stored data hydrates without crashing. Never
+    // surfaced via launchModes; new code never creates plans with these.
+    // TODO: drop in v2 once data backfill is run.
     case knownPeople
     case friendsOfParticipants
 
     var id: String { rawValue }
 
     static var launchModes: [PlanVisibility] {
-        [.sameContextOnly, .inviteOnly, .knownPeople]
+        [.sameContextOnly, .publicMatch, .inviteOnly]
     }
 
     var title: String {
@@ -101,6 +105,8 @@ enum PlanVisibility: String, CaseIterable, Identifiable {
             "Same context only"
         case .inviteOnly:
             "Invite only"
+        case .publicMatch:
+            "Public to your activities"
         case .knownPeople:
             "Known people"
         case .friendsOfParticipants:
@@ -114,6 +120,8 @@ enum PlanVisibility: String, CaseIterable, Identifiable {
             "Only people leaving this same moment can see it."
         case .inviteOnly:
             "Visible only through link or QR."
+        case .publicMatch:
+            "Visible to people who do this same activity at this same place."
         case .knownPeople:
             "Shown to people with prior trust context."
         case .friendsOfParticipants:
@@ -127,6 +135,8 @@ enum PlanVisibility: String, CaseIterable, Identifiable {
             "Bounded"
         case .inviteOnly:
             "Direct"
+        case .publicMatch:
+            "Activity-matched"
         case .knownPeople:
             "Trusted"
         case .friendsOfParticipants:
@@ -626,6 +636,8 @@ struct AfterPlan: Identifiable, Equatable {
             "Visible to people from this context"
         case .inviteOnly:
             "Visible only through direct share"
+        case .publicMatch:
+            "Visible to people who do this activity here"
         case .knownPeople:
             "Visible to known or trust-linked people"
         case .friendsOfParticipants:
@@ -641,6 +653,8 @@ struct AfterPlan: Identifiable, Equatable {
                 "People already leaving \(contextTitle) can see this while the plan is still live."
             case .inviteOnly:
                 "This only moves through direct share paths, not broad discovery."
+            case .publicMatch:
+                "People who declared this same activity at this same place will see it. No broad discovery."
             case .knownPeople:
                 "This reaches familiar or previously trusted people before anyone else."
             case .friendsOfParticipants:
@@ -659,6 +673,8 @@ struct AfterPlan: Identifiable, Equatable {
             "This should feel like shared activity follow-through, not random local discovery."
         case .inviteOnly:
             "People need a direct handoff to see this plan."
+        case .publicMatch:
+            "Match is exact on activity + venue. Not a city-wide feed."
         case .knownPeople:
             "Known people outrank strangers in this trust model."
         case .friendsOfParticipants:
@@ -758,6 +774,8 @@ struct AfterPlan: Identifiable, Equatable {
             "Start with people from this same context."
         case .inviteOnly:
             "Keep it direct and intentional."
+        case .publicMatch:
+            "Reaches people who declared this activity here."
         case .knownPeople:
             "Favor familiar people over broad outreach."
         case .friendsOfParticipants:
@@ -771,6 +789,8 @@ struct AfterPlan: Identifiable, Equatable {
             "This plan should reach the people already leaving \(contextTitle), not a generic nearby crowd."
         case .inviteOnly:
             "This plan only makes sense if someone already close to the moment passes it along."
+        case .publicMatch:
+            "Match is exact on activity + venue from people's onboarding declarations. No broader local discovery."
         case .knownPeople:
             "A small nudge to familiar people is enough. The goal is easy joining, not recruiting."
         case .friendsOfParticipants:
@@ -801,6 +821,8 @@ struct AfterPlan: Identifiable, Equatable {
             [InviteShareChannel.sameContext, InviteShareChannel.nearbyQR]
         case .inviteOnly:
             [InviteShareChannel.knownPeople, InviteShareChannel.nearbyQR]
+        case .publicMatch:
+            [InviteShareChannel.sameContext, InviteShareChannel.nearbyQR]
         case .knownPeople:
             [InviteShareChannel.knownPeople, InviteShareChannel.sameContext]
         case .friendsOfParticipants:

@@ -213,6 +213,8 @@ struct ContinuationLoop {
         switch plan.visibility {
         case .sameContextOnly:
             score += 12
+        case .publicMatch:
+            score += 11  // Slightly below same-context: declared interest but not in same moment
         case .knownPeople:
             score += 9
         case .inviteOnly:
