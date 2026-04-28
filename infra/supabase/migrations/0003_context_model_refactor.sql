@@ -38,7 +38,7 @@ create table public.activities (
     slug text unique not null check (char_length(slug) between 1 and 32),
     title text not null check (char_length(title) between 1 and 48),
     icon_system_name text not null,
-    parent_activity_id uuid references public.activities(id),
+    parent_activity_id uuid references public.activities(id) on delete set null,
     sort_rank int not null default 100,
     created_at timestamptz not null default now()
 );
@@ -178,6 +178,12 @@ create index trigger_errors_occurred_idx on public.trigger_errors (occurred_at d
 
 alter table public.plans add column activity_id uuid references public.activities(id) on delete set null;
 alter table public.plans add column venue_id uuid references public.venues(id) on delete set null;
+
+-- Drop NOT NULL on context_id: 'public' visibility plans don't have a
+-- pre-existing context (one auto-forms at wrap via maybe_form_auto_context).
+-- 'same_context_only' plans still set this at create time; client-side
+-- validation in CreatePlanDraft enforces the invariant per visibility mode.
+alter table public.plans alter column context_id drop not null;
 
 create index plans_activity_venue_idx on public.plans (activity_id, venue_id, lifecycle);
 
