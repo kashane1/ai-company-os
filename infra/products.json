@@ -18,5 +18,15 @@
     "source_path": "products/after-plans-ios",
     "docs_root": "docs/products/after-plans",
     "phase": "discovery"
+  },
+  {
+    "id": "life-clock",
+    "name": "Life Clock",
+    "slug": "life-clock",
+    "platform": "ios",
+    "repo_id": "life-clock-ios",
+    "source_path": "products/life-clock-ios",
+    "docs_root": "docs/products/life-clock",
+    "phase": "discovery"
   }
 ]
