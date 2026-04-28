@@ -837,6 +837,7 @@ struct UserProfile: Equatable {
     var descriptor: String
     var visibilityDefault: PlanVisibility
     var trustHeadline: String
+    var privacyMode: PrivacyMode = .open
 }
 
 struct InvitePreview: Equatable {
@@ -922,7 +923,7 @@ struct PlanRecommendation: Identifiable, Equatable {
     var dismissedAt: Date?
 }
 
-enum PrivacyMode: String, Equatable, CaseIterable, Identifiable {
+enum PrivacyMode: String, Equatable, CaseIterable, Identifiable, Codable {
     case open
     case strict
 

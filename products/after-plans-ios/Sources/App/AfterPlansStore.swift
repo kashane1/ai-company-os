@@ -136,6 +136,70 @@ final class AfterPlansStore: ObservableObject {
         analyticsService.record(event: "signup_completed")
     }
 
+    // MARK: - Onboarding actions (Phase 4)
+
+    /// Persist the onboarding profile (first name + privacy mode) through
+    /// the identity service. Errors are swallowed for the in-memory shell;
+    /// in the live backend the supabase client surfaces them through its
+    /// own error reporting path.
+    func updateOnboardingProfile(firstName: String, privacyMode: PrivacyMode) async {
+        var updated = currentUser
+        updated.firstName = firstName
+        updated.privacyMode = privacyMode
+        do {
+            let saved = try await backend.identity.updateProfile(updated)
+            self.currentUser = saved
+        } catch {
+            self.currentUser = updated
+        }
+        analyticsService.record(event: "onboarding_profile_set")
+    }
+
+    /// Declare a single activity (and optional venue) interest. Returns
+    /// the matching context_id when the backend already has one for this
+    /// pair, so callers can show "joined X" feedback. The in-memory shell
+    /// always returns nil; only the live backend with auto-context
+    /// formation populates a value.
+    @discardableResult
+    func declareActivityInterest(activityID: UUID, venueID: UUID?) async -> ContextID? {
+        do {
+            let matched = try await backend.activities.declareInterest(activityID: activityID, venueID: venueID)
+            analyticsService.record(event: "onboarding_interest_declared")
+            return matched
+        } catch {
+            return nil
+        }
+    }
+
+    /// Bulk-resolve any interests that already match a real context. Used
+    /// at the end of the activity step to avoid N round-trips. Returns
+    /// the count of newly joined contexts.
+    func autoJoinMatchingContexts() async -> Int {
+        do {
+            return try await backend.activities.autoJoinMatchingContexts()
+        } catch {
+            return 0
+        }
+    }
+
+    /// Resolve an invite code to a plan. Returns true if the code matched
+    /// a real plan; the resolved plan is added to the visible plan set so
+    /// the user lands on Home with it already focused.
+    @discardableResult
+    func redeemInviteCode(_ code: String) async -> Bool {
+        do {
+            let plan = try await backend.invites.resolveInvite(code: code)
+            if !plans.contains(where: { $0.id == plan.id }) {
+                plans.append(plan)
+            }
+            focusedPlanID = plan.id
+            analyticsService.record(event: "onboarding_invite_redeemed")
+            return true
+        } catch {
+            return false
+        }
+    }
+
     func selectContext(_ context: ContextOption) {
         selectedContext = context
         focusedPlanID = continuation.currentContextPlans.first?.id
