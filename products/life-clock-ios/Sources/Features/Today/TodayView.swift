@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(LifeClockStore.self) private var store
+    @State private var quickLogPresented: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -10,13 +11,49 @@ struct TodayView: View {
                     headline
                     clockCard
                     driversCard
+                    quickLogCard
                     questsCard
                     DisclaimerBanner()
                 }
                 .padding(DesignTokens.Spacing.lg)
             }
             .navigationTitle(store.toneMode.todayHeadline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        quickLogPresented = true
+                    } label: {
+                        Label("Quick log", systemImage: "square.and.pencil")
+                    }
+                }
+            }
+            .sheet(isPresented: $quickLogPresented) {
+                QuickLogSheet()
+            }
         }
+    }
+
+    private var quickLogCard: some View {
+        Button {
+            quickLogPresented = true
+        } label: {
+            HStack {
+                Image(systemName: "square.and.pencil")
+                VStack(alignment: .leading) {
+                    Text(store.todayHabits == nil ? "Log today's habits" : "Update today's habits")
+                        .font(.callout.bold())
+                    Text("Alcohol, smoking, diet, stress, strength — 30 seconds.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(.secondary)
+            }
+            .padding(DesignTokens.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        }
+        .buttonStyle(.plain)
     }
 
     private var headline: some View {

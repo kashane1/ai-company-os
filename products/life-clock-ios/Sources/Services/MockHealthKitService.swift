@@ -1,18 +1,40 @@
 import Foundation
 
 /// Deterministic mock backed by a seeded RNG. Same seed → same data.
+///
+/// Conforms to the live protocol shape so the rest of the app does not
+/// branch on which implementation is wired. `requestAuthorization` is a
+/// no-op that just flips the in-memory "asked" flag.
 final class MockHealthKitService: HealthKitServiceProtocol {
-    let isAuthorizationKnown: Bool = false
+    let isHealthDataAvailable: Bool = true
 
     private let seed: UInt64
     private let calendar: Calendar
+    private let simulateNoData: Bool
+    private var authorizedTiers: Set<HealthDataTier> = []
 
-    init(seed: UInt64 = 42, calendar: Calendar = .lifeClockUTC) {
+    init(
+        seed: UInt64 = 42,
+        calendar: Calendar = .lifeClockUTC,
+        simulateNoData: Bool = false,
+        preAuthorize: Bool = true
+    ) {
         self.seed = seed
         self.calendar = calendar
+        self.simulateNoData = simulateNoData
+        if preAuthorize { authorizedTiers.insert(.core) }
+    }
+
+    func requestAuthorization(for tier: HealthDataTier) async throws {
+        authorizedTiers.insert(tier)
+    }
+
+    func authorizationKnown(for tier: HealthDataTier) -> Bool {
+        authorizedTiers.contains(tier)
     }
 
     func dailySnapshot(for date: Date) async -> DailyHealthSnapshot? {
+        guard !simulateNoData else { return nil }
         let dayStart = calendar.startOfDay(for: date)
         var rng = MockHealthKitService.seededGenerator(seed: seed, day: dayStart)
         let snapshot = DailyHealthSnapshot(date: dayStart)

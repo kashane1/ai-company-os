@@ -20,6 +20,9 @@ final class LifeClockStore {
     var weekly: WeeklyReport?
     var hasCompletedOnboarding: Bool = false
     var toneMode: ToneMode = .coach
+    var healthAuthorizationKnown: Bool = false
+    var healthDataAvailable: Bool = true
+    var todayHabits: HabitLog?
 
     @ObservationIgnored private let healthService: HealthKitServiceProtocol
     @ObservationIgnored let clock: EngineClock
@@ -34,6 +37,8 @@ final class LifeClockStore {
         self.clock = engineClock
         self.clockEngine = ClockEngine(clock: engineClock)
         self.questEngine = QuestEngine(clock: engineClock)
+        self.healthAuthorizationKnown = healthService.authorizationKnown(for: .core)
+        self.healthDataAvailable = healthService.isHealthDataAvailable
     }
 
     // MARK: - Bootstrap
@@ -55,24 +60,50 @@ final class LifeClockStore {
             profile = sample
         }
 
-        guard let profile else { return }
+        await refreshFromHealthKit()
+    }
 
+    // MARK: - HealthKit-driven recompute
+
+    /// Re-fetch today's snapshot and weekly snapshots from the service, then
+    /// re-run the engines. Called from bootstrap, after onboarding, after a
+    /// quick-log, and after the user grants Apple Health access.
+    func refreshFromHealthKit() async {
+        guard let profile else { return }
         let now = clock.now()
         let snapshot = await healthService.dailySnapshot(for: now)
 
         let baseline = clockEngine.calculateBaseline(profile: profile)
         if let snapshot {
-            let result = clockEngine.calculateDailyDelta(snapshot: snapshot, habits: nil, profile: profile)
+            let result = clockEngine.calculateDailyDelta(snapshot: snapshot, habits: todayHabits, profile: profile)
             baseline.dailyTimeDeltaMinutes = result.deltaMinutes
             baseline.confidenceRaw = result.confidence.rawValue
             todayDrivers = result.drivers
             ledger = result.drivers.sorted { $0.deltaMinutes > $1.deltaMinutes }
+        } else {
+            todayDrivers = []
         }
         todayEstimate = baseline
-        todayQuests = questEngine.generateDailyQuests(profile: profile, snapshot: snapshot, habits: nil)
+        todayQuests = questEngine.generateDailyQuests(profile: profile, snapshot: snapshot, habits: todayHabits)
 
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
         weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: [], profile: profile)
+    }
+
+    // MARK: - HealthKit authorization
+
+    func requestHealthAuthorization() async {
+        guard healthDataAvailable else { return }
+        do {
+            try await healthService.requestAuthorization(for: .core)
+            healthAuthorizationKnown = true
+            await refreshFromHealthKit()
+        } catch {
+            // Authorization denial is silent on iOS for read scopes — there
+            // is no error to inspect. We still mark "asked" so Profile shows
+            // the right copy.
+            healthAuthorizationKnown = healthService.authorizationKnown(for: .core)
+        }
     }
 
     // MARK: - Mutations driven by the UI
@@ -115,5 +146,12 @@ final class LifeClockStore {
     func resetForOnboarding() {
         profile = nil
         hasCompletedOnboarding = false
+    }
+
+    /// Manually-logged habits for today. Triggers an engine re-run so the
+    /// time delta and quest list reflect the new state.
+    func setTodayHabits(_ habits: HabitLog) async {
+        todayHabits = habits
+        await refreshFromHealthKit()
     }
 }

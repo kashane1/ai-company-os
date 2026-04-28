@@ -22,6 +22,9 @@ targets:
         UILaunchScreen:
           UIColorName: LaunchBackground
         UIApplicationSupportsIndirectInputEvents: YES
+        NSHealthShareUsageDescription: "Life Clock reads your steps, sleep, exercise, and resting heart rate from Apple Health to estimate how today's habits move your time trajectory. Your data stays on your device."
+    entitlements:
+      path: LifeClock.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.lifeclock
@@ -31,6 +34,7 @@ targets:
         DEVELOPMENT_ASSET_PATHS: "\"\""
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_ENTITLEMENTS: LifeClock.entitlements
     scheme:
       gatherCoverageData: true
       coverageTargets:

@@ -15,6 +15,7 @@ struct OnboardingView: View {
     @State private var strengthFrequency: Int = 2
     @State private var toneMode: ToneMode = .coach
     @State private var disclaimerAccepted: Bool = false
+    @State private var permissionRequestInFlight: Bool = false
 
     private let totalSteps = 6
 
@@ -128,11 +129,36 @@ struct OnboardingView: View {
 
     private var permissionEducationScreen: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-            Text("Apple Health (later)").font(.title2.bold())
-            Text("Live Apple Health reads land in a follow-up update. For now, the app uses sample data so you can see the loop.")
+            Text("Connect Apple Health").font(.title2.bold())
+            Text("Life Clock reads steps, sleep, exercise minutes, and resting heart rate. We don't read everything — only the signals that move your time delta.")
                 .foregroundStyle(.secondary)
-            Text("When live, the app will request the minimum data it needs and explain each prompt. Missing data never fakes precision — it lowers confidence.")
+            Text("Apple controls the prompt. You can grant or deny each data type separately, and you can change your mind later in iOS Settings → Health.")
                 .foregroundStyle(.secondary)
+            HStack {
+                if permissionRequestInFlight {
+                    ProgressView()
+                }
+                Button(store.healthAuthorizationKnown ? "Re-prompt Apple Health" : "Connect Apple Health") {
+                    requestHealthAuthorization()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(permissionRequestInFlight)
+
+                if store.healthAuthorizationKnown {
+                    Text("Asked").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Text("You can skip this and connect later from Profile.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func requestHealthAuthorization() {
+        permissionRequestInFlight = true
+        Task {
+            await store.requestHealthAuthorization()
+            permissionRequestInFlight = false
         }
     }
 

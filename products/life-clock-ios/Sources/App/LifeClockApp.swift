@@ -1,8 +1,9 @@
 import SwiftUI
 
 @main
+@MainActor
 struct LifeClockApp: App {
-    @State private var store = LifeClockStore()
+    @State private var store = LifeClockStore(healthService: HealthKitConfiguration.service())
 
     var body: some Scene {
         WindowGroup {

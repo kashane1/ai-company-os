@@ -20,6 +20,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Life Clock reads your steps, sleep, exercise, and resting heart rate from Apple Health to estimate how today's habits move your time trajectory. Your data stays on your device.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

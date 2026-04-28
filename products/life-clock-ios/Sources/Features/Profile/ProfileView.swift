@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(LifeClockStore.self) private var store
+    @State private var requestingAuth: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -20,19 +21,38 @@ struct ProfileView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Section("Connected data") {
-                    dataRow(name: "Apple Health — steps", status: "Not configured")
-                    dataRow(name: "Apple Health — sleep", status: "Not configured")
-                    dataRow(name: "Apple Health — heart rate", status: "Not configured")
-                    Text("Live Apple Health reads land in a follow-up update. The current build uses sample data.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                Section("Apple Health") {
+                    if !store.healthDataAvailable {
+                        Text("Apple Health is not available on this device.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else if !store.healthAuthorizationKnown {
+                        Button {
+                            connectAppleHealth()
+                        } label: {
+                            HStack {
+                                Text("Connect Apple Health")
+                                if requestingAuth { ProgressView() }
+                            }
+                        }
+                        .disabled(requestingAuth)
+                        Text("Life Clock asks for steps, sleep, exercise minutes, and resting heart rate. You control which data types are shared.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        dataRow(name: "Steps", status: status(for: store.todayDrivers.contains { $0.driverType == "movement" }))
+                        dataRow(name: "Sleep", status: status(for: store.todayDrivers.contains { $0.driverType == "sleep" }))
+                        dataRow(name: "Exercise minutes", status: status(for: store.todayDrivers.contains { $0.driverType == "exercise" }))
+                        Text("If a row reads \"No data\", open iOS Settings → Health → Data Access & Devices → Life Clock to review what's shared.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Section("Privacy") {
-                    Button("Export data") { /* placeholder */ }
-                    Button("Delete data") { /* placeholder */ }
-                    Button("Restore purchases") { /* placeholder */ }
+                    Button("Export data") { /* placeholder — lands with persistence plan */ }
+                    Button("Delete data") { /* placeholder — lands with persistence plan */ }
+                    Button("Restore purchases") { /* placeholder — lands with paywall plan */ }
                 }
 
                 Section("About") {
@@ -60,6 +80,19 @@ struct ProfileView: View {
             Text(name).font(.callout)
             Spacer()
             Text(status).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func status(for hasData: Bool) -> String {
+        // Honest: we don't know "denied" vs "no data" for read scopes.
+        hasData ? "Available" : "No data"
+    }
+
+    private func connectAppleHealth() {
+        requestingAuth = true
+        Task {
+            await store.requestHealthAuthorization()
+            requestingAuth = false
         }
     }
 }
