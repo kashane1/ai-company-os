@@ -6,6 +6,10 @@ struct PlanAffinity: Equatable {
     let hasPriorContextHistory: Bool
     let pastPartnerCount: Int
     let hostMemory: String?
+    /// Server-supplied closeness score (Phase 6/7). Higher = closer to
+    /// the host. Only populated when `publicFeedPlans` are loaded via
+    /// the closeness_scores RPC; nil for the default ranking path.
+    var closenessScore: Int? = nil
 
     var badges: [String] {
         var result: [String] = []
@@ -195,6 +199,12 @@ struct ContinuationLoop {
 
         if affinity?.isInSelectedContext == true {
             score += 100
+        }
+
+        // Closeness scores from the server-side RPC dominate the public-
+        // match ranking; absent (nil) defers to the existing factor mix.
+        if let closeness = affinity?.closenessScore {
+            score += closeness * 10
         }
 
         switch plan.lifecycle {

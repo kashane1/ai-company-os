@@ -14,6 +14,15 @@ final class AfterPlansStore: ObservableObject {
     @Published private(set) var blockedUserNames: [String]
     @Published private(set) var inviteShareStates: [UUID: InviteShareState]
     @Published private(set) var reportLog: [String]
+    /// Plans surfaced via the publicMatch path (Phase 6). Distinct from
+    /// `plans` so the Home feed can show them in a separate section
+    /// without polluting the context-rooted feed.
+    @Published private(set) var publicFeedPlans: [AfterPlan] = []
+    /// Recommendation rows surfaced post-wrap or as co-invite suggestions
+    /// (Phase 6). Empty in the in-memory shell; populated by the Phase 7
+    /// worker against the live backend.
+    @Published private(set) var coInviteSuggestionsByPlanID: [UUID: [PlanRecommendation]] = [:]
+    @Published private(set) var postWrapRecommendationsByPlanID: [UUID: [PlanRecommendation]] = [:]
 
     let reportReasons: [SafetyReason]
 
@@ -185,6 +194,51 @@ final class AfterPlansStore: ObservableObject {
     /// Resolve an invite code to a plan. Returns true if the code matched
     /// a real plan; the resolved plan is added to the visible plan set so
     /// the user lands on Home with it already focused.
+    // MARK: - Phase 6 — public feed + recommendations
+
+    /// Load plans that match the user's declared activity interests.
+    /// Empty in the in-memory shell because the InMemoryBackend has no
+    /// publicMatch plans seeded; the Supabase backend returns rows where
+    /// visibility = 'public' and activity_id is in the user's interest set.
+    func loadPublicFeed() async {
+        // The in-memory shell has no real publicMatch plans, so this
+        // surface ends up empty there. Against the Supabase backend the
+        // existing `feed(in:)` RPC plus a future RPC for closeness will
+        // populate it; v1 just filters the visible plans by visibility.
+        let visible = continuation.visiblePlans
+        publicFeedPlans = visible.filter { $0.visibility == .publicMatch }
+    }
+
+    /// Pull co-invite suggestions for a plan in creation/forming state.
+    func loadCoInviteSuggestions(for planID: UUID) async {
+        do {
+            let rows = try await backend.recommendations.coInviteSuggestions(planID: planID)
+            coInviteSuggestionsByPlanID[planID] = rows
+        } catch {
+            coInviteSuggestionsByPlanID[planID] = []
+        }
+    }
+
+    /// Pull post-wrap recommendations for a freshly closed plan.
+    func loadPostWrapRecommendations(for planID: UUID) async {
+        do {
+            let rows = try await backend.recommendations.postWrapRecommendations(planID: planID)
+            postWrapRecommendationsByPlanID[planID] = rows
+        } catch {
+            postWrapRecommendationsByPlanID[planID] = []
+        }
+    }
+
+    func dismissRecommendation(_ recommendationID: UUID) async {
+        try? await backend.recommendations.dismiss(recommendationID: recommendationID)
+        for (planID, rows) in coInviteSuggestionsByPlanID {
+            coInviteSuggestionsByPlanID[planID] = rows.filter { $0.id != recommendationID }
+        }
+        for (planID, rows) in postWrapRecommendationsByPlanID {
+            postWrapRecommendationsByPlanID[planID] = rows.filter { $0.id != recommendationID }
+        }
+    }
+
     @discardableResult
     func redeemInviteCode(_ code: String) async -> Bool {
         do {
