@@ -25,6 +25,10 @@ This policy describes what data the app handles, why, and how. It is written to 
 - Place suggestions you contribute to a plan.
 - Reports you file: the report reason and an optional note.
 - Records of which plans you have joined or expressed interest in.
+- Activity and venue declarations from onboarding (e.g. "basketball at Westside Court"). Venues are addresses we look up via Apple's MKLocalSearch when you type a place name; we never read your location to do this. Freeform venues you type that don't match a real address are stored as plain text only.
+- Push notification tokens for the device you use, so we can deliver
+  in-app notifications about plans you joined, contexts you're part of,
+  and follow-ups after you wrap a plan.
 
 **Things you do not give us**
 

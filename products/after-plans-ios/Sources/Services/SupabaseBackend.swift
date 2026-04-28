@@ -45,7 +45,7 @@ private struct ContextRow: Codable {
 
 private struct PlanRow: Codable {
     let id: UUID
-    let contextId: UUID
+    let contextId: UUID?
     let hostId: UUID
     let title: String
     let summary: String?

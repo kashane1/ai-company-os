@@ -137,4 +137,59 @@ final class SupabaseBackendIntegrationTests: XCTestCase {
         let postWrap = try await backend.recommendations.postWrapRecommendations(planID: UUID())
         XCTAssertTrue(postWrap.isEmpty)
     }
+
+    // Phase 8 — comprehensive end-to-end exercise of the publicMatch
+    // flow against the live local stack. Single-user (the integration
+    // test only carries one anonymous session); multi-user race
+    // semantics are validated by the worker integration test in Phase 7.
+    func testPublicMatchPlanLifecycleAndDeclaredInterests() async throws {
+        let backend = try await makeBackend()
+        _ = try await backend.identity.currentUser()
+
+        // 1. Declare interest in an activity.
+        let activities = try await backend.activities.listActivities()
+        let target = try XCTUnwrap(activities.first { $0.parentActivityID != nil })
+        _ = try await backend.activities.declareInterest(activityID: target.id, venueID: nil)
+
+        // 2. Materialize a freeform venue.
+        let venue = Venue(
+            id: UUID(),
+            name: "E2E Test Court",
+            address: "100 Test Lane",
+            latitude: nil, longitude: nil,
+            applePlaceID: nil,
+            isFreeform: true,
+            verified: false
+        )
+        let storedVenue = try await backend.venues.upsertVenue(venue)
+
+        // 3. Create a publicMatch plan referencing the activity + venue.
+        let contexts = try await backend.contexts.suggestedContexts()
+        let routingContext = try XCTUnwrap(contexts.first)
+        let draft = CreatePlanDraft(
+            mode: .defaultOption,
+            title: "E2E publicMatch",
+            summary: "Spawned by Phase 8 e2e test",
+            venueHint: storedVenue.name,
+            timeHint: "Now",
+            visibility: .publicMatch,
+            activityID: target.id,
+            venueID: storedVenue.id
+        )
+        let plan = try await backend.plans.createPlan(from: draft, in: routingContext.id)
+        XCTAssertEqual(plan.visibility, .publicMatch)
+        XCTAssertEqual(plan.lifecycle, .open)
+
+        // 4. Walk the lifecycle: confirm → active → wrap.
+        _ = try await backend.plans.confirm(planID: plan.id)
+        _ = try await backend.plans.markActive(planID: plan.id)
+        let wrapped = try await backend.plans.wrap(planID: plan.id)
+        XCTAssertEqual(wrapped.lifecycle, .closed)
+
+        // 5. Auto-context formation is asynchronous (Phase 7 worker).
+        // Without invoking the worker, this test asserts only the wrap
+        // transaction itself is fast and consistent. The
+        // context_formation_jobs row was enqueued by the trigger in
+        // 0003 and will be processed by the worker on its 30s schedule.
+    }
 }
