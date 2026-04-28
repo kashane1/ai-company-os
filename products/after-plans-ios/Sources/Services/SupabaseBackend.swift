@@ -656,13 +656,27 @@ struct SupabaseActivityService: ActivityServiceProtocol {
 
     func declareInterest(activityID: UUID, venueID: UUID?) async throws -> ContextID? {
         let session = try await client.auth.session
-        try await client.from("user_activity_interests").upsert(
-            UserActivityInterestInsert(
-                user_id: session.user.id,
-                activity_id: activityID,
-                venue_id: venueID,
-            )
-        ).execute()
+        // Two partial unique indexes (venue_id null vs not-null) prevent
+        // a straight upsert through PostgREST — partial indexes can't be
+        // named as ON CONFLICT targets without the WHERE clause that
+        // PostgREST doesn't expose. Select-then-insert keeps idempotency.
+        var existsQuery = client.from("user_activity_interests")
+            .select("user_id", head: true, count: .exact)
+            .eq("user_id", value: session.user.id)
+            .eq("activity_id", value: activityID)
+        existsQuery = venueID == nil
+            ? existsQuery.is("venue_id", value: nil)
+            : existsQuery.eq("venue_id", value: venueID!)
+        let existing = try await existsQuery.execute()
+        if (existing.count ?? 0) == 0 {
+            try await client.from("user_activity_interests").insert(
+                UserActivityInterestInsert(
+                    user_id: session.user.id,
+                    activity_id: activityID,
+                    venue_id: venueID,
+                )
+            ).execute()
+        }
         // The Phase 7 worker handles auto-context formation. We don't
         // synchronously query whether a context already exists for this
         // (activity, venue) — the iOS adapter falls back to the

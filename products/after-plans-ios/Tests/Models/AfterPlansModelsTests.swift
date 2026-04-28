@@ -5,9 +5,10 @@ final class AfterPlansModelsTests: XCTestCase {
     func testLaunchVisibilityModesStayBounded() {
         XCTAssertEqual(
             PlanVisibility.launchModes,
-            [.sameContextOnly, .inviteOnly, .knownPeople]
+            [.sameContextOnly, .publicMatch, .inviteOnly]
         )
         XCTAssertFalse(PlanVisibility.launchModes.contains(.friendsOfParticipants))
+        XCTAssertFalse(PlanVisibility.launchModes.contains(.knownPeople))
     }
 
     func testLifecycleStatesExposeClearConfirmationRoomAvailability() {
