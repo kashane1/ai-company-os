@@ -1,9 +1,26 @@
 import SwiftUI
+import SwiftData
 
 @main
 @MainActor
 struct LifeClockApp: App {
-    @State private var store = LifeClockStore(healthService: HealthKitConfiguration.service())
+    let container: ModelContainer
+    @State private var store: LifeClockStore
+
+    init() {
+        let container: ModelContainer
+        do {
+            container = try LifeClockContainer.make()
+        } catch {
+            fatalError("ModelContainer init failed: \(error)")
+        }
+        self.container = container
+        let store = LifeClockStore(
+            healthService: HealthKitConfiguration.service(),
+            modelContext: container.mainContext
+        )
+        _store = State(wrappedValue: store)
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -11,17 +28,18 @@ struct LifeClockApp: App {
                 .environment(store)
                 .task { await store.bootstrap() }
         }
+        .modelContainer(container)
     }
 }
 
 struct RootView: View {
-    @Environment(LifeClockStore.self) private var store
+    @Query private var profiles: [UserProfile]
 
     var body: some View {
-        if store.hasCompletedOnboarding {
-            MainTabView()
-        } else {
+        if profiles.isEmpty {
             OnboardingView()
+        } else {
+            MainTabView()
         }
     }
 }

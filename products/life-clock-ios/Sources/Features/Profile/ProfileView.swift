@@ -54,8 +54,10 @@ struct ProfileView: View {
                 }
 
                 Section("Privacy") {
-                    Button("Export data") { /* placeholder — lands with persistence plan */ }
-                    Button("Delete data") { /* placeholder — lands with persistence plan */ }
+                    Button("Export data") { /* placeholder — separate plan */ }
+                    Button("Delete all data", role: .destructive) {
+                        store.resetForOnboarding()
+                    }
                     Button("Restore purchases") { /* placeholder — lands with paywall plan */ }
                 }
 
