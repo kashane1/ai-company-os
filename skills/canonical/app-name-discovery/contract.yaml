@@ -1,0 +1,16 @@
+inputs:
+  - name: product_id
+    type: string
+outputs:
+  - name: candidates_path
+    type: string
+  - name: shortlist_count
+    type: int
+  - name: total_candidates
+    type: int
+  - name: discarded_count
+    type: int
+  - name: archetype_count
+    type: int
+  - name: register_count
+    type: int

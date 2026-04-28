@@ -351,6 +351,26 @@ skills:
       claude: adapters/claude/niche-research-brief.md
     project_skill: .claude/skills/niche-research-brief.md
 
+  - id: app-name-discovery
+    name: App Name Discovery
+    path: canonical/app-name-discovery/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Contract-freeze fixture at
+    # skills/canonical/app-name-discovery/fixtures/happy_path.yaml
+    # exercised by tests/python/unit/test_app_name_discovery_fixtures.py.
+    # Asserts required input/output fields, the canonical 8-section
+    # body shape, forbidden-area declarations, and explicit references
+    # to the three hard gates and the archetype-spread rule.
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/app-name-discovery.md
+    project_skill: .claude/skills/app-name-discovery.md
+
   - id: gtm-artifact-refresh
     name: GTM Artifact Refresh
     path: canonical/gtm-artifact-refresh/skill.md
