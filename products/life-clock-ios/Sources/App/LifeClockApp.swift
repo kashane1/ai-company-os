@@ -6,6 +6,7 @@ import SwiftData
 struct LifeClockApp: App {
     let container: ModelContainer
     @State private var store: LifeClockStore
+    @State private var subscriptions = SubscriptionStore()
 
     init() {
         let container: ModelContainer
@@ -26,7 +27,12 @@ struct LifeClockApp: App {
         WindowGroup {
             RootView()
                 .environment(store)
-                .task { await store.bootstrap() }
+                .environment(subscriptions)
+                .task {
+                    await store.bootstrap()
+                    await subscriptions.loadProducts()
+                    await subscriptions.refreshEntitlements()
+                }
         }
         .modelContainer(container)
     }

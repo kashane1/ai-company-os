@@ -46,6 +46,8 @@ targets:
     platform: iOS
     sources:
       - path: Tests
+      - path: Sources/Services/Products.storekit
+        buildPhase: resources
     dependencies:
       - target: LifeClock
     settings:

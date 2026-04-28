@@ -2,6 +2,8 @@ import SwiftUI
 
 struct WeeklyReportView: View {
     @Environment(LifeClockStore.self) private var store
+    @Environment(SubscriptionStore.self) private var subscriptions
+    @State private var paywallPresented: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -9,8 +11,12 @@ struct WeeklyReportView: View {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                     if let report = store.weekly {
                         netCard(report)
-                        driversCard(report)
-                        leverCard(report)
+                        if subscriptions.isPro {
+                            driversCard(report)
+                            leverCard(report)
+                        } else {
+                            paywallTeaser
+                        }
                     } else {
                         Text("Weekly report will appear after a week of data.")
                             .foregroundStyle(.secondary)
@@ -20,7 +26,34 @@ struct WeeklyReportView: View {
                 .padding(DesignTokens.Spacing.lg)
             }
             .navigationTitle("Weekly")
+            .sheet(isPresented: $paywallPresented) {
+                PaywallSheet()
+            }
         }
+    }
+
+    /// Free users see the net delta — the emotional hook stays free per
+    /// MONETIZATION.md ("clock is the activation hook, weekly report is the
+    /// retention hook"). Drivers + lever sit behind Pro.
+    private var paywallTeaser: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+            Text("See what moved your clock")
+                .font(.headline)
+            Text("Pro unlocks the full weekly breakdown — top drivers, biggest drag, and your next best lever.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Button {
+                paywallPresented = true
+            } label: {
+                Text("See full week")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DesignTokens.Spacing.xs)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(DesignTokens.Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
     }
 
     private func netCard(_ report: WeeklyReport) -> some View {

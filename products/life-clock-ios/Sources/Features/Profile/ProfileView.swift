@@ -2,7 +2,10 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(LifeClockStore.self) private var store
+    @Environment(SubscriptionStore.self) private var subscriptions
     @State private var requestingAuth: Bool = false
+    @State private var restoring: Bool = false
+    @State private var paywallPresented: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -53,12 +56,35 @@ struct ProfileView: View {
                     }
                 }
 
+                Section("Subscription") {
+                    if subscriptions.isPro {
+                        HStack {
+                            Image(systemName: "checkmark.seal.fill").foregroundStyle(.tint)
+                            Text("Life Clock Pro")
+                            Spacer()
+                            Text("Active").foregroundStyle(.secondary).font(.caption)
+                        }
+                    } else {
+                        Button("Upgrade to Pro") {
+                            paywallPresented = true
+                        }
+                    }
+                    Button {
+                        restorePurchases()
+                    } label: {
+                        HStack {
+                            Text("Restore purchases")
+                            if restoring { ProgressView() }
+                        }
+                    }
+                    .disabled(restoring)
+                }
+
                 Section("Privacy") {
                     Button("Export data") { /* placeholder — separate plan */ }
                     Button("Delete all data", role: .destructive) {
                         store.resetForOnboarding()
                     }
-                    Button("Restore purchases") { /* placeholder — lands with paywall plan */ }
                 }
 
                 Section("About") {
@@ -78,6 +104,17 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+            .sheet(isPresented: $paywallPresented) {
+                PaywallSheet()
+            }
+        }
+    }
+
+    private func restorePurchases() {
+        restoring = true
+        Task {
+            await subscriptions.restore()
+            restoring = false
         }
     }
 
