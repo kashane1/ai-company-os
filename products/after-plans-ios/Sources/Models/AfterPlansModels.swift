@@ -868,3 +868,79 @@ struct ShareablePayload: Equatable {
     var text: String
     var qrString: String
 }
+
+// MARK: - Activity, Venue, Interest, Recommendation (Phase 2b)
+//
+// Added for the context-model refactor. Source of truth for backend
+// contract: docs/products/after-plans/api/CONTRACT.md (extended in
+// Phase 2 with these types).
+
+struct Activity: Identifiable, Equatable {
+    let id: UUID
+    var slug: String
+    var title: String
+    var iconSystemName: String
+    var parentActivityID: UUID?  // recommendations only — never visibility
+    var sortRank: Int
+}
+
+struct Venue: Identifiable, Equatable {
+    let id: UUID
+    var name: String
+    var address: String?
+    var latitude: Double?
+    var longitude: Double?
+    var applePlaceID: String?
+    var isFreeform: Bool
+    var verified: Bool
+
+    var hasGeocoding: Bool { applePlaceID != nil || (latitude != nil && longitude != nil) }
+}
+
+struct UserActivityInterest: Equatable, Hashable {
+    let userID: UUID
+    let activityID: UUID
+    let venueID: UUID?
+    var declaredAt: Date
+}
+
+enum RecommendationKind: String, Equatable {
+    case didYouKnow = "did_you_know"
+    case coInvite = "co_invite"
+    case friendsFrequent = "friends_frequent"
+}
+
+struct PlanRecommendation: Identifiable, Equatable {
+    let id: UUID
+    let recipientID: UUID
+    let planID: UUID?
+    let activityID: UUID?
+    let venueID: UUID?
+    var kind: RecommendationKind
+    var reason: String?
+    var createdAt: Date
+    var dismissedAt: Date?
+}
+
+enum PrivacyMode: String, Equatable, CaseIterable, Identifiable {
+    case open
+    case strict
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .open: "Open"
+        case .strict: "Strict"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .open:
+            "Anyone in your shared contexts can see and invite you."
+        case .strict:
+            "Only people you've already planned with can reach you."
+        }
+    }
+}
