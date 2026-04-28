@@ -25,9 +25,6 @@ Inputs:
 
 - `product_id`: string — product identifier matching a directory under
   `docs/products/`.
-- `weight_overrides`: map or null — optional per-run override of rubric
-  dimension weights. Keys must be valid dimension ids; values are positive
-  floats. Null means use canonical defaults.
 
 Outputs:
 
@@ -37,6 +34,8 @@ Outputs:
 - `total_candidates`: int — count of candidates that survived the hard gates
   and entered the matrix (≤ 192).
 - `discarded_count`: int — count auto-rejected by hard gates.
+- `archetype_count`: int — always 6 in this version.
+- `register_count`: int — always 4 in this version.
 
 ## Allowed edit boundaries
 
@@ -156,9 +155,7 @@ proceed without it.
     | `cross_language_safety` | 1.0 | Already a hard gate at 1; otherwise just a score. |
     | `app_store_fitness` | 1.5 | 30-char display limit (~12 before truncation), ASO discoverability vs. keyword-stuffing rejection risk, phonetic uniqueness for Siri / voice search, icon coherence at 60pt wordmark. |
 
-12. **Compute total** as the weighted sum: `Σ (score_i × weight_i)`. If
-    `weight_overrides` was provided, use the overridden weights and record
-    them in the output header.
+12. **Compute total** as the weighted sum: `Σ (score_i × weight_i)`.
 
 ### Phase 5 — Build the shortlist with the spread rule
 
@@ -182,9 +179,8 @@ proceed without it.
     using the structure in `output-template.md`. The output must include:
 
     - YAML front-matter: `product_id`, `generated_at`, `founder_pack_git_sha`,
-      `founder_pack_path`, optional `dirty: true`, `rubric_weights` (only
-      if overridden), `archetype_count`, `register_count`,
-      `total_candidates`, `discarded_count`.
+      `founder_pack_path`, optional `dirty: true`, `archetype_count` (6),
+      `register_count` (4), `total_candidates`, `discarded_count`.
     - **Naming brief** synthesized in Phase 1 (one paragraph).
     - **Shortlist (5)** — table of name / archetype / register / total /
       `needs_verification` / per-dimension score breakdown / one-line
@@ -196,17 +192,10 @@ proceed without it.
 
 ### Phase 7 — Validate
 
-18. Confirm the output file exists and is non-empty.
-19. Confirm the front-matter has `product_id`, `generated_at`,
-    `founder_pack_git_sha`, `founder_pack_path`, `total_candidates`,
-    `discarded_count`.
-20. Confirm the shortlist has exactly 5 entries.
-21. Confirm the shortlist spans at least 3 distinct archetypes.
-22. Confirm every shortlist entry has `needs_verification: true`.
-23. Confirm the matrix has 24 cells (4 registers × 6 archetypes).
-24. Confirm no candidate appears in both the matrix and the Discarded list.
-25. Confirm `total_candidates + discarded_count` equals the total candidates
-    generated in Phase 2 (one accounting check).
+18. Shortlist has exactly 5 entries.
+19. Shortlist spans at least 3 distinct archetypes.
+20. Matrix has 24 cells (4 registers × 6 archetypes).
+21. Every shortlist entry has `needs_verification: true`.
 
 ## Failure modes
 
@@ -219,8 +208,8 @@ proceed without it.
   generation collapsed. Report as a generation-quality failure and ask the
   caller to re-run with broader prompting.
 - **Founder-pack git SHA capture fails** (e.g. dir is not in a git repo) —
-  fall back to a content hash of the four required files and set
-  `git_sha: null`, `content_hash: <sha256>` in the front-matter.
+  abort with a clear error. The skill assumes the product directory lives
+  in a git tree; reproducibility metadata depends on it.
 
 ## Non-goals
 

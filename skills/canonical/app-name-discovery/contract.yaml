@@ -1,9 +1,6 @@
 inputs:
   - name: product_id
     type: string
-  - name: weight_overrides
-    type: map_or_null
-    default: null
 outputs:
   - name: candidates_path
     type: string
@@ -12,4 +9,8 @@ outputs:
   - name: total_candidates
     type: int
   - name: discarded_count
+    type: int
+  - name: archetype_count
+    type: int
+  - name: register_count
     type: int

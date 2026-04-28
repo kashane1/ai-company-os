@@ -1,13 +1,9 @@
 ---
 product_id: <product_id>
 generated_at: YYYY-MM-DD
-founder_pack_git_sha: <git_sha_or_null>
+founder_pack_git_sha: <git_sha>
 founder_pack_path: docs/products/<product_id>
 # dirty: true                  # uncomment if the product dir had uncommitted changes
-# content_hash: <sha256>        # only when git_sha is null
-# rubric_weights:               # only when weight_overrides was passed
-#   memorability: 1.5
-#   ...
 register_count: 4
 archetype_count: 6
 total_candidates: <int>

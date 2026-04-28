@@ -15,12 +15,13 @@
   expected:
     required_input_fields:
       - "`product_id`"
-      - "`weight_overrides`"
     required_output_fields:
       - "`candidates_path`"
       - "`shortlist_count`"
       - "`total_candidates`"
       - "`discarded_count`"
+      - "`archetype_count`"
+      - "`register_count`"
     required_section_headings:
       - "## Purpose"
       - "## Contract"
