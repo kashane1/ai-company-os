@@ -1,0 +1,43 @@
+# Contract-freeze fixture for app-name-discovery.
+#
+# Skill is kind: agentic — the work is LLM-driven, so there is no replay
+# test. This fixture freezes the contract surface (required input/output
+# fields, required section headings, forbidden-area declarations, and
+# explicit references to the hard gates and shortlist spread rule) so any
+# future edit that weakens the contract fails CI.
+#
+# See tests/python/unit/test_app_name_discovery_fixtures.py.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/app-name-discovery/skill.md
+  expected:
+    required_input_fields:
+      - "`product_id`"
+      - "`weight_overrides`"
+    required_output_fields:
+      - "`candidates_path`"
+      - "`shortlist_count`"
+      - "`total_candidates`"
+      - "`discarded_count`"
+    required_section_headings:
+      - "## Purpose"
+      - "## Contract"
+      - "## Allowed edit boundaries"
+      - "## Forbidden areas"
+      - "## Dependencies"
+      - "## Instructions"
+      - "## Failure modes"
+      - "## Non-goals"
+    required_forbidden_areas:
+      - "`apps/`"
+      - "`packages/`"
+      - "`infra/`"
+      - "`state/`"
+      - "`products/`"
+    required_hard_gate_references:
+      - "Cross-language safety hard gate"
+      - "App Store exact-match collision hard gate"
+      - "Trademark hard gate (conditional)"
+      - "archetype-spread rule"

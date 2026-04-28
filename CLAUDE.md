@@ -60,6 +60,7 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **ios-to-appstore-handoff** — prepare handoff from iOS build to App Store release
 - **supervisor-goal-decomposition** — decompose founder goals into structured worker tasks
 - **app-store-positioning-pack** — generate App Store positioning outputs from product artifacts
+- **app-name-discovery** — generate a 4×6 register×archetype matrix of candidate app names from the founder pack, with hard gates and an archetype-spread shortlist of 5
 - **niche-research-brief** — research a product niche and produce a scored, classified research brief with persistent memory
 - **gtm-artifact-refresh** — consume a research brief and refresh all GTM artifacts with archetype mix balance
 - **content-factory** — generate finished slide images from authored backlog items (Gemini backgrounds + Pillow text overlay)
@@ -91,6 +92,7 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "review the iOS code" / "polish review" → `skills/adapters/claude/ios-ui-polish-review.md`
 - "prep the app store handoff" / "cut a release" → `skills/adapters/claude/ios-to-appstore-handoff.md`
 - "generate app store copy" / "positioning pack" → `skills/adapters/claude/app-store-positioning-pack.md`
+- "find a name for this app" / "name this product" / "run name discovery" / "explore app names" → `skills/adapters/claude/app-name-discovery.md`
 - "research the niche" / "run niche research" / "research this audience" / "build a research brief" / "what does this audience care about" → `skills/adapters/claude/niche-research-brief.md`
 - "refresh the GTM artifacts" / "update the content backlog" / "propagate the research" / "refresh content from brief" / "balance the content mix" → `skills/adapters/claude/gtm-artifact-refresh.md`
 - "create content" / "generate slides" / "make posts" / "run the content factory" / "generate images for the backlog" → `skills/adapters/claude/content-factory.md`

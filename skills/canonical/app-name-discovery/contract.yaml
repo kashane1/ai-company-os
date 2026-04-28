@@ -1,0 +1,15 @@
+inputs:
+  - name: product_id
+    type: string
+  - name: weight_overrides
+    type: map_or_null
+    default: null
+outputs:
+  - name: candidates_path
+    type: string
+  - name: shortlist_count
+    type: int
+  - name: total_candidates
+    type: int
+  - name: discarded_count
+    type: int
