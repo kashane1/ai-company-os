@@ -103,8 +103,9 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "run the verification loop" / "pre-PR sweep" / "check if this is ready to merge" / "run all the quality gates" → `skills/adapters/claude/verification-loop.md`
 - "check stale postmortems" / "audit operator hygiene" / "run the runtime verification loop" → `skills/canonical/verification-loop-runtime/skill.md`
 - "build the iOS app" / "sign the build" / "archive and sign" / "produce a TestFlight-ready binary" → `skills/adapters/claude/ios-build-and-sign.md`
-- "review this approval request" / "audit the approval flow" / "is this approval well-formed" → `skills/adapters/claude/approval-flow-review.md`
-- "audit test coverage" / "do my changes meet the coverage bar" / "what tests should I add" → `skills/adapters/claude/test-coverage-audit.md`
+<!-- approval-flow-review and test-coverage-audit trigger phrases deferred until each skill activates (stage: active in registry). Adding them now would route users to frozen no-op contracts. -->
+
+
 
 Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 
