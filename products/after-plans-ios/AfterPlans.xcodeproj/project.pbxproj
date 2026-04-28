@@ -16,6 +16,7 @@
 		2B82630048F3D88893D772C4 /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC28F038AE7E325CA3522EB6 /* ServiceProtocols.swift */; };
 		2C7CEB353745048BF973D656 /* InMemoryBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63950949EA208C8E3391B2BA /* InMemoryBackendTests.swift */; };
 		2FC77CAB214BC85F204A7632 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0046A198B2A3A9950198CFEB /* Assets.xcassets */; };
+		30BC5E60098ED20E367F20CA /* ActivityTaxonomy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289008CD383C55AFAFDA1C83 /* ActivityTaxonomy.swift */; };
 		31034B64FEAD30659CE5B214 /* PlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0932C80E6EEC725DE52426F3 /* PlanDetailView.swift */; };
 		364D6525EF337E9E551FC9B2 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5FBF6A32FD6A639A60665E /* HomeView.swift */; };
 		41D70CDC50C593B136F26CEB /* AfterPlansStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7FF8F23D47FD4807B94A245 /* AfterPlansStore.swift */; };
@@ -25,10 +26,12 @@
 		5A23029C619391E4F402503C /* InMemoryBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = D57B804B8121CF5798002125 /* InMemoryBackend.swift */; };
 		613F7D30D735C0CE42AB4D21 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9084512148C9A74F07691351 /* QRCodeView.swift */; };
 		6214B61EBCB8AB4B0DF9F6FB /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 704FC4F850B7577B3E88BB2D /* AppTab.swift */; };
+		65720043C2F3A04877F54821 /* ActivityTaxonomyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507EA55C97B024AC3804C9B7 /* ActivityTaxonomyTests.swift */; };
 		7311174AFC6E13B779010942 /* AfterPlansConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F6CFFA2C16854CAC51A65A7 /* AfterPlansConfiguration.swift */; };
 		7B72C820D9C5A8D2DEF3D129 /* AfterPlansStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E785D2A6AA8AEF7A0C7E9C /* AfterPlansStoreTests.swift */; };
 		8533C026E8AF261B38F73D8F /* PlanLifecycleViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558E14DAE3414EF507EF0CB3 /* PlanLifecycleViews.swift */; };
 		9262E9C1E31277947ED975D2 /* InMemoryServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65BA84194135AFB48885CEFB /* InMemoryServices.swift */; };
+		A43A9E6BE78F50744373F9D7 /* VenueSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B8948708BB0FC97C937A6C2 /* VenueSearchService.swift */; };
 		A4B4C6F7997FD209A5980507 /* ContinuationLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DD48153B2FD02D380807D5 /* ContinuationLoop.swift */; };
 		A4EC956A61125B5C2B3AD459 /* AfterPlansModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325D10D8C6420D14BC109892 /* AfterPlansModelsTests.swift */; };
 		A95E0E38D2D22E1AB5B15FE1 /* CreatePlanDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7257A99FCBE833C25680E81B /* CreatePlanDraft.swift */; };
@@ -37,6 +40,7 @@
 		B0968B28C36FE989F90C9EB8 /* ConfirmationRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B1F7FC25FB23A2A02D2C3C /* ConfirmationRoomView.swift */; };
 		BE7FFF82914CC11B2FDE2955 /* InviteShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9390BC42EA209EF88FA436CD /* InviteShareView.swift */; };
 		CC0AD9D657820441674D25C1 /* ContinuationLoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50DBCDC38290C45ED81DC22C /* ContinuationLoopTests.swift */; };
+		D26383D0C889E7FEB8F73F1B /* VenueSearchServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044A3F7DE0529360E2858BE9 /* VenueSearchServiceTests.swift */; };
 		DBCBE53900E6786E471F0A0D /* NetworkProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E3A94F49070B3F34BEF6C9 /* NetworkProtocols.swift */; };
 		EEAB4EFAE697D0340CA8B6D1 /* SupabaseBackendIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F96B3D304E4673D2F4845613 /* SupabaseBackendIntegrationTests.swift */; };
 		F1DA9611869197428F94AC73 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCAA13CBCDC78B8D7A3F5B /* OnboardingView.swift */; };
@@ -54,13 +58,16 @@
 
 /* Begin PBXFileReference section */
 		0046A198B2A3A9950198CFEB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		044A3F7DE0529360E2858BE9 /* VenueSearchServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueSearchServiceTests.swift; sourceTree = "<group>"; };
 		0932C80E6EEC725DE52426F3 /* PlanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanDetailView.swift; sourceTree = "<group>"; };
 		0D3ABCFA86DE8AF7CA60C5C7 /* AfterPlansTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = AfterPlansTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		20E785D2A6AA8AEF7A0C7E9C /* AfterPlansStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterPlansStoreTests.swift; sourceTree = "<group>"; };
 		25B1F7FC25FB23A2A02D2C3C /* ConfirmationRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmationRoomView.swift; sourceTree = "<group>"; };
+		289008CD383C55AFAFDA1C83 /* ActivityTaxonomy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTaxonomy.swift; sourceTree = "<group>"; };
 		31DD48153B2FD02D380807D5 /* ContinuationLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuationLoop.swift; sourceTree = "<group>"; };
 		325D10D8C6420D14BC109892 /* AfterPlansModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterPlansModelsTests.swift; sourceTree = "<group>"; };
 		4944A96BEE2C40725BCFE441 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		507EA55C97B024AC3804C9B7 /* ActivityTaxonomyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTaxonomyTests.swift; sourceTree = "<group>"; };
 		50DBCDC38290C45ED81DC22C /* ContinuationLoopTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuationLoopTests.swift; sourceTree = "<group>"; };
 		558E14DAE3414EF507EF0CB3 /* PlanLifecycleViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanLifecycleViews.swift; sourceTree = "<group>"; };
 		56683C522A90B3C4409D68E4 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
@@ -69,6 +76,7 @@
 		63950949EA208C8E3391B2BA /* InMemoryBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryBackendTests.swift; sourceTree = "<group>"; };
 		63BCAA13CBCDC78B8D7A3F5B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		65BA84194135AFB48885CEFB /* InMemoryServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryServices.swift; sourceTree = "<group>"; };
+		6B8948708BB0FC97C937A6C2 /* VenueSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueSearchService.swift; sourceTree = "<group>"; };
 		6F6CFFA2C16854CAC51A65A7 /* AfterPlansConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterPlansConfiguration.swift; sourceTree = "<group>"; };
 		702B78956F91389F43D77481 /* AfterPlansModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterPlansModels.swift; sourceTree = "<group>"; };
 		704FC4F850B7577B3E88BB2D /* AppTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTab.swift; sourceTree = "<group>"; };
@@ -201,9 +209,11 @@
 		8BAD3D8844F168F1EEBDBF52 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				507EA55C97B024AC3804C9B7 /* ActivityTaxonomyTests.swift */,
 				20E785D2A6AA8AEF7A0C7E9C /* AfterPlansStoreTests.swift */,
 				63950949EA208C8E3391B2BA /* InMemoryBackendTests.swift */,
 				F96B3D304E4673D2F4845613 /* SupabaseBackendIntegrationTests.swift */,
+				044A3F7DE0529360E2858BE9 /* VenueSearchServiceTests.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -236,12 +246,14 @@
 		ABD83E8A52BBEFB7AF4A7740 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				289008CD383C55AFAFDA1C83 /* ActivityTaxonomy.swift */,
 				6F6CFFA2C16854CAC51A65A7 /* AfterPlansConfiguration.swift */,
 				D57B804B8121CF5798002125 /* InMemoryBackend.swift */,
 				65BA84194135AFB48885CEFB /* InMemoryServices.swift */,
 				57E3A94F49070B3F34BEF6C9 /* NetworkProtocols.swift */,
 				FC28F038AE7E325CA3522EB6 /* ServiceProtocols.swift */,
 				56DBD33CBF9F65C185C38ACE /* SupabaseBackend.swift */,
+				6B8948708BB0FC97C937A6C2 /* VenueSearchService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -424,12 +436,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65720043C2F3A04877F54821 /* ActivityTaxonomyTests.swift in Sources */,
 				A4EC956A61125B5C2B3AD459 /* AfterPlansModelsTests.swift in Sources */,
 				7B72C820D9C5A8D2DEF3D129 /* AfterPlansStoreTests.swift in Sources */,
 				CC0AD9D657820441674D25C1 /* ContinuationLoopTests.swift in Sources */,
 				2005797679863899FAD6AC8D /* CreatePlanDraftTests.swift in Sources */,
 				2C7CEB353745048BF973D656 /* InMemoryBackendTests.swift in Sources */,
 				EEAB4EFAE697D0340CA8B6D1 /* SupabaseBackendIntegrationTests.swift in Sources */,
+				D26383D0C889E7FEB8F73F1B /* VenueSearchServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -437,6 +451,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30BC5E60098ED20E367F20CA /* ActivityTaxonomy.swift in Sources */,
 				1ECE7C17C98798E9357E17B2 /* ActivityView.swift in Sources */,
 				AB20205BD90F61A9372D2343 /* AfterPlansApp.swift in Sources */,
 				7311174AFC6E13B779010942 /* AfterPlansConfiguration.swift in Sources */,
@@ -462,6 +477,7 @@
 				219B34F7FFF56269CAA6CF6D /* SafetyCenterView.swift in Sources */,
 				2B82630048F3D88893D772C4 /* ServiceProtocols.swift in Sources */,
 				0CC7D76827943C6B7CFCD473 /* SupabaseBackend.swift in Sources */,
+				A43A9E6BE78F50744373F9D7 /* VenueSearchService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
