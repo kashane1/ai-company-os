@@ -1,0 +1,37 @@
+# Contract-freeze fixture for ios-build-and-sign.
+#
+# Locks the contract surface: input/output fields, retry policy
+# language, failure-mode taxonomy, validation checks. Drift in any of
+# these is a contract weakening the canonical body must declare.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/products/catchbook/ios-build-and-sign.md
+  expected:
+    required_input_fields:
+      - "product_id"
+      - "build_configuration"
+      - "certificate_id"
+    required_output_fields:
+      - "binary_path"
+      - "code_sign_identity"
+      - "provisioning_profile"
+      - "build_number"
+      - "build_validated"
+    required_section_headings:
+      - "## Instructions"
+      - "## Failure modes"
+      - "## Worked example"
+      - "## References"
+    required_failure_modes:
+      - "certificate_expired"
+      - "provisioning_profile_mismatch"
+      - "build_number_regression"
+      - "codesign_verify_failed"
+      - "fastlane_unavailable"
+      - "unsafe_product_config"
+    required_validation_steps:
+      - "codesign --verify"
+      - "build_number"
+      - "code_sign_identity"

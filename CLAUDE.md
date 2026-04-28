@@ -71,6 +71,9 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **skill-stocktake** — structural audit of the skill registry, canonical files, project-skill pointers, and CLAUDE.md trigger phrases
 - **context-budget** — per-lane token totals across adapters, canonical bodies, and project-skill pointers (v1 reports numbers, not verdicts)
 - **verification-loop** — pre-PR / pre-release quality-gate sweep composing reconciliation + stocktake + changed-surface into a single verdict
+- **ios-build-and-sign** — produce a signed, validated iOS binary ready for TestFlight (Codex runs fastlane; Claude validates the artifact)
+- **approval-flow-review** *(deferred)* — pre-validate an approval request against `packages/policies/approvals.py` before it reaches the founder queue
+- **test-coverage-audit** *(deferred)* — audit a worktree diff against the coverage policy in `packages/policies/testing.py` before commit
 
 ## Trigger phrases → skills
 
@@ -97,6 +100,9 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "audit the skill estate" / "run a skill stocktake" / "check for orphan skills" / "find drift in the skill registry" → `skills/adapters/claude/skill-stocktake.md`
 - "check the context budget" / "how bloated are the skill lanes" / "which lane is trending toward prompt bloat" → `skills/adapters/claude/context-budget.md`
 - "run the verification loop" / "pre-PR sweep" / "check if this is ready to merge" / "run all the quality gates" → `skills/adapters/claude/verification-loop.md`
+- "build the iOS app" / "sign the build" / "archive and sign" / "produce a TestFlight-ready binary" → `skills/adapters/claude/ios-build-and-sign.md`
+- "review this approval request" / "audit the approval flow" / "is this approval well-formed" → `skills/adapters/claude/approval-flow-review.md`
+- "audit test coverage" / "do my changes meet the coverage bar" / "what tests should I add" → `skills/adapters/claude/test-coverage-audit.md`
 
 Following the adapter is not optional — the protocols exist because they encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
 
