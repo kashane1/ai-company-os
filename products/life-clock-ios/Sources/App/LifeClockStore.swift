@@ -25,12 +25,14 @@ final class LifeClockStore {
     var todayHabits: HabitLog?
     var lastHealthAuthError: String?
     var hasTodaySignal: Bool = false
+    var dietStreaks: DietStreaks = .zero
 
     @ObservationIgnored private let healthService: HealthKitServiceProtocol
     @ObservationIgnored let clock: EngineClock
     @ObservationIgnored private let clockEngine: ClockEngine
     @ObservationIgnored private let questEngine: QuestEngine
     @ObservationIgnored private let modelContext: ModelContext
+    @ObservationIgnored private let streakCalculator: DietStreakCalculator
 
     init(
         healthService: HealthKitServiceProtocol,
@@ -42,6 +44,7 @@ final class LifeClockStore {
         self.clock = engineClock
         self.clockEngine = ClockEngine(clock: engineClock)
         self.questEngine = QuestEngine(clock: engineClock)
+        self.streakCalculator = DietStreakCalculator(calendar: engineClock.calendar)
         self.healthAuthorizationKnown = healthService.authorizationKnown
         self.healthDataAvailable = healthService.isHealthDataAvailable
     }
@@ -98,6 +101,8 @@ final class LifeClockStore {
 
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
         weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: [], profile: profile)
+
+        dietStreaks = streakCalculator.compute(habits: fetchHabitsBack(60), asOf: now)
     }
 
     // MARK: - HealthKit authorization
@@ -208,6 +213,17 @@ final class LifeClockStore {
             predicate: #Predicate { $0.date == dayStart }
         )
         return try? modelContext.fetch(descriptor).first
+    }
+
+    private func fetchHabitsBack(_ days: Int) -> [HabitLog] {
+        guard
+            let earliest = clock.calendar.date(byAdding: .day, value: -days, to: clock.now())
+        else { return [] }
+        let descriptor = FetchDescriptor<HabitLog>(
+            predicate: #Predicate { $0.date >= earliest },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     private func fetchRecentLedger(limit: Int) -> [TimeLedgerEntry] {

@@ -9,6 +9,7 @@ struct TodayView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                     headline
+                    dietStreakBanner
                     clockCard
                     driversCard
                     quickLogCard
@@ -124,6 +125,40 @@ struct TodayView: View {
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+    }
+
+    /// A small streak chip when the user is on a diet-logging run. Only
+    /// renders at >=2 days — a "1-day streak" isn't a streak yet. The
+    /// good-day count appears as a secondary label when nonzero, which keeps
+    /// honest "rough" logs from feeling punitive (logging streak still grows).
+    @ViewBuilder
+    private var dietStreakBanner: some View {
+        let streaks = store.dietStreaks
+        if streaks.loggingDays >= 2 {
+            HStack(spacing: DesignTokens.Spacing.sm) {
+                Image(systemName: "flame.fill")
+                    .foregroundStyle(.orange)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(streaks.loggingDays)-day diet log streak")
+                        .font(.callout.bold())
+                    if streaks.goodDays >= 2 {
+                        Text("\(streaks.goodDays) of those great or okay")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("Logging is the win — quality follows.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+            }
+            .padding(DesignTokens.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        } else {
+            EmptyView()
+        }
     }
 
     /// One soft, plain-language line about today's diet impact when relevant.
