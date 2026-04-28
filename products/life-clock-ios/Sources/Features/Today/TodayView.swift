@@ -98,7 +98,7 @@ struct TodayView: View {
 
     private var driversCard: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("Top drivers today")
+            Text("What moved your clock today")
                 .font(.headline)
             if store.todayDrivers.isEmpty {
                 Text("No data yet — check back tomorrow.")
@@ -114,11 +114,28 @@ struct TodayView: View {
                     }
                     .font(.callout)
                 }
+                if let dietHint = dietContextLine {
+                    Text(dietHint)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+    }
+
+    /// One soft, plain-language line about today's diet impact when relevant.
+    /// Only fires when diet is actually a top driver — avoids "you ate badly"
+    /// nagging on days the user didn't log.
+    private var dietContextLine: String? {
+        let dietDriver = store.todayDrivers.first { $0.driverType == "diet" }
+        guard let dietDriver else { return nil }
+        if dietDriver.deltaMinutes > 0 {
+            return "Your meals helped your clock today."
+        }
+        return "A rough food day is feedback, not failure. One better meal can move tomorrow back."
     }
 
     private var questsCard: some View {

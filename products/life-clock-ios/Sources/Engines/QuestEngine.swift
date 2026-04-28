@@ -6,6 +6,10 @@ import Foundation
 ///   - Always returns 1, 2, or 3 quests. Never zero, never four+.
 ///   - Adapts to missing data: if no HealthKit snapshot, returns manual-log
 ///     friendly quests instead of step/HR-anchored ones.
+///   - Diet quality is a first-class quest category alongside movement and
+///     sleep — it surfaces in the third slot most days. Nutrition quests
+///     are coarse, encouraging, and never reference calories, macros, gram
+///     targets, named diets, or "clean food" / "bad food" framing.
 ///   - Never recommends medication, supplements, or specific clinical targets.
 struct QuestEngine {
     let clock: EngineClock
@@ -26,13 +30,16 @@ struct QuestEngine {
             quests.append(movement)
         }
         quests.append(sleepQuest(today: today, profile: profile, snapshot: snapshot))
-        quests.append(riskReductionQuest(today: today, habits: habits))
+
+        // Third slot — nutrition by default, recovery/risk when the day's
+        // logged state calls for it. This is where the "diet is a primary
+        // lever" framing lives.
+        quests.append(habitOrNutritionQuest(today: today, habits: habits))
 
         if quests.isEmpty {
             quests.append(consistencyFallback(today: today))
         }
 
-        // Hard cap at 3.
         return Array(quests.prefix(3))
     }
 
@@ -63,23 +70,28 @@ struct QuestEngine {
     }
 
     private func sleepQuest(today: Date, profile: UserProfile, snapshot: DailyHealthSnapshot?) -> Quest {
-        let target = profile.sleepGoalHours
         let detail = "Be in bed within an hour of your usual time. Consistency matters more than total hours."
         let quest = Quest(
             date: today,
             title: "Protect tomorrow's sleep",
             detail: detail,
             category: "sleep",
-            target: target,
+            target: profile.sleepGoalHours,
             rewardEstimateMinutes: 18
         )
         quest.progress = snapshot?.sleepHours ?? 0
         return quest
     }
 
-    private func riskReductionQuest(today: Date, habits: HabitLog?) -> Quest {
-        // If user already logged a heavy alcohol day, suggest a recovery focus
-        // — gentle, not punitive.
+    /// Picks the most relevant third quest from the user's logged state.
+    ///
+    /// Priority:
+    ///   1. Heavy alcohol logged → recovery quest (gentle, never punitive).
+    ///   2. Rough diet logged → nutrition-repair quest (one-meal nudge).
+    ///   3. No diet logged yet → "log diet quality tonight" prompt.
+    ///   4. Otherwise → rotating nutrition quest (deterministic, day-of-year
+    ///      parity).
+    private func habitOrNutritionQuest(today: Date, habits: HabitLog?) -> Quest {
         if habits?.alcoholLevel.lowercased() == "heavy" {
             return Quest(
                 date: today,
@@ -90,14 +102,52 @@ struct QuestEngine {
                 rewardEstimateMinutes: 10
             )
         }
-        // Default risk quest: a no-alcohol log for the day.
+
+        if habits?.dietQuality.lowercased() == "rough" {
+            return Quest(
+                date: today,
+                title: "One better meal tomorrow",
+                detail: "A rough food day is feedback, not failure. One simple, whole-food meal moves things back.",
+                category: "nutrition",
+                target: 0,
+                rewardEstimateMinutes: 12
+            )
+        }
+
+        if habits?.dietQuality == nil || habits?.dietQuality.lowercased() == "unknown" {
+            return Quest(
+                date: today,
+                title: "Log your diet quality tonight",
+                detail: "Great, okay, or rough — coarse is fine. Logging is what makes food visible on your clock.",
+                category: "nutrition",
+                target: 0,
+                rewardEstimateMinutes: 8
+            )
+        }
+
+        return rotatingNutritionQuest(today: today)
+    }
+
+    private func rotatingNutritionQuest(today: Date) -> Quest {
+        // Deterministic rotation by day-of-year parity. Six gentle nutrition
+        // nudges; none reference calories, macros, or named diets.
+        let dayOfYear = clock.calendar.ordinality(of: .day, in: .year, for: today) ?? 0
+        let pool: [(title: String, detail: String, reward: Int)] = [
+            ("Add one whole-food meal", "A piece of fruit, a handful of nuts, a real cooked meal — anything unprocessed counts.", 12),
+            ("Walk 10 minutes after dinner", "A short post-dinner walk smooths how today's meals affect your clock.", 14),
+            ("Choose water with one meal", "Skip the sweetened drink at one meal today. That's the whole quest.", 10),
+            ("Add protein to your next meal", "Eggs, beans, fish, chicken, tofu — pick one. No grams to count.", 12),
+            ("Eat one meal slowly", "Phone down, fork down between bites. Slower meals tend to be smaller meals without trying.", 10),
+            ("Make one meal less processed", "Swap one packaged item for something whole. One meal, not your whole day.", 12),
+        ]
+        let pick = pool[dayOfYear % pool.count]
         return Quest(
             date: today,
-            title: "Log no alcohol today",
-            detail: "An alcohol-free day adds meaningful time over a week.",
-            category: "risk",
+            title: pick.title,
+            detail: pick.detail,
+            category: "nutrition",
             target: 0,
-            rewardEstimateMinutes: 12
+            rewardEstimateMinutes: pick.reward
         )
     }
 

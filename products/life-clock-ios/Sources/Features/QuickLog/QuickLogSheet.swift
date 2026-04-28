@@ -29,13 +29,18 @@ struct QuickLogSheet: View {
                 Section("Smoking / vaping today") {
                     Toggle("Logged today", isOn: $smokingVaping)
                 }
-                Section("Diet today") {
-                    Picker("Diet", selection: $dietQuality) {
+                Section {
+                    Picker("Diet quality today", selection: $dietQuality) {
                         Text("Great").tag("great")
                         Text("Okay").tag("okay")
                         Text("Rough").tag("rough")
                     }
                     .pickerStyle(.segmented)
+                    Text("Coarse on purpose. No counting calories. Diet quality is one of your strongest clock levers.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } header: {
+                    Text("How did food go today?")
                 }
                 Section("Stress today") {
                     Picker("Stress", selection: $stressLevel) {

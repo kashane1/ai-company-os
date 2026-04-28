@@ -11,6 +11,7 @@ struct OnboardingView: View {
     @State private var biologicalSex: String = "unspecified"
     @State private var smokingStatus: String = "none"
     @State private var alcoholFrequency: String = "rare"
+    @State private var dietQualityBaseline: String = "okay"
     @State private var sleepGoalHours: Double = 7.5
     @State private var strengthFrequency: Int = 2
     @State private var toneMode: ToneMode = .coach
@@ -50,7 +51,9 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
             Text("Earn time back.")
                 .font(.largeTitle.bold())
-            Text("Your daily habits move a visible time trajectory. Sleep, movement, workouts, and consistency add minutes. Heavy alcohol and skipping movement subtract them.")
+            Text("Your daily habits move a visible time trajectory. Food choices, sleep, movement, and consistency add minutes. Heavy alcohol, smoking, and rough food days pull them back.")
+                .foregroundStyle(.secondary)
+            Text("Diet quality is one of your strongest levers — without ever counting a calorie.")
                 .foregroundStyle(.secondary)
             Text("This isn't a death predictor. It's a healthspan game with agency baked in.")
                 .foregroundStyle(.secondary)
@@ -90,6 +93,17 @@ struct OnboardingView: View {
                 Text("Rare").tag("rare")
                 Text("Weekly").tag("weekly")
                 Text("Daily").tag("daily")
+            }
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                Picker("Typical diet quality", selection: $dietQualityBaseline) {
+                    Text("Great").tag("great")
+                    Text("Okay").tag("okay")
+                    Text("Rough").tag("rough")
+                }
+                .pickerStyle(.segmented)
+                Text("How would you describe most of your meals — coarse on purpose. No counting required.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             Stepper("Strength sessions per week: \(strengthFrequency)", value: $strengthFrequency, in: 0...7)
             VStack(alignment: .leading) {
@@ -197,6 +211,7 @@ struct OnboardingView: View {
             let profile = UserProfile(birthDate: birthDate, biologicalSex: biologicalSex, toneMode: toneMode.rawValue)
             profile.smokingStatus = smokingStatus
             profile.alcoholFrequency = alcoholFrequency
+            profile.dietQualityBaseline = dietQualityBaseline
             profile.sleepGoalHours = sleepGoalHours
             profile.strengthFrequencyPerWeek = strengthFrequency
             store.completeOnboarding(profile: profile, tone: toneMode)

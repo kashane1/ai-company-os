@@ -60,6 +60,16 @@ struct ClockEngine {
         if profile.strengthFrequencyPerWeek >= 2 { adjustment += 1.5 }
         if profile.sleepGoalHours >= 7.0, profile.sleepGoalHours <= 9.0 { adjustment += 1.0 }
 
+        // Baseline diet quality is a first-class lever alongside smoking,
+        // alcohol, and activity. Small, bounded contribution — agency over
+        // certainty. Per `CLOCK_MODEL.md`, these are tuning placeholders,
+        // not clinical claims.
+        switch profile.dietQualityBaseline.lowercased() {
+        case "great": adjustment += 1.5
+        case "rough": adjustment -= 1.5
+        default: break // "okay" / unknown → neutral
+        }
+
         return adjustment
     }
 
@@ -165,10 +175,53 @@ struct ClockEngine {
                 )
                 totalDelta += delta
             }
+
+            // Diet quality is a first-class clock lever — small, bounded
+            // delta (±12 min) so a single rough day never swings the clock
+            // hard. Self-reported, medium confidence. Plain language only;
+            // never names individual foods, never moralizes, never claims
+            // medical certainty. The daily delta complements the baseline
+            // adjustment in `lifestyleAdjustmentYears`.
+            if let entry = dietDriver(habits: habits, date: snapshot.date) {
+                drivers.append(entry)
+                totalDelta += entry.deltaMinutes
+            }
         }
 
         let confidence = ConfidenceModel.assign(snapshot: snapshot)
         return DailyDeltaResult(deltaMinutes: totalDelta, drivers: drivers, confidence: confidence)
+    }
+
+    private func dietDriver(habits: HabitLog, date: Date) -> TimeLedgerEntry? {
+        // Only score when the user has actually logged today. Missing diet
+        // input must never penalize — that's the founder-pack rule on
+        // missing data. The HabitLog default ("okay") fires only when the
+        // user submits the quick log, not by virtue of the row existing.
+        let level = habits.dietQuality.lowercased()
+        let delta: Int
+        let title: String
+        switch level {
+        case "great":
+            delta = 12
+            title = "Great diet quality logged"
+        case "okay":
+            delta = 0
+            title = "Okay diet quality logged"
+        case "rough":
+            delta = -10
+            title = "Rough diet quality logged"
+        default:
+            return nil
+        }
+        if delta == 0 { return nil } // no neutral noise in the ledger
+        return TimeLedgerEntry(
+            date: date,
+            title: title,
+            deltaMinutes: delta,
+            source: "manual",
+            confidenceRaw: Confidence.medium.rawValue,
+            driverType: "diet"
+        )
     }
 
     private func movementDriver(steps: Int, date: Date) -> TimeLedgerEntry {
