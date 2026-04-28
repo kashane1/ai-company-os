@@ -116,12 +116,10 @@ skills:
     target_runtimes: [claude, codex]
     stage: active
     kind: agentic
-    # First skill in the registry to ship BOTH a Codex adapter (owns
-    # fastlane invocation + retry) AND a Claude adapter (validates the
-    # emitted artifact against product config). Division of labor is
-    # documented in the canonical body and each adapter declares its
-    # narrow slice. Contract-freeze fixture at
-    # skills/canonical/products/catchbook/fixtures/ios-build-and-sign/happy_path.yaml.
+    # Codex adapter owns fastlane invocation + retry; Claude adapter
+    # validates the emitted artifact against product config. Division
+    # of labor documented in the canonical body. Contract-freeze fixture
+    # at skills/canonical/products/catchbook/fixtures/ios-build-and-sign/happy_path.yaml.
     fixture_status: passing
     source: internal
     adapters:
@@ -225,7 +223,8 @@ skills:
     # configuration. Codex adapter expects `coverage` (Python) and
     # `xccov` (iOS) wired into the build, neither of which is
     # configured today. Activate by flipping to `active` once both
-    # lanes have working coverage commands.
+    # lanes have working coverage commands. Field order matches the
+    # codex-claude-handoff deferred entry (target_runtimes before stage).
     stage: deferred
     kind: agentic
     # Contract-freeze fixture at
@@ -315,12 +314,12 @@ skills:
     name: Approval Flow Review
     path: canonical/shared/approval-flow-review.md
     owner_agent: supervisor
+    target_runtimes: [claude]
     # stage: deferred — registered ahead of activation. Activate by
     # flipping to `active` once a real call site exists (proposed:
     # control-plane hook that pre-validates every approval request
     # before adding it to the founder queue).
     stage: deferred
-    target_runtimes: [claude]
     kind: agentic
     # Contract-freeze fixture at
     # skills/canonical/shared/fixtures/approval-flow-review/happy_path.yaml
