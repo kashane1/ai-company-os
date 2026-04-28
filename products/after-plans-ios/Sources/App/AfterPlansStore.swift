@@ -239,6 +239,19 @@ final class AfterPlansStore: ObservableObject {
         }
     }
 
+    // MARK: - Push registration (Phase 7)
+
+    /// Register the APNs device token with the backend. Idempotent on
+    /// the token; `push_devices` is upserted on conflict (token) so a
+    /// device that switches users updates user_id (security H3).
+    func registerPushToken(_ token: String) async {
+        try? await backend.push.register(deviceToken: token, platform: "ios")
+    }
+
+    func unregisterPushToken(_ token: String) async {
+        try? await backend.push.unregister(deviceToken: token)
+    }
+
     @discardableResult
     func redeemInviteCode(_ code: String) async -> Bool {
         do {
