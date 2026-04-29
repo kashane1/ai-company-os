@@ -40,7 +40,7 @@ final class LifeClockE2ETests: XCTestCase {
         profile.alcoholFrequency = "rare"
         profile.sleepGoalHours = 7.5
         profile.strengthFrequencyPerWeek = 2
-        store.completeOnboarding(profile: profile, tone: .coach)
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
         await store.refreshFromHealthKit()
 
         XCTAssertTrue(store.hasCompletedOnboarding)
@@ -111,7 +111,7 @@ final class LifeClockE2ETests: XCTestCase {
         )
 
         let profile = UserProfile(birthDate: birthDate, biologicalSex: "male")
-        store.completeOnboarding(profile: profile, tone: .coach)
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
         let habits = HabitLog(date: fixedDate)
         habits.dietQuality = "great"
         await store.setTodayHabits(habits)
@@ -144,7 +144,7 @@ final class LifeClockE2ETests: XCTestCase {
         // DOB 2014 → 13 years old as of fixedDate (2027-01-15)
         let teenDOB = Calendar.lifeClockUTC.date(from: DateComponents(year: 2014, month: 1, day: 15))!
         let teen = UserProfile(birthDate: teenDOB, biologicalSex: "unspecified")
-        store.completeOnboarding(profile: teen, tone: .coach)
+        store.completeOnboarding(profile: teen, tone: .coach, disclaimerAccepted: true)
 
         XCTAssertFalse(store.isAdultUser, "DOB 2014 vs as-of 2027 → 13 → not adult")
     }

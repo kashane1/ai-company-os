@@ -138,7 +138,13 @@ final class LifeClockStore {
 
     // MARK: - Mutations driven by the UI
 
-    func completeOnboarding(profile: UserProfile, tone: ToneMode) {
+    /// Persist the onboarding result. `disclaimerAccepted` MUST be true —
+    /// the UI gates the Continue button on the disclaimer toggle, but a
+    /// second client (App Intents, Shortcuts, future deep links) must not
+    /// be able to bypass acceptance. Returns `true` on success.
+    @discardableResult
+    func completeOnboarding(profile: UserProfile, tone: ToneMode, disclaimerAccepted: Bool) -> Bool {
+        guard disclaimerAccepted else { return false }
         let now = clock.now()
         profile.toneMode = tone.rawValue
         profile.disclaimerAcceptedAt = now
@@ -148,6 +154,7 @@ final class LifeClockStore {
         self.profile = profile
         self.toneMode = tone
         hasCompletedOnboarding = true
+        return true
     }
 
     func setToneMode(_ tone: ToneMode) {
@@ -187,6 +194,19 @@ final class LifeClockStore {
             quest.completedAt = nil
         }
         try? modelContext.save()
+    }
+
+    /// Delete today's `HabitLog` if it exists. Recovers from a mis-tap in
+    /// QuickLog so the engine isn't stuck with phantom signals (e.g. a
+    /// "heavy alcohol" entry the user didn't mean to save). No-op if no log
+    /// is present for today.
+    func clearTodayHabits() async {
+        let dayStart = clock.calendar.startOfDay(for: clock.now())
+        guard let existing = fetchHabits(for: dayStart) else { return }
+        modelContext.delete(existing)
+        try? modelContext.save()
+        todayHabits = nil
+        await refreshFromHealthKit()
     }
 
     func setTodayHabits(_ habits: HabitLog) async {

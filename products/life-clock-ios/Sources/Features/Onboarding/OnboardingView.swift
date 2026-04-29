@@ -229,7 +229,7 @@ struct OnboardingView: View {
             profile.dietQualityBaseline = dietQualityBaseline
             profile.sleepGoalHours = sleepGoalHours
             profile.strengthFrequencyPerWeek = strengthFrequency
-            store.completeOnboarding(profile: profile, tone: toneMode)
+            store.completeOnboarding(profile: profile, tone: toneMode, disclaimerAccepted: disclaimerAccepted)
             Task { await store.bootstrap() }
         }
     }

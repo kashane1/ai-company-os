@@ -55,6 +55,19 @@ struct QuickLogSheet: View {
                 Section("Strength training") {
                     Toggle("Completed today", isOn: $strengthTraining)
                 }
+                if store.todayHabits != nil {
+                    Section {
+                        Button(role: .destructive) {
+                            clear()
+                        } label: {
+                            Text("Clear today's log")
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        }
+                        .disabled(saving)
+                    } footer: {
+                        Text("Removes today's quick-log entry. Use this if you mis-tapped — your engine result will recompute from HealthKit signals only.")
+                    }
+                }
                 Section {
                     DisclaimerBanner()
                         .listRowInsets(EdgeInsets())
@@ -98,6 +111,15 @@ struct QuickLogSheet: View {
             habits.stressLevel = stressLevel
             habits.strengthTraining = strengthTraining
             await store.setTodayHabits(habits)
+            saving = false
+            dismiss()
+        }
+    }
+
+    private func clear() {
+        saving = true
+        Task {
+            await store.clearTodayHabits()
             saving = false
             dismiss()
         }
