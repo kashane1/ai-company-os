@@ -25,4 +25,42 @@ final class CreatePlanDraftTests: XCTestCase {
 
         XCTAssertNil(draft.validationMessage(hasContext: true))
     }
+
+    // MARK: - Phase 5 — publicMatch validation
+
+    func testPublicMatchPlanRequiresActivity() {
+        let draft = CreatePlanDraft(title: "Pickup game", visibility: .publicMatch, activityID: nil, venueID: UUID())
+        XCTAssertEqual(
+            draft.validationMessage(hasContext: false),
+            "Pick an activity so the right people see this."
+        )
+    }
+
+    func testPublicMatchPlanRequiresVenue() {
+        let draft = CreatePlanDraft(title: "Pickup game", visibility: .publicMatch, activityID: UUID(), venueID: nil)
+        XCTAssertEqual(
+            draft.validationMessage(hasContext: false),
+            "Pick a place so people know where to show up."
+        )
+    }
+
+    func testPublicMatchPlanIgnoresContextRequirement() {
+        let draft = CreatePlanDraft(title: "Pickup game", visibility: .publicMatch, activityID: UUID(), venueID: UUID())
+        XCTAssertNil(draft.validationMessage(hasContext: false))
+    }
+
+    func testPublicMatchExactModeDoesNotDoubleRequireVenueHint() {
+        // venueID is the structured field; venueHint stays freeform copy.
+        // The exact-mode "name the place up front" rule should NOT fire
+        // for publicMatch plans, since the venue is already structured.
+        let draft = CreatePlanDraft(
+            mode: .exact,
+            title: "Climb at Mission Cliffs",
+            venueHint: "",
+            visibility: .publicMatch,
+            activityID: UUID(),
+            venueID: UUID()
+        )
+        XCTAssertNil(draft.validationMessage(hasContext: false))
+    }
 }

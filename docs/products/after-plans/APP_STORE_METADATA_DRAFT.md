@@ -140,8 +140,9 @@ Supabase anonymous auth).
 | Data type | Collected | Purpose | Linked to identity |
 |-----------|-----------|---------|-------------------|
 | Name (first name only) | Yes | App functionality | Yes |
-| User content (plan titles, descriptions, place suggestions, report notes) | Yes | App functionality | Yes |
+| User content (plan titles, descriptions, place suggestions, report notes, **venue addresses for plans you create or join**) | Yes | App functionality | Yes |
 | User ID (server-issued UUID) | Yes | App functionality | Yes |
+| Other diagnostic data (APNs push notification token) | Yes | App functionality | Yes |
 
 Data **not** collected:
 

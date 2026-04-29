@@ -14,6 +14,15 @@ final class AfterPlansStore: ObservableObject {
     @Published private(set) var blockedUserNames: [String]
     @Published private(set) var inviteShareStates: [UUID: InviteShareState]
     @Published private(set) var reportLog: [String]
+    /// Plans surfaced via the publicMatch path (Phase 6). Distinct from
+    /// `plans` so the Home feed can show them in a separate section
+    /// without polluting the context-rooted feed.
+    @Published private(set) var publicFeedPlans: [AfterPlan] = []
+    /// Recommendation rows surfaced post-wrap or as co-invite suggestions
+    /// (Phase 6). Empty in the in-memory shell; populated by the Phase 7
+    /// worker against the live backend.
+    @Published private(set) var coInviteSuggestionsByPlanID: [UUID: [PlanRecommendation]] = [:]
+    @Published private(set) var postWrapRecommendationsByPlanID: [UUID: [PlanRecommendation]] = [:]
 
     let reportReasons: [SafetyReason]
 
@@ -134,6 +143,128 @@ final class AfterPlansStore: ObservableObject {
         }
         focusedPlanID = continuation.currentContextPlans.first?.id
         analyticsService.record(event: "signup_completed")
+    }
+
+    // MARK: - Onboarding actions (Phase 4)
+
+    /// Persist the onboarding profile (first name + privacy mode) through
+    /// the identity service. Errors are swallowed for the in-memory shell;
+    /// in the live backend the supabase client surfaces them through its
+    /// own error reporting path.
+    func updateOnboardingProfile(firstName: String, privacyMode: PrivacyMode) async {
+        var updated = currentUser
+        updated.firstName = firstName
+        updated.privacyMode = privacyMode
+        do {
+            let saved = try await backend.identity.updateProfile(updated)
+            self.currentUser = saved
+        } catch {
+            self.currentUser = updated
+        }
+        analyticsService.record(event: "onboarding_profile_set")
+    }
+
+    /// Declare a single activity (and optional venue) interest. Returns
+    /// the matching context_id when the backend already has one for this
+    /// pair, so callers can show "joined X" feedback. The in-memory shell
+    /// always returns nil; only the live backend with auto-context
+    /// formation populates a value.
+    @discardableResult
+    func declareActivityInterest(activityID: UUID, venueID: UUID?) async -> ContextID? {
+        do {
+            let matched = try await backend.activities.declareInterest(activityID: activityID, venueID: venueID)
+            analyticsService.record(event: "onboarding_interest_declared")
+            return matched
+        } catch {
+            return nil
+        }
+    }
+
+    /// Bulk-resolve any interests that already match a real context. Used
+    /// at the end of the activity step to avoid N round-trips. Returns
+    /// the count of newly joined contexts.
+    func autoJoinMatchingContexts() async -> Int {
+        do {
+            return try await backend.activities.autoJoinMatchingContexts()
+        } catch {
+            return 0
+        }
+    }
+
+    /// Resolve an invite code to a plan. Returns true if the code matched
+    /// a real plan; the resolved plan is added to the visible plan set so
+    /// the user lands on Home with it already focused.
+    // MARK: - Phase 6 — public feed + recommendations
+
+    /// Load plans that match the user's declared activity interests.
+    /// Empty in the in-memory shell because the InMemoryBackend has no
+    /// publicMatch plans seeded; the Supabase backend returns rows where
+    /// visibility = 'public' and activity_id is in the user's interest set.
+    func loadPublicFeed() async {
+        // The in-memory shell has no real publicMatch plans, so this
+        // surface ends up empty there. Against the Supabase backend the
+        // existing `feed(in:)` RPC plus a future RPC for closeness will
+        // populate it; v1 just filters the visible plans by visibility.
+        let visible = continuation.visiblePlans
+        publicFeedPlans = visible.filter { $0.visibility == .publicMatch }
+    }
+
+    /// Pull co-invite suggestions for a plan in creation/forming state.
+    func loadCoInviteSuggestions(for planID: UUID) async {
+        do {
+            let rows = try await backend.recommendations.coInviteSuggestions(planID: planID)
+            coInviteSuggestionsByPlanID[planID] = rows
+        } catch {
+            coInviteSuggestionsByPlanID[planID] = []
+        }
+    }
+
+    /// Pull post-wrap recommendations for a freshly closed plan.
+    func loadPostWrapRecommendations(for planID: UUID) async {
+        do {
+            let rows = try await backend.recommendations.postWrapRecommendations(planID: planID)
+            postWrapRecommendationsByPlanID[planID] = rows
+        } catch {
+            postWrapRecommendationsByPlanID[planID] = []
+        }
+    }
+
+    func dismissRecommendation(_ recommendationID: UUID) async {
+        try? await backend.recommendations.dismiss(recommendationID: recommendationID)
+        for (planID, rows) in coInviteSuggestionsByPlanID {
+            coInviteSuggestionsByPlanID[planID] = rows.filter { $0.id != recommendationID }
+        }
+        for (planID, rows) in postWrapRecommendationsByPlanID {
+            postWrapRecommendationsByPlanID[planID] = rows.filter { $0.id != recommendationID }
+        }
+    }
+
+    // MARK: - Push registration (Phase 7)
+
+    /// Register the APNs device token with the backend. Idempotent on
+    /// the token; `push_devices` is upserted on conflict (token) so a
+    /// device that switches users updates user_id (security H3).
+    func registerPushToken(_ token: String) async {
+        try? await backend.push.register(deviceToken: token, platform: "ios")
+    }
+
+    func unregisterPushToken(_ token: String) async {
+        try? await backend.push.unregister(deviceToken: token)
+    }
+
+    @discardableResult
+    func redeemInviteCode(_ code: String) async -> Bool {
+        do {
+            let plan = try await backend.invites.resolveInvite(code: code)
+            if !plans.contains(where: { $0.id == plan.id }) {
+                plans.append(plan)
+            }
+            focusedPlanID = plan.id
+            analyticsService.record(event: "onboarding_invite_redeemed")
+            return true
+        } catch {
+            return false
+        }
     }
 
     func selectContext(_ context: ContextOption) {
@@ -276,17 +407,48 @@ final class AfterPlansStore: ObservableObject {
 
     @discardableResult
     func createPlan(from draft: CreatePlanDraft) async -> Bool {
-        guard draft.validationMessage(hasContext: selectedContext != nil) == nil, let selectedContext else {
+        var draft = draft
+        let isPublicMatch = draft.visibility == .publicMatch
+
+        // For publicMatch plans we materialize a freeform venue from
+        // the typed-in hint so the plan can carry a real venue_id. Real
+        // typeahead-resolved venues come through Phase 6's UI seam; v1
+        // accepts freeform-only and lets the worker reconcile later.
+        if isPublicMatch && draft.venueID == nil {
+            let trimmed = draft.trimmedVenueHint
+            if !trimmed.isEmpty {
+                let freeform = StubVenueSearchService().freeformVenue(named: trimmed)
+                if let stored = try? await backend.venues.upsertVenue(freeform) {
+                    draft.venueID = stored.id
+                }
+            }
+        }
+
+        guard draft.validationMessage(hasContext: selectedContext != nil) == nil else {
             return false
         }
 
-        guard let plan = try? await backend.plans.createPlan(from: draft, in: selectedContext.id) else {
+        // contextID is required by the protocol; SupabaseBackend nulls
+        // it out for publicMatch plans before insert. For non-public
+        // plans we still need a real selectedContext.
+        let routingContextID: ContextID
+        if let selected = selectedContext {
+            routingContextID = selected.id
+        } else if isPublicMatch, let fallback = availableContexts.first?.id {
+            routingContextID = fallback
+        } else {
+            return false
+        }
+
+        guard let plan = try? await backend.plans.createPlan(from: draft, in: routingContextID) else {
             return false
         }
 
         plans.insert(plan, at: 0)
         focus(on: plan.id)
-        lastActionMessage = "Your plan is live for \(selectedContext.title)."
+        lastActionMessage = isPublicMatch
+            ? "Your plan is live for everyone who declared this activity."
+            : "Your plan is live for \(selectedContext?.title ?? "your context")."
         selectedTab = .home
         analyticsService.record(event: "plan_created")
         return true

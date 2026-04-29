@@ -231,17 +231,156 @@ struct InMemoryReportService: ReportServiceProtocol {
     }
 }
 
+// MARK: - Activity, Venue, Recommendation, Push (Phase 2c/2e)
+//
+// These services operate on a small in-memory state separate from the
+// continuation-loop store so the existing 50 unit tests remain
+// untouched. Real wiring + cross-state coupling lands in the Supabase
+// adapter; the in-memory variants are for previews + protocol
+// satisfaction.
+
+actor InMemoryActivityState {
+    var activities: [Activity]
+    var interests: [UserActivityInterest]
+    var venues: [UUID: Venue]
+    var pushTokens: [String: String] // token -> userID
+
+    init() {
+        // Mirrors the 39-entry taxonomy from infra/supabase/seed.sql.
+        // Slug-stable; UUIDs deterministic across previews.
+        let mk: (String, String, String, String, UUID?, Int) -> Activity = { id, slug, title, icon, parent, rank in
+            Activity(id: UUID(uuidString: id)!, slug: slug, title: title, iconSystemName: icon, parentActivityID: parent, sortRank: rank)
+        }
+        let parents: [Activity] = [
+            mk("A0000000-0000-0000-0000-000000000001", "sports",    "Sports",    "figure.run",                            nil, 10),
+            mk("A0000000-0000-0000-0000-000000000002", "fitness",   "Fitness",   "figure.strengthtraining.traditional",   nil, 20),
+            mk("A0000000-0000-0000-0000-000000000003", "creative",  "Creative",  "paintbrush",                            nil, 30),
+            mk("A0000000-0000-0000-0000-000000000004", "social",    "Social",    "person.2",                              nil, 40),
+            mk("A0000000-0000-0000-0000-000000000005", "outdoors",  "Outdoors",  "leaf",                                  nil, 50),
+            mk("A0000000-0000-0000-0000-000000000006", "community", "Community", "person.3",                              nil, 60),
+        ]
+        let sportsID = parents[0].id, fitnessID = parents[1].id, creativeID = parents[2].id
+        let socialID = parents[3].id, outdoorsID = parents[4].id, communityID = parents[5].id
+        let children: [Activity] = [
+            mk("A1000000-0000-0000-0000-000000000001", "basketball", "Basketball", "basketball",     sportsID, 110),
+            mk("A1000000-0000-0000-0000-000000000002", "soccer",     "Soccer",     "soccerball",     sportsID, 120),
+            mk("A2000000-0000-0000-0000-000000000001", "run",        "Run",        "figure.run",     fitnessID, 210),
+            mk("A2000000-0000-0000-0000-000000000004", "yoga",       "Yoga",       "figure.yoga",    fitnessID, 240),
+            mk("A3000000-0000-0000-0000-000000000001", "pottery",    "Pottery",    "cup.and.saucer", creativeID, 310),
+            mk("A4000000-0000-0000-0000-000000000001", "coffee",     "Coffee",     "cup.and.saucer.fill", socialID, 410),
+            mk("A4000000-0000-0000-0000-000000000002", "dinner",     "Dinner",     "fork.knife",     socialID, 420),
+            mk("A5000000-0000-0000-0000-000000000001", "hike",       "Hike",       "mountain.2",     outdoorsID, 510),
+            mk("A6000000-0000-0000-0000-000000000002", "meetup",     "Meetup",     "person.3.sequence", communityID, 620),
+        ]
+        self.activities = (parents + children).sorted { $0.sortRank < $1.sortRank }
+        self.interests = []
+        self.venues = [:]
+        self.pushTokens = [:]
+    }
+
+    func declareInterest(userID: UUID, activityID: UUID, venueID: UUID?) -> ContextID? {
+        let alreadyDeclared = interests.contains {
+            $0.userID == userID && $0.activityID == activityID && $0.venueID == venueID
+        }
+        if !alreadyDeclared {
+            interests.append(UserActivityInterest(userID: userID, activityID: activityID, venueID: venueID, declaredAt: Date()))
+        }
+        // No auto-context formation in the in-memory shell — return nil
+        // so callers fall back to the "interest recorded" UX.
+        return nil
+    }
+
+    func interests(for userID: UUID) -> [UserActivityInterest] {
+        interests.filter { $0.userID == userID }
+    }
+
+    func upsertVenue(_ venue: Venue) -> Venue {
+        if let placeID = venue.applePlaceID {
+            if let existing = venues.values.first(where: { $0.applePlaceID == placeID }) {
+                return existing
+            }
+        }
+        venues[venue.id] = venue
+        return venue
+    }
+
+    func registerPushToken(_ token: String, userID: UUID) {
+        pushTokens[token] = userID.uuidString
+    }
+
+    func unregisterPushToken(_ token: String) {
+        pushTokens.removeValue(forKey: token)
+    }
+}
+
+struct InMemoryActivityService: ActivityServiceProtocol {
+    let store: InMemoryStore
+    let state: InMemoryActivityState
+
+    func listActivities() async throws -> [Activity] {
+        await state.activities
+    }
+
+    func declareInterest(activityID: UUID, venueID: UUID?) async throws -> ContextID? {
+        let user = await store.currentUser()
+        return await state.declareInterest(userID: user.id, activityID: activityID, venueID: venueID)
+    }
+
+    func autoJoinMatchingContexts() async throws -> Int {
+        // No real context auto-join in the in-memory shell.
+        return 0
+    }
+
+    func myInterests() async throws -> [UserActivityInterest] {
+        let user = await store.currentUser()
+        return await state.interests(for: user.id)
+    }
+}
+
+struct InMemoryVenueService: VenueServiceProtocol {
+    let state: InMemoryActivityState
+
+    func upsertVenue(_ venue: Venue) async throws -> Venue {
+        await state.upsertVenue(venue)
+    }
+}
+
+struct InMemoryRecommendationService: RecommendationServiceProtocol {
+    func postWrapRecommendations(planID: PlanID) async throws -> [PlanRecommendation] { [] }
+    func coInviteSuggestions(planID: PlanID) async throws -> [PlanRecommendation] { [] }
+    func dismiss(recommendationID: UUID) async throws {}
+}
+
+struct InMemoryPushRegistrationService: PushRegistrationProtocol {
+    let store: InMemoryStore
+    let state: InMemoryActivityState
+
+    func register(deviceToken: String, platform: String) async throws {
+        let user = await store.currentUser()
+        await state.registerPushToken(deviceToken, userID: user.id)
+    }
+
+    func unregister(deviceToken: String) async throws {
+        await state.unregisterPushToken(deviceToken)
+    }
+}
+
 // MARK: - Backend factory
 
 enum InMemoryBackendFactory {
     static func make(seed: InMemoryBackendSeed = .default) -> AfterPlansBackend {
         let store = InMemoryStore(seed: seed)
+        let activityState = InMemoryActivityState()
         return AfterPlansBackend(
             identity: InMemoryIdentityService(store: store),
             plans: InMemoryPlanService(store: store),
             invites: InMemoryNetworkedInviteService(store: store),
             reports: InMemoryReportService(store: store),
             contexts: InMemoryContextNetworkService(store: store),
+            activities: InMemoryActivityService(store: store, state: activityState),
+            venues: InMemoryVenueService(state: activityState),
+            recommendations: InMemoryRecommendationService(),
+            push: InMemoryPushRegistrationService(store: store, state: activityState),
             realtime: nil
         )
     }

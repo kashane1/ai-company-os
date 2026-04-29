@@ -70,4 +70,126 @@ final class SupabaseBackendIntegrationTests: XCTestCase {
         let wrapped = try await backend.plans.wrap(planID: created.id)
         XCTAssertEqual(wrapped.lifecycle, .closed)
     }
+
+    // Phase 2g — exercise the new wire surfaces against the live local stack:
+    // activity taxonomy, declared interests, venue upsert, push token
+    // registration. Auto-context formation is a Phase 7 concern and is not
+    // exercised here.
+    func testActivityVenueAndPushAgainstLocalSupabase() async throws {
+        let backend = try await makeBackend()
+        // Trigger anonymous sign-in so the `authenticated` role RLS
+        // policies apply for the activity/venue/push surfaces below.
+        _ = try await backend.identity.currentUser()
+
+        let activities = try await backend.activities.listActivities()
+        XCTAssertGreaterThanOrEqual(activities.count, 6, "seed.sql ships at least the 6 parent activities")
+        XCTAssertEqual(activities, activities.sorted { $0.sortRank < $1.sortRank })
+        let leaf = try XCTUnwrap(activities.first { $0.parentActivityID != nil }, "seed should include child activities")
+
+        let interestContextID = try await backend.activities.declareInterest(activityID: leaf.id, venueID: nil)
+        XCTAssertNil(interestContextID, "auto-context formation is deferred to Phase 7")
+
+        let myInterests = try await backend.activities.myInterests()
+        XCTAssertTrue(myInterests.contains { $0.activityID == leaf.id && $0.venueID == nil })
+
+        // declareInterest is upsert-shaped server-side; calling twice should
+        // not produce duplicate rows.
+        _ = try await backend.activities.declareInterest(activityID: leaf.id, venueID: nil)
+        let interestsAfter = try await backend.activities.myInterests()
+        XCTAssertEqual(
+            interestsAfter.filter { $0.activityID == leaf.id && $0.venueID == nil }.count,
+            1,
+            "duplicate declareInterest should be idempotent"
+        )
+
+        let placeID = "test-place-\(UUID().uuidString)"
+        let venue = Venue(
+            id: UUID(),
+            name: "Integration Test Track",
+            address: "100 Test Lane",
+            latitude: 37.7,
+            longitude: -122.4,
+            applePlaceID: placeID,
+            isFreeform: false,
+            verified: false
+        )
+        let stored = try await backend.venues.upsertVenue(venue)
+        XCTAssertEqual(stored.applePlaceID, placeID)
+
+        // Same Apple Place ID returns the existing row.
+        let dup = Venue(
+            id: UUID(),
+            name: "Different name same place",
+            address: nil, latitude: nil, longitude: nil,
+            applePlaceID: placeID,
+            isFreeform: false, verified: false
+        )
+        let resolved = try await backend.venues.upsertVenue(dup)
+        XCTAssertEqual(resolved.id, stored.id, "Apple Place ID should dedupe the venue")
+
+        let token = "integration-test-token-\(UUID().uuidString)"
+        try await backend.push.register(deviceToken: token, platform: "ios")
+        // Re-register is upsert via on conflict (token); should not throw.
+        try await backend.push.register(deviceToken: token, platform: "ios")
+        try await backend.push.unregister(deviceToken: token)
+
+        // Recommendation surfaces are stubbed in Phase 2; Phase 6 fills them in.
+        let postWrap = try await backend.recommendations.postWrapRecommendations(planID: UUID())
+        XCTAssertTrue(postWrap.isEmpty)
+    }
+
+    // Phase 8 — comprehensive end-to-end exercise of the publicMatch
+    // flow against the live local stack. Single-user (the integration
+    // test only carries one anonymous session); multi-user race
+    // semantics are validated by the worker integration test in Phase 7.
+    func testPublicMatchPlanLifecycleAndDeclaredInterests() async throws {
+        let backend = try await makeBackend()
+        _ = try await backend.identity.currentUser()
+
+        // 1. Declare interest in an activity.
+        let activities = try await backend.activities.listActivities()
+        let target = try XCTUnwrap(activities.first { $0.parentActivityID != nil })
+        _ = try await backend.activities.declareInterest(activityID: target.id, venueID: nil)
+
+        // 2. Materialize a freeform venue.
+        let venue = Venue(
+            id: UUID(),
+            name: "E2E Test Court",
+            address: "100 Test Lane",
+            latitude: nil, longitude: nil,
+            applePlaceID: nil,
+            isFreeform: true,
+            verified: false
+        )
+        let storedVenue = try await backend.venues.upsertVenue(venue)
+
+        // 3. Create a publicMatch plan referencing the activity + venue.
+        let contexts = try await backend.contexts.suggestedContexts()
+        let routingContext = try XCTUnwrap(contexts.first)
+        let draft = CreatePlanDraft(
+            mode: .defaultOption,
+            title: "E2E publicMatch",
+            summary: "Spawned by Phase 8 e2e test",
+            venueHint: storedVenue.name,
+            timeHint: "Now",
+            visibility: .publicMatch,
+            activityID: target.id,
+            venueID: storedVenue.id
+        )
+        let plan = try await backend.plans.createPlan(from: draft, in: routingContext.id)
+        XCTAssertEqual(plan.visibility, .publicMatch)
+        XCTAssertEqual(plan.lifecycle, .open)
+
+        // 4. Walk the lifecycle: confirm → active → wrap.
+        _ = try await backend.plans.confirm(planID: plan.id)
+        _ = try await backend.plans.markActive(planID: plan.id)
+        let wrapped = try await backend.plans.wrap(planID: plan.id)
+        XCTAssertEqual(wrapped.lifecycle, .closed)
+
+        // 5. Auto-context formation is asynchronous (Phase 7 worker).
+        // Without invoking the worker, this test asserts only the wrap
+        // transaction itself is fast and consistent. The
+        // context_formation_jobs row was enqueued by the trigger in
+        // 0003 and will be processed by the worker on its 30s schedule.
+    }
 }

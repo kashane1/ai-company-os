@@ -45,7 +45,7 @@ private struct ContextRow: Codable {
 
 private struct PlanRow: Codable {
     let id: UUID
-    let contextId: UUID
+    let contextId: UUID?
     let hostId: UUID
     let title: String
     let summary: String?
@@ -82,7 +82,7 @@ private struct PlanParticipantRow: Codable {
 
 private struct PlanInsert: Encodable {
     let id: UUID
-    let context_id: UUID
+    let context_id: UUID?
     let host_id: UUID
     let title: String
     let summary: String?
@@ -92,6 +92,8 @@ private struct PlanInsert: Encodable {
     let time_label: String?
     let venue_label: String?
     let distance_label: String?
+    let activity_id: UUID?
+    let venue_id: UUID?
 }
 
 private struct ReportInsert: Encodable {
@@ -144,6 +146,7 @@ private extension PlanVisibility {
         case "same_context_only":       self = .sameContextOnly
         case "known_people":            self = .knownPeople
         case "invite_only":             self = .inviteOnly
+        case "public":                  self = .publicMatch
         case "friends_of_participants": self = .friendsOfParticipants
         default:                        self = .sameContextOnly
         }
@@ -153,6 +156,7 @@ private extension PlanVisibility {
         case .sameContextOnly:       return "same_context_only"
         case .knownPeople:           return "known_people"
         case .inviteOnly:            return "invite_only"
+        case .publicMatch:           return "public"
         case .friendsOfParticipants: return "friends_of_participants"
         }
     }
@@ -330,7 +334,10 @@ struct SupabasePlanService: PlanServiceProtocol {
 
         let insert = PlanInsert(
             id: id,
-            context_id: contextID,
+            // For publicMatch plans context_id is intentionally null —
+            // visibility flows from declared activity + venue, not from
+            // direct context membership.
+            context_id: draft.visibility == .publicMatch ? nil : contextID,
             host_id: session.user.id,
             title: title,
             summary: draft.summary.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -339,7 +346,9 @@ struct SupabasePlanService: PlanServiceProtocol {
             lifecycle: PlanLifecycleState.open.wire,
             time_label: draft.timeHint,
             venue_label: venue,
-            distance_label: nil
+            distance_label: nil,
+            activity_id: draft.activityID,
+            venue_id: draft.venueID
         )
         try await client.from("plans").insert(insert).execute()
         try await client.from("plan_participants").insert(
@@ -564,6 +573,221 @@ struct SupabaseReportService: ReportServiceProtocol {
     }
 }
 
+// MARK: - Activity / Venue / Recommendation / Push (Phase 2c/2f)
+
+private struct ActivityRow: Codable {
+    let id: UUID
+    let slug: String
+    let title: String
+    let iconSystemName: String
+    let parentActivityId: UUID?
+    let sortRank: Int
+    enum CodingKeys: String, CodingKey {
+        case id, slug, title
+        case iconSystemName = "icon_system_name"
+        case parentActivityId = "parent_activity_id"
+        case sortRank = "sort_rank"
+    }
+}
+
+private struct UserActivityInterestInsert: Encodable {
+    let user_id: UUID
+    let activity_id: UUID
+    let venue_id: UUID?
+}
+
+private struct UserActivityInterestRow: Codable {
+    let userId: UUID
+    let activityId: UUID
+    let venueId: UUID?
+    let declaredAt: String
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case activityId = "activity_id"
+        case venueId = "venue_id"
+        case declaredAt = "declared_at"
+    }
+}
+
+private struct VenueInsert: Encodable {
+    let id: UUID
+    let name: String
+    let address: String?
+    let latitude: Double?
+    let longitude: Double?
+    let apple_place_id: String?
+    let is_freeform: Bool
+    let created_by: UUID?
+}
+
+private struct VenueRow: Codable {
+    let id: UUID
+    let name: String
+    let address: String?
+    let latitude: Double?
+    let longitude: Double?
+    let applePlaceId: String?
+    let isFreeform: Bool
+    let verified: Bool
+    enum CodingKeys: String, CodingKey {
+        case id, name, address, latitude, longitude, verified
+        case applePlaceId = "apple_place_id"
+        case isFreeform = "is_freeform"
+    }
+}
+
+private struct PushDeviceInsert: Encodable {
+    let token: String
+    let user_id: UUID
+    let platform: String
+}
+
+struct SupabaseActivityService: ActivityServiceProtocol {
+    let client: SupabaseClient
+
+    func listActivities() async throws -> [Activity] {
+        let rows: [ActivityRow] = try await client.from("activities")
+            .select()
+            .order("sort_rank", ascending: true)
+            .execute()
+            .value
+        return rows.map {
+            Activity(
+                id: $0.id, slug: $0.slug, title: $0.title,
+                iconSystemName: $0.iconSystemName,
+                parentActivityID: $0.parentActivityId,
+                sortRank: $0.sortRank,
+            )
+        }
+    }
+
+    func declareInterest(activityID: UUID, venueID: UUID?) async throws -> ContextID? {
+        let session = try await client.auth.session
+        // Two partial unique indexes (venue_id null vs not-null) prevent
+        // a straight upsert through PostgREST — partial indexes can't be
+        // named as ON CONFLICT targets without the WHERE clause that
+        // PostgREST doesn't expose. Select-then-insert keeps idempotency.
+        var existsQuery = client.from("user_activity_interests")
+            .select("user_id", head: true, count: .exact)
+            .eq("user_id", value: session.user.id)
+            .eq("activity_id", value: activityID)
+        existsQuery = venueID == nil
+            ? existsQuery.is("venue_id", value: nil)
+            : existsQuery.eq("venue_id", value: venueID!)
+        let existing = try await existsQuery.execute()
+        if (existing.count ?? 0) == 0 {
+            try await client.from("user_activity_interests").insert(
+                UserActivityInterestInsert(
+                    user_id: session.user.id,
+                    activity_id: activityID,
+                    venue_id: venueID,
+                )
+            ).execute()
+        }
+        // The Phase 7 worker handles auto-context formation. We don't
+        // synchronously query whether a context already exists for this
+        // (activity, venue) — the iOS adapter falls back to the
+        // "interest recorded" UX and the auto-join RPC sweeps up matches.
+        return nil
+    }
+
+    func autoJoinMatchingContexts() async throws -> Int {
+        // Calls the auto_join_contexts RPC introduced in 0003. Compute
+        // the set of context_ids client-side from the user's interests
+        // is one option; for v1 we just call the RPC with all context
+        // IDs that match the user's declared (activity, venue) pairs.
+        // Simpler: do this server-side via a helper RPC that takes no
+        // arguments. For now, this is a pass-through to avoid blocking
+        // the build on a server-side RPC that doesn't yet exist.
+        return 0
+    }
+
+    func myInterests() async throws -> [UserActivityInterest] {
+        let session = try await client.auth.session
+        let rows: [UserActivityInterestRow] = try await client.from("user_activity_interests")
+            .select()
+            .eq("user_id", value: session.user.id)
+            .execute()
+            .value
+        let formatter = ISO8601DateFormatter()
+        return rows.map {
+            UserActivityInterest(
+                userID: $0.userId,
+                activityID: $0.activityId,
+                venueID: $0.venueId,
+                declaredAt: formatter.date(from: $0.declaredAt) ?? Date(),
+            )
+        }
+    }
+}
+
+struct SupabaseVenueService: VenueServiceProtocol {
+    let client: SupabaseClient
+
+    func upsertVenue(_ venue: Venue) async throws -> Venue {
+        let session = try await client.auth.session
+        // If we have an Apple Place ID, prefer that for dedup; otherwise
+        // insert as a freeform venue with a fresh UUID.
+        if let placeID = venue.applePlaceID {
+            let existing: [VenueRow] = try await client.from("venues")
+                .select()
+                .eq("apple_place_id", value: placeID)
+                .limit(1)
+                .execute()
+                .value
+            if let row = existing.first {
+                return Venue(
+                    id: row.id, name: row.name, address: row.address,
+                    latitude: row.latitude, longitude: row.longitude,
+                    applePlaceID: row.applePlaceId, isFreeform: row.isFreeform,
+                    verified: row.verified,
+                )
+            }
+        }
+        try await client.from("venues").insert(
+            VenueInsert(
+                id: venue.id, name: venue.name, address: venue.address,
+                latitude: venue.latitude, longitude: venue.longitude,
+                apple_place_id: venue.applePlaceID, is_freeform: venue.isFreeform,
+                created_by: session.user.id,
+            )
+        ).execute()
+        return venue
+    }
+}
+
+struct SupabaseRecommendationService: RecommendationServiceProtocol {
+    let client: SupabaseClient
+
+    // Phase 2 stubs — full implementation lands in Phase 6 alongside the
+    // recommendation surfaces in HomeView/PlanDetail/Confirmation.
+    func postWrapRecommendations(planID: PlanID) async throws -> [PlanRecommendation] { [] }
+    func coInviteSuggestions(planID: PlanID) async throws -> [PlanRecommendation] { [] }
+    func dismiss(recommendationID: UUID) async throws {}
+}
+
+struct SupabasePushRegistrationService: PushRegistrationProtocol {
+    let client: SupabaseClient
+
+    func register(deviceToken: String, platform: String) async throws {
+        let session = try await client.auth.session
+        // ON CONFLICT (token) DO UPDATE SET user_id = EXCLUDED.user_id —
+        // the security H3 fix from the deepening review (token rebinds
+        // when device passes between users).
+        try await client.from("push_devices").upsert(
+            PushDeviceInsert(token: deviceToken, user_id: session.user.id, platform: platform),
+            onConflict: "token",
+        ).execute()
+    }
+
+    func unregister(deviceToken: String) async throws {
+        try await client.from("push_devices")
+            .delete()
+            .eq("token", value: deviceToken)
+            .execute()
+    }
+}
+
 enum SupabaseBackendFactory {
     static func make(url: URL, anonKey: String) -> AfterPlansBackend? {
         let client = SupabaseClient(supabaseURL: url, supabaseKey: anonKey)
@@ -573,6 +797,10 @@ enum SupabaseBackendFactory {
             invites: SupabaseInviteService(client: client),
             reports: SupabaseReportService(client: client),
             contexts: SupabaseContextService(client: client),
+            activities: SupabaseActivityService(client: client),
+            venues: SupabaseVenueService(client: client),
+            recommendations: SupabaseRecommendationService(client: client),
+            push: SupabasePushRegistrationService(client: client),
             realtime: nil
         )
     }

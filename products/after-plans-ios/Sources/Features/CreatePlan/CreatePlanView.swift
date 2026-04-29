@@ -68,11 +68,38 @@ struct CreatePlanView: View {
                 }
             }
 
-            Section("Context") {
-                Label(store.selectedContext?.title ?? "No context selected", systemImage: "sparkles.rectangle.stack")
-                Text(store.selectedContext?.trustNote ?? "Pick a context first to keep the plan bounded.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+            // Visibility-conditional anchor section. Phase 5 contract:
+            // - .sameContextOnly → context selector (legacy behavior).
+            // - .publicMatch     → activity + venue (no context needed).
+            // - .inviteOnly      → neither (sender controls reach).
+            switch draft.visibility {
+            case .sameContextOnly:
+                Section("Context") {
+                    Label(store.selectedContext?.title ?? "No context selected", systemImage: "sparkles.rectangle.stack")
+                    Text(store.selectedContext?.trustNote ?? "Pick a context first to keep the plan bounded.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            case .publicMatch:
+                Section("Activity") {
+                    Picker("Activity", selection: $draft.activityID) {
+                        Text("Pick one").tag(UUID?.none)
+                        ForEach(ActivityTaxonomy.children) { activity in
+                            Text(activity.title).tag(UUID?.some(activity.id))
+                        }
+                    }
+                    Text("People who declared this activity in their profile will see your plan.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Section("Place") {
+                    TextField("Place", text: $draft.venueHint)
+                    Text("A typed place becomes a freeform venue. We'll line it up with a real one when someone confirms the location.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            case .inviteOnly, .friendsOfParticipants, .knownPeople:
+                EmptyView()
             }
 
             Section("What people will see") {
