@@ -74,21 +74,45 @@
   - '#fishingtips'
   - '#honeyhole'
 - item_number: 7
-  hook: Bank fishing is real fishing
+  hook: "Bank fishing is real fishing — stop gatekeeping"
   archetype: identity_tribal
   platform: tiktok
   campaign: zero
   composite_score: 75
-  topic_id: null
-  status: draft
+  topic_id: bank-angler-underserved
+  status: scheduled
 - item_number: 8
-  hook: I got skunked again
+  hook: "I got skunked again — and it still counts"
   archetype: humor_relatable
   platform: tiktok
   campaign: zero
   composite_score: 72
-  topic_id: null
-  status: draft
+  topic_id: skunked-trip-value
+  status: scheduled
+  slides:
+    - text:
+        headline: "I got skunked again"
+        subhead: "and it still counts"
+      visual_hint: "Empty fishing rod holder on a quiet lake bank at dusk, no fish in sight, tackle box open but untouched, moody golden hour light, slightly humorous lonely mood, 9:16 portrait"
+    - text:
+        headline: "Zero fish. Full day."
+        body: "Bad weather. Wrong lure. Fish weren't feeding. Doesn't matter. You were on the water and that's more than most people did today."
+      visual_hint: "Angler sitting on a cooler on an empty dock at sunset, rod leaning against railing, no catch bag visible, peaceful defeat energy, warm tones, 9:16 portrait"
+    - text:
+        headline: "Skunked trips still teach you"
+        bullets:
+          - "Water temp that didn't work"
+          - "Lure the fish ignored"
+          - "Spot that was dead today"
+        body: "That's data. Next time you'll know."
+      visual_hint: "Close-up of an empty stringer hanging from a dock post with calm lake water behind it, golden hour backlight, beautiful but funny, 9:16 portrait"
+  caption: "i got skunked again. zero fish. full day on the water. bad weather, wrong lure, fish weren't having it. doesn't matter. skunked trips still teach you something — water temp that didn't work, the lure they ignored, the spot that was dead. that's data. next time you'll know."
+  hashtags:
+    - "#fishing"
+    - "#fishtok"
+    - "#skunked"
+    - "#bassfishing"
+    - "#fishingtips"
 - item_number: 9
   hook: Is social media ruining fishing?
   archetype: debate_hot_take

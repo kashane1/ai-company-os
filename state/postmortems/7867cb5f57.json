@@ -1,0 +1,19 @@
+{
+  "created_at": "2026-04-09T08:00:00+00:00",
+  "excerpt_redacted": "first",
+  "failure_code": "stale",
+  "fixture_path": "/private/var/folders/[REDACTED-USER]/w5cfx_y54y13xrz53t701bsr0000gn/T/pytest-of-simons/pytest-2/test_capture_after_window0/stale__20260409T080000__4b5a6a02f4.json",
+  "id": "7867cb5f57",
+  "lane": "ios",
+  "notes": "",
+  "owner": null,
+  "redaction_hits": 0,
+  "remediation_action": "",
+  "root_cause_category": "unknown",
+  "schema_version": "1",
+  "severity": "warn",
+  "status": "open",
+  "task_id": null,
+  "task_run_id": null,
+  "updated_at": "2026-04-09T08:00:00+00:00"
+}
