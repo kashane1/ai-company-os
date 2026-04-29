@@ -27,6 +27,17 @@ final class LifeClockStore {
     var hasTodaySignal: Bool = false
     var dietStreaks: DietStreaks = .zero
 
+    /// True iff the user has a profile and reports DOB making them ≥18 as of
+    /// today's clock. Drives the age-gate on QuickLog smoking/alcohol pickers.
+    var isAdultUser: Bool {
+        guard let profile else { return false }
+        return AgeGate.isAdult(
+            birthDate: profile.birthDate,
+            asOf: clock.now(),
+            calendar: clock.calendar
+        )
+    }
+
     @ObservationIgnored private let healthService: HealthKitServiceProtocol
     @ObservationIgnored let clock: EngineClock
     @ObservationIgnored private let clockEngine: ClockEngine
@@ -142,6 +153,15 @@ final class LifeClockStore {
     func setToneMode(_ tone: ToneMode) {
         toneMode = tone
         profile?.toneMode = tone.rawValue
+        try? modelContext.save()
+    }
+
+    /// Persist the user's "hide the clock" preference. Today screen reads
+    /// `profile?.hideClock` to decide whether to render the projected-age
+    /// card or the safer "time earned today" alternative. Resolves Q5 +
+    /// part of the safety-net offering for Q13.
+    func setHideClock(_ hidden: Bool) async {
+        profile?.hideClock = hidden
         try? modelContext.save()
     }
 

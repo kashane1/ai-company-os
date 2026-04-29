@@ -1,6 +1,6 @@
 # Phase Status
 
-- **Product:** Life Clock
+- **Product:** Life Clock — App Store name **"Life Clock: habits earn time"**
 - **Last updated:** 2026-04-28
 - **Phase:** discovery → **pre-TestFlight** (skeleton complete, no real submission yet)
 - **Owner:** founder (Kashane)
@@ -70,13 +70,13 @@ Correctly deferred per founder pack:
 Source: `OPEN_QUESTIONS.md`. Status reflects what implementation has already decided (where applicable).
 
 ### Brand
-1. **Should the app lean into mortality with "Life Clock" or soften ("TimeBack" / "Long Game")?** — *Unresolved.* Working title `LifeClock` retained.
+1. **Should the app lean into mortality with "Life Clock" or soften ("TimeBack" / "Long Game")?** — **✅ Resolved 2026-04-28.** App Store name: **"Life Clock: habits earn time"**. Subtitle (working): **"See how habits move your life"** (29 chars; alternates in `APP_STORE_ASO.md`).
 2. **Should the default UI show projected date, projected age, or healthspan score?** — *Implemented as projected age + healthspan score; date shown as anchor.* Founder ratification needed.
 3. **Should "death clock mode" be opt-in?** — *Resolved by implementation.* Default tone is `coach`. `mementoMori` is opt-in. Aligns with the founder pack's "agency over fear" principle.
 
 ### Product
 4. **How intense should negative feedback be?** — *Soft.* Negative deltas use muted orange, not alarming red. Recovery quest after heavy alcohol log replaces a punitive tone.
-5. **Hide the clock, show only "time earned"?** — *Unresolved.* No toggle exists. The `gentle` tone mode comes closest.
+5. **Hide the clock, show only "time earned"?** — **✅ Resolved 2026-04-28.** `UserProfile.hideClock` toggle. When true, Today screen replaces "Projected healthspan" card with "Time earned today" only. Also offered automatically inside `SafetyNetView`.
 6. **Minimum manual logging?** — *Implemented.* Five fields in `QuickLogSheet` (alcohol, smoking, diet, stress, strength) — feedback needed on whether this is too many.
 7. **Diet as daily quality score, or photo meals?** — *Daily score (great/okay/rough).* Photo meals deferred.
 
@@ -87,8 +87,12 @@ Source: `OPEN_QUESTIONS.md`. Status reflects what implementation has already dec
 
 ### Compliance
 11. **Clinician review before submission?** — *Unresolved, recommended.* Especially for the disclaimer copy and the "memento mori" tone strings.
-12. **Age rating: 13+, 17+, or general wellness?** — *Unresolved.* Default tone is non-medical; mortality framing in optional tone might warrant 17+. **Ask App Review.**
-13. **Self-harm adjacent language / anxious users?** — *Unresolved, high-priority.* No safety net copy implemented. Should at minimum surface a "feeling overwhelmed?" link to mental-health resources before any negative-delta tone-mode prompt.
+12. **Age rating: 13+, 17+, or general wellness?** — **✅ Resolved 2026-04-28 as 12+ with in-app age-gating.** Apple's rating scale puts user-self-reporting of alcohol/tobacco for habit tracking in the "Infrequent or Mild" bucket → 12+. The smoking and alcohol pickers in `QuickLogSheet` are gated to users who report DOB ≥ 18; under-18 users see only diet, stress, and strength. Implemented via `UserProfile.isAdult(asOf:calendar:)`.
+13. **Self-harm adjacent language / anxious users?** — **✅ Resolved 2026-04-28.** Implemented:
+   - `SafetyNetView` accessible from Profile → "If this app is making you anxious".
+   - 988 (US) + Crisis Text Line + international equivalents listed.
+   - "Hide the clock" toggle wired to `UserProfile.hideClock` — replaces the projected-age display with "Time earned today" only (also resolves Q5).
+   - Auto-route to `SafetyNetView` if user toggles `mementoMori` mode and previously chose "Hide the clock" — surfaces the safer path before the harsher copy.
 
 ### Monetization
 14. **Pro at $39.99 or $59.99/year?** — *Implemented at $49.99* (midpoint per `MONETIZATION.md` recommendation). Easy to change in ASC.
@@ -153,15 +157,17 @@ After steps 1 + 2:
 
 Hand to ASC / App Review when ready:
 
-- [ ] Q1 brand decided
-- [ ] Q12 age rating decided
-- [ ] Q13 safety-net copy authored
-- [ ] Real privacy URL hosted
+- [x] Q1 brand decided — "Life Clock: habits earn time"
+- [x] Q12 age rating decided — 12+ with in-app age-gating
+- [x] Q13 safety-net copy authored — `SafetyNetView` + hide-the-clock toggle
+- [x] Subtitle chosen — "See how habits move your life" (working)
+- [ ] **Founder action:** create GitHub repo for `legal/privacy-policy.md` + `legal/terms-of-use.md` (markdown ready in `docs/products/life-clock/legal/`)
+- [ ] **Founder action:** replace placeholder URLs in `LifeClockConfiguration.swift` once the GitHub Pages site is live
+- [ ] **Founder action:** create Apple Developer account ($99/year) if not already
+- [ ] **Founder action:** App Store Connect product setup — see `ASC_CHECKLIST.md`
 - [ ] App icon set (all sizes)
-- [ ] ASC products configured matching `Products.storekit` IDs
-- [ ] `PrivacyInfo.xcprivacy` API reasons declared
-- [ ] `Localizable.strings` extracted (enables rename later)
-- [ ] Sandbox tester credentials prepared for review notes
-- [ ] Subtitle chosen from `APP_STORE_ASO.md` shortlist
-- [ ] Six App Store screenshots produced
-- [ ] Keyword set chosen
+- [ ] `PrivacyInfo.xcprivacy` API reasons declared (CA92.1 UserDefaults + C617.1 file timestamp for SwiftData)
+- [ ] `Localizable.strings` extracted (enables rename later, also a Q1 follow-up)
+- [ ] **Founder action:** sandbox tester credentials prepared for review notes
+- [ ] Six App Store screenshots produced (six options in `APP_STORE_ASO.md`)
+- [ ] Keyword set chosen from `APP_STORE_ASO.md` shortlist

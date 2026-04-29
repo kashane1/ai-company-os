@@ -20,6 +20,18 @@ struct OnboardingView: View {
 
     private let totalSteps = 6
 
+    /// True iff the picked birthDate makes the user ≥18 today. Drives the
+    /// age-gate on smoking/alcohol baseline pickers (Q12 — 12+ rating with
+    /// in-app gating). Uses the store's injected clock so this stays
+    /// deterministic under test.
+    private var isAdultBirthDate: Bool {
+        AgeGate.isAdult(
+            birthDate: birthDate,
+            asOf: store.clock.now(),
+            calendar: store.clock.calendar
+        )
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ProgressView(value: Double(step + 1), total: Double(totalSteps))
@@ -83,16 +95,18 @@ struct OnboardingView: View {
                 Text("Female").tag("female")
                 Text("Male").tag("male")
             }
-            Picker("Smoking", selection: $smokingStatus) {
-                Text("Never").tag("none")
-                Text("Former").tag("former")
-                Text("Light").tag("light")
-                Text("Heavy").tag("heavy")
-            }
-            Picker("Alcohol", selection: $alcoholFrequency) {
-                Text("Rare").tag("rare")
-                Text("Weekly").tag("weekly")
-                Text("Daily").tag("daily")
+            if isAdultBirthDate {
+                Picker("Smoking", selection: $smokingStatus) {
+                    Text("Never").tag("none")
+                    Text("Former").tag("former")
+                    Text("Light").tag("light")
+                    Text("Heavy").tag("heavy")
+                }
+                Picker("Alcohol", selection: $alcoholFrequency) {
+                    Text("Rare").tag("rare")
+                    Text("Weekly").tag("weekly")
+                    Text("Daily").tag("daily")
+                }
             }
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
                 Picker("Typical diet quality", selection: $dietQualityBaseline) {

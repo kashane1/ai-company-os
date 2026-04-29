@@ -18,16 +18,18 @@ struct QuickLogSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Alcohol today") {
-                    Picker("Alcohol", selection: $alcoholLevel) {
-                        Text("None").tag("none")
-                        Text("Light").tag("light")
-                        Text("Heavy").tag("heavy")
+                if store.isAdultUser {
+                    Section("Alcohol today") {
+                        Picker("Alcohol", selection: $alcoholLevel) {
+                            Text("None").tag("none")
+                            Text("Light").tag("light")
+                            Text("Heavy").tag("heavy")
+                        }
+                        .pickerStyle(.segmented)
                     }
-                    .pickerStyle(.segmented)
-                }
-                Section("Smoking / vaping today") {
-                    Toggle("Logged today", isOn: $smokingVaping)
+                    Section("Smoking / vaping today") {
+                        Toggle("Logged today", isOn: $smokingVaping)
+                    }
                 }
                 Section {
                     Picker("Diet quality today", selection: $dietQuality) {

@@ -43,6 +43,10 @@ enum LifeClockSchemaV1: VersionedSchema {
         var toneMode: String = "coach"
         var onboardingCompletedAt: Date? = nil
         var disclaimerAcceptedAt: Date? = nil
+        /// When true, Today screen replaces "Projected healthspan" with
+        /// "Time earned today" only. Resolves Open Question 5 + part of the
+        /// safety-net offering for users who find the clock anxiety-inducing.
+        var hideClock: Bool = false
 
         init(
             id: UUID = UUID(),

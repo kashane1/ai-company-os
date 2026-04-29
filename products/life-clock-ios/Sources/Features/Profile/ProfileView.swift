@@ -6,6 +6,7 @@ struct ProfileView: View {
     @State private var requestingAuth: Bool = false
     @State private var restoring: Bool = false
     @State private var paywallPresented: Bool = false
+    @State private var safetyNetPresented: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -87,6 +88,20 @@ struct ProfileView: View {
                     }
                 }
 
+                Section {
+                    Button {
+                        safetyNetPresented = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "heart.text.square")
+                            Text("If this app is making you anxious")
+                        }
+                    }
+                } footer: {
+                    Text("Switch to Gentle tone, hide the clock, or get crisis-resource phone numbers. Always available — no questions asked.")
+                        .font(.caption)
+                }
+
                 Section("About") {
                     DisclaimerBanner()
                         .listRowInsets(EdgeInsets())
@@ -106,6 +121,9 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .sheet(isPresented: $paywallPresented) {
                 PaywallSheet()
+            }
+            .sheet(isPresented: $safetyNetPresented) {
+                SafetyNetView()
             }
         }
     }

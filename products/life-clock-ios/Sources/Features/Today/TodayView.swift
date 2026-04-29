@@ -79,22 +79,31 @@ struct TodayView: View {
         }
     }
 
+    /// "Projected healthspan + anchor date" card. Hidden entirely when
+    /// `profile.hideClock` is true — replaced by the headline-only path
+    /// (the "+X min today" delta still renders above). Resolves Q5 and is
+    /// the centerpiece of the safety-net offering.
+    @ViewBuilder
     private var clockCard: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("Projected healthspan")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text(store.todayEstimate.map { TimeDeltaFormatter.format(years: $0.projectedAgeYears) } ?? "—")
-                .font(.title.bold())
-            if let projected = store.todayEstimate?.projectedDate {
-                Text("Anchor date: \(projected.formatted(.dateTime.year().month().day()))")
-                    .font(.caption)
+        if store.profile?.hideClock == true {
+            EmptyView()
+        } else {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                Text("Projected healthspan")
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
+                Text(store.todayEstimate.map { TimeDeltaFormatter.format(years: $0.projectedAgeYears) } ?? "—")
+                    .font(.title.bold())
+                if let projected = store.todayEstimate?.projectedDate {
+                    Text("Anchor date: \(projected.formatted(.dateTime.year().month().day()))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
+            .padding(DesignTokens.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
     }
 
     private var driversCard: some View {
