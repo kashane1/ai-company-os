@@ -26,11 +26,13 @@ struct CreatePlanDraft: Equatable {
         if visibility == .publicMatch {
             // Public-match plans don't need a context — they reach
             // people through declared activities — but they DO need
-            // both an activity and a venue.
+            // an activity and a place. The place can be either a
+            // chosen venueID or a freeform name; the store materializes
+            // a freeform Venue on publish when only the hint is set.
             guard activityID != nil else {
                 return "Pick an activity so the right people see this."
             }
-            guard venueID != nil else {
+            guard venueID != nil || !trimmedVenueHint.isEmpty else {
                 return "Pick a place so people know where to show up."
             }
         } else {

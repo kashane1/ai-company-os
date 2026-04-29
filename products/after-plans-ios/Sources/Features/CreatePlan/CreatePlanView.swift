@@ -37,14 +37,6 @@ struct CreatePlanView: View {
                 }
             }
 
-            Section("Core details") {
-                TextField("Plan headline", text: $draft.title)
-                TextField("What should people know?", text: $draft.summary, axis: .vertical)
-                    .lineLimit(3, reservesSpace: true)
-                TextField("Place", text: $draft.venueHint)
-                TextField("Timing", text: $draft.timeHint)
-            }
-
             Section("Visibility") {
                 ForEach(PlanVisibility.launchModes) { visibility in
                     Button {
@@ -66,6 +58,19 @@ struct CreatePlanView: View {
                         }
                     }
                 }
+            }
+
+            Section("Core details") {
+                TextField("Plan headline", text: $draft.title)
+                TextField("What should people know?", text: $draft.summary, axis: .vertical)
+                    .lineLimit(3, reservesSpace: true)
+                if draft.visibility != .publicMatch {
+                    // Public-match plans bind Place inside their own
+                    // anchor section below — keep one editable Place
+                    // field per form to avoid duplicate-binding bugs.
+                    TextField("Place", text: $draft.venueHint)
+                }
+                TextField("Timing", text: $draft.timeHint)
             }
 
             // Visibility-conditional anchor section. Phase 5 contract:
@@ -121,8 +126,9 @@ struct CreatePlanView: View {
                 }
             }
         }
+        .animation(.default, value: draft.visibility)
         .tint(.appAccent)
-        .navigationTitle("Start What's Next")
+        .navigationTitle("Plan What's Next")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Close") { dismiss() }

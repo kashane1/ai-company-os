@@ -1,15 +1,21 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Color tokens
+//
+// Brand tokens (BrandAccent / Momentum / Safe) live in Assets.xcassets
+// with explicit Any + Dark appearance variants. Chrome tokens map to
+// UIKit dynamic system colors so they adapt to the user's color scheme,
+// accessibility contrast settings, and Reduce Transparency.
 
 extension ShapeStyle where Self == Color {
-    static var appAccent: Color { Color(red: 0.12, green: 0.39, blue: 0.78) }
-    static var appMomentum: Color { Color(red: 0.98, green: 0.60, blue: 0.18) }
-    static var appSafe: Color { Color(red: 0.11, green: 0.54, blue: 0.42) }
-    static var appBackground: Color { Color(red: 0.95, green: 0.96, blue: 0.98) }
-    static var appCard: Color { Color.white.opacity(0.84) }
-    static var appCardStrong: Color { Color.white.opacity(0.97) }
-    static var appBorder: Color { Color.black.opacity(0.07) }
+    static var appAccent: Color { Color("BrandAccent", bundle: .main) }
+    static var appMomentum: Color { Color("Momentum", bundle: .main) }
+    static var appSafe: Color { Color("Safe", bundle: .main) }
+    static var appBackground: Color { Color(UIColor.systemGroupedBackground) }
+    static var appCard: Color { Color(UIColor.secondarySystemGroupedBackground) }
+    static var appCardStrong: Color { Color(UIColor.secondarySystemGroupedBackground) }
+    static var appBorder: Color { Color(UIColor.separator) }
 }
 
 // MARK: - Spacing
@@ -38,7 +44,7 @@ struct AppSurface: ViewModifier {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .fill(prominent ? Color.appCardStrong : Color.appCard)
                     .shadow(
-                        color: .black.opacity(prominent ? 0.07 : 0.04),
+                        color: Color(UIColor.label).opacity(prominent ? 0.10 : 0.06),
                         radius: prominent ? 16 : 8,
                         y: prominent ? 4 : 2
                     )
@@ -160,7 +166,7 @@ struct ActionPillButtonStyle: ButtonStyle {
                 Capsule().fill(
                     prominent
                         ? Color.appAccent.opacity(configuration.isPressed ? 0.78 : 1.0)
-                        : Color.black.opacity(configuration.isPressed ? 0.09 : 0.055)
+                        : Color(UIColor.secondarySystemFill).opacity(configuration.isPressed ? 1.4 : 1.0)
                 )
             )
             .foregroundStyle(prominent ? Color.white : Color.primary)
