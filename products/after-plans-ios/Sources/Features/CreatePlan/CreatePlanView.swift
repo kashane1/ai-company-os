@@ -4,6 +4,7 @@ struct CreatePlanView: View {
     @EnvironmentObject private var store: AfterPlansStore
     @Environment(\.dismiss) private var dismiss
     @State private var draft = CreatePlanDraft()
+    @State private var isPublishing = false
 
     var body: some View {
         let validationMessage = draft.validationMessage(hasContext: store.selectedContext != nil)
@@ -135,13 +136,16 @@ struct CreatePlanView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Publish") {
+                    guard !isPublishing else { return }
+                    isPublishing = true
                     Task {
+                        defer { isPublishing = false }
                         if await store.createPlan(from: draft) {
                             dismiss()
                         }
                     }
                 }
-                .disabled(validationMessage != nil)
+                .disabled(validationMessage != nil || isPublishing)
             }
         }
     }

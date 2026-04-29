@@ -414,12 +414,19 @@ final class AfterPlansStore: ObservableObject {
         // the typed-in hint so the plan can carry a real venue_id. Real
         // typeahead-resolved venues come through Phase 6's UI seam; v1
         // accepts freeform-only and lets the worker reconcile later.
+        // If upsert fails, surface it instead of silently creating a
+        // plan with no venue — the relaxed UI validation otherwise lets
+        // a half-success ship.
         if isPublicMatch && draft.venueID == nil {
             let trimmed = draft.trimmedVenueHint
             if !trimmed.isEmpty {
                 let freeform = StubVenueSearchService().freeformVenue(named: trimmed)
-                if let stored = try? await backend.venues.upsertVenue(freeform) {
+                do {
+                    let stored = try await backend.venues.upsertVenue(freeform)
                     draft.venueID = stored.id
+                } catch {
+                    lastActionMessage = "Couldn't save the place — try again."
+                    return false
                 }
             }
         }

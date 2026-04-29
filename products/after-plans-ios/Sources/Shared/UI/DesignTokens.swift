@@ -1,21 +1,19 @@
 import SwiftUI
-import UIKit
 
 // MARK: - Color tokens
 //
-// Brand tokens (BrandAccent / Momentum / Safe) live in Assets.xcassets
-// with explicit Any + Dark appearance variants. Chrome tokens map to
-// UIKit dynamic system colors so they adapt to the user's color scheme,
-// accessibility contrast settings, and Reduce Transparency.
+// Brand tokens live in Assets.xcassets with Any + Dark appearance
+// variants. Chrome tokens map to UIKit dynamic system colors so they
+// follow the user's color scheme and accessibility settings.
 
 extension ShapeStyle where Self == Color {
     static var appAccent: Color { Color("BrandAccent", bundle: .main) }
     static var appMomentum: Color { Color("Momentum", bundle: .main) }
     static var appSafe: Color { Color("Safe", bundle: .main) }
-    static var appBackground: Color { Color(UIColor.systemGroupedBackground) }
-    static var appCard: Color { Color(UIColor.secondarySystemGroupedBackground) }
-    static var appCardStrong: Color { Color(UIColor.secondarySystemGroupedBackground) }
-    static var appBorder: Color { Color(UIColor.separator) }
+    static var appBackground: Color { Color(.systemGroupedBackground) }
+    static var appCard: Color { Color(.secondarySystemGroupedBackground) }
+    static var appCardStrong: Color { Color(.secondarySystemGroupedBackground) }
+    static var appBorder: Color { Color(.separator) }
 }
 
 // MARK: - Spacing
@@ -44,7 +42,7 @@ struct AppSurface: ViewModifier {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .fill(prominent ? Color.appCardStrong : Color.appCard)
                     .shadow(
-                        color: Color(UIColor.label).opacity(prominent ? 0.10 : 0.06),
+                        color: Color(.label).opacity(prominent ? 0.10 : 0.06),
                         radius: prominent ? 16 : 8,
                         y: prominent ? 4 : 2
                     )
@@ -166,7 +164,7 @@ struct ActionPillButtonStyle: ButtonStyle {
                 Capsule().fill(
                     prominent
                         ? Color.appAccent.opacity(configuration.isPressed ? 0.78 : 1.0)
-                        : Color(UIColor.secondarySystemFill).opacity(configuration.isPressed ? 1.4 : 1.0)
+                        : (configuration.isPressed ? Color(.tertiarySystemFill) : Color(.secondarySystemFill))
                 )
             )
             .foregroundStyle(prominent ? Color.white : Color.primary)
