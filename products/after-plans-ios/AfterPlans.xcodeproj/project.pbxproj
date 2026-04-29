@@ -36,6 +36,7 @@
 		7B72C820D9C5A8D2DEF3D129 /* AfterPlansStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E785D2A6AA8AEF7A0C7E9C /* AfterPlansStoreTests.swift */; };
 		8533C026E8AF261B38F73D8F /* PlanLifecycleViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558E14DAE3414EF507EF0CB3 /* PlanLifecycleViews.swift */; };
 		9262E9C1E31277947ED975D2 /* InMemoryServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65BA84194135AFB48885CEFB /* InMemoryServices.swift */; };
+		95FD11D1EC276711D3CD1E49 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FDB811848ADDAA9595973D /* FlowLayout.swift */; };
 		A43A9E6BE78F50744373F9D7 /* VenueSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B8948708BB0FC97C937A6C2 /* VenueSearchService.swift */; };
 		A4B4C6F7997FD209A5980507 /* ContinuationLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DD48153B2FD02D380807D5 /* ContinuationLoop.swift */; };
 		A4EC956A61125B5C2B3AD459 /* AfterPlansModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325D10D8C6420D14BC109892 /* AfterPlansModelsTests.swift */; };
@@ -108,6 +109,7 @@
 		D6BA78C3EA89D1E375791F0E /* ContextSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextSelectionView.swift; sourceTree = "<group>"; };
 		DA5FBF6A32FD6A639A60665E /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		E6390FFCE8DACAF4A2380209 /* CreatePlanDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePlanDraftTests.swift; sourceTree = "<group>"; };
+		E6FDB811848ADDAA9595973D /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		F96B3D304E4673D2F4845613 /* SupabaseBackendIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseBackendIntegrationTests.swift; sourceTree = "<group>"; };
 		FC28F038AE7E325CA3522EB6 /* ServiceProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
 		FE06918A2DB057ADBBE6A5DD /* SafetyCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyCenterView.swift; sourceTree = "<group>"; };
@@ -290,6 +292,7 @@
 			isa = PBXGroup;
 			children = (
 				56683C522A90B3C4409D68E4 /* DesignTokens.swift */,
+				E6FDB811848ADDAA9595973D /* FlowLayout.swift */,
 				558E14DAE3414EF507EF0CB3 /* PlanLifecycleViews.swift */,
 				9084512148C9A74F07691351 /* QRCodeView.swift */,
 			);
@@ -507,6 +510,7 @@
 				A95E0E38D2D22E1AB5B15FE1 /* CreatePlanDraft.swift in Sources */,
 				4A8C384A13E2E4A5E65B40E3 /* CreatePlanView.swift in Sources */,
 				506D78F72FEDDF87C9F1640F /* DesignTokens.swift in Sources */,
+				95FD11D1EC276711D3CD1E49 /* FlowLayout.swift in Sources */,
 				364D6525EF337E9E551FC9B2 /* HomeView.swift in Sources */,
 				5A23029C619391E4F402503C /* InMemoryBackend.swift in Sources */,
 				9262E9C1E31277947ED975D2 /* InMemoryServices.swift in Sources */,

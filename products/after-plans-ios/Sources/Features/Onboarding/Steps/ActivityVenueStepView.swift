@@ -19,31 +19,29 @@ struct ActivityVenuePickerView: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Activities you do regularly")
                 .font(.headline)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Spacing.sm) {
-                    ForEach(activities) { activity in
-                        Button {
-                            toggle(activity)
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: activity.iconSystemName)
-                                Text(activity.title)
-                                    .font(.subheadline)
-                            }
-                            .padding(.vertical, Spacing.xs)
-                            .padding(.horizontal, Spacing.sm)
-                            .background(
-                                Capsule().fill(declaredActivityIDs.contains(activity.id)
-                                               ? Color.appAccent.opacity(0.15)
-                                               : Color.appBackground)
-                            )
-                            .overlay(Capsule().stroke(
-                                declaredActivityIDs.contains(activity.id) ? Color.appAccent : Color.appBorder,
-                                lineWidth: 1
-                            ))
+            FlowLayout(hSpacing: Spacing.sm, vSpacing: Spacing.sm) {
+                ForEach(activities) { activity in
+                    Button {
+                        toggle(activity)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: activity.iconSystemName)
+                            Text(activity.title)
+                                .font(.subheadline)
                         }
-                        .buttonStyle(.plain)
+                        .padding(.vertical, Spacing.xs)
+                        .padding(.horizontal, Spacing.sm)
+                        .background(
+                            Capsule().fill(declaredActivityIDs.contains(activity.id)
+                                           ? Color.appAccent.opacity(0.15)
+                                           : Color.appCard)
+                        )
+                        .overlay(Capsule().stroke(
+                            declaredActivityIDs.contains(activity.id) ? Color.appAccent : Color.appBorder,
+                            lineWidth: 1
+                        ))
                     }
+                    .buttonStyle(.plain)
                 }
             }
 

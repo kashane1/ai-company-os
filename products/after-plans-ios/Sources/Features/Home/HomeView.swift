@@ -70,7 +70,7 @@ struct HomeView: View {
                         Image(systemName: "square.and.arrow.up")
                             .font(.system(size: 16, weight: .semibold))
                             .frame(width: 44, height: 44)
-                            .background(Color.black.opacity(0.055), in: Circle())
+                            .background(Color(.secondarySystemFill), in: Circle())
                             .foregroundStyle(Color.primary)
                     }
                 }
