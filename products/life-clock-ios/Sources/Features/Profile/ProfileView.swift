@@ -25,6 +25,23 @@ struct ProfileView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                Section("Appearance") {
+                    Picker("Color palette", selection: Binding(
+                        get: { store.palette },
+                        set: { store.setPalette($0) }
+                    )) {
+                        ForEach(LifeClockPalette.allCases) { palette in
+                            HStack {
+                                Circle()
+                                    .fill(palette.accent)
+                                    .frame(width: 16, height: 16)
+                                Text(palette.displayName)
+                            }
+                            .tag(palette)
+                        }
+                    }
+                }
+
                 Section("Apple Health") {
                     if !store.healthDataAvailable {
                         Text("Apple Health is not available on this device.")

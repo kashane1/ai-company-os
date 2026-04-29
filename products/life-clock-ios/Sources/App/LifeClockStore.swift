@@ -20,6 +20,7 @@ final class LifeClockStore {
     var weekly: WeeklyReport?
     var hasCompletedOnboarding: Bool = false
     var toneMode: ToneMode = .coach
+    var palette: LifeClockPalette = .defaultNavy
     var healthAuthorizationKnown: Bool = false
     var healthDataAvailable: Bool = true
     var todayHabits: HabitLog?
@@ -71,6 +72,9 @@ final class LifeClockStore {
                 hasCompletedOnboarding = true
                 if let mode = ToneMode(rawValue: profile.toneMode) {
                     toneMode = mode
+                }
+                if let restored = LifeClockPalette(rawValue: profile.paletteId) {
+                    palette = restored
                 }
             }
             // Restore today's habits if logged earlier.
@@ -163,6 +167,12 @@ final class LifeClockStore {
         try? modelContext.save()
     }
 
+    func setPalette(_ palette: LifeClockPalette) {
+        self.palette = palette
+        profile?.paletteId = palette.rawValue
+        try? modelContext.save()
+    }
+
     /// Persist the user's "hide the clock" preference. Today screen reads
     /// `profile?.hideClock` to decide whether to render the projected-age
     /// card or the safer "time earned today" alternative. Resolves Q5 +
@@ -238,6 +248,7 @@ final class LifeClockStore {
         todayDrivers = []
         todayQuests = []
         weekly = nil
+        palette = .defaultNavy
         hasCompletedOnboarding = false
     }
 

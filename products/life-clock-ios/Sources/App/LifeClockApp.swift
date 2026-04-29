@@ -28,6 +28,7 @@ struct LifeClockApp: App {
             RootView()
                 .environment(store)
                 .environment(subscriptions)
+                .tint(store.palette.accent)
                 .task {
                     await store.bootstrap()
                     await subscriptions.loadProducts()

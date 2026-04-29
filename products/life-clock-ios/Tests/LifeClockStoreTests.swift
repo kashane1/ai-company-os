@@ -103,6 +103,75 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertEqual(store.todayHabits?.smokingVaping, true)
     }
 
+    func testSetPalettePersistsAndRestoresAcrossColdRestart() async throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+
+        // Session 1: onboard, switch palette to aurora-cool.
+        do {
+            let store = LifeClockStore(
+                healthService: MockHealthKitService(),
+                modelContext: context,
+                engineClock: .fixed(fixedDate)
+            )
+            store.completeOnboarding(
+                profile: UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female"),
+                tone: .coach,
+                disclaimerAccepted: true
+            )
+            store.setPalette(.auroraCool)
+            XCTAssertEqual(store.palette, .auroraCool)
+            XCTAssertEqual(store.profile?.paletteId, "aurora-cool")
+        }
+
+        // Session 2: fresh store on the same container — palette must restore.
+        let store2 = LifeClockStore(
+            healthService: MockHealthKitService(),
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        await store2.bootstrap()
+        XCTAssertEqual(store2.palette, .auroraCool, "palette must survive cold restart")
+    }
+
+    func testBootstrapFallsBackToDefaultNavyForUnknownPaletteId() async throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+
+        // Session 1: onboard, then tamper paletteId on the persisted row.
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "male")
+        do {
+            let store = LifeClockStore(
+                healthService: MockHealthKitService(),
+                modelContext: context,
+                engineClock: .fixed(fixedDate)
+            )
+            store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+            profile.paletteId = "ghost"
+            try? context.save()
+        }
+
+        // Session 2: fresh store must fall back to default-navy without crashing.
+        let store2 = LifeClockStore(
+            healthService: MockHealthKitService(),
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        await store2.bootstrap()
+        XCTAssertEqual(store2.palette, .defaultNavy, "unknown paletteId must fall back to default-navy")
+    }
+
+    func testResetForOnboardingRestoresDefaultPalette() async throws {
+        let store = try makeStore()
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+        store.setPalette(.sunsetWarm)
+        XCTAssertEqual(store.palette, .sunsetWarm)
+
+        store.resetForOnboarding()
+        XCTAssertEqual(store.palette, .defaultNavy, "reset must restore the default palette so a new onboarding starts clean")
+    }
+
     func testCompleteOnboardingRejectsUnacceptedDisclaimer() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
