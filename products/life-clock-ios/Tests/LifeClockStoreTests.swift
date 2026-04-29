@@ -26,7 +26,7 @@ final class LifeClockStoreTests: XCTestCase {
     func testCompleteOnboardingPersistsProfile() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
-        store.completeOnboarding(profile: profile, tone: .gentle)
+        store.completeOnboarding(profile: profile, tone: .gentle, disclaimerAccepted: true)
 
         XCTAssertNotNil(store.profile)
         XCTAssertTrue(store.hasCompletedOnboarding)
@@ -52,7 +52,8 @@ final class LifeClockStoreTests: XCTestCase {
             )
             store.completeOnboarding(
                 profile: UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "male"),
-                tone: .coach
+                tone: .coach,
+                disclaimerAccepted: true
             )
         }
 
@@ -70,7 +71,7 @@ final class LifeClockStoreTests: XCTestCase {
     func testQuestCompletionAddsLedgerEntryStampedAtPinnedClock() async throws {
         let store = try makeStore(seed: 7)
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
-        store.completeOnboarding(profile: profile, tone: .coach)
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
         await store.refreshFromHealthKit()
 
         let initialLedger = store.ledger.count
@@ -86,7 +87,7 @@ final class LifeClockStoreTests: XCTestCase {
     func testSetTodayHabitsUpsertsByDate() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
-        store.completeOnboarding(profile: profile, tone: .coach)
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
 
         let habits1 = HabitLog(date: fixedDate)
         habits1.alcoholLevel = "heavy"
@@ -102,10 +103,38 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertEqual(store.todayHabits?.smokingVaping, true)
     }
 
+    func testCompleteOnboardingRejectsUnacceptedDisclaimer() async throws {
+        let store = try makeStore()
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+
+        let accepted = store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: false)
+        XCTAssertFalse(accepted, "store must refuse to mark onboarding complete without disclaimer acceptance")
+        XCTAssertNil(store.profile, "no profile should be persisted on a refused acceptance")
+        XCTAssertFalse(store.hasCompletedOnboarding)
+    }
+
+    func testClearTodayHabitsRemovesPersistedLog() async throws {
+        let store = try makeStore()
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+
+        let habits = HabitLog(date: fixedDate)
+        habits.alcoholLevel = "heavy"
+        await store.setTodayHabits(habits)
+        XCTAssertNotNil(store.todayHabits)
+
+        await store.clearTodayHabits()
+        XCTAssertNil(store.todayHabits, "clearTodayHabits must drop the cached log")
+
+        // And on a fresh store reading the same container, the row is gone.
+        await store.bootstrap()
+        XCTAssertNil(store.todayHabits, "clearTodayHabits must delete the persisted row, not just the cache")
+    }
+
     func testResetForOnboardingClearsAllPersistedData() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
-        store.completeOnboarding(profile: profile, tone: .coach)
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
         XCTAssertNotNil(store.profile)
 
         store.resetForOnboarding()
