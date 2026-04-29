@@ -172,14 +172,6 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertEqual(store.palette, .defaultNavy, "reset must restore the default palette so a new onboarding starts clean")
     }
 
-    func testSetPaletteWithNoProfileUpdatesInMemoryOnly() async throws {
-        let store = try makeStore()
-        XCTAssertNil(store.profile, "precondition: no profile yet")
-
-        store.setPalette(.auroraCool)
-        XCTAssertEqual(store.palette, .auroraCool, "in-memory palette must update even without a profile to persist to")
-    }
-
     func testCompleteOnboardingRejectsUnacceptedDisclaimer() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")

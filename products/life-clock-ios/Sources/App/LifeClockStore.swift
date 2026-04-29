@@ -167,12 +167,6 @@ final class LifeClockStore {
         try? modelContext.save()
     }
 
-    /// Persist the user's color palette choice. Updates the in-memory
-    /// observable so SwiftUI views reading `store.palette.accent` (e.g.
-    /// the root `.tint(_:)`) re-render. If called pre-onboarding (no
-    /// profile yet), only the in-memory palette updates — the property-
-    /// level default on `UserProfile.paletteId` will write the correct
-    /// value when onboarding eventually creates the row.
     func setPalette(_ palette: LifeClockPalette) {
         self.palette = palette
         profile?.paletteId = palette.rawValue
