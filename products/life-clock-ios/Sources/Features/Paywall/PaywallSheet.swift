@@ -12,8 +12,8 @@ struct PaywallSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedProductID: String?
 
-    private let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
-    private let privacyURL = URL(string: "https://example.com/privacy")! // replace before submission
+    private var termsURL: URL { LifeClockConfiguration.termsOfUseURL }
+    private var privacyURL: URL { LifeClockConfiguration.privacyPolicyURL }
 
     var body: some View {
         NavigationStack {
@@ -27,7 +27,7 @@ struct PaywallSheet: View {
                 }
                 .padding(DesignTokens.Spacing.lg)
             }
-            .navigationTitle("Life Clock Pro")
+            .navigationTitle(LifeClockConfiguration.proName)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }

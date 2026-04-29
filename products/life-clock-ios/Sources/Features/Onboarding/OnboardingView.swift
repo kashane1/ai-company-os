@@ -51,6 +51,7 @@ struct OnboardingView: View {
                     }
                 }
                 .padding(DesignTokens.Spacing.lg)
+                .readableColumn()
             }
 
             footer
@@ -158,7 +159,7 @@ struct OnboardingView: View {
     private var permissionEducationScreen: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
             Text("Connect Apple Health").font(.title2.bold())
-            Text("Life Clock reads steps, sleep, exercise minutes, and resting heart rate. We don't read everything — only the signals that move your time delta.")
+            Text(LifeClockConfiguration.healthKitRationale)
                 .foregroundStyle(.secondary)
             Text("Apple controls the prompt. You can grant or deny each data type separately, and you can change your mind later in iOS Settings → Health.")
                 .foregroundStyle(.secondary)

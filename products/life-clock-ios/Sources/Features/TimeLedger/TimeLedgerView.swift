@@ -7,7 +7,7 @@ struct TimeLedgerView: View {
         NavigationStack {
             List {
                 if store.ledger.isEmpty {
-                    Text("No entries yet — your ledger fills up as data flows in.")
+                    Text(store.toneMode.ledgerEmptyState)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(store.ledger, id: \.id) { entry in
@@ -20,7 +20,7 @@ struct TimeLedgerView: View {
                         .listRowBackground(Color.clear)
                 }
             }
-            .navigationTitle("Time Ledger")
+            .navigationTitle(store.toneMode.ledgerTitle)
         }
     }
 

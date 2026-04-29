@@ -117,7 +117,7 @@ struct SafetyNetView: View {
                 phone: nil
             )
 
-            Text("Life Clock is a habit-tracking app. It is not a substitute for professional mental-health support. The disclaimer at the bottom of every screen is not boilerplate — it's the product's actual stance.")
+            Text(LifeClockConfiguration.safetyNetClosing)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.top, DesignTokens.Spacing.xs)

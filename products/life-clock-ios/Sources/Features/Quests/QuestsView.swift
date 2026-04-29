@@ -7,7 +7,7 @@ struct QuestsView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-                    Text("1–3 quests per day. Pick one to do well.")
+                    Text(store.toneMode.questsPreamble)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
@@ -18,8 +18,9 @@ struct QuestsView: View {
                     DisclaimerBanner()
                 }
                 .padding(DesignTokens.Spacing.lg)
+                .readableColumn()
             }
-            .navigationTitle("Quests")
+            .navigationTitle(store.toneMode.questsTitle)
         }
     }
 

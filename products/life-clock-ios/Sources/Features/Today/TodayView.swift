@@ -17,6 +17,7 @@ struct TodayView: View {
                     DisclaimerBanner()
                 }
                 .padding(DesignTokens.Spacing.lg)
+                .readableColumn()
             }
             .navigationTitle(store.toneMode.todayHeadline)
             .toolbar {

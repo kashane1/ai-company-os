@@ -50,4 +50,65 @@ enum ToneMode: String, CaseIterable, Identifiable {
         case .mementoMori: return "Time lost"
         }
     }
+
+    // MARK: - Tab titles
+
+    var ledgerTitle: String {
+        switch self {
+        case .gentle: return "Time earned"
+        case .coach: return "Time Ledger"
+        case .mementoMori: return "Ledger"
+        }
+    }
+
+    var questsTitle: String {
+        switch self {
+        case .gentle: return "Today's small wins"
+        case .coach: return "Quests"
+        case .mementoMori: return "Today's quests"
+        }
+    }
+
+    var weeklyTitle: String {
+        switch self {
+        case .gentle: return "This week"
+        case .coach: return "Weekly"
+        case .mementoMori: return "Week in review"
+        }
+    }
+
+    // MARK: - Empty / preamble copy
+
+    var ledgerEmptyState: String {
+        switch self {
+        case .gentle:
+            return "Your ledger fills up with the small wins of each day."
+        case .coach:
+            return "No entries yet — your ledger fills up as data flows in."
+        case .mementoMori:
+            return "No entries yet. The clock waits for data."
+        }
+    }
+
+    var questsPreamble: String {
+        switch self {
+        case .gentle:
+            return "Pick one small thing. Showing up is the win."
+        case .coach:
+            return "1–3 quests per day. Pick one to do well."
+        case .mementoMori:
+            return "Today's levers. Use them."
+        }
+    }
+
+    var weeklyEmptyState: String {
+        switch self {
+        case .gentle:
+            return "Come back after a few days — patterns appear with time."
+        case .coach:
+            return "Weekly report will appear after a week of data."
+        case .mementoMori:
+            return "A week's data tells the truth a day cannot."
+        }
+    }
 }

@@ -40,7 +40,7 @@ struct ProfileView: View {
                             }
                         }
                         .disabled(requestingAuth)
-                        Text("Life Clock asks for steps, sleep, exercise minutes, and resting heart rate. You control which data types are shared.")
+                        Text(LifeClockConfiguration.healthKitRationale)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
@@ -61,7 +61,7 @@ struct ProfileView: View {
                     if subscriptions.isPro {
                         HStack {
                             Image(systemName: "checkmark.seal.fill").foregroundStyle(.tint)
-                            Text("Life Clock Pro")
+                            Text(LifeClockConfiguration.proName)
                             Spacer()
                             Text("Active").foregroundStyle(.secondary).font(.caption)
                         }
