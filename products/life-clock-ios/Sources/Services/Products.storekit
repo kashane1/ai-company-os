@@ -1,0 +1,83 @@
+{
+  "identifier" : "B7C9A4F0-1234-4DEF-8765-LIFECLOCK0001",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "129.99",
+      "familyShareable" : false,
+      "internalID" : "lc_lifetime_001",
+      "localizations" : [
+        {
+          "description" : "One-time purchase. All Pro features forever.",
+          "displayName" : "Life Clock Pro · Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.life-clock.pro.lifetime",
+      "referenceName" : "Life Clock Pro Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "lc_pro_group_001",
+      "localizations" : [],
+      "name" : "Life Clock Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "lc_monthly_001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Auto-renews monthly until cancelled in iOS Settings.",
+              "displayName" : "Life Clock Pro · Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.life-clock.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Life Clock Pro Monthly",
+          "subscriptionGroupID" : "lc_pro_group_001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "49.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "lc_annual_001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Auto-renews yearly until cancelled in iOS Settings.",
+              "displayName" : "Life Clock Pro · Annual",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.life-clock.pro.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Life Clock Pro Annual",
+          "subscriptionGroupID" : "lc_pro_group_001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

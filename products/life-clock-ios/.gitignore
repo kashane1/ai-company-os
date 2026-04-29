@@ -1,0 +1,15 @@
+# Generated XcodeGen output — regenerate via `xcodegen generate`
+LifeClock.xcodeproj/
+
+# Xcode user data
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+
+# Swift package state
+.swiftpm/
+.build/
+
+# macOS
+.DS_Store
