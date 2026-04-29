@@ -41,6 +41,7 @@ enum LifeClockSchemaV1: VersionedSchema {
         var strengthFrequencyPerWeek: Int = 0
         var sleepGoalHours: Double = 7.5
         var toneMode: String = "coach"
+        var paletteId: String = "default-navy"
         var onboardingCompletedAt: Date? = nil
         var disclaimerAcceptedAt: Date? = nil
         /// When true, Today screen replaces "Projected healthspan" with
