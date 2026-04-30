@@ -27,6 +27,15 @@ final class LifeClockStore {
     var lastHealthAuthError: String?
     var hasTodaySignal: Bool = false
     var dietStreaks: DietStreaks = .zero
+    var supportMoment: SupportMoment?
+
+    var completedPlanCount: Int {
+        todayQuests.filter { $0.completedAt != nil }.count
+    }
+
+    var hasCheckInToday: Bool {
+        todayHabits != nil
+    }
 
     /// True iff the user has a profile and reports DOB making them ≥18 as of
     /// today's clock. Drives the age-gate on QuickLog smoking/alcohol pickers.
@@ -90,6 +99,7 @@ final class LifeClockStore {
     func refreshFromHealthKit() async {
         guard let profile else { return }
         let now = clock.now()
+        let dayStart = clock.calendar.startOfDay(for: now)
         let snapshot = await healthService.dailySnapshot(for: now)
 
         let baseline = clockEngine.calculateBaseline(profile: profile)
@@ -113,6 +123,7 @@ final class LifeClockStore {
         }
         todayEstimate = baseline
         todayQuests = questEngine.generateDailyQuests(profile: profile, snapshot: snapshot, habits: todayHabits)
+        applyPersistedCompletions(to: &todayQuests, for: dayStart)
 
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
         weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: [], profile: profile)
@@ -158,6 +169,11 @@ final class LifeClockStore {
         self.profile = profile
         self.toneMode = tone
         hasCompletedOnboarding = true
+        supportMoment = SupportMoment(
+            title: "You're set.",
+            detail: "We'll help you notice which daily choices support your health most.",
+            tone: .calm
+        )
         return true
     }
 
@@ -184,15 +200,13 @@ final class LifeClockStore {
 
     func toggleQuestCompletion(_ quest: Quest) {
         let now = clock.now()
+        let persistedQuest = persistedQuestRecord(for: quest)
         if quest.completedAt == nil {
             quest.completedAt = now
-            // Persist the quest if it isn't already tracked.
-            if quest.modelContext == nil {
-                modelContext.insert(quest)
-            }
+            persistedQuest.completedAt = now
             let entry = TimeLedgerEntry(
                 date: now,
-                title: "Completed quest: \(quest.title)",
+                title: "Completed action: \(quest.title)",
                 deltaMinutes: quest.rewardEstimateMinutes,
                 source: "manual",
                 confidenceRaw: Confidence.medium.rawValue,
@@ -200,8 +214,23 @@ final class LifeClockStore {
             )
             modelContext.insert(entry)
             ledger.insert(entry, at: 0)
+            supportMoment = SupportMoment(
+                title: "Nice work.",
+                detail: "Added to your progress log. Possible impact: \(TimeDeltaFormatter.format(minutes: quest.rewardEstimateMinutes)).",
+                tone: .celebration
+            )
         } else {
             quest.completedAt = nil
+            persistedQuest.completedAt = nil
+            if let entry = fetchLatestQuestLedgerEntry(for: quest, on: clock.calendar.startOfDay(for: now)) {
+                modelContext.delete(entry)
+                ledger.removeAll { $0.id == entry.id }
+            }
+            supportMoment = SupportMoment(
+                title: "Action removed.",
+                detail: "Today's plan is updated.",
+                tone: .calm
+            )
         }
         try? modelContext.save()
     }
@@ -220,6 +249,9 @@ final class LifeClockStore {
     }
 
     func setTodayHabits(_ habits: HabitLog) async {
+        let previousDelta = todayEstimate?.dailyTimeDeltaMinutes ?? 0
+        let hadCheckIn = todayHabits != nil
+
         // Upsert by date — only one HabitLog per day.
         let dayStart = clock.calendar.startOfDay(for: habits.date)
         habits.date = dayStart
@@ -237,6 +269,34 @@ final class LifeClockStore {
         }
         try? modelContext.save()
         await refreshFromHealthKit()
+        let updatedDelta = todayEstimate?.dailyTimeDeltaMinutes ?? previousDelta
+        let deltaChange = updatedDelta - previousDelta
+
+        if deltaChange > 0 {
+            supportMoment = SupportMoment(
+                title: "Nice work.",
+                detail: "Your check-in moved today's progress by \(TimeDeltaFormatter.format(minutes: deltaChange)).",
+                tone: .celebration
+            )
+        } else if habits.strengthTraining {
+            supportMoment = SupportMoment(
+                title: "Strength training logged.",
+                detail: "Saved to today's progress log. Small wins compound over time.",
+                tone: .celebration
+            )
+        } else if hadCheckIn {
+            supportMoment = SupportMoment(
+                title: "Check-in updated.",
+                detail: "You're building a clearer picture of what supports you.",
+                tone: .calm
+            )
+        } else {
+            supportMoment = SupportMoment(
+                title: "Check-in saved.",
+                detail: "You're building a clearer picture of what supports you.",
+                tone: .calm
+            )
+        }
     }
 
     func resetForOnboarding() {
@@ -250,6 +310,11 @@ final class LifeClockStore {
         weekly = nil
         palette = .defaultNavy
         hasCompletedOnboarding = false
+        supportMoment = nil
+    }
+
+    func dismissSupportMoment() {
+        supportMoment = nil
     }
 
     // MARK: - Persistence helpers
@@ -283,6 +348,79 @@ final class LifeClockStore {
         )
         descriptor.fetchLimit = limit
         return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func applyPersistedCompletions(to quests: inout [Quest], for dayStart: Date) {
+        let storedQuests = fetchPersistedQuests(for: dayStart)
+        quests = quests.map { quest in
+            guard let stored = storedQuests.first(where: { persistedQuestMatches($0, quest: quest) }) else {
+                return quest
+            }
+            quest.completedAt = stored.completedAt
+            return quest
+        }
+    }
+
+    private func fetchPersistedQuests(for dayStart: Date) -> [Quest] {
+        let descriptor = FetchDescriptor<Quest>(
+            predicate: #Predicate { $0.date == dayStart }
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func persistedQuestRecord(for quest: Quest) -> Quest {
+        if let stored = fetchPersistedQuest(for: quest) {
+            stored.target = quest.target
+            stored.progress = quest.progress
+            stored.rewardEstimateMinutes = quest.rewardEstimateMinutes
+            stored.detail = quest.detail
+            return stored
+        }
+
+        let stored = Quest(
+            id: quest.id,
+            date: quest.date,
+            title: quest.title,
+            detail: quest.detail,
+            category: quest.category,
+            target: quest.target,
+            rewardEstimateMinutes: quest.rewardEstimateMinutes
+        )
+        stored.progress = quest.progress
+        modelContext.insert(stored)
+        return stored
+    }
+
+    private func fetchPersistedQuest(for quest: Quest) -> Quest? {
+        let date = quest.date
+        let title = quest.title
+        let category = quest.category
+        let descriptor = FetchDescriptor<Quest>(
+            predicate: #Predicate { stored in
+                stored.date == date && stored.title == title && stored.category == category
+            }
+        )
+        return try? modelContext.fetch(descriptor).first
+    }
+
+    private func persistedQuestMatches(_ stored: Quest, quest: Quest) -> Bool {
+        stored.date == quest.date && stored.title == quest.title && stored.category == quest.category
+    }
+
+    private func fetchLatestQuestLedgerEntry(for quest: Quest, on dayStart: Date) -> TimeLedgerEntry? {
+        let title = "Completed action: \(quest.title)"
+        let nextDay = clock.calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
+        var descriptor = FetchDescriptor<TimeLedgerEntry>(
+            predicate: #Predicate { entry in
+                entry.date >= dayStart
+                    && entry.date < nextDay
+                    && entry.title == title
+                    && entry.driverType == "quest"
+            },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        return try? modelContext.fetch(descriptor).first
     }
 
     private func deleteAllPersistedData() {

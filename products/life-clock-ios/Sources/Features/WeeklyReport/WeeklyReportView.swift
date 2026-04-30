@@ -37,7 +37,6 @@ struct WeeklyReportView: View {
                         Text(store.toneMode.weeklyEmptyState)
                             .foregroundStyle(.secondary)
                     }
-                    DisclaimerBanner()
                 }
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
@@ -54,9 +53,9 @@ struct WeeklyReportView: View {
     /// retention hook"). Drivers + lever sit behind Pro.
     private var paywallTeaser: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("See what moved your clock")
+            Text("See what shaped this week")
                 .font(.headline)
-            Text("Pro unlocks the full weekly breakdown — top drivers, biggest drag, and your next best lever.")
+            Text("Pro unlocks the full weekly breakdown, your strongest supportive trend, and the next habit to focus on.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
             Button {
@@ -90,7 +89,7 @@ struct WeeklyReportView: View {
 
     private func driversCard(_ report: WeeklyReport) -> some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("What moved the clock")
+            Text("What shaped the week")
                 .font(.headline)
             row(label: "Top positive", value: report.topPositiveDriver, color: DesignTokens.Palette.positive)
             row(label: "Top drag", value: report.topNegativeDriver, color: DesignTokens.Palette.negative)

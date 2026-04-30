@@ -5,20 +5,25 @@ import SwiftData
 @MainActor
 struct LifeClockApp: App {
     let container: ModelContainer
+    let launchConfiguration: LifeClockLaunchConfiguration
     @State private var store: LifeClockStore
     @State private var subscriptions = SubscriptionStore()
 
     init() {
+        let launchConfiguration = LifeClockLaunchConfiguration.current
+        self.launchConfiguration = launchConfiguration
         let container: ModelContainer
         do {
-            container = try LifeClockContainer.make()
+            container = try LifeClockContainer.make(inMemory: launchConfiguration.useInMemoryStore)
         } catch {
             fatalError("ModelContainer init failed: \(error)")
         }
         self.container = container
+        launchConfiguration.seedInitialStateIfNeeded(in: container.mainContext)
         let store = LifeClockStore(
-            healthService: HealthKitConfiguration.service(),
-            modelContext: container.mainContext
+            healthService: launchConfiguration.makeHealthService(),
+            modelContext: container.mainContext,
+            engineClock: launchConfiguration.clock
         )
         _store = State(wrappedValue: store)
     }

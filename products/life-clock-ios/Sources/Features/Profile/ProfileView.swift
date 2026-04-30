@@ -61,7 +61,7 @@ struct ProfileView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
-                        let signal = store.hasTodaySignal ? "Available" : "No data today"
+                        let signal = store.hasTodaySignal ? "Data available today" : "No data today"
                         dataRow(name: "Apple Health (steps, sleep, exercise, resting HR)", status: signal)
                         Text("If \"No data\" persists, open iOS Settings → Health → Data Access & Devices → Life Clock to review what's shared.")
                             .font(.caption)

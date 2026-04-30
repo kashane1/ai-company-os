@@ -62,15 +62,16 @@ struct OnboardingView: View {
 
     private var valueScreen: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-            Text("Earn time back.")
+            Text("Build health-supporting momentum.")
                 .font(.largeTitle.bold())
-            Text("Your daily habits move a visible time trajectory. Food choices, sleep, movement, and consistency add minutes. Heavy alcohol, smoking, and rough food days pull them back.")
+            Text("Life Clock helps you notice how daily habits influence your health trajectory. Food choices, sleep, movement, and consistency can add visible progress over time.")
                 .foregroundStyle(.secondary)
-            Text("Diet quality is one of your strongest levers — without ever counting a calorie.")
+            Text("You do not need calorie counting or perfect tracking. A short daily check-in and Apple Health data are enough to start seeing patterns.")
                 .foregroundStyle(.secondary)
-            Text("This isn't a death predictor. It's a healthspan game with agency baked in.")
+            Text("This is a habit tracker and motivation tool, not a medical prediction.")
                 .foregroundStyle(.secondary)
         }
+        .accessibilityIdentifier("onboarding.value")
     }
 
     private var safetyScreen: some View {
@@ -83,14 +84,19 @@ struct OnboardingView: View {
                     .font(.callout)
             }
             .padding(.top, DesignTokens.Spacing.sm)
+            .accessibilityIdentifier("onboarding.disclaimerToggle")
         }
+        .accessibilityIdentifier("onboarding.safety")
     }
 
     private var baselineScreen: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
             Text("A few quick baselines")
                 .font(.title2.bold())
+            Text("These help us tailor your starting progress view. You can update them later.")
+                .foregroundStyle(.secondary)
             DatePicker("Date of birth", selection: $birthDate, displayedComponents: .date)
+                .accessibilityIdentifier("onboarding.birthDate")
             Picker("Biological sex (optional)", selection: $biologicalSex) {
                 Text("Prefer not to say").tag("unspecified")
                 Text("Female").tag("female")
@@ -126,6 +132,7 @@ struct OnboardingView: View {
                 Slider(value: $sleepGoalHours, in: 5.0...10.0, step: 0.5)
             }
         }
+        .accessibilityIdentifier("onboarding.baseline")
     }
 
     private var toneScreen: some View {
@@ -152,8 +159,10 @@ struct OnboardingView: View {
                     .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("onboarding.tone.\(mode.rawValue)")
             }
         }
+        .accessibilityIdentifier("onboarding.tone")
     }
 
     private var permissionEducationScreen: some View {
@@ -167,20 +176,22 @@ struct OnboardingView: View {
                 if permissionRequestInFlight {
                     ProgressView()
                 }
-                Button(store.healthAuthorizationKnown ? "Re-prompt Apple Health" : "Connect Apple Health") {
+                Button(store.healthAuthorizationKnown ? "Check Apple Health again" : "Connect Apple Health") {
                     requestHealthAuthorization()
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(permissionRequestInFlight)
+                .accessibilityIdentifier("onboarding.connectHealth")
 
                 if store.healthAuthorizationKnown {
-                    Text("Asked").font(.caption).foregroundStyle(.secondary)
+                    Text("Request sent").font(.caption).foregroundStyle(.secondary)
                 }
             }
             Text("You can skip this and connect later from Profile.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+        .accessibilityIdentifier("onboarding.health")
     }
 
     private func requestHealthAuthorization() {
@@ -194,10 +205,11 @@ struct OnboardingView: View {
     private var revealScreen: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
             Text("You're set.").font(.title.bold())
-            Text("We'll show your starting Life Clock and a quest for tomorrow.")
+            Text("We'll show today's progress, the habits influencing it, and one or two supportive actions to focus on next.")
                 .foregroundStyle(.secondary)
             DisclaimerBanner()
         }
+        .accessibilityIdentifier("onboarding.reveal")
     }
 
     // MARK: - Footer
@@ -214,6 +226,7 @@ struct OnboardingView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(step == 1 && !disclaimerAccepted)
+            .accessibilityIdentifier(step == totalSteps - 1 ? "onboarding.finish" : "onboarding.continue")
         }
         .padding(DesignTokens.Spacing.lg)
         .background(DesignTokens.Palette.surface)

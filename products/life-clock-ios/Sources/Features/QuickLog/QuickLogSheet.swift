@@ -38,7 +38,7 @@ struct QuickLogSheet: View {
                         Text("Rough").tag("rough")
                     }
                     .pickerStyle(.segmented)
-                    Text("Coarse on purpose. No counting calories. Diet quality is one of your strongest clock levers.")
+                    Text("Coarse on purpose. No calorie counting. Diet quality is one of the clearest signals in your daily progress.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } header: {
@@ -74,10 +74,11 @@ struct QuickLogSheet: View {
                         .listRowBackground(Color.clear)
                 }
             }
-            .navigationTitle("Quick log")
+            .navigationTitle("Daily check-in")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .accessibilityIdentifier("checkIn.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
@@ -86,8 +87,10 @@ struct QuickLogSheet: View {
                         if saving { ProgressView() } else { Text("Save") }
                     }
                     .disabled(saving)
+                    .accessibilityIdentifier("checkIn.save")
                 }
             }
+            .accessibilityIdentifier("checkIn.screen")
         }
         .onAppear { hydrateFromStore() }
     }

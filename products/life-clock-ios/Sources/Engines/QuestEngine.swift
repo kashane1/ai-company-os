@@ -135,8 +135,8 @@ struct QuestEngine {
         let pool: [(title: String, detail: String, reward: Int)] = [
             ("Add one whole-food meal", "A piece of fruit, a handful of nuts, a real cooked meal — anything unprocessed counts.", 12),
             ("Walk 10 minutes after dinner", "A short post-dinner walk smooths how today's meals affect your clock.", 14),
-            ("Choose water with one meal", "Skip the sweetened drink at one meal today. That's the whole quest.", 10),
-            ("Add protein to your next meal", "Eggs, beans, fish, chicken, tofu — pick one. No grams to count.", 12),
+            ("Choose water with one meal", "Skip the sweetened drink at one meal today. That's the whole focus.", 10),
+            ("Add protein to your next meal", "Eggs, beans, fish, chicken, tofu — pick one. No measuring required.", 12),
             ("Eat one meal slowly", "Phone down, fork down between bites. Slower meals tend to be smaller meals without trying.", 10),
             ("Make one meal less processed", "Swap one packaged item for something whole. One meal, not your whole day.", 12),
         ]

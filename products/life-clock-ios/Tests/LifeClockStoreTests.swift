@@ -82,6 +82,65 @@ final class LifeClockStoreTests: XCTestCase {
         store.toggleQuestCompletion(first)
         XCTAssertEqual(first.completedAt, fixedDate, "completedAt should use the injected clock, not Date()")
         XCTAssertEqual(store.ledger.count, initialLedger + 1)
+        XCTAssertEqual(store.supportMoment?.title, "Nice work.")
+    }
+
+    func testQuestUndoRemovesLedgerEntryAndCompletionState() async throws {
+        let store = try makeStore(seed: 7)
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+        await store.refreshFromHealthKit()
+
+        guard let first = store.todayQuests.first else {
+            XCTFail("expected at least one action")
+            return
+        }
+
+        store.toggleQuestCompletion(first)
+        XCTAssertEqual(store.ledger.count, 1)
+
+        store.toggleQuestCompletion(first)
+        XCTAssertNil(first.completedAt)
+        XCTAssertTrue(store.ledger.isEmpty, "undo should remove the manual progress entry it created")
+        XCTAssertEqual(store.supportMoment?.title, "Action removed.")
+    }
+
+    func testCompletedPlanRestoresAcrossColdRestart() async throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let mockHealth = MockHealthKitService(seed: 11)
+
+        let completedTitle: String
+        do {
+            let store = LifeClockStore(
+                healthService: mockHealth,
+                modelContext: context,
+                engineClock: .fixed(fixedDate)
+            )
+            let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+            store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+            await store.refreshFromHealthKit()
+            guard let first = store.todayQuests.first else {
+                XCTFail("expected at least one action")
+                return
+            }
+            completedTitle = first.title
+            store.toggleQuestCompletion(first)
+            XCTAssertEqual(store.completedPlanCount, 1)
+        }
+
+        let store2 = LifeClockStore(
+            healthService: mockHealth,
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        await store2.bootstrap()
+
+        XCTAssertEqual(store2.completedPlanCount, 1, "completed actions should survive refresh and cold restart")
+        XCTAssertTrue(
+            store2.todayQuests.contains { $0.title == completedTitle && $0.completedAt == fixedDate },
+            "the regenerated plan should restore completion state for the matching action"
+        )
     }
 
     func testSetTodayHabitsUpsertsByDate() async throws {

@@ -40,7 +40,7 @@ final class SubscriptionStoreTests: XCTestCase {
         await store.loadProducts()
         XCTAssertFalse(store.isPro)
 
-        try await session.buyProduct(productIdentifier: PaywallProductID.annual.rawValue)
+        _ = try await session.buyProduct(identifier: PaywallProductID.annual.rawValue)
         // Allow Transaction.updates to deliver.
         try await Task.sleep(for: .milliseconds(500))
         await store.refreshEntitlements()
@@ -50,7 +50,7 @@ final class SubscriptionStoreTests: XCTestCase {
     }
 
     func testRestoreRefreshesEntitlements() async throws {
-        try await session.buyProduct(productIdentifier: PaywallProductID.lifetime.rawValue)
+        _ = try await session.buyProduct(identifier: PaywallProductID.lifetime.rawValue)
         try await Task.sleep(for: .milliseconds(200))
 
         // Fresh store reads entitlements at construction time.
@@ -64,12 +64,12 @@ final class SubscriptionStoreTests: XCTestCase {
         let store = SubscriptionStore()
         await store.loadProducts()
 
-        let txID = try await session.buyProduct(productIdentifier: PaywallProductID.monthly.rawValue)
+        let transaction = try await session.buyProduct(identifier: PaywallProductID.monthly.rawValue)
         try await Task.sleep(for: .milliseconds(200))
         await store.refreshEntitlements()
         XCTAssertTrue(store.isPro)
 
-        try session.refundTransaction(identifier: UInt(txID.id))
+        try session.refundTransaction(identifier: UInt(transaction.id))
         try await Task.sleep(for: .milliseconds(300))
         await store.refreshEntitlements()
         XCTAssertFalse(store.isPro, "Refunded transactions must not grant entitlement")

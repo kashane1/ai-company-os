@@ -41,8 +41,8 @@ enum LifeClockConfiguration {
 
     // MARK: - Disclaimer + safety copy
 
-    /// The non-medical disclaimer. Surfaces on every primary screen via
-    /// `DisclaimerBanner`. Brand-prone (mentions "Life Clock") so it lives
+    /// The non-medical disclaimer. Reused in onboarding and Profile.
+    /// Brand-prone (mentions "Life Clock") so it lives
     /// here rather than inline.
     static let medicalDisclaimer =
         "\(appName) provides wellness and habit insights for informational purposes only. " +
@@ -51,13 +51,13 @@ enum LifeClockConfiguration {
 
     static let healthKitRationale =
         "\(appName) reads your steps, sleep, exercise, and resting heart rate from Apple " +
-        "Health to estimate how today's habits move your time trajectory. Your data stays " +
+        "Health to estimate how today's habits influence your health trajectory. Your data stays " +
         "on your device."
 
     static let safetyNetClosing =
         "\(appName) is a habit-tracking app. It is not a substitute for professional " +
-        "mental-health support. The disclaimer at the bottom of every screen is not " +
-        "boilerplate — it's the product's actual stance."
+        "mental-health support. The cautionary language in onboarding and Profile is not " +
+        "boilerplate; it's the product's actual stance."
 
     // MARK: - Legal URLs
 

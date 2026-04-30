@@ -11,8 +11,8 @@ enum AppTab: String {
     var title: String {
         switch self {
         case .today: return "Today"
-        case .ledger: return "Ledger"
-        case .quests: return "Quests"
+        case .ledger: return "Progress"
+        case .quests: return "Plan"
         case .weekly: return "Weekly"
         case .profile: return "Profile"
         }

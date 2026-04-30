@@ -14,13 +14,9 @@ struct TimeLedgerView: View {
                         ledgerRow(entry)
                     }
                 }
-                Section {
-                    DisclaimerBanner()
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                }
             }
             .navigationTitle(store.toneMode.ledgerTitle)
+            .accessibilityIdentifier("progress.screen")
         }
     }
 

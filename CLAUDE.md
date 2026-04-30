@@ -74,6 +74,7 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **verification-loop** — pre-PR / pre-release quality-gate sweep composing reconciliation + stocktake + changed-surface into a single verdict
 - **verification-loop-runtime** — runtime-evidence half of the verification-loop split; owns the `stale_postmortems` sub-check (operator hygiene, not registry drift)
 - **ios-build-and-sign** — produce a signed, validated iOS binary ready for TestFlight (Codex runs fastlane; Claude validates the artifact)
+- **ios-simulator-ux-audit** *(draft)* — run a repeatable simulator-driven UX audit on an iOS product, capture findings with evidence, and leave behind reusable docs and test hooks
 - **approval-flow-review** *(deferred)* — pre-validate an approval request against `packages/policies/approvals.py` before it reaches the founder queue
 - **test-coverage-audit** *(deferred)* — audit a worktree diff against the coverage policy in `packages/policies/testing.py` before commit
 
@@ -105,6 +106,7 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "run the verification loop" / "pre-PR sweep" / "check if this is ready to merge" / "run all the quality gates" → `skills/adapters/claude/verification-loop.md`
 - "check stale postmortems" / "audit operator hygiene" / "run the runtime verification loop" → `skills/canonical/verification-loop-runtime/skill.md`
 - "build the iOS app" / "sign the build" / "archive and sign" / "produce a TestFlight-ready binary" → `skills/adapters/claude/ios-build-and-sign.md`
+- "audit the UX in simulator" / "run a simulator UX audit" / "do an iOS UX audit" / "run a UX pass on the iOS app" → `skills/adapters/claude/ios-simulator-ux-audit.md`
 <!-- approval-flow-review and test-coverage-audit trigger phrases deferred until each skill activates (stage: active in registry). Adding them now would route users to frozen no-op contracts. -->
 
 

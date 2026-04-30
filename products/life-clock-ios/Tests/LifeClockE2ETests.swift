@@ -69,6 +69,7 @@ final class LifeClockE2ETests: XCTestCase {
             store.toggleQuestCompletion(firstQuest)
             XCTAssertEqual(firstQuest.completedAt, fixedDate, "completion stamp must use the injected clock")
             XCTAssertEqual(store.ledger.count, initialLedgerCount + 1)
+            XCTAssertEqual(store.supportMoment?.title, "Nice work.")
         } else {
             XCTFail("expected at least one quest to complete")
         }
@@ -98,6 +99,7 @@ final class LifeClockE2ETests: XCTestCase {
         XCTAssertNotNil(store2.todayHabits, "habit log must survive cold restart")
         XCTAssertEqual(store2.todayHabits?.alcoholLevel, "heavy")
         XCTAssertGreaterThan(store2.ledger.count, 0, "ledger entries must survive cold restart")
+        XCTAssertEqual(store2.completedPlanCount, 1, "completed actions should survive plan regeneration on relaunch")
     }
 
     // MARK: - Reset path

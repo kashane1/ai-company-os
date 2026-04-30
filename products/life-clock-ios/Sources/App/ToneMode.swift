@@ -11,43 +11,43 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Gentle"
         case .coach: return "Coach"
-        case .mementoMori: return "Memento Mori"
+        case .mementoMori: return "Direct"
         }
     }
 
     var description: String {
         switch self {
         case .gentle:
-            return "Healthspan score, time earned, future-self framing. No mortality language."
+            return "Keeps the focus on steady progress and supportive guidance."
         case .coach:
-            return "Default. Uses the Life Clock but stays motivating, not punishing."
+            return "Balanced guidance with clear progress language and supportive accountability."
         case .mementoMori:
-            return "Direct mortality framing. Still avoids medical certainty."
+            return "More direct about risk and long-term consequences, without fatalism."
         }
     }
 
     /// Copy keys vary by tone. Today screen uses these.
     var todayHeadline: String {
         switch self {
-        case .gentle: return "Healthspan today"
-        case .coach: return "Your Life Clock today"
-        case .mementoMori: return "Your time today"
+        case .gentle: return "Today"
+        case .coach: return "Today's progress"
+        case .mementoMori: return "Today's progress"
         }
     }
 
     var deltaPositivePrefix: String {
         switch self {
-        case .gentle: return "Time earned"
-        case .coach: return "Clock moved"
-        case .mementoMori: return "Earned back"
+        case .gentle: return "Progress gained"
+        case .coach: return "Progress today"
+        case .mementoMori: return "Progress today"
         }
     }
 
     var deltaNegativePrefix: String {
         switch self {
-        case .gentle: return "Time at risk"
-        case .coach: return "Clock pulled back"
-        case .mementoMori: return "Time lost"
+        case .gentle: return "Needs attention"
+        case .coach: return "Progress at risk"
+        case .mementoMori: return "At risk today"
         }
     }
 
@@ -55,17 +55,17 @@ enum ToneMode: String, CaseIterable, Identifiable {
 
     var ledgerTitle: String {
         switch self {
-        case .gentle: return "Time earned"
-        case .coach: return "Time Ledger"
-        case .mementoMori: return "Ledger"
+        case .gentle: return "Progress"
+        case .coach: return "Progress"
+        case .mementoMori: return "Progress"
         }
     }
 
     var questsTitle: String {
         switch self {
-        case .gentle: return "Today's small wins"
-        case .coach: return "Quests"
-        case .mementoMori: return "Today's quests"
+        case .gentle: return "Next steps"
+        case .coach: return "Plan"
+        case .mementoMori: return "Plan"
         }
     }
 
@@ -82,22 +82,22 @@ enum ToneMode: String, CaseIterable, Identifiable {
     var ledgerEmptyState: String {
         switch self {
         case .gentle:
-            return "Your ledger fills up with the small wins of each day."
+            return "Your progress log fills up as you check in and data comes in."
         case .coach:
-            return "No entries yet — your ledger fills up as data flows in."
+            return "No progress entries yet. Check in once and the story starts to build."
         case .mementoMori:
-            return "No entries yet. The clock waits for data."
+            return "No progress entries yet. A clearer picture starts with today's first check-in."
         }
     }
 
     var questsPreamble: String {
         switch self {
         case .gentle:
-            return "Pick one small thing. Showing up is the win."
+            return "Pick one supportive action. Showing up is a real win."
         case .coach:
-            return "1–3 quests per day. Pick one to do well."
+            return "Choose one supportive action for today. Small steps count."
         case .mementoMori:
-            return "Today's levers. Use them."
+            return "Choose one action worth following through on today."
         }
     }
 
@@ -106,9 +106,9 @@ enum ToneMode: String, CaseIterable, Identifiable {
         case .gentle:
             return "Come back after a few days — patterns appear with time."
         case .coach:
-            return "Weekly report will appear after a week of data."
+            return "Your weekly view will appear after a few days of data."
         case .mementoMori:
-            return "A week's data tells the truth a day cannot."
+            return "A week's data reveals patterns a single day can't."
         }
     }
 }

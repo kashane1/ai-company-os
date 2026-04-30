@@ -57,7 +57,7 @@ struct PaywallSheet: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             Text("Unlock the full Life Clock")
                 .font(.title.bold())
-            Text("Full weekly reports, custom quests, and deeper trend breakdowns. Your free clock keeps working either way.")
+            Text("Full weekly reports, tailored action plans, and deeper trend breakdowns. Your free experience keeps working either way.")
                 .foregroundStyle(.secondary)
         }
     }
@@ -91,7 +91,7 @@ struct PaywallSheet: View {
                 Text(product.displayPrice)
                     .font(.headline.monospacedDigit())
                 Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                    .foregroundStyle(isSelected ? .tint : .secondary)
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
             }
             .padding(DesignTokens.Spacing.md)
             .background(

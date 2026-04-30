@@ -9,12 +9,15 @@ struct TodayView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                     headline
+                    if let moment = store.supportMoment {
+                        supportMomentCard(moment)
+                    }
+                    momentumCard
                     dietStreakBanner
                     clockCard
                     driversCard
                     quickLogCard
                     questsCard
-                    DisclaimerBanner()
                 }
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
@@ -25,8 +28,9 @@ struct TodayView: View {
                     Button {
                         quickLogPresented = true
                     } label: {
-                        Label("Quick log", systemImage: "square.and.pencil")
+                        Label("Check in", systemImage: "square.and.pencil")
                     }
+                    .accessibilityIdentifier("today.checkInToolbar")
                 }
             }
             .sheet(isPresented: $quickLogPresented) {
@@ -42,9 +46,9 @@ struct TodayView: View {
             HStack {
                 Image(systemName: "square.and.pencil")
                 VStack(alignment: .leading) {
-                    Text(store.todayHabits == nil ? "Log today's habits" : "Update today's habits")
+                    Text(store.todayHabits == nil ? "Save today's check-in" : "Update today's check-in")
                         .font(.callout.bold())
-                    Text("Alcohol, smoking, diet, stress, strength — 30 seconds.")
+                    Text("Food, stress, strength, alcohol, smoking. About 30 seconds.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -56,6 +60,7 @@ struct TodayView: View {
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("today.checkInCard")
     }
 
     private var headline: some View {
@@ -78,6 +83,31 @@ struct TodayView: View {
                 Text("Loading…").foregroundStyle(.secondary)
             }
         }
+        .accessibilityIdentifier("today.headline")
+    }
+
+    private func supportMomentCard(_ moment: SupportMoment) -> some View {
+        SupportMomentCard(
+            moment: moment,
+            dismissAction: store.dismissSupportMoment
+        )
+        .accessibilityIdentifier("today.supportMoment")
+    }
+
+    private var momentumCard: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+            Text("Today's momentum")
+                .font(.headline)
+            Text("\(store.completedPlanCount) of \(store.todayQuests.count) planned actions complete")
+                .font(.callout.bold())
+            Text(store.hasCheckInToday ? "Your daily check-in is saved." : "Add a daily check-in to sharpen today's feedback.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(DesignTokens.Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        .accessibilityIdentifier("today.momentum")
     }
 
     /// "Projected healthspan + anchor date" card. Hidden entirely when
@@ -96,7 +126,7 @@ struct TodayView: View {
                 Text(store.todayEstimate.map { TimeDeltaFormatter.format(years: $0.projectedAgeYears) } ?? "—")
                     .font(.title.bold())
                 if let projected = store.todayEstimate?.projectedDate {
-                    Text("Anchor date: \(projected.formatted(.dateTime.year().month().day()))")
+                    Text("Reference date: \(projected.formatted(.dateTime.year().month().day()))")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -104,15 +134,16 @@ struct TodayView: View {
             .padding(DesignTokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            .accessibilityIdentifier("today.healthspan")
         }
     }
 
     private var driversCard: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("What moved your clock today")
+            Text("What influenced today's progress")
                 .font(.headline)
             if store.todayDrivers.isEmpty {
-                Text("No data yet — check back tomorrow.")
+                Text("No health data yet. Connect Apple Health or save a daily check-in to start seeing patterns.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
@@ -135,6 +166,7 @@ struct TodayView: View {
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        .accessibilityIdentifier("today.drivers")
     }
 
     /// A small streak chip when the user is on a diet-logging run. Only
@@ -178,30 +210,41 @@ struct TodayView: View {
         let dietDriver = store.todayDrivers.first { $0.driverType == "diet" }
         guard let dietDriver else { return nil }
         if dietDriver.deltaMinutes > 0 {
-            return "Your meals helped your clock today."
+            return "Your meals supported today's progress."
         }
-        return "A rough food day is feedback, not failure. One better meal can move tomorrow back."
+        return "A rough food day is feedback, not failure. One better meal can help tomorrow feel steadier."
     }
 
     private var questsCard: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("Today's quests")
+            Text("Today's plan")
                 .font(.headline)
-            ForEach(store.todayQuests, id: \.id) { quest in
-                HStack(alignment: .top) {
-                    Image(systemName: quest.completedAt == nil ? "circle" : "checkmark.circle.fill")
-                        .foregroundStyle(quest.completedAt == nil ? .secondary : DesignTokens.Palette.positive)
-                    VStack(alignment: .leading) {
-                        Text(quest.title).font(.callout.bold())
-                        Text(quest.detail).font(.caption).foregroundStyle(.secondary)
+            ForEach(Array(store.todayQuests.enumerated()), id: \.element.id) { index, quest in
+                Button {
+                    store.toggleQuestCompletion(quest)
+                } label: {
+                    HStack(alignment: .top, spacing: DesignTokens.Spacing.sm) {
+                        Image(systemName: quest.completedAt == nil ? "circle" : "checkmark.circle.fill")
+                            .foregroundStyle(quest.completedAt == nil ? .secondary : DesignTokens.Palette.positive)
+                        VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                            HStack(alignment: .top) {
+                                Text(quest.title).font(.callout.bold())
+                                Spacer()
+                                Text("Potential \(TimeDeltaFormatter.format(minutes: quest.rewardEstimateMinutes))")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(DesignTokens.Palette.positive)
+                            }
+                            Text(quest.detail).font(.caption).foregroundStyle(.secondary)
+                        }
                     }
                 }
-                .contentShape(Rectangle())
-                .onTapGesture { store.toggleQuestCompletion(quest) }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("today.planAction.\(index)")
             }
         }
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        .accessibilityIdentifier("today.plan")
     }
 }

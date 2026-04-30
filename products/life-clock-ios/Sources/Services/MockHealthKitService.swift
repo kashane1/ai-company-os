@@ -17,7 +17,7 @@ final class MockHealthKitService: HealthKitServiceProtocol {
         seed: UInt64 = 42,
         calendar: Calendar = .lifeClockUTC,
         simulateNoData: Bool = false,
-        preAuthorized: Bool = true
+        preAuthorized: Bool = false
     ) {
         self.seed = seed
         self.calendar = calendar

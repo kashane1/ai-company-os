@@ -127,6 +127,26 @@ skills:
       claude: adapters/claude/ios-build-and-sign.md
     project_skill: .claude/skills/ios-build-and-sign.md
 
+  - id: ios-simulator-ux-audit
+    name: iOS Simulator UX Audit
+    path: canonical/products/life-clock/ios-simulator-ux-audit.md
+    owner_agent: ios
+    # Claude-only until a codex adapter ships. Add `codex` back to
+    # target_runtimes once skills/adapters/codex/ios-simulator-ux-audit.md
+    # exists.
+    target_runtimes: [claude]
+    stage: draft
+    kind: agentic
+    # Draft skill: structural-only registration. No fixtures yet because the
+    # procedure is simulator-driven and not deterministically replayable. When
+    # this graduates from draft, add a contract-freeze fixture asserting the
+    # canonical body still names the playbook reference + minimum checklist.
+    fixture_status: missing
+    source: internal
+    adapters:
+      claude: adapters/claude/ios-simulator-ux-audit.md
+    project_skill: .claude/skills/ios-simulator-ux-audit.md
+
   - id: supervisor-goal-decomposition
     name: Supervisor Goal Decomposition
     path: canonical/shared/supervisor-goal-decomposition.md
