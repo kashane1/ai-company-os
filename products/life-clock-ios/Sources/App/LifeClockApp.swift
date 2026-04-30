@@ -9,6 +9,7 @@ struct LifeClockApp: App {
     @State private var store: LifeClockStore
     @State private var subscriptions = SubscriptionStore()
     @State private var hasBootstrapped: Bool = false
+    @State private var forcedPaywallPresented: Bool = false
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -46,6 +47,12 @@ struct LifeClockApp: App {
                     hasBootstrapped = true
                     await subscriptions.loadProducts()
                     await subscriptions.refreshEntitlements()
+                    // Test-only: present the paywall on launch so an XCUITest
+                    // can audit the paywall.close path without first navigating
+                    // to Profile and triggering a purchase flow.
+                    if launchConfiguration.forcePaywall {
+                        forcedPaywallPresented = true
+                    }
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     // Catch permission flips made in iOS Settings without
@@ -54,6 +61,10 @@ struct LifeClockApp: App {
                     // reconciled.
                     guard newPhase == .active, hasBootstrapped else { return }
                     Task { await store.refreshNotificationAuthorization() }
+                }
+                .sheet(isPresented: $forcedPaywallPresented) {
+                    PaywallSheet()
+                        .environment(subscriptions)
                 }
         }
         .modelContainer(container)

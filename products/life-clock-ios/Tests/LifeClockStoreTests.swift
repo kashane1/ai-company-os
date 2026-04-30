@@ -218,6 +218,67 @@ final class LifeClockStoreTests: XCTestCase {
         )
     }
 
+    /// Regression guard for todo 026: completion state must persist when a
+    /// quest's display title changes between sessions. Identity is the slug,
+    /// not the title.
+    func testQuestCompletionSurvivesTitleRename() async throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        // Sleep quest is always emitted (movement quest can be nil when steps already met).
+        let slug = "sleep.consistency.v1"
+
+        // Session 1: persist a Quest manually with the engine's slug, complete it.
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+        await store.refreshFromHealthKit()
+        guard let sleepQuest = store.todayQuests.first(where: { $0.slug == slug }) else {
+            XCTFail("expected an emitted quest with slug \(slug); got slugs \(store.todayQuests.map(\.slug))")
+            return
+        }
+        store.toggleQuestCompletion(sleepQuest)
+        XCTAssertEqual(store.completedPlanCount, 1)
+
+        // Simulate a copy edit: the persisted Quest row keeps the slug but
+        // the display title diverges from a future engine emission.
+        let descriptor = FetchDescriptor<Quest>(predicate: #Predicate { $0.slug == slug })
+        guard let stored = try context.fetch(descriptor).first else {
+            XCTFail("expected the persisted Quest to exist after completion")
+            return
+        }
+        stored.title = "Old original title (different from current engine output)"
+        try context.save()
+
+        // Session 2: fresh store; engine emits the slug with current title;
+        // applyPersistedCompletions should still restore completedAt.
+        let store2 = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        await store2.bootstrap()
+        XCTAssertEqual(store2.completedPlanCount, 1, "title drift must not orphan slug-keyed completion state")
+        XCTAssertTrue(
+            store2.todayQuests.contains { $0.slug == slug && $0.completedAt != nil },
+            "regenerated quest with the original slug should still show completedAt"
+        )
+    }
+
+    /// Phase 3.A: legacy "memento_mori" rawValue (from before the case was
+    /// removed) decodes to .coach, never crashes.
+    func testToneModeFromStoredLegacyValueFallsBack() {
+        XCTAssertEqual(ToneMode.fromStored("gentle"), .gentle)
+        XCTAssertEqual(ToneMode.fromStored("coach"), .coach)
+        XCTAssertEqual(ToneMode.fromStored("memento_mori"), .coach,
+                       "legacy stored rawValue must decode to .coach without crashing")
+        XCTAssertEqual(ToneMode.fromStored(""), .coach)
+        XCTAssertEqual(ToneMode.fromStored("garbage"), .coach)
+    }
+
     func testSetTodayHabitsUpsertsByDate() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")

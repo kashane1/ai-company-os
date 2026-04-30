@@ -1,11 +1,11 @@
 ---
 description: Run a repeatable simulator-driven UX audit on an iOS product, capture findings with evidence, and leave behind reusable docs and test hooks.
-canonical_source: skills/canonical/products/life-clock/ios-simulator-ux-audit.md
+canonical_source: skills/canonical/ios-simulator-ux-audit/skill.md
 ---
 
 # iOS Simulator UX Audit — Claude adapter
 
-Follow the canonical procedure at `skills/canonical/products/life-clock/ios-simulator-ux-audit.md`. This adapter is Claude-specific runtime guidance — read it once, then drive off the canonical body.
+Follow the canonical procedure at `skills/canonical/ios-simulator-ux-audit/skill.md`. This adapter is Claude-specific runtime guidance — read it once, then drive off the canonical body.
 
 ## Before you start
 

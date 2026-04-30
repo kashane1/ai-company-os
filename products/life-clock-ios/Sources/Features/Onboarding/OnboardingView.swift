@@ -105,6 +105,8 @@ struct OnboardingView: View {
                 Text("Female").tag("female")
                 Text("Male").tag("male")
             }
+            .accessibilityIdentifier("onboarding.biologicalSex")
+            .accessibilityValue(biologicalSex)
             if isAdultBirthDate {
                 Picker("Smoking", selection: $smokingStatus) {
                     Text("Never").tag("none")
@@ -112,11 +114,15 @@ struct OnboardingView: View {
                     Text("Light").tag("light")
                     Text("Heavy").tag("heavy")
                 }
+                .accessibilityIdentifier("onboarding.smokingStatus")
+                .accessibilityValue(smokingStatus)
                 Picker("Alcohol", selection: $alcoholFrequency) {
                     Text("Rare").tag("rare")
                     Text("Weekly").tag("weekly")
                     Text("Daily").tag("daily")
                 }
+                .accessibilityIdentifier("onboarding.alcoholFrequency")
+                .accessibilityValue(alcoholFrequency)
             }
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
                 Picker("Typical diet quality", selection: $dietQualityBaseline) {
@@ -125,16 +131,23 @@ struct OnboardingView: View {
                     Text("Rough").tag("rough")
                 }
                 .pickerStyle(.segmented)
+                .accessibilityIdentifier("onboarding.dietQualityBaseline")
+                .accessibilityValue(dietQualityBaseline)
                 Text("How would you describe most of your meals — coarse on purpose. No counting required.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Stepper("Strength sessions per week: \(strengthFrequency)", value: $strengthFrequency, in: 0...7)
+                .accessibilityIdentifier("onboarding.strengthFrequency")
+                .accessibilityValue("\(strengthFrequency)")
             VStack(alignment: .leading) {
                 Text("Sleep goal: \(String(format: "%.1f", sleepGoalHours)) hours")
                 Slider(value: $sleepGoalHours, in: 5.0...10.0, step: 0.5)
+                    .accessibilityIdentifier("onboarding.sleepGoalHours")
+                    .accessibilityValue(String(format: "%.1f hours", sleepGoalHours))
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.baseline")
     }
 

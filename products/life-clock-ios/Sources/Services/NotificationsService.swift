@@ -121,13 +121,6 @@ enum NotificationCopy {
         case .coach:
             Body(title: "Quick log time",
                  body: "Two taps to capture today. Worth it.")
-        case .mementoMori:
-            // Neutral by design — see plan §"Tone-aware copy".
-            // Mortality framing in-app where the user picked the tone is
-            // fine; mortality framing on a Lock Screen notification is a
-            // 1.4.1 rejection waiting to happen.
-            Body(title: "Today's log",
-                 body: "A minute to capture today, when you can.")
         }
     }
 }

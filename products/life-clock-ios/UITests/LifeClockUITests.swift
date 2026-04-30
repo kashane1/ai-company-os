@@ -70,6 +70,25 @@ final class LifeClockUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.containing("Completed action:").firstMatch.waitForExistence(timeout: 5))
     }
 
+    /// Phase 2.C: paywall must be dismissible by an agent. Purchase
+    /// (paywall.subscribe) is intentionally not exposed to XCUITest.
+    func testPaywallCloseIsAgentDriveable() throws {
+        app = XCUIApplication()
+        app.launchEnvironment["LIFECLOCK_UI_TEST"] = "1"
+        app.launchEnvironment["LIFECLOCK_UI_TEST_SCENARIO"] = "onboarded"
+        app.launchEnvironment["LIFECLOCK_USE_MOCK_HEALTH"] = "1"
+        app.launchEnvironment["LIFECLOCK_FORCE_PAYWALL"] = "1"
+        app.launch()
+
+        let close = app.buttons["paywall.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 8),
+                      "paywall.close must exist so agents can audit the paywall surface")
+        close.tap()
+        // Confirm sheet dismissed: paywall.close should no longer exist.
+        let stillVisible = close.waitForExistence(timeout: 2)
+        XCTAssertFalse(stillVisible, "paywall should dismiss after tapping paywall.close")
+    }
+
     private func launchApp(scenario: String) {
         app = XCUIApplication()
         app.launchEnvironment["LIFECLOCK_UI_TEST"] = "1"

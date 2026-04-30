@@ -1,17 +1,33 @@
 import Foundation
 
+/// User-facing tone for headline / progress / quest copy.
+///
+/// Phase 3.A collapse: `.mementoMori` was removed because four of eight
+/// keyed properties had collapsed to identical strings between `.coach`
+/// and `.mementoMori` after the 2026-04-30 audit copy refresh, and
+/// `ledgerTitle` was identical across all three tones. The mortality
+/// framing the original case represented was abandoned during the audit;
+/// `displayName` had already been renamed to "Direct".
+///
+/// Legacy `UserProfile.toneMode == "memento_mori"` rows fall back to
+/// `.coach` via `fromStored(_:)`; persisted values are written back as
+/// `.coach` on the next `setToneMode(_:)`.
 enum ToneMode: String, CaseIterable, Identifiable {
     case gentle
     case coach
-    case mementoMori = "memento_mori"
 
     var id: String { rawValue }
+
+    /// Decode a stored rawValue with explicit fallback. Use this everywhere
+    /// the value is read off `UserProfile.toneMode`.
+    static func fromStored(_ raw: String) -> ToneMode {
+        ToneMode(rawValue: raw) ?? .coach
+    }
 
     var displayName: String {
         switch self {
         case .gentle: return "Gentle"
         case .coach: return "Coach"
-        case .mementoMori: return "Direct"
         }
     }
 
@@ -21,8 +37,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Keeps the focus on steady progress and supportive guidance."
         case .coach:
             return "Balanced guidance with clear progress language and supportive accountability."
-        case .mementoMori:
-            return "More direct about risk and long-term consequences, without fatalism."
         }
     }
 
@@ -31,7 +45,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Today"
         case .coach: return "Today's progress"
-        case .mementoMori: return "Today's progress"
         }
     }
 
@@ -39,7 +52,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Progress gained"
         case .coach: return "Progress today"
-        case .mementoMori: return "Progress today"
         }
     }
 
@@ -47,25 +59,21 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Needs attention"
         case .coach: return "Progress at risk"
-        case .mementoMori: return "At risk today"
         }
     }
 
     // MARK: - Tab titles
 
-    var ledgerTitle: String {
-        switch self {
-        case .gentle: return "Progress"
-        case .coach: return "Progress"
-        case .mementoMori: return "Progress"
-        }
-    }
+    /// Inlined to "Progress" everywhere (was identical across all tones
+    /// even before Phase 3.A). Kept as a property so call sites do not
+    /// need to change; collapse to a literal in a future cleanup if a
+    /// tone-aware variant never reappears.
+    var ledgerTitle: String { "Progress" }
 
     var questsTitle: String {
         switch self {
         case .gentle: return "Next steps"
         case .coach: return "Plan"
-        case .mementoMori: return "Plan"
         }
     }
 
@@ -73,7 +81,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "This week"
         case .coach: return "Weekly"
-        case .mementoMori: return "Week in review"
         }
     }
 
@@ -85,8 +92,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Your progress log fills up as you check in and data comes in."
         case .coach:
             return "No progress entries yet. Check in once and the story starts to build."
-        case .mementoMori:
-            return "No progress entries yet. A clearer picture starts with today's first check-in."
         }
     }
 
@@ -96,8 +101,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Pick one supportive action. Showing up is a real win."
         case .coach:
             return "Choose one supportive action for today. Small steps count."
-        case .mementoMori:
-            return "Choose one action worth following through on today."
         }
     }
 
@@ -107,8 +110,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Come back after a few days — patterns appear with time."
         case .coach:
             return "Your weekly view will appear after a few days of data."
-        case .mementoMori:
-            return "A week's data reveals patterns a single day can't."
         }
     }
 }

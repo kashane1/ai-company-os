@@ -74,7 +74,7 @@ See `skills/WIRING.md` for the full convention. The short version:
 - **verification-loop** — pre-PR / pre-release quality-gate sweep composing reconciliation + stocktake + changed-surface into a single verdict
 - **verification-loop-runtime** — runtime-evidence half of the verification-loop split; owns the `stale_postmortems` sub-check (operator hygiene, not registry drift)
 - **ios-build-and-sign** — produce a signed, validated iOS binary ready for TestFlight (Codex runs fastlane; Claude validates the artifact)
-- **ios-simulator-ux-audit** *(draft)* — run a repeatable simulator-driven UX audit on an iOS product, capture findings with evidence, and leave behind reusable docs and test hooks
+- **ios-simulator-ux-audit** — run a repeatable simulator-driven UX audit on an iOS product, capture findings with evidence, and leave behind reusable docs and test hooks
 - **approval-flow-review** *(deferred)* — pre-validate an approval request against `packages/policies/approvals.py` before it reaches the founder queue
 - **test-coverage-audit** *(deferred)* — audit a worktree diff against the coverage policy in `packages/policies/testing.py` before commit
 

@@ -29,7 +29,12 @@ final class LifeClockStore {
     var lastHealthAuthError: String?
     var hasTodaySignal: Bool = false
     var dietStreaks: DietStreaks = .zero
-    var supportMoment: SupportMoment?
+    private(set) var supportMoment: SupportMoment?
+    private let supportPresenter = SupportMomentPresenter()
+
+    private func emit(_ intent: SupportMomentPresenter.Intent) {
+        supportMoment = supportPresenter.moment(for: intent)
+    }
 
     var completedPlanCount: Int {
         todayQuests.filter { $0.completedAt != nil }.count
@@ -84,9 +89,7 @@ final class LifeClockStore {
             profile = fetchFirst(UserProfile.self)
             if let profile {
                 hasCompletedOnboarding = true
-                if let mode = ToneMode(rawValue: profile.toneMode) {
-                    toneMode = mode
-                }
+                toneMode = ToneMode.fromStored(profile.toneMode)
                 if let restored = LifeClockPalette(rawValue: profile.paletteId) {
                     palette = restored
                 }
@@ -176,11 +179,7 @@ final class LifeClockStore {
         self.profile = profile
         self.toneMode = tone
         hasCompletedOnboarding = true
-        supportMoment = SupportMoment(
-            title: "You're set.",
-            detail: "We'll help you notice which daily choices support your health most.",
-            tone: .calm
-        )
+        emit(.onboardingComplete)
         return true
     }
 
@@ -307,37 +306,30 @@ final class LifeClockStore {
 
     func toggleQuestCompletion(_ quest: Quest) {
         let now = clock.now()
-        let persistedQuest = persistedQuestRecord(for: quest)
+        let stored = upsertQuest(quest)
         if quest.completedAt == nil {
             quest.completedAt = now
-            persistedQuest.completedAt = now
+            stored.completedAt = now
             let entry = TimeLedgerEntry(
                 date: now,
                 title: "Completed action: \(quest.title)",
                 deltaMinutes: quest.rewardEstimateMinutes,
                 source: "manual",
                 confidenceRaw: Confidence.medium.rawValue,
-                driverType: "quest"
+                driverType: "quest",
+                questSlug: quest.slug
             )
             modelContext.insert(entry)
             ledger.insert(entry, at: 0)
-            supportMoment = SupportMoment(
-                title: "Nice work.",
-                detail: "Added to your progress log. Possible impact: \(TimeDeltaFormatter.format(minutes: quest.rewardEstimateMinutes)).",
-                tone: .celebration
-            )
+            emit(.questCompleted(rewardMinutes: quest.rewardEstimateMinutes))
         } else {
             quest.completedAt = nil
-            persistedQuest.completedAt = nil
+            stored.completedAt = nil
             if let entry = fetchLatestQuestLedgerEntry(for: quest, on: clock.calendar.startOfDay(for: now)) {
                 modelContext.delete(entry)
                 ledger.removeAll { $0.id == entry.id }
             }
-            supportMoment = SupportMoment(
-                title: "Action removed.",
-                detail: "Today's plan is updated.",
-                tone: .calm
-            )
+            emit(.questUndone)
         }
         try? modelContext.save()
     }
@@ -386,31 +378,11 @@ final class LifeClockStore {
         let updatedDelta = todayEstimate?.dailyTimeDeltaMinutes ?? previousDelta
         let deltaChange = updatedDelta - previousDelta
 
-        if deltaChange > 0 {
-            supportMoment = SupportMoment(
-                title: "Nice work.",
-                detail: "Your check-in moved today's progress by \(TimeDeltaFormatter.format(minutes: deltaChange)).",
-                tone: .celebration
-            )
-        } else if habits.strengthTraining {
-            supportMoment = SupportMoment(
-                title: "Strength training logged.",
-                detail: "Saved to today's progress log. Small wins compound over time.",
-                tone: .celebration
-            )
-        } else if hadCheckIn {
-            supportMoment = SupportMoment(
-                title: "Check-in updated.",
-                detail: "You're building a clearer picture of what supports you.",
-                tone: .calm
-            )
-        } else {
-            supportMoment = SupportMoment(
-                title: "Check-in saved.",
-                detail: "You're building a clearer picture of what supports you.",
-                tone: .calm
-            )
-        }
+        emit(.checkInSaved(
+            deltaMinutes: deltaChange,
+            strengthLogged: habits.strengthTraining,
+            hadPriorCheckIn: hadCheckIn
+        ))
         await reconcileNotifications()
     }
 
@@ -466,72 +438,111 @@ final class LifeClockStore {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
+    /// Apply persisted completion state to the engine-emitted quests for a
+    /// given day. Matches by (date, slug) — title is free to drift across
+    /// copy edits without orphaning completion state.
+    ///
+    /// Lazy backfill: persisted rows from pre-slug versions of the app have
+    /// `slug == ""`. We promote them by matching on (category, title) against
+    /// today's engine-emitted quests and writing the engine's slug onto the
+    /// stored row, so subsequent days find them by slug. One-time per row.
     private func applyPersistedCompletions(to quests: inout [Quest], for dayStart: Date) {
-        let storedQuests = fetchPersistedQuests(for: dayStart)
+        let storedRows = fetchQuests(on: dayStart)
+        // `uniquingKeysWith: { first, _ in first }` defends against duplicate
+        // keys (legacy data could in principle have two rows with the same
+        // (category, title) for a given day; SwiftData doesn't enforce
+        // uniqueness on those columns). First write wins; the second row
+        // stays orphaned but does not crash the app.
+        let storedBySlug = Dictionary(
+            storedRows.compactMap { stored -> (String, Quest)? in
+                stored.slug.isEmpty ? nil : (stored.slug, stored)
+            },
+            uniquingKeysWith: { first, _ in first }
+        )
+        let legacyByTitleCategory = Dictionary(
+            storedRows.compactMap { stored -> (TitleCategoryKey, Quest)? in
+                guard stored.slug.isEmpty else { return nil }
+                return (TitleCategoryKey(category: stored.category, title: stored.title), stored)
+            },
+            uniquingKeysWith: { first, _ in first }
+        )
+        var didBackfill = false
         quests = quests.map { quest in
-            guard let stored = storedQuests.first(where: { persistedQuestMatches($0, quest: quest) }) else {
-                return quest
+            if let stored = storedBySlug[quest.slug] {
+                quest.completedAt = stored.completedAt
+            } else if let legacy = legacyByTitleCategory[TitleCategoryKey(category: quest.category, title: quest.title)] {
+                legacy.slug = quest.slug
+                quest.completedAt = legacy.completedAt
+                didBackfill = true
             }
-            quest.completedAt = stored.completedAt
             return quest
+        }
+        if didBackfill {
+            try? modelContext.save()
         }
     }
 
-    private func fetchPersistedQuests(for dayStart: Date) -> [Quest] {
+    private struct TitleCategoryKey: Hashable {
+        let category: String
+        let title: String
+    }
+
+    /// Single source of truth for "find or insert a Quest persisted by slug."
+    /// Replaces five overlapping helpers that matched by (date, title, category).
+    /// Mutable display fields (title, detail, target, progress, reward) are
+    /// copied from the engine-emitted instance so daily refresh stays accurate;
+    /// completedAt is left to the caller.
+    @discardableResult
+    private func upsertQuest(_ quest: Quest) -> Quest {
+        let stored = fetchStoredQuest(slug: quest.slug, on: quest.date) ?? {
+            let new = Quest(
+                id: quest.id,
+                slug: quest.slug,
+                date: quest.date,
+                title: quest.title,
+                detail: quest.detail,
+                category: quest.category,
+                target: quest.target,
+                rewardEstimateMinutes: quest.rewardEstimateMinutes
+            )
+            new.progress = quest.progress
+            modelContext.insert(new)
+            return new
+        }()
+        stored.title = quest.title
+        stored.detail = quest.detail
+        stored.target = quest.target
+        stored.progress = quest.progress
+        stored.rewardEstimateMinutes = quest.rewardEstimateMinutes
+        return stored
+    }
+
+    private func fetchQuests(on dayStart: Date) -> [Quest] {
         let descriptor = FetchDescriptor<Quest>(
             predicate: #Predicate { $0.date == dayStart }
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
-    private func persistedQuestRecord(for quest: Quest) -> Quest {
-        if let stored = fetchPersistedQuest(for: quest) {
-            stored.target = quest.target
-            stored.progress = quest.progress
-            stored.rewardEstimateMinutes = quest.rewardEstimateMinutes
-            stored.detail = quest.detail
-            return stored
-        }
-
-        let stored = Quest(
-            id: quest.id,
-            date: quest.date,
-            title: quest.title,
-            detail: quest.detail,
-            category: quest.category,
-            target: quest.target,
-            rewardEstimateMinutes: quest.rewardEstimateMinutes
-        )
-        stored.progress = quest.progress
-        modelContext.insert(stored)
-        return stored
-    }
-
-    private func fetchPersistedQuest(for quest: Quest) -> Quest? {
-        let date = quest.date
-        let title = quest.title
-        let category = quest.category
+    private func fetchStoredQuest(slug: String, on dayStart: Date) -> Quest? {
+        guard !slug.isEmpty else { return nil }
         let descriptor = FetchDescriptor<Quest>(
             predicate: #Predicate { stored in
-                stored.date == date && stored.title == title && stored.category == category
+                stored.date == dayStart && stored.slug == slug
             }
         )
         return try? modelContext.fetch(descriptor).first
     }
 
-    private func persistedQuestMatches(_ stored: Quest, quest: Quest) -> Bool {
-        stored.date == quest.date && stored.title == quest.title && stored.category == quest.category
-    }
-
     private func fetchLatestQuestLedgerEntry(for quest: Quest, on dayStart: Date) -> TimeLedgerEntry? {
-        let title = "Completed action: \(quest.title)"
         let nextDay = clock.calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
+        let slug = quest.slug
         var descriptor = FetchDescriptor<TimeLedgerEntry>(
             predicate: #Predicate { entry in
                 entry.date >= dayStart
                     && entry.date < nextDay
-                    && entry.title == title
                     && entry.driverType == "quest"
+                    && entry.questSlug == slug
             },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )

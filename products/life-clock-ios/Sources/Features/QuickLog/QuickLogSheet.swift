@@ -26,9 +26,12 @@ struct QuickLogSheet: View {
                             Text("Heavy").tag("heavy")
                         }
                         .pickerStyle(.segmented)
+                        .accessibilityIdentifier("quickLog.alcoholLevel")
+                        .accessibilityValue(alcoholLevel)
                     }
                     Section("Smoking / vaping today") {
                         Toggle("Logged today", isOn: $smokingVaping)
+                            .accessibilityIdentifier("quickLog.smokingVaping")
                     }
                 }
                 Section {
@@ -38,6 +41,8 @@ struct QuickLogSheet: View {
                         Text("Rough").tag("rough")
                     }
                     .pickerStyle(.segmented)
+                    .accessibilityIdentifier("quickLog.dietQuality")
+                    .accessibilityValue(dietQuality)
                     Text("Coarse on purpose. No calorie counting. Diet quality is one of the clearest signals in your daily progress.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -51,9 +56,12 @@ struct QuickLogSheet: View {
                         Text("High").tag("high")
                     }
                     .pickerStyle(.segmented)
+                    .accessibilityIdentifier("quickLog.stressLevel")
+                    .accessibilityValue(stressLevel)
                 }
                 Section("Strength training") {
                     Toggle("Completed today", isOn: $strengthTraining)
+                        .accessibilityIdentifier("quickLog.strengthTraining")
                 }
                 if store.todayHabits != nil {
                     Section {
