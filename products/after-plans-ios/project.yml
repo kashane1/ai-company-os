@@ -37,6 +37,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.afterplans
         PRODUCT_NAME: AfterPlans
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 3YCTPY88Y4
         TARGETED_DEVICE_FAMILY: 1
         SUPPORTS_MACCATALYST: NO
         DEVELOPMENT_ASSET_PATHS: "\"\""
@@ -74,6 +76,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.afterplansTests
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 3YCTPY88Y4
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AfterPlans.app/AfterPlans"
