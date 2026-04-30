@@ -31,13 +31,16 @@ struct PaywallSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
+                        .accessibilityIdentifier("paywall.close")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Restore") {
                         Task { await subscriptions.restore() }
                     }
+                    .accessibilityIdentifier("paywall.restore")
                 }
             }
+            .accessibilityIdentifier("paywall.screen")
         }
         .task {
             await subscriptions.loadProducts()
