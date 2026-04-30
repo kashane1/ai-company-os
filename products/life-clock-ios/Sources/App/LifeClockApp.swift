@@ -7,6 +7,7 @@ struct LifeClockApp: App {
     let container: ModelContainer
     @State private var store: LifeClockStore
     @State private var subscriptions = SubscriptionStore()
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let container: ModelContainer
@@ -16,9 +17,14 @@ struct LifeClockApp: App {
             fatalError("ModelContainer init failed: \(error)")
         }
         self.container = container
+        let notificationsService = NotificationsService()
+        // Foreground delegate must be set BEFORE any notification could
+        // arrive — otherwise iOS silently suppresses foreground banners.
+        notificationsService.installForegroundDelegate()
         let store = LifeClockStore(
             healthService: HealthKitConfiguration.service(),
-            modelContext: container.mainContext
+            modelContext: container.mainContext,
+            notificationsService: notificationsService
         )
         _store = State(wrappedValue: store)
     }
@@ -33,6 +39,13 @@ struct LifeClockApp: App {
                     await store.bootstrap()
                     await subscriptions.loadProducts()
                     await subscriptions.refreshEntitlements()
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    // Catch permission flips made in iOS Settings without
+                    // requiring a relaunch.
+                    if newPhase == .active {
+                        Task { await store.refreshNotificationAuthorization() }
+                    }
                 }
         }
         .modelContainer(container)

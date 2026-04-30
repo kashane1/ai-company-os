@@ -42,6 +42,40 @@ struct ProfileView: View {
                     }
                 }
 
+                Section {
+                    Toggle("Daily reminder", isOn: Binding(
+                        get: { store.profile?.dailyReminderEnabled ?? false },
+                        set: { newValue in
+                            Task {
+                                await store.setDailyReminder(
+                                    enabled: newValue,
+                                    hour: store.profile?.dailyReminderHour ?? 20
+                                )
+                            }
+                        }
+                    ))
+
+                    if store.profile?.dailyReminderEnabled == true {
+                        Picker("Time", selection: Binding(
+                            get: { store.profile?.dailyReminderHour ?? 20 },
+                            set: { newHour in
+                                Task {
+                                    await store.setDailyReminder(enabled: true, hour: newHour)
+                                }
+                            }
+                        )) {
+                            ForEach(8...22, id: \.self) { hour in
+                                Text(reminderHourLabel(hour)).tag(hour)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Daily reminder")
+                } footer: {
+                    Text(reminderFooterText)
+                        .font(.caption)
+                }
+
                 Section("Apple Health") {
                     if !store.healthDataAvailable {
                         Text("Apple Health is not available on this device.")
@@ -158,6 +192,23 @@ struct ProfileView: View {
             Text(name).font(.callout)
             Spacer()
             Text(status).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var reminderFooterText: String {
+        if store.notificationAuthorizationStatus == .denied,
+           store.profile?.dailyReminderEnabled == true {
+            return "Notifications are disabled in iOS Settings → Life Clock. Re-enable there to receive reminders."
+        }
+        return "We'll remind you to log if you haven't already by this time. One per day. Reminder time runs between 8 AM and 10 PM."
+    }
+
+    private func reminderHourLabel(_ hour: Int) -> String {
+        switch hour {
+        case 0: return "12 AM"
+        case 12: return "12 PM"
+        case 1...11: return "\(hour) AM"
+        default: return "\(hour - 12) PM"
         }
     }
 

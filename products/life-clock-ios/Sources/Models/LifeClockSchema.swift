@@ -42,6 +42,8 @@ enum LifeClockSchemaV1: VersionedSchema {
         var sleepGoalHours: Double = 7.5
         var toneMode: String = "coach"
         var paletteId: String = "default-navy"
+        var dailyReminderEnabled: Bool = false
+        var dailyReminderHour: Int = 20
         var onboardingCompletedAt: Date? = nil
         var disclaimerAcceptedAt: Date? = nil
         /// When true, Today screen replaces "Projected healthspan" with
