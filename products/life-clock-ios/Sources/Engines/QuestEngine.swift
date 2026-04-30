@@ -58,6 +58,7 @@ struct QuestEngine {
             detail = "Get to \(Int(target)) steps. A short post-dinner walk usually closes the gap."
         }
         let quest = Quest(
+            slug: "movement.steps-target.v1",
             date: today,
             title: "Move a little more",
             detail: detail,
@@ -72,6 +73,7 @@ struct QuestEngine {
     private func sleepQuest(today: Date, profile: UserProfile, snapshot: DailyHealthSnapshot?) -> Quest {
         let detail = "Be in bed within an hour of your usual time. Consistency matters more than total hours."
         let quest = Quest(
+            slug: "sleep.consistency.v1",
             date: today,
             title: "Protect tomorrow's sleep",
             detail: detail,
@@ -94,6 +96,7 @@ struct QuestEngine {
     private func habitOrNutritionQuest(today: Date, habits: HabitLog?) -> Quest {
         if habits?.alcoholLevel.lowercased() == "heavy" {
             return Quest(
+                slug: "recovery.hydration-early-night.v1",
                 date: today,
                 title: "Hydration + early night",
                 detail: "Aim for water before sleep. Tomorrow's clock recovers fastest with rest.",
@@ -105,6 +108,7 @@ struct QuestEngine {
 
         if habits?.dietQuality.lowercased() == "rough" {
             return Quest(
+                slug: "nutrition.one-better-meal.v1",
                 date: today,
                 title: "One better meal tomorrow",
                 detail: "A rough food day is feedback, not failure. One simple, whole-food meal moves things back.",
@@ -116,6 +120,7 @@ struct QuestEngine {
 
         if habits?.dietQuality == nil || habits?.dietQuality.lowercased() == "unknown" {
             return Quest(
+                slug: "nutrition.log-diet-quality.v1",
                 date: today,
                 title: "Log your diet quality tonight",
                 detail: "Great, okay, or rough — coarse is fine. Logging is what makes food visible on your clock.",
@@ -132,16 +137,17 @@ struct QuestEngine {
         // Deterministic rotation by day-of-year parity. Six gentle nutrition
         // nudges; none reference calories, macros, or named diets.
         let dayOfYear = clock.calendar.ordinality(of: .day, in: .year, for: today) ?? 0
-        let pool: [(title: String, detail: String, reward: Int)] = [
-            ("Add one whole-food meal", "A piece of fruit, a handful of nuts, a real cooked meal — anything unprocessed counts.", 12),
-            ("Walk 10 minutes after dinner", "A short post-dinner walk smooths how today's meals affect your clock.", 14),
-            ("Choose water with one meal", "Skip the sweetened drink at one meal today. That's the whole focus.", 10),
-            ("Add protein to your next meal", "Eggs, beans, fish, chicken, tofu — pick one. No measuring required.", 12),
-            ("Eat one meal slowly", "Phone down, fork down between bites. Slower meals tend to be smaller meals without trying.", 10),
-            ("Make one meal less processed", "Swap one packaged item for something whole. One meal, not your whole day.", 12),
+        let pool: [(slug: String, title: String, detail: String, reward: Int)] = [
+            ("nutrition.whole-food-meal.v1", "Add one whole-food meal", "A piece of fruit, a handful of nuts, a real cooked meal — anything unprocessed counts.", 12),
+            ("nutrition.walk-after-dinner.v1", "Walk 10 minutes after dinner", "A short post-dinner walk smooths how today's meals affect your clock.", 14),
+            ("nutrition.water-with-meal.v1", "Choose water with one meal", "Skip the sweetened drink at one meal today. That's the whole focus.", 10),
+            ("nutrition.add-protein.v1", "Add protein to your next meal", "Eggs, beans, fish, chicken, tofu — pick one. No measuring required.", 12),
+            ("nutrition.eat-meal-slowly.v1", "Eat one meal slowly", "Phone down, fork down between bites. Slower meals tend to be smaller meals without trying.", 10),
+            ("nutrition.less-processed.v1", "Make one meal less processed", "Swap one packaged item for something whole. One meal, not your whole day.", 12),
         ]
         let pick = pool[dayOfYear % pool.count]
         return Quest(
+            slug: pick.slug,
             date: today,
             title: pick.title,
             detail: pick.detail,
@@ -153,6 +159,7 @@ struct QuestEngine {
 
     private func consistencyFallback(today: Date) -> Quest {
         Quest(
+            slug: "consistency.open-app-tomorrow.v1",
             date: today,
             title: "Open the app tomorrow",
             detail: "The clock improves most from showing up daily.",

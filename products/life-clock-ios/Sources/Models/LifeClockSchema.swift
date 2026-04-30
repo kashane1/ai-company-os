@@ -127,6 +127,12 @@ enum LifeClockSchemaV1: VersionedSchema {
         var source: String = "estimate"
         var confidenceRaw: String = "low"
         var driverType: String = "other"
+        // Quest slug for entries with driverType == "quest". Lets the undo
+        // flow find the entry by stable slug instead of by display title,
+        // which can drift across copy edits. Optional with property-level
+        // default `nil` for safe lightweight migration; nil for non-quest
+        // entries.
+        var questSlug: String? = nil
 
         init(
             id: UUID = UUID(),
@@ -135,7 +141,8 @@ enum LifeClockSchemaV1: VersionedSchema {
             deltaMinutes: Int,
             source: String,
             confidenceRaw: String,
-            driverType: String
+            driverType: String,
+            questSlug: String? = nil
         ) {
             self.id = id
             self.date = date
@@ -144,6 +151,7 @@ enum LifeClockSchemaV1: VersionedSchema {
             self.source = source
             self.confidenceRaw = confidenceRaw
             self.driverType = driverType
+            self.questSlug = questSlug
         }
     }
 
@@ -151,6 +159,15 @@ enum LifeClockSchemaV1: VersionedSchema {
     final class Quest {
         @Attribute(.unique) var id: UUID = UUID()
         var date: Date = Date(timeIntervalSince1970: 0)
+        // Stable identity for matching across daily regeneration. Format:
+        // "<category>.<intent>[.v<n>]" — e.g. "nutrition.water-with-meal.v1".
+        // Title is free-form display copy and may change without orphaning
+        // persisted completion state. Property-level default required for
+        // SwiftData lightweight migration. Intentionally NOT @Attribute(.unique)
+        // in this version — existing rows would all default to "" and violate
+        // uniqueness. Add .unique only after the bootstrap() backfill has
+        // shipped on every install and a later schema version applies it.
+        var slug: String = ""
         var title: String = ""
         var detail: String = ""
         var category: String = "movement"
@@ -161,6 +178,7 @@ enum LifeClockSchemaV1: VersionedSchema {
 
         init(
             id: UUID = UUID(),
+            slug: String,
             date: Date,
             title: String,
             detail: String,
@@ -169,6 +187,7 @@ enum LifeClockSchemaV1: VersionedSchema {
             rewardEstimateMinutes: Int
         ) {
             self.id = id
+            self.slug = slug
             self.date = date
             self.title = title
             self.detail = detail
