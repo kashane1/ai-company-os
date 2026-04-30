@@ -13,8 +13,9 @@ import SwiftData
 ///    auditor can land on any reachable UI state deterministically without
 ///    growing a combinatorial Scenario enum.
 ///
-/// All env vars are no-ops in production (they're only set by XCUITest's
-/// `app.launchEnvironment`).
+/// All env-var parsing is wrapped in `#if DEBUG`. Release builds always
+/// return production defaults regardless of `ProcessInfo.environment`,
+/// removing the fixture surface from the App Store binary entirely.
 struct LifeClockLaunchConfiguration {
     enum Scenario: String {
         case onboarding
@@ -43,6 +44,7 @@ struct LifeClockLaunchConfiguration {
     let clock: EngineClock
 
     static var current: LifeClockLaunchConfiguration {
+        #if DEBUG
         let env = ProcessInfo.processInfo.environment
         let isUITest = env["LIFECLOCK_UI_TEST"] == "1"
         let scenario = Scenario(rawValue: env["LIFECLOCK_UI_TEST_SCENARIO"] ?? "") ?? .onboarding
@@ -84,6 +86,18 @@ struct LifeClockLaunchConfiguration {
             seedQuestsCompleted: seedQuestsCompleted,
             clock: clock
         )
+        #else
+        return LifeClockLaunchConfiguration(
+            isUITest: false,
+            scenario: .onboarding,
+            useMockHealth: false,
+            healthAuth: .notDetermined,
+            forcePaywall: false,
+            seedStreak: 0,
+            seedQuestsCompleted: 0,
+            clock: .live
+        )
+        #endif
     }
 
     var useInMemoryStore: Bool { isUITest }
@@ -135,6 +149,25 @@ struct LifeClockLaunchConfiguration {
                 log.stressLevel = "medium"
                 log.strengthTraining = false
                 context.insert(log)
+            }
+        }
+
+        // Seed N completed quests for today. Slugs come from the live engine so
+        // they survive applyPersistedCompletions matching.
+        if seedQuestsCompleted > 0 {
+            let dayStart = calendar.startOfDay(for: now)
+            let todayLog = (try? context.fetch(
+                FetchDescriptor<HabitLog>(predicate: #Predicate { $0.date == dayStart })
+            ))?.first
+            let questEngine = QuestEngine(clock: clock)
+            let quests = questEngine.generateDailyQuests(
+                profile: profile,
+                snapshot: nil,
+                habits: todayLog
+            )
+            for quest in quests.prefix(seedQuestsCompleted) {
+                quest.completedAt = now
+                context.insert(quest)
             }
         }
 

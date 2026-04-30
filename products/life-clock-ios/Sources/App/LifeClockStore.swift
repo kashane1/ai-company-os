@@ -397,12 +397,12 @@ final class LifeClockStore {
         weekly = nil
         palette = .defaultNavy
         hasCompletedOnboarding = false
-        emit(.reset)
+        supportMoment = nil
         Task { await reconcileNotifications() }
     }
 
     func dismissSupportMoment() {
-        emit(.reset)
+        supportMoment = nil
     }
 
     // MARK: - Persistence helpers
@@ -441,17 +441,37 @@ final class LifeClockStore {
     /// Apply persisted completion state to the engine-emitted quests for a
     /// given day. Matches by (date, slug) — title is free to drift across
     /// copy edits without orphaning completion state.
+    ///
+    /// Lazy backfill: persisted rows from pre-slug versions of the app have
+    /// `slug == ""`. We promote them by matching on (category, title) against
+    /// today's engine-emitted quests and writing the engine's slug onto the
+    /// stored row, so subsequent days find them by slug. One-time per row.
     private func applyPersistedCompletions(to quests: inout [Quest], for dayStart: Date) {
+        let storedRows = fetchQuests(on: dayStart)
         let storedBySlug = Dictionary(
-            uniqueKeysWithValues: fetchQuests(on: dayStart).compactMap { stored in
+            uniqueKeysWithValues: storedRows.compactMap { stored in
                 stored.slug.isEmpty ? nil : (stored.slug, stored)
             }
         )
+        let legacyByTitleCategory = Dictionary(
+            uniqueKeysWithValues: storedRows.compactMap { stored -> (String, Quest)? in
+                guard stored.slug.isEmpty else { return nil }
+                return ("\(stored.category)|\(stored.title)", stored)
+            }
+        )
+        var didBackfill = false
         quests = quests.map { quest in
             if let stored = storedBySlug[quest.slug] {
                 quest.completedAt = stored.completedAt
+            } else if let legacy = legacyByTitleCategory["\(quest.category)|\(quest.title)"] {
+                legacy.slug = quest.slug
+                quest.completedAt = legacy.completedAt
+                didBackfill = true
             }
             return quest
+        }
+        if didBackfill {
+            try? modelContext.save()
         }
     }
 

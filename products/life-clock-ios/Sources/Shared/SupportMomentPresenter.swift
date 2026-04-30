@@ -21,10 +21,9 @@ struct SupportMomentPresenter {
         /// for re-saves, otherwise a calm "check-in saved" first-time
         /// state.
         case checkInSaved(deltaMinutes: Int, strengthLogged: Bool, hadPriorCheckIn: Bool)
-        case reset
     }
 
-    func moment(for intent: Intent) -> SupportMoment? {
+    func moment(for intent: Intent) -> SupportMoment {
         switch intent {
         case .onboardingComplete:
             return SupportMoment(
@@ -74,9 +73,6 @@ struct SupportMomentPresenter {
                 detail: "You're building a clearer picture of what supports you.",
                 tone: .calm
             )
-
-        case .reset:
-            return nil
         }
     }
 }

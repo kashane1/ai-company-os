@@ -8,21 +8,21 @@ final class SupportMomentPresenterTests: XCTestCase {
 
     func testOnboardingComplete() {
         let moment = presenter.moment(for: .onboardingComplete)
-        XCTAssertEqual(moment?.title, "You're set.")
-        XCTAssertEqual(moment?.tone, .calm)
+        XCTAssertEqual(moment.title, "You're set.")
+        XCTAssertEqual(moment.tone, .calm)
     }
 
     func testQuestCompletedIsCelebrationWithReward() {
         let moment = presenter.moment(for: .questCompleted(rewardMinutes: 18))
-        XCTAssertEqual(moment?.title, "Nice work.")
-        XCTAssertEqual(moment?.tone, .celebration)
-        XCTAssertTrue(moment?.detail.contains("Possible impact:") ?? false)
+        XCTAssertEqual(moment.title, "Nice work.")
+        XCTAssertEqual(moment.tone, .celebration)
+        XCTAssertTrue(moment.detail.contains("Possible impact:"))
     }
 
     func testQuestUndoneIsCalm() {
         let moment = presenter.moment(for: .questUndone)
-        XCTAssertEqual(moment?.title, "Action removed.")
-        XCTAssertEqual(moment?.tone, .calm)
+        XCTAssertEqual(moment.title, "Action removed.")
+        XCTAssertEqual(moment.tone, .calm)
     }
 
     func testCheckInPositiveDeltaWinsOverStrengthAndPrior() {
@@ -31,9 +31,9 @@ final class SupportMomentPresenterTests: XCTestCase {
             strengthLogged: true,
             hadPriorCheckIn: true
         ))
-        XCTAssertEqual(moment?.title, "Nice work.")
-        XCTAssertEqual(moment?.tone, .celebration)
-        XCTAssertTrue(moment?.detail.contains("Your check-in moved today's progress") ?? false)
+        XCTAssertEqual(moment.title, "Nice work.")
+        XCTAssertEqual(moment.tone, .celebration)
+        XCTAssertTrue(moment.detail.contains("Your check-in moved today's progress"))
     }
 
     func testCheckInStrengthOnly() {
@@ -42,8 +42,8 @@ final class SupportMomentPresenterTests: XCTestCase {
             strengthLogged: true,
             hadPriorCheckIn: false
         ))
-        XCTAssertEqual(moment?.title, "Strength training logged.")
-        XCTAssertEqual(moment?.tone, .celebration)
+        XCTAssertEqual(moment.title, "Strength training logged.")
+        XCTAssertEqual(moment.tone, .celebration)
     }
 
     func testCheckInUpdatedAfterPriorButNoDeltaOrStrength() {
@@ -52,8 +52,8 @@ final class SupportMomentPresenterTests: XCTestCase {
             strengthLogged: false,
             hadPriorCheckIn: true
         ))
-        XCTAssertEqual(moment?.title, "Check-in updated.")
-        XCTAssertEqual(moment?.tone, .calm)
+        XCTAssertEqual(moment.title, "Check-in updated.")
+        XCTAssertEqual(moment.tone, .calm)
     }
 
     func testCheckInSavedFirstTime() {
@@ -62,11 +62,7 @@ final class SupportMomentPresenterTests: XCTestCase {
             strengthLogged: false,
             hadPriorCheckIn: false
         ))
-        XCTAssertEqual(moment?.title, "Check-in saved.")
-        XCTAssertEqual(moment?.tone, .calm)
-    }
-
-    func testResetReturnsNil() {
-        XCTAssertNil(presenter.moment(for: .reset))
+        XCTAssertEqual(moment.title, "Check-in saved.")
+        XCTAssertEqual(moment.tone, .calm)
     }
 }
