@@ -129,19 +129,20 @@ skills:
 
   - id: ios-simulator-ux-audit
     name: iOS Simulator UX Audit
-    path: canonical/products/life-clock/ios-simulator-ux-audit.md
+    path: canonical/ios-simulator-ux-audit/skill.md
     owner_agent: ios
     # Claude-only until a codex adapter ships. Add `codex` back to
     # target_runtimes once skills/adapters/codex/ios-simulator-ux-audit.md
     # exists.
     target_runtimes: [claude]
-    stage: draft
+    stage: active
     kind: agentic
-    # Draft skill: structural-only registration. No fixtures yet because the
-    # procedure is simulator-driven and not deterministically replayable. When
-    # this graduates from draft, add a contract-freeze fixture asserting the
-    # canonical body still names the playbook reference + minimum checklist.
-    fixture_status: missing
+    # Contract-freeze fixture at
+    # skills/canonical/ios-simulator-ux-audit/fixtures/happy_path.yaml
+    # locks the procedure section names, required input fields, preconditions,
+    # minimum checklist items, failure modes, and handoff channel against
+    # silent drift. See tests/python/unit/test_ios_simulator_ux_audit_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/ios-simulator-ux-audit.md

@@ -1,0 +1,44 @@
+# Contract-freeze fixture for ios-simulator-ux-audit. Locks the canonical
+# body's procedure-section names, required input fields, minimum-checklist
+# items, and failure-modes against silent drift. Drift here means the
+# skill's contract surface changed without an explicit fixture update.
+#
+# See tests/python/unit/test_ios_simulator_ux_audit_fixtures.py.
+- name: happy_path
+  description: Canonical body still exposes the audit contract.
+  input:
+    skill_file: canonical/ios-simulator-ux-audit/skill.md
+  expected:
+    required_section_headings:
+      - "## Procedure"
+      - "## Minimum Checklist"
+      - "## Evidence Standard"
+      - "## Output Style"
+      - "## Output Collisions and Resume"
+      - "## Failure modes"
+    required_input_fields:
+      - "product path under products/<product-id>-ios/"
+      - "Xcode scheme name"
+      - "target simulator device + iOS version"
+      - "audit mode (first-launch | returning-user | both)"
+    required_preconditions:
+      - "the chosen Xcode scheme exists in the project"
+      - "the target Simulator runtime is installed"
+      - "the app builds for the chosen simulator destination"
+    required_checklist_items:
+      - "launch succeeds in Simulator"
+      - "every top-level tab visited"
+      - "at least one primary action completed"
+      - "relaunch performed"
+      - "tests updated for the changed flow"
+    required_failure_modes:
+      - "Simulator won't boot"
+      - "Onboarding blocked by permission state"
+      - "Product has no XCUITest target"
+    required_handoff_channel:
+      - "docs/products/<product-id>/ux-audit-<YYYY-MM-DD>.md"
+    required_output_sections:
+      - "Current Flow Map"
+      - "Biggest Friction Points"
+      - "Recommended Flow"
+      - "Audit Notes For Next Pass"

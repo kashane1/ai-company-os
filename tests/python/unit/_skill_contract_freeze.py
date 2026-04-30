@@ -43,6 +43,22 @@ _GROUP_LABELS: dict[str, str] = {
     "required_allowed_edit_paths": "allowed-edit path",
     "required_helper_dependencies": "helper dependency",
     "required_hard_gate_references": "hard-gate reference",
+    # Additional groups used by skills with stricter contract surfaces.
+    # Without entries here the shared helper would silently no-op on them.
+    "required_preconditions": "precondition",
+    "required_checklist_items": "checklist item",
+    "required_failure_modes": "failure mode",
+    "required_handoff_channel": "handoff channel",
+    "required_output_sections": "output section",
+    "required_validation_steps": "validation step",
+    "required_record_fields": "record field",
+    "required_status_values": "status value",
+    "required_severity_labels": "severity label",
+    "required_verdict_values": "verdict value",
+    "required_safety_clauses": "safety clause",
+    "required_pack_sections": "pack section",
+    "required_lane_coverage_keys": "lane coverage key",
+    "required_character_limits": "character limit",
 }
 
 
