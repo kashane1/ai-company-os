@@ -13,7 +13,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.life-clock.pro.lifetime",
+      "productID" : "com.lifeclock.pro.lifetime",
       "referenceName" : "Life Clock Pro Lifetime",
       "type" : "NonConsumable"
     }
@@ -46,7 +46,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.life-clock.pro.monthly",
+          "productID" : "com.lifeclock.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Life Clock Pro Monthly",
           "subscriptionGroupID" : "lc_pro_group_001",
@@ -67,7 +67,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.life-clock.pro.annual",
+          "productID" : "com.lifeclock.pro.annual",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Life Clock Pro Annual",
           "subscriptionGroupID" : "lc_pro_group_001",
