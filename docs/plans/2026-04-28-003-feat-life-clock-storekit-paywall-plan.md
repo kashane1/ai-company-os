@@ -17,7 +17,7 @@ This unblocks the four PRD acceptance criteria in **Paywall** and the Roadmap Ph
 ## Scope
 
 **In:**
-- Three products: `com.life-clock.pro.monthly`, `com.life-clock.pro.annual`, `com.life-clock.pro.lifetime`. Annual + monthly in one Subscription Group; lifetime non-consumable.
+- Three products: `com.lifeclock.pro.monthly`, `com.lifeclock.pro.annual`, `com.lifeclock.pro.lifetime`. Annual + monthly in one Subscription Group; lifetime non-consumable.
 - `SubscriptionStore: @Observable @MainActor` with `Transaction.updates` listener started in `init` (before any UI render), `currentEntitlements` refresh on launch, `tx.finish()` on every verified transaction.
 - `Products.storekit` configuration file for local testing — paywall renders fully on simulator.
 - `PaywallSheet` showing all three tiers, annual pre-selected, restore button, Terms/Privacy links, "auto-renews unless cancelled" disclosure.
@@ -62,9 +62,9 @@ Tests/
 
 ```swift
 enum PaywallProductID: String, CaseIterable {
-    case monthly  = "com.life-clock.pro.monthly"
-    case annual   = "com.life-clock.pro.annual"
-    case lifetime = "com.life-clock.pro.lifetime"
+    case monthly  = "com.lifeclock.pro.monthly"
+    case annual   = "com.lifeclock.pro.annual"
+    case lifetime = "com.lifeclock.pro.lifetime"
 }
 ```
 

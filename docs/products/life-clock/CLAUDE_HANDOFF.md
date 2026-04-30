@@ -86,7 +86,7 @@ WHAT'S PENDING — founder-side (cannot be done from code)
   *.md files; enable GitHub Pages; replace
   LifeClockConfiguration.privacyPolicyURL with the live URL
 - App Store Connect: app record, IAP products matching Products.storekit
-  IDs (com.life-clock.pro.{monthly,annual,lifetime}), age-rating
+  IDs (com.lifeclock.pro.{monthly,annual,lifetime}), age-rating
   questionnaire (answers in ASC_CHECKLIST Phase 4 → 12+)
 - App icon (1024x1024 + standard sizes) into AppIcon.appiconset/
 - Six App Store screenshots

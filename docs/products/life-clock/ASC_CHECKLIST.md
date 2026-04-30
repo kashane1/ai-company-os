@@ -79,7 +79,7 @@ ASC → My Apps → Life Clock → Monetization → In-App Purchases.
 
 Inside the Pro group, click **+ Subscription**:
 
-- [ ] **Product ID:** `com.life-clock.pro.annual` *(must match Products.storekit)*
+- [ ] **Product ID:** `com.lifeclock.pro.annual` *(must match Products.storekit)*
 - [ ] **Reference Name:** `Life Clock Pro Annual`
 - [ ] **Subscription Duration:** 1 Year
 - [ ] **Price:** $49.99 (or your preferred annual price)
@@ -92,7 +92,7 @@ Inside the Pro group, click **+ Subscription**:
 
 Same group, **+ Subscription**:
 
-- [ ] **Product ID:** `com.life-clock.pro.monthly`
+- [ ] **Product ID:** `com.lifeclock.pro.monthly`
 - [ ] **Subscription Duration:** 1 Month
 - [ ] **Price:** $7.99
 - [ ] **Display Name:** `Life Clock Pro · Monthly`
@@ -102,7 +102,7 @@ Same group, **+ Subscription**:
 
 This is **outside** the Subscription Group. ASC → IAPs → **+** → **Non-Consumable**:
 
-- [ ] **Product ID:** `com.life-clock.pro.lifetime`
+- [ ] **Product ID:** `com.lifeclock.pro.lifetime`
 - [ ] **Reference Name:** `Life Clock Pro Lifetime`
 - [ ] **Price:** $129.99
 - [ ] **Display Name:** `Life Clock Pro · Lifetime`
@@ -118,9 +118,9 @@ grep productID products/life-clock-ios/Sources/Services/Products.storekit
 Expected:
 
 ```
-"productID" : "com.life-clock.pro.lifetime"
-"productID" : "com.life-clock.pro.monthly"
-"productID" : "com.life-clock.pro.annual"
+"productID" : "com.lifeclock.pro.lifetime"
+"productID" : "com.lifeclock.pro.monthly"
+"productID" : "com.lifeclock.pro.annual"
 ```
 
 If any ID mismatches, the paywall in production will show "no products available". This is the most common pre-submission bug.

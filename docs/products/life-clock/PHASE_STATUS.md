@@ -46,7 +46,7 @@ Founder pack ingested and registered. iOS MVP skeleton scaffolded with determini
 ### Not done — blocking TestFlight
 
 - ⏳ **Brand-name resolution** (Open Question 1) — code identifier is `LifeClock`; no UI rename strategy. UI strings inline (not yet in `Localizable.strings`), so a future rename is a multi-file change.
-- ⏳ **App Store Connect product setup** — three product IDs (`com.life-clock.pro.{monthly,annual,lifetime}`) must be created in ASC with the same Subscription Group config as `Products.storekit` before submission. Local config currently doesn't sync.
+- ⏳ **App Store Connect product setup** — three product IDs (`com.lifeclock.pro.{monthly,annual,lifetime}`) must be created in ASC with the same Subscription Group config as `Products.storekit` before submission. Local config currently doesn't sync.
 - ⏳ **Privacy Policy + Terms of Use URLs** — `PaywallSheet` links to placeholder `https://example.com/privacy`. Apple's standard EULA is fine for ToS; the privacy URL must be real.
 - ⏳ **PrivacyInfo.xcprivacy** — currently empty arrays; will need declared `NSPrivacyAccessedAPITypes` reasons (file timestamp, UserDefaults, etc.) once SwiftData persistence is exercised on real devices. Apple started enforcing this 2024.
 - ⏳ **App icon** — no icon set in `Assets.xcassets/AppIcon.appiconset/Contents.json` beyond a single placeholder. App Store Connect requires a 1024×1024 marketing icon.
