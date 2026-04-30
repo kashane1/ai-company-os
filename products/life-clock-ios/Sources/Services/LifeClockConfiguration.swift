@@ -61,11 +61,10 @@ enum LifeClockConfiguration {
 
     // MARK: - Legal URLs
 
-    /// Replace these with the GitHub Pages URLs from the founder's
-    /// `life-clock-legal` repo (see `docs/products/life-clock/legal/README.md`).
-    /// Do not ship `example.com` to TestFlight or production.
-    static let privacyPolicyURL = URL(string: "https://example.com/privacy")!
-    /// Apple's standard EULA — fine to ship as-is unless the founder writes
-    /// custom terms. The link is App-Review-friendly.
-    static let termsOfUseURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
+    /// Hosted at https://github.com/kashane1/life-clock-legal via GitHub Pages.
+    /// Source markdown lives at `docs/products/life-clock/legal/`.
+    static let privacyPolicyURL = URL(string: "https://kashane1.github.io/life-clock-legal/privacy-policy.html")!
+    /// Custom Life Clock terms (overlay on top of Apple's standard EULA).
+    static let termsOfUseURL = URL(string: "https://kashane1.github.io/life-clock-legal/terms-of-use.html")!
+    static let supportURL = URL(string: "https://kashane1.github.io/life-clock-legal/support.html")!
 }
