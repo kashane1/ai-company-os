@@ -44,6 +44,13 @@ enum LifeClockSchemaV1: VersionedSchema {
         var paletteId: String = "default-navy"
         var dailyReminderEnabled: Bool = false
         var dailyReminderHour: Int = 20
+        /// Set to start-of-today (in the user's calendar) whenever the
+        /// user logs habits. `reconcileNotifications` reads this to
+        /// suppress today's reminder firing for users who logged before
+        /// the reminder hour. Cleared overnight implicitly — once the
+        /// next day starts, this date < today and the suppression check
+        /// no longer applies.
+        var lastSuppressedDate: Date? = nil
         var onboardingCompletedAt: Date? = nil
         var disclaimerAcceptedAt: Date? = nil
         /// When true, Today screen replaces "Projected healthspan" with

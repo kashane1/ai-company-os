@@ -8,10 +8,9 @@ import UserNotifications
 fileprivate actor MockNotificationsService: NotificationsServiceProtocol {
     var stubAuthorizationStatus: UNAuthorizationStatus = .authorized
     var requestAuthorizationCount = 0
-    var lastSetSchedule: (enabled: Bool, hour: Int, tone: ToneMode)?
+    var lastSetSchedule: (enabled: Bool, hour: Int, tone: ToneMode, suppressUntil: Date?)?
     var setScheduleCount = 0
     var cancelAllCount = 0
-    var cancelTodayCount = 0
     var installForegroundDelegateCount = 0
 
     func setStubAuthorizationStatus(_ status: UNAuthorizationStatus) {
@@ -31,13 +30,15 @@ fileprivate actor MockNotificationsService: NotificationsServiceProtocol {
         // Spy can't track this from a nonisolated context safely; left blank.
     }
 
-    func setSchedule(enabled: Bool, hour: Int, tone: ToneMode) async {
+    func setSchedule(
+        enabled: Bool,
+        hour: Int,
+        tone: ToneMode,
+        suppressUntil: Date?,
+        calendar: Calendar
+    ) async {
         setScheduleCount += 1
-        lastSetSchedule = (enabled, hour, tone)
-    }
-
-    func cancelTodayUntilTomorrowMorning() async {
-        cancelTodayCount += 1
+        lastSetSchedule = (enabled, hour, tone, suppressUntil)
     }
 
     func cancelAll() async {
@@ -252,20 +253,62 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertEqual(profile.dailyReminderHour, 8, "hour must clamp to 8 (min quiet-hour bound)")
     }
 
-    func testSetTodayHabitsCancelsTodayReminder() async throws {
+    /// Regression: morning-log must suppress today's reminder fire.
+    /// fixedDate is 2027-01-15 ~21:20 UTC — late evening in UTC. The
+    /// dailyReminderHour 20 is interpreted in the device calendar
+    /// (engineClock.calendar = .lifeClockUTC), so today's 20:00 fire
+    /// has already passed at fixed time → no suppression-one-shot
+    /// needed. Use a smaller hour (well before fixed-time) to exercise
+    /// the suppression path. We verify the wiring by setting hour to a
+    /// value still in the future relative to fixedDate.
+    func testSetTodayHabitsRecordsSuppressionAndReconciles() async throws {
+        // Use an EARLY-day fixed date so reminderHour > now.
+        let earlyMorning = Date(timeIntervalSince1970: 1_736_924_400) // 2025-01-15 07:00 UTC
+        let container = try LifeClockContainer.make(inMemory: true)
+        let mock = MockNotificationsService()
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(),
+            modelContext: container.mainContext,
+            engineClock: .fixed(earlyMorning),
+            notificationsService: mock
+        )
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+        await store.bootstrap()
+        await store.setDailyReminder(enabled: true, hour: 20)
+
+        // Before logging: no suppression — schedule is plain repeating.
+        var lastSchedule = await mock.lastSetSchedule
+        XCTAssertNil(lastSchedule?.suppressUntil, "before logging, schedule must be plain repeating (no suppressUntil)")
+
+        // Log habits at 7 AM (well before 8 PM reminder).
+        let habits = HabitLog(date: earlyMorning)
+        habits.dietQuality = "great"
+        await store.setTodayHabits(habits)
+
+        // After logging: suppressUntil must be set to tomorrow's 20:00.
+        XCTAssertNotNil(profile.lastSuppressedDate, "setTodayHabits must record lastSuppressedDate")
+        lastSchedule = await mock.lastSetSchedule
+        XCTAssertNotNil(lastSchedule?.suppressUntil, "morning-log must trigger suppressUntil — closes #026 bug")
+    }
+
+    func testEveningLogDoesNotTriggerSuppressionPath() async throws {
+        // fixedDate is 2027-01-15 ~21:20 UTC — past 20:00. Today's
+        // reminder hour has already lapsed; reconcile should install
+        // the plain repeating trigger (no suppressUntil) because iOS
+        // will naturally fire next at tomorrow 20:00.
         let (store, mock) = try makeStoreWithNotifications()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
         store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
         await store.bootstrap()
         await store.setDailyReminder(enabled: true, hour: 20)
 
-        let cancelTodayBefore = await mock.cancelTodayCount
         let habits = HabitLog(date: fixedDate)
         habits.dietQuality = "great"
         await store.setTodayHabits(habits)
 
-        let cancelTodayAfter = await mock.cancelTodayCount
-        XCTAssertEqual(cancelTodayAfter, cancelTodayBefore + 1, "logging today must call cancelTodayUntilTomorrowMorning")
+        let lastSchedule = await mock.lastSetSchedule
+        XCTAssertNil(lastSchedule?.suppressUntil, "evening log (after reminder hour) must not need a one-shot suppression")
     }
 
     func testReconcileCancelsAllWhenAnyDisablingPathFires() async throws {

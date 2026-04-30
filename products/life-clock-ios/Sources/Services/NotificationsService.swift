@@ -12,8 +12,16 @@ protocol NotificationsServiceProtocol: Sendable {
     func requestAuthorization() async -> Bool
     func currentAuthorizationStatus() async -> UNAuthorizationStatus
     func installForegroundDelegate()
-    func setSchedule(enabled: Bool, hour: Int, tone: ToneMode) async
-    func cancelTodayUntilTomorrowMorning() async
+    /// Install the daily-reminder schedule.
+    ///
+    /// - Parameter suppressUntil: If non-nil, a moment in the future
+    ///   (typically tomorrow's reminder hour) before which the
+    ///   notification must not fire. Used to skip today's hour when the
+    ///   user has already logged this morning. The repeating trigger is
+    ///   replaced by a non-repeating one-shot at `suppressUntil`; the
+    ///   next reconcile (next launch, next mutator, scenePhase active)
+    ///   restores the repeating shape automatically.
+    func setSchedule(enabled: Bool, hour: Int, tone: ToneMode, suppressUntil: Date?, calendar: Calendar) async
     func cancelAll() async
 }
 
@@ -36,7 +44,13 @@ actor NotificationsService: NotificationsServiceProtocol {
         UNUserNotificationCenter.current().delegate = ForegroundDelegate.shared
     }
 
-    func setSchedule(enabled: Bool, hour: Int, tone: ToneMode) async {
+    func setSchedule(
+        enabled: Bool,
+        hour: Int,
+        tone: ToneMode,
+        suppressUntil: Date?,
+        calendar: Calendar
+    ) async {
         // Always start clean — idempotent across rapid mutator calls.
         center.removePendingNotificationRequests(withIdentifiers: [identifier])
         guard enabled else { return }
@@ -51,24 +65,35 @@ actor NotificationsService: NotificationsServiceProtocol {
         // pushback per HIG.
         content.interruptionLevel = .active
 
-        var components = DateComponents()
-        components.hour = hour
-        components.minute = 0
+        let trigger: UNNotificationTrigger
+        if let suppressUntil {
+            // Suppression path: install a one-shot at the suppression
+            // boundary (typically tomorrow's reminder hour). The next
+            // reconcile restores the repeating shape automatically.
+            let skipComponents = calendar.dateComponents(
+                [.year, .month, .day, .hour, .minute],
+                from: suppressUntil
+            )
+            trigger = UNCalendarNotificationTrigger(
+                dateMatching: skipComponents,
+                repeats: false
+            )
+        } else {
+            var components = DateComponents()
+            components.hour = hour
+            components.minute = 0
+            trigger = UNCalendarNotificationTrigger(
+                dateMatching: components,
+                repeats: true
+            )
+        }
 
-        let trigger = UNCalendarNotificationTrigger(
-            dateMatching: components,
-            repeats: true
-        )
         let request = UNNotificationRequest(
             identifier: identifier,
             content: content,
             trigger: trigger
         )
         try? await center.add(request)
-    }
-
-    func cancelTodayUntilTomorrowMorning() async {
-        center.removePendingNotificationRequests(withIdentifiers: [identifier])
     }
 
     func cancelAll() async {
