@@ -147,7 +147,7 @@ struct TodayView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(store.todayDrivers.prefix(3), id: \.id) { driver in
+                ForEach(Array(store.todayDrivers.prefix(3).enumerated()), id: \.element.id) { index, driver in
                     HStack {
                         Text(driver.title).lineLimit(1)
                         Spacer()
@@ -155,6 +155,8 @@ struct TodayView: View {
                             .foregroundStyle(driver.deltaMinutes >= 0 ? DesignTokens.Palette.positive : DesignTokens.Palette.negative)
                     }
                     .font(.callout)
+                    .accessibilityIdentifier("today.driver.\(driver.driverType)")
+                    .accessibilityValue(TimeDeltaFormatter.format(minutes: driver.deltaMinutes))
                 }
                 if let dietHint = dietContextLine {
                     Text(dietHint)
@@ -198,6 +200,8 @@ struct TodayView: View {
             .padding(DesignTokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            .accessibilityIdentifier("today.dietStreak")
+            .accessibilityValue("\(streaks.loggingDays) days")
         } else {
             EmptyView()
         }
