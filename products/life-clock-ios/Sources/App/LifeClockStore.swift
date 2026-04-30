@@ -172,10 +172,7 @@ final class LifeClockStore {
         toneMode = tone
         profile?.toneMode = tone.rawValue
         try? modelContext.save()
-        // Notification copy varies by tone — re-schedule. Wrapped in a
-        // detached Task because the existing setter is sync (UI Picker
-        // setter expects sync); reconcile is idempotent so racing with
-        // a near-simultaneous palette/hideClock change is safe.
+        // Notification copy varies by tone; reconcile is idempotent.
         Task { await reconcileNotifications() }
     }
 
@@ -195,7 +192,13 @@ final class LifeClockStore {
         let clamped = max(8, min(22, hour))
         profile.dailyReminderEnabled = enabled
         profile.dailyReminderHour = clamped
-        try? modelContext.save()
+        // Skip reconcile if the persist failed — avoids a state desync
+        // where the in-memory mutation diverges from disk.
+        do {
+            try modelContext.save()
+        } catch {
+            return
+        }
         await reconcileNotifications()
     }
 
@@ -278,7 +281,11 @@ final class LifeClockStore {
     /// part of the safety-net offering for Q13.
     func setHideClock(_ hidden: Bool) async {
         profile?.hideClock = hidden
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+        } catch {
+            return
+        }
         await reconcileNotifications()
     }
 
@@ -358,8 +365,6 @@ final class LifeClockStore {
         weekly = nil
         palette = .defaultNavy
         hasCompletedOnboarding = false
-        // Detached because the existing reset is synchronous; reconcile
-        // sees nil profile and routes to cancelAll.
         Task { await reconcileNotifications() }
     }
 

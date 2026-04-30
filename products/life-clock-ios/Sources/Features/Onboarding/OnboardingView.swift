@@ -21,7 +21,6 @@ struct OnboardingView: View {
     private let totalSteps = 7
     @State private var reminderRequestInFlight: Bool = false
     @State private var reminderDecisionMade: Bool = false
-    @State private var reminderOptIn: Bool = false
 
     /// True iff the picked birthDate makes the user ≥18 today. Drives the
     /// age-gate on smoking/alcohol baseline pickers (Q12 — 12+ rating with
@@ -230,10 +229,6 @@ struct OnboardingView: View {
             // If iOS auth carries over from a prior install, the dialog
             // doesn't appear and the call returns immediately.
             _ = await store.requestNotificationAuthorization()
-            // Profile doesn't exist yet — capture the intent locally
-            // and apply it inside `advance()` once completeOnboarding
-            // has created the profile row.
-            reminderOptIn = store.notificationAuthorizationStatus == .authorized
             reminderDecisionMade = true
             reminderRequestInFlight = false
         }
@@ -279,9 +274,11 @@ struct OnboardingView: View {
             profile.strengthFrequencyPerWeek = strengthFrequency
             store.completeOnboarding(profile: profile, tone: toneMode, disclaimerAccepted: disclaimerAccepted)
             Task {
-                // Apply reminder opt-in here (after the profile exists,
-                // since setDailyReminder guards on profile != nil).
-                if reminderOptIn {
+                // Apply reminder opt-in here — profile now exists, so
+                // setDailyReminder's nil-profile guard passes. Read the
+                // store's auth state directly rather than tracking a
+                // duplicate flag.
+                if store.notificationAuthorizationStatus == .authorized {
                     await store.setDailyReminder(enabled: true, hour: 20)
                 }
                 await store.bootstrap()

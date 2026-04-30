@@ -1,13 +1,7 @@
 import UserNotifications
 import Foundation
 
-/// Local-only daily-reminder notification service. No Push, no APNs,
-/// no backend — `UNUserNotificationCenter` handles delivery on-device.
-///
-/// Suppression model: when the user logs habits, the store calls
-/// `cancelTodayUntilTomorrowMorning` to drop the pending repeating
-/// request; the next `reconcileNotifications()` invocation re-installs
-/// it, by which point today's hour is past and only tomorrow's fires.
+/// Local-only daily-reminder service — no APNs, no backend.
 protocol NotificationsServiceProtocol: Sendable {
     func requestAuthorization() async -> Bool
     func currentAuthorizationStatus() async -> UNAuthorizationStatus

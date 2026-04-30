@@ -7,6 +7,7 @@ struct LifeClockApp: App {
     let container: ModelContainer
     @State private var store: LifeClockStore
     @State private var subscriptions = SubscriptionStore()
+    @State private var hasBootstrapped: Bool = false
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -37,15 +38,17 @@ struct LifeClockApp: App {
                 .tint(store.palette.accent)
                 .task {
                     await store.bootstrap()
+                    hasBootstrapped = true
                     await subscriptions.loadProducts()
                     await subscriptions.refreshEntitlements()
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     // Catch permission flips made in iOS Settings without
-                    // requiring a relaunch.
-                    if newPhase == .active {
-                        Task { await store.refreshNotificationAuthorization() }
-                    }
+                    // requiring a relaunch. Skip the first .active
+                    // transition — bootstrap() already refreshed and
+                    // reconciled.
+                    guard newPhase == .active, hasBootstrapped else { return }
+                    Task { await store.refreshNotificationAuthorization() }
                 }
         }
         .modelContainer(container)

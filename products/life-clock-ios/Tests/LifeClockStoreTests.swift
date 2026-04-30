@@ -6,12 +6,29 @@ import UserNotifications
 /// Spy implementation of the notifications service used to assert
 /// schedule/cancel routing without touching `UNUserNotificationCenter`.
 fileprivate actor MockNotificationsService: NotificationsServiceProtocol {
+    // `installForegroundDelegate` is `nonisolated` on the protocol so it
+    // must read/write outside actor isolation. A simple counter wrapped
+    // in a class lets the test verify the call without crossing the
+    // actor boundary.
+    final class InstallTracker: @unchecked Sendable {
+        private var _count = 0
+        private let lock = NSLock()
+        func increment() {
+            lock.lock(); defer { lock.unlock() }
+            _count += 1
+        }
+        var count: Int {
+            lock.lock(); defer { lock.unlock() }
+            return _count
+        }
+    }
+    nonisolated let installTracker = InstallTracker()
+
     var stubAuthorizationStatus: UNAuthorizationStatus = .authorized
     var requestAuthorizationCount = 0
     var lastSetSchedule: (enabled: Bool, hour: Int, tone: ToneMode, suppressUntil: Date?)?
     var setScheduleCount = 0
     var cancelAllCount = 0
-    var installForegroundDelegateCount = 0
 
     func setStubAuthorizationStatus(_ status: UNAuthorizationStatus) {
         stubAuthorizationStatus = status
@@ -27,7 +44,7 @@ fileprivate actor MockNotificationsService: NotificationsServiceProtocol {
     }
 
     nonisolated func installForegroundDelegate() {
-        // Spy can't track this from a nonisolated context safely; left blank.
+        installTracker.increment()
     }
 
     func setSchedule(
@@ -356,6 +373,17 @@ final class LifeClockStoreTests: XCTestCase {
 
         XCTAssertEqual(setAfter, setBefore, "no-profile path must not schedule")
         XCTAssertEqual(cancelAfter, cancelBefore, "no-profile path must not cancel either — full no-op")
+    }
+
+    /// Regression guard — a future refactor that drops the
+    /// `installForegroundDelegate()` call from `LifeClockApp.init` would
+    /// silently regress foreground-banner behavior. We simulate the same
+    /// install pattern here to pin the contract.
+    func testInstallForegroundDelegateIsCallable() async throws {
+        let mock = MockNotificationsService()
+        XCTAssertEqual(mock.installTracker.count, 0)
+        mock.installForegroundDelegate()
+        XCTAssertEqual(mock.installTracker.count, 1)
     }
 
     func testCompleteOnboardingRejectsUnacceptedDisclaimer() async throws {

@@ -56,18 +56,29 @@ struct ProfileView: View {
                     ))
 
                     if store.profile?.dailyReminderEnabled == true {
-                        Picker("Time", selection: Binding(
-                            get: { store.profile?.dailyReminderHour ?? 20 },
-                            set: { newHour in
-                                Task {
-                                    await store.setDailyReminder(enabled: true, hour: newHour)
+                        // DatePicker handles 12/24-hour locales automatically.
+                        // Store-side clamp (8…22) is the source of truth for the
+                        // valid range — the picker UI lets the user select any
+                        // hour, but `setDailyReminder` rounds into the window.
+                        DatePicker(
+                            "Time",
+                            selection: Binding(
+                                get: {
+                                    let hour = store.profile?.dailyReminderHour ?? 20
+                                    return store.clock.calendar.date(
+                                        bySettingHour: hour, minute: 0, second: 0,
+                                        of: store.clock.now()
+                                    ) ?? store.clock.now()
+                                },
+                                set: { newDate in
+                                    let hour = store.clock.calendar.component(.hour, from: newDate)
+                                    Task {
+                                        await store.setDailyReminder(enabled: true, hour: hour)
+                                    }
                                 }
-                            }
-                        )) {
-                            ForEach(8...22, id: \.self) { hour in
-                                Text(reminderHourLabel(hour)).tag(hour)
-                            }
-                        }
+                            ),
+                            displayedComponents: .hourAndMinute
+                        )
                     }
                 } header: {
                     Text("Daily reminder")
@@ -201,15 +212,6 @@ struct ProfileView: View {
             return "Notifications are disabled in iOS Settings → Life Clock. Re-enable there to receive reminders."
         }
         return "We'll remind you to log if you haven't already by this time. One per day. Reminder time runs between 8 AM and 10 PM."
-    }
-
-    private func reminderHourLabel(_ hour: Int) -> String {
-        switch hour {
-        case 0: return "12 AM"
-        case 12: return "12 PM"
-        case 1...11: return "\(hour) AM"
-        default: return "\(hour - 12) PM"
-        }
     }
 
     private func connectAppleHealth() {
