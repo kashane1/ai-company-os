@@ -89,9 +89,7 @@ final class LifeClockStore {
             profile = fetchFirst(UserProfile.self)
             if let profile {
                 hasCompletedOnboarding = true
-                if let mode = ToneMode(rawValue: profile.toneMode) {
-                    toneMode = mode
-                }
+                toneMode = ToneMode.fromStored(profile.toneMode)
                 if let restored = LifeClockPalette(rawValue: profile.paletteId) {
                     palette = restored
                 }

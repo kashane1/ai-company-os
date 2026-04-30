@@ -268,6 +268,17 @@ final class LifeClockStoreTests: XCTestCase {
         )
     }
 
+    /// Phase 3.A: legacy "memento_mori" rawValue (from before the case was
+    /// removed) decodes to .coach, never crashes.
+    func testToneModeFromStoredLegacyValueFallsBack() {
+        XCTAssertEqual(ToneMode.fromStored("gentle"), .gentle)
+        XCTAssertEqual(ToneMode.fromStored("coach"), .coach)
+        XCTAssertEqual(ToneMode.fromStored("memento_mori"), .coach,
+                       "legacy stored rawValue must decode to .coach without crashing")
+        XCTAssertEqual(ToneMode.fromStored(""), .coach)
+        XCTAssertEqual(ToneMode.fromStored("garbage"), .coach)
+    }
+
     func testSetTodayHabitsUpsertsByDate() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
