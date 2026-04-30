@@ -448,22 +448,29 @@ final class LifeClockStore {
     /// stored row, so subsequent days find them by slug. One-time per row.
     private func applyPersistedCompletions(to quests: inout [Quest], for dayStart: Date) {
         let storedRows = fetchQuests(on: dayStart)
+        // `uniquingKeysWith: { first, _ in first }` defends against duplicate
+        // keys (legacy data could in principle have two rows with the same
+        // (category, title) for a given day; SwiftData doesn't enforce
+        // uniqueness on those columns). First write wins; the second row
+        // stays orphaned but does not crash the app.
         let storedBySlug = Dictionary(
-            uniqueKeysWithValues: storedRows.compactMap { stored in
+            storedRows.compactMap { stored -> (String, Quest)? in
                 stored.slug.isEmpty ? nil : (stored.slug, stored)
-            }
+            },
+            uniquingKeysWith: { first, _ in first }
         )
         let legacyByTitleCategory = Dictionary(
-            uniqueKeysWithValues: storedRows.compactMap { stored -> (String, Quest)? in
+            storedRows.compactMap { stored -> (TitleCategoryKey, Quest)? in
                 guard stored.slug.isEmpty else { return nil }
-                return ("\(stored.category)|\(stored.title)", stored)
-            }
+                return (TitleCategoryKey(category: stored.category, title: stored.title), stored)
+            },
+            uniquingKeysWith: { first, _ in first }
         )
         var didBackfill = false
         quests = quests.map { quest in
             if let stored = storedBySlug[quest.slug] {
                 quest.completedAt = stored.completedAt
-            } else if let legacy = legacyByTitleCategory["\(quest.category)|\(quest.title)"] {
+            } else if let legacy = legacyByTitleCategory[TitleCategoryKey(category: quest.category, title: quest.title)] {
                 legacy.slug = quest.slug
                 quest.completedAt = legacy.completedAt
                 didBackfill = true
@@ -473,6 +480,11 @@ final class LifeClockStore {
         if didBackfill {
             try? modelContext.save()
         }
+    }
+
+    private struct TitleCategoryKey: Hashable {
+        let category: String
+        let title: String
     }
 
     /// Single source of truth for "find or insert a Quest persisted by slug."
