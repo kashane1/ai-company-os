@@ -29,7 +29,12 @@ final class LifeClockStore {
     var lastHealthAuthError: String?
     var hasTodaySignal: Bool = false
     var dietStreaks: DietStreaks = .zero
-    var supportMoment: SupportMoment?
+    private(set) var supportMoment: SupportMoment?
+    private let supportPresenter = SupportMomentPresenter()
+
+    private func emit(_ intent: SupportMomentPresenter.Intent) {
+        supportMoment = supportPresenter.moment(for: intent)
+    }
 
     var completedPlanCount: Int {
         todayQuests.filter { $0.completedAt != nil }.count
@@ -176,11 +181,7 @@ final class LifeClockStore {
         self.profile = profile
         self.toneMode = tone
         hasCompletedOnboarding = true
-        supportMoment = SupportMoment(
-            title: "You're set.",
-            detail: "We'll help you notice which daily choices support your health most.",
-            tone: .calm
-        )
+        emit(.onboardingComplete)
         return true
     }
 
@@ -322,11 +323,7 @@ final class LifeClockStore {
             )
             modelContext.insert(entry)
             ledger.insert(entry, at: 0)
-            supportMoment = SupportMoment(
-                title: "Nice work.",
-                detail: "Added to your progress log. Possible impact: \(TimeDeltaFormatter.format(minutes: quest.rewardEstimateMinutes)).",
-                tone: .celebration
-            )
+            emit(.questCompleted(rewardMinutes: quest.rewardEstimateMinutes))
         } else {
             quest.completedAt = nil
             stored.completedAt = nil
@@ -334,11 +331,7 @@ final class LifeClockStore {
                 modelContext.delete(entry)
                 ledger.removeAll { $0.id == entry.id }
             }
-            supportMoment = SupportMoment(
-                title: "Action removed.",
-                detail: "Today's plan is updated.",
-                tone: .calm
-            )
+            emit(.questUndone)
         }
         try? modelContext.save()
     }
@@ -387,31 +380,11 @@ final class LifeClockStore {
         let updatedDelta = todayEstimate?.dailyTimeDeltaMinutes ?? previousDelta
         let deltaChange = updatedDelta - previousDelta
 
-        if deltaChange > 0 {
-            supportMoment = SupportMoment(
-                title: "Nice work.",
-                detail: "Your check-in moved today's progress by \(TimeDeltaFormatter.format(minutes: deltaChange)).",
-                tone: .celebration
-            )
-        } else if habits.strengthTraining {
-            supportMoment = SupportMoment(
-                title: "Strength training logged.",
-                detail: "Saved to today's progress log. Small wins compound over time.",
-                tone: .celebration
-            )
-        } else if hadCheckIn {
-            supportMoment = SupportMoment(
-                title: "Check-in updated.",
-                detail: "You're building a clearer picture of what supports you.",
-                tone: .calm
-            )
-        } else {
-            supportMoment = SupportMoment(
-                title: "Check-in saved.",
-                detail: "You're building a clearer picture of what supports you.",
-                tone: .calm
-            )
-        }
+        emit(.checkInSaved(
+            deltaMinutes: deltaChange,
+            strengthLogged: habits.strengthTraining,
+            hadPriorCheckIn: hadCheckIn
+        ))
         await reconcileNotifications()
     }
 
@@ -426,12 +399,12 @@ final class LifeClockStore {
         weekly = nil
         palette = .defaultNavy
         hasCompletedOnboarding = false
-        supportMoment = nil
+        emit(.reset)
         Task { await reconcileNotifications() }
     }
 
     func dismissSupportMoment() {
-        supportMoment = nil
+        emit(.reset)
     }
 
     // MARK: - Persistence helpers
