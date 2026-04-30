@@ -8,6 +8,8 @@ struct LifeClockApp: App {
     let launchConfiguration: LifeClockLaunchConfiguration
     @State private var store: LifeClockStore
     @State private var subscriptions = SubscriptionStore()
+    @State private var hasBootstrapped: Bool = false
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let launchConfiguration = LifeClockLaunchConfiguration.current
@@ -20,10 +22,15 @@ struct LifeClockApp: App {
         }
         self.container = container
         launchConfiguration.seedInitialStateIfNeeded(in: container.mainContext)
+        let notificationsService = NotificationsService()
+        // Foreground delegate must be set BEFORE any notification could
+        // arrive — otherwise iOS silently suppresses foreground banners.
+        notificationsService.installForegroundDelegate()
         let store = LifeClockStore(
             healthService: launchConfiguration.makeHealthService(),
             modelContext: container.mainContext,
-            engineClock: launchConfiguration.clock
+            engineClock: launchConfiguration.clock,
+            notificationsService: notificationsService
         )
         _store = State(wrappedValue: store)
     }
@@ -36,8 +43,17 @@ struct LifeClockApp: App {
                 .tint(store.palette.accent)
                 .task {
                     await store.bootstrap()
+                    hasBootstrapped = true
                     await subscriptions.loadProducts()
                     await subscriptions.refreshEntitlements()
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    // Catch permission flips made in iOS Settings without
+                    // requiring a relaunch. Skip the first .active
+                    // transition — bootstrap() already refreshed and
+                    // reconciled.
+                    guard newPhase == .active, hasBootstrapped else { return }
+                    Task { await store.refreshNotificationAuthorization() }
                 }
         }
         .modelContainer(container)

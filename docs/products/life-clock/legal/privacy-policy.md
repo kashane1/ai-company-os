@@ -1,6 +1,6 @@
 # Life Clock Privacy Policy
 
-**Last updated:** 2026-04-28
+**Last updated:** 2026-04-30
 **App:** Life Clock: habits earn time
 **Publisher:** [REPLACE WITH LEGAL ENTITY OR INDIVIDUAL NAME]
 **Contact:** [REPLACE WITH SUPPORT EMAIL]
@@ -45,8 +45,14 @@ When you onboard and use the app, you may enter:
 - Your smoking status, alcohol frequency, baseline diet quality, baseline stress, sleep goal, weekly strength training frequency
 - Per-day "Quick Log" entries: alcohol level, smoking/vaping, diet quality, stress, strength training, optional notes
 - Tone-mode preference (gentle / coach / memento mori)
+- Color-palette preference (default-navy / aurora-cool / sunset-warm)
+- Daily-reminder preference (on/off + the hour you picked, between 8 AM and 10 PM)
 
 This information is stored **only** on your device using Apple's SwiftData framework, and is **not** synced to iCloud, our servers, or any third party. Apple's iCloud sync is explicitly disabled for our data store (`cloudKitDatabase: .none`).
+
+### Daily reminders
+
+If you opt in to a daily reminder (in onboarding or in Profile → Daily reminder), Life Clock asks iOS for permission to schedule a single daily local notification at the time you pick. Reminder notifications are scheduled and delivered **entirely on your iPhone** by iOS. We do not send notifications from a server, and we do not transmit your reminder preference anywhere. You can change or turn off the reminder at any time in Profile → Daily reminder, or in iOS Settings → Notifications → Life Clock.
 
 If you choose **Profile → Delete all data** in the app, all of the above is permanently removed from your device. We have no copy to delete on our side, because we never had one.
 
@@ -66,6 +72,7 @@ We want to be explicit about what the app does **not** do, because the wrong ass
 - **No microphone or camera access.**
 - **No contacts, calendar, or photos access.**
 - **No background data uploads.** The app cannot upload data because there is nowhere to upload it to.
+- **No remote push notifications.** Reminders are scheduled entirely on-device via iOS local notifications. We do not send data to Apple's APNs or any push service.
 
 ## App Privacy Details (App Store "Nutrition Label")
 

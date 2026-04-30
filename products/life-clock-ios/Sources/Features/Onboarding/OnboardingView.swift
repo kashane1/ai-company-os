@@ -18,7 +18,9 @@ struct OnboardingView: View {
     @State private var disclaimerAccepted: Bool = false
     @State private var permissionRequestInFlight: Bool = false
 
-    private let totalSteps = 6
+    private let totalSteps = 7
+    @State private var reminderRequestInFlight: Bool = false
+    @State private var reminderDecisionMade: Bool = false
 
     /// True iff the picked birthDate makes the user ≥18 today. Drives the
     /// age-gate on smoking/alcohol baseline pickers (Q12 — 12+ rating with
@@ -46,7 +48,8 @@ struct OnboardingView: View {
                     case 2: baselineScreen
                     case 3: toneScreen
                     case 4: permissionEducationScreen
-                    case 5: revealScreen
+                    case 5: dailyReminderScreen
+                    case 6: revealScreen
                     default: revealScreen
                     }
                 }
@@ -202,6 +205,46 @@ struct OnboardingView: View {
         }
     }
 
+    private var dailyReminderScreen: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
+            Text("Daily reminder?").font(.title2.bold())
+            Text("Want a one-tap nudge if you haven't logged by 8 PM? Off by default — turn on here, or change it any time in Profile.")
+                .foregroundStyle(.secondary)
+            HStack {
+                if reminderRequestInFlight {
+                    ProgressView()
+                }
+                Button("Yes, remind me") {
+                    requestDailyReminder()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(reminderRequestInFlight || reminderDecisionMade)
+
+                Button("No thanks") {
+                    reminderDecisionMade = true
+                }
+                .buttonStyle(.bordered)
+                .disabled(reminderRequestInFlight)
+            }
+            if reminderDecisionMade {
+                Text("Saved. You can change this in Profile.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func requestDailyReminder() {
+        reminderRequestInFlight = true
+        Task {
+            // If iOS auth carries over from a prior install, the dialog
+            // doesn't appear and the call returns immediately.
+            _ = await store.requestNotificationAuthorization()
+            reminderDecisionMade = true
+            reminderRequestInFlight = false
+        }
+    }
+
     private var revealScreen: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
             Text("You're set.").font(.title.bold())
@@ -243,7 +286,16 @@ struct OnboardingView: View {
             profile.sleepGoalHours = sleepGoalHours
             profile.strengthFrequencyPerWeek = strengthFrequency
             store.completeOnboarding(profile: profile, tone: toneMode, disclaimerAccepted: disclaimerAccepted)
-            Task { await store.bootstrap() }
+            Task {
+                // Apply reminder opt-in here — profile now exists, so
+                // setDailyReminder's nil-profile guard passes. Read the
+                // store's auth state directly rather than tracking a
+                // duplicate flag.
+                if store.notificationAuthorizationStatus == .authorized {
+                    await store.setDailyReminder(enabled: true, hour: 20)
+                }
+                await store.bootstrap()
+            }
         }
     }
 }

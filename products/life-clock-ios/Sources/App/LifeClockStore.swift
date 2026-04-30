@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SwiftData
+import UserNotifications
 
 /// App-level observable state. Mediates `ModelContext` for persistence and
 /// orchestrates the engines + HealthKit service.
@@ -21,6 +22,7 @@ final class LifeClockStore {
     var hasCompletedOnboarding: Bool = false
     var toneMode: ToneMode = .coach
     var palette: LifeClockPalette = .defaultNavy
+    var notificationAuthorizationStatus: UNAuthorizationStatus = .notDetermined
     var healthAuthorizationKnown: Bool = false
     var healthDataAvailable: Bool = true
     var todayHabits: HabitLog?
@@ -54,11 +56,13 @@ final class LifeClockStore {
     @ObservationIgnored private let questEngine: QuestEngine
     @ObservationIgnored private let modelContext: ModelContext
     @ObservationIgnored private let streakCalculator: DietStreakCalculator
+    @ObservationIgnored private let notificationsService: NotificationsServiceProtocol
 
     init(
         healthService: HealthKitServiceProtocol,
         modelContext: ModelContext,
-        engineClock: EngineClock = .live
+        engineClock: EngineClock = .live,
+        notificationsService: NotificationsServiceProtocol = NotificationsService()
     ) {
         self.healthService = healthService
         self.modelContext = modelContext
@@ -66,6 +70,7 @@ final class LifeClockStore {
         self.clockEngine = ClockEngine(clock: engineClock)
         self.questEngine = QuestEngine(clock: engineClock)
         self.streakCalculator = DietStreakCalculator(calendar: engineClock.calendar)
+        self.notificationsService = notificationsService
         self.healthAuthorizationKnown = healthService.authorizationKnown
         self.healthDataAvailable = healthService.isHealthDataAvailable
     }
@@ -92,6 +97,8 @@ final class LifeClockStore {
             ledger = fetchRecentLedger(limit: 50)
         }
         await refreshFromHealthKit()
+        notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
+        await reconcileNotifications()
     }
 
     // MARK: - HealthKit-driven recompute
@@ -181,6 +188,8 @@ final class LifeClockStore {
         toneMode = tone
         profile?.toneMode = tone.rawValue
         try? modelContext.save()
+        // Notification copy varies by tone; reconcile is idempotent.
+        Task { await reconcileNotifications() }
     }
 
     func setPalette(_ palette: LifeClockPalette) {
@@ -189,13 +198,111 @@ final class LifeClockStore {
         try? modelContext.save()
     }
 
+    /// Persist the user's daily-reminder preference. Refuses if no profile
+    /// exists (mirrors the disclaimer-guard pattern). Hour is clamped to
+    /// the 8…22 quiet-hour window — defense in depth: the picker should
+    /// also enforce this, but a future App Intent or Shortcut could
+    /// bypass the UI.
+    func setDailyReminder(enabled: Bool, hour: Int) async {
+        guard let profile else { return }
+        let clamped = max(8, min(22, hour))
+        profile.dailyReminderEnabled = enabled
+        profile.dailyReminderHour = clamped
+        // Skip reconcile if the persist failed — avoids a state desync
+        // where the in-memory mutation diverges from disk.
+        do {
+            try modelContext.save()
+        } catch {
+            return
+        }
+        await reconcileNotifications()
+    }
+
+    func requestNotificationAuthorization() async -> Bool {
+        let granted = await notificationsService.requestAuthorization()
+        notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
+        await reconcileNotifications()
+        return granted
+    }
+
+    /// Called from `LifeClockApp` on `scenePhase == .active` so that
+    /// changes to notification permission made in iOS Settings (without
+    /// relaunching) are picked up.
+    func refreshNotificationAuthorization() async {
+        notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
+        await reconcileNotifications()
+    }
+
+    /// Single chokepoint for notification scheduling. All mutators that
+    /// affect the schedule (`bootstrap`, `setTodayHabits`, `setToneMode`,
+    /// `setHideClock`, `setDailyReminder`, `resetForOnboarding`) call this
+    /// after their state mutation. One guard expression, no drift across
+    /// mutators.
+    ///
+    /// Suppression rule (closes the morning-log bug): if the user logged
+    /// today AND the reminder hour hasn't passed yet, install a one-shot
+    /// trigger for tomorrow's hour instead of the daily-repeating trigger.
+    /// The next reconcile (next launch, next mutator, next scenePhase
+    /// active) restores the repeating shape once we're past today.
+    private func reconcileNotifications() async {
+        guard let profile,
+              profile.dailyReminderEnabled,
+              !profile.hideClock,
+              notificationAuthorizationStatus == .authorized
+        else {
+            await notificationsService.cancelAll()
+            return
+        }
+        let suppressUntil = nextFireSkippingTodayIfLogged(profile: profile)
+        await notificationsService.setSchedule(
+            enabled: true,
+            hour: profile.dailyReminderHour,
+            tone: toneMode,
+            suppressUntil: suppressUntil,
+            calendar: clock.calendar
+        )
+    }
+
+    /// Returns tomorrow's reminder fire-time if the user has logged today
+    /// AND today's reminder hour hasn't passed yet; nil otherwise (caller
+    /// installs the normal daily-repeating trigger).
+    private func nextFireSkippingTodayIfLogged(profile: UserProfile) -> Date? {
+        guard let lastSuppressed = profile.lastSuppressedDate else { return nil }
+        let now = clock.now()
+        let calendar = clock.calendar
+        let todayStart = calendar.startOfDay(for: now)
+        guard calendar.isDate(lastSuppressed, inSameDayAs: todayStart) else { return nil }
+
+        // If today's reminder hour has already passed, the repeating
+        // trigger naturally fires tomorrow — no suppression needed.
+        guard
+            let todayFire = calendar.date(
+                bySettingHour: profile.dailyReminderHour,
+                minute: 0,
+                second: 0,
+                of: now
+            ),
+            todayFire > now
+        else {
+            return nil
+        }
+
+        // Install one-shot at tomorrow's hour to skip today's fire.
+        return calendar.date(byAdding: .day, value: 1, to: todayFire)
+    }
+
     /// Persist the user's "hide the clock" preference. Today screen reads
     /// `profile?.hideClock` to decide whether to render the projected-age
     /// card or the safer "time earned today" alternative. Resolves Q5 +
     /// part of the safety-net offering for Q13.
     func setHideClock(_ hidden: Bool) async {
         profile?.hideClock = hidden
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+        } catch {
+            return
+        }
+        await reconcileNotifications()
     }
 
     func toggleQuestCompletion(_ quest: Quest) {
@@ -267,6 +374,13 @@ final class LifeClockStore {
             modelContext.insert(habits)
             todayHabits = habits
         }
+        // Mark today as logged so reconcile suppresses today's fire.
+        // Closes the morning-log bug (#026): if user logs at 9 AM with
+        // a 8 PM reminder, the cancel-then-reconcile cycle previously
+        // re-installed today's fire because iOS computed the next match
+        // as today 8 PM. Reconcile now reads `lastSuppressedDate` and
+        // installs a one-shot for tomorrow instead.
+        profile?.lastSuppressedDate = clock.calendar.startOfDay(for: clock.now())
         try? modelContext.save()
         await refreshFromHealthKit()
         let updatedDelta = todayEstimate?.dailyTimeDeltaMinutes ?? previousDelta
@@ -297,6 +411,7 @@ final class LifeClockStore {
                 tone: .calm
             )
         }
+        await reconcileNotifications()
     }
 
     func resetForOnboarding() {
@@ -311,6 +426,7 @@ final class LifeClockStore {
         palette = .defaultNavy
         hasCompletedOnboarding = false
         supportMoment = nil
+        Task { await reconcileNotifications() }
     }
 
     func dismissSupportMoment() {
