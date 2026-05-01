@@ -55,7 +55,13 @@ struct SnapshotOverrideMap: Codable, Equatable {
         do {
             return try JSONDecoder().decode(SnapshotOverrideMap.self, from: data)
         } catch {
-            assertionFailure("SnapshotOverrideMap decode failed: \(error). Bytes: \(data.count)")
+            // Print to stderr in DEBUG so corruption is visible during
+            // development without crashing the app or tests. Production
+            // behavior is "fail closed to empty" — a single bad row
+            // doesn't take down the History tab.
+            #if DEBUG
+            print("⚠️ SnapshotOverrideMap decode failed: \(error). Bytes: \(data.count)")
+            #endif
             return SnapshotOverrideMap()
         }
     }

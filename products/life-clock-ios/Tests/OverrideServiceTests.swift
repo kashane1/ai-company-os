@@ -154,4 +154,34 @@ final class OverrideServiceTests: XCTestCase {
         XCTAssertEqual(snapshot().sleepHours, 7.5,
                        "Revert restores the raw field to the captured original — engine sees pre-override value again")
     }
+
+    /// Pins the data-integrity reviewer's verified-but-untested behavior:
+    /// after revert, the captured original is cleared, so a subsequent
+    /// `applyOverride` re-captures from the current raw value rather than
+    /// holding onto a stale original.
+    func testReEditAfterRevertReCapturesOriginal() throws {
+        // 1. First override: captures original = 8000.
+        try service.applyOverride(
+            field: .stepCount, value: 12_000, on: dayStart, recomputedAt: recomputedAt
+        )
+        XCTAssertEqual(snapshot().originalHealthKitValue(for: .stepCount), 8_000)
+
+        // 2. Revert: clears override + captured original; raw restored.
+        try service.revertOverride(field: .stepCount, on: dayStart, recomputedAt: recomputedAt)
+        XCTAssertNil(snapshot().originalHealthKitValue(for: .stepCount),
+                     "Revert must clear the captured original so future edits re-capture")
+        XCTAssertEqual(snapshot().stepCount, 8_000)
+
+        // 3. Apply a new override: re-captures original from current raw.
+        try service.applyOverride(
+            field: .stepCount, value: 9_000, on: dayStart, recomputedAt: recomputedAt
+        )
+        XCTAssertEqual(snapshot().effectiveValue(for: .stepCount), 9_000)
+        XCTAssertEqual(snapshot().originalHealthKitValue(for: .stepCount), 8_000,
+                       "Original must be re-captured fresh from current raw, not held over from before revert")
+
+        // 4. Revert again: raw back to 8000.
+        try service.revertOverride(field: .stepCount, on: dayStart, recomputedAt: recomputedAt)
+        XCTAssertEqual(snapshot().stepCount, 8_000)
+    }
 }
