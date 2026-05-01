@@ -151,14 +151,6 @@ struct MainTabView: View {
                 .tabItem { Label(AppTab.today.title, systemImage: AppTab.today.systemImage) }
                 .tag(AppTab.today)
 
-            TimeLedgerView()
-                .tabItem { Label(AppTab.ledger.title, systemImage: AppTab.ledger.systemImage) }
-                .tag(AppTab.ledger)
-
-            QuestsView()
-                .tabItem { Label(AppTab.quests.title, systemImage: AppTab.quests.systemImage) }
-                .tag(AppTab.quests)
-
             HistoryView()
                 .tabItem { Label(AppTab.history.title, systemImage: AppTab.history.systemImage) }
                 .tag(AppTab.history)

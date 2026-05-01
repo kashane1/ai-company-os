@@ -1,12 +1,11 @@
 import Foundation
 
-/// User-facing tone for headline / progress / quest copy.
+/// User-facing tone for headline / drivers / plan copy.
 ///
-/// Phase 3.A collapse: `.mementoMori` was removed because four of eight
-/// keyed properties had collapsed to identical strings between `.coach`
-/// and `.mementoMori` after the 2026-04-30 audit copy refresh, and
-/// `ledgerTitle` was identical across all three tones. The mortality
-/// framing the original case represented was abandoned during the audit;
+/// Phase 3.A collapse: `.mementoMori` was removed because keyed properties
+/// had collapsed to identical strings between `.coach` and `.mementoMori`
+/// after the 2026-04-30 audit copy refresh. The mortality framing the
+/// original case represented was abandoned during the audit;
 /// `displayName` had already been renamed to "Direct".
 ///
 /// Legacy `UserProfile.toneMode == "memento_mori"` rows fall back to
@@ -64,19 +63,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
 
     // MARK: - Tab titles
 
-    /// Inlined to "Progress" everywhere (was identical across all tones
-    /// even before Phase 3.A). Kept as a property so call sites do not
-    /// need to change; collapse to a literal in a future cleanup if a
-    /// tone-aware variant never reappears.
-    var ledgerTitle: String { "Progress" }
-
-    var questsTitle: String {
-        switch self {
-        case .gentle: return "Next steps"
-        case .coach: return "Plan"
-        }
-    }
-
     var weeklyTitle: String {
         switch self {
         case .gentle: return "This week"
@@ -85,24 +71,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
     }
 
     // MARK: - Empty / preamble copy
-
-    var ledgerEmptyState: String {
-        switch self {
-        case .gentle:
-            return "Your progress log fills up as you check in and data comes in."
-        case .coach:
-            return "No progress entries yet. Check in once and the story starts to build."
-        }
-    }
-
-    var questsPreamble: String {
-        switch self {
-        case .gentle:
-            return "Pick one supportive action. Showing up is a real win."
-        case .coach:
-            return "Choose one supportive action for today. Small steps count."
-        }
-    }
 
     var weeklyEmptyState: String {
         switch self {

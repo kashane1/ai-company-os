@@ -17,6 +17,13 @@ final class LifeClockStore {
     var todayEstimate: LifeClockEstimate?
     var todayDrivers: [TimeLedgerEntry] = []
     var todayQuests: [Quest] = []
+    /// In-memory mirror of recent ledger entries. As of the 2026-05-01 IA
+    /// refactor (tab bar collapse), no production view reads `ledger`
+    /// directly — Today reads `todayDrivers` (top 3) and History reads
+    /// `DayDetailView` data via `snapshot(for:)`. Kept exposed for tests
+    /// (`LifeClockStoreTests`, `LifeClockE2ETests`) and future debug
+    /// surfaces. Refactor to private + a `recentLedger(limit:)` accessor
+    /// is a separate cleanup.
     var ledger: [TimeLedgerEntry] = []
     var weekly: WeeklyReport?
     var hasCompletedOnboarding: Bool = false
