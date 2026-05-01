@@ -118,6 +118,97 @@ final class LiveHealthKitService: HealthKitServiceProtocol {
         return results
     }
 
+    /// Optimized 90-day backfill: 3 `HKStatisticsCollectionQuery` calls
+    /// (steps, exercise, active energy) + per-day sleep sample queries.
+    /// Net: ~93 HK queries vs. ~540 for the per-day fan-out.
+    ///
+    /// `anchorDate` is pinned to start-of-day for the earliest day in the
+    /// window so HK's bucket boundaries align with our day-key
+    /// expectations. DEBUG-asserts the bucket count matches `days`.
+    func recentSnapshotsCollection(endingAt: Date, days: Int) async -> [DailyHealthSnapshot] {
+        guard isHealthDataAvailable, days > 0 else { return [] }
+        guard let earliestDay = calendar.date(byAdding: .day, value: -(days - 1), to: endingAt) else {
+            return []
+        }
+        let anchor = calendar.startOfDay(for: earliestDay)
+        guard let upperBound = calendar.date(byAdding: .day, value: days, to: anchor) else {
+            return []
+        }
+
+        async let stepsByDay = collectionSum(.stepCount, unit: .count(), anchor: anchor, end: upperBound)
+        async let exerciseByDay = collectionSum(.appleExerciseTime, unit: .minute(), anchor: anchor, end: upperBound)
+        async let energyByDay = collectionSum(.activeEnergyBurned, unit: .kilocalorie(), anchor: anchor, end: upperBound)
+
+        let stepsMap = await stepsByDay
+        let exerciseMap = await exerciseByDay
+        let energyMap = await energyByDay
+
+        var snapshots: [DailyHealthSnapshot] = []
+        for offset in 0..<days {
+            guard let day = calendar.date(byAdding: .day, value: offset, to: anchor) else { continue }
+            // Sleep stays per-day — wake-day attribution can't go through
+            // the collection query (HKCategoryType has no statistics
+            // aggregator).
+            guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: day) else { continue }
+            let sleepHrs = await sleepHours(start: day, end: dayEnd)
+
+            let snap = HealthKitAggregator.aggregate(
+                date: day,
+                stepCount: stepsMap[day],
+                exerciseMinutes: exerciseMap[day],
+                activeEnergyKcal: energyMap[day],
+                sleepHours: sleepHrs,
+                restingHeartRate: nil,  // not part of the bulk import
+                weightKg: nil
+            )
+            // Skip fully-empty days so the importer doesn't insert blank
+            // rows. `sourceCompleteness == 0` means no metric was present.
+            if snap.sourceCompleteness > 0 {
+                snapshots.append(snap)
+            }
+        }
+        return snapshots
+    }
+
+    /// Single `HKStatisticsCollectionQuery` returning a `[Date: Double]`
+    /// keyed on each bucket's startDate. Used by `recentSnapshotsCollection`.
+    private func collectionSum(
+        _ identifier: HKQuantityTypeIdentifier,
+        unit: HKUnit,
+        anchor: Date,
+        end: Date
+    ) async -> [Date: Double] {
+        guard let type = HKQuantityType.quantityType(forIdentifier: identifier) else { return [:] }
+        return await withCheckedContinuation { continuation in
+            let interval = DateComponents(day: 1)
+            let predicate = HKQuery.predicateForSamples(withStart: anchor, end: end, options: .strictStartDate)
+            let query = HKStatisticsCollectionQuery(
+                quantityType: type,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: anchor,
+                intervalComponents: interval
+            )
+            // initialResultsHandler only — no statisticsUpdateHandler. This
+            // keeps the query ephemeral (one-shot); leaving the update
+            // handler off avoids a long-lived listener on the daemon side.
+            query.initialResultsHandler = { _, results, _ in
+                guard let results else {
+                    continuation.resume(returning: [:])
+                    return
+                }
+                var byDay: [Date: Double] = [:]
+                results.enumerateStatistics(from: anchor, to: end) { stat, _ in
+                    if let qty = stat.sumQuantity() {
+                        byDay[stat.startDate] = qty.doubleValue(for: unit)
+                    }
+                }
+                continuation.resume(returning: byDay)
+            }
+            store.execute(query)
+        }
+    }
+
     // MARK: - Query helpers
 
     private func sumQuantity(
