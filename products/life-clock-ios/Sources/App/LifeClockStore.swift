@@ -136,7 +136,8 @@ final class LifeClockStore {
         applyPersistedCompletions(to: &todayQuests, for: dayStart)
 
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
-        weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: [], profile: profile)
+        let weekHabits = fetchHabitsBack(7)
+        weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: weekHabits, profile: profile)
 
         dietStreaks = streakCalculator.compute(habits: fetchHabitsBack(60), asOf: now)
     }
