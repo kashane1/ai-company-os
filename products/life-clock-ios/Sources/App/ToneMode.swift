@@ -109,6 +109,54 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    // MARK: - Today interpretation copy
+
+    /// Plain-language line shown under the "Why it changed" headline on
+    /// Today, framing the day's signed delta in terms of the top driver.
+    /// Takes a primitive `String?` — `ToneMode` is `Foundation`-only and
+    /// must not import the SwiftData entity types. The view derives the
+    /// driver title from `store.todayDrivers.first?.title`.
+    func todayInterpretationPositive(driverTitle: String?) -> String {
+        if let title = driverTitle, !title.isEmpty {
+            switch self {
+            case .gentle:
+                return "Today is helping your healthspan — \(title) is supporting you."
+            case .coach:
+                return "Today is moving you forward, mostly because of \(title)."
+            }
+        } else {
+            switch self {
+            case .gentle: return "Today is helping your healthspan."
+            case .coach: return "Today is moving you forward."
+            }
+        }
+    }
+
+    func todayInterpretationNegative(driverTitle: String?) -> String {
+        if let title = driverTitle, !title.isEmpty {
+            switch self {
+            case .gentle:
+                return "Today is pulling against your healthspan — \(title) is the main drag."
+            case .coach:
+                return "Today is working against you, mostly because of \(title)."
+            }
+        } else {
+            switch self {
+            case .gentle: return "Today is pulling against your healthspan."
+            case .coach: return "Today is working against you."
+            }
+        }
+    }
+
+    /// Used when no estimate is available yet (cold launch, pre-data).
+    /// Static — no driver to interpolate.
+    func todayInterpretationPreData() -> String {
+        switch self {
+        case .gentle: return "Not enough data yet — this fills in as today goes on."
+        case .coach: return "Not enough data yet. Check back as today's signals come in."
+        }
+    }
+
     /// Body copy when the day netted negative minutes — supportive, not
     /// punitive (per UX_GAME_LOOP.md "every negative delta should be paired
     /// with an actionable next step or a softer explanation").
