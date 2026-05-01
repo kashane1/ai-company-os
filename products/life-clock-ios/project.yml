@@ -45,6 +45,7 @@ targets:
       testTargets:
         - LifeClockTests
         - LifeClockUITests
+      storeKitConfiguration: Sources/Services/Products.storekit
   LifeClockTests:
     type: bundle.unit-test
     platform: iOS
