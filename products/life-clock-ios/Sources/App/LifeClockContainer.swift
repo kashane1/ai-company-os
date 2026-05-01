@@ -14,10 +14,23 @@ enum LifeClockContainer {
             allowsSave: true,
             cloudKitDatabase: .none
         )
-        return try ModelContainer(
+        let container = try ModelContainer(
             for: schema,
             migrationPlan: LifeClockMigrationPlan.self,
             configurations: [config]
         )
+        #if DEBUG
+        // Defensive: structural invariant — this container is built with
+        // exactly one configuration explicitly carrying `cloudKitDatabase:
+        // .none`. If a future refactor adds a second configuration, this
+        // assertion fires loudly so a CloudKit-enabled config never sneaks
+        // in unnoticed (HealthKit-derived data must not iCloud-sync per
+        // `docs/products/life-clock/PRIVACY_COMPLIANCE.md`).
+        assert(
+            container.configurations.count == 1,
+            "LifeClockContainer must be configured with exactly one ModelConfiguration (with cloudKitDatabase: .none)"
+        )
+        #endif
+        return container
     }
 }

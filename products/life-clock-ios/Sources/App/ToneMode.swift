@@ -112,4 +112,89 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Your weekly view will appear after a few days of data."
         }
     }
+
+    // MARK: - Wrap-up copy
+
+    var yesterdayWrapUpHeading: String {
+        switch self {
+        case .gentle: return "Yesterday"
+        case .coach: return "Yesterday's wrap-up"
+        }
+    }
+
+    var weeklyWrapUpHeading: String {
+        switch self {
+        case .gentle: return "Last week"
+        case .coach: return "Weekly wrap-up"
+        }
+    }
+
+    /// Body copy shown beneath the clock animation when the day netted
+    /// positive minutes.
+    func wrapUpPositiveBody(minutes: Int) -> String {
+        let formatted = TimeDeltaFormatter.format(minutes: minutes)
+        switch self {
+        case .gentle:
+            return "You moved \(formatted) forward. Small days add up."
+        case .coach:
+            return "\(formatted) gained. Keep stacking days like this."
+        }
+    }
+
+    /// Body copy when the day netted negative minutes — supportive, not
+    /// punitive (per UX_GAME_LOOP.md "every negative delta should be paired
+    /// with an actionable next step or a softer explanation").
+    func wrapUpNegativeBody(minutes: Int) -> String {
+        let formatted = TimeDeltaFormatter.format(minutes: minutes)
+        switch self {
+        case .gentle:
+            return "Yesterday cost \(formatted). Today is a fresh start."
+        case .coach:
+            return "\(formatted) yesterday. One day doesn't define the trend."
+        }
+    }
+
+    /// Body copy when the day netted zero minutes.
+    var wrapUpZeroBody: String {
+        switch self {
+        case .gentle: return "Yesterday held steady. Even floors matter."
+        case .coach: return "Net zero. Holding steady is a real outcome."
+        }
+    }
+
+    var wrapUpDismissCTA: String {
+        switch self {
+        case .gentle: return "Got it"
+        case .coach: return "Continue"
+        }
+    }
+
+    /// Label on the chip that appears next to a metric the user has
+    /// corrected. Same word in both modes — "Adjusted" reads as a neutral
+    /// status, not a judgment.
+    var adjustedChipLabel: String {
+        switch self {
+        case .gentle: return "Adjusted"
+        case .coach: return "Adjusted"
+        }
+    }
+
+    /// Card shown in History when the user has been away long enough that
+    /// the wrap-up moment was suppressed. Sits where the Yesterday card
+    /// would be.
+    var historyLongAbsenceHeading: String {
+        switch self {
+        case .gentle: return "Welcome back"
+        case .coach: return "Picking up where you left off"
+        }
+    }
+
+    var historyLongAbsenceBody: String {
+        switch self {
+        case .gentle:
+            return "We didn't have enough data from yesterday for a wrap-up. Today's a fresh start."
+        case .coach:
+            return "Yesterday didn't have enough data to summarize. Make today count."
+        }
+    }
 }

@@ -58,6 +58,21 @@ enum LifeClockSchemaV1: VersionedSchema {
         /// safety-net offering for users who find the clock anxiety-inducing.
         var hideClock: Bool = false
 
+        // MARK: - Wrap-up tracking (additive 2026-04-30, History feature)
+        //
+        // Both fields are optional with `nil` defaults so SwiftData lightweight
+        // migration applies them silently to existing V1 stores. They are
+        // consumed by `WrapUpCoordinator` and updated via `markYesterdayShown`
+        // / `markWeeklyShown` after the wrap-up sheet is presented.
+
+        /// Start-of-day for the most recent day on which the Yesterday Wrap-Up
+        /// sheet was shown. Monotonic — never advanced backward.
+        var lastShownYesterdayWrapUpDay: Date? = nil
+
+        /// Start-of-day of the most recent week (firstWeekday-aligned) for
+        /// which the Weekly Wrap-Up sheet was shown.
+        var lastShownWeeklyWrapUpWeek: Date? = nil
+
         init(
             id: UUID = UUID(),
             birthDate: Date,
@@ -82,6 +97,38 @@ enum LifeClockSchemaV1: VersionedSchema {
         var sleepConsistencyScore: Double? = nil
         var restingHeartRate: Int? = nil
         var sourceCompleteness: Double = 0.0
+
+        // MARK: - Persistence tracking (additive 2026-04-30, History feature)
+        //
+        // Optional with `nil` default for SwiftData lightweight migration on
+        // existing V1 stores. `LifeClockStore.refreshFromHealthKit()` reads
+        // this to short-circuit redundant HK fetches on rapid foreground
+        // transitions (skips fetch when age < 300s).
+
+        /// When the snapshot was last upserted from HealthKit (or by the
+        /// override service, in a future phase). nil for never-persisted rows.
+        var lastRecomputedAt: Date? = nil
+
+        // MARK: - Overrides (additive 2026-05-01, Pro override flow)
+        //
+        // Stored as encoded `Data` rather than Swift dictionaries because
+        // SwiftData's representation of `[String: Double]` on `@Model` types
+        // has been inconsistent across iOS minor releases. `Data = Data()`
+        // default keeps lightweight migration safe.
+        //
+        // Decode/encode through `SnapshotOverrideMap` — never touch the raw
+        // bytes from view code.
+
+        /// Encoded `SnapshotOverrideMap` of user-applied corrections. Pro
+        /// only. The engine reads through `effectiveValue(for:)` which
+        /// returns the override when present, else the raw HK field.
+        var overridesData: Data = Data()
+
+        /// Encoded `SnapshotOverrideMap` capturing the HealthKit values at
+        /// the moment each override was first written. Used by Revert to
+        /// restore the original. Write-once-per-field — never overwrite
+        /// when HK later returns updated data.
+        var originalHealthKitValuesData: Data = Data()
 
         init(date: Date) {
             self.date = date

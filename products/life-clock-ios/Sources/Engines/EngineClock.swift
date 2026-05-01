@@ -21,4 +21,18 @@ struct EngineClock {
         cal.timeZone = TimeZone(identifier: "UTC")!
         return EngineClock(now: { date }, calendar: cal)
     }
+
+    /// `yyyy-MM-dd` in this clock's calendar/timezone. Stable across DST and
+    /// dateline boundaries because we render the calendar's components rather
+    /// than diff Dates. Use for keys that need to compare two moments by
+    /// "logical day" (e.g. wrap-up shown? snapshot persisted?).
+    func dayKey(_ date: Date) -> String {
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(
+            format: "%04d-%02d-%02d",
+            components.year ?? 0,
+            components.month ?? 0,
+            components.day ?? 0
+        )
+    }
 }

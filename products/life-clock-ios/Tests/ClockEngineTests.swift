@@ -118,4 +118,43 @@ final class ClockEngineTests: XCTestCase {
         XCTAssertGreaterThan(report.netTimeDeltaMinutes, 0)
         XCTAssertEqual(report.confidenceRaw, Confidence.high.rawValue)
     }
+
+    // Regression: LifeClockStore.refreshFromHealthKit() previously passed
+    // habits: [] to calculateWeeklyTrend, so habit-driven adjustments
+    // (smoking-vaping penalty, strength training credit, etc.) silently
+    // dropped out of the weekly net. This test pins the engine: feeding
+    // habits with strong negative signals must produce a strictly lower
+    // weekly net than feeding []. If this test fails, somebody re-introduced
+    // habits: [] in the store call site.
+    func testWeeklyTrendIncorporatesHabits() {
+        let engine = makeEngine()
+        let profile = UserProfile(birthDate: birthDate, biologicalSex: "male")
+        let cal = Calendar.lifeClockUTC
+
+        var snapshots: [DailyHealthSnapshot] = []
+        var habits: [HabitLog] = []
+        for offset in 0..<7 {
+            let day = cal.startOfDay(for: cal.date(byAdding: .day, value: -offset, to: fixedDate)!)
+            let s = DailyHealthSnapshot(date: day)
+            s.stepCount = 9_000
+            s.exerciseMinutes = 25
+            s.sleepHours = 7.5
+            s.sourceCompleteness = 0.8
+            snapshots.append(s)
+
+            let h = HabitLog(date: day)
+            h.smokingVaping = true
+            h.alcoholLevel = "heavy"
+            h.dietQuality = "poor"
+            habits.append(h)
+        }
+
+        let withoutHabits = engine.calculateWeeklyTrend(snapshots: snapshots, habits: [], profile: profile)
+        let withHabits = engine.calculateWeeklyTrend(snapshots: snapshots, habits: habits, profile: profile)
+        XCTAssertLessThan(
+            withHabits.netTimeDeltaMinutes,
+            withoutHabits.netTimeDeltaMinutes,
+            "Heavy-smoking + heavy-alcohol + poor-diet habits must lower the weekly net vs. no habits"
+        )
+    }
 }
