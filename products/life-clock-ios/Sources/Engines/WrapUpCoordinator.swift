@@ -9,13 +9,32 @@ import Foundation
 ///
 /// Decision priority: yesterday wrap-up wins over weekly. Weekly is queued
 /// behind it; never both at once.
+///
+/// Wrap-up scheduling is a product decision, not a locale decision: the
+/// week-start day is pinned via `Config.firstWeekday` (default Monday = 2)
+/// rather than reading `Calendar.firstWeekday`. This guarantees
+/// test-vs-prod parity across US (Sunday-default) and EU (Monday-default)
+/// locales.
 struct WrapUpCoordinator {
     let clock: EngineClock
+    var config: Config = .default
+
+    struct Config: Equatable {
+        /// 1 = Sunday, 2 = Monday, ..., 7 = Saturday. Default Monday.
+        var firstWeekday: Int = 2
+        /// Weekly wrap-ups never fire for a week start older than this many
+        /// days. Prevents stale `weekStart` values (e.g. after a long absence
+        /// or restored backup) from triggering an out-of-date ceremony.
+        var weeklyRecencyDays: Int = 14
+
+        static let `default` = Config()
+    }
 
     struct ProfileSnapshot: Equatable {
-        /// Set when onboarding completes. Used as the "lived through one
-        /// full day post-install" guard against ghost wrap-ups on reinstall.
-        let onboardedAt: Date?
+        /// Mirrors `UserProfile.onboardingCompletedAt`. Used as the "lived
+        /// through one full day post-install" guard against ghost wrap-ups
+        /// on reinstall.
+        let onboardingCompletedAt: Date?
         let lastShownYesterdayWrapUpDay: Date?
         let lastShownWeeklyWrapUpWeek: Date?
     }
@@ -32,7 +51,7 @@ struct WrapUpCoordinator {
     }
 
     struct WeekSnapshot: Equatable {
-        /// Start-of-week date (locale's `firstWeekday`).
+        /// Start-of-week date in the configured `firstWeekday`.
         let weekStart: Date
     }
 
@@ -56,6 +75,39 @@ struct WrapUpCoordinator {
         return nil
     }
 
+    // MARK: - Mark-shown helpers
+
+    /// Returns a new `ProfileSnapshot` with `lastShownYesterdayWrapUpDay`
+    /// advanced to today. Use after the wrap-up sheet is presented so
+    /// callers don't re-implement the day-key write at each site.
+    func markYesterdayShown(
+        profile: ProfileSnapshot,
+        now: Date
+    ) -> ProfileSnapshot {
+        let today = clock.calendar.startOfDay(for: now)
+        return ProfileSnapshot(
+            onboardingCompletedAt: profile.onboardingCompletedAt,
+            lastShownYesterdayWrapUpDay: today,
+            lastShownWeeklyWrapUpWeek: profile.lastShownWeeklyWrapUpWeek
+        )
+    }
+
+    /// Returns a new `ProfileSnapshot` with `lastShownWeeklyWrapUpWeek`
+    /// advanced to the given week start.
+    func markWeeklyShown(
+        profile: ProfileSnapshot,
+        weekStart: Date
+    ) -> ProfileSnapshot {
+        let normalized = clock.calendar.startOfDay(for: weekStart)
+        return ProfileSnapshot(
+            onboardingCompletedAt: profile.onboardingCompletedAt,
+            lastShownYesterdayWrapUpDay: profile.lastShownYesterdayWrapUpDay,
+            lastShownWeeklyWrapUpWeek: normalized
+        )
+    }
+
+    // MARK: - Decision branches
+
     private func pendingYesterday(
         profile: ProfileSnapshot,
         snapshots: [DaySnapshot],
@@ -67,19 +119,7 @@ struct WrapUpCoordinator {
             return nil
         }
 
-        // Reinstall guard: require user has lived through ≥1 full local day
-        // post-onboarding before any wrap-up presents. Stricter than wallclock
-        // 24h, immune to time-travel.
-        guard let onboardedAt = profile.onboardedAt else {
-            return nil
-        }
-        let onboardedDay = cal.startOfDay(for: onboardedAt)
-        guard let earliestEligibleToday = cal.date(
-            byAdding: .day, value: 2, to: onboardedDay
-        ) else {
-            return nil
-        }
-        if today < earliestEligibleToday {
+        guard isPastReinstallGuard(profile: profile, today: today) else {
             return nil
         }
 
@@ -110,13 +150,29 @@ struct WrapUpCoordinator {
         let cal = clock.calendar
         let today = cal.startOfDay(for: now)
 
-        // Locale-driven week start (cal.firstWeekday).
+        // Week-start day is product-pinned via Config (not locale-driven).
         let weekday = cal.component(.weekday, from: today)
-        guard weekday == cal.firstWeekday else {
+        guard weekday == config.firstWeekday else {
             return nil
         }
 
-        guard let mostRecentWeekStart = weeks.map({ cal.startOfDay(for: $0.weekStart) }).max() else {
+        // Reinstall guard mirrors the yesterday path: don't ceremony a week
+        // for a user who hasn't lived through one full day with the app.
+        guard isPastReinstallGuard(profile: profile, today: today) else {
+            return nil
+        }
+
+        // Bound to recent + non-future. Caller may pass stale/future weeks
+        // after restored backup or clock skew.
+        guard let oldestAllowed = cal.date(
+            byAdding: .day, value: -config.weeklyRecencyDays, to: today
+        ) else {
+            return nil
+        }
+        let candidates = weeks
+            .map { cal.startOfDay(for: $0.weekStart) }
+            .filter { $0 <= today && $0 >= oldestAllowed }
+        guard let mostRecentWeekStart = candidates.max() else {
             return nil
         }
 
@@ -127,5 +183,22 @@ struct WrapUpCoordinator {
             }
         }
         return mostRecentWeekStart
+    }
+
+    private func isPastReinstallGuard(
+        profile: ProfileSnapshot,
+        today: Date
+    ) -> Bool {
+        let cal = clock.calendar
+        guard let onboardedAt = profile.onboardingCompletedAt else {
+            return false
+        }
+        let onboardedDay = cal.startOfDay(for: onboardedAt)
+        guard let earliestEligibleToday = cal.date(
+            byAdding: .day, value: 2, to: onboardedDay
+        ) else {
+            return false
+        }
+        return today >= earliestEligibleToday
     }
 }
