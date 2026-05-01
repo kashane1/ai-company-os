@@ -197,4 +197,17 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Yesterday didn't have enough data to summarize. Make today count."
         }
     }
+
+    /// Inline error message in `OverrideSheet` when the user attempts an
+    /// override without Pro entitlement. Doubles as the downgrade notice —
+    /// surfaces at the moment of friction rather than as a separate banner.
+    /// Honors the "existing overrides stay active" grace period.
+    var overrideNotEntitledMessage: String {
+        switch self {
+        case .gentle:
+            return "New adjustments are paused — Pro only. Your existing adjustments stay active. Re-subscribe in Profile to keep editing."
+        case .coach:
+            return "New adjustments require Pro. Existing adjustments remain in effect. Re-subscribe in Profile to resume editing."
+        }
+    }
 }

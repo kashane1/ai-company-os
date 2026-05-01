@@ -111,20 +111,37 @@ final class HistoricalImportCoordinator {
     @MainActor
     private func importChunk(from start: Date, to end: Date) async {
         let cal = clock.calendar
-        var cursor = start
-        while cursor < end, !Task.isCancelled {
-            // Idempotency: skip days that already have a persisted snapshot.
-            // We treat any persisted row as final for the import path; the
-            // foreground refresh path handles "today" specifically.
-            if fetchSnapshot(for: cursor) == nil {
-                if let snapshot = await healthService.dailySnapshot(for: cursor) {
-                    snapshot.lastRecomputedAt = clock.now()
-                    modelContext.insert(snapshot)
-                }
+        let chunkDays = cal.dateComponents([.day], from: start, to: end).day ?? 0
+        guard chunkDays > 0 else { return }
+
+        // Optimized path: ONE HKStatisticsCollectionQuery per quantity
+        // metric across the chunk window (3 queries) + per-day sleep
+        // sample queries within the chunk (~7 queries). The per-day
+        // fan-out used to issue ~6 queries × 7 days = ~42 per chunk.
+        // For the protocol's default fallback, this calls
+        // `recentSnapshots(endingAt:count:)` which preserves the
+        // pre-optimization behavior.
+        let snapshots = await healthService.recentSnapshotsCollection(
+            endingAt: cal.date(byAdding: .day, value: -1, to: end) ?? start,
+            days: chunkDays
+        )
+        let recomputedAt = clock.now()
+        var inserted = 0
+        for snapshot in snapshots {
+            if Task.isCancelled { break }
+            // Idempotency: skip days that already have a persisted row.
+            // The foreground refresh path handles "today" specifically.
+            if fetchSnapshot(for: snapshot.date) == nil {
+                snapshot.lastRecomputedAt = recomputedAt
+                modelContext.insert(snapshot)
+                inserted += 1
             }
-            cursor = cal.date(byAdding: .day, value: 1, to: cursor) ?? end
         }
-        try? modelContext.save()
+        // Single save per chunk — keeps SwiftData's @Query observers
+        // firing once per ~7 days rather than once per day.
+        if inserted > 0 {
+            try? modelContext.save()
+        }
     }
 
     private func fetchSnapshot(for dayStart: Date) -> DailyHealthSnapshot? {

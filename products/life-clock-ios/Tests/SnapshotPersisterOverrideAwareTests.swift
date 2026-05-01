@@ -23,7 +23,7 @@ final class SnapshotPersisterOverrideAwareTests: XCTestCase {
         context = container.mainContext
     }
 
-    private func makeStore(hkSteps: Int) -> LifeClockStore {
+    private func makeStore(hkSteps: Int, isPro: Bool = true) -> LifeClockStore {
         let mock = ProvidedMockHealthKit()
         mock.snapshotProvider = { [dayStart] _ in
             let snap = DailyHealthSnapshot(date: dayStart)
@@ -44,6 +44,7 @@ final class SnapshotPersisterOverrideAwareTests: XCTestCase {
             engineClock: .fixed(dayStart.addingTimeInterval(60))
         )
         store.profile = profile
+        store.entitlements = TestEntitlement(isPro: isPro)
         return store
     }
 
@@ -72,6 +73,56 @@ final class SnapshotPersisterOverrideAwareTests: XCTestCase {
         let final = try XCTUnwrap(try context.fetch(descriptor).first)
         XCTAssertEqual(final.stepCount, 12_000,
                        "Override-aware persister gate keeps user's 12_000 even when HK delivers a different non-nil value")
+    }
+
+    // MARK: - Pro entitlement gate (Phase 1 of hardening pass)
+
+    func testApplyOverrideThrowsNotEntitledWhenNotPro() async throws {
+        let store = makeStore(hkSteps: 5_000, isPro: false)
+        await store.refreshFromHealthKit()
+        XCTAssertThrowsError(
+            try store.applyOverride(field: .stepCount, value: 12_000, on: dayStart)
+        ) { error in
+            XCTAssertEqual(error as? OverrideService.OverrideError, .notEntitled)
+        }
+        // Snapshot must NOT have been mutated.
+        let snap = try XCTUnwrap(
+            try context.fetch(FetchDescriptor<DailyHealthSnapshot>()).first
+        )
+        XCTAssertEqual(snap.stepCount, 5_000, "Refused override leaves snapshot untouched")
+        XCTAssertFalse(snap.isOverridden(.stepCount))
+    }
+
+    func testRevertOverrideThrowsNotEntitledWhenNotPro() async throws {
+        // Setup: Pro user adds an override.
+        let store = makeStore(hkSteps: 5_000, isPro: true)
+        await store.refreshFromHealthKit()
+        try store.applyOverride(field: .stepCount, value: 12_000, on: dayStart)
+
+        // Downgrade: revert is now refused. Existing override stays active
+        // (engine sees 12_000) — honors the existing-overrides-grace decision.
+        store.entitlements = TestEntitlement(isPro: false)
+        XCTAssertThrowsError(
+            try store.revertOverride(field: .stepCount, on: dayStart)
+        ) { error in
+            XCTAssertEqual(error as? OverrideService.OverrideError, .notEntitled)
+        }
+        let snap = try XCTUnwrap(
+            try context.fetch(FetchDescriptor<DailyHealthSnapshot>()).first
+        )
+        XCTAssertEqual(snap.stepCount, 12_000,
+                       "Existing override remains active post-downgrade (grace period)")
+    }
+
+    func testApplyOverrideThrowsNotEntitledWhenEntitlementSourceMissing() async throws {
+        let store = makeStore(hkSteps: 5_000, isPro: true)
+        await store.refreshFromHealthKit()
+        store.entitlements = nil  // simulate uninjected source
+        XCTAssertThrowsError(
+            try store.applyOverride(field: .stepCount, value: 12_000, on: dayStart)
+        ) { error in
+            XCTAssertEqual(error as? OverrideService.OverrideError, .notEntitled)
+        }
     }
 
     func testHKRefreshUpdatesNonOverriddenFields() async throws {
@@ -110,8 +161,15 @@ final class SnapshotPersisterOverrideAwareTests: XCTestCase {
     }
 }
 
-/// Test-only mock used by these integration tests. Production code uses
-/// `LiveHealthKitService`. Kept here (not in main ProvidedMockHealthKit)
+/// Trivial entitlement mock — these tests exercise the override gate
+/// without requiring a real `SubscriptionStore`.
+private final class TestEntitlement: EntitlementProviding {
+    var isPro: Bool
+    init(isPro: Bool) { self.isPro = isPro }
+}
+
+/// Test-only HK mock used by these integration tests. Production code
+/// uses `LiveHealthKitService`. Kept here (not in main MockHealthKitService)
 /// so other tests aren't affected by the snapshotProvider closure.
 private final class ProvidedMockHealthKit: HealthKitServiceProtocol {
     var snapshotProvider: (@Sendable (Date) -> DailyHealthSnapshot?)?

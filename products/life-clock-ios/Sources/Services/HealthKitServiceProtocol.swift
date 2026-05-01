@@ -36,6 +36,23 @@ protocol HealthKitServiceProtocol {
 
     /// Up to `count` snapshots ending at `endDate`, oldest first.
     func recentSnapshots(endingAt endDate: Date, count: Int) async -> [DailyHealthSnapshot]
+
+    /// Optimized 90-day backfill path for the History feature's
+    /// `HistoricalImportCoordinator`. Quantity metrics are pulled via a
+    /// single `HKStatisticsCollectionQuery` per metric (4 queries instead
+    /// of ~540 for the per-day fan-out). Sleep stays per-day because
+    /// `HKCategoryType` doesn't have a statistics-collection aggregator
+    /// — wake-day attribution must remain in app code.
+    ///
+    /// Default implementation falls back to the per-day path so mocks
+    /// don't need to implement the optimized version.
+    func recentSnapshotsCollection(endingAt: Date, days: Int) async -> [DailyHealthSnapshot]
+}
+
+extension HealthKitServiceProtocol {
+    func recentSnapshotsCollection(endingAt: Date, days: Int) async -> [DailyHealthSnapshot] {
+        await recentSnapshots(endingAt: endingAt, count: days)
+    }
 }
 
 enum HealthKitError: Error {

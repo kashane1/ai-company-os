@@ -18,14 +18,10 @@ extension DailyHealthSnapshot {
     }
 
     /// Raw HK value for a field (ignores overrides). Returns nil when HK
-    /// never delivered a value.
+    /// never delivered a value. Delegated to the field's `Spec.rawGetter`
+    /// — keeps "where do I read each field" in one place.
     func rawValue(for field: SnapshotOverrideMap.Field) -> Double? {
-        switch field {
-        case .stepCount: return stepCount.map(Double.init)
-        case .sleepHours: return sleepHours
-        case .exerciseMinutes: return exerciseMinutes.map(Double.init)
-        case .activeEnergyKcal: return activeEnergyKcal
-        }
+        field.spec.rawGetter(self)
     }
 
     /// Effective value for a field — override if present, else raw HK value.

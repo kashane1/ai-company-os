@@ -57,12 +57,7 @@ struct OverrideSheet: View {
 
     private func prefill() {
         guard let currentValue else { return }
-        switch field {
-        case .stepCount, .exerciseMinutes, .activeEnergyKcal:
-            inputText = String(Int(currentValue))
-        case .sleepHours:
-            inputText = String(format: "%.1f", currentValue)
-        }
+        inputText = field.spec.editorFormat(currentValue)
     }
 
     private func save() {
@@ -73,6 +68,8 @@ struct OverrideSheet: View {
         do {
             try store.applyOverride(field: field, value: value, on: dayStart)
             onDismiss()
+        } catch OverrideService.OverrideError.notEntitled {
+            errorMessage = store.toneMode.overrideNotEntitledMessage
         } catch OverrideService.OverrideError.invalidValue {
             errorMessage = "Out of range. \(field.bounds)."
         } catch OverrideService.OverrideError.snapshotMissing {
@@ -84,19 +81,14 @@ struct OverrideSheet: View {
 }
 
 private extension SnapshotOverrideMap.Field {
+    // Thin convenience aliases to the field's `Spec` so view code reads
+    // naturally. Spec is the single source of truth — see
+    // `SnapshotOverrideMap.Field.spec` in `SnapshotOverrideMap.swift`.
+    //
+    // `UIKeyboardType` is derived here (UI layer) rather than stored in
+    // Spec, so `Models/` stays free of UIKit.
     var keyboardType: UIKeyboardType {
-        switch self {
-        case .stepCount, .exerciseMinutes, .activeEnergyKcal: return .numberPad
-        case .sleepHours: return .decimalPad
-        }
+        spec.acceptsDecimal ? .decimalPad : .numberPad
     }
-
-    var bounds: String {
-        switch self {
-        case .stepCount: return "0–100,000 steps"
-        case .sleepHours: return "0–24 hours"
-        case .exerciseMinutes: return "0–1,440 minutes"
-        case .activeEnergyKcal: return "0–20,000 kcal"
-        }
-    }
+    var bounds: String { spec.boundsCopy }
 }

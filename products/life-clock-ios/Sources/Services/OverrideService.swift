@@ -16,6 +16,11 @@ struct OverrideService {
         case invalidValue
         case persistenceFailed
         case snapshotMissing
+        /// Caller is not Pro-entitled. Surfaced by `LifeClockStore.applyOverride`
+        /// / `revertOverride` BEFORE delegating to the service so the snapshot
+        /// is never touched. Existing overrides remain effective (grace
+        /// period); new ones are refused.
+        case notEntitled
     }
 
     let modelContext: ModelContext
@@ -64,22 +69,18 @@ struct OverrideService {
             throw OverrideError.persistenceFailed
         }
 
-        snapshot.overridesData = encodedOverrides
-        snapshot.originalHealthKitValuesData = encodedOriginals
         // Write the override value through to the raw field so the engine
         // (which reads `snapshot.stepCount`/`sleepHours`/etc. directly)
         // produces a score reflecting the correction. The override-aware
         // persister in `LifeClockStore.persistSnapshot` keeps this value
         // safe across HK refreshes.
         assignRawValue(value, for: field, on: snapshot)
-        snapshot.lastRecomputedAt = recomputedAt
-
-        do {
-            try modelContext.save()
-        } catch {
-            modelContext.rollback()
-            throw OverrideError.persistenceFailed
-        }
+        try commit(
+            snapshot: snapshot,
+            overridesData: encodedOverrides,
+            originalsData: encodedOriginals,
+            recomputedAt: recomputedAt
+        )
     }
 
     /// Remove an override and restore the snapshot's raw field to the
@@ -116,10 +117,28 @@ struct OverrideService {
         } catch {
             throw OverrideError.persistenceFailed
         }
-        snapshot.overridesData = encodedOverrides
-        snapshot.originalHealthKitValuesData = encodedOriginals
-        snapshot.lastRecomputedAt = recomputedAt
+        try commit(
+            snapshot: snapshot,
+            overridesData: encodedOverrides,
+            originalsData: encodedOriginals,
+            recomputedAt: recomputedAt
+        )
+    }
 
+    // MARK: - Commit helper
+
+    /// Common tail for `applyOverride` and `revertOverride`: write the
+    /// pre-encoded override blobs + bump `lastRecomputedAt` + save once;
+    /// rollback on save failure. Both writers do this exact dance.
+    private func commit(
+        snapshot: DailyHealthSnapshot,
+        overridesData: Data,
+        originalsData: Data,
+        recomputedAt: Date
+    ) throws {
+        snapshot.overridesData = overridesData
+        snapshot.originalHealthKitValuesData = originalsData
+        snapshot.lastRecomputedAt = recomputedAt
         do {
             try modelContext.save()
         } catch {
@@ -131,13 +150,7 @@ struct OverrideService {
     // MARK: - Validation
 
     private func isValid(_ value: Double, for field: SnapshotOverrideMap.Field) -> Bool {
-        guard value >= 0 else { return false }
-        switch field {
-        case .stepCount: return value <= 100_000
-        case .sleepHours: return value <= 24
-        case .exerciseMinutes: return value <= 1_440
-        case .activeEnergyKcal: return value <= 20_000
-        }
+        field.spec.bounds.contains(value)
     }
 
     // MARK: - Internals
@@ -154,11 +167,6 @@ struct OverrideService {
         for field: SnapshotOverrideMap.Field,
         on snapshot: DailyHealthSnapshot
     ) {
-        switch field {
-        case .stepCount: snapshot.stepCount = Int(value)
-        case .sleepHours: snapshot.sleepHours = value
-        case .exerciseMinutes: snapshot.exerciseMinutes = Int(value)
-        case .activeEnergyKcal: snapshot.activeEnergyKcal = value
-        }
+        field.spec.rawSetter(snapshot, value)
     }
 }

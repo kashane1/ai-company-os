@@ -129,28 +129,14 @@ struct DayDetailView: View {
 
     private func format(value: Double?, for field: SnapshotOverrideMap.Field) -> String {
         guard let value else { return "—" }
-        switch field {
-        case .stepCount:
-            return "\(Int(value)) steps"
-        case .sleepHours:
-            return String(format: "%.1f h", value)
-        case .exerciseMinutes:
-            return "\(Int(value)) min"
-        case .activeEnergyKcal:
-            return "\(Int(value)) kcal"
-        }
+        return field.spec.format(value)
     }
 }
 
 extension SnapshotOverrideMap.Field: Identifiable {
     var id: String { rawValue }
 
-    var displayName: String {
-        switch self {
-        case .stepCount: return "Steps"
-        case .sleepHours: return "Sleep"
-        case .exerciseMinutes: return "Exercise"
-        case .activeEnergyKcal: return "Active energy"
-        }
-    }
+    /// Convenience alias for `spec.displayName` so view code stays
+    /// readable. Spec is the single source of truth.
+    var displayName: String { spec.displayName }
 }
