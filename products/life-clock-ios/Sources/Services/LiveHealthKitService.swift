@@ -143,6 +143,24 @@ final class LiveHealthKitService: HealthKitServiceProtocol {
         let exerciseMap = await exerciseByDay
         let energyMap = await energyByDay
 
+        #if DEBUG
+        // Sanity-check that HK's bucket count matches what we asked for.
+        // Off-by-one here means anchorDate isn't aligned with our day
+        // boundaries — investigate before trusting the data.
+        assert(
+            stepsMap.count <= days,
+            "stepsByDay returned \(stepsMap.count) buckets for days=\(days) — anchor misalignment?"
+        )
+        assert(
+            exerciseMap.count <= days,
+            "exerciseByDay returned \(exerciseMap.count) buckets for days=\(days)"
+        )
+        assert(
+            energyMap.count <= days,
+            "energyByDay returned \(energyMap.count) buckets for days=\(days)"
+        )
+        #endif
+
         var snapshots: [DailyHealthSnapshot] = []
         for offset in 0..<days {
             guard let day = calendar.date(byAdding: .day, value: offset, to: anchor) else { continue }

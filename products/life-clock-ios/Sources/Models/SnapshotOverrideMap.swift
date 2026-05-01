@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 /// User-applied corrections to HealthKit-derived values on a single
 /// `DailyHealthSnapshot`. Stored on the snapshot as encoded `Data` because
@@ -88,7 +87,10 @@ extension SnapshotOverrideMap.Field {
     /// on the consumers (OverrideService, OverrideSheet, DayDetailView).
     struct Spec {
         let displayName: String
-        let keyboard: UIKeyboardType
+        /// True iff the field accepts decimal values. View layer maps
+        /// this to `UIKeyboardType` (.decimalPad vs .numberPad). Kept as
+        /// a Bool here so `Models/` stays free of UIKit.
+        let acceptsDecimal: Bool
         let bounds: ClosedRange<Double>
         let boundsCopy: String
         /// Format `value` for display (e.g. "8,000 steps", "7.5 h").
@@ -110,18 +112,20 @@ extension SnapshotOverrideMap.Field {
         case .stepCount:
             return Spec(
                 displayName: "Steps",
-                keyboard: .numberPad,
+                acceptsDecimal: false,
                 bounds: 0...100_000,
                 boundsCopy: "0–100,000 steps",
                 format: { "\(Int($0)) steps" },
                 editorFormat: { String(Int($0)) },
                 rawGetter: { $0.stepCount.map(Double.init) },
-                rawSetter: { $0.stepCount = Int($1) }
+                rawSetter: { (snap: DailyHealthSnapshot, value: Double) in
+                    snap.stepCount = Int(value.rounded())
+                }
             )
         case .sleepHours:
             return Spec(
                 displayName: "Sleep",
-                keyboard: .decimalPad,
+                acceptsDecimal: true,
                 bounds: 0...24,
                 boundsCopy: "0–24 hours",
                 format: { String(format: "%.1f h", $0) },
@@ -132,18 +136,20 @@ extension SnapshotOverrideMap.Field {
         case .exerciseMinutes:
             return Spec(
                 displayName: "Exercise",
-                keyboard: .numberPad,
+                acceptsDecimal: false,
                 bounds: 0...1_440,
                 boundsCopy: "0–1,440 minutes",
                 format: { "\(Int($0)) min" },
                 editorFormat: { String(Int($0)) },
                 rawGetter: { $0.exerciseMinutes.map(Double.init) },
-                rawSetter: { $0.exerciseMinutes = Int($1) }
+                rawSetter: { (snap: DailyHealthSnapshot, value: Double) in
+                    snap.exerciseMinutes = Int(value.rounded())
+                }
             )
         case .activeEnergyKcal:
             return Spec(
                 displayName: "Active energy",
-                keyboard: .numberPad,
+                acceptsDecimal: false,
                 bounds: 0...20_000,
                 boundsCopy: "0–20,000 kcal",
                 format: { "\(Int($0)) kcal" },

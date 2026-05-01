@@ -30,6 +30,7 @@ struct HealthKitAggregator {
         snapshot.sourceCompleteness = computeCompleteness(
             stepCount: stepCount,
             exerciseMinutes: exerciseMinutes,
+            activeEnergyKcal: activeEnergyKcal,
             sleepHours: sleepHours,
             restingHeartRate: restingHeartRate,
             weightKg: weightKg
@@ -37,21 +38,27 @@ struct HealthKitAggregator {
         return snapshot
     }
 
-    /// Tier-1 MVP completeness: each present signal contributes equally.
-    /// Five signals → score in {0.0, 0.2, 0.4, 0.6, 0.8, 1.0}.
+    /// Per-signal completeness. Six signals — each contributes 1/6.
+    /// `activeEnergyKcal` is included so the importer's "skip empty days"
+    /// filter (`sourceCompleteness > 0`) doesn't silently drop days where
+    /// active energy is the only signal HK delivered (e.g. Apple Watch
+    /// energy ring on a day the phone wasn't carried).
     static func computeCompleteness(
         stepCount: Double?,
         exerciseMinutes: Double?,
+        activeEnergyKcal: Double? = nil,
         sleepHours: Double?,
         restingHeartRate: Double?,
         weightKg: Double?
     ) -> Double {
         var score = 0.0
-        if stepCount != nil { score += 0.2 }
-        if exerciseMinutes != nil { score += 0.2 }
-        if sleepHours != nil { score += 0.2 }
-        if restingHeartRate != nil { score += 0.2 }
-        if weightKg != nil { score += 0.2 }
+        let weight = 1.0 / 6.0
+        if stepCount != nil { score += weight }
+        if exerciseMinutes != nil { score += weight }
+        if activeEnergyKcal != nil { score += weight }
+        if sleepHours != nil { score += weight }
+        if restingHeartRate != nil { score += weight }
+        if weightKg != nil { score += weight }
         return min(1.0, score)
     }
 }

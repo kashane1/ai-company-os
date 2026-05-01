@@ -84,6 +84,11 @@ private extension SnapshotOverrideMap.Field {
     // Thin convenience aliases to the field's `Spec` so view code reads
     // naturally. Spec is the single source of truth — see
     // `SnapshotOverrideMap.Field.spec` in `SnapshotOverrideMap.swift`.
-    var keyboardType: UIKeyboardType { spec.keyboard }
+    //
+    // `UIKeyboardType` is derived here (UI layer) rather than stored in
+    // Spec, so `Models/` stays free of UIKit.
+    var keyboardType: UIKeyboardType {
+        spec.acceptsDecimal ? .decimalPad : .numberPad
+    }
     var bounds: String { spec.boundsCopy }
 }

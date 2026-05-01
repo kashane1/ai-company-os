@@ -36,8 +36,9 @@ final class HealthKitAggregatorTests: XCTestCase {
         XCTAssertEqual(snap.stepCount, 8_000)
         XCTAssertNil(snap.exerciseMinutes)
         XCTAssertNil(snap.sleepHours)
-        // Only steps present out of {steps, exercise, sleep, restingHR, weight} → 0.2
-        XCTAssertEqual(snap.sourceCompleteness, 0.2, accuracy: 0.0001)
+        // Only steps present out of {steps, exercise, activeEnergyKcal,
+        // sleep, restingHR, weight} → 1/6
+        XCTAssertEqual(snap.sourceCompleteness, 1.0 / 6.0, accuracy: 0.0001)
     }
 
     func testAllNilProducesZeroCompleteness() {
@@ -57,9 +58,30 @@ final class HealthKitAggregatorTests: XCTestCase {
 
     func testCompletenessIsBoundedAtOne() {
         let score = HealthKitAggregator.computeCompleteness(
-            stepCount: 1, exerciseMinutes: 1, sleepHours: 1, restingHeartRate: 1, weightKg: 1
+            stepCount: 1,
+            exerciseMinutes: 1,
+            activeEnergyKcal: 1,
+            sleepHours: 1,
+            restingHeartRate: 1,
+            weightKg: 1
         )
-        XCTAssertEqual(score, 1.0)
+        XCTAssertEqual(score, 1.0, accuracy: 0.0001)
+    }
+
+    func testCompletenessIncludesActiveEnergy() {
+        // Regression: previously activeEnergyKcal didn't count toward
+        // completeness, so a day with ONLY active energy data scored 0
+        // and was silently dropped by the import filter. Pin it.
+        let onlyEnergy = HealthKitAggregator.computeCompleteness(
+            stepCount: nil,
+            exerciseMinutes: nil,
+            activeEnergyKcal: 350,
+            sleepHours: nil,
+            restingHeartRate: nil,
+            weightKg: nil
+        )
+        XCTAssertGreaterThan(onlyEnergy, 0,
+                             "Active-energy-only days must not be filtered out as empty")
     }
 
     func testDoubleRoundsToInt() {

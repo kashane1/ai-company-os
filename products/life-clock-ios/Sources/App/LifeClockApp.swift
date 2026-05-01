@@ -7,7 +7,7 @@ struct LifeClockApp: App {
     let container: ModelContainer
     let launchConfiguration: LifeClockLaunchConfiguration
     @State private var store: LifeClockStore
-    @State private var subscriptions = SubscriptionStore()
+    @State private var subscriptions: SubscriptionStore
     @State private var hasBootstrapped: Bool = false
     @State private var forcedPaywallPresented: Bool = false
     @Environment(\.scenePhase) private var scenePhase
@@ -33,7 +33,15 @@ struct LifeClockApp: App {
             engineClock: launchConfiguration.clock,
             notificationsService: notificationsService
         )
+        // Construct SubscriptionStore here (rather than inline in the
+        // @State default) so we can wire it as the entitlement source on
+        // `store` BEFORE the first frame renders. This eliminates the
+        // race window where a Pro user could tap into the override flow
+        // before `.task` runs and see the .notEntitled error.
+        let subscriptions = SubscriptionStore()
+        store.entitlements = subscriptions
         _store = State(wrappedValue: store)
+        _subscriptions = State(wrappedValue: subscriptions)
     }
 
     var body: some Scene {
@@ -43,11 +51,6 @@ struct LifeClockApp: App {
                 .environment(subscriptions)
                 .tint(store.palette.accent)
                 .task {
-                    // Wire the SubscriptionStore as the entitlement source
-                    // for the Pro override gate. Done here (not in init)
-                    // because @State backing storage isn't accessible from
-                    // init. Weak ref in the store avoids a cycle.
-                    store.entitlements = subscriptions
                     await store.bootstrap()
                     hasBootstrapped = true
                     await subscriptions.loadProducts()
