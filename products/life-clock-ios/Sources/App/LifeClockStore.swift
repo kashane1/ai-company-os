@@ -74,6 +74,12 @@ final class LifeClockStore {
     @ObservationIgnored private let streakCalculator: DietStreakCalculator
     @ObservationIgnored private let notificationsService: NotificationsServiceProtocol
     @ObservationIgnored private let wrapUpCoordinator: WrapUpCoordinator
+    @ObservationIgnored private(set) lazy var historicalImporter: HistoricalImportCoordinator =
+        HistoricalImportCoordinator(
+            healthService: healthService,
+            modelContext: modelContext,
+            clock: clock
+        )
 
     /// Foreground refreshes that fall within this many seconds of the last
     /// snapshot persistence are skipped. Saves an HK fetch on each rapid
@@ -220,6 +226,45 @@ final class LifeClockStore {
             weeks: recentWeeks,
             now: now
         )
+    }
+
+    // MARK: - Overrides (Pro)
+
+    /// Apply or update a Pro override and trigger a re-render. Returns the
+    /// service's error on failure so the sheet can surface tone-aware copy.
+    func applyOverride(
+        field: SnapshotOverrideMap.Field,
+        value: Double,
+        on dayStart: Date
+    ) throws {
+        let now = clock.now()
+        let service = OverrideService(modelContext: modelContext)
+        try service.applyOverride(field: field, value: value, on: dayStart, recomputedAt: now)
+        // Re-derive yesterday delta + pendingWrapUp in case the override
+        // changed the day in question.
+        if let profile { recomputeYesterdayDelta(profile: profile, now: now) }
+    }
+
+    /// Remove a Pro override and restore the captured original HK value.
+    func revertOverride(
+        field: SnapshotOverrideMap.Field,
+        on dayStart: Date
+    ) throws {
+        let now = clock.now()
+        let service = OverrideService(modelContext: modelContext)
+        try service.revertOverride(field: field, on: dayStart, recomputedAt: now)
+        if let profile { recomputeYesterdayDelta(profile: profile, now: now) }
+    }
+
+    /// Public read accessor used by the day-detail view. Returns nil when
+    /// no snapshot has been persisted for the day yet.
+    func snapshot(for dayStart: Date) -> DailyHealthSnapshot? {
+        fetchSnapshot(for: dayStart)
+    }
+
+    /// Returns the most recent N persisted snapshots for the History list.
+    func recentSnapshots(limit: Int) -> [DailyHealthSnapshot] {
+        fetchRecentSnapshots(limit: limit)
     }
 
     /// Called by the wrap-up sheet on dismiss to advance the lastShown* keys
@@ -573,11 +618,26 @@ final class LifeClockStore {
         recomputedAt: Date
     ) {
         if let existing = fetchSnapshot(for: dayStart) {
-            existing.stepCount = snapshot.stepCount
+            // Override-aware merge: HK refresh writes field-by-field, but
+            // any field with an active user override is left alone. This
+            // prevents the background refresh from silently clobbering
+            // user-applied corrections (e.g. user edited steps to 8000;
+            // HK later returns 0 for the same day → we keep 8000).
+            let overrides = existing.overrideMap
+            if !overrides.presentFields.contains(.stepCount) {
+                existing.stepCount = snapshot.stepCount
+            }
+            if !overrides.presentFields.contains(.sleepHours) {
+                existing.sleepHours = snapshot.sleepHours
+            }
+            if !overrides.presentFields.contains(.exerciseMinutes) {
+                existing.exerciseMinutes = snapshot.exerciseMinutes
+            }
+            if !overrides.presentFields.contains(.activeEnergyKcal) {
+                existing.activeEnergyKcal = snapshot.activeEnergyKcal
+            }
+            // Non-overridable fields always update from HK.
             existing.distanceMeters = snapshot.distanceMeters
-            existing.exerciseMinutes = snapshot.exerciseMinutes
-            existing.activeEnergyKcal = snapshot.activeEnergyKcal
-            existing.sleepHours = snapshot.sleepHours
             existing.sleepConsistencyScore = snapshot.sleepConsistencyScore
             existing.restingHeartRate = snapshot.restingHeartRate
             existing.sourceCompleteness = snapshot.sourceCompleteness

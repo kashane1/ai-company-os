@@ -109,6 +109,27 @@ enum LifeClockSchemaV1: VersionedSchema {
         /// override service, in a future phase). nil for never-persisted rows.
         var lastRecomputedAt: Date? = nil
 
+        // MARK: - Overrides (additive 2026-05-01, Pro override flow)
+        //
+        // Stored as encoded `Data` rather than Swift dictionaries because
+        // SwiftData's representation of `[String: Double]` on `@Model` types
+        // has been inconsistent across iOS minor releases. `Data = Data()`
+        // default keeps lightweight migration safe.
+        //
+        // Decode/encode through `SnapshotOverrideMap` — never touch the raw
+        // bytes from view code.
+
+        /// Encoded `SnapshotOverrideMap` of user-applied corrections. Pro
+        /// only. The engine reads through `effectiveValue(for:)` which
+        /// returns the override when present, else the raw HK field.
+        var overridesData: Data = Data()
+
+        /// Encoded `SnapshotOverrideMap` capturing the HealthKit values at
+        /// the moment each override was first written. Used by Revert to
+        /// restore the original. Write-once-per-field — never overwrite
+        /// when HK later returns updated data.
+        var originalHealthKitValuesData: Data = Data()
+
         init(date: Date) {
             self.date = date
         }

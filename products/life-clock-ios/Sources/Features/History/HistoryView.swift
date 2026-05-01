@@ -1,17 +1,22 @@
 import SwiftUI
 
-/// Replaces `WeeklyReportView` as the long-term home for reflection: shows
-/// the most recent Yesterday Wrap-Up summary card at the top (when a recent
-/// snapshot exists) followed by the existing weekly report content.
+/// Replaces `WeeklyReportView` as the long-term home for reflection.
+/// Layout:
 ///
-/// The richer 90-day archive, day-detail drilldown, override editor, and
-/// Pro/free blur affordances called for in the History plan are deferred
-/// to a follow-up PR; this view ships the minimum surface that makes the
-/// renamed tab coherent on its own.
+/// - Yesterday card (when a persisted snapshot exists)
+/// - This week's net + drivers (free shows net only; Pro sees drivers + lever)
+/// - Daily history list:
+///     * Free: last 7 days unblurred; days 8-90 rendered with real
+///       scaffolding behind a `.ultraThinMaterial` blur with a paywall CTA.
+///     * Pro: full 90-day list, each row tappable → `DayDetailView`.
+///       Triggers a lazy 90-day historical HK import on first visit so
+///       the list isn't empty for new Pro upgrades.
 struct HistoryView: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(SubscriptionStore.self) private var subscriptions
     @State private var paywallPresented: Bool = false
+
+    private static let freeRowLimit = 7
 
     var body: some View {
         NavigationStack {
@@ -19,13 +24,24 @@ struct HistoryView: View {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                     yesterdaySection
                     weeklySection
+                    dailyHistorySection
                 }
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
             }
             .navigationTitle("History")
+            .navigationDestination(for: DayDetailRoute.self) { route in
+                DayDetailView(dayStart: route.dayStart)
+            }
             .sheet(isPresented: $paywallPresented) {
                 PaywallSheet()
+            }
+            .onAppear {
+                // Pro: kick off a one-time 90-day backfill so drilldown
+                // rows aren't empty right after upgrade. Idempotent.
+                if subscriptions.isPro {
+                    store.historicalImporter.startIfNeeded()
+                }
             }
         }
     }
@@ -54,7 +70,7 @@ struct HistoryView: View {
         }
     }
 
-    // MARK: - Weekly card (preserves existing WeeklyReportView semantics)
+    // MARK: - Weekly card (preserves WeeklyReportView semantics)
 
     @ViewBuilder
     private var weeklySection: some View {
@@ -71,6 +87,95 @@ struct HistoryView: View {
                 .foregroundStyle(.secondary)
         }
     }
+
+    // MARK: - Daily history list
+
+    @ViewBuilder
+    private var dailyHistorySection: some View {
+        let snapshots = store.recentSnapshots(limit: HistoricalImportCoordinator.importWindowDays)
+        if !snapshots.isEmpty {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                Text("Past days")
+                    .font(.headline)
+                ForEach(Array(snapshots.enumerated()), id: \.element.date) { (index, snapshot) in
+                    dayRow(snapshot, index: index)
+                }
+                if !subscriptions.isPro && snapshots.count > Self.freeRowLimit {
+                    historyPaywallTeaser
+                }
+                if subscriptions.isPro {
+                    importStatusBanner
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func dayRow(_ snapshot: DailyHealthSnapshot, index: Int) -> some View {
+        let isLocked = !subscriptions.isPro && index >= Self.freeRowLimit
+        let row = DayHistoryRow(
+            snapshot: snapshot,
+            isLocked: isLocked,
+            onTap: {
+                if isLocked {
+                    paywallPresented = true
+                }
+            }
+        )
+        if subscriptions.isPro {
+            NavigationLink(value: DayDetailRoute(dayStart: snapshot.date)) {
+                row
+            }
+            .buttonStyle(.plain)
+        } else {
+            row
+        }
+    }
+
+    @ViewBuilder
+    private var importStatusBanner: some View {
+        switch store.historicalImporter.status {
+        case .importing(let completed, let total):
+            HStack {
+                ProgressView(value: Double(completed), total: Double(total))
+                Text("\(completed)/\(total)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Cancel") { store.historicalImporter.cancel() }
+                    .buttonStyle(.borderless)
+                    .controlSize(.small)
+            }
+            .padding(DesignTokens.Spacing.xs)
+        case .finished, .idle, .cancelled, .failed:
+            EmptyView()
+        }
+    }
+
+    private var historyPaywallTeaser: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+            Text("See the last 90 days")
+                .font(.headline)
+            Text("Pro unlocks the full daily history and lets you adjust HealthKit values that don't reflect what really happened.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Button {
+                paywallPresented = true
+            } label: {
+                Text("See full history")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DesignTokens.Spacing.xs)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(DesignTokens.Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            DesignTokens.Palette.elevated,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+        )
+    }
+
+    // MARK: - Weekly cards
 
     private var paywallTeaser: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
@@ -158,4 +263,72 @@ struct HistoryView: View {
         }
         .font(.callout)
     }
+}
+
+/// Single past-day row. Shows date + summary, blurs values when locked.
+private struct DayHistoryRow: View {
+    let snapshot: DailyHealthSnapshot
+    let isLocked: Bool
+    let onTap: () -> Void
+
+    private var dateLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, MMM d"
+        return formatter.string(from: snapshot.date)
+    }
+
+    private var summary: String {
+        var parts: [String] = []
+        if let steps = snapshot.stepCount { parts.append("\(steps) steps") }
+        if let sleep = snapshot.sleepHours { parts.append(String(format: "%.1fh sleep", sleep)) }
+        if parts.isEmpty { return "No data" }
+        return parts.joined(separator: " · ")
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(dateLabel)
+                        .font(.subheadline)
+                    Text(summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if snapshot.hasOverrides {
+                    Image(systemName: "pencil.circle.fill")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+                if isLocked {
+                    Image(systemName: "lock.fill")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                } else {
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+            }
+            .padding(.vertical, DesignTokens.Spacing.xs)
+            .padding(.horizontal, DesignTokens.Spacing.sm)
+            .background(
+                DesignTokens.Palette.elevated.opacity(0.5),
+                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.sm)
+            )
+        }
+        .buttonStyle(.plain)
+        .blur(radius: isLocked ? 4 : 0)
+        .overlay {
+            if isLocked {
+                RoundedRectangle(cornerRadius: DesignTokens.Radius.sm)
+                    .fill(.ultraThinMaterial.opacity(0.4))
+            }
+        }
+    }
+}
+
+private struct DayDetailRoute: Hashable {
+    let dayStart: Date
 }
