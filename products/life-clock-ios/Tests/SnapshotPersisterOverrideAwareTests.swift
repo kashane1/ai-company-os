@@ -52,27 +52,26 @@ final class SnapshotPersisterOverrideAwareTests: XCTestCase {
         let store = makeStore(hkSteps: 5_000)
         await store.refreshFromHealthKit()
 
-        // 2. User applies an override of 12_000. The override lives in
-        // overridesData; raw stepCount stays at 5000 (the captured HK).
+        // 2. User applies an override of 12_000. OverrideService writes
+        // through to the raw field so the engine (which reads raw) reflects
+        // the correction; original 5_000 is captured for revert.
         try store.applyOverride(field: .stepCount, value: 12_000, on: dayStart)
         let descriptor = FetchDescriptor<DailyHealthSnapshot>()
         let afterOverride = try XCTUnwrap(try context.fetch(descriptor).first)
-        XCTAssertEqual(afterOverride.effectiveValue(for: .stepCount), 12_000,
-                       "Effective value reads through the override")
-        XCTAssertEqual(afterOverride.stepCount, 5_000,
-                       "Raw HK field is captured and unchanged by override")
+        XCTAssertEqual(afterOverride.stepCount, 12_000,
+                       "Override writes through to raw field for engine visibility")
+        XCTAssertEqual(afterOverride.originalHealthKitValue(for: .stepCount), 5_000,
+                       "Original HK value preserved for revert")
 
-        // 3. HK delivers a different value (e.g. 0 — phone left at home).
-        // The override-aware persister must NOT overwrite the raw field,
-        // because the effective view is what users see and the override
-        // is meant to remain authoritative.
-        let fresh = makeStore(hkSteps: 0)
+        // 3. HK delivers a non-nil, non-zero, but DIFFERENT value (e.g.
+        // user took 50 ambient steps detected by the watch after we set
+        // the override). The override-aware persister must NOT overwrite —
+        // the user's correction stays authoritative.
+        let fresh = makeStore(hkSteps: 50)
         await fresh.refreshFromHealthKit(force: true)
         let final = try XCTUnwrap(try context.fetch(descriptor).first)
-        XCTAssertEqual(final.effectiveValue(for: .stepCount), 12_000,
-                       "User's override remains authoritative across HK refresh")
-        XCTAssertEqual(final.stepCount, 5_000,
-                       "Override-aware persister leaves raw stepCount alone (would be 0 without the gate)")
+        XCTAssertEqual(final.stepCount, 12_000,
+                       "Override-aware persister gate keeps user's 12_000 even when HK delivers a different non-nil value")
     }
 
     func testHKRefreshUpdatesNonOverriddenFields() async throws {

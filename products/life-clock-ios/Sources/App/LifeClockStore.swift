@@ -240,9 +240,7 @@ final class LifeClockStore {
         let now = clock.now()
         let service = OverrideService(modelContext: modelContext)
         try service.applyOverride(field: field, value: value, on: dayStart, recomputedAt: now)
-        // Re-derive yesterday delta + pendingWrapUp in case the override
-        // changed the day in question.
-        if let profile { recomputeYesterdayDelta(profile: profile, now: now) }
+        refreshDerivedStateAfterOverride(dayStart: dayStart, now: now)
     }
 
     /// Remove a Pro override and restore the captured original HK value.
@@ -253,7 +251,23 @@ final class LifeClockStore {
         let now = clock.now()
         let service = OverrideService(modelContext: modelContext)
         try service.revertOverride(field: field, on: dayStart, recomputedAt: now)
-        if let profile { recomputeYesterdayDelta(profile: profile, now: now) }
+        refreshDerivedStateAfterOverride(dayStart: dayStart, now: now)
+    }
+
+    /// Re-derive view-bound state after an override change. Skips the
+    /// per-day delta recompute when the edited day isn't yesterday (no
+    /// yesterday card update needed) but always re-asks the coordinator
+    /// in case a wrap-up sheet is currently open and the underlying delta
+    /// should refresh.
+    private func refreshDerivedStateAfterOverride(dayStart: Date, now: Date) {
+        guard let profile else { return }
+        let cal = clock.calendar
+        let today = cal.startOfDay(for: now)
+        if let yesterday = cal.date(byAdding: .day, value: -1, to: today),
+           cal.isDate(dayStart, inSameDayAs: yesterday) {
+            recomputeYesterdayDelta(profile: profile, now: now)
+        }
+        recomputePendingWrapUp(profile: profile, now: now)
     }
 
     /// Public read accessor used by the day-detail view. Returns nil when
@@ -618,28 +632,34 @@ final class LifeClockStore {
         recomputedAt: Date
     ) {
         if let existing = fetchSnapshot(for: dayStart) {
-            // Override-aware merge: HK refresh writes field-by-field, but
-            // any field with an active user override is left alone. This
-            // prevents the background refresh from silently clobbering
-            // user-applied corrections (e.g. user edited steps to 8000;
-            // HK later returns 0 for the same day → we keep 8000).
+            // Override-aware merge: HK refresh writes field-by-field, with
+            // two guards:
+            //   1. overridden fields are skipped entirely (user correction
+            //      stays authoritative)
+            //   2. nil HK values do NOT overwrite a previously-good raw
+            //      value (HK occasionally returns nil for transient reasons
+            //      — query timeouts, sync glitches; we don't want a flaky
+            //      response to nuke yesterday's good data)
             let overrides = existing.overrideMap
-            if !overrides.presentFields.contains(.stepCount) {
-                existing.stepCount = snapshot.stepCount
+            if !overrides.presentFields.contains(.stepCount), let v = snapshot.stepCount {
+                existing.stepCount = v
             }
-            if !overrides.presentFields.contains(.sleepHours) {
-                existing.sleepHours = snapshot.sleepHours
+            if !overrides.presentFields.contains(.sleepHours), let v = snapshot.sleepHours {
+                existing.sleepHours = v
             }
-            if !overrides.presentFields.contains(.exerciseMinutes) {
-                existing.exerciseMinutes = snapshot.exerciseMinutes
+            if !overrides.presentFields.contains(.exerciseMinutes), let v = snapshot.exerciseMinutes {
+                existing.exerciseMinutes = v
             }
-            if !overrides.presentFields.contains(.activeEnergyKcal) {
-                existing.activeEnergyKcal = snapshot.activeEnergyKcal
+            if !overrides.presentFields.contains(.activeEnergyKcal), let v = snapshot.activeEnergyKcal {
+                existing.activeEnergyKcal = v
             }
-            // Non-overridable fields always update from HK.
-            existing.distanceMeters = snapshot.distanceMeters
-            existing.sleepConsistencyScore = snapshot.sleepConsistencyScore
-            existing.restingHeartRate = snapshot.restingHeartRate
+            // Non-overridable fields update from HK only when HK delivered
+            // a value. Same nil-guard reasoning as above.
+            if let v = snapshot.distanceMeters { existing.distanceMeters = v }
+            if let v = snapshot.sleepConsistencyScore { existing.sleepConsistencyScore = v }
+            if let v = snapshot.restingHeartRate { existing.restingHeartRate = v }
+            // sourceCompleteness is non-optional and meaningful even at 0 —
+            // always update so it reflects the most recent fetch attempt.
             existing.sourceCompleteness = snapshot.sourceCompleteness
             existing.lastRecomputedAt = recomputedAt
         } else {

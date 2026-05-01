@@ -43,18 +43,35 @@ struct OverrideService {
         var originals = snapshot.originalHealthKitMap
 
         // Write-once-per-field: capture the raw HK value the first time we
-        // override this field, never on subsequent edits.
-        if originals.value(for: field) == nil,
-           let raw = snapshot.rawValue(for: field) {
-            originals.set(raw, for: field)
+        // override this field, never on subsequent edits. This is what
+        // Revert restores to.
+        if originals.value(for: field) == nil {
+            // Capture nil-as-zero is wrong; use 0 only when HK truly returned 0.
+            // If raw was nil (no HK data ever), record 0 so revert restores
+            // the "no data" state cleanly.
+            originals.set(snapshot.rawValue(for: field) ?? 0, for: field)
         }
         overrides.set(value, for: field)
 
-        let encodedOverrides = overrides.encode()
-        let encodedOriginals = originals.encode()
+        // Encode BEFORE mutating any model state. If encoding throws we
+        // bail out without touching the snapshot — atomicity guarantee.
+        let encodedOverrides: Data
+        let encodedOriginals: Data
+        do {
+            encodedOverrides = try overrides.encode()
+            encodedOriginals = try originals.encode()
+        } catch {
+            throw OverrideError.persistenceFailed
+        }
 
         snapshot.overridesData = encodedOverrides
         snapshot.originalHealthKitValuesData = encodedOriginals
+        // Write the override value through to the raw field so the engine
+        // (which reads `snapshot.stepCount`/`sleepHours`/etc. directly)
+        // produces a score reflecting the correction. The override-aware
+        // persister in `LifeClockStore.persistSnapshot` keeps this value
+        // safe across HK refreshes.
+        assignRawValue(value, for: field, on: snapshot)
         snapshot.lastRecomputedAt = recomputedAt
 
         do {
@@ -83,15 +100,24 @@ struct OverrideService {
 
         // Restore the raw HK field from the captured original, then drop
         // the override + the captured original (override-and-original move
-        // as a unit so subsequent edits start fresh).
+        // as a unit so subsequent edits start fresh and re-capture from the
+        // current raw value).
         if let original = originals.value(for: field) {
             assignRawValue(original, for: field, on: snapshot)
         }
         overrides.clear(field)
         originals.clear(field)
 
-        snapshot.overridesData = overrides.encode()
-        snapshot.originalHealthKitValuesData = originals.encode()
+        let encodedOverrides: Data
+        let encodedOriginals: Data
+        do {
+            encodedOverrides = try overrides.encode()
+            encodedOriginals = try originals.encode()
+        } catch {
+            throw OverrideError.persistenceFailed
+        }
+        snapshot.overridesData = encodedOverrides
+        snapshot.originalHealthKitValuesData = encodedOriginals
         snapshot.lastRecomputedAt = recomputedAt
 
         do {

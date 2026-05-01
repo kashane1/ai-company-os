@@ -42,17 +42,31 @@ struct SnapshotOverrideMap: Codable, Equatable {
 
     /// Decode from a snapshot's `overridesData`. Returns an empty map for
     /// `Data()` (the storage default) so callers don't have to special-case
-    /// "never written" rows.
+    /// "never written" rows. Decode failures of NON-empty data return an
+    /// empty map AND fire an assertion in DEBUG so we hear about corruption
+    /// before it silently destroys overrides on the next write. Production
+    /// behavior remains "fail closed to empty" so a bad row doesn't crash
+    /// the app — but the assertion + the structural defense in
+    /// `OverrideService.applyOverride` (write-through to raw field) means
+    /// the user's most recently visible value survives a corrupt round trip.
     static func decode(from data: Data) -> SnapshotOverrideMap {
         guard !data.isEmpty else { return SnapshotOverrideMap() }
-        return (try? JSONDecoder().decode(SnapshotOverrideMap.self, from: data))
-            ?? SnapshotOverrideMap()
+        do {
+            return try JSONDecoder().decode(SnapshotOverrideMap.self, from: data)
+        } catch {
+            assertionFailure("SnapshotOverrideMap decode failed: \(error). Bytes: \(data.count)")
+            return SnapshotOverrideMap()
+        }
     }
 
     /// Encode for storage. Empty maps encode to `Data()` so writes are
     /// indistinguishable from "never written" — keeps disk usage minimal.
-    func encode() -> Data {
+    /// Throws on JSONEncoder failure (vanishingly unlikely for `[String:
+    /// Double]` but propagated rather than silently swallowed because a
+    /// fall-through to `Data()` here would silently wipe every override on
+    /// the snapshot the next time `OverrideService` writes it back).
+    func encode() throws -> Data {
         guard !isEmpty else { return Data() }
-        return (try? JSONEncoder().encode(self)) ?? Data()
+        return try JSONEncoder().encode(self)
     }
 }

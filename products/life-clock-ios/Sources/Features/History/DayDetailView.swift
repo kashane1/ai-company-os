@@ -14,15 +14,19 @@ struct DayDetailView: View {
     @State private var editingField: SnapshotOverrideMap.Field?
     @State private var revertError: String?
 
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .full
+        f.timeStyle = .none
+        return f
+    }()
+
     private var snapshot: DailyHealthSnapshot? {
         store.snapshot(for: dayStart)
     }
 
     private var dateLabel: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        formatter.timeStyle = .none
-        return formatter.string(from: dayStart)
+        Self.dateFormatter.string(from: dayStart)
     }
 
     var body: some View {
@@ -104,7 +108,7 @@ struct DayDetailView: View {
     }
 
     private var adjustedChip: some View {
-        Label("Adjusted", systemImage: "pencil.circle.fill")
+        Label(store.toneMode.adjustedChipLabel, systemImage: "pencil.circle.fill")
             .font(.caption2)
             .foregroundStyle(.secondary)
             .padding(.horizontal, DesignTokens.Spacing.xs)

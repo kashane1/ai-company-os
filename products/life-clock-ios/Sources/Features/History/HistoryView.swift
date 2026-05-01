@@ -67,7 +67,35 @@ struct HistoryView: View {
                 DesignTokens.Palette.elevated,
                 in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
             )
+        } else if hasOlderSnapshots {
+            // No qualifying yesterday data, but the user does have history
+            // — they were away. Show a supportive "welcome back" card
+            // instead of leaving the top of History blank.
+            longAbsenceCard
         }
+    }
+
+    /// True iff at least one persisted snapshot exists older than yesterday.
+    /// Used to distinguish "first install" (suppress everything) from
+    /// "returning user after an absence" (show the welcome-back card).
+    private var hasOlderSnapshots: Bool {
+        store.recentSnapshots(limit: 3).count >= 2
+    }
+
+    private var longAbsenceCard: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+            Text(store.toneMode.historyLongAbsenceHeading)
+                .font(.headline)
+            Text(store.toneMode.historyLongAbsenceBody)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+        .padding(DesignTokens.Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            DesignTokens.Palette.elevated,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+        )
     }
 
     // MARK: - Weekly card (preserves WeeklyReportView semantics)

@@ -168,4 +168,33 @@ enum ToneMode: String, CaseIterable, Identifiable {
         case .coach: return "Continue"
         }
     }
+
+    /// Label on the chip that appears next to a metric the user has
+    /// corrected. Same word in both modes — "Adjusted" reads as a neutral
+    /// status, not a judgment.
+    var adjustedChipLabel: String {
+        switch self {
+        case .gentle: return "Adjusted"
+        case .coach: return "Adjusted"
+        }
+    }
+
+    /// Card shown in History when the user has been away long enough that
+    /// the wrap-up moment was suppressed. Sits where the Yesterday card
+    /// would be.
+    var historyLongAbsenceHeading: String {
+        switch self {
+        case .gentle: return "Welcome back"
+        case .coach: return "Picking up where you left off"
+        }
+    }
+
+    var historyLongAbsenceBody: String {
+        switch self {
+        case .gentle:
+            return "We didn't have enough data from yesterday for a wrap-up. Today's a fresh start."
+        case .coach:
+            return "Yesterday didn't have enough data to summarize. Make today count."
+        }
+    }
 }

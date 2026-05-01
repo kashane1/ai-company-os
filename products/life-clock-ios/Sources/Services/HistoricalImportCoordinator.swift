@@ -17,6 +17,7 @@ import SwiftData
 /// implementation is correct and idempotent; the optimization is purely
 /// about wall-clock time on the import.
 @MainActor
+@Observable
 final class HistoricalImportCoordinator {
     static let importWindowDays = 90
     static let chunkDays = 7
@@ -31,10 +32,10 @@ final class HistoricalImportCoordinator {
 
     private(set) var status: Status = .idle
 
-    private let healthService: HealthKitServiceProtocol
-    private let modelContext: ModelContext
-    private let clock: EngineClock
-    private var currentTask: Task<Void, Never>?
+    @ObservationIgnored private let healthService: HealthKitServiceProtocol
+    @ObservationIgnored private let modelContext: ModelContext
+    @ObservationIgnored private let clock: EngineClock
+    @ObservationIgnored private var currentTask: Task<Void, Never>?
 
     init(
         healthService: HealthKitServiceProtocol,
@@ -48,6 +49,14 @@ final class HistoricalImportCoordinator {
 
     /// Kicks off the import in the background. No-op if the import is
     /// already running or has finished this session.
+    ///
+    /// Implementation note: `run()` is `@MainActor` because it touches
+    /// `modelContext`. We do NOT wrap in `Task.detached` — the body would
+    /// just hop back to the main actor immediately, defeating the purpose,
+    /// and detached tasks don't inherit cancellation from their parent
+    /// `Task`. A plain `Task { @MainActor in ... }` gives us the
+    /// cancellation propagation we need from `cancel()` calling
+    /// `currentTask?.cancel()`.
     func startIfNeeded() {
         switch status {
         case .idle, .failed, .cancelled:
@@ -55,10 +64,9 @@ final class HistoricalImportCoordinator {
         case .importing, .finished:
             return
         }
-        let task = Task.detached(priority: .background) { [weak self] in
+        currentTask = Task { @MainActor [weak self] in
             await self?.run()
         }
-        currentTask = Task { await task.value }
     }
 
     /// Cancels an in-flight import. Already-imported chunks remain

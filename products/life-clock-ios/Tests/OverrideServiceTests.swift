@@ -127,4 +127,31 @@ final class OverrideServiceTests: XCTestCase {
         XCTAssertEqual(s.effectiveValue(for: .sleepHours), 8.5)
         XCTAssertEqual(s.effectiveValue(for: .exerciseMinutes), 30, "Untouched field falls through to raw HK value")
     }
+
+    // MARK: - Engine effect
+
+    func testApplyOverrideWritesThroughToRawFieldSoEngineSeesIt() throws {
+        // CRITICAL: ClockEngine reads snapshot.stepCount / sleepHours
+        // directly. Applying an override MUST update the raw field in
+        // addition to overridesData, otherwise the score never reflects
+        // user corrections.
+        try service.applyOverride(
+            field: .stepCount, value: 12_000, on: dayStart, recomputedAt: recomputedAt
+        )
+        let s = snapshot()
+        XCTAssertEqual(s.stepCount, 12_000,
+                       "Raw field must mirror override so engine reads see the corrected value")
+        XCTAssertEqual(s.originalHealthKitValue(for: .stepCount), 8_000,
+                       "Original HK value preserved separately for revert")
+    }
+
+    func testRevertRestoresEngineVisibleValue() throws {
+        try service.applyOverride(
+            field: .sleepHours, value: 9.0, on: dayStart, recomputedAt: recomputedAt
+        )
+        XCTAssertEqual(snapshot().sleepHours, 9.0)
+        try service.revertOverride(field: .sleepHours, on: dayStart, recomputedAt: recomputedAt)
+        XCTAssertEqual(snapshot().sleepHours, 7.5,
+                       "Revert restores the raw field to the captured original — engine sees pre-override value again")
+    }
 }
