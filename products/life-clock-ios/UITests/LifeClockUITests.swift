@@ -44,10 +44,11 @@ final class LifeClockUITests: XCTestCase {
         app.buttons["today.checkInCard"].tap()
 
         XCTAssertTrue(app.buttons["checkIn.save"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Update Life Clock"].exists)
         app.buttons["checkIn.save"].tap()
 
-        XCTAssertTrue(app.staticTexts["Check-in saved."].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Your daily check-in is saved."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Life Clock updated."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Your daily signals are in."].waitForExistence(timeout: 5))
 
         app.buttons["Progress"].tap()
         XCTAssertTrue(app.navigationBars["Progress"].waitForExistence(timeout: 5))

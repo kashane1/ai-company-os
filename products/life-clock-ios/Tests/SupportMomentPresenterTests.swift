@@ -31,9 +31,9 @@ final class SupportMomentPresenterTests: XCTestCase {
             strengthLogged: true,
             hadPriorCheckIn: true
         ))
-        XCTAssertEqual(moment.title, "Nice work.")
+        XCTAssertEqual(moment.title, "Life Clock updated.")
         XCTAssertEqual(moment.tone, .celebration)
-        XCTAssertTrue(moment.detail.contains("Your check-in moved today's progress"))
+        XCTAssertTrue(moment.detail.contains("Today's signals moved your Life Clock"))
     }
 
     func testCheckInStrengthOnly() {
@@ -42,8 +42,9 @@ final class SupportMomentPresenterTests: XCTestCase {
             strengthLogged: true,
             hadPriorCheckIn: false
         ))
-        XCTAssertEqual(moment.title, "Strength training logged.")
+        XCTAssertEqual(moment.title, "Life Clock updated.")
         XCTAssertEqual(moment.tone, .celebration)
+        XCTAssertEqual(moment.detail, "Strength is in for today. Small wins compound over time.")
     }
 
     func testCheckInUpdatedAfterPriorButNoDeltaOrStrength() {
@@ -52,8 +53,9 @@ final class SupportMomentPresenterTests: XCTestCase {
             strengthLogged: false,
             hadPriorCheckIn: true
         ))
-        XCTAssertEqual(moment.title, "Check-in updated.")
+        XCTAssertEqual(moment.title, "Life Clock updated.")
         XCTAssertEqual(moment.tone, .calm)
+        XCTAssertEqual(moment.detail, "Your daily signals are in. This is feedback, not failure.")
     }
 
     func testCheckInSavedFirstTime() {
@@ -62,7 +64,8 @@ final class SupportMomentPresenterTests: XCTestCase {
             strengthLogged: false,
             hadPriorCheckIn: false
         ))
-        XCTAssertEqual(moment.title, "Check-in saved.")
+        XCTAssertEqual(moment.title, "Life Clock updated.")
         XCTAssertEqual(moment.tone, .calm)
+        XCTAssertEqual(moment.detail, "Your daily signals are in. This is feedback, not failure.")
     }
 }

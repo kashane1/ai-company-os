@@ -48,7 +48,7 @@ struct TodayView: View {
                 VStack(alignment: .leading) {
                     Text(store.todayHabits == nil ? "Save today's check-in" : "Update today's check-in")
                         .font(.callout.bold())
-                    Text("Food, stress, strength, alcohol, smoking. About 30 seconds.")
+                    Text("Fuel, extras, recovery, strength, nicotine. About 30 seconds.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -100,7 +100,7 @@ struct TodayView: View {
                 .font(.headline)
             Text("\(store.completedPlanCount) of \(store.todayQuests.count) planned actions complete")
                 .font(.callout.bold())
-            Text(store.hasCheckInToday ? "Your daily check-in is saved." : "Add a daily check-in to sharpen today's feedback.")
+            Text(store.hasCheckInToday ? "Your daily signals are in." : "Add a daily check-in to sharpen today's feedback.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

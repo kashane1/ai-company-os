@@ -1,41 +1,59 @@
 import SwiftUI
 
-/// Today-screen quick-log entry. Captures the manual habit signals the
-/// founder pack calls out (alcohol, smoking/vaping, diet quality, stress,
-/// strength training) and feeds them to the engine via
-/// `store.setTodayHabits(_:)`. Coarse on purpose — fast to log.
+enum DailyCheckInMapping {
+    static func extrasLevel(for alcoholLevel: String) -> String {
+        switch alcoholLevel {
+        case "heavy":
+            return "lot"
+        case "light":
+            return "few"
+        default:
+            return "none"
+        }
+    }
+
+    static func alcoholLevel(for extrasLevel: String) -> String {
+        switch extrasLevel {
+        case "one", "few":
+            return "light"
+        case "lot":
+            return "heavy"
+        default:
+            return "none"
+        }
+    }
+}
+
+/// Today-screen daily check-in. Captures a few coarse manual signals and
+/// feeds them to the engine via `store.setTodayHabits(_:)`.
 struct QuickLogSheet: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
-    @State private var alcoholLevel: String = "none"
-    @State private var smokingVaping: Bool = false
     @State private var dietQuality: String = "okay"
+    @State private var extrasLevel: String = "none"
     @State private var stressLevel: String = "medium"
-    @State private var strengthTraining: Bool = false
+    @State private var strengthCompleted: String = "notToday"
+    @State private var nicotineUsed: String = "none"
     @State private var saving: Bool = false
 
     var body: some View {
         NavigationStack {
             Form {
-                if store.isAdultUser {
-                    Section("Alcohol today") {
-                        Picker("Alcohol", selection: $alcoholLevel) {
-                            Text("None").tag("none")
-                            Text("Light").tag("light")
-                            Text("Heavy").tag("heavy")
-                        }
-                        .pickerStyle(.segmented)
-                        .accessibilityIdentifier("quickLog.alcoholLevel")
-                        .accessibilityValue(alcoholLevel)
-                    }
-                    Section("Smoking / vaping today") {
-                        Toggle("Logged today", isOn: $smokingVaping)
-                            .accessibilityIdentifier("quickLog.smokingVaping")
+                Section {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("A few quick signals help your Life Clock stay honest.")
+                            .font(.headline)
+                        Text("No calorie counting. No judgment.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                Section {
-                    Picker("Diet quality today", selection: $dietQuality) {
+                Section("Fuel") {
+                    Text("How did food go today?")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Picker("How did food go today?", selection: $dietQuality) {
                         Text("Great").tag("great")
                         Text("Okay").tag("okay")
                         Text("Rough").tag("rough")
@@ -43,14 +61,29 @@ struct QuickLogSheet: View {
                     .pickerStyle(.segmented)
                     .accessibilityIdentifier("quickLog.dietQuality")
                     .accessibilityValue(dietQuality)
-                    Text("Coarse on purpose. No calorie counting. Diet quality is one of the clearest signals in your daily progress.")
+                }
+                Section("Extras") {
+                    Text("Any treats, drinks, or heavier choices?")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Picker("Any treats, drinks, or heavier choices?", selection: $extrasLevel) {
+                        Text("None").tag("none")
+                        Text("One").tag("one")
+                        Text("A few").tag("few")
+                        Text("A lot").tag("lot")
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("quickLog.alcoholLevel")
+                    .accessibilityValue(extrasLevel)
+                    Text("Examples: dessert, drinks, late snack, or an extra-heavy meal.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                } header: {
-                    Text("How did food go today?")
                 }
-                Section("Stress today") {
-                    Picker("Stress", selection: $stressLevel) {
+                Section("Recovery") {
+                    Text("How stressed did today feel?")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Picker("How stressed did today feel?", selection: $stressLevel) {
                         Text("Low").tag("low")
                         Text("Medium").tag("medium")
                         Text("High").tag("high")
@@ -59,21 +92,43 @@ struct QuickLogSheet: View {
                     .accessibilityIdentifier("quickLog.stressLevel")
                     .accessibilityValue(stressLevel)
                 }
-                Section("Strength training") {
-                    Toggle("Completed today", isOn: $strengthTraining)
-                        .accessibilityIdentifier("quickLog.strengthTraining")
+                Section("Strength") {
+                    Text("Did you train today?")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Picker("Did you train today?", selection: $strengthCompleted) {
+                        Text("Not today").tag("notToday")
+                        Text("Completed").tag("completed")
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("quickLog.strengthTraining")
+                    .accessibilityValue(strengthCompleted)
+                }
+                if store.isAdultUser {
+                    Section("Nicotine") {
+                        Text("Any nicotine today?")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Picker("Any nicotine today?", selection: $nicotineUsed) {
+                            Text("None").tag("none")
+                            Text("Used").tag("used")
+                        }
+                        .pickerStyle(.segmented)
+                        .accessibilityIdentifier("quickLog.smokingVaping")
+                        .accessibilityValue(nicotineUsed)
+                    }
                 }
                 if store.todayHabits != nil {
                     Section {
                         Button(role: .destructive) {
                             clear()
                         } label: {
-                            Text("Clear today's log")
+                            Text("Clear today's check-in")
                                 .frame(maxWidth: .infinity, alignment: .center)
                         }
                         .disabled(saving)
                     } footer: {
-                        Text("Removes today's quick-log entry. Use this if you mis-tapped — your engine result will recompute from HealthKit signals only.")
+                        Text("Removes today's manual signals. Your Life Clock will recompute from HealthKit signals only.")
                     }
                 }
                 Section {
@@ -82,7 +137,7 @@ struct QuickLogSheet: View {
                         .listRowBackground(Color.clear)
                 }
             }
-            .navigationTitle("Daily check-in")
+            .navigationTitle("Daily Check-In")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -92,7 +147,7 @@ struct QuickLogSheet: View {
                     Button {
                         save()
                     } label: {
-                        if saving { ProgressView() } else { Text("Save") }
+                        if saving { ProgressView() } else { Text("Update Life Clock") }
                     }
                     .disabled(saving)
                     .accessibilityIdentifier("checkIn.save")
@@ -105,22 +160,22 @@ struct QuickLogSheet: View {
 
     private func hydrateFromStore() {
         guard let existing = store.todayHabits else { return }
-        alcoholLevel = existing.alcoholLevel
-        smokingVaping = existing.smokingVaping
         dietQuality = existing.dietQuality
+        extrasLevel = DailyCheckInMapping.extrasLevel(for: existing.alcoholLevel)
         stressLevel = existing.stressLevel
-        strengthTraining = existing.strengthTraining
+        strengthCompleted = existing.strengthTraining ? "completed" : "notToday"
+        nicotineUsed = existing.smokingVaping ? "used" : "none"
     }
 
     private func save() {
         saving = true
         Task {
             let habits = HabitLog(date: store.clock.calendar.startOfDay(for: store.clock.now()))
-            habits.alcoholLevel = alcoholLevel
-            habits.smokingVaping = smokingVaping
+            habits.alcoholLevel = DailyCheckInMapping.alcoholLevel(for: extrasLevel)
+            habits.smokingVaping = nicotineUsed == "used"
             habits.dietQuality = dietQuality
             habits.stressLevel = stressLevel
-            habits.strengthTraining = strengthTraining
+            habits.strengthTraining = strengthCompleted == "completed"
             await store.setTodayHabits(habits)
             saving = false
             dismiss()

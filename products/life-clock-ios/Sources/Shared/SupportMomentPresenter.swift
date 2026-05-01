@@ -49,28 +49,28 @@ struct SupportMomentPresenter {
         case let .checkInSaved(delta, strength, hadPrior):
             if delta > 0 {
                 return SupportMoment(
-                    title: "Nice work.",
-                    detail: "Your check-in moved today's progress by \(TimeDeltaFormatter.format(minutes: delta)).",
+                    title: "Life Clock updated.",
+                    detail: "Today's signals moved your Life Clock by \(TimeDeltaFormatter.format(minutes: delta)).",
                     tone: .celebration
                 )
             }
             if strength {
                 return SupportMoment(
-                    title: "Strength training logged.",
-                    detail: "Saved to today's progress log. Small wins compound over time.",
+                    title: "Life Clock updated.",
+                    detail: "Strength is in for today. Small wins compound over time.",
                     tone: .celebration
                 )
             }
             if hadPrior {
                 return SupportMoment(
-                    title: "Check-in updated.",
-                    detail: "You're building a clearer picture of what supports you.",
+                    title: "Life Clock updated.",
+                    detail: "Your daily signals are in. This is feedback, not failure.",
                     tone: .calm
                 )
             }
             return SupportMoment(
-                title: "Check-in saved.",
-                detail: "You're building a clearer picture of what supports you.",
+                title: "Life Clock updated.",
+                detail: "Your daily signals are in. This is feedback, not failure.",
                 tone: .calm
             )
         }

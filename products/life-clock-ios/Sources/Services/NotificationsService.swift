@@ -117,10 +117,10 @@ enum NotificationCopy {
         switch tone {
         case .gentle:
             Body(title: "Two minutes for yourself?",
-                 body: "A quick log captures today. We'll save your spot.")
+                 body: "A quick daily check-in keeps your Life Clock honest.")
         case .coach:
-            Body(title: "Quick log time",
-                 body: "Two taps to capture today. Worth it.")
+            Body(title: "Daily Check-In",
+                 body: "A few quick signals keep your Life Clock honest.")
         }
     }
 }
