@@ -91,7 +91,7 @@ struct PaywallSheet: View {
                 Text(product.displayPrice)
                     .font(.headline.monospacedDigit())
                 Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                    .foregroundStyle(isSelected ? .tint : .secondary)
+                    .foregroundStyle(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
             }
             .padding(DesignTokens.Spacing.md)
             .background(
