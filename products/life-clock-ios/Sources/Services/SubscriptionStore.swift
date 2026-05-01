@@ -10,7 +10,7 @@ import StoreKit
 /// at launch (e.g. after reinstall) aren't lost.
 @MainActor
 @Observable
-final class SubscriptionStore {
+final class SubscriptionStore: EntitlementProviding {
     private(set) var products: [Product] = []
     private(set) var entitledProductIDs: Set<String> = []
     private(set) var purchaseInFlight: Bool = false

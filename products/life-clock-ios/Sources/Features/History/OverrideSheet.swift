@@ -73,6 +73,8 @@ struct OverrideSheet: View {
         do {
             try store.applyOverride(field: field, value: value, on: dayStart)
             onDismiss()
+        } catch OverrideService.OverrideError.notEntitled {
+            errorMessage = store.toneMode.overrideNotEntitledMessage
         } catch OverrideService.OverrideError.invalidValue {
             errorMessage = "Out of range. \(field.bounds)."
         } catch OverrideService.OverrideError.snapshotMissing {

@@ -68,6 +68,16 @@ final class LifeClockStore {
 
     @ObservationIgnored private let healthService: HealthKitServiceProtocol
     @ObservationIgnored let clock: EngineClock
+    /// Optional Pro-entitlement source. When nil (default at construction),
+    /// override write attempts throw `.notEntitled`. `LifeClockApp` injects
+    /// the live `SubscriptionStore` after construction. Tests can inject a
+    /// mock conformance to exercise both Pro and non-Pro paths.
+    ///
+    /// Strong reference (not weak): `EntitlementProviding` conformers are
+    /// owned by their app-level holders (`LifeClockApp` keeps
+    /// `SubscriptionStore` in @State), not by this store. There's no
+    /// retain cycle since the entitlement source has no reference back.
+    @ObservationIgnored var entitlements: (any EntitlementProviding)?
     @ObservationIgnored private let clockEngine: ClockEngine
     @ObservationIgnored private let questEngine: QuestEngine
     @ObservationIgnored private let modelContext: ModelContext
@@ -232,11 +242,16 @@ final class LifeClockStore {
 
     /// Apply or update a Pro override and trigger a re-render. Returns the
     /// service's error on failure so the sheet can surface tone-aware copy.
+    /// Throws `.notEntitled` when the injected entitlement source reports
+    /// `isPro == false` (or when no entitlement source is wired).
     func applyOverride(
         field: SnapshotOverrideMap.Field,
         value: Double,
         on dayStart: Date
     ) throws {
+        guard entitlements?.isPro == true else {
+            throw OverrideService.OverrideError.notEntitled
+        }
         let now = clock.now()
         let service = OverrideService(modelContext: modelContext)
         try service.applyOverride(field: field, value: value, on: dayStart, recomputedAt: now)
@@ -244,10 +259,14 @@ final class LifeClockStore {
     }
 
     /// Remove a Pro override and restore the captured original HK value.
+    /// Throws `.notEntitled` like `applyOverride`.
     func revertOverride(
         field: SnapshotOverrideMap.Field,
         on dayStart: Date
     ) throws {
+        guard entitlements?.isPro == true else {
+            throw OverrideService.OverrideError.notEntitled
+        }
         let now = clock.now()
         let service = OverrideService(modelContext: modelContext)
         try service.revertOverride(field: field, on: dayStart, recomputedAt: now)

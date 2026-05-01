@@ -16,6 +16,11 @@ struct OverrideService {
         case invalidValue
         case persistenceFailed
         case snapshotMissing
+        /// Caller is not Pro-entitled. Surfaced by `LifeClockStore.applyOverride`
+        /// / `revertOverride` BEFORE delegating to the service so the snapshot
+        /// is never touched. Existing overrides remain effective (grace
+        /// period); new ones are refused.
+        case notEntitled
     }
 
     let modelContext: ModelContext

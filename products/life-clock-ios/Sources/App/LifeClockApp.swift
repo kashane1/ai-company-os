@@ -43,6 +43,11 @@ struct LifeClockApp: App {
                 .environment(subscriptions)
                 .tint(store.palette.accent)
                 .task {
+                    // Wire the SubscriptionStore as the entitlement source
+                    // for the Pro override gate. Done here (not in init)
+                    // because @State backing storage isn't accessible from
+                    // init. Weak ref in the store avoids a cycle.
+                    store.entitlements = subscriptions
                     await store.bootstrap()
                     hasBootstrapped = true
                     await subscriptions.loadProducts()
