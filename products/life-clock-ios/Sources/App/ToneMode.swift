@@ -112,4 +112,60 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Your weekly view will appear after a few days of data."
         }
     }
+
+    // MARK: - Wrap-up copy
+
+    var yesterdayWrapUpHeading: String {
+        switch self {
+        case .gentle: return "Yesterday"
+        case .coach: return "Yesterday's wrap-up"
+        }
+    }
+
+    var weeklyWrapUpHeading: String {
+        switch self {
+        case .gentle: return "Last week"
+        case .coach: return "Weekly wrap-up"
+        }
+    }
+
+    /// Body copy shown beneath the clock animation when the day netted
+    /// positive minutes.
+    func wrapUpPositiveBody(minutes: Int) -> String {
+        let formatted = TimeDeltaFormatter.format(minutes: minutes)
+        switch self {
+        case .gentle:
+            return "You moved \(formatted) forward. Small days add up."
+        case .coach:
+            return "\(formatted) gained. Keep stacking days like this."
+        }
+    }
+
+    /// Body copy when the day netted negative minutes — supportive, not
+    /// punitive (per UX_GAME_LOOP.md "every negative delta should be paired
+    /// with an actionable next step or a softer explanation").
+    func wrapUpNegativeBody(minutes: Int) -> String {
+        let formatted = TimeDeltaFormatter.format(minutes: minutes)
+        switch self {
+        case .gentle:
+            return "Yesterday cost \(formatted). Today is a fresh start."
+        case .coach:
+            return "\(formatted) yesterday. One day doesn't define the trend."
+        }
+    }
+
+    /// Body copy when the day netted zero minutes.
+    var wrapUpZeroBody: String {
+        switch self {
+        case .gentle: return "Yesterday held steady. Even floors matter."
+        case .coach: return "Net zero. Holding steady is a real outcome."
+        }
+    }
+
+    var wrapUpDismissCTA: String {
+        switch self {
+        case .gentle: return "Got it"
+        case .coach: return "Continue"
+        }
+    }
 }

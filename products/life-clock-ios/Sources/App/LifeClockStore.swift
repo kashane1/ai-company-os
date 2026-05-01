@@ -29,6 +29,17 @@ final class LifeClockStore {
     var lastHealthAuthError: String?
     var hasTodaySignal: Bool = false
     var dietStreaks: DietStreaks = .zero
+    /// Result of `WrapUpCoordinator.pendingWrapUp(...)` after the most recent
+    /// refresh. Observed by `LifeClockApp` to drive sheet presentation.
+    /// Cleared by `markWrapUpShown(_:)` after the sheet dismisses.
+    var pendingWrapUp: WrapUpCoordinator.PendingWrapUp?
+    /// Signed minute delta for yesterday, when a persisted snapshot exists.
+    /// Drives the History tab's Yesterday card and the wrap-up sheet
+    /// readout. Recomputed during each refresh.
+    var yesterdayDeltaMinutes: Int?
+    /// Signed weekly net for the most recent completed week, when a weekly
+    /// report exists. Drives the weekly wrap-up sheet readout.
+    var lastWeekDeltaMinutes: Int?
     private(set) var supportMoment: SupportMoment?
     private let supportPresenter = SupportMomentPresenter()
 
@@ -62,6 +73,12 @@ final class LifeClockStore {
     @ObservationIgnored private let modelContext: ModelContext
     @ObservationIgnored private let streakCalculator: DietStreakCalculator
     @ObservationIgnored private let notificationsService: NotificationsServiceProtocol
+    @ObservationIgnored private let wrapUpCoordinator: WrapUpCoordinator
+
+    /// Foreground refreshes that fall within this many seconds of the last
+    /// snapshot persistence are skipped. Saves an HK fetch on each rapid
+    /// background→foreground transition (typical user foregrounds 10-30×/day).
+    @ObservationIgnored private static let refreshShortCircuitWindow: TimeInterval = 300
 
     init(
         healthService: HealthKitServiceProtocol,
@@ -76,6 +93,7 @@ final class LifeClockStore {
         self.questEngine = QuestEngine(clock: engineClock)
         self.streakCalculator = DietStreakCalculator(calendar: engineClock.calendar)
         self.notificationsService = notificationsService
+        self.wrapUpCoordinator = WrapUpCoordinator(clock: engineClock)
         self.healthAuthorizationKnown = healthService.authorizationKnown
         self.healthDataAvailable = healthService.isHealthDataAvailable
     }
@@ -106,11 +124,29 @@ final class LifeClockStore {
 
     // MARK: - HealthKit-driven recompute
 
-    func refreshFromHealthKit() async {
+    func refreshFromHealthKit(force: Bool = false) async {
         guard let profile else { return }
         let now = clock.now()
         let dayStart = clock.calendar.startOfDay(for: now)
+
+        // Short-circuit: if today's snapshot was just persisted, skip the HK
+        // round-trip. `force: true` (e.g. on significantTimeChange or pull-to-
+        // refresh) bypasses this.
+        if !force,
+           let existing = fetchSnapshot(for: dayStart),
+           let last = existing.lastRecomputedAt,
+           now.timeIntervalSince(last) < Self.refreshShortCircuitWindow {
+            recomputePendingWrapUp(profile: profile, now: now)
+            return
+        }
+
         let snapshot = await healthService.dailySnapshot(for: now)
+
+        // Persist (or update) today's snapshot row so wrap-ups have a
+        // deterministic source across launches.
+        if let snapshot {
+            persistSnapshot(snapshot, dayStart: dayStart, recomputedAt: now)
+        }
 
         let baseline = clockEngine.calculateBaseline(profile: profile)
         if let snapshot {
@@ -140,6 +176,90 @@ final class LifeClockStore {
         weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: weekHabits, profile: profile)
 
         dietStreaks = streakCalculator.compute(habits: fetchHabitsBack(60), asOf: now)
+        recomputeYesterdayDelta(profile: profile, now: now)
+        lastWeekDeltaMinutes = weekly?.netTimeDeltaMinutes
+        recomputePendingWrapUp(profile: profile, now: now)
+    }
+
+    /// Compute yesterday's signed delta from the persisted snapshot, if one
+    /// exists, by re-running `calculateDailyDelta` against the prior-day
+    /// habit log. Idempotent and cheap.
+    private func recomputeYesterdayDelta(profile: UserProfile, now: Date) {
+        let cal = clock.calendar
+        let today = cal.startOfDay(for: now)
+        guard let yesterday = cal.date(byAdding: .day, value: -1, to: today),
+              let snapshot = fetchSnapshot(for: yesterday) else {
+            yesterdayDeltaMinutes = nil
+            return
+        }
+        let yesterdayHabits = fetchHabits(for: yesterday)
+        let result = clockEngine.calculateDailyDelta(
+            snapshot: snapshot,
+            habits: yesterdayHabits,
+            profile: profile
+        )
+        yesterdayDeltaMinutes = result.deltaMinutes
+    }
+
+    // MARK: - Wrap-up presentation
+
+    /// Maps current persisted state into DTOs and asks the coordinator
+    /// whether a wrap-up should be presented. Idempotent — safe to call on
+    /// every refresh and on every `scenePhase == .active` transition.
+    private func recomputePendingWrapUp(profile: UserProfile, now: Date) {
+        let profileSnapshot = WrapUpCoordinator.ProfileSnapshot(
+            onboardingCompletedAt: profile.onboardingCompletedAt,
+            lastShownYesterdayWrapUpDay: profile.lastShownYesterdayWrapUpDay,
+            lastShownWeeklyWrapUpWeek: profile.lastShownWeeklyWrapUpWeek
+        )
+        let recentSnapshots = fetchRecentSnapshots(limit: 7).map(daySnapshot(from:))
+        let recentWeeks = fetchRecentWeeklyReports(limit: 4).map(weekSnapshot(from:))
+        pendingWrapUp = wrapUpCoordinator.pendingWrapUp(
+            profile: profileSnapshot,
+            snapshots: recentSnapshots,
+            weeks: recentWeeks,
+            now: now
+        )
+    }
+
+    /// Called by the wrap-up sheet on dismiss to advance the lastShown* keys
+    /// and clear the pending state. Caller passes the same `PendingWrapUp`
+    /// they presented so we advance the right key.
+    func markWrapUpShown(_ wrapUp: WrapUpCoordinator.PendingWrapUp) {
+        guard let profile else { return }
+        let now = clock.now()
+        let profileSnapshot = WrapUpCoordinator.ProfileSnapshot(
+            onboardingCompletedAt: profile.onboardingCompletedAt,
+            lastShownYesterdayWrapUpDay: profile.lastShownYesterdayWrapUpDay,
+            lastShownWeeklyWrapUpWeek: profile.lastShownWeeklyWrapUpWeek
+        )
+        let advanced: WrapUpCoordinator.ProfileSnapshot
+        switch wrapUp {
+        case .yesterday:
+            advanced = wrapUpCoordinator.markYesterdayShown(profile: profileSnapshot, now: now)
+        case .weekly(let weekStart):
+            advanced = wrapUpCoordinator.markWeeklyShown(profile: profileSnapshot, weekStart: weekStart)
+        }
+        profile.lastShownYesterdayWrapUpDay = advanced.lastShownYesterdayWrapUpDay
+        profile.lastShownWeeklyWrapUpWeek = advanced.lastShownWeeklyWrapUpWeek
+        try? modelContext.save()
+        pendingWrapUp = nil
+    }
+
+    private func daySnapshot(from snapshot: DailyHealthSnapshot) -> WrapUpCoordinator.DaySnapshot {
+        let hasMinimumData =
+            (snapshot.stepCount ?? 0) > 0
+            || (snapshot.exerciseMinutes ?? 0) > 0
+            || (snapshot.sleepHours ?? 0) > 0
+            || (snapshot.activeEnergyKcal ?? 0) > 0
+        return WrapUpCoordinator.DaySnapshot(
+            date: snapshot.date,
+            hasMinimumData: hasMinimumData
+        )
+    }
+
+    private func weekSnapshot(from report: WeeklyReport) -> WrapUpCoordinator.WeekSnapshot {
+        WrapUpCoordinator.WeekSnapshot(weekStart: report.weekStart)
     }
 
     // MARK: - HealthKit authorization
@@ -418,6 +538,55 @@ final class LifeClockStore {
             predicate: #Predicate { $0.date == dayStart }
         )
         return try? modelContext.fetch(descriptor).first
+    }
+
+    private func fetchSnapshot(for dayStart: Date) -> DailyHealthSnapshot? {
+        let descriptor = FetchDescriptor<DailyHealthSnapshot>(
+            predicate: #Predicate { $0.date == dayStart }
+        )
+        return try? modelContext.fetch(descriptor).first
+    }
+
+    private func fetchRecentSnapshots(limit: Int) -> [DailyHealthSnapshot] {
+        var descriptor = FetchDescriptor<DailyHealthSnapshot>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        descriptor.fetchLimit = limit
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func fetchRecentWeeklyReports(limit: Int) -> [WeeklyReport] {
+        var descriptor = FetchDescriptor<WeeklyReport>(
+            sortBy: [SortDescriptor(\.weekStart, order: .reverse)]
+        )
+        descriptor.fetchLimit = limit
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    /// Upsert today's snapshot. The HK service returns a transient
+    /// `DailyHealthSnapshot` (not yet inserted into a context). If a row
+    /// already exists for `dayStart`, update its fields in place; otherwise
+    /// insert the transient instance after stamping `lastRecomputedAt`.
+    private func persistSnapshot(
+        _ snapshot: DailyHealthSnapshot,
+        dayStart: Date,
+        recomputedAt: Date
+    ) {
+        if let existing = fetchSnapshot(for: dayStart) {
+            existing.stepCount = snapshot.stepCount
+            existing.distanceMeters = snapshot.distanceMeters
+            existing.exerciseMinutes = snapshot.exerciseMinutes
+            existing.activeEnergyKcal = snapshot.activeEnergyKcal
+            existing.sleepHours = snapshot.sleepHours
+            existing.sleepConsistencyScore = snapshot.sleepConsistencyScore
+            existing.restingHeartRate = snapshot.restingHeartRate
+            existing.sourceCompleteness = snapshot.sourceCompleteness
+            existing.lastRecomputedAt = recomputedAt
+        } else {
+            snapshot.lastRecomputedAt = recomputedAt
+            modelContext.insert(snapshot)
+        }
+        try? modelContext.save()
     }
 
     private func fetchHabitsBack(_ days: Int) -> [HabitLog] {

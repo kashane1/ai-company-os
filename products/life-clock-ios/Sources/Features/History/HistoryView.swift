@@ -1,56 +1,77 @@
 import SwiftUI
 
-struct WeeklyReportView: View {
+/// Replaces `WeeklyReportView` as the long-term home for reflection: shows
+/// the most recent Yesterday Wrap-Up summary card at the top (when a recent
+/// snapshot exists) followed by the existing weekly report content.
+///
+/// The richer 90-day archive, day-detail drilldown, override editor, and
+/// Pro/free blur affordances called for in the History plan are deferred
+/// to a follow-up PR; this view ships the minimum surface that makes the
+/// renamed tab coherent on its own.
+struct HistoryView: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(SubscriptionStore.self) private var subscriptions
     @State private var paywallPresented: Bool = false
-
-    // TODO(trend-vs-prior-week): once the user has ≥2 completed weeks of
-    // persisted snapshots, render a "vs last week" delta inside the
-    // netCard. Implementation outline:
-    //   1. Add `LifeClockStore.previousWeekly: WeeklyReport?` populated by
-    //      `clockEngine.calculateWeeklyTrend(snapshots: previous7,
-    //      habits: previous7Habits, profile: profile)` where previous7 is
-    //      `recentSnapshots(endingAt: 7-days-before-now, count: 7)`.
-    //   2. In netCard, if previousWeekly is non-nil, show
-    //      `report.netTimeDeltaMinutes - previousWeekly.netTimeDeltaMinutes`
-    //      formatted via TimeDeltaFormatter as "vs last week" subtitle.
-    //   3. Add a deterministic test that seeds two distinct weeks via
-    //      MockHealthKitService(seed: ...) and asserts the comparison.
-    // Deliberately not implemented yet — needs ≥2 weeks of real data to be
-    // meaningful, and the audit explicitly defers this until TestFlight
-    // beta produces it. Tracked in PHASE_STATUS.md "Gaps still open".
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
-                    if let report = store.weekly {
-                        netCard(report)
-                        if subscriptions.isPro {
-                            driversCard(report)
-                            leverCard(report)
-                        } else {
-                            paywallTeaser
-                        }
-                    } else {
-                        Text(store.toneMode.weeklyEmptyState)
-                            .foregroundStyle(.secondary)
-                    }
+                    yesterdaySection
+                    weeklySection
                 }
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
             }
-            .navigationTitle(store.toneMode.weeklyTitle)
+            .navigationTitle("History")
             .sheet(isPresented: $paywallPresented) {
                 PaywallSheet()
             }
         }
     }
 
-    /// Free users see the net delta — the emotional hook stays free per
-    /// MONETIZATION.md ("clock is the activation hook, weekly report is the
-    /// retention hook"). Drivers + lever sit behind Pro.
+    // MARK: - Yesterday card
+
+    @ViewBuilder
+    private var yesterdaySection: some View {
+        if let yesterdayDelta = store.yesterdayDeltaMinutes {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                Text(store.toneMode.yesterdayWrapUpHeading)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text(TimeDeltaFormatter.format(minutes: yesterdayDelta))
+                    .font(.system(size: 36, weight: .semibold, design: .rounded))
+                    .foregroundStyle(yesterdayDelta >= 0
+                        ? DesignTokens.Palette.positive
+                        : DesignTokens.Palette.negative)
+            }
+            .padding(DesignTokens.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                DesignTokens.Palette.elevated,
+                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+            )
+        }
+    }
+
+    // MARK: - Weekly card (preserves existing WeeklyReportView semantics)
+
+    @ViewBuilder
+    private var weeklySection: some View {
+        if let report = store.weekly {
+            netCard(report)
+            if subscriptions.isPro {
+                driversCard(report)
+                leverCard(report)
+            } else {
+                paywallTeaser
+            }
+        } else {
+            Text(store.toneMode.weeklyEmptyState)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private var paywallTeaser: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             Text("See what shaped this week")
@@ -69,7 +90,10 @@ struct WeeklyReportView: View {
         }
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        .background(
+            DesignTokens.Palette.elevated,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+        )
     }
 
     private func netCard(_ report: WeeklyReport) -> some View {
@@ -77,14 +101,19 @@ struct WeeklyReportView: View {
             Text("Net this week").font(.subheadline).foregroundStyle(.secondary)
             Text(TimeDeltaFormatter.format(minutes: report.netTimeDeltaMinutes))
                 .font(.system(size: 40, weight: .semibold, design: .rounded))
-                .foregroundStyle(report.netTimeDeltaMinutes >= 0 ? DesignTokens.Palette.positive : DesignTokens.Palette.negative)
+                .foregroundStyle(report.netTimeDeltaMinutes >= 0
+                    ? DesignTokens.Palette.positive
+                    : DesignTokens.Palette.negative)
             if let confidence = Confidence(rawValue: report.confidenceRaw) {
                 ConfidenceBadge(confidence: confidence)
             }
         }
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        .background(
+            DesignTokens.Palette.elevated,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+        )
     }
 
     private func driversCard(_ report: WeeklyReport) -> some View {
@@ -96,7 +125,10 @@ struct WeeklyReportView: View {
         }
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        .background(
+            DesignTokens.Palette.elevated,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+        )
     }
 
     private func leverCard(_ report: WeeklyReport) -> some View {
@@ -112,7 +144,10 @@ struct WeeklyReportView: View {
         }
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        .background(
+            DesignTokens.Palette.elevated,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+        )
     }
 
     private func row(label: String, value: String, color: Color) -> some View {
