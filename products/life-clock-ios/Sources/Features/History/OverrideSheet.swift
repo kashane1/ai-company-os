@@ -57,12 +57,7 @@ struct OverrideSheet: View {
 
     private func prefill() {
         guard let currentValue else { return }
-        switch field {
-        case .stepCount, .exerciseMinutes, .activeEnergyKcal:
-            inputText = String(Int(currentValue))
-        case .sleepHours:
-            inputText = String(format: "%.1f", currentValue)
-        }
+        inputText = field.spec.editorFormat(currentValue)
     }
 
     private func save() {
@@ -86,19 +81,9 @@ struct OverrideSheet: View {
 }
 
 private extension SnapshotOverrideMap.Field {
-    var keyboardType: UIKeyboardType {
-        switch self {
-        case .stepCount, .exerciseMinutes, .activeEnergyKcal: return .numberPad
-        case .sleepHours: return .decimalPad
-        }
-    }
-
-    var bounds: String {
-        switch self {
-        case .stepCount: return "0–100,000 steps"
-        case .sleepHours: return "0–24 hours"
-        case .exerciseMinutes: return "0–1,440 minutes"
-        case .activeEnergyKcal: return "0–20,000 kcal"
-        }
-    }
+    // Thin convenience aliases to the field's `Spec` so view code reads
+    // naturally. Spec is the single source of truth — see
+    // `SnapshotOverrideMap.Field.spec` in `SnapshotOverrideMap.swift`.
+    var keyboardType: UIKeyboardType { spec.keyboard }
+    var bounds: String { spec.boundsCopy }
 }
