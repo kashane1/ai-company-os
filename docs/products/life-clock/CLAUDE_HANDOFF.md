@@ -60,8 +60,10 @@ ENGINEERING INVARIANTS
 
 WHAT'S DONE
 - Founder pack ingested into docs/products/life-clock/ (18 files)
-- Six SwiftUI screens: Onboarding, Today, Time Ledger, Quests, Weekly Report,
-  Profile + Quick Log sheet + Paywall sheet + Safety Net sheet
+- Four SwiftUI surfaces: Onboarding, Today, History, Profile + Quick Log
+  sheet + Paywall sheet + Safety Net sheet. Tab bar collapsed from 5 to
+  3 in the 2026-05-01 IA refactor; Time Ledger and Quests folded into
+  Today (drivers card + Today's Plan section).
 - Three tone modes (gentle/coach/memento mori) wired into all primary screens
 - Live HealthKit (HKStatisticsCollectionQuery + sleep HKSampleQuery, honest
   authorization model — never claims "Connected"/"Denied" since reads are

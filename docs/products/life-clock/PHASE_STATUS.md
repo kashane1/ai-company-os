@@ -17,7 +17,7 @@ Founder pack ingested and registered. iOS MVP skeleton scaffolded with determini
 - ✅ Founder pack normalized into platform conventions (18 files in `docs/products/life-clock/`).
 - ✅ Xcode project scaffold (`project.yml` + `Info.plist` + `PrivacyInfo.xcprivacy` + `LifeClock.entitlements`).
 - ✅ Deterministic engines: `ClockEngine`, `QuestEngine`, `ConfidenceModel`, `EngineClock` (Date/Calendar/TimeZone injected — CI grep gates enforce this).
-- ✅ Six SwiftUI screens (Onboarding, Today, Time Ledger, Quests, Weekly Report, Profile) + Quick Log sheet + Paywall sheet.
+- ✅ Four SwiftUI surfaces (Onboarding, Today, History, Profile) + Quick Log sheet + Paywall sheet. As of the 2026-05-01 IA refactor (PR for `feat/life-clock-tab-consolidation`), the Time Ledger and Quests tabs were collapsed into the Today screen — Today now hosts the headline Life Clock, "Why it changed" drivers + interpretation, "Today's Plan" actions, check-ins, and the diet streak banner. History (shipped in PR #18/#19) owns retrospective views.
 - ✅ Three tone modes (gentle / coach / memento mori).
 - ✅ Disclaimer banner on every primary screen; no medical-claim copy (grep-verified).
 - ✅ **Live HealthKit:** `HKHealthStore` queries via `HKStatisticsCollectionQuery` + sleep `HKSampleQuery`, progressive authorization, honest auth model (read denials are silent — we never claim "Connected"/"Denied"), `LIFECLOCK_USE_MOCK_HEALTH=1` env override for dev.
