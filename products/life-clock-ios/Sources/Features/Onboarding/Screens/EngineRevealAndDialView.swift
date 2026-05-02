@@ -33,8 +33,18 @@ struct EngineRevealAndDialView: View {
         engineYears + dialYears
     }
 
+    private var mascotDelta: Int {
+        EngineRevealPresenter.mascotDelta(
+            displayedYears: displayedYears,
+            baselineYears: engineYears
+        )
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
+            LifeClockMascotView(minutesDelta: mascotDelta)
+                .frame(maxWidth: 200, maxHeight: 200)
+                .frame(maxWidth: .infinity, alignment: .center)
             VStack(alignment: .leading, spacing: 8) {
                 Text("Your projected healthspan")
                     .font(.headline)

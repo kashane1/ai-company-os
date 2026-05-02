@@ -30,4 +30,11 @@ enum LifeClockPalette: String, CaseIterable, Identifiable {
             Color(red: 0.85, green: 0.42, blue: 0.20)
         }
     }
+
+    /// Deliberate exception to the orange-not-red invariant above.
+    /// The mascot's ECG heartbeat line is red on every surface — direction
+    /// (gain vs. loss) is conveyed by hand motion, not color. The heartbeat
+    /// is the product's identity mark, not a status indicator. Centralized
+    /// here so reviewers see the rationale before "fixing" the literal.
+    static let heartbeatRed = Color(red: 0.86, green: 0.18, blue: 0.18)
 }

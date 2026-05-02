@@ -25,7 +25,7 @@ struct ColdOpenView: View {
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
-            ClockMascotView(estimate: nil, baseline: nil)
+            LifeClockMascotView(minutesDelta: 0)
                 .frame(width: 180, height: 180)
         }
         .contentShape(Rectangle())
@@ -179,7 +179,7 @@ struct MeetYourClockView: View {
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            ClockMascotView(estimate: nil, baseline: nil)
+            LifeClockMascotView(minutesDelta: 0)
                 .frame(width: 180, height: 180)
             VStack(spacing: 12) {
                 Text("This is your clock.")
@@ -227,27 +227,24 @@ struct ReactiveSliderView: View {
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
     @State private var sliderValue: Double = 0.5
 
-    private var demoYears: Double {
-        // Map slider 0..1 to a sample year band 76..86 around a baseline 81
-        76.0 + (sliderValue * 10.0)
-    }
+    /// Sample year band 76..86 around a baseline 81 — demo only, no engine call.
+    private static let demoBaselineYears: Double = 81.0
+    private var demoYears: Double { 76.0 + (sliderValue * 10.0) }
 
-    private var demoBaseline: LifeClockEstimate {
-        let e = LifeClockEstimate(date: Date())
-        e.projectedAgeYears = 81.0
-        return e
-    }
-
-    private var demoEstimate: LifeClockEstimate {
-        let e = LifeClockEstimate(date: Date())
-        e.projectedAgeYears = demoYears
-        return e
+    /// Slider drives the mascot through the same year→minute mapping the
+    /// engine reveal uses, so the visual feel of the demo matches the
+    /// real reveal moment downstream.
+    private var demoMinutesDelta: Int {
+        EngineRevealPresenter.mascotDelta(
+            displayedYears: demoYears,
+            baselineYears: Self.demoBaselineYears
+        )
     }
 
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            ClockMascotView(estimate: demoEstimate, baseline: demoBaseline)
+            LifeClockMascotView(minutesDelta: demoMinutesDelta)
                 .frame(width: 160, height: 160)
             Text(String(format: "%.0f years", demoYears))
                 .font(.system(size: 56, weight: .semibold, design: .rounded))
