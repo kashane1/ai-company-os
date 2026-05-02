@@ -121,6 +121,9 @@ enum NotificationCopy {
         case .coach:
             Body(title: "Daily Check-In",
                  body: "A few quick signals keep your Life Clock honest.")
+        case .firmDirect:
+            Body(title: "Check in.",
+                 body: "Yesterday is closed. Log it.")
         }
     }
 }
