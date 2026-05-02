@@ -26,6 +26,8 @@ targets:
         NSHealthUpdateUsageDescription: "Life Clock may save optional wellness entries to Apple Health if you choose to enable this later."
     entitlements:
       path: LifeClock.entitlements
+      properties:
+        com.apple.developer.healthkit: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.lifeclock

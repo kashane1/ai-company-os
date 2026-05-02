@@ -97,9 +97,7 @@ struct OnboardingCoordinator: View {
         case .analyzing:
             AnalyzingView(onContinue: { advance(to: .archetypeReveal) })
         case .archetypeReveal:
-            ArchetypeRevealView(onContinue: { advance(to: .concreteThisYear) })
-        case .concreteThisYear:
-            ConcreteThisYearView(onContinue: { advance(to: .lifeGridFull) })
+            ArchetypeRevealView(onContinue: { advance(to: .lifeGridFull) })
         case .lifeGridFull:
             LifeGridFullView(onContinue: { advance(to: .lifeGridRemaining) })
         case .lifeGridRemaining:
@@ -115,7 +113,8 @@ struct OnboardingCoordinator: View {
         case .engineRevealAndDial:
             EngineRevealAndDialView(
                 onConfirm: { dialYears in
-                    store.applyAnchorAdjustment(years: dialYears)
+                    draft.personalAdjustmentYears = dialYears
+                    draft.anchorAdjustedAt = store.clock.now()
                     // Per spec-flow rules: clear the path so the dial
                     // cannot be reached via back-nav after Confirm.
                     path = [.recoveryPreview]
@@ -168,11 +167,14 @@ struct OnboardingCoordinator: View {
     private func completeOnboarding() {
         let profile = draft.materialize()
         profile.onboardingV2CompletedAt = store.clock.now()
-        _ = store.completeOnboarding(
+        let didComplete = store.completeOnboarding(
             profile: profile,
             tone: draft.toneMode ?? .coach,
             disclaimerAccepted: true
         )
+        if didComplete {
+            Task { await store.refreshFromHealthKit(force: true) }
+        }
     }
 }
 

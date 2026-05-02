@@ -29,6 +29,11 @@ final class OnboardingDraft {
     var heightCm: Double?
     var weightKg: Double?
 
+    // MARK: - Healthspan dial
+
+    var personalAdjustmentYears: Double?
+    var anchorAdjustedAt: Date?
+
     // MARK: - Existing lifestyle inputs
 
     var smokingStatus: String?
@@ -135,6 +140,8 @@ final class OnboardingDraft {
         )
         profile.heightCm = heightCm
         profile.weightKg = weightKg
+        profile.personalAdjustmentYears = personalAdjustmentYears
+        profile.anchorAdjustedAt = anchorAdjustedAt
         if let s = smokingStatus { profile.smokingStatus = s }
         if let a = alcoholFrequency { profile.alcoholFrequency = a }
         if let s = strengthFrequencyPerWeek { profile.strengthFrequencyPerWeek = s }

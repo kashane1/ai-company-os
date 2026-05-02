@@ -163,21 +163,6 @@ struct ArchetypeRevealView: View {
     }
 }
 
-// MARK: - Concrete this-year framing
-
-struct ConcreteThisYearView: View {
-    let onContinue: () -> Void
-
-    var body: some View {
-        OnboardingScaffold(
-            screenID: "concreteThisYear",
-            title: "Looks like you'll spend ~121 days on your phone this year.",
-            bodyText: "Average for a US adult, per Pew + Common Sense Media. Yours might be more, might be less. The point: it adds up.",
-            onContinue: onContinue
-        ) { EmptyView() }
-    }
-}
-
 // MARK: - Life grid full
 
 struct LifeGridFullView: View {
@@ -327,7 +312,7 @@ struct RecoveryPreviewView: View {
         let yearsBack = max(0, Int((Double(lostWeeks) / 52.0).rounded()))
         return OnboardingScaffold(
             screenID: "recoveryPreview",
-            title: "\(yearsBack) more years of \(cyclingWords[cyclingIndex])",
+            title: RecoveryPreviewCopy.title(yearsBack: yearsBack, phrase: cyclingWords[cyclingIndex]),
             bodyText: "These are the years your habits could win back.",
             continueLabel: "Continue",
             onContinue: onContinue
@@ -347,5 +332,13 @@ struct RecoveryPreviewView: View {
                 }
             }
         }
+    }
+}
+
+struct RecoveryPreviewCopy {
+    static func title(yearsBack: Int, phrase: String) -> String {
+        let connector = phrase.hasPrefix("with ") || phrase.hasPrefix("at ") ? " " : " of "
+        guard yearsBack > 0 else { return "More years\(connector)\(phrase)" }
+        return "\(yearsBack) more years\(connector)\(phrase)"
     }
 }

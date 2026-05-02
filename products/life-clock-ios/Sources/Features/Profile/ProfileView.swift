@@ -7,6 +7,7 @@ struct ProfileView: View {
     @State private var restoring: Bool = false
     @State private var paywallPresented: Bool = false
     @State private var safetyNetPresented: Bool = false
+    @State private var bodyUnitSystem: BodyMeasurementSystem = .standard
 
     var body: some View {
         NavigationStack {
@@ -43,6 +44,8 @@ struct ProfileView: View {
                 }
 
                 completionBadgesSection
+
+                bodyMetricsSection
 
                 Section {
                     Toggle("Daily reminder", isOn: Binding(
@@ -206,6 +209,109 @@ struct ProfileView: View {
             Spacer()
             Text(status).font(.caption).foregroundStyle(.secondary)
         }
+    }
+
+    @ViewBuilder
+    private var bodyMetricsSection: some View {
+        Section("Height & weight") {
+            Toggle("Include height & weight", isOn: Binding(
+                get: { store.profile?.heightCm != nil && store.profile?.weightKg != nil },
+                set: { enabled in
+                    if enabled {
+                        store.setBodyMetrics(
+                            heightCm: store.profile?.heightCm ?? 170,
+                            weightKg: store.profile?.weightKg ?? 70
+                        )
+                    } else {
+                        store.setBodyMetrics(heightCm: nil, weightKg: nil)
+                    }
+                }
+            ))
+
+            if store.profile?.heightCm != nil && store.profile?.weightKg != nil {
+                Picker("Unit system", selection: $bodyUnitSystem) {
+                    ForEach(BodyMeasurementSystem.allCases) { system in
+                        Text(system.displayName).tag(system)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                switch bodyUnitSystem {
+                case .standard:
+                    Stepper(
+                        "Height: \(profileFeet) ft \(profileInches) in",
+                        value: profileFeetBinding,
+                        in: 3...7
+                    )
+                    Stepper("Inches: \(profileInches)", value: profileInchesBinding, in: 0...11)
+                    Stepper("Weight: \(profilePounds) lb", value: profilePoundsBinding, in: 66...440)
+                case .metric:
+                    Stepper("Height: \(Int(profileHeightCm.rounded())) cm", value: profileHeightCmBinding, in: 120...220)
+                    Stepper("Weight: \(Int(profileWeightKg.rounded())) kg", value: profileWeightKgBinding, in: 30...200)
+                }
+            }
+        }
+    }
+
+    private var profileHeightCm: Double {
+        store.profile?.heightCm ?? 170
+    }
+
+    private var profileWeightKg: Double {
+        store.profile?.weightKg ?? 70
+    }
+
+    private var profileFeet: Int {
+        max(3, min(7, Int((profileHeightCm / 2.54).rounded()) / 12))
+    }
+
+    private var profileInches: Int {
+        max(0, min(11, Int((profileHeightCm / 2.54).rounded()) % 12))
+    }
+
+    private var profilePounds: Int {
+        Int((profileWeightKg * 2.20462).rounded())
+    }
+
+    private var profileHeightCmBinding: Binding<Double> {
+        Binding(
+            get: { profileHeightCm },
+            set: { store.setBodyMetrics(heightCm: $0, weightKg: profileWeightKg) }
+        )
+    }
+
+    private var profileWeightKgBinding: Binding<Double> {
+        Binding(
+            get: { profileWeightKg },
+            set: { store.setBodyMetrics(heightCm: profileHeightCm, weightKg: $0) }
+        )
+    }
+
+    private var profileFeetBinding: Binding<Int> {
+        Binding(
+            get: { profileFeet },
+            set: { newFeet in
+                let nextHeight = Double(newFeet * 12 + profileInches) * 2.54
+                store.setBodyMetrics(heightCm: nextHeight, weightKg: profileWeightKg)
+            }
+        )
+    }
+
+    private var profileInchesBinding: Binding<Int> {
+        Binding(
+            get: { profileInches },
+            set: { newInches in
+                let nextHeight = Double(profileFeet * 12 + newInches) * 2.54
+                store.setBodyMetrics(heightCm: nextHeight, weightKg: profileWeightKg)
+            }
+        )
+    }
+
+    private var profilePoundsBinding: Binding<Int> {
+        Binding(
+            get: { profilePounds },
+            set: { store.setBodyMetrics(heightCm: profileHeightCm, weightKg: Double($0) / 2.20462) }
+        )
     }
 
     @ViewBuilder

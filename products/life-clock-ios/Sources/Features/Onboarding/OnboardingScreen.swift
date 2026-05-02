@@ -45,7 +45,6 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
     // Reveal escalator
     case analyzing
     case archetypeReveal
-    case concreteThisYear
     case lifeGridFull
     case lifeGridRemaining
     case bigNumberPenalty
