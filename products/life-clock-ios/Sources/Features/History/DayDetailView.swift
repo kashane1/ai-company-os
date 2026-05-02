@@ -41,6 +41,8 @@ struct DayDetailView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                reflectionRow
+
                 if let revertError {
                     Text(revertError)
                         .font(.caption)
@@ -59,6 +61,33 @@ struct DayDetailView: View {
                 currentValue: snapshot?.effectiveValue(for: field),
                 onDismiss: { editingField = nil }
             )
+        }
+    }
+
+    /// Read-only readback of the reflection saved on this day, when one
+    /// exists. Reads through `LifeClockStore.reflection(for:)` so the
+    /// view stays consistent with the rest of the app's store-mediated
+    /// data path (no view-direct `@Query`).
+    @ViewBuilder
+    private var reflectionRow: some View {
+        if let reflection = store.reflection(for: dayStart) {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                Text("Reflection")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text(reflection.prompt)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Text(reflection.response)
+                    .font(.callout)
+            }
+            .padding(DesignTokens.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                DesignTokens.Palette.elevated,
+                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+            )
+            .accessibilityIdentifier("dayDetail.reflection")
         }
     }
 

@@ -13,14 +13,14 @@ The founder pack has been translated into a working local-first iOS app. Life Cl
 
 ## Implemented
 
-- ✅ Onboarding, Today, Progress, Plan, Weekly, and Profile are all present.
+- ✅ Tab bar: Onboarding (full reveal flow) → MainTabView with three tabs (Today, History, Profile). The 2026-05-01 IA refactor (PR `feat/life-clock-tab-consolidation`) collapsed the prior Progress and Plan tabs into Today — Today now hosts the headline Life Clock, "Why it changed" drivers + interpretation, "Today's Plan" actions, check-ins, and the diet streak banner. History (PR #18/#19) owns retrospective views.
 - ✅ Live Apple Health reads for steps, exercise minutes, active energy, sleep, resting heart rate, and weight.
-- ✅ SwiftData persistence via `LifeClockSchemaV1` with explicit versioning and no iCloud sync.
+- ✅ SwiftData persistence via `LifeClockSchemaV1` (V1.1.0 after the reveal-onboarding rebuild added 12 optional fields), explicit versioning, no iCloud sync.
 - ✅ Daily Check-In flow with manual diet, extras/alcohol, stress, strength, and nicotine signals.
 - ✅ StoreKit 2 paywall with annual, monthly, and lifetime products plus restore flow.
 - ✅ Safety Net screen with crisis resources and a hide-the-clock option.
 - ✅ Daily reminder scheduling with same-day suppression when the user already checked in.
-- ✅ Two tone modes: `gentle` and `coach`.
+- ✅ Three tone modes: `gentle`, `coach`, and `firmDirect` (the firm/direct register reintroduced in Phase 3.B / commit 589ea81 to support the Brainrot-style onboarding voice carrying into daily use).
 - ✅ Color palette personalization.
 - ✅ Deterministic engine + store + HealthKit + StoreKit test coverage.
 - ✅ **Reveal-onboarding rebuild** (2026-05-01): replaced 7-step onboarding
@@ -82,7 +82,7 @@ The founder pack has been translated into a working local-first iOS app. Life Cl
 - ✅ Brand direction: ship under **"Life Clock: habits earn time"** for now.
 - ✅ Safety posture: the app ships with a calmer tone direction plus a Safety Net path.
 - ✅ Local-first stance: no backend, no account, no HealthKit-derived sync.
-- ✅ Mortality-forward tone mode: removed in the 2026-04-30 UX pass; the product now ships with only `gentle` and `coach`.
+- ✅ Tone modes: the original `mementoMori` was removed in the 2026-04-30 UX pass. A firm/direct register was reintroduced as `firmDirect` in Phase 3.B (2026-05-01) to carry the Brainrot-style onboarding voice into daily use. Three tones now ship: `gentle`, `coach`, `firmDirect`.
 - ✅ Age gate: under-18 users do not see smoking or alcohol prompts.
 
 ## Recommended next steps

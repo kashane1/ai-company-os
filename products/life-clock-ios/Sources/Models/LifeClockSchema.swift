@@ -25,7 +25,13 @@ enum LifeClockSchemaV1: VersionedSchema {
     // defaults (`"right"` / `"unknown"`) to match the existing convention
     // (dietQuality="okay", alcoholLevel="none"). See
     // docs/plans/2026-05-02-feat-life-clock-diet-rhythm-and-copy-pass-plan.md.
-    static var versionIdentifier = Schema.Version(1, 2, 0)
+    //
+    // 1.3.0 (2026-05-02): additive DailyReflection entity (per-day user
+    // reflection captured on the Today screen). Brand-new entity, no
+    // legacy rows; @Attribute(.unique) on dayKey is safe at migration.
+    // See docs/plans/2026-05-01-refactor-life-clock-tab-consolidation-plan.md
+    // Phase 3 + 2026-05-02 review-fix changelog.
+    static var versionIdentifier = Schema.Version(1, 3, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -36,6 +42,7 @@ enum LifeClockSchemaV1: VersionedSchema {
             TimeLedgerEntry.self,
             Quest.self,
             WeeklyReport.self,
+            DailyReflection.self,
         ]
     }
 
@@ -341,6 +348,30 @@ enum LifeClockSchemaV1: VersionedSchema {
             self.weekEnd = weekEnd
         }
     }
+
+    /// User-written daily reflection in response to the rotating prompt
+    /// surfaced on Today. One row per local calendar day, keyed by
+    /// `dayKey` (yyyyMMdd Int) which is timezone-stable — `Date`-based
+    /// startOfDay keys would shift under timezone changes and create
+    /// phantom rows.
+    ///
+    /// `dayKey` is `@Attribute(.unique)` so the database guarantees
+    /// one-row-per-day even if a future code path bypasses the
+    /// `LifeClockStore.saveReflection(...)` upsert. The entity is brand
+    /// new in V1.2.0, so no legacy rows can collide on the unique
+    /// constraint at migration time.
+    @Model
+    final class DailyReflection {
+        @Attribute(.unique) var dayKey: Int = 0
+        var prompt: String = ""
+        var response: String = ""
+
+        init(dayKey: Int, prompt: String, response: String) {
+            self.dayKey = dayKey
+            self.prompt = prompt
+            self.response = response
+        }
+    }
 }
 
 // Production code references the typealiases — never the versioned form.
@@ -352,6 +383,7 @@ typealias LifeClockEstimate = LifeClockSchemaV1.LifeClockEstimate
 typealias TimeLedgerEntry = LifeClockSchemaV1.TimeLedgerEntry
 typealias Quest = LifeClockSchemaV1.Quest
 typealias WeeklyReport = LifeClockSchemaV1.WeeklyReport
+typealias DailyReflection = LifeClockSchemaV1.DailyReflection
 
 enum LifeClockMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {

@@ -60,9 +60,15 @@ ENGINEERING INVARIANTS
 
 WHAT'S DONE
 - Founder pack ingested into docs/products/life-clock/ (18 files)
-- Six SwiftUI screens: Onboarding, Today, Time Ledger, Quests, Weekly Report,
-  Profile + Quick Log sheet + Paywall sheet + Safety Net sheet
-- Two tone modes (gentle/coach) wired through the current product
+- Tab bar: Onboarding (full reveal flow) → MainTabView with three tabs
+  (Today, History, Profile) + Quick Log sheet + Paywall sheet + Safety Net
+  sheet. The 2026-05-01 IA refactor (PR `feat/life-clock-tab-consolidation`)
+  collapsed the prior Progress (TimeLedger) and Plan (Quests) tabs into
+  Today — Today now hosts drivers card + Today's Plan section. History
+  (PR #18/#19) owns retrospective views.
+- Three tone modes (`gentle` / `coach` / `firmDirect`) wired through the
+  current product. `firmDirect` was reintroduced in Phase 3.B (2026-05-01)
+  to support the Brainrot-style onboarding voice carrying into daily use.
 - Live HealthKit (HKStatisticsCollectionQuery + sleep HKSampleQuery, honest
   authorization model — never claims "Connected"/"Denied" since reads are
   silent)
