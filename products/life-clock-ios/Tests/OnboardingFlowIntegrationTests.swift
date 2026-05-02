@@ -5,7 +5,8 @@ import SwiftData
 /// End-to-end integration test for the new reveal-onboarding flow.
 /// Walks an `OnboardingDraft` through every answer the way each
 /// onboarding screen would, then materializes a `UserProfile` and
-/// drives `LifeClockStore.completeOnboarding` + `applyAnchorAdjustment`.
+/// drives `LifeClockStore.completeOnboarding` with the dial value captured in
+/// the draft before a profile exists.
 /// Asserts the full state graph at completion: persisted fields,
 /// dial-gate atomicity, and engine-output sanity.
 ///
@@ -17,9 +18,9 @@ final class OnboardingFlowIntegrationTests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_800_000_000) // 2027-01-15
     private let birthDate = Date(timeIntervalSince1970: 631_152_000)   // 1990-01-01
 
-    // MARK: - Happy path: full draft → materialize → completeOnboarding → dial
+    // MARK: - Happy path: full draft → dial → materialize → completeOnboarding
 
-    func testFullDraftFlowProducesPopulatedProfileAndAppliesDial() async throws {
+    func testFullDraftFlowProducesPopulatedProfileWithDraftDial() async throws {
         let container = try LifeClockContainer.make(inMemory: true)
         let store = LifeClockStore(
             healthService: MockHealthKitService(seed: 17, preAuthorized: true),
@@ -55,10 +56,19 @@ final class OnboardingFlowIntegrationTests: XCTestCase {
         // Tone + meta
         draft.toneMode = .gentle
         draft.priorAttempts = .triedDidntStick
+        draft.personalAdjustmentYears = -2.5
+        draft.anchorAdjustedAt = fixedDate
 
         // Reactive estimate must populate after baseline known.
         draft.recomputeEstimate(using: ClockEngine(clock: .fixed(fixedDate)))
         XCTAssertNotNil(draft.runningEstimate, "running estimate must be live after baseline answers")
+
+        let preAdjustProfile = draft.materialize()
+        preAdjustProfile.personalAdjustmentYears = nil
+        preAdjustProfile.anchorAdjustedAt = nil
+        let preAdjustEstimate = ClockEngine(clock: .fixed(fixedDate))
+            .calculateBaseline(profile: preAdjustProfile)
+            .projectedAgeYears
 
         // ----- Materialize + complete onboarding -----
         let profile = draft.materialize()
@@ -89,25 +99,16 @@ final class OnboardingFlowIntegrationTests: XCTestCase {
         XCTAssertEqual(stored.primaryGoal, "moreEnergy")
         XCTAssertEqual(stored.toneMode, "gentle")
         XCTAssertEqual(stored.onboardingV2CompletedAt, fixedDate)
-        XCTAssertNil(stored.personalAdjustmentYears, "dial not yet applied")
-        XCTAssertNil(stored.anchorAdjustedAt, "dial not yet applied")
+        XCTAssertEqual(stored.personalAdjustmentYears, -2.5)
+        XCTAssertEqual(stored.anchorAdjustedAt, fixedDate)
 
-        // ----- Apply the dial -----
-        let preAdjustEstimate = ClockEngine(clock: .fixed(fixedDate))
+        // Engine baseline must reflect the draft-captured dial.
+        let postAdjustEstimate = ClockEngine(clock: .fixed(fixedDate))
             .calculateBaseline(profile: stored)
             .projectedAgeYears
-        store.applyAnchorAdjustment(years: 2.5)
-
-        let adjusted = try XCTUnwrap(store.profile)
-        XCTAssertEqual(adjusted.personalAdjustmentYears, 2.5)
-        XCTAssertNotNil(adjusted.anchorAdjustedAt)
-        XCTAssertEqual(adjusted.anchorAdjustedAt, fixedDate)
-
-        // Engine baseline must reflect the +2.5 yr dial.
-        let postAdjustEstimate = ClockEngine(clock: .fixed(fixedDate))
-            .calculateBaseline(profile: adjusted)
-            .projectedAgeYears
-        XCTAssertEqual(postAdjustEstimate - preAdjustEstimate, 2.5, accuracy: 0.0001)
+        XCTAssertEqual(postAdjustEstimate - preAdjustEstimate, -2.5, accuracy: 0.0001)
+        let todayEstimate = try XCTUnwrap(store.todayEstimate)
+        XCTAssertEqual(todayEstimate.projectedAgeYears, postAdjustEstimate, accuracy: 0.0001)
     }
 
     // MARK: - Sensitive-skip path

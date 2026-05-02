@@ -91,6 +91,8 @@ final class OnboardingDraftTests: XCTestCase {
         draft.lonelinessScore = 4
         draft.primaryGoal = .moreEnergy
         draft.toneMode = .gentle
+        draft.personalAdjustmentYears = -2.25
+        draft.anchorAdjustedAt = fixedDate
 
         let profile = draft.materialize()
 
@@ -111,6 +113,19 @@ final class OnboardingDraftTests: XCTestCase {
         XCTAssertEqual(profile.lonelinessScore, 4)
         XCTAssertEqual(profile.primaryGoal, "moreEnergy")
         XCTAssertEqual(profile.toneMode, "gentle")
+        XCTAssertEqual(profile.personalAdjustmentYears, -2.25)
+        XCTAssertEqual(profile.anchorAdjustedAt, fixedDate)
+    }
+
+    func testMaterialize_LeavesDialGateNilUntilUserConfirmsDial() {
+        let draft = OnboardingDraft()
+        draft.birthDate = birthDate
+        draft.biologicalSex = "female"
+
+        let profile = draft.materialize()
+
+        XCTAssertNil(profile.personalAdjustmentYears)
+        XCTAssertNil(profile.anchorAdjustedAt)
     }
 
     func testMaterialize_DefaultsWhenDraftEmpty() {
@@ -151,5 +166,16 @@ final class OnboardingDraftTests: XCTestCase {
             XCTAssertFalse(archetype.displayName.isEmpty)
             XCTAssertFalse(archetype.description.isEmpty)
         }
+    }
+
+    func testRecoveryPreviewCopy_DoesNotShowZeroMoreYears() {
+        XCTAssertEqual(
+            RecoveryPreviewCopy.title(yearsBack: 0, phrase: "at the dinner table"),
+            "More years at the dinner table"
+        )
+        XCTAssertEqual(
+            RecoveryPreviewCopy.title(yearsBack: 3, phrase: "with your kids"),
+            "3 more years with your kids"
+        )
     }
 }

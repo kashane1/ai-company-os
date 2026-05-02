@@ -114,6 +114,21 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertLessThanOrEqual(store.todayQuests.count, 3)
     }
 
+    func testSetBodyMetricsPersistsCanonicalMetricValues() async throws {
+        let store = try makeStore()
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+
+        store.setBodyMetrics(heightCm: 180.34, weightKg: 81.65)
+
+        XCTAssertEqual(store.profile?.heightCm, 180.34)
+        XCTAssertEqual(store.profile?.weightKg, 81.65)
+
+        store.setBodyMetrics(heightCm: nil, weightKg: nil)
+        XCTAssertNil(store.profile?.heightCm)
+        XCTAssertNil(store.profile?.weightKg)
+    }
+
     func testColdRestartLoadsPersistedProfile() async throws {
         let container = try LifeClockContainer.make(inMemory: true)
         let context = container.mainContext

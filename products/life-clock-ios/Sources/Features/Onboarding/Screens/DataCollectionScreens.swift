@@ -245,6 +245,7 @@ struct BodyCompView: View {
     @Environment(OnboardingDraft.self) private var draft
     @State private var heightCm: Double = 170
     @State private var weightKg: Double = 70
+    @State private var unitSystem: BodyMeasurementSystem = .standard
     @State private var enabled: Bool = false
 
     var body: some View {
@@ -264,13 +265,95 @@ struct BodyCompView: View {
         ) {
             Toggle("Include", isOn: $enabled)
             if enabled {
-                Stepper(value: $heightCm, in: 120...220, step: 1) {
-                    Text("Height: \(Int(heightCm)) cm")
+                Picker("Unit system", selection: $unitSystem) {
+                    ForEach(BodyMeasurementSystem.allCases) { system in
+                        Text(system.displayName).tag(system)
+                    }
                 }
-                Stepper(value: $weightKg, in: 30...200, step: 1) {
-                    Text("Weight: \(Int(weightKg)) kg")
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("onboarding.bodyComp.unitSystem")
+
+                switch unitSystem {
+                case .standard:
+                    Stepper(
+                        "Height: \(standardHeightText)",
+                        value: standardFeetBinding,
+                        in: 3...7
+                    )
+                    Stepper(
+                        "Inches: \(standardInchesBinding.wrappedValue)",
+                        value: standardInchesBinding,
+                        in: 0...11
+                    )
+                    Stepper(
+                        "Weight: \(standardWeightPounds) lb",
+                        value: standardWeightBinding,
+                        in: 66...440
+                    )
+                case .metric:
+                    Stepper(value: $heightCm, in: 120...220, step: 1) {
+                        Text("Height: \(Int(heightCm.rounded())) cm")
+                    }
+                    Stepper(value: $weightKg, in: 30...200, step: 1) {
+                        Text("Weight: \(Int(weightKg.rounded())) kg")
+                    }
                 }
             }
+        }
+    }
+
+    private var standardHeightText: String {
+        "\(standardFeetBinding.wrappedValue) ft \(standardInchesBinding.wrappedValue) in"
+    }
+
+    private var standardWeightPounds: Int {
+        Int((weightKg * 2.20462).rounded())
+    }
+
+    private var standardFeetBinding: Binding<Int> {
+        Binding(
+            get: {
+                let totalInches = Int((heightCm / 2.54).rounded())
+                return max(3, min(7, totalInches / 12))
+            },
+            set: { newFeet in
+                let inches = standardInchesBinding.wrappedValue
+                heightCm = Double(newFeet * 12 + inches) * 2.54
+            }
+        )
+    }
+
+    private var standardInchesBinding: Binding<Int> {
+        Binding(
+            get: {
+                let totalInches = Int((heightCm / 2.54).rounded())
+                return max(0, min(11, totalInches % 12))
+            },
+            set: { newInches in
+                let feet = standardFeetBinding.wrappedValue
+                heightCm = Double(feet * 12 + newInches) * 2.54
+            }
+        )
+    }
+
+    private var standardWeightBinding: Binding<Int> {
+        Binding(
+            get: { standardWeightPounds },
+            set: { weightKg = Double($0) / 2.20462 }
+        )
+    }
+}
+
+enum BodyMeasurementSystem: String, CaseIterable, Identifiable {
+    case standard
+    case metric
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .standard: return "Standard"
+        case .metric: return "Metric"
         }
     }
 }
@@ -606,9 +689,6 @@ struct StressView: View {
                         .accessibilityIdentifier("onboarding.stress.slider")
                     Text("Stretched").font(.caption2).foregroundStyle(.secondary)
                 }
-                Text(String(format: "PSS-10 score: %d", Int(score.rounded())))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
             }
         }
     }
@@ -726,6 +806,7 @@ struct HealthKitAuthView: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
     @State private var hasRequested = false
+    @State private var isRequesting = false
 
     var body: some View {
         OnboardingScaffold(
@@ -736,8 +817,10 @@ struct HealthKitAuthView: View {
             onContinue: {
                 if !hasRequested {
                     Task {
+                        isRequesting = true
                         await store.requestHealthAuthorization()
-                        hasRequested = true
+                        isRequesting = false
+                        hasRequested = store.lastHealthAuthError == nil || store.healthAuthorizationKnown
                     }
                 } else {
                     telemetry.value.screenAdvanced("healthKitAuth", durationMs: 0)
@@ -745,7 +828,16 @@ struct HealthKitAuthView: View {
                 }
             }
         ) {
-            EmptyView()
+            VStack(alignment: .leading, spacing: 12) {
+                if isRequesting {
+                    ProgressView()
+                }
+                if let error = store.lastHealthAuthError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
         }
     }
 }

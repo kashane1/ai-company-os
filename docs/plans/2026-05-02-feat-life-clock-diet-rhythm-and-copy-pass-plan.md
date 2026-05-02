@@ -1,8 +1,9 @@
 ---
 title: Life Clock — diet rhythm axis, whole-food anchor, life-impact framing, tone copy pass
 type: feat
-status: active
+status: shipped
 date: 2026-05-02
+shipped_pr: https://github.com/kashane1/ai-company-os/pull/21
 origin: ChatGPT brainstorm audit, 2026-05-01 — items A–D salvaged from a near-empty-context brainstorm against the actual reveal-onboarding shipped state. The brainstorm's larger restructure (drop HealthKit, retarget 17–25, two-plan paywall, 15-screen onboarding) was rejected as contradicting recent shipped decisions; this plan only carries the four scoped changes that survived audit.
 related:
   - docs/products/life-clock/PHASE_STATUS.md
