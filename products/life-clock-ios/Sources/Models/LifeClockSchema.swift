@@ -19,7 +19,19 @@ enum LifeClockSchemaV1: VersionedSchema {
     // migration applies on existing V1 stores. See
     // docs/plans/2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md
     // Phase 1a for the rationale.
-    static var versionIdentifier = Schema.Version(1, 2, 0)
+    //
+    // 1.2.0 (2026-05-02): additive HabitLog fields for the diet rhythm axis
+    // and whole-food anchor. Both non-optional with meaningful neutral
+    // defaults (`"right"` / `"unknown"`) to match the existing convention
+    // (dietQuality="okay", alcoholLevel="none"). See
+    // docs/plans/2026-05-02-feat-life-clock-diet-rhythm-and-copy-pass-plan.md.
+    //
+    // 1.3.0 (2026-05-02): additive DailyReflection entity (per-day user
+    // reflection captured on the Today screen). Brand-new entity, no
+    // legacy rows; @Attribute(.unique) on dayKey is safe at migration.
+    // See docs/plans/2026-05-01-refactor-life-clock-tab-consolidation-plan.md
+    // Phase 3 + 2026-05-02 review-fix changelog.
+    static var versionIdentifier = Schema.Version(1, 3, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -206,6 +218,21 @@ enum LifeClockSchemaV1: VersionedSchema {
         var stressLevel: String = "medium"
         var strengthTraining: Bool = false
         var notes: String = ""
+
+        // MARK: - Diet rhythm axis (additive 2026-05-02, V1.2.0)
+        //
+        // Property-level defaults are mandatory (NSCocoaErrorDomain 134110
+        // landmine). Defaults match the existing meaningful-neutral
+        // convention: `"right"` is the engine's zero-delta case for
+        // rhythm; `"unknown"` is the same neutral token QuestEngine
+        // already uses for unset diet. Engine treats both defaults as
+        // zero contribution.
+
+        /// "right" | "overate" | "undereate" | "skipBinge" | "irregular"
+        var dietAmountRhythm: String = "right"
+
+        /// "yes" | "almost" | "no" | "unknown"
+        var wholeFoodMeal: String = "unknown"
 
         init(date: Date) {
             self.date = date

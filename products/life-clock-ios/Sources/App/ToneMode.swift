@@ -256,6 +256,23 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// "Patterns, not perfection" line shown on Today when the user logged
+    /// a rough day driven by diet signals (V1.2.0 diet rhythm pass).
+    /// Method name follows the existing <surface><Aspect> convention
+    /// (compare: wrapUpPositiveBody, wrapUpNegativeBody, todayInterpretation).
+    /// The trigger lives in the caller (`RescueLine` view); this method is
+    /// unconditional once invoked.
+    func todayRescueBody() -> String {
+        switch self {
+        case .gentle:
+            return "Rough day? Log it and move on. Tomorrow still counts."
+        case .coach:
+            return "You don't need a perfect diet. You need a repeatable one."
+        case .firmDirect:
+            return "Your Life Clock responds to patterns, not perfection."
+        }
+    }
+
     /// Inline error message in `OverrideSheet` when the user attempts an
     /// override without Pro entitlement. Doubles as the downgrade notice —
     /// surfaces at the moment of friction rather than as a separate banner.

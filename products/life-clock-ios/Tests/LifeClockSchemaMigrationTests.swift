@@ -126,4 +126,92 @@ final class LifeClockSchemaMigrationTests: XCTestCase {
             accuracy: 0.001
         )
     }
+
+    // MARK: - V1.2.0 HabitLog rhythm + anchor
+
+    /// New `HabitLog.dietAmountRhythm` and `wholeFoodMeal` must default to
+    /// the V1.2.0 meaningful-neutral values (`"right"` / `"unknown"`) when
+    /// a fresh row is created. Engine treats both as zero contribution.
+    func testHabitLogDietRhythmFieldsDefaultToNeutral() throws {
+        let log = HabitLog(date: Date(timeIntervalSince1970: 0))
+        XCTAssertEqual(log.dietAmountRhythm, "right")
+        XCTAssertEqual(log.wholeFoodMeal, "unknown")
+    }
+
+    /// Round-trip the new HabitLog fields through a real on-disk store.
+    /// Catches regressions where someone removes the property-level
+    /// default (NSCocoaErrorDomain 134110 landmine).
+    func testHabitLogDietRhythmFieldsRoundTripThroughFileBackedStore() throws {
+        let storeURL = URL.temporaryDirectory
+            .appendingPathComponent("lifeclock-habit-rhythm-\(UUID()).store")
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storeURL)
+        }
+
+        let schema = Schema(versionedSchema: LifeClockSchemaV1.self)
+        let config = ModelConfiguration(
+            "LifeClockHabitRhythmTest",
+            schema: schema,
+            url: storeURL,
+            allowsSave: true,
+            cloudKitDatabase: .none
+        )
+
+        let writeContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let writeContext = ModelContext(writeContainer)
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+        let log = HabitLog(date: day)
+        log.dietQuality = "rough"
+        log.dietAmountRhythm = "skipBinge"
+        log.wholeFoodMeal = "no"
+        writeContext.insert(log)
+        try writeContext.save()
+
+        let readContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let readContext = ModelContext(readContainer)
+        let fetched = try XCTUnwrap(
+            try readContext.fetch(FetchDescriptor<HabitLog>()).first
+        )
+
+        XCTAssertEqual(fetched.dietQuality, "rough")
+        XCTAssertEqual(fetched.dietAmountRhythm, "skipBinge")
+        XCTAssertEqual(fetched.wholeFoodMeal, "no")
+        XCTAssertEqual(fetched.alcoholLevel, "none", "Sibling fields must round-trip with their original defaults")
+        XCTAssertEqual(fetched.stressLevel, "medium")
+        XCTAssertFalse(fetched.smokingVaping)
+        XCTAssertFalse(fetched.strengthTraining)
+    }
+
+    /// Sibling-field preservation: writing a HabitLog with the new fields
+    /// set must NOT silently reset other HabitLog fields. Catches a class
+    /// of regression where the migration / upsert path drops untouched
+    /// columns.
+    func testHabitLogSiblingFieldsRoundTripUnchanged() throws {
+        let log = HabitLog(date: Date(timeIntervalSince1970: 0))
+        log.alcoholLevel = "heavy"
+        log.smokingVaping = true
+        log.dietQuality = "great"
+        log.stressLevel = "low"
+        log.strengthTraining = true
+        log.notes = "round-trip"
+        log.dietAmountRhythm = "right"
+        log.wholeFoodMeal = "yes"
+
+        XCTAssertEqual(log.alcoholLevel, "heavy")
+        XCTAssertTrue(log.smokingVaping)
+        XCTAssertEqual(log.dietQuality, "great")
+        XCTAssertEqual(log.stressLevel, "low")
+        XCTAssertTrue(log.strengthTraining)
+        XCTAssertEqual(log.notes, "round-trip")
+        XCTAssertEqual(log.dietAmountRhythm, "right")
+        XCTAssertEqual(log.wholeFoodMeal, "yes")
+    }
 }

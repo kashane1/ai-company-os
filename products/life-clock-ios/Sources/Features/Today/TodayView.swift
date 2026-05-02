@@ -16,6 +16,7 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                     headline
                     clockCard
+                    rescueLine
                     if let moment = store.supportMoment {
                         supportMomentCard(moment)
                     }
@@ -24,6 +25,7 @@ struct TodayView: View {
                     ReflectionCard(onTap: { reflectionPresented = true })
                     quickLogCard
                     dietStreakBanner
+                    DisclaimerBanner()
                 }
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
@@ -92,6 +94,10 @@ struct TodayView: View {
                     Text(TimeDeltaFormatter.format(minutes: delta))
                         .font(.system(size: 44, weight: .semibold, design: .rounded))
                         .foregroundStyle(delta >= 0 ? DesignTokens.Palette.positive : DesignTokens.Palette.negative)
+                    Text(LifeClockConfiguration.lifespanShortDisclaimer)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("today.lifespanShortDisclaimer")
                     if let confidence = Confidence(rawValue: estimate.confidenceRaw) {
                         ConfidenceBadge(confidence: confidence)
                     }
@@ -101,6 +107,22 @@ struct TodayView: View {
             }
         }
         .accessibilityIdentifier("today.headline")
+    }
+
+    /// Tone-modulated "patterns, not perfection" line. Renders only when
+    /// today netted negative AND a diet signal (`rough` quality, `skipBinge`
+    /// rhythm, or `no` whole-food anchor) was logged. Equatable inputs let
+    /// SwiftUI skip body re-evaluation when unchanged. Returns `EmptyView`
+    /// when the predicate is false.
+    private var rescueLine: some View {
+        let delta = store.todayEstimate?.dailyTimeDeltaMinutes ?? 0
+        return RescueLine(
+            netDelta: delta,
+            dietQuality: store.todayHabits?.dietQuality ?? "",
+            rhythm: store.todayHabits?.dietAmountRhythm ?? "",
+            anchor: store.todayHabits?.wholeFoodMeal ?? "",
+            tone: store.toneMode
+        )
     }
 
     private func supportMomentCard(_ moment: SupportMoment) -> some View {
@@ -236,6 +258,36 @@ struct TodayView: View {
             return "Your meals supported today's progress."
         }
         return "A rough food day is feedback, not failure. One better meal can help tomorrow feel steadier."
+    }
+
+    /// Equatable so SwiftUI's diffing can skip body re-eval when inputs
+    /// unchanged. Inputs are primitives — no SwiftData entities — matching
+    /// the `ToneMode` Foundation-only convention.
+    struct RescueLine: View, Equatable {
+        let netDelta: Int
+        let dietQuality: String
+        let rhythm: String
+        let anchor: String
+        let tone: ToneMode
+
+        var shouldShow: Bool {
+            netDelta < 0 &&
+                (dietQuality.lowercased() == "rough"
+                    || rhythm.lowercased() == "skipbinge"
+                    || anchor.lowercased() == "no")
+        }
+
+        var body: some View {
+            if shouldShow {
+                Text(tone.todayRescueBody())
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("today.rescueLine")
+            } else {
+                EmptyView()
+            }
+        }
     }
 
     private var questsCard: some View {

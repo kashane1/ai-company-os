@@ -44,6 +44,8 @@ Inputs:
 - sleep duration and consistency
 - strength training
 - diet quality
+- diet amount rhythm (V1.2.0)
+- whole-food anchor (V1.2.0)
 - alcohol
 - smoking/vaping
 - stress/mindfulness
@@ -67,6 +69,30 @@ These examples are product-tuning placeholders, not clinical claims:
 - Sleep within target range: +10 to +25 minutes
 - Strength training completed: +20 to +40 minutes
 - Heavy alcohol day: negative delta
+
+### Diet composite (V1.2.0)
+
+The daily diet driver composes three self-reported signals into one
+ledger entry. Conservative additive coefficients keep the composite
+range bounded; quality sets the dominant sign.
+
+- Quality (`great` / `okay` / `rough`): +12 / 0 / -10
+- Amount rhythm (`right` / `overate` / `undereate` / `skipBinge` / `irregular`): 0 / -3 / -3 / -5 / -2
+- Whole-food anchor (`yes` / `almost` / `no` / `unknown`): +3 / +1 / 0 / 0
+
+Composition: pure additive. No clamps. Range bounded at -15..+15. Defaults
+(`okay` / `right` / `unknown`) all contribute zero, so a row that exists
+without explicit user input produces no ledger noise.
+
+Confidence: when only rhythm or anchor contribute (no quality answer
+beyond the default), the entry is emitted at `low` confidence rather than
+`medium` — preserves the confidence-by-evidence invariant.
+
+Schema versioning: V1.0 → V1.1 → V1.2 are all in-place `versionIdentifier`
+bumps on a single `LifeClockSchemaV1` enum with `MigrationStage.stages =
+[]`. Pragmatic for purely-additive lightweight migrations; the next
+non-additive change (rename / custom transform) will force a real
+`SchemaV2` split per WWDC25 Session 291 guidance.
 - Smoking logged: negative delta
 - Very sedentary day: negative delta
 - Missing data: lower confidence, not automatic penalty

@@ -157,4 +157,90 @@ final class ClockEngineTests: XCTestCase {
             "Heavy-smoking + heavy-alcohol + poor-diet habits must lower the weekly net vs. no habits"
         )
     }
+
+    // MARK: - Diet rhythm composite (V1.2.0)
+
+    /// With only `dietQuality` set and the new fields at their V1.2.0
+    /// defaults (`right` / `unknown`), the diet driver must equal the
+    /// pre-V1.2.0 single-axis behavior. Regression guard for existing
+    /// user flows.
+    func testDietLegacyBehaviorWhenOnlyQualitySet() {
+        let engine = makeEngine()
+        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
+        let snapshot = DailyHealthSnapshot(date: fixedDate)
+
+        let great = HabitLog(date: fixedDate)
+        great.dietQuality = "great"
+        let greatResult = engine.calculateDailyDelta(snapshot: snapshot, habits: great, profile: profile)
+        let greatDriver = greatResult.drivers.first { $0.driverType == "diet" }
+        XCTAssertEqual(greatDriver?.deltaMinutes, 12)
+
+        let rough = HabitLog(date: fixedDate)
+        rough.dietQuality = "rough"
+        let roughResult = engine.calculateDailyDelta(snapshot: snapshot, habits: rough, profile: profile)
+        let roughDriver = roughResult.drivers.first { $0.driverType == "diet" }
+        XCTAssertEqual(roughDriver?.deltaMinutes, -10)
+
+        let okay = HabitLog(date: fixedDate)
+        okay.dietQuality = "okay"
+        let okayResult = engine.calculateDailyDelta(snapshot: snapshot, habits: okay, profile: profile)
+        XCTAssertNil(
+            okayResult.drivers.first { $0.driverType == "diet" },
+            "All-default diet inputs must produce no ledger entry"
+        )
+    }
+
+    /// `quality=okay` + `rhythm=skipBinge` legitimately produces a non-zero
+    /// composite (-5). The pre-V1.2.0 line-468 short-circuit dropped any
+    /// "okay" entry; under the composite, it must surface — and at low
+    /// confidence (only rhythm contributing).
+    func testDietRhythmContributesWhenQualityIsOkay() {
+        let engine = makeEngine()
+        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
+        let snapshot = DailyHealthSnapshot(date: fixedDate)
+
+        let habits = HabitLog(date: fixedDate)
+        habits.dietQuality = "okay"
+        habits.dietAmountRhythm = "skipBinge"
+
+        let result = engine.calculateDailyDelta(snapshot: snapshot, habits: habits, profile: profile)
+        let dietDriver = result.drivers.first { $0.driverType == "diet" }
+        XCTAssertEqual(dietDriver?.deltaMinutes, -5)
+        XCTAssertEqual(dietDriver?.confidenceRaw, Confidence.low.rawValue)
+    }
+
+    /// Symmetric to the rhythm test: `quality=okay` + `anchor=yes` produces
+    /// `+3` at low confidence (only anchor contributing).
+    func testDietAnchorContributesWhenQualityIsOkay() {
+        let engine = makeEngine()
+        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
+        let snapshot = DailyHealthSnapshot(date: fixedDate)
+
+        let habits = HabitLog(date: fixedDate)
+        habits.dietQuality = "okay"
+        habits.wholeFoodMeal = "yes"
+
+        let result = engine.calculateDailyDelta(snapshot: snapshot, habits: habits, profile: profile)
+        let dietDriver = result.drivers.first { $0.driverType == "diet" }
+        XCTAssertEqual(dietDriver?.deltaMinutes, 3)
+        XCTAssertEqual(dietDriver?.confidenceRaw, Confidence.low.rawValue)
+    }
+
+    /// All three inputs at their V1.2.0 defaults must produce no ledger
+    /// entry — the "missing data never penalizes" rule.
+    func testDietAllDefaultsReturnsNil() {
+        let engine = makeEngine()
+        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
+        let snapshot = DailyHealthSnapshot(date: fixedDate)
+
+        let habits = HabitLog(date: fixedDate)
+        // dietQuality="okay", dietAmountRhythm="right", wholeFoodMeal="unknown"
+        // are all property-level defaults — leave them.
+
+        let result = engine.calculateDailyDelta(snapshot: snapshot, habits: habits, profile: profile)
+        XCTAssertNil(
+            result.drivers.first { $0.driverType == "diet" },
+            "Default-only HabitLog must produce no diet ledger entry"
+        )
+    }
 }

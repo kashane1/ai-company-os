@@ -410,6 +410,7 @@ final class LifeClockStore {
         self.profile = profile
         self.toneMode = tone
         hasCompletedOnboarding = true
+        todayEstimate = clockEngine.calculateBaseline(profile: profile)
         emit(.onboardingComplete)
         return true
     }
@@ -449,6 +450,15 @@ final class LifeClockStore {
         self.palette = palette
         profile?.paletteId = palette.rawValue
         try? modelContext.save()
+    }
+
+    func setBodyMetrics(heightCm: Double?, weightKg: Double?) {
+        profile?.heightCm = heightCm
+        profile?.weightKg = weightKg
+        try? modelContext.save()
+        if let profile {
+            todayEstimate = clockEngine.calculateBaseline(profile: profile)
+        }
     }
 
     /// Persist the user's daily-reminder preference. Refuses if no profile
@@ -612,6 +622,8 @@ final class LifeClockStore {
             existing.alcoholLevel = habits.alcoholLevel
             existing.smokingVaping = habits.smokingVaping
             existing.dietQuality = habits.dietQuality
+            existing.dietAmountRhythm = habits.dietAmountRhythm
+            existing.wholeFoodMeal = habits.wholeFoodMeal
             existing.stressLevel = habits.stressLevel
             existing.strengthTraining = habits.strengthTraining
             existing.notes = habits.notes
