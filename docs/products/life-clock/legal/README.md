@@ -49,11 +49,11 @@ Both files have `[REPLACE WITH ...]` markers for legal entity name, support emai
 
 ### 4. Wire the URLs into the app
 
-Once the site is live, replace the placeholder URL in:
+The current app already points to the GitHub Pages URLs in:
 
 - `products/life-clock-ios/Sources/Services/LifeClockConfiguration.swift`
 
-The constants `privacyPolicyURL` and `termsOfUseURL` are the only places the URLs are referenced.
+If the legal site ever moves, update `privacyPolicyURL`, `termsOfUseURL`, and `supportURL` there.
 
 ### 5. Submit those URLs to App Store Connect
 

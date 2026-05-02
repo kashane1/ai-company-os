@@ -12,6 +12,11 @@ Do not use Games as primary. The game layer improves engagement, but user intent
 
 Avoid launching as "Death Clock" because a direct competitor already uses that territory strongly [S1]. Also, the phrase can create unnecessary anxiety and App Review sensitivity.
 
+Current implementation note:
+
+- The app currently ships under **"Life Clock: habits earn time"**.
+- The working subtitle in code is **"See how habits move your life"**.
+
 ## Name candidates
 
 1. TimeBack

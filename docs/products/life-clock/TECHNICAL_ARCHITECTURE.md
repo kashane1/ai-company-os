@@ -1,4 +1,4 @@
-> Source: Life Clock Founder Pack (2026-04-27). Normalized for platform use.
+> Source: Life Clock Founder Pack (2026-04-27). Updated to reflect the current iOS implementation on 2026-04-30.
 
 # Technical Architecture
 
@@ -8,6 +8,7 @@
 - SwiftData
 - HealthKit
 - StoreKit 2
+- UserNotifications
 - WidgetKit later
 - ActivityKit only if a live quest/timer feature emerges
 - App Intents later for quick logging
@@ -15,41 +16,50 @@
 
 ## Architecture stance
 
-Local-first. Health data should stay on device where possible. Derived app data can be stored in SwiftData.
+Local-first. Health data stays on device. Derived app data is persisted with SwiftData and explicitly does not iCloud-sync.
+
+Current implementation:
+
+- `LifeClockStore` is the app-level observable state coordinator.
+- `LifeClockSchemaV1` is a versioned SwiftData schema from day one.
+- `HealthKitServiceProtocol` hides the live-vs-mock data source boundary.
+- `SubscriptionStore` is the single source of truth for Pro entitlement state.
+- `NotificationsService` schedules local-only daily reminders; there is no push backend.
 
 ## Core models
 
 ### UserProfile
 
 - id
-- dateOfBirth / age bucket
-- sex optional
-- height
-- weight
+- birthDate
+- biologicalSex
+- heightCm optional
+- weightKg optional
+- smokingStatus
+- alcoholFrequency
+- dietQualityBaseline
+- stressBaseline
+- strengthFrequencyPerWeek
+- sleepGoalHours
 - toneMode
-- onboardingCompletedAt
-- disclaimerAcceptedAt
-
-### HealthPermissionState
-
-- dataType
-- requestedAt
-- status: unknown / connected / unavailable
-- lastReadAt
+- paletteId
+- dailyReminderEnabled
+- dailyReminderHour
+- lastSuppressedDate optional
+- onboardingCompletedAt optional
+- disclaimerAcceptedAt optional
+- hideClock
 
 ### DailyHealthSnapshot
 
 - date
-- stepCount
-- distance
-- exerciseMinutes
-- activeEnergy
-- workouts
-- sleepDuration
-- sleepConsistency
-- restingHeartRate
-- heartRate
-- vo2Max
+- stepCount optional
+- distanceMeters optional
+- exerciseMinutes optional
+- activeEnergyKcal optional
+- sleepHours optional
+- sleepConsistencyScore optional
+- restingHeartRate optional
 - sourceCompleteness
 
 ### HabitLog
@@ -65,11 +75,11 @@ Local-first. Health data should stay on device where possible. Derived app data 
 ### LifeClockEstimate
 
 - date
-- projectedAge
+- projectedAgeYears
 - projectedDate optional
 - healthspanScore
 - dailyTimeDeltaMinutes
-- confidence
+- confidenceRaw
 - explanation
 
 ### TimeLedgerEntry
@@ -79,46 +89,48 @@ Local-first. Health data should stay on device where possible. Derived app data 
 - title
 - deltaMinutes
 - source
-- confidence
+- confidenceRaw
 - driverType
+- questSlug optional
 
 ### Quest
 
 - id
+- slug
 - date
 - title
+- detail
 - category
 - target
 - progress
 - rewardEstimateMinutes
-- completedAt
+- completedAt optional
 
 ### WeeklyReport
 
 - weekStart
 - weekEnd
-- netTimeDelta
+- netTimeDeltaMinutes
 - topPositiveDriver
 - topNegativeDriver
 - nextBestLever
-- confidence
+- confidenceRaw
 
 ## Services
 
-### HealthKitService
+### HealthKitServiceProtocol
 
 - requestAuthorization
-- fetchDailySnapshot
-- observeUpdates later
-- handle unavailable data gracefully
+- dailySnapshot
+- recentSnapshots
+- authorizationKnown
+- isHealthDataAvailable
 
 ### ClockEngine
 
 - calculateBaseline
 - calculateDailyDelta
 - calculateWeeklyTrend
-- assignConfidence
-- generateLedgerEntries
 
 ### QuestEngine
 
@@ -126,20 +138,30 @@ Local-first. Health data should stay on device where possible. Derived app data 
 - adaptToMissingData
 - avoid unsafe medical advice
 
-### PaywallService
+### SubscriptionStore
 
-- StoreKit products
-- entitlement state
-- restore purchases
+- product loading
+- entitlement refresh
+- purchase
+- restore
+
+### NotificationsService
+
+- local-notification authorization
+- daily reminder scheduling
+- same-day reminder suppression after a check-in
+- tone-aware reminder copy
 
 ## Testing priorities
 
-- ClockEngine deterministic tests
-- confidence model tests
-- missing data behavior
-- quest generation tests
-- paywall entitlement tests
-- HealthKit service mocked tests
+- deterministic `ClockEngine` coverage
+- confidence and aggregation behavior
+- missing-data behavior
+- quest generation and persistence behavior
+- StoreKit entitlement and restore behavior
+- HealthKit mock-path coverage
+- cold-start restoration and reset behavior
+- end-to-end app flow coverage with the mock health path
 
 ## V1 engineering rule
 

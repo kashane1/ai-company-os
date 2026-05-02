@@ -145,9 +145,9 @@ Key new types:
 
 **Tasks:**
 
-- [ ] **Bump `LifeClockSchemaV1.versionIdentifier` from `Schema.Version(1, 0, 0)` to `Schema.Version(1, 1, 0)`** ([LifeClockSchema.swift:16](products/life-clock-ios/Sources/Models/LifeClockSchema.swift)). Lightweight migration still applies (semver patch/minor doesn't trigger a stage). Free traceability for future archaeology.
+- [x] **Bump `LifeClockSchemaV1.versionIdentifier` from `Schema.Version(1, 0, 0)` to `Schema.Version(1, 1, 0)`** ([LifeClockSchema.swift:16](products/life-clock-ios/Sources/Models/LifeClockSchema.swift)). Lightweight migration still applies (semver patch/minor doesn't trigger a stage). Free traceability for future archaeology.
 
-- [ ] **Add new optional fields to `UserProfile`** ([LifeClockSchema.swift:30-87](products/life-clock-ios/Sources/Models/LifeClockSchema.swift)). All MUST be optional or have property-level defaults per the in-file rule at `:5-13` and per the SwiftData migration landmine docs/solutions doc:
+- [x] **Add new optional fields to `UserProfile`** ([LifeClockSchema.swift:30-87](products/life-clock-ios/Sources/Models/LifeClockSchema.swift)). All MUST be optional or have property-level defaults per the in-file rule at `:5-13` and per the SwiftData migration landmine docs/solutions doc:
   ```swift
   // Cardio is the gap — strengthFrequencyPerWeek already exists
   var cardioMinsPerWeek: Int = 0
@@ -171,9 +171,9 @@ Key new types:
   ```
   No `MigrationStage` needed; lightweight migration handles all of these. (See `swiftdata-mandatory-attribute-migration-landmine.md`.)
 
-- [ ] **Note**: `heightCm` and `weightKg` already exist on `UserProfile` (`LifeClockSchema.swift`) — body composition is captured but never used in the engine. No new fields for body comp; just wire them into the engine.
+- [x] **Note**: `heightCm` and `weightKg` already exist on `UserProfile` (`LifeClockSchema.swift`) — body composition is captured but never used in the engine. No new fields for body comp; just wire them into the engine.
 
-- [ ] **Verification: file-backed migration test (NOT in-memory).** In-memory `ModelContainer` configurations never exercise lightweight migration — known false-negative trap per the landmine doc. Add `Tests/LifeClockSchemaMigrationTests.swift`:
+- [x] **Verification: file-backed migration test (NOT in-memory).** In-memory `ModelContainer` configurations never exercise lightweight migration — known false-negative trap per the landmine doc. Add `Tests/LifeClockSchemaMigrationTests.swift`:
   ```swift
   import XCTest
   import SwiftData

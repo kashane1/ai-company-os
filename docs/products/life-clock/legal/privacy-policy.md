@@ -43,8 +43,8 @@ When you onboard and use the app, you may enter:
 - Your biological sex (optional, for population life-expectancy baseline)
 - Your height and weight (optional)
 - Your smoking status, alcohol frequency, baseline diet quality, baseline stress, sleep goal, weekly strength training frequency
-- Per-day "Quick Log" entries: alcohol level, smoking/vaping, diet quality, stress, strength training, optional notes
-- Tone-mode preference (gentle / coach / memento mori)
+- Per-day "Daily Check-In" entries: alcohol level, smoking/vaping, diet quality, stress, strength training, optional notes
+- Tone-mode preference (gentle / coach)
 - Color-palette preference (default-navy / aurora-cool / sunset-warm)
 - Daily-reminder preference (on/off + the hour you picked, between 8 AM and 10 PM)
 
