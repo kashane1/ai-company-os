@@ -3,22 +3,28 @@ import SwiftUI
 struct TodayView: View {
     @Environment(LifeClockStore.self) private var store
     @State private var quickLogPresented: Bool = false
+    @State private var reflectionPresented: Bool = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
+                // 2026-05-01 IA refactor: Today is the daily ritual surface
+                // (score → why → plan → reflection → check-in). Order is
+                // deliberate; do not reshuffle without revisiting the
+                // brainstorm in docs/plans/2026-05-01-refactor-life-clock-
+                // tab-consolidation-plan.md.
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                     headline
+                    clockCard
                     rescueLine
                     if let moment = store.supportMoment {
                         supportMomentCard(moment)
                     }
-                    momentumCard
-                    dietStreakBanner
-                    clockCard
                     driversCard
-                    quickLogCard
                     questsCard
+                    ReflectionCard(onTap: { reflectionPresented = true })
+                    quickLogCard
+                    dietStreakBanner
                     DisclaimerBanner()
                 }
                 .padding(DesignTokens.Spacing.lg)
@@ -37,6 +43,17 @@ struct TodayView: View {
             }
             .sheet(isPresented: $quickLogPresented) {
                 QuickLogSheet()
+            }
+            .sheet(isPresented: $reflectionPresented) {
+                let prompt = ReflectionPrompts.prompt(
+                    for: store.clock.now(),
+                    tone: store.toneMode,
+                    calendar: store.clock.calendar
+                )
+                ReflectionSheet(
+                    prompt: prompt,
+                    onDismiss: { reflectionPresented = false }
+                )
             }
         }
     }
@@ -116,22 +133,6 @@ struct TodayView: View {
         .accessibilityIdentifier("today.supportMoment")
     }
 
-    private var momentumCard: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("Today's momentum")
-                .font(.headline)
-            Text("\(store.completedPlanCount) of \(store.todayQuests.count) planned actions complete")
-                .font(.callout.bold())
-            Text(store.hasCheckInToday ? "Your daily signals are in." : "Add a daily check-in to sharpen today's feedback.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
-        .accessibilityIdentifier("today.momentum")
-    }
-
     /// "Projected healthspan + anchor date" card. Hidden entirely when
     /// `profile.hideClock` is true — replaced by the headline-only path
     /// (the "+X min today" delta still renders above). Resolves Q5 and is
@@ -162,13 +163,17 @@ struct TodayView: View {
 
     private var driversCard: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("What influenced today's progress")
+            Text("Why it changed")
                 .font(.headline)
             if store.todayDrivers.isEmpty {
                 Text("No health data yet. Connect Apple Health or save a daily check-in to start seeing patterns.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
+                Text(interpretationLine)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("today.drivers.interpretation")
                 ForEach(Array(store.todayDrivers.prefix(3).enumerated()), id: \.element.id) { index, driver in
                     HStack {
                         Text(driver.title).lineLimit(1)
@@ -191,6 +196,20 @@ struct TodayView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
         .accessibilityIdentifier("today.drivers")
+    }
+
+    /// One-line plain-language interpretation that frames the headline
+    /// delta. Sits below "Why it changed" and above the driver list. Reads
+    /// the headline delta sign + the top driver title (a primitive — keeps
+    /// `ToneMode` SwiftData-free per its `import Foundation`-only boundary).
+    private var interpretationLine: String {
+        guard let estimate = store.todayEstimate else {
+            return store.toneMode.todayInterpretationPreData()
+        }
+        let topTitle = store.todayDrivers.first?.title
+        return estimate.dailyTimeDeltaMinutes >= 0
+            ? store.toneMode.todayInterpretationPositive(driverTitle: topTitle)
+            : store.toneMode.todayInterpretationNegative(driverTitle: topTitle)
     }
 
     /// A small streak chip when the user is on a diet-logging run. Only
@@ -273,8 +292,11 @@ struct TodayView: View {
 
     private var questsCard: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("Today's plan")
+            Text("Today's Plan")
                 .font(.headline)
+            Text("One small thing to notice or do.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
             ForEach(Array(store.todayQuests.enumerated()), id: \.element.id) { index, quest in
                 Button {
                     store.toggleQuestCompletion(quest)
@@ -283,19 +305,18 @@ struct TodayView: View {
                         Image(systemName: quest.completedAt == nil ? "circle" : "checkmark.circle.fill")
                             .foregroundStyle(quest.completedAt == nil ? .secondary : DesignTokens.Palette.positive)
                         VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                            HStack(alignment: .top) {
-                                Text(quest.title).font(.callout.bold())
-                                Spacer()
-                                Text("Potential \(TimeDeltaFormatter.format(minutes: quest.rewardEstimateMinutes))")
-                                    .font(.caption.monospacedDigit())
-                                    .foregroundStyle(DesignTokens.Palette.positive)
-                            }
+                            Text(quest.title).font(.callout.bold())
                             Text(quest.detail).font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("today.planAction.\(index)")
+                // Carries the completion state into the a11y tree so
+                // UITests can assert the toggle actually flipped, not
+                // just that the button still exists. Tests read this
+                // via XCUIElement.value.
+                .accessibilityValue(quest.completedAt == nil ? "incomplete" : "complete")
             }
         }
         .padding(DesignTokens.Spacing.md)

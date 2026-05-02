@@ -185,10 +185,10 @@ final class LifeClockUITests: XCTestCase {
 
     /// Post-onboarding navigation regression — verifies the existing
     /// `onboarded` scenario lands in the supportive Today experience
-    /// once a profile has been seeded. This complements the V2 flow
-    /// test above by exercising the shipped MainTabView paths without
-    /// re-walking the new ~33-screen onboarding.
-    func testDailyCheckInShowsSupportMomentAndNavigationStillWorks() throws {
+    /// once a profile has been seeded. The Progress-tab navigation that
+    /// used to sit at the end of this test was removed in the 2026-05-01
+    /// IA refactor (the Progress tab is gone).
+    func testDailyCheckInShowsSupportMomentOnToday() throws {
         launchApp(scenario: "onboarded")
 
         XCTAssertTrue(app.buttons["today.checkInCard"].waitForExistence(timeout: 5))
@@ -199,27 +199,45 @@ final class LifeClockUITests: XCTestCase {
         app.buttons["checkIn.save"].tap()
 
         XCTAssertTrue(app.staticTexts["Life Clock updated."].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Your daily signals are in."].waitForExistence(timeout: 5))
-
-        app.buttons["Progress"].tap()
-        XCTAssertTrue(app.navigationBars["Progress"].waitForExistence(timeout: 5))
     }
 
-    func testPlanCompletionUpdatesMomentumAndProgressLog() throws {
+    /// Verifies the 2026-05-01 IA refactor: tab bar is exactly Today,
+    /// History, Profile. Plan / Progress / Quests are gone; their content
+    /// lives inside Today (and History). Regression guard against
+    /// accidentally re-adding a tab.
+    func testTabBarHasOnlyThreeTabs() throws {
+        launchApp(scenario: "onboarded")
+        XCTAssertTrue(app.buttons["today.checkInCard"].waitForExistence(timeout: 5),
+                      "Today screen should be the default tab")
+        XCTAssertFalse(app.buttons["Plan"].exists, "Plan tab should not exist post-refactor")
+        XCTAssertFalse(app.buttons["Progress"].exists, "Progress tab should not exist post-refactor")
+        XCTAssertFalse(app.buttons["Quests"].exists, "Quests tab should not exist post-refactor")
+        XCTAssertTrue(app.buttons["History"].exists, "History tab should be present")
+        XCTAssertTrue(app.buttons["Profile"].exists, "Profile tab should be present")
+    }
+
+    /// Verifies the IA refactor keeps the Today's Plan section reachable
+    /// directly on Today (the Plan tab no longer exists). Toggling a plan
+    /// action goes through `store.toggleQuestCompletion`, mutates
+    /// `Quest.completedAt`, and the row's `.accessibilityValue` flips from
+    /// "incomplete" to "complete". Asserting on the value (not just the
+    /// button's continued existence) catches the case where the button
+    /// renders but the toggle no-ops.
+    func testPlanCompletionFromTodayUpdatesQuestState() throws {
         launchApp(scenario: "onboarded")
 
-        app.buttons["Plan"].tap()
-        XCTAssertTrue(app.navigationBars["Plan"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["plan.complete.0"].waitForExistence(timeout: 5))
-        app.buttons["plan.complete.0"].tap()
+        let row = app.buttons["today.planAction.0"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertEqual(row.value as? String, "incomplete",
+                       "fresh quest row should start incomplete")
+        row.tap()
 
-        app.buttons["Today"].tap()
-        XCTAssertTrue(app.staticTexts["Nice work."].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts.containing("1 of").firstMatch.waitForExistence(timeout: 5))
-
-        app.buttons["Progress"].tap()
-        XCTAssertTrue(app.navigationBars["Progress"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts.containing("Completed action:").firstMatch.waitForExistence(timeout: 5))
+        // The toggle goes through the @MainActor store + ModelContext
+        // save, then SwiftUI re-renders the row. Poll for the a11y
+        // value flip rather than asserting immediately.
+        let flipped = NSPredicate(format: "value == %@", "complete")
+        let exp = expectation(for: flipped, evaluatedWith: row, handler: nil)
+        wait(for: [exp], timeout: 3)
     }
 
     private func launchApp(scenario: String) {

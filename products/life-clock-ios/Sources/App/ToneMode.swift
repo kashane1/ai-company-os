@@ -1,12 +1,15 @@
 import Foundation
 
-/// User-facing tone for headline / progress / quest copy.
+/// User-facing tone for headline / drivers / plan copy.
 ///
-/// History: a `.mementoMori` case was removed in Phase 3.A (2026-04-30)
-/// after a copy audit collapsed most of its keyed properties into the
-/// `.coach` strings. Phase 3.B (2026-05-01) reintroduces a firm/direct
-/// register as `.firmDirect` to support the Brainrot-style onboarding
-/// voice carrying into daily use.
+/// History: `.mementoMori` was removed in Phase 3.A (2026-04-30) after a
+/// copy audit collapsed most of its keyed properties into `.coach`.
+/// Phase 3.B (2026-05-01) reintroduced a firm/direct register as
+/// `.firmDirect` to support the Brainrot-style onboarding voice carrying
+/// into daily use. The 2026-05-01 IA refactor (tab consolidation)
+/// removed `ledgerTitle`, `ledgerEmptyState`, `questsTitle`, and
+/// `questsPreamble` because the views that consumed them
+/// (`TimeLedgerView`, `QuestsView`) were folded into Today.
 ///
 /// Legacy `UserProfile.toneMode == "memento_mori"` rows fall back to
 /// `.coach` via `fromStored(_:)`; persisted values are written back as
@@ -70,20 +73,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
 
     // MARK: - Tab titles
 
-    /// Inlined to "Progress" everywhere (was identical across all tones
-    /// even before Phase 3.A). Kept as a property so call sites do not
-    /// need to change; collapse to a literal in a future cleanup if a
-    /// tone-aware variant never reappears.
-    var ledgerTitle: String { "Progress" }
-
-    var questsTitle: String {
-        switch self {
-        case .gentle: return "Next steps"
-        case .coach: return "Plan"
-        case .firmDirect: return "Today's moves"
-        }
-    }
-
     var weeklyTitle: String {
         switch self {
         case .gentle: return "This week"
@@ -93,28 +82,6 @@ enum ToneMode: String, CaseIterable, Identifiable {
     }
 
     // MARK: - Empty / preamble copy
-
-    var ledgerEmptyState: String {
-        switch self {
-        case .gentle:
-            return "Your progress log fills up as you check in and data comes in."
-        case .coach:
-            return "No progress entries yet. Check in once and the story starts to build."
-        case .firmDirect:
-            return "Nothing logged. Check in. The clock can't score what it can't see."
-        }
-    }
-
-    var questsPreamble: String {
-        switch self {
-        case .gentle:
-            return "Pick one supportive action. Showing up is a real win."
-        case .coach:
-            return "Choose one supportive action for today. Small steps count."
-        case .firmDirect:
-            return "Pick one. Do it today. Skip the rest."
-        }
-    }
 
     var weeklyEmptyState: String {
         switch self {
@@ -159,6 +126,61 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    // MARK: - Today interpretation copy
+
+    /// Plain-language line shown under the "Why it changed" headline on
+    /// Today, framing the day's signed delta in terms of the top driver.
+    /// Takes a primitive `String?` — `ToneMode` is `Foundation`-only and
+    /// must not import the SwiftData entity types. The view derives the
+    /// driver title from `store.todayDrivers.first?.title`.
+    func todayInterpretationPositive(driverTitle: String?) -> String {
+        if let title = driverTitle, !title.isEmpty {
+            switch self {
+            case .gentle:
+                return "Today is helping your healthspan — \(title) is supporting you."
+            case .coach:
+                return "Today is moving you forward, mostly because of \(title)."
+            case .firmDirect:
+                return "Today scored. \(title) carried it."
+            }
+        } else {
+            switch self {
+            case .gentle: return "Today is helping your healthspan."
+            case .coach: return "Today is moving you forward."
+            case .firmDirect: return "Today scored."
+            }
+        }
+    }
+
+    func todayInterpretationNegative(driverTitle: String?) -> String {
+        if let title = driverTitle, !title.isEmpty {
+            switch self {
+            case .gentle:
+                return "Today is pulling against your healthspan — \(title) is the main drag."
+            case .coach:
+                return "Today is working against you, mostly because of \(title)."
+            case .firmDirect:
+                return "Today's in the red. \(title) is the cost."
+            }
+        } else {
+            switch self {
+            case .gentle: return "Today is pulling against your healthspan."
+            case .coach: return "Today is working against you."
+            case .firmDirect: return "Today's in the red."
+            }
+        }
+    }
+
+    /// Used when no estimate is available yet (cold launch, pre-data).
+    /// Static — no driver to interpolate.
+    func todayInterpretationPreData() -> String {
+        switch self {
+        case .gentle: return "Not enough data yet — this fills in as today goes on."
+        case .coach: return "Not enough data yet. Check back as today's signals come in."
+        case .firmDirect: return "No data yet. Check back."
+        }
+    }
+
     /// Body copy when the day netted negative minutes — supportive, not
     /// punitive (per UX_GAME_LOOP.md "every negative delta should be paired
     /// with an actionable next step or a softer explanation").
@@ -199,6 +221,16 @@ enum ToneMode: String, CaseIterable, Identifiable {
         case .gentle: return "Adjusted"
         case .coach: return "Adjusted"
         case .firmDirect: return "Adjusted"
+        }
+    }
+
+    /// Heading on the Today screen's Reflection card. The body of the
+    /// card is the rotating daily prompt from `ReflectionPrompts`.
+    var reflectionHeading: String {
+        switch self {
+        case .gentle: return "Notice today"
+        case .coach: return "What stood out today"
+        case .firmDirect: return "Today, in one line"
         }
     }
 

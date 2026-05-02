@@ -1,14 +1,20 @@
-> Source: Life Clock Founder Pack (2026-04-27). Updated to reflect the current UX direction on 2026-04-30.
+> Source: Life Clock Founder Pack (2026-04-27). Updated 2026-05-01 to
+> reflect (a) the tab-bar consolidation refactor
+> (`feat/life-clock-tab-consolidation`): Time Ledger and Quests are no
+> longer top-level destinations — their content lives inside Today; and
+> (b) the reveal-onboarding rebuild that replaced the 7-step flow with a
+> ~33-screen Brainrot-modeled coordinator and reintroduced the
+> `firmDirect` tone register.
 
 # UX and Game Loop
 
 ## Core loop
 
 1. Open Today.
-2. See today's progress and momentum.
-3. Understand the top drivers.
-4. Save a Daily Check-In and/or complete one supportive action.
-5. Review Progress or Weekly for context.
+2. See today's delta + the Life Clock.
+3. Read "Why it changed" — top drivers + a one-line plain-language interpretation.
+4. Tap into Today's Plan — pick one supportive action.
+5. Save a daily check-in.
 6. Return tomorrow for updated trajectory.
 
 ## The game mechanic
@@ -19,82 +25,77 @@ Not points. Not coins. Not XP.
 
 Time stays emotionally legible, but the current UX direction is calmer and less game-loud than the original founder pack framing.
 
+The 2026-04-30 UX pass and the 2026-05-01 IA refactor both reframed Life Clock away from gamified task completion and toward daily reflection + behavior awareness. Plan sections use behavioral-mirror copy ("One small thing to notice or do."), not points-board copy.
+
 ## Main surfaces
+
+The bottom tab bar is **3 tabs**: Today, History, Profile.
 
 ### Today screen
 
-Primary elements:
+Today is the daily ritual surface — score, why, plan, check-in. Sections render in this order:
 
-- today's delta headline
-- support moment card when relevant
-- momentum summary
-- diet streak banner when relevant
-- projected-healthspan card when the user has not chosen "Hide the clock"
-- confidence label
-- top 3 drivers
-- daily check-in entry point
-- daily plan
+1. **Life Clock headline** — today's signed delta + projected healthspan card.
+2. **Support moment card** (conditional) — surfaced after a check-in or notable event.
+3. **Why it changed** — top 3 drivers + a one-line plain-language interpretation generated from the day's signed delta and the top driver title.
+4. **Today's Plan** — a small set of supportive actions (the data still flows from `QuestEngine`). Per-row "Potential +N min" labels were dropped in the IA refactor; the section subhead reads "One small thing to notice or do."
+5. **Quick check-in** card and toolbar entry.
+6. **Diet streak banner** (conditional, ≥2 days).
+
+The momentum card was removed in the IA refactor — its retrospective summary belongs in History.
 
 Example copy:
 
 "Progress today"
 
-"A rough food day is feedback, not failure. One better meal can help tomorrow feel steadier."
+"Today is moving you forward, mostly because of steps."
 
-### Progress
+### History tab
 
-Purpose: make the estimate explainable and show visible proof that actions compound.
+Owns retrospection: yesterday wrap-up card, weekly summary, daily history list (90 days for Pro, 7 days for free), drill-down per-day detail with override editing.
 
-Example entries:
+### Profile tab
 
-- +18 min - 9,800 steps - Apple Health
-- +14 min - 43 exercise minutes - Apple Health
-- +10 min - 7h 38m sleep - Apple Health
-- +20 min - Completed action: 10-minute walk - manual
-
-### Plan
-
-Quest types:
-
-- movement quest
-- sleep consistency quest
-- strength quest where relevant
-- nutrition / check-in nudges where relevant
-- risk reduction quest
-- recovery/stress quest
-
-### Weekly report
-
-Current sections:
-
-- Net this week
-- Best driver
-- Biggest drag
-- Next best lever
-- Confidence
-- Pro teaser when the user is on the free tier
+Tone-mode picker, palette picker, paywall entry, daily reminder settings, Safety Net.
 
 ## Tone modes
 
+The original `mementoMori` tone was removed in the 2026-04-30 UX pass. Phase 3.B (2026-05-01) reintroduced a firm/direct register as `firmDirect` to support the Brainrot-style onboarding voice carrying into daily use. Three tones now ship:
+
 ### Gentle
 
-No mortality-forward language. Uses steady-progress and future-self framing.
+Steady-progress and future-self framing. No death-date language.
 
 ### Coach
 
-Default. Uses direct but supportive progress language.
+Default. Direct but supportive progress language.
+
+### Firm / Direct
+
+Short, specific, no hedging. The clock keeps score. Carries the
+Brainrot-onboarding voice into daily use.
 
 ## Onboarding flow
 
-1. Value screen: "Earn time back with better habits."
-2. Safety screen: "Your clock is an estimate, not fate."
-3. Baseline profile.
-4. Tone mode.
-5. Apple Health education and authorization.
-6. First Life Clock reveal.
+The 2026-05-01 reveal-onboarding rebuild replaced the previous 7-step flow with a ~33-screen Brainrot-modeled coordinator. High-level beats:
+
+1. Lead-ins (cold open, app previews, welcome, meet your clock, reactive slider).
+2. Personalize intro + goal pick.
+3. Baseline (DOB, sex, body composition, smoking, alcohol, activity, sleep, diet).
+4. Sensitive consent (skip path available).
+5. Tone selection.
+6. Prior attempts.
+7. Analyzing (fake-progress) → archetype reveal.
+8. Concrete-this-year, life-grid (full and remaining).
+9. Engine reveal + ±5 yr healthspan dial (one-time, bounded).
+10. Recovery preview.
+11. HealthKit auth.
+12. Single-tier paywall.
+
+See `docs/plans/2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md` for the full design.
 
 ## UX risk
 
 The biggest UX risk is creating anxiety. The default should be motivating, not punishing.
 
-Every negative delta should be paired with an actionable next step, a softer explanation, or both.
+Every negative delta should be paired with an actionable next step or a softer interpretation line.
