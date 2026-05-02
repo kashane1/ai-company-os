@@ -1,7 +1,10 @@
-> Source: Life Clock Founder Pack (2026-04-27). Normalized for platform use.
-> Updated 2026-05-01 to reflect the tab-bar consolidation refactor
+> Source: Life Clock Founder Pack (2026-04-27). Updated 2026-05-01 to
+> reflect (a) the tab-bar consolidation refactor
 > (`feat/life-clock-tab-consolidation`): Time Ledger and Quests are no
-> longer top-level destinations — their content lives inside Today.
+> longer top-level destinations — their content lives inside Today; and
+> (b) the reveal-onboarding rebuild that replaced the 7-step flow with a
+> ~33-screen Brainrot-modeled coordinator and reintroduced the
+> `firmDirect` tone register.
 
 # UX and Game Loop
 
@@ -20,7 +23,7 @@ The core game currency is **time**.
 
 Not points. Not coins. Not XP.
 
-Time is emotionally legible and directly connected to the concept.
+Time stays emotionally legible, but the current UX direction is calmer and less game-loud than the original founder pack framing.
 
 The 2026-04-30 UX pass and the 2026-05-01 IA refactor both reframed Life Clock away from gamified task completion and toward daily reflection + behavior awareness. Plan sections use behavioral-mirror copy ("One small thing to notice or do."), not points-board copy.
 
@@ -34,7 +37,7 @@ Today is the daily ritual surface — score, why, plan, check-in. Sections rende
 
 1. **Life Clock headline** — today's signed delta + projected healthspan card.
 2. **Support moment card** (conditional) — surfaced after a check-in or notable event.
-3. **Why it changed** — top 3 drivers + a one-line plain-language interpretation generated from the day's signed delta and the top driver title (`ToneMode.todayInterpretationPositive(driverTitle:)` / `Negative(driverTitle:)` / `PreData()`).
+3. **Why it changed** — top 3 drivers + a one-line plain-language interpretation generated from the day's signed delta and the top driver title.
 4. **Today's Plan** — a small set of supportive actions (the data still flows from `QuestEngine`). Per-row "Potential +N min" labels were dropped in the IA refactor; the section subhead reads "One small thing to notice or do."
 5. **Quick check-in** card and toolbar entry.
 6. **Diet streak banner** (conditional, ≥2 days).
@@ -43,7 +46,7 @@ The momentum card was removed in the IA refactor — its retrospective summary b
 
 Example copy:
 
-"+42 minutes today"
+"Progress today"
 
 "Today is moving you forward, mostly because of steps."
 
@@ -57,7 +60,7 @@ Tone-mode picker, palette picker, paywall entry, daily reminder settings, Safety
 
 ## Tone modes
 
-The mortality-forward third tone mode (`mementoMori`) was removed in the 2026-04-30 UX pass. Two tones remain:
+The original `mementoMori` tone was removed in the 2026-04-30 UX pass. Phase 3.B (2026-05-01) reintroduced a firm/direct register as `firmDirect` to support the Brainrot-style onboarding voice carrying into daily use. Three tones now ship:
 
 ### Gentle
 
@@ -67,14 +70,29 @@ Steady-progress and future-self framing. No death-date language.
 
 Default. Direct but supportive progress language.
 
+### Firm / Direct
+
+Short, specific, no hedging. The clock keeps score. Carries the
+Brainrot-onboarding voice into daily use.
+
 ## Onboarding flow
 
-1. Value screen: "Earn time back with better habits."
-2. Safety screen: "Your clock is an estimate, not fate."
-3. Baseline profile.
-4. Tone mode.
-5. Apple Health education and authorization.
-6. First Life Clock reveal.
+The 2026-05-01 reveal-onboarding rebuild replaced the previous 7-step flow with a ~33-screen Brainrot-modeled coordinator. High-level beats:
+
+1. Lead-ins (cold open, app previews, welcome, meet your clock, reactive slider).
+2. Personalize intro + goal pick.
+3. Baseline (DOB, sex, body composition, smoking, alcohol, activity, sleep, diet).
+4. Sensitive consent (skip path available).
+5. Tone selection.
+6. Prior attempts.
+7. Analyzing (fake-progress) → archetype reveal.
+8. Concrete-this-year, life-grid (full and remaining).
+9. Engine reveal + ±5 yr healthspan dial (one-time, bounded).
+10. Recovery preview.
+11. HealthKit auth.
+12. Single-tier paywall.
+
+See `docs/plans/2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md` for the full design.
 
 ## UX risk
 

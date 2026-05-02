@@ -20,7 +20,18 @@ struct ClockEngine {
         let baselineYears = populationBaseline(for: profile.biologicalSex)
         let lifestyleAdjustment = lifestyleAdjustmentYears(profile: profile)
 
-        let projected = baselineYears + lifestyleAdjustment
+        // Healthspan dial atomic gate: the engine treats
+        // (personalAdjustmentYears, anchorAdjustedAt) as logically
+        // atomic. Until both are set the adjustment is 0; a partial
+        // write left over from a killed app cannot double-apply. The
+        // dial UI also keys idempotency off `anchorAdjustedAt`. See
+        // docs/plans/2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md
+        // Phase 5 for the full rationale.
+        let dialAdjustment: Double = (profile.anchorAdjustedAt != nil)
+            ? (profile.personalAdjustmentYears ?? 0)
+            : 0
+
+        let projected = baselineYears + lifestyleAdjustment + dialAdjustment
         let now = clock.now()
         let estimate = LifeClockEstimate(date: now)
         estimate.projectedAgeYears = projected
@@ -70,7 +81,248 @@ struct ClockEngine {
         default: break // "okay" / unknown → neutral
         }
 
+        // MARK: - Reveal-onboarding rebuild (additive 2026-05-01)
+        //
+        // Five additional lifestyle factors collected during the new
+        // onboarding flow. All bounded; missing input ⇒ neutral. Coefficients
+        // are tuning placeholders per CLOCK_MODEL.md, sourced from
+        // epidemiology references but never expressed as medical predictions
+        // in user-facing copy.
+
+        // BMI (Global BMI Mortality Collaboration 2016; NHANES). Both
+        // height and weight must be present to score; either missing ⇒
+        // neutral.
+        if let height = profile.heightCm, let weight = profile.weightKg, height > 0 {
+            let heightM = height / 100.0
+            let bmi = weight / (heightM * heightM)
+            switch bmi {
+            case ..<18.5: adjustment -= 1.5
+            case 18.5..<25: break  // healthy range; neutral
+            case 25..<30: adjustment -= 0.5
+            case 30..<35: adjustment -= 2.0
+            default: adjustment -= 4.0  // 35+
+            }
+        }
+
+        // Cardio minutes per week (PA Guidelines 2018; Lee et al. 2014).
+        // Distinct from `strengthFrequencyPerWeek`. 0 minutes is the
+        // worst bucket; 150–300 hits the recommended range.
+        switch profile.cardioMinsPerWeek {
+        case 0: adjustment -= 1.0
+        case 1..<150: adjustment += 0.5
+        case 150...300: adjustment += 1.5
+        default: adjustment += 2.0  // 301+
+        }
+
+        // Parental longevity (Sebastiani et al. 2012; Atzmon et al. 2010).
+        // Each parent is independent. "Prefer not to say" ⇒ nil ⇒ neutral.
+        // ≥90 ⇒ +1.0 yr; <65 ⇒ −1.0 yr; in-between ⇒ neutral.
+        if let mAge = profile.parentMotherAgeAtDeath {
+            if mAge >= 90 { adjustment += 1.0 }
+            else if mAge < 65 { adjustment -= 1.0 }
+        }
+        if let fAge = profile.parentFatherAgeAtDeath {
+            if fAge >= 90 { adjustment += 1.0 }
+            else if fAge < 65 { adjustment -= 1.0 }
+        }
+
+        // Perceived stress (Cohen 1988 PSS-10; 0–40 range). Cohen's
+        // category cutoffs: 0–13 low, 14–26 moderate, 27+ high.
+        if let pss = profile.perceivedStressScore {
+            switch pss {
+            case 27...: adjustment -= 1.5
+            case 14..<27: adjustment -= 0.5
+            default: break  // low stress ⇒ neutral (no bonus)
+            }
+        }
+
+        // Loneliness (UCLA-3; 3–9 range, with ≥6 typically classified as
+        // "lonely"). Holt-Lunstad meta-analyses 2010, 2015.
+        if let ucla = profile.lonelinessScore, ucla >= 6 {
+            adjustment -= 1.5
+        }
+
         return adjustment
+    }
+
+    // MARK: - Archetype computation (reveal-onboarding rebuild)
+
+    /// Maps a `UserProfile` to one of four pace-based archetypes plus
+    /// two sub-meter values (behavioralRisk, recoveryCapacity) used by
+    /// the archetype-reveal screen. Rules-based, deterministic — same
+    /// transparency principle as `lifestyleAdjustmentYears`. See
+    /// `docs/plans/2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md`
+    /// Phase 1b for the decision logic.
+    struct ArchetypeResult: Equatable {
+        let archetype: Archetype
+        /// 0.0 = ideal lifestyle, 1.0 = highest behavioral risk.
+        let behavioralRisk: Double
+        /// 0.0 = poor recovery capacity, 1.0 = strong. Engine treats
+        /// current behavior as a proxy for recoverability — high
+        /// behavioralRisk ⇒ low recoveryCapacity.
+        let recoveryCapacity: Double
+    }
+
+    func computeArchetype(profile: UserProfile) -> ArchetypeResult {
+        let behavioralRisk = behavioralRiskScore(profile: profile)
+        let geneticAnchor = geneticAnchorScore(profile: profile)
+        let recoveryCapacity = max(0.0, min(1.0, 1.0 - behavioralRisk))
+
+        let age = ageInYears(birthDate: profile.birthDate)
+
+        let archetype: Archetype
+        if behavioralRisk <= 0.3 {
+            archetype = .marathoner
+        } else if behavioralRisk > 0.6, age < 50 {
+            archetype = .sprinter
+        } else if geneticAnchor > 0.7, behavioralRisk > 0.4 {
+            archetype = .outlier
+        } else if behavioralRisk > 0.4, geneticAnchor < 0.5 {
+            archetype = .sleeper
+        } else {
+            archetype = .marathoner
+        }
+
+        return ArchetypeResult(
+            archetype: archetype,
+            behavioralRisk: behavioralRisk,
+            recoveryCapacity: recoveryCapacity
+        )
+    }
+
+    /// Composite 0..1 score where 0 = no behavioral risk, 1 = worst.
+    /// Equally weighted across the lifestyle factors that the engine
+    /// also reads. Each factor contributes a normalized 0..1 sub-score;
+    /// missing inputs are treated as the neutral midpoint (0.5) — they
+    /// don't penalize, but they also can't lower the composite.
+    private func behavioralRiskScore(profile: UserProfile) -> Double {
+        var components: [Double] = []
+
+        components.append(smokingRisk(profile.smokingStatus))
+        components.append(alcoholRisk(profile.alcoholFrequency))
+        components.append(strengthRisk(perWeek: profile.strengthFrequencyPerWeek))
+        components.append(cardioRisk(minsPerWeek: profile.cardioMinsPerWeek))
+        components.append(sleepRisk(goalHours: profile.sleepGoalHours))
+        components.append(dietRisk(profile.dietQualityBaseline))
+        components.append(bmiRisk(heightCm: profile.heightCm, weightKg: profile.weightKg))
+        components.append(stressRisk(score: profile.perceivedStressScore))
+        components.append(lonelinessRisk(score: profile.lonelinessScore))
+
+        let avg = components.reduce(0, +) / Double(components.count)
+        return max(0.0, min(1.0, avg))
+    }
+
+    /// Composite 0..1 score where 0 = poor genetic anchor, 1 = excellent.
+    /// Both parents unknown ⇒ neutral 0.5 (no signal). Each parent
+    /// contributes independently; very long-lived (≥90) parents push
+    /// toward 1.0, very early loss (<65) pushes toward 0.0.
+    private func geneticAnchorScore(profile: UserProfile) -> Double {
+        let mother = parentLongevityScore(
+            alive: profile.parentMotherAlive,
+            ageAtDeath: profile.parentMotherAgeAtDeath
+        )
+        let father = parentLongevityScore(
+            alive: profile.parentFatherAlive,
+            ageAtDeath: profile.parentFatherAgeAtDeath
+        )
+        return (mother + father) / 2.0
+    }
+
+    private func parentLongevityScore(alive: Bool?, ageAtDeath: Int?) -> Double {
+        // No data → neutral 0.5. Alive (regardless of current age) → 0.7
+        // (positive but bounded — we don't know how long they'll live).
+        // Deceased: linear-ish bucket on age at death.
+        guard let alive else { return 0.5 }
+        if alive { return 0.7 }
+        guard let ageAtDeath else { return 0.5 }
+        switch ageAtDeath {
+        case 90...: return 1.0
+        case 80..<90: return 0.85
+        case 70..<80: return 0.6
+        case 60..<70: return 0.35
+        default: return 0.2  // <60
+        }
+    }
+
+    private func smokingRisk(_ status: String) -> Double {
+        switch status.lowercased() {
+        case "heavy": return 1.0
+        case "light", "occasional": return 0.7
+        case "former": return 0.3
+        default: return 0.0
+        }
+    }
+
+    private func alcoholRisk(_ frequency: String) -> Double {
+        switch frequency.lowercased() {
+        case "heavy", "daily": return 0.8
+        case "frequent", "weekly": return 0.4
+        default: return 0.1
+        }
+    }
+
+    private func strengthRisk(perWeek: Int) -> Double {
+        switch perWeek {
+        case 0: return 0.7
+        case 1: return 0.4
+        default: return 0.1  // ≥2/week
+        }
+    }
+
+    private func cardioRisk(minsPerWeek: Int) -> Double {
+        switch minsPerWeek {
+        case 0: return 0.8
+        case 1..<150: return 0.4
+        case 150...300: return 0.15
+        default: return 0.05  // 300+
+        }
+    }
+
+    private func sleepRisk(goalHours: Double) -> Double {
+        if goalHours >= 7.0, goalHours <= 9.0 { return 0.1 }
+        if goalHours < 6.0 || goalHours > 10.0 { return 0.7 }
+        return 0.4
+    }
+
+    private func dietRisk(_ quality: String) -> Double {
+        switch quality.lowercased() {
+        case "great": return 0.1
+        case "rough": return 0.7
+        default: return 0.4  // okay / unknown
+        }
+    }
+
+    private func bmiRisk(heightCm: Double?, weightKg: Double?) -> Double {
+        guard let h = heightCm, let w = weightKg, h > 0 else { return 0.5 }
+        let heightM = h / 100.0
+        let bmi = w / (heightM * heightM)
+        switch bmi {
+        case ..<18.5: return 0.5
+        case 18.5..<25: return 0.1
+        case 25..<30: return 0.4
+        case 30..<35: return 0.7
+        default: return 0.9  // 35+
+        }
+    }
+
+    private func stressRisk(score: Int?) -> Double {
+        guard let s = score else { return 0.5 }
+        switch s {
+        case 27...: return 0.85
+        case 14..<27: return 0.5
+        default: return 0.15
+        }
+    }
+
+    private func lonelinessRisk(score: Int?) -> Double {
+        guard let s = score else { return 0.5 }
+        return s >= 6 ? 0.8 : 0.2
+    }
+
+    private func ageInYears(birthDate: Date) -> Int {
+        let now = clock.now()
+        let comps = clock.calendar.dateComponents([.year], from: birthDate, to: now)
+        return max(0, comps.year ?? 0)
     }
 
     private func projectedDate(birth: Date, projectedAge: Double) -> Date? {

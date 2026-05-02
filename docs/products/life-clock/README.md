@@ -6,8 +6,8 @@ Life Clock is an iPhone-first Health & Fitness app where daily behavior moves th
 
 ## Status
 
-- **Phase:** discovery
-- **Working title:** Life Clock (not final — see `OPEN_QUESTIONS.md` Q1)
+- **Phase:** pre-TestFlight
+- **App Store name:** `Life Clock: habits earn time`
 - **Primary App Store category:** Health & Fitness
 - **Platform:** iOS 17+ (iPhone-first, iPad supported via SwiftUI adaptive layout)
 - **Source tree:** `products/life-clock-ios/`
@@ -68,6 +68,16 @@ For consolidated reading:
 - **Do not** require every HealthKit permission on first launch.
 - **Do not** make the app emotionally punitive by default.
 - Local-first SwiftData. No backend in v1.
+
+## Current product reality
+
+The founder pack remains the strategy source, but the app has moved beyond the original MVP skeleton. As of 2026-04-30 the shipped code includes:
+
+- Live Apple Health reads for steps, exercise, sleep, resting heart rate, active energy, and weight.
+- Local SwiftData persistence for profile, quests, check-ins, ledger entries, and weekly summaries.
+- StoreKit 2 subscriptions for monthly, annual, and lifetime Pro access.
+- A Daily Check-In flow, daily reminder scheduling, a Safety Net screen, and multiple color palettes.
+- Two tone modes (`gentle`, `coach`). The earlier mortality-forward third mode was removed in the 2026-04-30 UX pass.
 
 ## Related platform docs
 

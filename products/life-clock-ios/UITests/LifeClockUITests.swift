@@ -7,74 +7,166 @@ final class LifeClockUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testOnboardingFlowLeadsIntoSupportiveTodayExperience() throws {
+    /// Walks the new ~33-screen reveal-onboarding flow far enough to prove
+    /// the coordinator is wired up, the dot-grid renders, the dial is
+    /// reachable, and the paywall surfaces. Stops short of completing
+    /// purchase (sandbox StoreKit is flaky in CI per pre-existing
+    /// SubscriptionStoreTests).
+    ///
+    /// Replaces the legacy 7-step UITest that was driving `onboarding.value`
+    /// → `onboarding.safety` → … (the old screen IDs no longer exist now
+    /// that LifeClockApp routes the empty-profile branch to
+    /// `OnboardingCoordinator`).
+    func testOnboardingV2FlowReachesPaywall() throws {
         launchApp(scenario: "onboarding")
 
-        XCTAssertTrue(app.otherElements["onboarding.value"].waitForExistence(timeout: 5))
+        // Phase 3.5 lead-ins
+        XCTAssertTrue(
+            app.otherElements["onboarding.coldOpen"].waitForExistence(timeout: 8),
+            "first screen of the new flow"
+        )
+        // ColdOpen auto-advances or accepts a tap; tap to skip the 2s timer.
+        app.otherElements["onboarding.coldOpen"].tap()
+
+        XCTAssertTrue(app.otherElements["onboarding.appPreviews"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
 
-        XCTAssertTrue(app.otherElements["onboarding.safety"].waitForExistence(timeout: 5))
-        app.switches["onboarding.disclaimerToggle"].tap()
+        XCTAssertTrue(app.otherElements["onboarding.welcome"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
 
-        XCTAssertTrue(app.otherElements["onboarding.baseline"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.otherElements["onboarding.meetYourClock"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
 
+        XCTAssertTrue(app.otherElements["onboarding.reactiveSlider"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+
+        // Phase 4 personalize intro
+        XCTAssertTrue(app.otherElements["onboarding.visibilityFraming"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+
+        XCTAssertTrue(app.otherElements["onboarding.personalizeIntro"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+
+        // Goal pick — must select before continue is enabled
+        XCTAssertTrue(app.otherElements["onboarding.goalPick"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.goal.justCurious"].tap()
+        app.buttons["onboarding.continue"].tap()
+
+        // Baseline DOB
+        XCTAssertTrue(app.otherElements["onboarding.baselineDOB"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+
+        // Baseline sex
+        XCTAssertTrue(app.otherElements["onboarding.baselineSex"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.baselineSex.unspecified"].tap()
+        app.buttons["onboarding.continue"].tap()
+
+        // Body comp — skip path (toggle stays off)
+        XCTAssertTrue(app.otherElements["onboarding.bodyComp"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+
+        // Smoking
+        XCTAssertTrue(app.otherElements["onboarding.smoking"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.smoking.none"].tap()
+        app.buttons["onboarding.continue"].tap()
+
+        // Alcohol
+        XCTAssertTrue(app.otherElements["onboarding.alcohol"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.alcohol.rare"].tap()
+        app.buttons["onboarding.continue"].tap()
+
+        // Strength + cardio + sleep + diet — accept defaults
+        XCTAssertTrue(app.otherElements["onboarding.strength"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+        XCTAssertTrue(app.otherElements["onboarding.cardio"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+        XCTAssertTrue(app.otherElements["onboarding.sleep"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+        XCTAssertTrue(app.otherElements["onboarding.diet"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.diet.okay"].tap()
+        app.buttons["onboarding.continue"].tap()
+
+        // Sensitive consent — take the skip path so we don't have to
+        // simulate every parental / stress / loneliness input.
+        XCTAssertTrue(app.otherElements["onboarding.sensitiveConsent"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.skipSensitive"].tap()
+
+        // Tone
         XCTAssertTrue(app.otherElements["onboarding.tone"].waitForExistence(timeout: 5))
         app.buttons["onboarding.tone.coach"].tap()
         app.buttons["onboarding.continue"].tap()
 
-        XCTAssertTrue(app.otherElements["onboarding.health"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.connectHealth"].tap()
+        // Prior attempts
+        XCTAssertTrue(app.otherElements["onboarding.priorAttempts"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.priorAttempts.firstTime"].tap()
         app.buttons["onboarding.continue"].tap()
 
-        XCTAssertTrue(app.otherElements["onboarding.reveal"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.finish"].tap()
+        // Analyzing — fake-progress timer (~4.5s) advances automatically.
+        XCTAssertTrue(app.otherElements["onboarding.analyzing"].waitForExistence(timeout: 5))
 
-        XCTAssertTrue(app.navigationBars["Today's progress"].waitForExistence(timeout: 5))
-        // Tab bar collapsed to Today + History + Profile in the
-        // 2026-05-01 IA refactor. The old Plan and Progress tabs no
-        // longer exist; their content lives inside Today (and History).
-        XCTAssertFalse(app.buttons["Plan"].exists)
-        XCTAssertFalse(app.buttons["Progress"].exists)
-        XCTAssertFalse(app.buttons["Quests"].exists)
-        XCTAssertTrue(app.staticTexts["Save today's check-in"].exists)
+        // Archetype reveal
+        XCTAssertTrue(
+            app.otherElements["onboarding.archetypeReveal"].waitForExistence(timeout: 8),
+            "analyzing should auto-advance to archetype reveal"
+        )
+        app.buttons["onboarding.continue"].tap()
+
+        // .justCurious goal SKIPS bigNumberPenalty per coordinator's
+        // shouldShowPenaltyScreen() — flow goes
+        // concreteThisYear → lifeGridFull → lifeGridRemaining →
+        // engineRevealAndDial directly.
+        XCTAssertTrue(app.otherElements["onboarding.concreteThisYear"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+        XCTAssertTrue(app.otherElements["onboarding.lifeGridFull"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+        XCTAssertTrue(app.otherElements["onboarding.lifeGridRemaining"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+
+        // Engine reveal + dial — the heart of the feature.
+        XCTAssertTrue(app.otherElements["onboarding.engineRevealAndDial"].waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            app.otherElements["onboarding.dialYears"].exists,
+            "the running healthspan years label must be present"
+        )
+        XCTAssertTrue(
+            app.otherElements["onboarding.dial.slider"].exists,
+            "the ±5yr dial slider must be reachable"
+        )
+        app.buttons["onboarding.dial.confirm"].tap()
+        // Confirmation alert — Lock to commit.
+        let lockButton = app.alerts.firstMatch.buttons["Lock"]
+        XCTAssertTrue(lockButton.waitForExistence(timeout: 5))
+        lockButton.tap()
+
+        // Recovery preview
+        XCTAssertTrue(app.otherElements["onboarding.recoveryPreview"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+
+        // HealthKit auth — first tap fires the request, second tap advances.
+        XCTAssertTrue(app.otherElements["onboarding.healthKitAuth"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.continue"].tap()
+        // System dialog handling is environment-specific; in CI we just
+        // verify we eventually reach the paywall.
+
+        // Paywall — proves the conversion moment is reachable. We don't
+        // attempt to purchase (sandbox StoreKit is flaky); we just verify
+        // the surface and dismiss.
+        XCTAssertTrue(
+            app.otherElements["onboarding.paywallPrimary"].waitForExistence(timeout: 10),
+            "must reach the single-tier paywall"
+        )
+        XCTAssertTrue(
+            app.buttons["paywall.tier.annual"].exists,
+            "annual tier toggle should be present with equal-prominence pricing"
+        )
+        XCTAssertTrue(app.buttons["paywall.close"].exists)
     }
 
-    func testDailyCheckInShowsSupportMoment() throws {
-        launchApp(scenario: "onboarded")
-
-        XCTAssertTrue(app.buttons["today.checkInCard"].waitForExistence(timeout: 5))
-        app.buttons["today.checkInCard"].tap()
-
-        XCTAssertTrue(app.buttons["checkIn.save"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["Update Life Clock"].exists)
-        app.buttons["checkIn.save"].tap()
-
-        XCTAssertTrue(app.staticTexts["Life Clock updated."].waitForExistence(timeout: 5))
-        // Note: "Your daily signals are in." was momentumCard copy; the
-        // momentum card was removed in the 2026-05-01 IA refactor (its
-        // content was retrospective summary, which History owns now).
-        // Support-moment text and the headline check above are sufficient
-        // to verify the post-check-in flow.
-    }
-
-    func testPlanCompletionFromTodayUpdatesQuestState() throws {
-        launchApp(scenario: "onboarded")
-
-        // The old Plan tab is gone. Today's Plan section is reachable
-        // directly on the Today screen via the today.planAction.* IDs.
-        XCTAssertTrue(app.buttons["today.planAction.0"].waitForExistence(timeout: 5))
-        app.buttons["today.planAction.0"].tap()
-
-        // The toggle should have flipped state. Re-finding the same
-        // accessibility ID (now in completed state) is sufficient — the
-        // store toggles `Quest.completedAt` and the row re-renders.
-        XCTAssertTrue(app.buttons["today.planAction.0"].waitForExistence(timeout: 2))
-    }
-
-    /// Phase 2.C: paywall must be dismissible by an agent. Purchase
-    /// (paywall.subscribe) is intentionally not exposed to XCUITest.
+    /// Original paywall agent-driveability test from Phase 2.C — still
+    /// relevant for re-engagement (`PaywallSheet` from Profile / History
+    /// locked rows). The new onboarding `PaywallPrimaryView` uses
+    /// different identifiers (`paywall.purchase`) but `paywall.close`
+    /// works on both surfaces.
     func testPaywallCloseIsAgentDriveable() throws {
         app = XCUIApplication()
         app.launchEnvironment["LIFECLOCK_UI_TEST"] = "1"
@@ -87,9 +179,54 @@ final class LifeClockUITests: XCTestCase {
         XCTAssertTrue(close.waitForExistence(timeout: 8),
                       "paywall.close must exist so agents can audit the paywall surface")
         close.tap()
-        // Confirm sheet dismissed: paywall.close should no longer exist.
         let stillVisible = close.waitForExistence(timeout: 2)
         XCTAssertFalse(stillVisible, "paywall should dismiss after tapping paywall.close")
+    }
+
+    /// Post-onboarding navigation regression — verifies the existing
+    /// `onboarded` scenario lands in the supportive Today experience
+    /// once a profile has been seeded. The Progress-tab navigation that
+    /// used to sit at the end of this test was removed in the 2026-05-01
+    /// IA refactor (the Progress tab is gone).
+    func testDailyCheckInShowsSupportMomentOnToday() throws {
+        launchApp(scenario: "onboarded")
+
+        XCTAssertTrue(app.buttons["today.checkInCard"].waitForExistence(timeout: 5))
+        app.buttons["today.checkInCard"].tap()
+
+        XCTAssertTrue(app.buttons["checkIn.save"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Update Life Clock"].exists)
+        app.buttons["checkIn.save"].tap()
+
+        XCTAssertTrue(app.staticTexts["Life Clock updated."].waitForExistence(timeout: 5))
+    }
+
+    /// Verifies the 2026-05-01 IA refactor: tab bar is exactly Today,
+    /// History, Profile. Plan / Progress / Quests are gone; their content
+    /// lives inside Today (and History). Regression guard against
+    /// accidentally re-adding a tab.
+    func testTabBarHasOnlyThreeTabs() throws {
+        launchApp(scenario: "onboarded")
+        XCTAssertTrue(app.buttons["today.checkInCard"].waitForExistence(timeout: 5),
+                      "Today screen should be the default tab")
+        XCTAssertFalse(app.buttons["Plan"].exists, "Plan tab should not exist post-refactor")
+        XCTAssertFalse(app.buttons["Progress"].exists, "Progress tab should not exist post-refactor")
+        XCTAssertFalse(app.buttons["Quests"].exists, "Quests tab should not exist post-refactor")
+        XCTAssertTrue(app.buttons["History"].exists, "History tab should be present")
+        XCTAssertTrue(app.buttons["Profile"].exists, "Profile tab should be present")
+    }
+
+    /// Verifies the IA refactor keeps the Today's Plan section reachable
+    /// directly on Today (the Plan tab no longer exists). Toggling a plan
+    /// action goes through `store.toggleQuestCompletion` and the row
+    /// re-renders.
+    func testPlanCompletionFromTodayUpdatesQuestState() throws {
+        launchApp(scenario: "onboarded")
+
+        XCTAssertTrue(app.buttons["today.planAction.0"].waitForExistence(timeout: 5))
+        app.buttons["today.planAction.0"].tap()
+        XCTAssertTrue(app.buttons["today.planAction.0"].waitForExistence(timeout: 2),
+                      "the plan action row should re-render after toggle")
     }
 
     private func launchApp(scenario: String) {

@@ -91,6 +91,7 @@ final class LifeClockStore {
     @ObservationIgnored private let streakCalculator: DietStreakCalculator
     @ObservationIgnored private let notificationsService: NotificationsServiceProtocol
     @ObservationIgnored private let wrapUpCoordinator: WrapUpCoordinator
+    @ObservationIgnored private let completionBadgeEngine = CompletionBadgeEngine()
     @ObservationIgnored private(set) lazy var historicalImporter: HistoricalImportCoordinator =
         HistoricalImportCoordinator(
             healthService: healthService,
@@ -389,6 +390,29 @@ final class LifeClockStore {
         return true
     }
 
+    /// Apply the one-time healthspan dial adjustment. Writes both
+    /// `personalAdjustmentYears` and `anchorAdjustedAt` together —
+    /// the engine reads `personalAdjustmentYears` only when
+    /// `anchorAdjustedAt != nil`, so the pair is logically atomic
+    /// against partial-write failure. Replaces silent `try?` with
+    /// explicit do/catch so a failed save doesn't leave memory dirty.
+    /// Source: Phase 5 of the reveal-onboarding rebuild plan.
+    func applyAnchorAdjustment(years: Double) {
+        guard let profile else { return }
+        // Idempotency: never re-apply if already adjusted.
+        guard profile.anchorAdjustedAt == nil else { return }
+        profile.personalAdjustmentYears = years
+        profile.anchorAdjustedAt = clock.now()
+        do {
+            try modelContext.save()
+        } catch {
+            // Roll memory back to match disk so the dial screen reappears
+            // on next launch and the user can retry cleanly.
+            profile.personalAdjustmentYears = nil
+            profile.anchorAdjustedAt = nil
+        }
+    }
+
     func setToneMode(_ tone: ToneMode) {
         toneMode = tone
         profile?.toneMode = tone.rawValue
@@ -611,6 +635,52 @@ final class LifeClockStore {
         supportMoment = nil
     }
 
+    // MARK: - Completion badges
+
+    func completionBadges() -> [CompletionBadge] {
+        completionBadgeEngine.badges(for: completionBadgeProgress())
+    }
+
+    private func completionBadgeProgress() -> CompletionBadgeProgress {
+        let habits = fetchAllHabits()
+        let quests = fetchAllQuests()
+        let snapshots = fetchAllSnapshots()
+        let reports = fetchAllWeeklyReports()
+        let completedQuests = quests.filter { $0.completedAt != nil }
+        let completedQuestDays = Set(completedQuests.map { dayKey(for: $0.date) })
+        let completedByDay = Dictionary(grouping: completedQuests, by: { dayKey(for: $0.date) })
+
+        return CompletionBadgeProgress(
+            onboardedAt: profile?.onboardingCompletedAt,
+            completedQuestCount: completedQuests.count,
+            completedQuestDays: completedQuestDays.count,
+            threeQuestDays: completedByDay.values.filter { $0.count >= 3 }.count,
+            checkInDays: Set(habits.map { dayKey(for: $0.date) }).count,
+            dietLoggingStreakDays: dietStreaks.loggingDays,
+            supportiveDietDays: habits.filter { ["great", "okay"].contains($0.dietQuality.lowercased()) }.count,
+            greatDietDays: habits.filter { $0.dietQuality.lowercased() == "great" }.count,
+            lowRiskRecoveryDays: habits.filter { habit in
+                habit.smokingVaping == false && habit.alcoholLevel.lowercased() != "heavy"
+            }.count,
+            strengthDays: habits.filter { $0.strengthTraining }.count,
+            stepTargetDays: snapshots.filter { ($0.stepCount ?? 0) >= 7_500 }.count,
+            tenThousandStepDays: snapshots.filter { ($0.stepCount ?? 0) >= 10_000 }.count,
+            exerciseTargetDays: snapshots.filter { ($0.exerciseMinutes ?? 0) >= 30 }.count,
+            sleepGoalDays: snapshots.filter { snapshot in
+                guard let sleepHours = snapshot.sleepHours else { return false }
+                return sleepHours >= (profile?.sleepGoalHours ?? 7.5)
+            }.count,
+            positiveWeekCount: reports.filter { $0.netTimeDeltaMinutes > 0 }.count,
+            dataRichDays: snapshots.filter { $0.sourceCompleteness >= 0.75 }.count,
+            healthConnected: healthAuthorizationKnown || snapshots.contains { $0.sourceCompleteness > 0 },
+            reminderEnabled: profile?.dailyReminderEnabled == true
+        )
+    }
+
+    private func dayKey(for date: Date) -> Date {
+        clock.calendar.startOfDay(for: date)
+    }
+
     // MARK: - Persistence helpers
 
     private func fetchFirst<T: PersistentModel>(_ type: T.Type) -> T? {
@@ -645,6 +715,20 @@ final class LifeClockStore {
             sortBy: [SortDescriptor(\.weekStart, order: .reverse)]
         )
         descriptor.fetchLimit = limit
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func fetchAllSnapshots() -> [DailyHealthSnapshot] {
+        let descriptor = FetchDescriptor<DailyHealthSnapshot>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func fetchAllWeeklyReports() -> [WeeklyReport] {
+        let descriptor = FetchDescriptor<WeeklyReport>(
+            sortBy: [SortDescriptor(\.weekStart, order: .reverse)]
+        )
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
@@ -701,6 +785,13 @@ final class LifeClockStore {
         else { return [] }
         let descriptor = FetchDescriptor<HabitLog>(
             predicate: #Predicate { $0.date >= earliest },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func fetchAllHabits() -> [HabitLog] {
+        let descriptor = FetchDescriptor<HabitLog>(
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         return (try? modelContext.fetch(descriptor)) ?? []
@@ -796,6 +887,13 @@ final class LifeClockStore {
     private func fetchQuests(on dayStart: Date) -> [Quest] {
         let descriptor = FetchDescriptor<Quest>(
             predicate: #Predicate { $0.date == dayStart }
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func fetchAllQuests() -> [Quest] {
+        let descriptor = FetchDescriptor<Quest>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         return (try? modelContext.fetch(descriptor)) ?? []
     }

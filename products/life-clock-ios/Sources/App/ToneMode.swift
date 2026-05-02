@@ -2,11 +2,14 @@ import Foundation
 
 /// User-facing tone for headline / drivers / plan copy.
 ///
-/// Phase 3.A collapse: `.mementoMori` was removed because keyed properties
-/// had collapsed to identical strings between `.coach` and `.mementoMori`
-/// after the 2026-04-30 audit copy refresh. The mortality framing the
-/// original case represented was abandoned during the audit;
-/// `displayName` had already been renamed to "Direct".
+/// History: `.mementoMori` was removed in Phase 3.A (2026-04-30) after a
+/// copy audit collapsed most of its keyed properties into `.coach`.
+/// Phase 3.B (2026-05-01) reintroduced a firm/direct register as
+/// `.firmDirect` to support the Brainrot-style onboarding voice carrying
+/// into daily use. The 2026-05-01 IA refactor (tab consolidation)
+/// removed `ledgerTitle`, `ledgerEmptyState`, `questsTitle`, and
+/// `questsPreamble` because the views that consumed them
+/// (`TimeLedgerView`, `QuestsView`) were folded into Today.
 ///
 /// Legacy `UserProfile.toneMode == "memento_mori"` rows fall back to
 /// `.coach` via `fromStored(_:)`; persisted values are written back as
@@ -14,6 +17,7 @@ import Foundation
 enum ToneMode: String, CaseIterable, Identifiable {
     case gentle
     case coach
+    case firmDirect = "firm_direct"
 
     var id: String { rawValue }
 
@@ -25,8 +29,9 @@ enum ToneMode: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .gentle: return "Gentle"
-        case .coach: return "Coach"
+        case .gentle: return "Calm / Gentle"
+        case .coach: return "Default / Average"
+        case .firmDirect: return "Firm / Direct"
         }
     }
 
@@ -36,6 +41,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Keeps the focus on steady progress and supportive guidance."
         case .coach:
             return "Balanced guidance with clear progress language and supportive accountability."
+        case .firmDirect:
+            return "Short, specific, no hedging. The clock keeps score."
         }
     }
 
@@ -44,6 +51,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Today"
         case .coach: return "Today's progress"
+        case .firmDirect: return "Today's reckoning"
         }
     }
 
@@ -51,6 +59,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Progress gained"
         case .coach: return "Progress today"
+        case .firmDirect: return "Banked"
         }
     }
 
@@ -58,6 +67,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Needs attention"
         case .coach: return "Progress at risk"
+        case .firmDirect: return "Owed"
         }
     }
 
@@ -67,6 +77,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "This week"
         case .coach: return "Weekly"
+        case .firmDirect: return "Last 7"
         }
     }
 
@@ -78,6 +89,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Come back after a few days — patterns appear with time."
         case .coach:
             return "Your weekly view will appear after a few days of data."
+        case .firmDirect:
+            return "Not enough days yet. Show up. Come back."
         }
     }
 
@@ -87,6 +100,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Yesterday"
         case .coach: return "Yesterday's wrap-up"
+        case .firmDirect: return "Yesterday's tally"
         }
     }
 
@@ -94,6 +108,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Last week"
         case .coach: return "Weekly wrap-up"
+        case .firmDirect: return "Last 7 days"
         }
     }
 
@@ -106,6 +121,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "You moved \(formatted) forward. Small days add up."
         case .coach:
             return "\(formatted) gained. Keep stacking days like this."
+        case .firmDirect:
+            return "+\(formatted). Banked."
         }
     }
 
@@ -123,11 +140,14 @@ enum ToneMode: String, CaseIterable, Identifiable {
                 return "Today is helping your healthspan — \(title) is supporting you."
             case .coach:
                 return "Today is moving you forward, mostly because of \(title)."
+            case .firmDirect:
+                return "Today scored. \(title) carried it."
             }
         } else {
             switch self {
             case .gentle: return "Today is helping your healthspan."
             case .coach: return "Today is moving you forward."
+            case .firmDirect: return "Today scored."
             }
         }
     }
@@ -139,11 +159,14 @@ enum ToneMode: String, CaseIterable, Identifiable {
                 return "Today is pulling against your healthspan — \(title) is the main drag."
             case .coach:
                 return "Today is working against you, mostly because of \(title)."
+            case .firmDirect:
+                return "Today's in the red. \(title) is the cost."
             }
         } else {
             switch self {
             case .gentle: return "Today is pulling against your healthspan."
             case .coach: return "Today is working against you."
+            case .firmDirect: return "Today's in the red."
             }
         }
     }
@@ -154,6 +177,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Not enough data yet — this fills in as today goes on."
         case .coach: return "Not enough data yet. Check back as today's signals come in."
+        case .firmDirect: return "No data yet. Check back."
         }
     }
 
@@ -167,6 +191,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Yesterday cost \(formatted). Today is a fresh start."
         case .coach:
             return "\(formatted) yesterday. One day doesn't define the trend."
+        case .firmDirect:
+            return "-\(formatted). Owe today's self."
         }
     }
 
@@ -175,6 +201,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Yesterday held steady. Even floors matter."
         case .coach: return "Net zero. Holding steady is a real outcome."
+        case .firmDirect: return "Net zero. No ground gained, none lost."
         }
     }
 
@@ -182,6 +209,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Got it"
         case .coach: return "Continue"
+        case .firmDirect: return "Next"
         }
     }
 
@@ -192,6 +220,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Adjusted"
         case .coach: return "Adjusted"
+        case .firmDirect: return "Adjusted"
         }
     }
 
@@ -202,6 +231,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Welcome back"
         case .coach: return "Picking up where you left off"
+        case .firmDirect: return "You were gone"
         }
     }
 
@@ -211,6 +241,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "We didn't have enough data from yesterday for a wrap-up. Today's a fresh start."
         case .coach:
             return "Yesterday didn't have enough data to summarize. Make today count."
+        case .firmDirect:
+            return "No data for yesterday. Clock starts again now."
         }
     }
 
@@ -224,6 +256,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "New adjustments are paused — Pro only. Your existing adjustments stay active. Re-subscribe in Profile to keep editing."
         case .coach:
             return "New adjustments require Pro. Existing adjustments remain in effect. Re-subscribe in Profile to resume editing."
+        case .firmDirect:
+            return "Adjustments are Pro. Existing ones stay. Re-subscribe to edit."
         }
     }
 }

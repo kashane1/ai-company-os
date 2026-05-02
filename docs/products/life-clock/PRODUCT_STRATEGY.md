@@ -64,6 +64,15 @@ The app should prove daily behavior change before adding bloodwork, AI health co
 
 Points are abstract. Time is primal.
 
+### 8. Monetize depth, not comprehension
+
+The free product should help the user understand their trajectory. Paid features should deepen that understanding, extend it across time, or give the user more control over the model.
+
+Working rule:
+
+- **Free = understanding**
+- **Pro = depth, archive, and correction power**
+
 ## App personality
 
 Default tone: motivating, elegant, direct, slightly dramatic.

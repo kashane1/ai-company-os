@@ -55,16 +55,20 @@ ENGINEERING INVARIANTS
 - Brand-prone strings live in LifeClockConfiguration. Don't hardcode
   "Life Clock" elsewhere
 - Founder pack rules: agency over fear, no calorie/macro tracking, no medical
-  claims, no doom default. Tone-mode default is "coach"; "memento mori" is
-  opt-in only
+  claims, no doom default. Tone-mode default is "coach"; the older
+  mortality-forward third mode was removed in the 2026-04-30 UX pass
 
 WHAT'S DONE
 - Founder pack ingested into docs/products/life-clock/ (18 files)
-- Four SwiftUI surfaces: Onboarding, Today, History, Profile + Quick Log
-  sheet + Paywall sheet + Safety Net sheet. Tab bar collapsed from 5 to
-  3 in the 2026-05-01 IA refactor; Time Ledger and Quests folded into
-  Today (drivers card + Today's Plan section).
-- Three tone modes (gentle/coach/memento mori) wired into all primary screens
+- Tab bar: Onboarding (full reveal flow) → MainTabView with three tabs
+  (Today, History, Profile) + Quick Log sheet + Paywall sheet + Safety Net
+  sheet. The 2026-05-01 IA refactor (PR `feat/life-clock-tab-consolidation`)
+  collapsed the prior Progress (TimeLedger) and Plan (Quests) tabs into
+  Today — Today now hosts drivers card + Today's Plan section. History
+  (PR #18/#19) owns retrospective views.
+- Three tone modes (`gentle` / `coach` / `firmDirect`) wired through the
+  current product. `firmDirect` was reintroduced in Phase 3.B (2026-05-01)
+  to support the Brainrot-style onboarding voice carrying into daily use.
 - Live HealthKit (HKStatisticsCollectionQuery + sleep HKSampleQuery, honest
   authorization model — never claims "Connected"/"Denied" since reads are
   silent)
@@ -84,9 +88,9 @@ WHAT'S DONE
 
 WHAT'S PENDING — founder-side (cannot be done from code)
 - Apple Developer Program enrollment ($99/yr) — see ASC_CHECKLIST Phase 0
-- Create life-clock-legal GitHub repo from docs/products/life-clock/legal/
-  *.md files; enable GitHub Pages; replace
-  LifeClockConfiguration.privacyPolicyURL with the live URL
+- Fill the remaining placeholders in docs/products/life-clock/legal/
+  (*.md) with the real publisher name, support email, and governing-law
+  details; the app already points at the GitHub Pages URLs
 - App Store Connect: app record, IAP products matching Products.storekit
   IDs (com.lifeclock.pro.{monthly,annual,lifetime}), age-rating
   questionnaire (answers in ASC_CHECKLIST Phase 4 → 12+)
@@ -200,9 +204,7 @@ LIFECLOCK_USE_MOCK_HEALTH=1
 
 ### Open questions log
 
-See `PHASE_STATUS.md` § "Open questions" for the 19 items from the founder
-pack with current implementation/decision status. Q1, Q5, Q12, Q13 are
-fully resolved (decision + implementation). Q2, Q3, Q4, Q6, Q7, Q9, Q10,
-Q14, Q15, Q16, Q17, Q18, Q19 are implementation-resolved (founder
-ratification welcome but not blocking). Q8 and Q11 are deferred until
-post-TestFlight per founder pack sequencing.
+See `PHASE_STATUS.md` for the current resolved decisions, blockers, and
+product gaps. The older founder-pack question list is still useful for
+historical context, but `PHASE_STATUS.md` is now the operational source
+of truth.
