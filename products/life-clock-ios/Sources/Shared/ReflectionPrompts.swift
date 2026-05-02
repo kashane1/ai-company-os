@@ -28,20 +28,12 @@ enum ReflectionPrompts {
         "What would the next steady version of you do right now?",
     ]
 
-    // @MainActor-safe cache: callers are SwiftUI views, all on main.
-    @MainActor private static var cachedDayKey: Int = -1
-    @MainActor private static var cachedPrompt: String = ""
-
     /// Returns the prompt for the calendar day containing `date`.
-    /// Stable across renders within the same day; rotates daily.
-    @MainActor
+    /// Deterministic: same `(date, calendar)` always returns the same
+    /// prompt. Cheap enough to recompute on every render — the work is
+    /// `Calendar.ordinality(...)` plus an array index over 15 elements.
     static func prompt(for date: Date, calendar: Calendar = .current) -> String {
-        let key = DayKey.from(date: date, calendar: calendar)
-        if key != cachedDayKey {
-            cachedDayKey = key
-            let dayOfYear = calendar.ordinality(of: .day, in: .year, for: date) ?? 1
-            cachedPrompt = pool[(dayOfYear - 1) % pool.count]
-        }
-        return cachedPrompt
+        let dayOfYear = calendar.ordinality(of: .day, in: .year, for: date) ?? 1
+        return pool[(dayOfYear - 1) % pool.count]
     }
 }

@@ -51,7 +51,7 @@ struct ReflectionSheet: View {
                     .accessibilityIdentifier("reflection.save")
                 }
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
             .onAppear {
                 if let saved = store.todayReflection {

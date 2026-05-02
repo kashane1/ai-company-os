@@ -19,7 +19,7 @@ enum LifeClockSchemaV1: VersionedSchema {
     // migration applies on existing V1 stores. See
     // docs/plans/2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md
     // Phase 1a for the rationale.
-    static var versionIdentifier = Schema.Version(1, 1, 0)
+    static var versionIdentifier = Schema.Version(1, 2, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -326,24 +326,20 @@ enum LifeClockSchemaV1: VersionedSchema {
     /// surfaced on Today. One row per local calendar day, keyed by
     /// `dayKey` (yyyyMMdd Int) which is timezone-stable — `Date`-based
     /// startOfDay keys would shift under timezone changes and create
-    /// phantom rows. Mirrors the `dayKey` framing used by
-    /// `HistoricalImportCoordinator`.
+    /// phantom rows.
     ///
-    /// Intentionally NOT `@Attribute(.unique)` on `dayKey` in this
-    /// version: the upsert path is `@MainActor`-isolated through
-    /// `LifeClockStore.saveReflection(...)` which fetch-then-mutate-or-
-    /// inserts. A unique constraint would convert any race that slipped
-    /// through into a save crash; promote to `.unique` in V2 once the
-    /// store-mediated path has soaked.
+    /// `dayKey` is `@Attribute(.unique)` so the database guarantees
+    /// one-row-per-day even if a future code path bypasses the
+    /// `LifeClockStore.saveReflection(...)` upsert. The entity is brand
+    /// new in V1.2.0, so no legacy rows can collide on the unique
+    /// constraint at migration time.
     @Model
     final class DailyReflection {
-        @Attribute(.unique) var id: UUID = UUID()
-        var dayKey: Int = 0
+        @Attribute(.unique) var dayKey: Int = 0
         var prompt: String = ""
         var response: String = ""
 
-        init(id: UUID = UUID(), dayKey: Int, prompt: String, response: String) {
-            self.id = id
+        init(dayKey: Int, prompt: String, response: String) {
             self.dayKey = dayKey
             self.prompt = prompt
             self.response = response

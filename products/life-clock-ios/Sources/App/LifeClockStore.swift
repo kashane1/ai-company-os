@@ -17,13 +17,15 @@ final class LifeClockStore {
     var todayEstimate: LifeClockEstimate?
     var todayDrivers: [TimeLedgerEntry] = []
     var todayQuests: [Quest] = []
-    /// In-memory mirror of recent ledger entries. As of the 2026-05-01 IA
-    /// refactor (tab bar collapse), no production view reads `ledger`
-    /// directly — Today reads `todayDrivers` (top 3) and History reads
-    /// `DayDetailView` data via `snapshot(for:)`. Kept exposed for tests
-    /// (`LifeClockStoreTests`, `LifeClockE2ETests`) and future debug
-    /// surfaces. Refactor to private + a `recentLedger(limit:)` accessor
-    /// is a separate cleanup.
+    /// In-memory mirror of recent ledger entries. The persisted source of
+    /// truth is `TimeLedgerEntry` in SwiftData; this array is maintained
+    /// on every write path (`toggleQuestCompletion`, `refreshFromHealthKit`,
+    /// `bootstrap`) for fast access by `LifeClockStoreTests` /
+    /// `LifeClockE2ETests` and as a hedge against re-introducing a debug
+    /// surface. No production view reads it directly — Today reads
+    /// `todayDrivers` (top 3, derived) and History reads through
+    /// `snapshot(for:)` / `DayDetailView`. A future cleanup can refactor
+    /// it to private + a `recentLedger(limit:)` accessor.
     var ledger: [TimeLedgerEntry] = []
     var weekly: WeeklyReport?
     var hasCompletedOnboarding: Bool = false
@@ -755,12 +757,11 @@ final class LifeClockStore {
     }
 
     private func fetchReflection(for key: Int) -> DailyReflection? {
-        // SwiftData's `#Predicate` on `Int` keypaths can signal-trap on
-        // certain Xcode 26 / iOS 26 builds. There's at most one row per
-        // local day (~365 rows/year), so an in-memory filter after a
-        // bare fetch is trivially cheap and avoids the macro footgun.
-        let all = (try? modelContext.fetch(FetchDescriptor<DailyReflection>())) ?? []
-        return all.first(where: { $0.dayKey == key })
+        var descriptor = FetchDescriptor<DailyReflection>(
+            predicate: #Predicate { $0.dayKey == key }
+        )
+        descriptor.fetchLimit = 1
+        return (try? modelContext.fetch(descriptor))?.first
     }
 
     private func fetchSnapshot(for dayStart: Date) -> DailyHealthSnapshot? {

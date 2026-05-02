@@ -49,6 +49,8 @@ struct ReflectionCard: View {
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text(store.todayReflection == nil ? "Double tap to write a reflection" : "Double tap to edit your reflection"))
         .accessibilityIdentifier("today.reflection")
     }
 }
