@@ -13,7 +13,13 @@ import SwiftData
 // docs/solutions/integration-issues/swiftdata-mandatory-attribute-migration-landmine.md.
 
 enum LifeClockSchemaV1: VersionedSchema {
-    static var versionIdentifier = Schema.Version(1, 0, 0)
+    // 1.1.0 (2026-05-01): additive fields for the reveal-onboarding rebuild
+    // (cardio, family longevity, stress/loneliness, goal, archetype, healthspan
+    // dial). All optional or with property-level defaults — lightweight
+    // migration applies on existing V1 stores. See
+    // docs/plans/2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md
+    // Phase 1a for the rationale.
+    static var versionIdentifier = Schema.Version(1, 1, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -72,6 +78,61 @@ enum LifeClockSchemaV1: VersionedSchema {
         /// Start-of-day of the most recent week (firstWeekday-aligned) for
         /// which the Weekly Wrap-Up sheet was shown.
         var lastShownWeeklyWrapUpWeek: Date? = nil
+
+        // MARK: - Reveal-onboarding rebuild (additive 2026-05-01)
+        //
+        // All optional or with property-level defaults so SwiftData lightweight
+        // migration applies them silently to existing V1 stores. Driven by the
+        // brainstorm + plan at docs/brainstorms/ + docs/plans/. These feed
+        // ClockEngine.lifestyleAdjustmentYears (Phase 1b) and the new dial
+        // (Phase 5). None of them iCloud-sync — `cloudKitDatabase: .none` at
+        // the container level applies globally.
+
+        /// Cardio minutes per week (PA Guidelines 2018; Lee et al. 2014).
+        /// Distinct from `strengthFrequencyPerWeek` — cardio has its own
+        /// mortality-reduction curve. 0 default = unanswered ⇒ engine treats
+        /// as the worst bucket. Phase 4 question collects this explicitly.
+        var cardioMinsPerWeek: Int = 0
+
+        /// Parental longevity (Sebastiani et al. 2012; Atzmon et al. 2010).
+        /// Genetic-anchor signal. All four fields nil = "prefer not to say"
+        /// ⇒ engine applies zero adjustment. Sensitive copy required at
+        /// collection time (see Phase 4 consent priming).
+        var parentMotherAlive: Bool? = nil
+        var parentMotherAgeAtDeath: Int? = nil
+        var parentFatherAlive: Bool? = nil
+        var parentFatherAgeAtDeath: Int? = nil
+
+        /// Cohen 1988 PSS-10 (perceived stress, 0–40 range) and UCLA-3
+        /// loneliness scale (3–9 range). Special-category data under
+        /// GDPR Art. 9 — captured only after explicit consent priming.
+        /// Telemetry MUST bucket these before logging (low/medium/high) —
+        /// raw values never enter the public log channel.
+        var perceivedStressScore: Int? = nil
+        var lonelinessScore: Int? = nil
+
+        /// `OnboardingGoal` raw value. Personalizes the recovery animation
+        /// cycling words and softens framing for `.justCurious`.
+        var primaryGoal: String? = nil
+
+        /// `Archetype` raw value computed at the end of the analyzing phase.
+        /// `.marathoner` / `.sprinter` / `.sleeper` / `.outlier` per the
+        /// pace-based taxonomy chosen in the brainstorm.
+        var archetype: String? = nil
+
+        /// One-time healthspan dial adjustment in years (bounded ±5). The
+        /// engine reads this ONLY when `anchorAdjustedAt != nil` — atomic
+        /// gate makes the pair race-free under partial-write failure.
+        /// Once set, the dial UI never reappears for the lifetime of the
+        /// install.
+        var personalAdjustmentYears: Double? = nil
+        var anchorAdjustedAt: Date? = nil
+
+        /// Distinguishes users who completed the new (post-rebuild) onboarding
+        /// from existing users on the legacy 7-step flow. Existing users with
+        /// `currentProfile != nil` AND `anchorAdjustedAt == nil` get a one-time
+        /// recalibration prompt rather than a full restart of onboarding.
+        var onboardingV2CompletedAt: Date? = nil
 
         init(
             id: UUID = UUID(),
