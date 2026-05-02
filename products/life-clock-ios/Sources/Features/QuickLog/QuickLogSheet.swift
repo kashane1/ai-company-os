@@ -31,6 +31,8 @@ struct QuickLogSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var dietQuality: String = "okay"
+    @State private var dietAmountRhythm: String = "right"
+    @State private var wholeFoodMeal: String = "unknown"
     @State private var extrasLevel: String = "none"
     @State private var stressLevel: String = "medium"
     @State private var strengthCompleted: String = "notToday"
@@ -61,6 +63,40 @@ struct QuickLogSheet: View {
                     .pickerStyle(.segmented)
                     .accessibilityIdentifier("quickLog.dietQuality")
                     .accessibilityValue(dietQuality)
+                }
+                if store.isAdultUser {
+                    Section("Rhythm") {
+                        Text("How much did you eat for your body's needs?")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Picker("How much did you eat for your body's needs?", selection: $dietAmountRhythm) {
+                            Text("Right").tag("right")
+                            Text("Too much").tag("overate")
+                            Text("Too little").tag("undereate")
+                            Text("Skipped, then over").tag("skipBinge")
+                            Text("Irregular").tag("irregular")
+                        }
+                        .pickerStyle(.segmented)
+                        .accessibilityIdentifier("quickLog.dietAmountRhythm")
+                        .accessibilityValue(dietAmountRhythm)
+                        Text("No calories, no judgment. Just rhythm.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Section("Whole food") {
+                    Text("At least one solid whole-food meal today?")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Picker("At least one solid whole-food meal today?", selection: $wholeFoodMeal) {
+                        Text("Yes").tag("yes")
+                        Text("Almost").tag("almost")
+                        Text("No").tag("no")
+                        Text("—").tag("unknown")
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("quickLog.wholeFoodMeal")
+                    .accessibilityValue(wholeFoodMeal)
                 }
                 Section("Extras") {
                     Text("Any treats, drinks, or heavier choices?")
@@ -161,6 +197,8 @@ struct QuickLogSheet: View {
     private func hydrateFromStore() {
         guard let existing = store.todayHabits else { return }
         dietQuality = existing.dietQuality
+        dietAmountRhythm = existing.dietAmountRhythm
+        wholeFoodMeal = existing.wholeFoodMeal
         extrasLevel = DailyCheckInMapping.extrasLevel(for: existing.alcoholLevel)
         stressLevel = existing.stressLevel
         strengthCompleted = existing.strengthTraining ? "completed" : "notToday"
@@ -174,6 +212,8 @@ struct QuickLogSheet: View {
             habits.alcoholLevel = DailyCheckInMapping.alcoholLevel(for: extrasLevel)
             habits.smokingVaping = nicotineUsed == "used"
             habits.dietQuality = dietQuality
+            habits.dietAmountRhythm = dietAmountRhythm
+            habits.wholeFoodMeal = wholeFoodMeal
             habits.stressLevel = stressLevel
             habits.strengthTraining = strengthCompleted == "completed"
             await store.setTodayHabits(habits)
