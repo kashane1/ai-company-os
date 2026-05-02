@@ -42,6 +42,8 @@ struct ProfileView: View {
                     }
                 }
 
+                completionBadgesSection
+
                 Section {
                     Toggle("Daily reminder", isOn: Binding(
                         get: { store.profile?.dailyReminderEnabled ?? false },
@@ -203,6 +205,93 @@ struct ProfileView: View {
             Text(name).font(.callout)
             Spacer()
             Text(status).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private var completionBadgesSection: some View {
+        Section("Completion badges") {
+            let badges = store.completionBadges()
+            let earned = badges.filter { $0.isUnlocked }
+            let locked = badges.filter { !$0.isUnlocked }
+
+            HStack {
+                Label("\(earned.count)", systemImage: "seal.fill")
+                    .foregroundStyle(.tint)
+                Text("earned")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(badges.count) possible")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityIdentifier("profile.badges.summary")
+
+            if earned.isEmpty {
+                Text("No badges earned yet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(earned) { badge in
+                    badgeRow(badge)
+                }
+            }
+
+            DisclosureGroup("Locked") {
+                ForEach(locked) { badge in
+                    badgeRow(badge)
+                }
+            }
+        }
+    }
+
+    private func badgeRow(_ badge: CompletionBadge) -> some View {
+        HStack(alignment: .top, spacing: DesignTokens.Spacing.sm) {
+            Image(systemName: badge.systemImage)
+                .font(.title3)
+                .foregroundStyle(badge.isUnlocked ? tierTint(for: badge.tier) : .secondary)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(badge.title)
+                        .font(.callout.bold())
+                    Spacer()
+                    Text(badge.category.displayName)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Text(badge.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if badge.isUnlocked {
+                    Label("Earned", systemImage: "checkmark.seal.fill")
+                        .font(.caption)
+                        .foregroundStyle(tierTint(for: badge.tier))
+                } else {
+                    ProgressView(value: badge.progressFraction) {
+                        Text(badge.progressText)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier("profile.badge.\(badge.id)")
+    }
+
+    private func tierTint(for tier: CompletionBadge.Tier) -> Color {
+        switch tier {
+        case .starter:
+            return .blue
+        case .bronze:
+            return .brown
+        case .silver:
+            return .gray
+        case .gold:
+            return .yellow
+        case .platinum:
+            return .purple
         }
     }
 
