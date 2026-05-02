@@ -2,12 +2,11 @@ import Foundation
 
 /// User-facing tone for headline / progress / quest copy.
 ///
-/// Phase 3.A collapse: `.mementoMori` was removed because four of eight
-/// keyed properties had collapsed to identical strings between `.coach`
-/// and `.mementoMori` after the 2026-04-30 audit copy refresh, and
-/// `ledgerTitle` was identical across all three tones. The mortality
-/// framing the original case represented was abandoned during the audit;
-/// `displayName` had already been renamed to "Direct".
+/// History: a `.mementoMori` case was removed in Phase 3.A (2026-04-30)
+/// after a copy audit collapsed most of its keyed properties into the
+/// `.coach` strings. Phase 3.B (2026-05-01) reintroduces a firm/direct
+/// register as `.firmDirect` to support the Brainrot-style onboarding
+/// voice carrying into daily use.
 ///
 /// Legacy `UserProfile.toneMode == "memento_mori"` rows fall back to
 /// `.coach` via `fromStored(_:)`; persisted values are written back as
@@ -15,6 +14,7 @@ import Foundation
 enum ToneMode: String, CaseIterable, Identifiable {
     case gentle
     case coach
+    case firmDirect = "firm_direct"
 
     var id: String { rawValue }
 
@@ -26,8 +26,9 @@ enum ToneMode: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .gentle: return "Gentle"
-        case .coach: return "Coach"
+        case .gentle: return "Calm / Gentle"
+        case .coach: return "Default / Average"
+        case .firmDirect: return "Firm / Direct"
         }
     }
 
@@ -37,6 +38,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Keeps the focus on steady progress and supportive guidance."
         case .coach:
             return "Balanced guidance with clear progress language and supportive accountability."
+        case .firmDirect:
+            return "Short, specific, no hedging. The clock keeps score."
         }
     }
 
@@ -45,6 +48,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Today"
         case .coach: return "Today's progress"
+        case .firmDirect: return "Today's reckoning"
         }
     }
 
@@ -52,6 +56,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Progress gained"
         case .coach: return "Progress today"
+        case .firmDirect: return "Banked"
         }
     }
 
@@ -59,6 +64,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Needs attention"
         case .coach: return "Progress at risk"
+        case .firmDirect: return "Owed"
         }
     }
 
@@ -74,6 +80,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Next steps"
         case .coach: return "Plan"
+        case .firmDirect: return "Today's moves"
         }
     }
 
@@ -81,6 +88,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "This week"
         case .coach: return "Weekly"
+        case .firmDirect: return "Last 7"
         }
     }
 
@@ -92,6 +100,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Your progress log fills up as you check in and data comes in."
         case .coach:
             return "No progress entries yet. Check in once and the story starts to build."
+        case .firmDirect:
+            return "Nothing logged. Check in. The clock can't score what it can't see."
         }
     }
 
@@ -101,6 +111,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Pick one supportive action. Showing up is a real win."
         case .coach:
             return "Choose one supportive action for today. Small steps count."
+        case .firmDirect:
+            return "Pick one. Do it today. Skip the rest."
         }
     }
 
@@ -110,6 +122,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Come back after a few days — patterns appear with time."
         case .coach:
             return "Your weekly view will appear after a few days of data."
+        case .firmDirect:
+            return "Not enough days yet. Show up. Come back."
         }
     }
 
@@ -119,6 +133,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Yesterday"
         case .coach: return "Yesterday's wrap-up"
+        case .firmDirect: return "Yesterday's tally"
         }
     }
 
@@ -126,6 +141,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Last week"
         case .coach: return "Weekly wrap-up"
+        case .firmDirect: return "Last 7 days"
         }
     }
 
@@ -138,6 +154,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "You moved \(formatted) forward. Small days add up."
         case .coach:
             return "\(formatted) gained. Keep stacking days like this."
+        case .firmDirect:
+            return "+\(formatted). Banked."
         }
     }
 
@@ -151,6 +169,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Yesterday cost \(formatted). Today is a fresh start."
         case .coach:
             return "\(formatted) yesterday. One day doesn't define the trend."
+        case .firmDirect:
+            return "-\(formatted). Owe today's self."
         }
     }
 
@@ -159,6 +179,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Yesterday held steady. Even floors matter."
         case .coach: return "Net zero. Holding steady is a real outcome."
+        case .firmDirect: return "Net zero. No ground gained, none lost."
         }
     }
 
@@ -166,6 +187,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Got it"
         case .coach: return "Continue"
+        case .firmDirect: return "Next"
         }
     }
 
@@ -176,6 +198,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Adjusted"
         case .coach: return "Adjusted"
+        case .firmDirect: return "Adjusted"
         }
     }
 
@@ -186,6 +209,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Welcome back"
         case .coach: return "Picking up where you left off"
+        case .firmDirect: return "You were gone"
         }
     }
 
@@ -195,6 +219,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "We didn't have enough data from yesterday for a wrap-up. Today's a fresh start."
         case .coach:
             return "Yesterday didn't have enough data to summarize. Make today count."
+        case .firmDirect:
+            return "No data for yesterday. Clock starts again now."
         }
     }
 
@@ -208,6 +234,8 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "New adjustments are paused — Pro only. Your existing adjustments stay active. Re-subscribe in Profile to keep editing."
         case .coach:
             return "New adjustments require Pro. Existing adjustments remain in effect. Re-subscribe in Profile to resume editing."
+        case .firmDirect:
+            return "Adjustments are Pro. Existing ones stay. Re-subscribe to edit."
         }
     }
 }
