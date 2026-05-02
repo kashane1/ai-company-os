@@ -217,6 +217,9 @@ final class LiveHealthKitService: HealthKitServiceProtocol {
                 }
                 var byDay: [Date: Double] = [:]
                 results.enumerateStatistics(from: anchor, to: end) { stat, _ in
+                    // enumerateStatistics is inclusive on `to`, but `end` is
+                    // our exclusive upper bound — drop the boundary bucket.
+                    guard stat.startDate < end else { return }
                     if let qty = stat.sumQuantity() {
                         byDay[stat.startDate] = qty.doubleValue(for: unit)
                     }
