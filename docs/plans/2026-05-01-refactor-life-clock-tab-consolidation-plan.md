@@ -937,31 +937,39 @@ merging PR #20. Addressed:
   an explicit `.accessibilityHint` so VoiceOver reads one combined
   utterance with a clear action affordance.
 
+### Founder follow-ups landed (2026-05-02)
+
+After the review, the founder approved three of the deferred items
+which are now in scope and shipped on this PR:
+
+- **Delete affordance for a saved reflection.** Added
+  `LifeClockStore.deleteTodayReflection()` (deletes the persisted row +
+  clears `todayReflection`). `ReflectionSheet` shows a destructive
+  "Delete reflection" button below the editor when a saved reflection
+  exists, gated by a `.confirmationDialog`. Two new tests cover the
+  remove-row and no-op-when-empty paths.
+- **Draft persistence on backgrounding (no autosave).** `ReflectionSheet`
+  now uses `@SceneStorage("reflection.draft")` keyed alongside a
+  `reflection.draftDayKey` so a draft saved during a backgrounded
+  session is restored on next open if (and only if) it belongs to
+  today. Cancel discards the draft; Save and Delete clear it. The
+  literal save-on-Save rule still holds — no continuous writes to
+  `DailyReflection`. Stale drafts from yesterday cannot leak.
+- **Per-tone prompt pools.** `ReflectionPrompts` split into three
+  disjoint 12-prompt pools (`gentlePool`, `coachPool`, `firmDirectPool`)
+  matching the `ToneMode` voice register. `prompt(for:tone:calendar:)`
+  selects within the active tone's pool. The persisted
+  `DailyReflection.prompt` field stays as the literal save-time string
+  so History readback faithfully shows what the user actually answered
+  (option (b) in the review). Three new tests cover pool size, tone
+  disjointness, and same-day-different-tone divergence.
+
 ### Deferred — needs founder decision before V2
 
 These were surfaced by the review but declared out-of-scope or judged
 heavier than a pre-merge fix. They're tracked here so V2 doesn't drop
 them on the floor:
 
-- **No delete affordance for a saved reflection.** A user who writes
-  something raw at 7am and regrets it at 7pm cannot un-save — `Save`
-  is gated on non-empty trimmed input. Plan declared delete out of
-  scope citing the `swiftdata-deleting-model-from-child-sheet`
-  postmortem. For a reflective journal this is a privacy/dignity
-  concern. Cheapest fix: relax the empty-string Save guard and call
-  `modelContext.delete(existing)` when response is empty.
-- **No draft persistence on app backgrounding.** Plan explicitly
-  forbade auto-save / debounce. If a user types three sentences, gets
-  a phone call, and SwiftUI tears the sheet down on memory pressure,
-  the input is lost. Pattern exists elsewhere in the codebase
-  (`OnboardingDraft`).
-- **Persisted `prompt` field goes stale on tone change.** `DailyReflection`
-  stores the literal prompt string at save time. If a user saves under
-  `gentle` and switches to `coach`, the saved row's `prompt` field
-  remains in the old voice forever. Currently invisible (prompt pool is
-  tone-agnostic). Becomes a regression vector if prompts ever become
-  tone-specific. Either drop the `prompt` field (re-derive from
-  `dayKey` at read time) or document the invariant.
 - **No telemetry on Reflection save/edit.** Other Today primitives emit
   `SupportMomentPresenter.Intent` events; Reflection does not. New
   daily-ritual surface needs measurement to validate the "connective

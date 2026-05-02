@@ -751,6 +751,16 @@ final class LifeClockStore {
         return fetchReflection(for: key)
     }
 
+    /// Delete today's reflection if one exists. No-op when nothing is
+    /// saved. Lets a user un-save something they wrote and regretted.
+    func deleteTodayReflection() {
+        let key = DayKey.from(date: clock.now(), calendar: clock.calendar)
+        guard let existing = fetchReflection(for: key) else { return }
+        modelContext.delete(existing)
+        try? modelContext.save()
+        todayReflection = nil
+    }
+
     private func reloadTodayReflection() {
         let key = DayKey.from(date: clock.now(), calendar: clock.calendar)
         todayReflection = fetchReflection(for: key)

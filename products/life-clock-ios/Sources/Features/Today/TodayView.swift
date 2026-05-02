@@ -45,6 +45,7 @@ struct TodayView: View {
             .sheet(isPresented: $reflectionPresented) {
                 let prompt = ReflectionPrompts.prompt(
                     for: store.clock.now(),
+                    tone: store.toneMode,
                     calendar: store.clock.calendar
                 )
                 ReflectionSheet(

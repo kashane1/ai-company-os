@@ -92,22 +92,73 @@ final class DailyReflectionStoreTests: XCTestCase {
     // MARK: - Prompt rotation determinism
 
     func testPromptForSameDayIsStableAcrossCalls() {
-        let p1 = ReflectionPrompts.prompt(for: fixedDate, calendar: .current)
-        let p2 = ReflectionPrompts.prompt(for: fixedDate, calendar: .current)
-        XCTAssertEqual(p1, p2, "same day must return the same prompt")
+        let p1 = ReflectionPrompts.prompt(for: fixedDate, tone: .coach, calendar: .current)
+        let p2 = ReflectionPrompts.prompt(for: fixedDate, tone: .coach, calendar: .current)
+        XCTAssertEqual(p1, p2, "same day + tone must return the same prompt")
     }
 
     func testPromptDiffersAcrossDaysWhenIndicesDiffer() {
-        let p1 = ReflectionPrompts.prompt(for: fixedDate, calendar: .current)
-        let p2 = ReflectionPrompts.prompt(for: fixedDate.addingTimeInterval(86_400), calendar: .current)
+        let p1 = ReflectionPrompts.prompt(for: fixedDate, tone: .coach, calendar: .current)
+        let p2 = ReflectionPrompts.prompt(
+            for: fixedDate.addingTimeInterval(86_400),
+            tone: .coach,
+            calendar: .current
+        )
         XCTAssertNotEqual(p1, p2, "consecutive days must rotate to different prompts")
     }
 
-    func testPromptPoolIsLargerThanTen() {
-        XCTAssertGreaterThanOrEqual(
-            ReflectionPrompts.pool.count, 10,
-            "pool must be large enough to avoid same-prompt-every-N-days fatigue"
-        )
+    func testEachTonePoolHasEnoughPromptsToAvoidFatigue() {
+        for tone in ToneMode.allCases {
+            XCTAssertGreaterThanOrEqual(
+                ReflectionPrompts.pool(for: tone).count, 10,
+                "\(tone) pool must be large enough to avoid same-prompt-every-N-days fatigue"
+            )
+        }
+    }
+
+    func testTonePoolsAreDisjoint() {
+        // Different tones must produce different prompt pools or the
+        // tone selection is decorative.
+        let g = Set(ReflectionPrompts.gentlePool)
+        let c = Set(ReflectionPrompts.coachPool)
+        let f = Set(ReflectionPrompts.firmDirectPool)
+        XCTAssertTrue(g.isDisjoint(with: c), "gentle and coach pools must not overlap")
+        XCTAssertTrue(c.isDisjoint(with: f), "coach and firmDirect pools must not overlap")
+        XCTAssertTrue(g.isDisjoint(with: f), "gentle and firmDirect pools must not overlap")
+    }
+
+    func testPromptDiffersAcrossTonesOnSameDay() {
+        // Pick a day where the index lands in the same row across pools
+        // — disjoint pools mean the prompt strings still differ. This is
+        // the visible-to-user guarantee.
+        let gentle = ReflectionPrompts.prompt(for: fixedDate, tone: .gentle, calendar: .current)
+        let coach = ReflectionPrompts.prompt(for: fixedDate, tone: .coach, calendar: .current)
+        let firm = ReflectionPrompts.prompt(for: fixedDate, tone: .firmDirect, calendar: .current)
+        XCTAssertNotEqual(gentle, coach)
+        XCTAssertNotEqual(coach, firm)
+        XCTAssertNotEqual(gentle, firm)
+    }
+
+    // MARK: - Delete
+
+    func testDeleteTodayReflectionRemovesPersistedRow() throws {
+        let (container, store) = try makeStore(at: fixedDate)
+        store.saveReflection(prompt: "Prompt", response: "Initial response.")
+        XCTAssertNotNil(store.todayReflection)
+
+        store.deleteTodayReflection()
+        XCTAssertNil(store.todayReflection, "todayReflection must clear after delete")
+
+        let all = (try? container.mainContext.fetch(FetchDescriptor<DailyReflection>())) ?? []
+        XCTAssertTrue(all.isEmpty, "delete must remove the persisted row, not just clear the cache")
+    }
+
+    func testDeleteTodayReflectionIsNoOpWhenNoneExists() throws {
+        let (container, store) = try makeStore(at: fixedDate)
+        _ = container
+        // No save before delete.
+        store.deleteTodayReflection()
+        XCTAssertNil(store.todayReflection)
     }
 
     // MARK: - DayKey
