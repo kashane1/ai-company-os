@@ -147,7 +147,13 @@ struct TodayView: View {
     @ViewBuilder
     private var mascotHero: some View {
         if store.profile?.hideClock == true {
-            EmptyView()
+            // Zero-height marker so an agent / UITest can positively
+            // verify "user hid the clock" rather than only inferring
+            // it from the absence of `today.mascot`.
+            Color.clear
+                .frame(height: 0)
+                .accessibilityIdentifier("today.mascotHidden")
+                .accessibilityHidden(true)
         } else if let delta = store.todayEstimate?.dailyTimeDeltaMinutes {
             LifeClockMascotView(minutesDelta: delta)
                 .frame(maxWidth: 240, maxHeight: 240)

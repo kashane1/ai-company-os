@@ -1,7 +1,4 @@
 import SwiftUI
-#if canImport(UIKit)
-import UIKit
-#endif
 
 /// The animated Life Clock mascot. Brand focal point of the app.
 ///
@@ -44,7 +41,6 @@ struct LifeClockMascotView: View {
     let minutesDelta: Int
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.scenePhase) private var scenePhase
     @State private var isVisible: Bool = true
 
     // MARK: - Constants
@@ -53,32 +49,31 @@ struct LifeClockMascotView: View {
     /// for a heartbeat pulse and halves the per-tick CPU work.
     private static let heartbeatHz: Double = 30
 
-    /// Visual sweep cap on the hands. Matches `ClockHandView.maxSweepDegrees`
-    /// (`Sources/Features/WrapUp/ClockHandView.swift:22`); the numeric
-    /// readout is the source of truth past the cap.
-    private static let maxSweepDegrees: Double = 720
+    /// Visual sweep cap on the minute hand input. Equivalent to
+    /// ±720° given the 6°/min mapping below — matches
+    /// `ClockHandView.maxSweepDegrees` (`Sources/Features/WrapUp/ClockHandView.swift:22`).
+    /// The numeric readout adjacent to the mascot is the source of truth past the cap.
+    private static let maxMinutesDelta: Int = 120
 
     /// Each minute on the input maps to this many degrees of minute-hand
     /// rotation. Same convention as `ClockHandView.swift:25-28`.
     private static let degreesPerMinute: Double = 6
 
-    /// Hub scale modulation range during a heartbeat pulse (0 → low, 1 → high).
+    /// Hub scale modulation range during a heartbeat pulse.
     private static let hubPulseRange: ClosedRange<CGFloat> = 1.0...1.12
 
     // MARK: - Derived angles
 
-    private var clampedMinutes: Double {
-        let raw = Double(minutesDelta) * Self.degreesPerMinute
-        let clamped = min(max(raw, -Self.maxSweepDegrees), Self.maxSweepDegrees)
-        return clamped / Self.degreesPerMinute
+    private var clampedMinutes: Int {
+        min(max(minutesDelta, -Self.maxMinutesDelta), Self.maxMinutesDelta)
     }
 
     private var minuteAngle: Angle {
-        .degrees(clampedMinutes * Self.degreesPerMinute)
+        .degrees(Double(clampedMinutes) * Self.degreesPerMinute)
     }
 
     private var hourAngle: Angle {
-        .degrees(clampedMinutes * (Self.degreesPerMinute / 12.0))
+        .degrees(Double(clampedMinutes) * (Self.degreesPerMinute / 12.0))
     }
 
     // MARK: - Body
@@ -101,10 +96,10 @@ struct LifeClockMascotView: View {
         .animation(reduceMotion ? nil : .interpolatingSpring(), value: minutesDelta)
         .onAppear { isVisible = true }
         .onDisappear { isVisible = false }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase != .active { isVisible = false }
-            else { isVisible = true }
-        }
+        // Note: `TimelineView(.animation)` pauses on backgrounding via the
+        // system's scenePhase signal, so we don't need an explicit
+        // `.onChange(of: scenePhase)` toggle. `isVisible` only handles the
+        // appear/disappear case (e.g., scrolled offscreen on Today).
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Life clock")
         .accessibilityValue(TimeDeltaFormatter.format(minutes: minutesDelta))
@@ -158,34 +153,28 @@ struct LifeClockMascotView: View {
         }
     }
 
-    @ViewBuilder
+    /// The ECG line is static — no phase animation today, the silhouette
+    /// IS the brand mark. Reduce-motion and visibility don't change its
+    /// appearance, so no TimelineView needed here. (Pulse motion lives on
+    /// the center hub.)
     private func heartbeat(size: CGFloat) -> some View {
-        let frozen = reduceMotion || !isVisible
-        if frozen {
-            HeartbeatLine(phase: 0.5)
-                .stroke(
-                    LifeClockPalette.heartbeatRed,
-                    style: StrokeStyle(lineWidth: size * 0.012, lineCap: .round, lineJoin: .round)
-                )
-                .frame(width: size * 0.78, height: size * 0.18)
-                .opacity(0.95)
-        } else {
-            TimelineView(.animation(minimumInterval: 1.0 / Self.heartbeatHz, paused: false)) { ctx in
-                HeartbeatLine(phase: heartPhase(at: ctx.date))
-                    .stroke(
-                        LifeClockPalette.heartbeatRed,
-                        style: StrokeStyle(lineWidth: size * 0.012, lineCap: .round, lineJoin: .round)
-                    )
-                    .frame(width: size * 0.78, height: size * 0.18)
-                    .opacity(0.95)
-            }
-        }
+        HeartbeatLine()
+            .stroke(
+                LifeClockPalette.heartbeatRed,
+                style: StrokeStyle(lineWidth: size * 0.012, lineCap: .round, lineJoin: .round)
+            )
+            .frame(width: size * 0.78, height: size * 0.18)
+            .opacity(0.95)
     }
 
     private func hand(length: CGFloat, thickness: CGFloat, angle: Angle) -> some View {
+        // `Color.primary` auto-adapts: dark in light mode, light in dark mode.
+        // Solves the white-on-white invisibility against the SwiftUI-drawn
+        // light face. When the designer-produced bezel ships (asset slot),
+        // the hand color may need to be revisited per the new artwork.
         Capsule()
-            .fill(Color.white)
-            .shadow(color: .black.opacity(0.10), radius: 0.5, x: 0, y: 0.5)
+            .fill(Color.primary)
+            .shadow(color: .black.opacity(0.18), radius: thickness * 0.5, x: 0, y: thickness * 0.2)
             .frame(width: thickness, height: length)
             .offset(y: -length / 2)
             .rotationEffect(angle)
@@ -200,7 +189,7 @@ struct LifeClockMascotView: View {
                 .fill(LifeClockPalette.heartbeatRed)
                 .frame(width: hubSize, height: hubSize)
         } else {
-            TimelineView(.animation(minimumInterval: 1.0 / Self.heartbeatHz, paused: false)) { ctx in
+            TimelineView(.animation(minimumInterval: 1.0 / Self.heartbeatHz)) { ctx in
                 Circle()
                     .fill(LifeClockPalette.heartbeatRed)
                     .frame(width: hubSize, height: hubSize)
@@ -211,33 +200,22 @@ struct LifeClockMascotView: View {
 
     // MARK: - Phase math
 
-    /// Heartbeat phase 0…1, repeating at ~1Hz (60bpm). Used by both the
-    /// ECG line and the center hub for synchronized motion.
-    private func heartPhase(at date: Date) -> CGFloat {
-        let cycle: TimeInterval = 1.0
-        let t = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: cycle)
-        return CGFloat(t / cycle)
-    }
-
+    /// Sine-driven scale on the center hub at ~1Hz (60bpm), mapped into
+    /// `hubPulseRange`. The line stays static; only the hub pulses.
     private func hubScale(at date: Date) -> CGFloat {
-        // Sine wave 0…1 → mapped into hubPulseRange.
-        let phase = heartPhase(at: date)
+        let phase = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1.0)
         let wave = (sin(phase * 2 * .pi) + 1) / 2
         let lo = Self.hubPulseRange.lowerBound
         let hi = Self.hubPulseRange.upperBound
-        return lo + (hi - lo) * wave
+        return lo + (hi - lo) * CGFloat(wave)
     }
 }
 
 // MARK: - HeartbeatLine
 
-/// ECG-style polyline. Phase parameter is unused for path geometry today
-/// (the static silhouette IS the brand mark) but the parameter is plumbed
-/// so a future pass can sweep a traveling blip across the line if desired
-/// without changing the public mascot API.
+/// ECG-style polyline. Static — the silhouette IS the brand mark; pulse
+/// motion lives on the center hub.
 private struct HeartbeatLine: Shape {
-    let phase: CGFloat
-
     func path(in rect: CGRect) -> Path {
         var p = Path()
         let w = rect.width
