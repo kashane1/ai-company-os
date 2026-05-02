@@ -53,9 +53,11 @@ enum LifeClockConfiguration {
         "\(appName) is not medical advice, diagnosis, or treatment, and does not predict your " +
         "lifespan. Talk to a qualified clinician for medical decisions."
 
-    /// One-line caption shown immediately under the signed delta on Today.
-    /// Same sentiment as `medicalDisclaimer` — abbreviated for the high-
-    /// frequency surface where the number is read.
+    /// One-line caption shown immediately under the signed delta on Today
+    /// (only). Same sentiment as `medicalDisclaimer` — abbreviated for the
+    /// high-frequency surface where the number is read. Other surfaces
+    /// (QuickLog, Profile, SafetyNet, Paywall, Onboarding) use the full
+    /// `medicalDisclaimer` via `DisclaimerBanner`.
     static let lifespanShortDisclaimer =
         "Educational estimate, not a lifespan prediction."
 
