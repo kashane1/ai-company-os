@@ -218,15 +218,26 @@ final class LifeClockUITests: XCTestCase {
 
     /// Verifies the IA refactor keeps the Today's Plan section reachable
     /// directly on Today (the Plan tab no longer exists). Toggling a plan
-    /// action goes through `store.toggleQuestCompletion` and the row
-    /// re-renders.
+    /// action goes through `store.toggleQuestCompletion`, mutates
+    /// `Quest.completedAt`, and the row's `.accessibilityValue` flips from
+    /// "incomplete" to "complete". Asserting on the value (not just the
+    /// button's continued existence) catches the case where the button
+    /// renders but the toggle no-ops.
     func testPlanCompletionFromTodayUpdatesQuestState() throws {
         launchApp(scenario: "onboarded")
 
-        XCTAssertTrue(app.buttons["today.planAction.0"].waitForExistence(timeout: 5))
-        app.buttons["today.planAction.0"].tap()
-        XCTAssertTrue(app.buttons["today.planAction.0"].waitForExistence(timeout: 2),
-                      "the plan action row should re-render after toggle")
+        let row = app.buttons["today.planAction.0"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertEqual(row.value as? String, "incomplete",
+                       "fresh quest row should start incomplete")
+        row.tap()
+
+        // The toggle goes through the @MainActor store + ModelContext
+        // save, then SwiftUI re-renders the row. Poll for the a11y
+        // value flip rather than asserting immediately.
+        let flipped = NSPredicate(format: "value == %@", "complete")
+        let exp = expectation(for: flipped, evaluatedWith: row, handler: nil)
+        wait(for: [exp], timeout: 3)
     }
 
     private func launchApp(scenario: String) {

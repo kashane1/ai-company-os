@@ -30,6 +30,7 @@ enum LifeClockSchemaV1: VersionedSchema {
             TimeLedgerEntry.self,
             Quest.self,
             WeeklyReport.self,
+            DailyReflection.self,
         ]
     }
 
@@ -320,6 +321,34 @@ enum LifeClockSchemaV1: VersionedSchema {
             self.weekEnd = weekEnd
         }
     }
+
+    /// User-written daily reflection in response to the rotating prompt
+    /// surfaced on Today. One row per local calendar day, keyed by
+    /// `dayKey` (yyyyMMdd Int) which is timezone-stable — `Date`-based
+    /// startOfDay keys would shift under timezone changes and create
+    /// phantom rows. Mirrors the `dayKey` framing used by
+    /// `HistoricalImportCoordinator`.
+    ///
+    /// Intentionally NOT `@Attribute(.unique)` on `dayKey` in this
+    /// version: the upsert path is `@MainActor`-isolated through
+    /// `LifeClockStore.saveReflection(...)` which fetch-then-mutate-or-
+    /// inserts. A unique constraint would convert any race that slipped
+    /// through into a save crash; promote to `.unique` in V2 once the
+    /// store-mediated path has soaked.
+    @Model
+    final class DailyReflection {
+        @Attribute(.unique) var id: UUID = UUID()
+        var dayKey: Int = 0
+        var prompt: String = ""
+        var response: String = ""
+
+        init(id: UUID = UUID(), dayKey: Int, prompt: String, response: String) {
+            self.id = id
+            self.dayKey = dayKey
+            self.prompt = prompt
+            self.response = response
+        }
+    }
 }
 
 // Production code references the typealiases — never the versioned form.
@@ -331,6 +360,7 @@ typealias LifeClockEstimate = LifeClockSchemaV1.LifeClockEstimate
 typealias TimeLedgerEntry = LifeClockSchemaV1.TimeLedgerEntry
 typealias Quest = LifeClockSchemaV1.Quest
 typealias WeeklyReport = LifeClockSchemaV1.WeeklyReport
+typealias DailyReflection = LifeClockSchemaV1.DailyReflection
 
 enum LifeClockMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {

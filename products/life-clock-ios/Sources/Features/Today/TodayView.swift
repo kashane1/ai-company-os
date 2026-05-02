@@ -3,6 +3,7 @@ import SwiftUI
 struct TodayView: View {
     @Environment(LifeClockStore.self) private var store
     @State private var quickLogPresented: Bool = false
+    @State private var reflectionPresented: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -20,8 +21,7 @@ struct TodayView: View {
                     }
                     driversCard
                     questsCard
-                    // Reflection card lands in Phase 3 between quests and
-                    // quickLog.
+                    ReflectionCard(onTap: { reflectionPresented = true })
                     quickLogCard
                     dietStreakBanner
                 }
@@ -41,6 +41,16 @@ struct TodayView: View {
             }
             .sheet(isPresented: $quickLogPresented) {
                 QuickLogSheet()
+            }
+            .sheet(isPresented: $reflectionPresented) {
+                let prompt = ReflectionPrompts.prompt(
+                    for: store.clock.now(),
+                    calendar: store.clock.calendar
+                )
+                ReflectionSheet(
+                    prompt: prompt,
+                    onDismiss: { reflectionPresented = false }
+                )
             }
         }
     }
@@ -249,6 +259,11 @@ struct TodayView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("today.planAction.\(index)")
+                // Carries the completion state into the a11y tree so
+                // UITests can assert the toggle actually flipped, not
+                // just that the button still exists. Tests read this
+                // via XCUIElement.value.
+                .accessibilityValue(quest.completedAt == nil ? "incomplete" : "complete")
             }
         }
         .padding(DesignTokens.Spacing.md)

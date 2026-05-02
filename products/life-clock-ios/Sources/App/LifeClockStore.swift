@@ -50,6 +50,13 @@ final class LifeClockStore {
     private(set) var supportMoment: SupportMoment?
     private let supportPresenter = SupportMomentPresenter()
 
+    /// Today's saved reflection, if one exists. Re-published by
+    /// `reloadTodayReflection()` after `bootstrap()` and after each
+    /// `saveReflection(...)`. Reads through `todayReflection` instead
+    /// of an inline `@Query` to keep the store-mediated invariant
+    /// (one `@Query` site app-wide; everything else through the store).
+    private(set) var todayReflection: DailyReflection?
+
     private func emit(_ intent: SupportMomentPresenter.Intent) {
         supportMoment = supportPresenter.moment(for: intent)
     }
@@ -88,6 +95,18 @@ final class LifeClockStore {
     @ObservationIgnored private let clockEngine: ClockEngine
     @ObservationIgnored private let questEngine: QuestEngine
     @ObservationIgnored private let modelContext: ModelContext
+    /// Strong reference to the context's container. Without this, callers
+    /// that construct the container as a local in a helper (and only return
+    /// the store wrapping `container.mainContext`) see the container
+    /// deallocate when the helper returns. On iOS 26.4 simulator,
+    /// `ModelContext` does not retain its `ModelContainer`, and the next
+    /// `insert` / `save` traps with `EXC_BREAKPOINT` from inside SwiftData.
+    /// Production (`LifeClockApp`) is unaffected because the App struct
+    /// keeps the container in `let container: ModelContainer` for the
+    /// app's lifetime; the failure mode bites tests only. Holding the
+    /// container here defends every caller without changing the existing
+    /// `init(modelContext:)` signature.
+    @ObservationIgnored private let modelContainer: ModelContainer
     @ObservationIgnored private let streakCalculator: DietStreakCalculator
     @ObservationIgnored private let notificationsService: NotificationsServiceProtocol
     @ObservationIgnored private let wrapUpCoordinator: WrapUpCoordinator
@@ -112,6 +131,7 @@ final class LifeClockStore {
     ) {
         self.healthService = healthService
         self.modelContext = modelContext
+        self.modelContainer = modelContext.container
         self.clock = engineClock
         self.clockEngine = ClockEngine(clock: engineClock)
         self.questEngine = QuestEngine(clock: engineClock)
@@ -140,6 +160,8 @@ final class LifeClockStore {
             todayHabits = fetchHabits(for: clock.calendar.startOfDay(for: clock.now()))
             // Restore prior ledger entries (most recent first, capped at 50).
             ledger = fetchRecentLedger(limit: 50)
+            // Restore today's reflection if the user wrote one earlier.
+            reloadTodayReflection()
         }
         await refreshFromHealthKit()
         notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
@@ -693,6 +715,52 @@ final class LifeClockStore {
             predicate: #Predicate { $0.date == dayStart }
         )
         return try? modelContext.fetch(descriptor).first
+    }
+
+    // MARK: - Reflection (Phase 3 of the 2026-05-01 IA refactor)
+
+    /// Persist today's reflection. Upserts on the local-day key. Safe
+    /// against double-tap on Save: this method is `@MainActor`-isolated
+    /// (the whole store is) so concurrent calls serialize, and the
+    /// fetch-then-mutate-or-insert pattern is idempotent within a
+    /// single day.
+    func saveReflection(prompt: String, response: String) {
+        let key = DayKey.from(date: clock.now(), calendar: clock.calendar)
+        let row: DailyReflection
+        if let existing = fetchReflection(for: key) {
+            existing.response = response
+            existing.prompt = prompt   // re-stamp in case prompt rotated
+            row = existing
+        } else {
+            let new = DailyReflection(dayKey: key, prompt: prompt, response: response)
+            modelContext.insert(new)
+            row = new
+        }
+        try? modelContext.save()
+        // Set directly rather than re-fetch — `row` is the live model
+        // attached to this context after `insert`/`save`.
+        todayReflection = row
+    }
+
+    /// Reflection for an arbitrary day. Used by History `DayDetailView`
+    /// to surface saved reflections in the past-day archive.
+    func reflection(for date: Date) -> DailyReflection? {
+        let key = DayKey.from(date: date, calendar: clock.calendar)
+        return fetchReflection(for: key)
+    }
+
+    private func reloadTodayReflection() {
+        let key = DayKey.from(date: clock.now(), calendar: clock.calendar)
+        todayReflection = fetchReflection(for: key)
+    }
+
+    private func fetchReflection(for key: Int) -> DailyReflection? {
+        // SwiftData's `#Predicate` on `Int` keypaths can signal-trap on
+        // certain Xcode 26 / iOS 26 builds. There's at most one row per
+        // local day (~365 rows/year), so an in-memory filter after a
+        // bare fetch is trivially cheap and avoids the macro footgun.
+        let all = (try? modelContext.fetch(FetchDescriptor<DailyReflection>())) ?? []
+        return all.first(where: { $0.dayKey == key })
     }
 
     private func fetchSnapshot(for dayStart: Date) -> DailyHealthSnapshot? {

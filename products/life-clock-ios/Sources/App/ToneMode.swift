@@ -224,6 +224,16 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Heading on the Today screen's Reflection card. The body of the
+    /// card is the rotating daily prompt from `ReflectionPrompts`.
+    var reflectionHeading: String {
+        switch self {
+        case .gentle: return "Notice today"
+        case .coach: return "What stood out today"
+        case .firmDirect: return "Today, in one line"
+        }
+    }
+
     /// Card shown in History when the user has been away long enough that
     /// the wrap-up moment was suppressed. Sits where the Yesterday card
     /// would be.
