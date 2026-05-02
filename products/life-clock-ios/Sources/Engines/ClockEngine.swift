@@ -445,33 +445,70 @@ struct ClockEngine {
     }
 
     private func dietDriver(habits: HabitLog, date: Date) -> TimeLedgerEntry? {
-        // Only score when the user has actually logged today. Missing diet
-        // input must never penalize — that's the founder-pack rule on
-        // missing data. The HabitLog default ("okay") fires only when the
-        // user submits the quick log, not by virtue of the row existing.
-        let level = habits.dietQuality.lowercased()
-        let delta: Int
-        let title: String
-        switch level {
+        // Composite of three self-reported diet signals. Each contributes
+        // additively. Conservative coefficients keep the composite range
+        // bounded (-15..+15), well inside other drivers' dynamic range.
+        // No clamps — quality already sets the dominant sign.
+        //
+        // Missing-data rule (founder pack): defaults must never penalize.
+        // V1.2.0 defaults — dietQuality="okay" (0), dietAmountRhythm="right"
+        // (0), wholeFoodMeal="unknown" (0) — all contribute zero, so a row
+        // that exists by virtue of being inserted (without a real user
+        // signal) produces no ledger noise.
+        let qualityDelta: Int
+        let qualityTitle: String?
+        switch habits.dietQuality.lowercased() {
         case "great":
-            delta = 12
-            title = "Great diet quality logged"
-        case "okay":
-            delta = 0
-            title = "Okay diet quality logged"
+            qualityDelta = 12
+            qualityTitle = "Great diet quality logged"
         case "rough":
-            delta = -10
-            title = "Rough diet quality logged"
-        default:
+            qualityDelta = -10
+            qualityTitle = "Rough diet quality logged"
+        default:  // "okay" or unknown — neutral, no quality-specific title
+            qualityDelta = 0
+            qualityTitle = nil
+        }
+
+        let rhythmDelta: Int
+        switch habits.dietAmountRhythm.lowercased() {
+        case "overate":   rhythmDelta = -3
+        case "undereate": rhythmDelta = -3
+        case "skipbinge": rhythmDelta = -5
+        case "irregular": rhythmDelta = -2
+        default:          rhythmDelta = 0  // "right" or unknown
+        }
+
+        let anchorDelta: Int
+        switch habits.wholeFoodMeal.lowercased() {
+        case "yes":    anchorDelta = 3
+        case "almost": anchorDelta = 1
+        default:       anchorDelta = 0  // "no", "unknown", or anything else
+        }
+
+        let composite = qualityDelta + rhythmDelta + anchorDelta
+
+        // Drop only when no signal at all. The prior single-axis
+        // short-circuit dropped any "okay" entry; under the composite,
+        // "okay" + skipBinge legitimately produces -5 and must surface.
+        if composite == 0 && rhythmDelta == 0 && anchorDelta == 0 {
             return nil
         }
-        if delta == 0 { return nil } // no neutral noise in the ledger
+
+        // Confidence-by-evidence: when only rhythm/anchor contribute (no
+        // quality answer beyond the default), the entry represents weaker
+        // self-report. Downgrade from medium → low.
+        let confidenceRaw: String = (qualityDelta == 0 && (rhythmDelta != 0 || anchorDelta != 0))
+            ? Confidence.low.rawValue
+            : Confidence.medium.rawValue
+
+        let title = qualityTitle ?? "Diet check-in logged"
+
         return TimeLedgerEntry(
             date: date,
             title: title,
-            deltaMinutes: delta,
+            deltaMinutes: composite,
             source: "manual",
-            confidenceRaw: Confidence.medium.rawValue,
+            confidenceRaw: confidenceRaw,
             driverType: "diet"
         )
     }

@@ -83,7 +83,7 @@ struct OnboardingView: View {
                 .font(.title2.bold())
             DisclaimerBanner()
             Toggle(isOn: $disclaimerAccepted) {
-                Text("I understand Life Clock is not medical advice.")
+                Text("I understand Life Clock provides educational estimates — not medical advice or a lifespan prediction.")
                     .font(.callout)
             }
             .padding(.top, DesignTokens.Spacing.sm)

@@ -32,6 +32,19 @@ The founder pack has been translated into a working local-first iOS app. Life Cl
   `privacy: .private` on all values; sensitive PSS / UCLA / parent ages
   bucketed before logging. See
   `docs/plans/2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md`.
+- ✅ **Diet rhythm + whole-food anchor + life-impact framing** (2026-05-02):
+  Schema V1.2.0 adds `dietAmountRhythm` and `wholeFoodMeal` to `HabitLog`.
+  QuickLog gains a Rhythm section (adult-gated) and a Whole-food anchor
+  section. `ClockEngine.dietDriver` composes three diet signals into one
+  ledger entry with conservative additive coefficients; confidence
+  downgraded to `low` when only rhythm/anchor contribute.
+  `ToneMode.todayRescueBody()` plus a new `RescueLine` view surface a
+  "patterns, not perfection" line on Today when the user logged a rough
+  diet day. `LifeClockConfiguration.medicalDisclaimer` rewritten with
+  "life-impact minutes / not a lifespan prediction" framing; Today gains
+  a short caption near the signed delta plus the shared `DisclaimerBanner`
+  at the bottom of the scroll. See
+  `docs/plans/2026-05-02-feat-life-clock-diet-rhythm-and-copy-pass-plan.md`.
 
 ## Still blocking TestFlight
 

@@ -41,13 +41,23 @@ enum LifeClockConfiguration {
 
     // MARK: - Disclaimer + safety copy
 
-    /// The non-medical disclaimer. Reused in onboarding and Profile.
-    /// Brand-prone (mentions "Life Clock") so it lives
-    /// here rather than inline.
+    /// The non-medical disclaimer. Reused in onboarding, QuickLog, Profile,
+    /// SafetyNet, Paywall, and Today (V1.2.0). Brand-prone (mentions "Life
+    /// Clock") so it lives here rather than inline.
+    ///
+    /// Per App Review trends post-2024, lifespan-adjacent framing requires
+    /// explicit "educational estimate, not a lifespan prediction" language,
+    /// not just generic "not medical advice."
     static let medicalDisclaimer =
-        "\(appName) provides wellness and habit insights for informational purposes only. " +
-        "It is not medical advice, diagnosis, treatment, or a forecast of lifespan. Talk to a " +
-        "qualified clinician for medical decisions."
+        "Life-impact minutes are educational estimates from population-level research. " +
+        "\(appName) is not medical advice, diagnosis, or treatment, and does not predict your " +
+        "lifespan. Talk to a qualified clinician for medical decisions."
+
+    /// One-line caption shown immediately under the signed delta on Today.
+    /// Same sentiment as `medicalDisclaimer` — abbreviated for the high-
+    /// frequency surface where the number is read.
+    static let lifespanShortDisclaimer =
+        "Educational estimate, not a lifespan prediction."
 
     static let healthKitRationale =
         "\(appName) reads your steps, sleep, exercise, and resting heart rate from Apple " +
