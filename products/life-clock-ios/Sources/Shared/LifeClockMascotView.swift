@@ -110,11 +110,25 @@ struct LifeClockMascotView: View {
 
     private func bezel(size: CGFloat) -> some View {
         ZStack {
-            // Two-pass drop shadow: a tight inner one for definition + a
-            // softer ambient pass for the "sitting on a surface" feel,
-            // both biased downward (light from above).
+            // Face is recessed below the rim — the `.inner` shadow on the
+            // fill simulates the rim casting onto the face below it. Same
+            // world-fixed lighting direction as the hands and outer drop
+            // shadow (down + slight right), keyed off the rim thickness
+            // (≈ size * 0.02) as the recess depth.
+            //
+            // Then two-pass outer drop shadow: tight pass for definition +
+            // softer ambient pass for the "sitting on a surface" feel.
             Circle()
-                .fill(Color(.systemBackground))
+                .fill(
+                    Color(.systemBackground).shadow(
+                        .inner(
+                            color: .black.opacity(0.20),
+                            radius: size * 0.020,
+                            x: size * 0.007,
+                            y: size * 0.017
+                        )
+                    )
+                )
                 .shadow(color: .black.opacity(0.18), radius: size * 0.025, x: 0, y: size * 0.015)
                 .shadow(color: .black.opacity(0.08), radius: size * 0.08, x: 0, y: size * 0.04)
             Circle()
