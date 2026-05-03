@@ -144,22 +144,19 @@ struct HistoryView: View {
     @ViewBuilder
     private func dayRow(_ snapshot: DailyHealthSnapshot, index: Int) -> some View {
         let isLocked = !subscriptions.isPro && index >= Self.freeRowLimit
-        let row = DayHistoryRow(
-            snapshot: snapshot,
-            isLocked: isLocked,
-            onTap: {
-                if isLocked {
-                    paywallPresented = true
-                }
-            }
-        )
+        let content = DayHistoryRowContent(snapshot: snapshot, isLocked: isLocked)
         if subscriptions.isPro {
             NavigationLink(value: DayDetailRoute(dayStart: snapshot.date)) {
-                row
+                content
             }
             .buttonStyle(.plain)
         } else {
-            row
+            Button {
+                if isLocked { paywallPresented = true }
+            } label: {
+                content
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -296,11 +293,11 @@ struct HistoryView: View {
     }
 }
 
-/// Single past-day row. Shows date + summary, blurs values when locked.
-private struct DayHistoryRow: View {
+/// Single past-day row content. Wrap in a Button or NavigationLink at the
+/// call site — nesting a Button inside a NavigationLink breaks taps.
+private struct DayHistoryRowContent: View {
     let snapshot: DailyHealthSnapshot
     let isLocked: Bool
-    let onTap: () -> Void
 
     private var dateLabel: String {
         let formatter = DateFormatter()
@@ -317,39 +314,37 @@ private struct DayHistoryRow: View {
     }
 
     var body: some View {
-        Button(action: onTap) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(dateLabel)
-                        .font(.subheadline)
-                    Text(summary)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                if snapshot.hasOverrides {
-                    Image(systemName: "pencil.circle.fill")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-                if isLocked {
-                    Image(systemName: "lock.fill")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                } else {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(dateLabel)
+                    .font(.subheadline)
+                Text(summary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .padding(.vertical, DesignTokens.Spacing.xs)
-            .padding(.horizontal, DesignTokens.Spacing.sm)
-            .background(
-                DesignTokens.Palette.elevated.opacity(0.5),
-                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.sm)
-            )
+            Spacer()
+            if snapshot.hasOverrides {
+                Image(systemName: "pencil.circle.fill")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            if isLocked {
+                Image(systemName: "lock.fill")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            } else {
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
-        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .padding(.vertical, DesignTokens.Spacing.xs)
+        .padding(.horizontal, DesignTokens.Spacing.sm)
+        .background(
+            DesignTokens.Palette.elevated.opacity(0.5),
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.sm)
+        )
         // Opacity + lock chip rather than blur. Blur (even one
         // ultraThinMaterial overlay) costs ~3-5ms/frame on iPhone 12 and
         // accumulates with row count. Opacity is free on the GPU and
