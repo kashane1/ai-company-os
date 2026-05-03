@@ -144,7 +144,11 @@ struct HistoryView: View {
     @ViewBuilder
     private func dayRow(_ snapshot: DailyHealthSnapshot, index: Int) -> some View {
         let isLocked = !subscriptions.isPro && index >= Self.freeRowLimit
-        let content = DayHistoryRowContent(snapshot: snapshot, isLocked: isLocked)
+        let content = DayHistoryRowContent(
+            snapshot: snapshot,
+            deltaMinutes: store.dailyDelta(for: snapshot),
+            isLocked: isLocked
+        )
         if subscriptions.isPro {
             NavigationLink(value: DayDetailRoute(dayStart: snapshot.date)) {
                 content
@@ -297,6 +301,7 @@ struct HistoryView: View {
 /// call site — nesting a Button inside a NavigationLink breaks taps.
 private struct DayHistoryRowContent: View {
     let snapshot: DailyHealthSnapshot
+    let deltaMinutes: Int?
     let isLocked: Bool
 
     private var dateLabel: String {
@@ -314,7 +319,7 @@ private struct DayHistoryRowContent: View {
     }
 
     var body: some View {
-        HStack {
+        HStack(spacing: DesignTokens.Spacing.sm) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(dateLabel)
                     .font(.subheadline)
@@ -323,6 +328,14 @@ private struct DayHistoryRowContent: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            if let deltaMinutes {
+                Text(TimeDeltaFormatter.format(minutes: deltaMinutes))
+                    .font(.system(size: 22, weight: .semibold, design: .rounded))
+                    .foregroundStyle(deltaMinutes >= 0
+                        ? DesignTokens.Palette.positive
+                        : DesignTokens.Palette.negative)
+                    .lineLimit(1)
+            }
             if snapshot.hasOverrides {
                 Image(systemName: "pencil.circle.fill")
                     .foregroundStyle(.secondary)
