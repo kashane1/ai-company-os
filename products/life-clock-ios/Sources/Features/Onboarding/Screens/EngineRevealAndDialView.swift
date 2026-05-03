@@ -41,10 +41,17 @@ struct EngineRevealAndDialView: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            OnboardingHeader(minutesDeltaOverride: mascotDelta)
+                .padding(.horizontal, 24)
+            engineDialBody
+        }
+        .accessibilityIdentifier("onboarding.engineRevealAndDial")
+        .onAppear { telemetry.value.screenAppeared("engineRevealAndDial") }
+    }
+
+    private var engineDialBody: some View {
         VStack(alignment: .leading, spacing: 24) {
-            LifeClockMascotView(minutesDelta: mascotDelta)
-                .frame(maxWidth: 200, maxHeight: 200)
-                .frame(maxWidth: .infinity, alignment: .center)
             VStack(alignment: .leading, spacing: 8) {
                 Text("Your projected healthspan")
                     .font(.headline)
@@ -61,7 +68,7 @@ struct EngineRevealAndDialView: View {
                 }
             }
             VStack(alignment: .leading, spacing: 8) {
-                Text("Adjust if your gut says something the questions missed.")
+                Text("Nudge it if your gut says the questions missed something.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                 Slider(value: $dialYears, in: -5...5, step: 0.5)
@@ -75,7 +82,7 @@ struct EngineRevealAndDialView: View {
                 }
             }
             Spacer()
-            Text("One-time only — locks for life.")
+            Text("Set this once — it anchors your clock from here.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity)
@@ -89,21 +96,20 @@ struct EngineRevealAndDialView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 14))
             }
             .accessibilityIdentifier("onboarding.dial.confirm")
-            .alert("Lock your clock?", isPresented: $showConfirmDialog) {
+            .alert("Anchor your clock?", isPresented: $showConfirmDialog) {
                 Button("Cancel", role: .cancel) {}
-                Button("Lock") {
+                Button("Anchor") {
                     telemetry.value.dialAdjusted(
                         yearsBucket: DialAdjustmentBucket.bucket(for: dialYears)
                     )
                     onConfirm(dialYears)
                 }
             } message: {
-                Text("Once locked, this can't be re-adjusted.")
+                Text("Once anchored, this stays put. Daily progress still moves the hands.")
             }
         }
-        .padding(24)
-        .accessibilityIdentifier("onboarding.engineRevealAndDial")
-        .onAppear { telemetry.value.screenAppeared("engineRevealAndDial") }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
     }
 
     private var projectedDate: Date? {

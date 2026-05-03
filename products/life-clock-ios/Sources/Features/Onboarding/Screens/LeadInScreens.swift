@@ -12,6 +12,49 @@ import SwiftUI
 /// All copy is agency-framed per CLAUDE_HANDOFF.md — no doom default,
 /// no medical-claim verbs.
 
+// MARK: - OnboardingHeader
+
+/// Persistent header rendered at the top of every onboarding screen.
+/// Shows a fixed wordmark and the mascot, whose hands reflect either an
+/// explicit override (used by demo / dial screens that drive the mascot
+/// from a transient input) or the running per-answer delta on the draft.
+struct OnboardingHeader: View {
+    let minutesDeltaOverride: Int?
+
+    @Environment(OnboardingDraft.self) private var draft
+
+    init(minutesDeltaOverride: Int? = nil) {
+        self.minutesDeltaOverride = minutesDeltaOverride
+    }
+
+    private var minutesDelta: Int {
+        if let minutesDeltaOverride { return minutesDeltaOverride }
+        let years = draft.lastDelta?.years ?? 0
+        let raw = Int((years * Double(EngineRevealPresenter.minutesPerYear)).rounded())
+        return min(
+            max(raw, EngineRevealPresenter.minMinutes),
+            EngineRevealPresenter.maxMinutes
+        )
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("Life Clock")
+                .font(.footnote.weight(.semibold))
+                .tracking(2)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+            LifeClockMascotView(minutesDelta: minutesDelta)
+                .frame(width: 120, height: 120)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 8)
+        .padding(.bottom, 16)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Life Clock")
+    }
+}
+
 // MARK: - ColdOpenView
 
 /// First screen the user sees: clock mascot alone, no copy. Auto-advances
@@ -131,100 +174,41 @@ struct AppPreviewsView: View {
 /// "Welcome to Life Clock" + tagline + Let's go.
 struct WelcomeView: View {
     let onContinue: () -> Void
-
-    @Environment(OnboardingTelemetryHolder.self) private var telemetry
-
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            Text("Welcome to Life Clock.")
-                .font(.largeTitle.bold())
-                .multilineTextAlignment(.center)
-            Text("Make your time visible.")
-                .font(.title3)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Spacer()
-            Button(action: advance) {
-                Text("Let's go")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-            }
-            .accessibilityIdentifier("onboarding.continue")
-        }
-        .padding(24)
-        .onAppear { telemetry.value.screenAppeared("welcome") }
-        .accessibilityIdentifier("onboarding.welcome")
-    }
-
-    private func advance() {
-        telemetry.value.screenAdvanced("welcome", durationMs: 0)
-        onContinue()
+        OnboardingScaffold(
+            screenID: "welcome",
+            title: "Welcome to Life Clock.",
+            bodyText: "Earn time with better habits.",
+            continueLabel: "Let's go",
+            onContinue: onContinue
+        ) { EmptyView() }
     }
 }
 
 // MARK: - MeetYourClockView
 
-/// Personifies the clock mascot. Sets up the metaphor that the user will
-/// see again throughout the flow.
+/// Personifies the clock mascot. The mascot itself lives in the persistent
+/// header; the body just frames the metaphor.
 struct MeetYourClockView: View {
     let onContinue: () -> Void
-
-    @Environment(OnboardingTelemetryHolder.self) private var telemetry
-
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            LifeClockMascotView(minutesDelta: 0)
-                .frame(width: 180, height: 180)
-            VStack(spacing: 12) {
-                Text("This is your clock.")
-                    .font(.title.bold())
-                Text("The more you show up, the more time it gives back.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-            Spacer()
-            Button(action: advance) {
-                Text("Continue")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-            }
-            .accessibilityIdentifier("onboarding.continue")
-        }
-        .padding(24)
-        .onAppear { telemetry.value.screenAppeared("meetYourClock") }
-        .accessibilityIdentifier("onboarding.meetYourClock")
-    }
-
-    private func advance() {
-        telemetry.value.screenAdvanced("meetYourClock", durationMs: 0)
-        onContinue()
+        OnboardingScaffold(
+            screenID: "meetYourClock",
+            title: "This is your Life Clock.",
+            bodyText: "Healthy habits earn time. Bad days cost it. The hands move with you.",
+            onContinue: onContinue
+        ) { EmptyView() }
     }
 }
 
 // MARK: - ReactiveSliderView
 
-/// Interactive demo BEFORE any questions: user drags between extremes
-/// (sedentary ↔ active demo), the mascot crossfades positive ↔ negative,
-/// and a sample number animates. Demo only — captures no data.
-///
-/// Why: Brainrot's "see for yourself" pattern. Lets the user feel the
-/// metaphor before answering anything.
+/// Interactive demo BEFORE any questions: user drags between extremes,
+/// the header mascot reacts via `mascotMinutesDeltaOverride`, and a sample
+/// number animates. Demo only — captures no data.
 struct ReactiveSliderView: View {
     let onContinue: () -> Void
 
-    @Environment(OnboardingTelemetryHolder.self) private var telemetry
     @State private var sliderValue: Double = 0.5
 
     /// Sample year band 76..86 around a baseline 81 — demo only, no engine call.
@@ -232,8 +216,7 @@ struct ReactiveSliderView: View {
     private var demoYears: Double { 76.0 + (sliderValue * 10.0) }
 
     /// Slider drives the mascot through the same year→minute mapping the
-    /// engine reveal uses, so the visual feel of the demo matches the
-    /// real reveal moment downstream.
+    /// engine reveal uses.
     private var demoMinutesDelta: Int {
         EngineRevealPresenter.mascotDelta(
             displayedYears: demoYears,
@@ -242,47 +225,28 @@ struct ReactiveSliderView: View {
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            LifeClockMascotView(minutesDelta: demoMinutesDelta)
-                .frame(width: 160, height: 160)
-            Text(String(format: "%.0f years", demoYears))
-                .font(.system(size: 56, weight: .semibold, design: .rounded))
-                .contentTransition(.numericText(value: demoYears))
-                .animation(.snappy, value: sliderValue)
-            Text("Drag to feel how your habits move the clock.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Slider(value: $sliderValue, in: 0...1)
-                .padding(.horizontal)
-                .accessibilityIdentifier("onboarding.reactiveSlider.slider")
-            HStack {
-                Text("Less active").font(.caption2).foregroundStyle(.secondary)
-                Spacer()
-                Text("More active").font(.caption2).foregroundStyle(.secondary)
-            }
-            .padding(.horizontal)
-            Spacer()
-            Button(action: advance) {
-                Text("Show me mine")
-                    .font(.headline)
+        OnboardingScaffold(
+            screenID: "reactiveSlider",
+            title: "Drag to see how habits move your clock.",
+            continueLabel: "Show me mine",
+            mascotMinutesDeltaOverride: demoMinutesDelta,
+            onContinue: onContinue
+        ) {
+            VStack(spacing: 16) {
+                Text(String(format: "%.0f years", demoYears))
+                    .font(.system(size: 56, weight: .semibold, design: .rounded))
+                    .contentTransition(.numericText(value: demoYears))
+                    .animation(.snappy, value: sliderValue)
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                Slider(value: $sliderValue, in: 0...1)
+                    .accessibilityIdentifier("onboarding.reactiveSlider.slider")
+                HStack {
+                    Text("Less active").font(.caption2).foregroundStyle(.secondary)
+                    Spacer()
+                    Text("More active").font(.caption2).foregroundStyle(.secondary)
+                }
             }
-            .accessibilityIdentifier("onboarding.continue")
         }
-        .padding(24)
-        .onAppear { telemetry.value.screenAppeared("reactiveSlider") }
-        .accessibilityIdentifier("onboarding.reactiveSlider")
-    }
-
-    private func advance() {
-        telemetry.value.screenAdvanced("reactiveSlider", durationMs: 0)
-        onContinue()
     }
 }
 
@@ -309,10 +273,12 @@ final class OnboardingTelemetryHolder {
 #Preview("Welcome") {
     WelcomeView(onContinue: {})
         .environment(OnboardingTelemetryHolder(StubTelemetry()))
+        .environment(OnboardingDraft())
 }
 
 #Preview("ReactiveSlider") {
     ReactiveSliderView(onContinue: {})
         .environment(OnboardingTelemetryHolder(StubTelemetry()))
+        .environment(OnboardingDraft())
 }
 #endif

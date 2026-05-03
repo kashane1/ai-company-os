@@ -29,17 +29,18 @@ struct PaywallPrimaryView: View {
     @State private var selectedTier: Tier = .annual
 
     enum Tier {
-        case annual, monthly
+        case annual, monthly, lifetime
         var productID: PaywallProductID {
             switch self {
             case .annual: return .annual
             case .monthly: return .monthly
+            case .lifetime: return .lifetime
             }
         }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(spacing: 0) {
             HStack {
                 Spacer()
                 Button(action: onClose) {
@@ -49,10 +50,31 @@ struct PaywallPrimaryView: View {
                 }
                 .accessibilityIdentifier("paywall.close")
             }
+            .padding(.horizontal, 24)
+            .padding(.top, 8)
+            OnboardingHeader()
+                .padding(.horizontal, 24)
+            paywallBody
+        }
+        .accessibilityIdentifier("onboarding.paywallPrimary")
+        .onAppear {
+            telemetry.value.paywallShown(stage: .primary)
+            Task { await subscriptions.loadProducts() }
+        }
+        .onChange(of: subscriptions.isPro) { _, isPro in
+            if isPro {
+                telemetry.value.paywallDismissed(stage: .primary, reason: .purchasedSuccessfully)
+                onClose()
+            }
+        }
+    }
+
+    private var paywallBody: some View {
+        VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Lock in your clock.")
+                Text("Earn time, every day.")
                     .font(.largeTitle.bold())
-                Text("Unlock full history, weekly drivers, and every wrap-up.")
+                Text("Pro keeps your full history, weekly drivers, and every wrap-up.")
                     .font(.body)
                     .foregroundStyle(.secondary)
             }
@@ -62,7 +84,8 @@ struct PaywallPrimaryView: View {
             Spacer()
 
             // Auto-renewal terms ALWAYS visible per Apple 3.1.2(c).
-            Text("Subscription renews automatically. Cancel anytime in Settings.")
+            // Lifetime is a non-consumable; the line covers both shapes.
+            Text("Subscriptions renew automatically until cancelled in Settings. Lifetime is a one-time purchase.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
@@ -84,18 +107,8 @@ struct PaywallPrimaryView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
-        .padding(24)
-        .accessibilityIdentifier("onboarding.paywallPrimary")
-        .onAppear {
-            telemetry.value.paywallShown(stage: .primary)
-            Task { await subscriptions.loadProducts() }
-        }
-        .onChange(of: subscriptions.isPro) { _, isPro in
-            if isPro {
-                telemetry.value.paywallDismissed(stage: .primary, reason: .purchasedSuccessfully)
-                onClose()
-            }
-        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
     }
 
     @ViewBuilder
@@ -106,6 +119,12 @@ struct PaywallPrimaryView: View {
                 title: "Yearly",
                 primaryPrice: priceString(for: .annual),
                 secondaryPrice: perMonthEquivalent()
+            )
+            tierRow(
+                tier: .lifetime,
+                title: "Lifetime",
+                primaryPrice: priceString(for: .lifetime),
+                secondaryPrice: "One-time purchase"
             )
             tierRow(
                 tier: .monthly,
@@ -144,7 +163,15 @@ struct PaywallPrimaryView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("paywall.tier.\(tier == .annual ? "annual" : "monthly")")
+        .accessibilityIdentifier(paywallTierAccessibilityID(for: tier))
+    }
+
+    private func paywallTierAccessibilityID(for tier: Tier) -> String {
+        switch tier {
+        case .annual: return "paywall.tier.annual"
+        case .monthly: return "paywall.tier.monthly"
+        case .lifetime: return "paywall.tier.lifetime"
+        }
     }
 
     private func product(for tier: Tier) -> Product? {
@@ -152,13 +179,19 @@ struct PaywallPrimaryView: View {
     }
 
     private func priceString(for tier: Tier) -> String {
-        product(for: tier)?.displayPrice ??
-            (tier == .annual ? "$59.99 / yr" : "$5.99 / mo")
+        if let displayPrice = product(for: tier)?.displayPrice {
+            return displayPrice
+        }
+        switch tier {
+        case .annual: return "$49.99 / yr"
+        case .monthly: return "$7.99 / mo"
+        case .lifetime: return "$129.99"
+        }
     }
 
     private func perMonthEquivalent() -> String? {
         guard let annual = product(for: .annual) else {
-            return "≈ $5.00 / mo equivalent"
+            return "≈ $4.17 / mo equivalent"
         }
         let monthly = NSDecimalNumber(decimal: annual.price).doubleValue / 12
         return String(format: "≈ $%.2f / mo equivalent", monthly)

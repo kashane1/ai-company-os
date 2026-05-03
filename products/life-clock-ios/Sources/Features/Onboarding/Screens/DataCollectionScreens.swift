@@ -22,6 +22,9 @@ struct OnboardingScaffold<Content: View>: View {
     let bodyText: String?
     let isContinueEnabled: Bool
     let continueLabel: String
+    /// When non-nil, drives the persistent header mascot directly instead
+    /// of letting it read `draft.lastDelta`. Used by demo / dial screens.
+    let mascotMinutesDeltaOverride: Int?
     let onContinue: () -> Void
     let content: Content
 
@@ -31,6 +34,7 @@ struct OnboardingScaffold<Content: View>: View {
         bodyText: String? = nil,
         isContinueEnabled: Bool = true,
         continueLabel: String = "Continue",
+        mascotMinutesDeltaOverride: Int? = nil,
         onContinue: @escaping () -> Void,
         @ViewBuilder content: () -> Content
     ) {
@@ -39,41 +43,52 @@ struct OnboardingScaffold<Content: View>: View {
         self.bodyText = bodyText
         self.isContinueEnabled = isContinueEnabled
         self.continueLabel = continueLabel
+        self.mascotMinutesDeltaOverride = mascotMinutesDeltaOverride
         self.onContinue = onContinue
         self.content = content()
     }
 
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
+    @Environment(OnboardingDraft.self) private var draft
+    @Environment(LifeClockStore.self) private var store
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(.title.bold())
-                if let bodyText {
-                    Text(bodyText)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            OnboardingHeader(minutesDeltaOverride: mascotMinutesDeltaOverride)
+                .padding(.horizontal, 24)
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(title)
+                        .font(.title.bold())
+                    if let bodyText {
+                        Text(bodyText)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                content
+                Spacer()
+                Button(action: {
+                    telemetry.value.screenAdvanced(screenID, durationMs: 0)
+                    // Recompute the running estimate so the next screen's
+                    // header mascot reflects this answer's delta.
+                    draft.recomputeEstimate(using: ClockEngine(clock: store.clock))
+                    onContinue()
+                }) {
+                    Text(continueLabel)
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(isContinueEnabled ? Color.accentColor : Color.gray.opacity(0.4))
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .disabled(!isContinueEnabled)
+                .accessibilityIdentifier("onboarding.continue")
             }
-            content
-            Spacer()
-            Button(action: {
-                telemetry.value.screenAdvanced(screenID, durationMs: 0)
-                onContinue()
-            }) {
-                Text(continueLabel)
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(isContinueEnabled ? Color.accentColor : Color.gray.opacity(0.4))
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-            }
-            .disabled(!isContinueEnabled)
-            .accessibilityIdentifier("onboarding.continue")
+            .padding(.horizontal, 24)
+            .padding(.bottom, 24)
         }
-        .padding(24)
         .accessibilityIdentifier("onboarding.\(screenID)")
         .onAppear { telemetry.value.screenAppeared(screenID) }
     }
@@ -98,8 +113,8 @@ struct PersonalizeIntroView: View {
     var body: some View {
         OnboardingScaffold(
             screenID: "personalizeIntro",
-            title: "Let's tune your clock.",
-            bodyText: "A few questions about your life. The estimate updates as you answer.",
+            title: "Let's calibrate your clock.",
+            bodyText: "A few questions. The clock moves as you answer.",
             continueLabel: "Start",
             onContinue: onContinue
         ) { EmptyView() }
@@ -116,6 +131,7 @@ struct GoalPickView: View {
         return OnboardingScaffold(
             screenID: "goalPick",
             title: "What brings you here?",
+            bodyText: "Pick the one that fits today.",
             isContinueEnabled: draft.primaryGoal != nil,
             onContinue: onContinue
         ) {
@@ -167,7 +183,7 @@ struct BaselineDOBView: View {
         return OnboardingScaffold(
             screenID: "baselineDOB",
             title: "When were you born?",
-            bodyText: "Your clock starts here. Stored only on this device.",
+            bodyText: "Your clock starts here. Stays on this device.",
             onContinue: {
                 draft.birthDate = localDate
                 onContinue()
@@ -496,7 +512,7 @@ struct DietView: View {
         @Bindable var draft = draft
         return OnboardingScaffold(
             screenID: "diet",
-            title: "Diet, in your own words",
+            title: "Your typical diet",
             bodyText: "Pick the bucket your typical week falls into.",
             isContinueEnabled: draft.dietQualityBaseline != nil,
             onContinue: onContinue
@@ -520,43 +536,48 @@ struct SensitiveConsentView: View {
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("A few sensitive questions.")
-                    .font(.title.bold())
-                Text("These help calibrate your clock — covering family history, stress, and connection. Stored only on your device, never sent off.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Button(action: {
-                telemetry.value.choiceMade("sensitiveConsent", key: "consent", valueBucket: "yes")
-                telemetry.value.screenAdvanced("sensitiveConsent", durationMs: 0)
-                onContinue()
-            }) {
-                Text("Continue")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-            }
-            .accessibilityIdentifier("onboarding.continue")
+        VStack(spacing: 0) {
+            OnboardingHeader()
+                .padding(.horizontal, 24)
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("A few sensitive questions.")
+                        .font(.title.bold())
+                    Text("These help calibrate your clock — covering family history, stress, and connection. Stored only on your device, never sent off.")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button(action: {
+                    telemetry.value.choiceMade("sensitiveConsent", key: "consent", valueBucket: "yes")
+                    telemetry.value.screenAdvanced("sensitiveConsent", durationMs: 0)
+                    onContinue()
+                }) {
+                    Text("Continue")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accentColor)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .accessibilityIdentifier("onboarding.continue")
 
-            Button(action: {
-                telemetry.value.choiceMade("sensitiveConsent", key: "consent", valueBucket: "skip")
-                telemetry.value.screenAdvanced("sensitiveConsent", durationMs: 0)
-                onSkip()
-            }) {
-                Text("Skip these")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .foregroundStyle(.secondary)
+                Button(action: {
+                    telemetry.value.choiceMade("sensitiveConsent", key: "consent", valueBucket: "skip")
+                    telemetry.value.screenAdvanced("sensitiveConsent", durationMs: 0)
+                    onSkip()
+                }) {
+                    Text("Skip these")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityIdentifier("onboarding.skipSensitive")
             }
-            .accessibilityIdentifier("onboarding.skipSensitive")
+            .padding(.horizontal, 24)
+            .padding(.bottom, 24)
         }
-        .padding(24)
         .onAppear { telemetry.value.screenAppeared("sensitiveConsent") }
         .accessibilityIdentifier("onboarding.sensitiveConsent")
     }
@@ -735,7 +756,7 @@ struct ToneView: View {
         return OnboardingScaffold(
             screenID: "tone",
             title: "Voice",
-            bodyText: "How would you like the app to talk to you?",
+            bodyText: "How should your clock talk to you?",
             isContinueEnabled: draft.toneMode != nil,
             onContinue: onContinue
         ) {

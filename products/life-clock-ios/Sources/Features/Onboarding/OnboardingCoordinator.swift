@@ -26,7 +26,7 @@ struct OnboardingCoordinator: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            ColdOpenView(onContinue: { advance(to: .appPreviews) })
+            ColdOpenView(onContinue: { advance(to: .welcome) })
                 .navigationDestination(for: OnboardingScreen.self, destination: destination)
         }
         .environment(telemetry)
@@ -43,7 +43,9 @@ struct OnboardingCoordinator: View {
         case .meetYourClock:
             MeetYourClockView(onContinue: { advance(to: .reactiveSlider) })
         case .reactiveSlider:
-            ReactiveSliderView(onContinue: { advance(to: .visibilityFraming) })
+            // visibilityFraming dropped in v2 — abstract framing that
+            // didn't match copy used elsewhere in the app.
+            ReactiveSliderView(onContinue: { advance(to: .personalizeIntro) })
 
         case .visibilityFraming:
             VisibilityFramingView(onContinue: { advance(to: .personalizeIntro) })

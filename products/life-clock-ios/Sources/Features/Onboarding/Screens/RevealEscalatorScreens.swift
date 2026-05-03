@@ -27,23 +27,28 @@ struct AnalyzingView: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Spacer()
-            ForEach(0..<3, id: \.self) { idx in
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(labels[idx])
-                        .font(.body.bold())
-                        .foregroundStyle(idx <= stage ? .primary : .tertiary)
-                    ProgressView(
-                        value: idx < stage ? 1.0 : (idx == stage ? 0.5 : 0.0),
-                        total: 1.0
-                    )
-                    .tint(idx <= stage ? .accentColor : .gray)
+        VStack(spacing: 0) {
+            OnboardingHeader()
+                .padding(.horizontal, 24)
+            VStack(alignment: .leading, spacing: 24) {
+                Spacer()
+                ForEach(0..<3, id: \.self) { idx in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(labels[idx])
+                            .font(.body.bold())
+                            .foregroundStyle(idx <= stage ? .primary : .tertiary)
+                        ProgressView(
+                            value: idx < stage ? 1.0 : (idx == stage ? 0.5 : 0.0),
+                            total: 1.0
+                        )
+                        .tint(idx <= stage ? .accentColor : .gray)
+                    }
                 }
+                Spacer()
             }
-            Spacer()
+            .padding(.horizontal, 24)
+            .padding(.bottom, 24)
         }
-        .padding(24)
         .accessibilityIdentifier("onboarding.analyzing")
         .onAppear {
             telemetry.value.screenAppeared("analyzing")
@@ -120,7 +125,7 @@ struct ArchetypeRevealView: View {
             screenID: "archetypeReveal",
             title: result.archetype.displayName,
             bodyText: result.archetype.description,
-            continueLabel: "Makes sense",
+            continueLabel: "Got it",
             onContinue: {
                 // No persistence here — archetype writes to UserProfile
                 // at completeOnboarding via materialize().
@@ -202,8 +207,8 @@ struct LifeGridRemainingView: View {
     var body: some View {
         OnboardingScaffold(
             screenID: "lifeGridRemaining",
-            title: "This is what you have left.",
-            bodyText: nil,
+            title: "This is what's still ahead.",
+            bodyText: "Each dot you haven't lived yet is a week your habits get to shape.",
             onContinue: onContinue
         ) {
             LifeGridDotView(
@@ -252,8 +257,8 @@ struct BigNumberPenaltyView: View {
         let yearsAtRisk = max(0, Int((Double(lostWeeks) / 52.0).rounded()))
         return OnboardingScaffold(
             screenID: "bigNumberPenalty",
-            title: "~\(yearsAtRisk) years at risk from current habits.",
-            bodyText: "These are the dots most likely to slip away if today's patterns hold. Not fate — signal.",
+            title: "~\(yearsAtRisk) years on the table.",
+            bodyText: "These are the years your current habits put within reach to win or lose. The clock follows what you do next.",
             onContinue: onContinue
         ) {
             LifeGridDotView(
@@ -313,7 +318,7 @@ struct RecoveryPreviewView: View {
         return OnboardingScaffold(
             screenID: "recoveryPreview",
             title: RecoveryPreviewCopy.title(yearsBack: yearsBack, phrase: cyclingWords[cyclingIndex]),
-            bodyText: "These are the years your habits could win back.",
+            bodyText: "These are the years your habits can win back.",
             continueLabel: "Continue",
             onContinue: onContinue
         ) {
