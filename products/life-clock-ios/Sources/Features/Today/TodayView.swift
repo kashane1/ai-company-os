@@ -15,6 +15,7 @@ struct TodayView: View {
                 // tab-consolidation-plan.md.
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                     headline
+                    mascotHero
                     clockCard
                     rescueLine
                     if let moment = store.supportMoment {
@@ -137,6 +138,32 @@ struct TodayView: View {
     /// `profile.hideClock` is true — replaced by the headline-only path
     /// (the "+X min today" delta still renders above). Resolves Q5 and is
     /// the centerpiece of the safety-net offering.
+    ///
+    /// Hero mascot above the projected-healthspan readout. Renders only
+    /// when there's an estimate AND the user hasn't hidden the clock.
+    /// Both this view and `clockCard` read from the same
+    /// `store.todayEstimate.dailyTimeDeltaMinutes` binding, so the visual
+    /// hands and the textual delta animate from a single source.
+    @ViewBuilder
+    private var mascotHero: some View {
+        if store.profile?.hideClock == true {
+            // Zero-height marker so an agent / UITest can positively
+            // verify "user hid the clock" rather than only inferring
+            // it from the absence of `today.mascot`.
+            Color.clear
+                .frame(height: 0)
+                .accessibilityIdentifier("today.mascotHidden")
+                .accessibilityHidden(true)
+        } else if let delta = store.todayEstimate?.dailyTimeDeltaMinutes {
+            LifeClockMascotView(minutesDelta: delta)
+                .frame(maxWidth: 240, maxHeight: 240)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .accessibilityIdentifier("today.mascot")
+        } else {
+            EmptyView()
+        }
+    }
+
     @ViewBuilder
     private var clockCard: some View {
         if store.profile?.hideClock == true {

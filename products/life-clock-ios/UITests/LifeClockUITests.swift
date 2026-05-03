@@ -240,6 +240,30 @@ final class LifeClockUITests: XCTestCase {
         wait(for: [exp], timeout: 3)
     }
 
+    /// Verifies the new mascot hero on Today: the wrapper carries
+    /// `today.mascot` and exposes the formatted minutes delta as its
+    /// VoiceOver value. Locks the agent-facing contract for downstream
+    /// scripted verification of "did today's check-in move the clock?"
+    func testTodayMascotExposesFormattedDeltaValue() throws {
+        launchApp(scenario: "onboarded")
+
+        let mascot = app.otherElements["today.mascot"]
+        XCTAssertTrue(mascot.waitForExistence(timeout: 5),
+                      "today.mascot should appear when an estimate exists and hideClock is off")
+
+        // The seeded `onboarded` scenario produces a deterministic
+        // estimate via `LifeClockLaunchConfiguration`. We can't pin the
+        // exact minute count without coupling to the seeded numbers, but
+        // we can assert the value is a `TimeDeltaFormatter`-shaped string
+        // ("+N min" / "-N min" / "+Nh Mm" / "0 min").
+        let value = (mascot.value as? String) ?? ""
+        let pattern = #"^[+-]?\d+(\s?(min|h(\s\d+m)?))?$"#
+        let regex = try NSRegularExpression(pattern: pattern)
+        let range = NSRange(value.startIndex..., in: value)
+        XCTAssertNotNil(regex.firstMatch(in: value, options: [], range: range),
+                        "mascot value should match TimeDeltaFormatter shape, got: \(value)")
+    }
+
     private func launchApp(scenario: String) {
         app = XCUIApplication()
         app.launchEnvironment["LIFECLOCK_UI_TEST"] = "1"
