@@ -332,6 +332,20 @@ final class LifeClockStore {
         fetchRecentSnapshots(limit: limit)
     }
 
+    /// Signed daily delta for an arbitrary persisted snapshot. Mirrors
+    /// `recomputeYesterdayDelta` so History rows show the same number the
+    /// engine would assign that day. Returns nil when no profile is loaded.
+    func dailyDelta(for snapshot: DailyHealthSnapshot) -> Int? {
+        guard let profile else { return nil }
+        let habits = fetchHabits(for: snapshot.date)
+        let result = clockEngine.calculateDailyDelta(
+            snapshot: snapshot,
+            habits: habits,
+            profile: profile
+        )
+        return result.deltaMinutes
+    }
+
     /// Called by the wrap-up sheet on dismiss to advance the lastShown* keys
     /// and clear the pending state. Caller passes the same `PendingWrapUp`
     /// they presented so we advance the right key.
