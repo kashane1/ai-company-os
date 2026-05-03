@@ -110,9 +110,13 @@ struct LifeClockMascotView: View {
 
     private func bezel(size: CGFloat) -> some View {
         ZStack {
+            // Two-pass drop shadow: a tight inner one for definition + a
+            // softer ambient pass for the "sitting on a surface" feel,
+            // both biased downward (light from above).
             Circle()
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.10), radius: size * 0.04, x: 0, y: size * 0.012)
+                .shadow(color: .black.opacity(0.18), radius: size * 0.025, x: 0, y: size * 0.015)
+                .shadow(color: .black.opacity(0.08), radius: size * 0.08, x: 0, y: size * 0.04)
             Circle()
                 .strokeBorder(
                     AngularGradient(
@@ -168,14 +172,33 @@ struct LifeClockMascotView: View {
     }
 
     private func hand(length: CGFloat, thickness: CGFloat, angle: Angle) -> some View {
-        // `Color.primary` auto-adapts: dark in light mode, light in dark mode.
-        // Solves the white-on-white invisibility against the SwiftUI-drawn
-        // light face. When the designer-produced bezel ships (asset slot),
-        // the hand color may need to be revisited per the new artwork.
-        Capsule()
-            .fill(Color.primary)
-            .shadow(color: .black.opacity(0.18), radius: thickness * 0.5, x: 0, y: thickness * 0.2)
+        // White hands with a world-fixed drop shadow — the shadow stays
+        // pointing toward the bottom-right of the screen regardless of
+        // the hand's rotation, simulating a static light source above.
+        //
+        // SwiftUI's `.shadow()` rotates with its parent, so to keep the
+        // shadow direction world-fixed we pre-rotate the offset by the
+        // inverse of the hand's angle. After `.rotationEffect(angle)`
+        // applies, the shadow lands at the desired world offset.
+        //
+        //   world (Wx, Wy) ← rotation(angle) ← local (Lx, Ly)
+        //   ⇒ Lx = Wx·cos(θ) + Wy·sin(θ)
+        //     Ly = -Wx·sin(θ) + Wy·cos(θ)
+        let worldDx = thickness * 0.35   // slight rightward bias
+        let worldDy = thickness * 0.85   // shadow falls below hand
+        let theta = angle.radians
+        let localDx = worldDx * cos(theta) + worldDy * sin(theta)
+        let localDy = -worldDx * sin(theta) + worldDy * cos(theta)
+
+        return Capsule()
+            .fill(Color.white)
             .frame(width: thickness, height: length)
+            .shadow(
+                color: .black.opacity(0.22),
+                radius: thickness * 0.55,
+                x: localDx,
+                y: localDy
+            )
             .offset(y: -length / 2)
             .rotationEffect(angle)
     }
