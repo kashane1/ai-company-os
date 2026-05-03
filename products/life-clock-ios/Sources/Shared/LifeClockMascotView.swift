@@ -108,31 +108,45 @@ struct LifeClockMascotView: View {
 
     // MARK: - Layers
 
+    /// Width of the raised outer rim. Reference rendering shows a rim of
+    /// ~4-5% of total diameter; the face starts just inside it.
+    private static let rimThicknessRatio: CGFloat = 0.045
+
     private func bezel(size: CGFloat) -> some View {
-        ZStack {
-            // Face is recessed below the rim — the `.inner` shadow on the
-            // fill simulates the rim casting onto the face below it. Same
-            // world-fixed lighting direction as the hands and outer drop
-            // shadow (down + slight right), keyed off the rim thickness
-            // (≈ size * 0.02) as the recess depth.
-            //
-            // Then two-pass outer drop shadow: tight pass for definition +
-            // softer ambient pass for the "sitting on a surface" feel.
+        let rimThickness = size * Self.rimThicknessRatio
+
+        return ZStack {
+            // 1. Outer rim — full-size white disc. Two-pass outer drop
+            //    shadow (tight + ambient) for the "raised, sitting on a
+            //    surface, lit from above" feel. The ring effect comes from
+            //    the smaller face circle stacked on top.
+            Circle()
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.18), radius: size * 0.025, x: 0, y: size * 0.015)
+                .shadow(color: .black.opacity(0.08), radius: size * 0.08, x: 0, y: size * 0.04)
+
+            // 2. Recessed face — inset by `rimThickness`. Inner shadow on
+            //    the fill simulates the rim casting onto the face below
+            //    it; world-fixed lighting (down + slight right) keyed off
+            //    the rim thickness as the recess depth.
             Circle()
                 .fill(
                     Color(.systemBackground).shadow(
                         .inner(
-                            color: .black.opacity(0.20),
-                            radius: size * 0.020,
-                            x: size * 0.007,
-                            y: size * 0.017
+                            color: .black.opacity(0.18),
+                            radius: rimThickness * 0.7,
+                            x: rimThickness * 0.35,
+                            y: rimThickness * 0.85
                         )
                     )
                 )
-                .shadow(color: .black.opacity(0.18), radius: size * 0.025, x: 0, y: size * 0.015)
-                .shadow(color: .black.opacity(0.08), radius: size * 0.08, x: 0, y: size * 0.04)
+                .padding(rimThickness)
+
+            // 3. Colored gradient ring — sits at the rim/face boundary
+            //    (the rim's inner edge). Stroked centered on the boundary
+            //    so it reads as a thin halo where the rim meets the face.
             Circle()
-                .strokeBorder(
+                .stroke(
                     AngularGradient(
                         colors: [
                             .blue.opacity(0.85),
@@ -147,9 +161,9 @@ struct LifeClockMascotView: View {
                         startAngle: .degrees(180),
                         endAngle: .degrees(540)
                     ),
-                    lineWidth: size * 0.018
+                    lineWidth: size * 0.010
                 )
-                .padding(size * 0.02)
+                .padding(rimThickness)
         }
     }
 
