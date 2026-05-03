@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// The animated Life Clock mascot. Brand focal point of the app.
 ///
@@ -62,6 +65,26 @@ struct LifeClockMascotView: View {
     /// Hub scale modulation range during a heartbeat pulse.
     private static let hubPulseRange: ClosedRange<CGFloat> = 1.0...1.12
 
+    /// Whether the static designer-produced bezel asset is shipped.
+    /// Resolved once at type-load time (one UIImage cache lookup), not on
+    /// every render. When `true`, the static asset replaces the SwiftUI
+    /// fallback rim + face + gradient + tick marks; only hands, heartbeat,
+    /// and hub render live on top.
+    private static let hasStaticBezel: Bool = {
+        #if canImport(UIKit)
+        return UIImage(named: "ClockMascotBezel") != nil
+        #else
+        return false
+        #endif
+    }()
+
+    /// Inner scale for live overlays (hands, heartbeat, hub) when the
+    /// static bezel asset is in use. The asset's clock face is ≈ 75% of
+    /// the canvas (the rest is rim + drop shadow), so the live overlays
+    /// must shrink to fit inside the face. The SwiftUI fallback face is
+    /// nearly the full canvas (91%), so no inset is needed there.
+    private static var innerScale: CGFloat { hasStaticBezel ? 0.78 : 1.0 }
+
     // MARK: - Derived angles
 
     private var clampedMinutes: Int {
@@ -83,11 +106,18 @@ struct LifeClockMascotView: View {
             let size = min(geo.size.width, geo.size.height)
             ZStack {
                 bezel(size: size)
-                tickMarks(size: size)
-                heartbeat(size: size)
-                hand(length: size * 0.30, thickness: size * 0.04, angle: hourAngle)
-                hand(length: size * 0.40, thickness: size * 0.03, angle: minuteAngle)
-                centerHub(size: size)
+                // Tick marks live INSIDE the static bezel asset when one
+                // is shipped — only draw them ourselves for the SwiftUI
+                // fallback path.
+                if !Self.hasStaticBezel {
+                    tickMarks(size: size)
+                }
+                // Live overlays shrink to fit the asset's narrower face.
+                let innerSize = size * Self.innerScale
+                heartbeat(size: innerSize)
+                hand(length: innerSize * 0.30, thickness: innerSize * 0.04, angle: hourAngle)
+                hand(length: innerSize * 0.40, thickness: innerSize * 0.03, angle: minuteAngle)
+                centerHub(size: innerSize)
             }
             .frame(width: size, height: size)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -112,7 +142,22 @@ struct LifeClockMascotView: View {
     /// ~4-5% of total diameter; the face starts just inside it.
     private static let rimThicknessRatio: CGFloat = 0.045
 
+    @ViewBuilder
     private func bezel(size: CGFloat) -> some View {
+        if Self.hasStaticBezel {
+            // Designer-produced asset: rim + recessed face + gradient halo
+            // + tick marks all baked in. Hands, heartbeat, and hub still
+            // render live on top via the rest of the ZStack.
+            Image("ClockMascotBezel")
+                .resizable()
+                .interpolation(.high)
+                .scaledToFit()
+        } else {
+            swiftUIFallbackBezel(size: size)
+        }
+    }
+
+    private func swiftUIFallbackBezel(size: CGFloat) -> some View {
         let rimThickness = size * Self.rimThicknessRatio
 
         return ZStack {
