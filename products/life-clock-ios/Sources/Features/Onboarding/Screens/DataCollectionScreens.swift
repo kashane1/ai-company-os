@@ -16,12 +16,24 @@ import SwiftUI
 
 /// Common chrome around an onboarding form screen: title, body, slot,
 /// Continue button. Keeps each screen tiny.
+/// A pinned secondary action that sits above the scaffold's primary
+/// Continue button. Used for soft-skip patterns (e.g. HealthKit
+/// "Not now") where the secondary affordance must be visually adjacent
+/// to the primary CTA, not floating in the content body.
+struct OnboardingSecondaryAction {
+    let label: String
+    let caption: String?
+    let identifier: String
+    let action: () -> Void
+}
+
 struct OnboardingScaffold<Content: View>: View {
     let screenID: String
     let title: String
     let bodyText: String?
     let isContinueEnabled: Bool
     let continueLabel: String
+    let secondaryAction: OnboardingSecondaryAction?
     let onContinue: () -> Void
     let content: Content
 
@@ -31,6 +43,7 @@ struct OnboardingScaffold<Content: View>: View {
         bodyText: String? = nil,
         isContinueEnabled: Bool = true,
         continueLabel: String = "Continue",
+        secondaryAction: OnboardingSecondaryAction? = nil,
         onContinue: @escaping () -> Void,
         @ViewBuilder content: () -> Content
     ) {
@@ -39,6 +52,7 @@ struct OnboardingScaffold<Content: View>: View {
         self.bodyText = bodyText
         self.isContinueEnabled = isContinueEnabled
         self.continueLabel = continueLabel
+        self.secondaryAction = secondaryAction
         self.onContinue = onContinue
         self.content = content()
     }
@@ -63,6 +77,22 @@ struct OnboardingScaffold<Content: View>: View {
             }
             content
             Spacer()
+            if let secondaryAction {
+                VStack(spacing: 4) {
+                    Button(secondaryAction.label, action: secondaryAction.action)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .font(.callout)
+                        .accessibilityIdentifier(secondaryAction.identifier)
+                    if let caption = secondaryAction.caption {
+                        Text(caption)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
             Button(action: {
                 telemetry.value.screenAdvanced(screenID, durationMs: 0)
                 // Recompute the running estimate so the next screen's
@@ -256,10 +286,76 @@ struct BaselineSexView: View {
 struct BodyCompView: View {
     let onContinue: () -> Void
     @Environment(OnboardingDraft.self) private var draft
-    @State private var heightCm: Double = 170
-    @State private var weightKg: Double = 70
+
     @State private var unitSystem: BodyMeasurementSystem = .standard
     @State private var enabled: Bool = false
+
+    /// Free-form numeric inputs — typing is much faster than +/- 1 stepping
+    /// across realistic body-measurement ranges (66–440 lb, 3–7 ft, 0–11
+    /// in, 120–220 cm, 30–200 kg).
+    @State private var feetString: String = "5"
+    @State private var inchesString: String = "8"
+    @State private var poundsString: String = "150"
+    @State private var cmString: String = "170"
+    @State private var kgString: String = "70"
+
+    private static let intFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        f.maximumFractionDigits = 0
+        f.allowsFloats = false
+        return f
+    }()
+
+    private func parseInt(_ s: String) -> Int? {
+        let trimmed = s.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty,
+              let n = Self.intFormatter.number(from: trimmed)?.intValue
+        else { return nil }
+        return n
+    }
+
+    /// Parsed feet+inches → height-cm; nil if either field is invalid or
+    /// outside a sane range.
+    private var standardHeightCm: Double? {
+        guard let ft = parseInt(feetString), (3...7).contains(ft),
+              let inch = parseInt(inchesString), (0...11).contains(inch)
+        else { return nil }
+        return Double(ft * 12 + inch) * 2.54
+    }
+
+    private var standardWeightKg: Double? {
+        guard let lb = parseInt(poundsString), (66...440).contains(lb)
+        else { return nil }
+        return Double(lb) / 2.20462
+    }
+
+    private var metricHeightCm: Double? {
+        guard let cm = parseInt(cmString), (120...220).contains(cm)
+        else { return nil }
+        return Double(cm)
+    }
+
+    private var metricWeightKg: Double? {
+        guard let kg = parseInt(kgString), (30...200).contains(kg)
+        else { return nil }
+        return Double(kg)
+    }
+
+    private var resolvedHeightCm: Double? {
+        unitSystem == .standard ? standardHeightCm : metricHeightCm
+    }
+
+    private var resolvedWeightKg: Double? {
+        unitSystem == .standard ? standardWeightKg : metricWeightKg
+    }
+
+    /// Continue is enabled if the user opted out (Skip) or if both
+    /// height and weight parse to in-range values.
+    private var continueEnabled: Bool {
+        if !enabled { return true }
+        return resolvedHeightCm != nil && resolvedWeightKg != nil
+    }
 
     var body: some View {
         @Bindable var draft = draft
@@ -267,11 +363,12 @@ struct BodyCompView: View {
             screenID: "bodyComp",
             title: "Height & weight",
             bodyText: "Optional — drives the BMI lever. Skip if you'd rather not.",
+            isContinueEnabled: continueEnabled,
             continueLabel: enabled ? "Continue" : "Skip",
             onContinue: {
-                if enabled {
-                    draft.heightCm = heightCm
-                    draft.weightKg = weightKg
+                if enabled, let h = resolvedHeightCm, let w = resolvedWeightKg {
+                    draft.heightCm = h
+                    draft.weightKg = w
                 }
                 onContinue()
             }
@@ -288,72 +385,64 @@ struct BodyCompView: View {
 
                 switch unitSystem {
                 case .standard:
-                    Stepper(
-                        "Height: \(standardHeightText)",
-                        value: standardFeetBinding,
-                        in: 3...7
-                    )
-                    Stepper(
-                        "Inches: \(standardInchesBinding.wrappedValue)",
-                        value: standardInchesBinding,
-                        in: 0...11
-                    )
-                    Stepper(
-                        "Weight: \(standardWeightPounds) lb",
-                        value: standardWeightBinding,
-                        in: 66...440
-                    )
-                case .metric:
-                    Stepper(value: $heightCm, in: 120...220, step: 1) {
-                        Text("Height: \(Int(heightCm.rounded())) cm")
+                    HStack {
+                        Text("Height")
+                        Spacer()
+                        numericField(text: $feetString,
+                                     identifier: "onboarding.bodyComp.feet",
+                                     suffix: "ft")
+                        numericField(text: $inchesString,
+                                     identifier: "onboarding.bodyComp.inches",
+                                     suffix: "in")
                     }
-                    Stepper(value: $weightKg, in: 30...200, step: 1) {
-                        Text("Weight: \(Int(weightKg.rounded())) kg")
+                    HStack {
+                        Text("Weight")
+                        Spacer()
+                        numericField(text: $poundsString,
+                                     identifier: "onboarding.bodyComp.pounds",
+                                     suffix: "lb",
+                                     width: 100)
+                    }
+                case .metric:
+                    HStack {
+                        Text("Height")
+                        Spacer()
+                        numericField(text: $cmString,
+                                     identifier: "onboarding.bodyComp.cm",
+                                     suffix: "cm",
+                                     width: 100)
+                    }
+                    HStack {
+                        Text("Weight")
+                        Spacer()
+                        numericField(text: $kgString,
+                                     identifier: "onboarding.bodyComp.kg",
+                                     suffix: "kg",
+                                     width: 100)
                     }
                 }
             }
         }
     }
 
-    private var standardHeightText: String {
-        "\(standardFeetBinding.wrappedValue) ft \(standardInchesBinding.wrappedValue) in"
-    }
-
-    private var standardWeightPounds: Int {
-        Int((weightKg * 2.20462).rounded())
-    }
-
-    private var standardFeetBinding: Binding<Int> {
-        Binding(
-            get: {
-                let totalInches = Int((heightCm / 2.54).rounded())
-                return max(3, min(7, totalInches / 12))
-            },
-            set: { newFeet in
-                let inches = standardInchesBinding.wrappedValue
-                heightCm = Double(newFeet * 12 + inches) * 2.54
-            }
-        )
-    }
-
-    private var standardInchesBinding: Binding<Int> {
-        Binding(
-            get: {
-                let totalInches = Int((heightCm / 2.54).rounded())
-                return max(0, min(11, totalInches % 12))
-            },
-            set: { newInches in
-                let feet = standardFeetBinding.wrappedValue
-                heightCm = Double(feet * 12 + newInches) * 2.54
-            }
-        )
-    }
-
-    private var standardWeightBinding: Binding<Int> {
-        Binding(
-            get: { standardWeightPounds },
-            set: { weightKg = Double($0) / 2.20462 }
-        )
+    @ViewBuilder
+    private func numericField(
+        text: Binding<String>,
+        identifier: String,
+        suffix: String,
+        width: CGFloat = 80
+    ) -> some View {
+        HStack(spacing: 4) {
+            TextField("", text: text)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: width)
+                .textFieldStyle(.roundedBorder)
+                .accessibilityIdentifier(identifier)
+            Text(suffix)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
     }
 }
 
@@ -867,12 +956,31 @@ struct HealthKitAuthView: View {
     @State private var hasRequested = false
     @State private var isRequesting = false
 
+    /// Soft-skip handler — used by the scaffold's secondary action slot
+    /// so the "Not now" affordance sits visually adjacent to the
+    /// primary Connect button at the bottom of the screen, not adrift
+    /// in the content body. Skip path must NOT call
+    /// `requestHealthAuthorization` (a denied system prompt persists
+    /// until the user digs into iOS Settings → Health).
+    private func softSkip() {
+        telemetry.value.choiceMade("healthKitAuth", key: "decision",
+                                   valueBucket: "skipped")
+        telemetry.value.screenAdvanced("healthKitAuth", durationMs: 0)
+        onContinue()
+    }
+
     var body: some View {
         OnboardingScaffold(
             screenID: "healthKitAuth",
             title: "Let your clock learn from your body.",
             bodyText: "Read steps, exercise, sleep, and resting heart rate from Apple Health. You can change this any time in Settings.",
             continueLabel: hasRequested ? "Continue" : "Connect",
+            secondaryAction: hasRequested ? nil : OnboardingSecondaryAction(
+                label: "Not now",
+                caption: "You can connect Apple Health any time from Profile.",
+                identifier: "onboarding.healthKitAuth.skip",
+                action: softSkip
+            ),
             onContinue: {
                 if !hasRequested {
                     Task {
@@ -884,8 +992,7 @@ struct HealthKitAuthView: View {
                 } else {
                     // HealthKit deliberately hides the actual grant /
                     // deny outcome from the calling app — `healthAuthorizationKnown`
-                    // is true for both. Record `prompted` (the user
-                    // saw the system sheet and answered) and let
+                    // is true for both. Record `prompted` and let
                     // downstream sample-read success / failure tell us
                     // what they actually picked.
                     telemetry.value.choiceMade("healthKitAuth", key: "decision",
@@ -904,26 +1011,6 @@ struct HealthKitAuthView: View {
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
-
-                // Soft-skip — secondary, low-emphasis. The skip path
-                // must NOT call requestHealthAuthorization (a denied
-                // system prompt is permanent until the user digs into
-                // iOS Settings → Health). Re-prompt later from Profile.
-                Button("Not now") {
-                    telemetry.value.choiceMade("healthKitAuth", key: "decision",
-                                               valueBucket: "skipped")
-                    telemetry.value.screenAdvanced("healthKitAuth", durationMs: 0)
-                    onContinue()
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-                .font(.callout)
-                .padding(.top, 4)
-                .accessibilityIdentifier("onboarding.healthKitAuth.skip")
-
-                Text("You can connect Apple Health any time from Profile.")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
             }
         }
     }

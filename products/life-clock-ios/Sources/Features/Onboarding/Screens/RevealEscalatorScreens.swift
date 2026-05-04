@@ -303,15 +303,37 @@ struct RecoveryPreviewView: View {
         return max(0, Calendar.current.dateComponents([.weekOfYear], from: dob, to: Date()).weekOfYear ?? 0)
     }
 
+    @Environment(OnboardingTelemetryHolder.self) private var telemetry
+
     var body: some View {
+        // Custom layout (not via OnboardingScaffold) because this
+        // screen wants a centered hero and a stable, fixed-height
+        // cycling phrase line. Previously the cycling word was
+        // concatenated into the scaffold's left-aligned title, which
+        // pushed the whole page up/down each tick as the title wrapped
+        // 1↔2 lines. Now the first line is fixed copy ("N more years")
+        // and only the second line cycles inside a height-clamped frame.
         let yearsBack = max(0, Int((Double(lostWeeks) / 52.0).rounded()))
-        return OnboardingScaffold(
-            screenID: "recoveryPreview",
-            title: RecoveryPreviewCopy.title(yearsBack: yearsBack, phrase: cyclingWords[cyclingIndex]),
-            bodyText: "These are the years your habits can win back.",
-            continueLabel: "Continue",
-            onContinue: onContinue
-        ) {
+        return VStack(alignment: .leading, spacing: 24) {
+            VStack(spacing: 6) {
+                Text(RecoveryPreviewCopy.headline(yearsBack: yearsBack))
+                    .font(.title.bold())
+                    .multilineTextAlignment(.center)
+                    .accessibilityIdentifier("onboarding.recoveryPreview.headline")
+                Text(RecoveryPreviewCopy.phrase(
+                    goal: goal,
+                    phrase: cyclingWords[cyclingIndex]
+                ))
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, minHeight: 56, alignment: .center)
+                    .contentTransition(.opacity)
+                    .animation(.easeInOut(duration: 0.25), value: cyclingIndex)
+                    .accessibilityIdentifier("onboarding.recoveryPreview.cyclingPhrase")
+            }
+            .frame(maxWidth: .infinity)
+
             VStack(spacing: 8) {
                 LifeGridDotView(
                     totalWeeks: 4160,
@@ -320,26 +342,51 @@ struct RecoveryPreviewView: View {
                     mode: .recoveryHighlighted
                 )
                 .frame(height: 240)
-                .onAppear {
-                    Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
-                        Task { @MainActor in
-                            cyclingIndex = (cyclingIndex + 1) % cyclingWords.count
-                        }
-                    }
+                LifeGridDotLegend(mode: .recoveryHighlighted)
+            }
+
+            Spacer()
+
+            Button(action: onContinue) {
+                Text("Continue")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.accentColor)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .accessibilityIdentifier("onboarding.continue")
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+        .accessibilityIdentifier("onboarding.recoveryPreview")
+        .onAppear {
+            telemetry.value.screenAppeared("recoveryPreview")
+            Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+                Task { @MainActor in
+                    cyclingIndex = (cyclingIndex + 1) % cyclingWords.count
                 }
-                // Legend was shown in full on the prior `bigNumberPenalty`
-                // screen one tap earlier; users carry the green/red→blue
-                // mapping. A second info chip on the very next screen
-                // is redundant clutter (per code-review simplicity pass).
             }
         }
     }
 }
 
 struct RecoveryPreviewCopy {
-    static func title(yearsBack: Int, phrase: String) -> String {
-        let connector = phrase.hasPrefix("with ") || phrase.hasPrefix("at ") ? " " : " of "
-        guard yearsBack > 0 else { return "More years\(connector)\(phrase)" }
-        return "\(yearsBack) more years\(connector)\(phrase)"
+    /// Fixed first line of the recovery hero — never reflows.
+    static func headline(yearsBack: Int) -> String {
+        guard yearsBack > 0 else { return "More years ahead" }
+        return "\(yearsBack) more years"
+    }
+
+    /// Second line — the cycling phrase. The connector ("of " vs " ")
+    /// matches the goal so the line reads naturally even when the cycle
+    /// hits a "with your kids" / "at the dinner table" phrase that
+    /// already starts with a preposition.
+    static func phrase(goal: OnboardingGoal, phrase: String) -> String {
+        if phrase.hasPrefix("with ") || phrase.hasPrefix("at ") {
+            return phrase
+        }
+        return "of \(phrase)"
     }
 }

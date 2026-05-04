@@ -87,6 +87,20 @@ final class SubscriptionStore: EntitlementProviding {
     // MARK: - Entitlement state
 
     func refreshEntitlements() async {
+        #if targetEnvironment(simulator) && DEBUG
+        // Dev-experience hatch: auto-grant Pro on simulator + Debug
+        // builds so a manually-installed `.app` (no Xcode-attached
+        // StoreKit configuration) doesn't pop the Apple-ID sign-in
+        // sheet. The `.storekit` configuration only attaches when the
+        // app is launched via Xcode's Run; standalone `simctl launch`
+        // falls through to the production sandbox path. Set
+        // `LIFECLOCK_SIMULATOR_PRO_DISABLED=1` in the environment to
+        // exercise the real paywall flow on the simulator.
+        if ProcessInfo.processInfo.environment["LIFECLOCK_SIMULATOR_PRO_DISABLED"] == nil {
+            entitledProductIDs = [PaywallProductID.lifetime.rawValue]
+            return
+        }
+        #endif
         var ids: Set<String> = []
         for await result in Transaction.currentEntitlements {
             if case .verified(let tx) = result, tx.revocationDate == nil {
