@@ -14,21 +14,22 @@ import SwiftUI
 
 // MARK: - OnboardingHeader
 
-/// Persistent header rendered at the top of every onboarding screen.
-/// Shows a fixed wordmark and the mascot, whose hands reflect either an
-/// explicit override (used by demo / dial screens that drive the mascot
-/// from a transient input) or the running per-answer delta on the draft.
+/// Persistent header rendered ONCE at the coordinator level (above the
+/// onboarding `NavigationStack`). Shows a fixed wordmark and the mascot.
+/// Hands reflect either:
+///   - `draft.mascotOverrideMinutes` when a screen is driving the mascot
+///     from a transient input (`ReactiveSliderView`, `EngineRevealAndDialView`),
+///   - otherwise the running per-answer delta on `draft.lastDelta`.
+///
+/// Single-instance lifetime: by living above `NavigationStack` rather
+/// than inside `OnboardingScaffold`, this view's identity stays stable
+/// across screen pushes — one `onAppear`, no rebuild on transition. The
+/// mascot's hand animation is therefore continuous, not per-screen.
 struct OnboardingHeader: View {
-    let minutesDeltaOverride: Int?
-
     @Environment(OnboardingDraft.self) private var draft
 
-    init(minutesDeltaOverride: Int? = nil) {
-        self.minutesDeltaOverride = minutesDeltaOverride
-    }
-
     private var minutesDelta: Int {
-        if let minutesDeltaOverride { return minutesDeltaOverride }
+        if let override = draft.mascotOverrideMinutes { return override }
         let years = draft.lastDelta?.years ?? 0
         let raw = Int((years * Double(EngineRevealPresenter.minutesPerYear)).rounded())
         return min(
@@ -209,14 +210,20 @@ struct MeetYourClockView: View {
 struct ReactiveSliderView: View {
     let onContinue: () -> Void
 
-    @State private var sliderValue: Double = 0.5
+    @Environment(OnboardingDraft.self) private var draft
 
-    /// Sample year band 76..86 around a baseline 81 — demo only, no engine call.
+    /// Three-dial demo: each slider ∈ [0,1]. Aggregate average drives the
+    /// demo year band and the persistent header mascot via
+    /// `draft.mascotOverrideMinutes`. Demo-only — no engine call, no
+    /// draft writes beyond the override (which is cleared on disappear).
+    @State private var activity: Double = 0.5
+    @State private var food: Double = 0.5
+    @State private var sleep: Double = 0.5
+
     private static let demoBaselineYears: Double = 81.0
-    private var demoYears: Double { 76.0 + (sliderValue * 10.0) }
+    private var aggregate: Double { (activity + food + sleep) / 3.0 }
+    private var demoYears: Double { 76.0 + (aggregate * 10.0) }
 
-    /// Slider drives the mascot through the same year→minute mapping the
-    /// engine reveal uses.
     private var demoMinutesDelta: Int {
         EngineRevealPresenter.mascotDelta(
             displayedYears: demoYears,
@@ -229,22 +236,49 @@ struct ReactiveSliderView: View {
             screenID: "reactiveSlider",
             title: "Drag to see how habits move your clock.",
             continueLabel: "Show me mine",
-            mascotMinutesDeltaOverride: demoMinutesDelta,
             onContinue: onContinue
         ) {
             VStack(spacing: 16) {
                 Text(String(format: "%.0f years", demoYears))
                     .font(.system(size: 56, weight: .semibold, design: .rounded))
                     .contentTransition(.numericText(value: demoYears))
-                    .animation(.snappy, value: sliderValue)
+                    .animation(.snappy, value: aggregate)
                     .frame(maxWidth: .infinity)
-                Slider(value: $sliderValue, in: 0...1)
-                    .accessibilityIdentifier("onboarding.reactiveSlider.slider")
-                HStack {
-                    Text("Less active").font(.caption2).foregroundStyle(.secondary)
-                    Spacer()
-                    Text("More active").font(.caption2).foregroundStyle(.secondary)
-                }
+
+                dial(label: "Activity",
+                     leading: "Sedentary", trailing: "Active",
+                     value: $activity, idSuffix: "activity")
+                dial(label: "Food",
+                     leading: "Junk", trailing: "Whole foods",
+                     value: $food, idSuffix: "food")
+                dial(label: "Sleep",
+                     leading: "5 hrs", trailing: "9 hrs",
+                     value: $sleep, idSuffix: "sleep")
+            }
+        }
+        .onAppear { draft.mascotOverrideMinutes = demoMinutesDelta }
+        .onChange(of: aggregate) { _, _ in
+            draft.mascotOverrideMinutes = demoMinutesDelta
+        }
+        .onDisappear { draft.mascotOverrideMinutes = nil }
+    }
+
+    @ViewBuilder
+    private func dial(
+        label: String,
+        leading: String,
+        trailing: String,
+        value: Binding<Double>,
+        idSuffix: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(.caption.bold()).foregroundStyle(.secondary)
+            Slider(value: value, in: 0...1)
+                .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix)")
+            HStack {
+                Text(leading).font(.caption2).foregroundStyle(.tertiary)
+                Spacer()
+                Text(trailing).font(.caption2).foregroundStyle(.tertiary)
             }
         }
     }

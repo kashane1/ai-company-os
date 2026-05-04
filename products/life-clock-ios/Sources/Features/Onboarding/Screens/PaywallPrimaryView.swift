@@ -52,10 +52,9 @@ struct PaywallPrimaryView: View {
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
-            OnboardingHeader()
-                .padding(.horizontal, 24)
             paywallBody
         }
+        .toolbar(.hidden, for: .navigationBar)
         .accessibilityIdentifier("onboarding.paywallPrimary")
         .onAppear {
             telemetry.value.paywallShown(stage: .primary)

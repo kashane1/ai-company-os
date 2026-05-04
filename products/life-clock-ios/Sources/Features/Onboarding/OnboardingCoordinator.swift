@@ -23,14 +23,70 @@ struct OnboardingCoordinator: View {
     @State private var path: [OnboardingScreen] = []
     @State private var draft = OnboardingDraft()
     @State private var telemetry = OnboardingTelemetryHolder(OSLogTelemetry())
+    @State private var recomputeTask: Task<Void, Never>?
 
     var body: some View {
-        NavigationStack(path: $path) {
-            ColdOpenView(onContinue: { advance(to: .welcome) })
-                .navigationDestination(for: OnboardingScreen.self, destination: destination)
+        VStack(spacing: 0) {
+            // Persistent header — single instance for the whole flow,
+            // hidden only on `coldOpen` (which is its own full-bleed
+            // mascot moment). Living *above* the NavigationStack means
+            // SwiftUI keeps this view's identity stable across pushes:
+            // one onAppear, no rebuild on transition, hands animate
+            // continuously.
+            if !path.isEmpty {
+                OnboardingHeader()
+                    .padding(.horizontal, 24)
+                    .transition(.opacity)
+            }
+            NavigationStack(path: $path) {
+                ColdOpenView(onContinue: { advance(to: .welcome) })
+                    .navigationDestination(for: OnboardingScreen.self, destination: destination)
+            }
         }
         .environment(telemetry)
         .environment(draft)
+        // Shell-level reactor: any draft input mutation schedules a
+        // debounced recompute so the persistent mascot reflects the
+        // current state without waiting for Continue. 80ms balances
+        // jank-risk vs feeling responsive (per debounce research).
+        .onChange(of: draftInputsKey) { _, _ in
+            scheduleRecompute()
+        }
+        .onDisappear {
+            recomputeTask?.cancel()
+        }
+    }
+
+    /// Composite hash of every draft field whose mutation should drive
+    /// the persistent mascot. Adding a new lifestyle input? Add it here
+    /// too — otherwise the hands won't react until Continue.
+    private var draftInputsKey: Int {
+        var hasher = Hasher()
+        hasher.combine(draft.smokingStatus)
+        hasher.combine(draft.alcoholFrequency)
+        hasher.combine(draft.strengthFrequencyPerWeek)
+        hasher.combine(draft.cardioMinsPerWeek)
+        hasher.combine(draft.sleepGoalHours)
+        hasher.combine(draft.dietQualityBaseline)
+        hasher.combine(draft.heightCm)
+        hasher.combine(draft.weightKg)
+        hasher.combine(draft.parentMotherAlive)
+        hasher.combine(draft.parentMotherAgeAtDeath)
+        hasher.combine(draft.parentFatherAlive)
+        hasher.combine(draft.parentFatherAgeAtDeath)
+        hasher.combine(draft.perceivedStressScore)
+        hasher.combine(draft.lonelinessScore)
+        return hasher.finalize()
+    }
+
+    private func scheduleRecompute() {
+        recomputeTask?.cancel()
+        let engine = ClockEngine(clock: store.clock)
+        recomputeTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(80))
+            guard !Task.isCancelled else { return }
+            draft.recomputeEstimate(using: engine)
+        }
     }
 
     @ViewBuilder
@@ -99,9 +155,7 @@ struct OnboardingCoordinator: View {
         case .analyzing:
             AnalyzingView(onContinue: { advance(to: .archetypeReveal) })
         case .archetypeReveal:
-            ArchetypeRevealView(onContinue: { advance(to: .lifeGridFull) })
-        case .lifeGridFull:
-            LifeGridFullView(onContinue: { advance(to: .lifeGridRemaining) })
+            ArchetypeRevealView(onContinue: { advance(to: .lifeGridRemaining) })
         case .lifeGridRemaining:
             LifeGridRemainingView(onContinue: {
                 if shouldShowPenaltyScreen() {

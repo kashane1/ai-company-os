@@ -45,7 +45,6 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
     // Reveal escalator
     case analyzing
     case archetypeReveal
-    case lifeGridFull
     case lifeGridRemaining
     case bigNumberPenalty
     case engineRevealAndDial
@@ -59,4 +58,16 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
     case entryView
 
     var id: String { rawValue }
+}
+
+extension OnboardingScreen {
+    /// Screens removed in later flow revisions, kept here so funnel
+    /// dashboards can join historical events to the current step that
+    /// absorbed them. Telemetry sinks should consult this map when
+    /// reconciling old `screenAppeared` rows with the live taxonomy.
+    static let deprecatedScreens: [String: OnboardingScreen] = [
+        // 2026-05-03 — `lifeGridFull` merged into `lifeGridRemaining`
+        // (single screen showing remaining-weeks dot grid).
+        "lifeGridFull": .lifeGridRemaining,
+    ]
 }

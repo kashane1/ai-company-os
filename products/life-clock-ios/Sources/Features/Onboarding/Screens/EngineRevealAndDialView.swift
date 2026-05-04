@@ -41,13 +41,19 @@ struct EngineRevealAndDialView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            OnboardingHeader(minutesDeltaOverride: mascotDelta)
-                .padding(.horizontal, 24)
-            engineDialBody
-        }
-        .accessibilityIdentifier("onboarding.engineRevealAndDial")
-        .onAppear { telemetry.value.screenAppeared("engineRevealAndDial") }
+        engineDialBody
+            .toolbar(.hidden, for: .navigationBar)
+            .accessibilityIdentifier("onboarding.engineRevealAndDial")
+            .onAppear {
+                telemetry.value.screenAppeared("engineRevealAndDial")
+                draft.mascotOverrideMinutes = mascotDelta
+            }
+            .onChange(of: dialYears) { _, _ in
+                draft.mascotOverrideMinutes = mascotDelta
+            }
+            .onDisappear {
+                draft.mascotOverrideMinutes = nil
+            }
     }
 
     private var engineDialBody: some View {

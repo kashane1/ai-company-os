@@ -73,6 +73,13 @@ final class OnboardingDraft {
     /// (initial estimate has no delta to explain).
     var lastDelta: AnswerDelta?
 
+    /// Transient override for the persistent header mascot. Set by demo /
+    /// dial screens that need to drive the hands from a slider value
+    /// (`ReactiveSliderView`, `EngineRevealAndDialView`) rather than the
+    /// post-answer `lastDelta`. Set to `nil` on those screens'
+    /// `onDisappear` so subsequent screens fall back to `lastDelta`.
+    var mascotOverrideMinutes: Int?
+
     init() {}
 
     // MARK: - Reactive recomputation

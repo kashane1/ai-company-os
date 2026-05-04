@@ -193,6 +193,66 @@ struct LifeGridDotView: View {
     }
 }
 
+// MARK: - Legend
+
+extension LifeGridDotView.GridMode {
+    /// Color/label pairs for the legend. Lives next to the dot-styling
+    /// switch above so legend and grid can't drift. `.full` returns
+    /// empty — the full-grid intro screen uses inline copy.
+    var legendItems: [(color: Color, label: String)] {
+        switch self {
+        case .full:
+            return []
+        case .remainingHighlighted:
+            return [
+                (.green, "Lived"),
+                (.gray.opacity(0.5), "Still ahead"),
+            ]
+        case .bigNumberPenalty:
+            return [
+                (.green, "Lived"),
+                (.red, "At risk"),
+                (.gray.opacity(0.5), "Still ahead"),
+            ]
+        case .recoveryHighlighted:
+            return [
+                (.green, "Lived"),
+                (.blue, "Recoverable"),
+                (.gray.opacity(0.5), "Still ahead"),
+            ]
+        }
+    }
+}
+
+/// Compact legend row rendered beneath colored dot grids. Grouped as one
+/// accessibility element so VoiceOver users hear the lookup table in a
+/// single swipe instead of one row at a time.
+struct LifeGridDotLegend: View {
+    let mode: LifeGridDotView.GridMode
+
+    var body: some View {
+        HStack(spacing: 16) {
+            ForEach(mode.legendItems, id: \.label) { item in
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(item.color)
+                        .frame(width: 8, height: 8)
+                    Text(item.label)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(legendAccessibilityLabel)
+    }
+
+    private var legendAccessibilityLabel: String {
+        let pairs = mode.legendItems.map(\.label).joined(separator: ", ")
+        return pairs.isEmpty ? "" : "Legend: \(pairs)"
+    }
+}
+
 #if DEBUG
 #Preview("Full") {
     LifeGridDotView(totalWeeks: 4160, livedWeeks: 1820, lostWeeks: 0, mode: .full)

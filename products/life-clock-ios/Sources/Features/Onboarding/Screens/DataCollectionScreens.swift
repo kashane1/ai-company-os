@@ -22,9 +22,6 @@ struct OnboardingScaffold<Content: View>: View {
     let bodyText: String?
     let isContinueEnabled: Bool
     let continueLabel: String
-    /// When non-nil, drives the persistent header mascot directly instead
-    /// of letting it read `draft.lastDelta`. Used by demo / dial screens.
-    let mascotMinutesDeltaOverride: Int?
     let onContinue: () -> Void
     let content: Content
 
@@ -34,7 +31,6 @@ struct OnboardingScaffold<Content: View>: View {
         bodyText: String? = nil,
         isContinueEnabled: Bool = true,
         continueLabel: String = "Continue",
-        mascotMinutesDeltaOverride: Int? = nil,
         onContinue: @escaping () -> Void,
         @ViewBuilder content: () -> Content
     ) {
@@ -43,7 +39,6 @@ struct OnboardingScaffold<Content: View>: View {
         self.bodyText = bodyText
         self.isContinueEnabled = isContinueEnabled
         self.continueLabel = continueLabel
-        self.mascotMinutesDeltaOverride = mascotMinutesDeltaOverride
         self.onContinue = onContinue
         self.content = content()
     }
@@ -53,42 +48,45 @@ struct OnboardingScaffold<Content: View>: View {
     @Environment(LifeClockStore.self) private var store
 
     var body: some View {
-        VStack(spacing: 0) {
-            OnboardingHeader(minutesDeltaOverride: mascotMinutesDeltaOverride)
-                .padding(.horizontal, 24)
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(title)
-                        .font(.title.bold())
-                    if let bodyText {
-                        Text(bodyText)
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
+        // The mascot/wordmark live in `OnboardingCoordinator` (above the
+        // NavigationStack) so they keep stable view identity across
+        // pushes. This scaffold only renders the per-screen body.
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.title.bold())
+                if let bodyText {
+                    Text(bodyText)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
                 }
-                content
-                Spacer()
-                Button(action: {
-                    telemetry.value.screenAdvanced(screenID, durationMs: 0)
-                    // Recompute the running estimate so the next screen's
-                    // header mascot reflects this answer's delta.
-                    draft.recomputeEstimate(using: ClockEngine(clock: store.clock))
-                    onContinue()
-                }) {
-                    Text(continueLabel)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(isContinueEnabled ? Color.accentColor : Color.gray.opacity(0.4))
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
-                .disabled(!isContinueEnabled)
-                .accessibilityIdentifier("onboarding.continue")
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            content
+            Spacer()
+            Button(action: {
+                telemetry.value.screenAdvanced(screenID, durationMs: 0)
+                // Recompute the running estimate so the next screen's
+                // header mascot reflects this answer's delta. The
+                // coordinator-level reactor also recomputes on input
+                // mutations; this Continue-time call guarantees the
+                // post-answer state is committed before navigation.
+                draft.recomputeEstimate(using: ClockEngine(clock: store.clock))
+                onContinue()
+            }) {
+                Text(continueLabel)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(isContinueEnabled ? Color.accentColor : Color.gray.opacity(0.4))
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .disabled(!isContinueEnabled)
+            .accessibilityIdentifier("onboarding.continue")
         }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+        .toolbar(.hidden, for: .navigationBar)
         .accessibilityIdentifier("onboarding.\(screenID)")
         .onAppear { telemetry.value.screenAppeared(screenID) }
     }
@@ -536,48 +534,45 @@ struct SensitiveConsentView: View {
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
 
     var body: some View {
-        VStack(spacing: 0) {
-            OnboardingHeader()
-                .padding(.horizontal, 24)
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("A few sensitive questions.")
-                        .font(.title.bold())
-                    Text("These help calibrate your clock — covering family history, stress, and connection. Stored only on your device, never sent off.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Button(action: {
-                    telemetry.value.choiceMade("sensitiveConsent", key: "consent", valueBucket: "yes")
-                    telemetry.value.screenAdvanced("sensitiveConsent", durationMs: 0)
-                    onContinue()
-                }) {
-                    Text("Continue")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
-                .accessibilityIdentifier("onboarding.continue")
-
-                Button(action: {
-                    telemetry.value.choiceMade("sensitiveConsent", key: "consent", valueBucket: "skip")
-                    telemetry.value.screenAdvanced("sensitiveConsent", durationMs: 0)
-                    onSkip()
-                }) {
-                    Text("Skip these")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityIdentifier("onboarding.skipSensitive")
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("A few sensitive questions.")
+                    .font(.title.bold())
+                Text("These help calibrate your clock — covering family history, stress, and connection. Stored only on your device, never sent off.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            Spacer()
+            Button(action: {
+                telemetry.value.choiceMade("sensitiveConsent", key: "consent", valueBucket: "yes")
+                telemetry.value.screenAdvanced("sensitiveConsent", durationMs: 0)
+                onContinue()
+            }) {
+                Text("Continue")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.accentColor)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .accessibilityIdentifier("onboarding.continue")
+
+            Button(action: {
+                telemetry.value.choiceMade("sensitiveConsent", key: "consent", valueBucket: "skip")
+                telemetry.value.screenAdvanced("sensitiveConsent", durationMs: 0)
+                onSkip()
+            }) {
+                Text("Skip these")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityIdentifier("onboarding.skipSensitive")
         }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear { telemetry.value.screenAppeared("sensitiveConsent") }
         .accessibilityIdentifier("onboarding.sensitiveConsent")
     }
@@ -636,24 +631,41 @@ private struct FamilyLongevityForm: View {
 
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
     @State private var alive: Bool? = nil
-    @State private var ageAtDeath: Int = 80
+    @State private var ageString: String = ""
     @State private var preferNotToSay = false
+
+    /// Parsed age, or nil if the field is empty / out of range. The
+    /// 0…120 bound covers every plausible age-at-death; the lower bound
+    /// is permissive (perinatal loss) by deliberate UX choice — the
+    /// stepper's 20-floor was wrong for that case.
+    private var parsedAge: Int? {
+        guard let n = Int(ageString), (0...120).contains(n) else { return nil }
+        return n
+    }
+
+    private var continueEnabled: Bool {
+        if preferNotToSay { return true }
+        if alive == true || alive == nil { return alive != nil }
+        // alive == false → require a parsed age.
+        return parsedAge != nil
+    }
 
     var body: some View {
         OnboardingScaffold(
             screenID: screenID,
             title: title,
             bodyText: "Helps calibrate the genetic-anchor signal. Skip if difficult.",
+            isContinueEnabled: continueEnabled,
             onContinue: {
                 if preferNotToSay {
                     aliveBinding(nil)
                     ageBinding(nil)
                 } else {
                     aliveBinding(alive)
-                    if let alive, !alive {
-                        ageBinding(ageAtDeath)
+                    if alive == false, let age = parsedAge {
+                        ageBinding(age)
                         telemetry.value.choiceMade(screenID, key: "ageBucket",
-                            valueBucket: ParentLongevityBucket.bucket(for: ageAtDeath))
+                            valueBucket: ParentLongevityBucket.bucket(for: age))
                     }
                 }
                 onContinue()
@@ -673,7 +685,20 @@ private struct FamilyLongevityForm: View {
                     .pickerStyle(.segmented)
 
                     if alive == false {
-                        Stepper("Age at passing: \(ageAtDeath)", value: $ageAtDeath, in: 20...110)
+                        // Numeric TextField (no placeholder — the
+                        // screen's title carries the prompt; an "e.g.
+                        // 62" example would anchor the answer on a
+                        // sensitive value).
+                        HStack {
+                            Text("Age at passing")
+                            Spacer()
+                            TextField("", text: $ageString)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(maxWidth: 80)
+                                .textFieldStyle(.roundedBorder)
+                                .accessibilityIdentifier("onboarding.familyAgeAtDeath")
+                        }
                     }
                 }
             }
@@ -844,6 +869,8 @@ struct HealthKitAuthView: View {
                         hasRequested = store.lastHealthAuthError == nil || store.healthAuthorizationKnown
                     }
                 } else {
+                    telemetry.value.choiceMade("healthKitAuth", key: "decision",
+                                               valueBucket: store.healthAuthorizationKnown ? "granted" : "denied")
                     telemetry.value.screenAdvanced("healthKitAuth", durationMs: 0)
                     onContinue()
                 }
@@ -858,6 +885,26 @@ struct HealthKitAuthView: View {
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
+
+                // Soft-skip — secondary, low-emphasis. The skip path
+                // must NOT call requestHealthAuthorization (a denied
+                // system prompt is permanent until the user digs into
+                // iOS Settings → Health). Re-prompt later from Profile.
+                Button("Not now") {
+                    telemetry.value.choiceMade("healthKitAuth", key: "decision",
+                                               valueBucket: "skipped")
+                    telemetry.value.screenAdvanced("healthKitAuth", durationMs: 0)
+                    onContinue()
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .font(.callout)
+                .padding(.top, 4)
+                .accessibilityIdentifier("onboarding.healthKitAuth.skip")
+
+                Text("You can connect Apple Health any time from Profile.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
         }
     }

@@ -112,13 +112,10 @@ final class LifeClockUITests: XCTestCase {
         app.buttons["onboarding.continue"].tap()
 
         // .justCurious goal SKIPS bigNumberPenalty per coordinator's
-        // shouldShowPenaltyScreen() — flow goes
-        // concreteThisYear → lifeGridFull → lifeGridRemaining →
-        // engineRevealAndDial directly.
-        XCTAssertTrue(app.otherElements["onboarding.concreteThisYear"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.continue"].tap()
-        XCTAssertTrue(app.otherElements["onboarding.lifeGridFull"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.continue"].tap()
+        // shouldShowPenaltyScreen() — flow goes archetypeReveal →
+        // lifeGridRemaining → engineRevealAndDial directly.
+        // (Pre-merge there was a separate `lifeGridFull` step; that
+        // screen was absorbed into `lifeGridRemaining` on 2026-05-03.)
         XCTAssertTrue(app.otherElements["onboarding.lifeGridRemaining"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
 
