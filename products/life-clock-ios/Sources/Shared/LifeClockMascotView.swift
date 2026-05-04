@@ -79,11 +79,12 @@ struct LifeClockMascotView: View {
     }()
 
     /// Inner scale for live overlays (hands, heartbeat, hub) when the
-    /// static bezel asset is in use. The asset's clock face is ≈ 75% of
-    /// the canvas (the rest is rim + drop shadow), so the live overlays
-    /// must shrink to fit inside the face. The SwiftUI fallback face is
-    /// nearly the full canvas (91%), so no inset is needed there.
-    private static var innerScale: CGFloat { hasStaticBezel ? 0.78 : 1.0 }
+    /// static bezel asset is in use. The asset's clock face is ≈ 88% of
+    /// the canvas (rim is intentionally thin, ~5%, leaving room for the
+    /// drop shadow), so the live overlays must shrink to fit inside the
+    /// face. The SwiftUI fallback face is nearly the full canvas (91%),
+    /// so no inset is needed there.
+    private static var innerScale: CGFloat { hasStaticBezel ? 0.88 : 1.0 }
 
     // MARK: - Derived angles
 
