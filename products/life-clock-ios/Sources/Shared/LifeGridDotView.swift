@@ -118,18 +118,29 @@ struct LifeGridDotView: View {
         // they read as "the next N years the user could lose / regain."
         let penaltyStart = totalWeeks - lostWeeks
         let isPenalty = index >= penaltyStart && index < totalWeeks
+        // The most-recently-completed week — paint it black on every
+        // colored mode to anchor the user's *current moment* in the
+        // grid. Without this, the lived-vs-remaining boundary is
+        // implicit; with it, "you are here" is unmissable.
+        let isNow = livedWeeks > 0 && index == livedWeeks - 1
 
         switch mode {
         case .full:
             return DotStyle(color: .gray, opacity: 0.35, shape: .outline)
 
         case .remainingHighlighted:
+            if isNow {
+                return DotStyle(color: .black, opacity: 1.0, shape: .filled)
+            }
             if isLived {
                 return DotStyle(color: .green, opacity: 0.85, shape: .filled)
             }
             return DotStyle(color: .gray, opacity: 0.35, shape: .outline)
 
         case .bigNumberPenalty:
+            if isNow {
+                return DotStyle(color: .black, opacity: 1.0, shape: .filled)
+            }
             if isLived {
                 return DotStyle(color: .green, opacity: 0.85, shape: .filled)
             }
@@ -139,6 +150,9 @@ struct LifeGridDotView: View {
             return DotStyle(color: .gray, opacity: 0.35, shape: .outline)
 
         case .recoveryHighlighted:
+            if isNow {
+                return DotStyle(color: .black, opacity: 1.0, shape: .filled)
+            }
             if isLived {
                 return DotStyle(color: .green, opacity: 0.85, shape: .filled)
             }
@@ -199,6 +213,9 @@ extension LifeGridDotView.GridMode {
     /// Color/label pairs for the legend. Lives next to the dot-styling
     /// switch above so legend and grid can't drift. `.full` returns
     /// empty — the full-grid intro screen uses inline copy.
+    ///
+    /// "Now" is painted by `dotStyle(for:)` at index `livedWeeks-1` on
+    /// every colored mode; the legend reflects that anchoring dot.
     var legendItems: [(color: Color, label: String)] {
         switch self {
         case .full:
@@ -206,17 +223,20 @@ extension LifeGridDotView.GridMode {
         case .remainingHighlighted:
             return [
                 (.green, "Lived"),
+                (.black, "Now"),
                 (.gray.opacity(0.5), "Still ahead"),
             ]
         case .bigNumberPenalty:
             return [
                 (.green, "Lived"),
+                (.black, "Now"),
                 (.red, "At risk"),
                 (.gray.opacity(0.5), "Still ahead"),
             ]
         case .recoveryHighlighted:
             return [
                 (.green, "Lived"),
+                (.black, "Now"),
                 (.blue, "Recoverable"),
                 (.gray.opacity(0.5), "Still ahead"),
             ]

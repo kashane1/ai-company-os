@@ -168,14 +168,31 @@ final class OnboardingDraftTests: XCTestCase {
         }
     }
 
-    func testRecoveryPreviewCopy_DoesNotShowZeroMoreYears() {
+    func testRecoveryPreviewCopy_HeadlineHandlesZeroAndPositive() {
         XCTAssertEqual(
-            RecoveryPreviewCopy.title(yearsBack: 0, phrase: "at the dinner table"),
-            "More years at the dinner table"
+            RecoveryPreviewCopy.headline(yearsBack: 0),
+            "More years ahead"
         )
         XCTAssertEqual(
-            RecoveryPreviewCopy.title(yearsBack: 3, phrase: "with your kids"),
-            "3 more years with your kids"
+            RecoveryPreviewCopy.headline(yearsBack: 3),
+            "3 more years"
+        )
+    }
+
+    func testRecoveryPreviewCopy_PhraseUsesCorrectConnector() {
+        // Phrases that already start with a preposition keep them.
+        XCTAssertEqual(
+            RecoveryPreviewCopy.phrase(goal: .beThereForFamily, phrase: "with your kids"),
+            "with your kids"
+        )
+        XCTAssertEqual(
+            RecoveryPreviewCopy.phrase(goal: .beThereForFamily, phrase: "at the dinner table"),
+            "at the dinner table"
+        )
+        // Naked phrases get an "of " connector so the line reads naturally.
+        XCTAssertEqual(
+            RecoveryPreviewCopy.phrase(goal: .liveLonger, phrase: "living"),
+            "of living"
         )
     }
 }
