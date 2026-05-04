@@ -45,7 +45,6 @@ struct AnalyzingView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
-        .toolbar(.hidden, for: .navigationBar)
         .accessibilityIdentifier("onboarding.analyzing")
         .onAppear {
             telemetry.value.screenAppeared("analyzing")
@@ -271,7 +270,6 @@ struct RecoveryPreviewView: View {
     @Environment(OnboardingDraft.self) private var draft
 
     @State private var cyclingIndex: Int = 0
-    @State private var legendShown: Bool = false
 
     private var goal: OnboardingGoal {
         draft.primaryGoal ?? .justCurious
@@ -329,25 +327,10 @@ struct RecoveryPreviewView: View {
                         }
                     }
                 }
-                // Progressive disclosure: legend was shown in full on
-                // the prior `bigNumberPenalty` screen. Here, an info
-                // chip surfaces it on demand without re-cluttering.
-                Button {
-                    legendShown = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "info.circle")
-                        Text("What do the colors mean?")
-                    }
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                }
-                .accessibilityIdentifier("onboarding.recoveryPreview.legendInfo")
-                .popover(isPresented: $legendShown) {
-                    LifeGridDotLegend(mode: .recoveryHighlighted)
-                        .padding(16)
-                        .presentationCompactAdaptation(.popover)
-                }
+                // Legend was shown in full on the prior `bigNumberPenalty`
+                // screen one tap earlier; users carry the green/red→blue
+                // mapping. A second info chip on the very next screen
+                // is redundant clutter (per code-review simplicity pass).
             }
         }
     }

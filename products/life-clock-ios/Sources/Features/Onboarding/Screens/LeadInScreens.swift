@@ -17,19 +17,21 @@ import SwiftUI
 /// Persistent header rendered ONCE at the coordinator level (above the
 /// onboarding `NavigationStack`). Shows a fixed wordmark and the mascot.
 /// Hands reflect either:
-///   - `draft.mascotOverrideMinutes` when a screen is driving the mascot
-///     from a transient input (`ReactiveSliderView`, `EngineRevealAndDialView`),
+///   - `MascotOverride.minutes` when a screen is driving the mascot from
+///     a transient input (`ReactiveSliderView`, `EngineRevealAndDialView`),
 ///   - otherwise the running per-answer delta on `draft.lastDelta`.
 ///
 /// Single-instance lifetime: by living above `NavigationStack` rather
 /// than inside `OnboardingScaffold`, this view's identity stays stable
-/// across screen pushes — one `onAppear`, no rebuild on transition. The
-/// mascot's hand animation is therefore continuous, not per-screen.
+/// across pushes after the first `coldOpen → welcome` transition — one
+/// `onAppear` thereafter, no rebuild between screens. Hand animation is
+/// continuous, not per-screen.
 struct OnboardingHeader: View {
     @Environment(OnboardingDraft.self) private var draft
+    @Environment(MascotOverride.self) private var override
 
     private var minutesDelta: Int {
-        if let override = draft.mascotOverrideMinutes { return override }
+        if let override = override.minutes { return override }
         let years = draft.lastDelta?.years ?? 0
         let raw = Int((years * Double(EngineRevealPresenter.minutesPerYear)).rounded())
         return min(
@@ -47,12 +49,54 @@ struct OnboardingHeader: View {
                 .foregroundStyle(.secondary)
             LifeClockMascotView(minutesDelta: minutesDelta)
                 .frame(width: 120, height: 120)
+                .accessibilityIdentifier("onboarding.header.mascot")
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
         .padding(.bottom, 16)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Life Clock")
+        .accessibilityIdentifier("onboarding.header")
+    }
+}
+
+/// Hide the system navigation bar on every onboarding destination.
+/// `NavigationStack`-level `.toolbar(.hidden, for: .navigationBar)` does
+/// not propagate to pushed destinations on iOS 17/18, so each
+/// destination has to opt in. Centralizing here means: one place to
+/// change, no copy/paste, and a new screen author cannot forget the
+/// modifier (the coordinator's destination wrapper applies it to every
+/// pushed view).
+private struct OnboardingChromeModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content.toolbar(.hidden, for: .navigationBar)
+    }
+}
+
+extension View {
+    func onboardingChrome() -> some View {
+        modifier(OnboardingChromeModifier())
+    }
+}
+
+/// Transient view-state holder for the persistent header mascot. Lives
+/// in the SwiftUI environment alongside `OnboardingDraft` but kept
+/// separate so the draft (a domain-input model) doesn't churn when
+/// demo / dial screens drive the mascot from a slider value.
+///
+/// **Why a separate env object instead of a property on `OnboardingDraft`:**
+/// before this split, every dial drag mutated `draft.mascotOverrideMinutes`,
+/// which invalidated every observer of `draft` — coordinator body,
+/// per-screen scaffolds, the running-estimate readers — even though only
+/// the header cared. By isolating override state here, only `OnboardingHeader`
+/// invalidates per drag tick.
+@Observable
+@MainActor
+final class MascotOverride {
+    var minutes: Int?
+
+    init(minutes: Int? = nil) {
+        self.minutes = minutes
     }
 }
 
@@ -210,12 +254,12 @@ struct MeetYourClockView: View {
 struct ReactiveSliderView: View {
     let onContinue: () -> Void
 
-    @Environment(OnboardingDraft.self) private var draft
+    @Environment(MascotOverride.self) private var mascotOverride
 
     /// Three-dial demo: each slider ∈ [0,1]. Aggregate average drives the
-    /// demo year band and the persistent header mascot via
-    /// `draft.mascotOverrideMinutes`. Demo-only — no engine call, no
-    /// draft writes beyond the override (which is cleared on disappear).
+    /// demo year band and the persistent header mascot via the focused
+    /// `MascotOverride` env object (kept off `OnboardingDraft` to avoid
+    /// invalidating every draft observer on every drag tick).
     @State private var activity: Double = 0.5
     @State private var food: Double = 0.5
     @State private var sleep: Double = 0.5
@@ -244,6 +288,7 @@ struct ReactiveSliderView: View {
                     .contentTransition(.numericText(value: demoYears))
                     .animation(.snappy, value: aggregate)
                     .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("onboarding.reactiveSlider.years")
 
                 dial(label: "Activity",
                      leading: "Sedentary", trailing: "Active",
@@ -256,11 +301,11 @@ struct ReactiveSliderView: View {
                      value: $sleep, idSuffix: "sleep")
             }
         }
-        .onAppear { draft.mascotOverrideMinutes = demoMinutesDelta }
+        .onAppear { mascotOverride.minutes = demoMinutesDelta }
         .onChange(of: aggregate) { _, _ in
-            draft.mascotOverrideMinutes = demoMinutesDelta
+            mascotOverride.minutes = demoMinutesDelta
         }
-        .onDisappear { draft.mascotOverrideMinutes = nil }
+        .onDisappear { mascotOverride.minutes = nil }
     }
 
     @ViewBuilder

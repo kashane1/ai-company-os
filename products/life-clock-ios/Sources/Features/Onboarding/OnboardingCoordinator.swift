@@ -22,6 +22,7 @@ struct OnboardingCoordinator: View {
     @Environment(LifeClockStore.self) private var store
     @State private var path: [OnboardingScreen] = []
     @State private var draft = OnboardingDraft()
+    @State private var mascotOverride = MascotOverride()
     @State private var telemetry = OnboardingTelemetryHolder(OSLogTelemetry())
     @State private var recomputeTask: Task<Void, Never>?
 
@@ -31,8 +32,8 @@ struct OnboardingCoordinator: View {
             // hidden only on `coldOpen` (which is its own full-bleed
             // mascot moment). Living *above* the NavigationStack means
             // SwiftUI keeps this view's identity stable across pushes:
-            // one onAppear, no rebuild on transition, hands animate
-            // continuously.
+            // one onAppear after the first push, no rebuild between
+            // subsequent screens, hands animate continuously.
             if !path.isEmpty {
                 OnboardingHeader()
                     .padding(.horizontal, 24)
@@ -40,11 +41,15 @@ struct OnboardingCoordinator: View {
             }
             NavigationStack(path: $path) {
                 ColdOpenView(onContinue: { advance(to: .welcome) })
-                    .navigationDestination(for: OnboardingScreen.self, destination: destination)
+                    .onboardingChrome()
+                    .navigationDestination(for: OnboardingScreen.self) { screen in
+                        destination(for: screen).onboardingChrome()
+                    }
             }
         }
         .environment(telemetry)
         .environment(draft)
+        .environment(mascotOverride)
         // Shell-level reactor: any draft input mutation schedules a
         // debounced recompute so the persistent mascot reflects the
         // current state without waiting for Continue. 80ms balances

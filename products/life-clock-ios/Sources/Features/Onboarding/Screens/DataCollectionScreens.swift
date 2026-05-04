@@ -86,7 +86,6 @@ struct OnboardingScaffold<Content: View>: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
-        .toolbar(.hidden, for: .navigationBar)
         .accessibilityIdentifier("onboarding.\(screenID)")
         .onAppear { telemetry.value.screenAppeared(screenID) }
     }
@@ -572,7 +571,6 @@ struct SensitiveConsentView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
-        .toolbar(.hidden, for: .navigationBar)
         .onAppear { telemetry.value.screenAppeared("sensitiveConsent") }
         .accessibilityIdentifier("onboarding.sensitiveConsent")
     }
@@ -869,8 +867,14 @@ struct HealthKitAuthView: View {
                         hasRequested = store.lastHealthAuthError == nil || store.healthAuthorizationKnown
                     }
                 } else {
+                    // HealthKit deliberately hides the actual grant /
+                    // deny outcome from the calling app — `healthAuthorizationKnown`
+                    // is true for both. Record `prompted` (the user
+                    // saw the system sheet and answered) and let
+                    // downstream sample-read success / failure tell us
+                    // what they actually picked.
                     telemetry.value.choiceMade("healthKitAuth", key: "decision",
-                                               valueBucket: store.healthAuthorizationKnown ? "granted" : "denied")
+                                               valueBucket: "prompted")
                     telemetry.value.screenAdvanced("healthKitAuth", durationMs: 0)
                     onContinue()
                 }
