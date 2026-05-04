@@ -16,7 +16,8 @@ struct HistoryView: View {
     @Environment(SubscriptionStore.self) private var subscriptions
     @State private var paywallPresented: Bool = false
 
-    private static let freeRowLimit = 7
+    private static let freeRowLimit = 3
+    private static let foggedPreviewRowCount = 6
 
     var body: some View {
         NavigationStack {
@@ -128,26 +129,36 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
                 Text("Past days")
                     .font(.headline)
-                ForEach(Array(snapshots.enumerated()), id: \.element.date) { (index, snapshot) in
-                    dayRow(snapshot, index: index)
-                }
-                if !subscriptions.isPro && snapshots.count > Self.freeRowLimit {
-                    historyPaywallTeaser
-                }
                 if subscriptions.isPro {
                     importStatusBanner
+                    ForEach(snapshots, id: \.date) { snapshot in
+                        dayRow(snapshot)
+                    }
+                } else {
+                    let visible = Array(snapshots.prefix(Self.freeRowLimit))
+                    ForEach(visible, id: \.date) { snapshot in
+                        dayRow(snapshot)
+                    }
+                    foggedPaywallStack(behind: Array(snapshots.dropFirst(Self.freeRowLimit)))
                 }
+            }
+        } else if subscriptions.isPro {
+            // First-run Pro user with no persisted history yet — surface
+            // the import progress so they know the empty list is temporary.
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                Text("Past days")
+                    .font(.headline)
+                importStatusBanner
             }
         }
     }
 
     @ViewBuilder
-    private func dayRow(_ snapshot: DailyHealthSnapshot, index: Int) -> some View {
-        let isLocked = !subscriptions.isPro && index >= Self.freeRowLimit
+    private func dayRow(_ snapshot: DailyHealthSnapshot) -> some View {
         let content = DayHistoryRowContent(
             snapshot: snapshot,
             deltaMinutes: store.dailyDelta(for: snapshot),
-            isLocked: isLocked
+            isLocked: false
         )
         if subscriptions.isPro {
             NavigationLink(value: DayDetailRoute(dayStart: snapshot.date)) {
@@ -155,8 +166,10 @@ struct HistoryView: View {
             }
             .buttonStyle(.plain)
         } else {
+            // Free users get a read-only summary. Tapping nudges toward
+            // the upgrade since per-day detail/editing is Pro-only.
             Button {
-                if isLocked { paywallPresented = true }
+                paywallPresented = true
             } label: {
                 content
             }
@@ -168,43 +181,114 @@ struct HistoryView: View {
     private var importStatusBanner: some View {
         switch store.historicalImporter.status {
         case .importing(let completed, let total):
-            HStack {
-                ProgressView(value: Double(completed), total: Double(total))
-                Text("\(completed)/\(total)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Button("Cancel") { store.historicalImporter.cancel() }
-                    .buttonStyle(.borderless)
-                    .controlSize(.small)
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                Text("More history is importing now, please wait…")
+                    .font(.subheadline)
+                HStack {
+                    ProgressView(value: Double(completed), total: Double(total))
+                    Text("\(completed)/\(total)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Button("Cancel") { store.historicalImporter.cancel() }
+                        .buttonStyle(.borderless)
+                        .controlSize(.small)
+                }
             }
-            .padding(DesignTokens.Spacing.xs)
+            .padding(DesignTokens.Spacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                DesignTokens.Palette.elevated,
+                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.sm)
+            )
         case .finished, .idle, .cancelled, .failed:
             EmptyView()
         }
     }
 
-    private var historyPaywallTeaser: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("See the last 90 days")
-                .font(.headline)
-            Text("Pro unlocks the full daily history and lets you adjust HealthKit values that don't reflect what really happened.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            Button {
-                paywallPresented = true
-            } label: {
-                Text("See full history")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, DesignTokens.Spacing.xs)
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            DesignTokens.Palette.elevated,
-            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+    /// Foggy preview shown to free users below their unlocked rows. Real
+    /// snapshot data (or a placeholder when none exists) is rendered behind
+    /// an `.ultraThinMaterial` blur with an enticing CTA on top so users
+    /// can see there's a lot more here without reading a number.
+    private func foggedPaywallStack(behind locked: [DailyHealthSnapshot]) -> some View {
+        let placeholders = makePlaceholderSnapshots(
+            count: max(Self.foggedPreviewRowCount - locked.count, 0)
         )
+        let preview = Array((locked + placeholders).prefix(Self.foggedPreviewRowCount))
+
+        return ZStack {
+            VStack(spacing: DesignTokens.Spacing.sm) {
+                ForEach(preview, id: \.date) { snapshot in
+                    DayHistoryRowContent(
+                        snapshot: snapshot,
+                        deltaMinutes: store.dailyDelta(for: snapshot)
+                            ?? placeholderDelta(for: snapshot.date),
+                        isLocked: false
+                    )
+                }
+            }
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+            .blur(radius: 10)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+                    .fill(.ultraThinMaterial)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+
+            VStack(spacing: DesignTokens.Spacing.sm) {
+                Image(systemName: "lock.fill")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                Text("Import all your historical health data as a Pro member")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                Text("See every past day, spot the trends that shape your Life Clock, and adjust the values HealthKit gets wrong.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Button {
+                    paywallPresented = true
+                } label: {
+                    Text("Unlock full history")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DesignTokens.Spacing.xs)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, DesignTokens.Spacing.xs)
+            }
+            .padding(DesignTokens.Spacing.md)
+        }
+    }
+
+    /// When the free user has no real locked rows yet (new install, only
+    /// a few days of data), synthesize plausible-looking rows behind the
+    /// fog so the section reads as "lots more data exists" rather than
+    /// "an empty blurred box". Values are stable per-day so the blur
+    /// doesn't shimmer between renders.
+    private func makePlaceholderSnapshots(count: Int) -> [DailyHealthSnapshot] {
+        guard count > 0 else { return [] }
+        let cal = Calendar.current
+        let base = cal.startOfDay(for: Date())
+        return (1...count).compactMap { offset in
+            guard let date = cal.date(
+                byAdding: .day,
+                value: -(Self.freeRowLimit + offset),
+                to: base
+            ) else { return nil }
+            let snapshot = DailyHealthSnapshot(date: date)
+            // Plausible mid-range mock values; deterministic per-offset.
+            snapshot.stepCount = 6500 + (offset * 137) % 4000
+            snapshot.sleepHours = 6.5 + Double((offset * 13) % 20) / 10.0
+            return snapshot
+        }
+    }
+
+    private func placeholderDelta(for date: Date) -> Int {
+        // Deterministic, signed, modest values — enough to render the
+        // colored hero text behind the fog without claiming real numbers.
+        let day = Calendar.current.component(.day, from: date)
+        let raw = ((day * 17) % 90) - 45
+        return raw
     }
 
     // MARK: - Weekly cards

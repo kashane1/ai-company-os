@@ -1,11 +1,13 @@
 import Foundation
 import SwiftData
 
-/// Lazy 90-day Pro historical import. Pulls daily snapshots from HealthKit
+/// Lazy full-history Pro import. Pulls daily snapshots from HealthKit
 /// (chunked by week so cancel UX is meaningful and partial completion can
 /// resume) and upserts them into SwiftData by `dayKey`. Idempotent: re-runs
 /// only fetch days that don't already have a persisted row stamped within
-/// the last week — earlier rows are considered final.
+/// the last week — earlier rows are considered final. The window is sized
+/// generously (10 years) — HealthKit returns nil/empty for days before the
+/// user's first sample, and idempotency makes those cheap on rerun.
 ///
 /// Trigger: first time a Pro user opens the History tab. Run once per
 /// install in the background; user can cancel via the progress banner.
@@ -19,7 +21,11 @@ import SwiftData
 @MainActor
 @Observable
 final class HistoricalImportCoordinator {
-    static let importWindowDays = 90
+    /// 10-year ceiling. HealthKit-of-record only goes back as far as the
+    /// user's first device, so days before that just return empty and the
+    /// idempotent skip keeps re-imports cheap. We don't auto-extend past
+    /// this ceiling because the chunk loop is bounded by it.
+    static let importWindowDays = 365 * 10
     static let chunkDays = 7
 
     enum Status: Equatable {

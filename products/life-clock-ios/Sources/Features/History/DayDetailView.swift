@@ -112,20 +112,19 @@ struct DayDetailView: View {
                 Text(format(value: effective, for: field))
                     .font(.system(size: 28, weight: .semibold, design: .rounded))
                 Spacer()
+                if isOverridden {
+                    Button("Undo") { revert(field) }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                }
                 Button("Edit") { editingField = field }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
             }
             if isOverridden, let original {
-                HStack(spacing: DesignTokens.Spacing.xs) {
-                    Text("From Health: \(format(value: original, for: field))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Revert") { revert(field) }
-                        .buttonStyle(.borderless)
-                        .controlSize(.small)
-                }
+                Text("From Health: \(format(value: original, for: field))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(DesignTokens.Spacing.md)
