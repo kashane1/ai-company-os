@@ -27,6 +27,13 @@ import SwiftUI
 /// `onAppear` thereafter, no rebuild between screens. Hand animation is
 /// continuous, not per-screen.
 struct OnboardingHeader: View {
+    /// True when a back affordance should be visible. Coordinator passes
+    /// false on screens where back-nav is forbidden — most importantly
+    /// after the dial Confirm path-clear, where stepping back would
+    /// re-expose the one-time anchor dial.
+    let canGoBack: Bool
+    let onBack: () -> Void
+
     @Environment(OnboardingDraft.self) private var draft
     @Environment(MascotOverride.self) private var override
 
@@ -41,21 +48,44 @@ struct OnboardingHeader: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            Text("Life Clock")
-                .font(.footnote.weight(.semibold))
-                .tracking(2)
-                .textCase(.uppercase)
-                .foregroundStyle(.secondary)
-            LifeClockMascotView(minutesDelta: minutesDelta)
-                .frame(width: 120, height: 120)
-                .accessibilityIdentifier("onboarding.header.mascot")
+        ZStack {
+            // Centered wordmark + mascot.
+            VStack(spacing: 12) {
+                Text("Life Clock")
+                    .font(.footnote.weight(.semibold))
+                    .tracking(2)
+                    .textCase(.uppercase)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("onboarding.header.wordmark")
+                LifeClockMascotView(minutesDelta: minutesDelta)
+                    .frame(width: 120, height: 120)
+                    .accessibilityIdentifier("onboarding.header.mascot")
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Life Clock")
+
+            // Back chevron pinned top-leading. Hidden via opacity (not
+            // conditional layout) so the wordmark/mascot don't reflow
+            // when navigating into a no-back screen — view identity for
+            // the persistent header stays stable.
+            HStack {
+                Button(action: onBack) {
+                    Image(systemName: "chevron.left")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 44, height: 44)        // 44pt HIG min hit target
+                        .contentShape(Rectangle())
+                }
+                .opacity(canGoBack ? 1 : 0)
+                .disabled(!canGoBack)
+                .accessibilityIdentifier("onboarding.header.back")
+                .accessibilityLabel("Back")
+                Spacer()
+            }
         }
-        .frame(maxWidth: .infinity)
         .padding(.top, 8)
         .padding(.bottom, 16)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Life Clock")
         .accessibilityIdentifier("onboarding.header")
     }
 }
@@ -317,13 +347,22 @@ struct ReactiveSliderView: View {
         idSuffix: String
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.caption.bold()).foregroundStyle(.secondary)
+            Text(label)
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix).label")
             Slider(value: value, in: 0...1)
                 .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix)")
             HStack {
-                Text(leading).font(.caption2).foregroundStyle(.tertiary)
+                Text(leading)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix).leading")
                 Spacer()
-                Text(trailing).font(.caption2).foregroundStyle(.tertiary)
+                Text(trailing)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix).trailing")
             }
         }
     }

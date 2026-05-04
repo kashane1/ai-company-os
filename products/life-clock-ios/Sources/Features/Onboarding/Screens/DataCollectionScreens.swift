@@ -636,8 +636,23 @@ private struct FamilyLongevityForm: View {
     /// 0…120 bound covers every plausible age-at-death; the lower bound
     /// is permissive (perinatal loss) by deliberate UX choice — the
     /// stepper's 20-floor was wrong for that case.
+    /// Parse the user's typed age, accepting locale-shaped numerals
+    /// (Arabic-Indic, Devanagari, Latin) via `NumberFormatter` rather
+    /// than the ASCII-only `Int(_:)` initializer. Empty / unparseable /
+    /// out-of-range returns nil.
+    private static let ageFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        f.maximumFractionDigits = 0
+        f.allowsFloats = false
+        return f
+    }()
+
     private var parsedAge: Int? {
-        guard let n = Int(ageString), (0...120).contains(n) else { return nil }
+        let trimmed = ageString.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty,
+              let n = Self.ageFormatter.number(from: trimmed)?.intValue,
+              (0...120).contains(n) else { return nil }
         return n
     }
 
