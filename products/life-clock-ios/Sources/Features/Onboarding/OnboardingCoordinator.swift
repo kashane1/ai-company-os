@@ -35,9 +35,12 @@ struct OnboardingCoordinator: View {
             // one onAppear after the first push, no rebuild between
             // subsequent screens, hands animate continuously.
             if !path.isEmpty {
-                OnboardingHeader()
-                    .padding(.horizontal, 24)
-                    .transition(.opacity)
+                OnboardingHeader(
+                    canGoBack: canGoBack,
+                    onBack: popPath
+                )
+                .padding(.horizontal, 24)
+                .transition(.opacity)
             }
             NavigationStack(path: $path) {
                 ColdOpenView(onContinue: { advance(to: .welcome) })
@@ -206,6 +209,35 @@ struct OnboardingCoordinator: View {
 
     private func advance(to next: OnboardingScreen) {
         path.append(next)
+    }
+
+    // MARK: - Back navigation
+
+    /// Screens where the back chevron should NOT appear. Once the user
+    /// confirms the one-time anchor dial (`engineRevealAndDial`), the
+    /// path is reset to `[.recoveryPreview]` so the dial cannot be
+    /// reached again — back-nav from any of these would either re-expose
+    /// the dial or pop into the cold-open root, neither of which is
+    /// correct UX.
+    private static let noBackScreens: Set<OnboardingScreen> = [
+        .recoveryPreview,
+        .healthKitAuth,
+        .paywallPrimary,
+        .entryView,
+    ]
+
+    /// True iff the back chevron in the persistent header should be
+    /// active. Hidden on the very first push (no prior screen to return
+    /// to) and on the post-Confirm screens listed above.
+    private var canGoBack: Bool {
+        guard path.count >= 2 else { return false }
+        guard let current = path.last else { return false }
+        return !Self.noBackScreens.contains(current)
+    }
+
+    private func popPath() {
+        guard !path.isEmpty else { return }
+        path.removeLast()
     }
 
     /// Decide whether to show the `bigNumberPenalty` framing. Suppressed
