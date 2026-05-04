@@ -1,9 +1,10 @@
 ---
 title: Life Clock onboarding polish pass — input UX, legend, skip, multi-dial preview, locked header with reactive hands
 type: feat
-status: active
+status: completed
 date: 2026-05-03
 origin: docs/brainstorms/2026-05-01-life-clock-reveal-onboarding-anchor-dial-brainstorm.md
+pr: https://github.com/kashane1/ai-company-os/pull/27
 ---
 
 # Life Clock onboarding polish pass
