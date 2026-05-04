@@ -17,17 +17,18 @@ struct EngineRevealAndDialView: View {
 
     @Environment(LifeClockStore.self) private var store
     @Environment(OnboardingDraft.self) private var draft
+    @Environment(MascotOverride.self) private var mascotOverride
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
 
     @State private var dialYears: Double = 0
     @State private var showConfirmDialog = false
 
-    private var engineYears: Double {
-        let snapshot = draft.materialize()
-        return ClockEngine(clock: store.clock)
-            .calculateBaseline(profile: snapshot)
-            .projectedAgeYears
-    }
+    /// Engine projection cached on appear. Draft inputs do not mutate
+    /// while this screen is visible (it's the post-data-collection
+    /// reveal), so recomputing per-tick was running the actuarial
+    /// math 60×/sec for a constant. Cached value is the baseline; the
+    /// dial layers ±yrs on top.
+    @State private var engineYears: Double = 0
 
     private var displayedYears: Double {
         engineYears + dialYears
@@ -41,13 +42,22 @@ struct EngineRevealAndDialView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            OnboardingHeader(minutesDeltaOverride: mascotDelta)
-                .padding(.horizontal, 24)
-            engineDialBody
-        }
-        .accessibilityIdentifier("onboarding.engineRevealAndDial")
-        .onAppear { telemetry.value.screenAppeared("engineRevealAndDial") }
+        engineDialBody
+            .accessibilityIdentifier("onboarding.engineRevealAndDial")
+            .onAppear {
+                telemetry.value.screenAppeared("engineRevealAndDial")
+                let snapshot = draft.materialize()
+                engineYears = ClockEngine(clock: store.clock)
+                    .calculateBaseline(profile: snapshot)
+                    .projectedAgeYears
+                mascotOverride.minutes = mascotDelta
+            }
+            .onChange(of: dialYears) { _, _ in
+                mascotOverride.minutes = mascotDelta
+            }
+            .onDisappear {
+                mascotOverride.minutes = nil
+            }
     }
 
     private var engineDialBody: some View {

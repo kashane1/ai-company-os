@@ -27,28 +27,24 @@ struct AnalyzingView: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            OnboardingHeader()
-                .padding(.horizontal, 24)
-            VStack(alignment: .leading, spacing: 24) {
-                Spacer()
-                ForEach(0..<3, id: \.self) { idx in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(labels[idx])
-                            .font(.body.bold())
-                            .foregroundStyle(idx <= stage ? .primary : .tertiary)
-                        ProgressView(
-                            value: idx < stage ? 1.0 : (idx == stage ? 0.5 : 0.0),
-                            total: 1.0
-                        )
-                        .tint(idx <= stage ? .accentColor : .gray)
-                    }
+        VStack(alignment: .leading, spacing: 24) {
+            Spacer()
+            ForEach(0..<3, id: \.self) { idx in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(labels[idx])
+                        .font(.body.bold())
+                        .foregroundStyle(idx <= stage ? .primary : .tertiary)
+                    ProgressView(
+                        value: idx < stage ? 1.0 : (idx == stage ? 0.5 : 0.0),
+                        total: 1.0
+                    )
+                    .tint(idx <= stage ? .accentColor : .gray)
                 }
-                Spacer()
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            Spacer()
         }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
         .accessibilityIdentifier("onboarding.analyzing")
         .onAppear {
             telemetry.value.screenAppeared("analyzing")
@@ -168,31 +164,11 @@ struct ArchetypeRevealView: View {
     }
 }
 
-// MARK: - Life grid full
-
-struct LifeGridFullView: View {
-    let onContinue: () -> Void
-    @Environment(OnboardingDraft.self) private var draft
-
-    var body: some View {
-        OnboardingScaffold(
-            screenID: "lifeGridFull",
-            title: "This is your life.",
-            bodyText: "Each dot is a week. Most people get around 80 years of them.",
-            onContinue: onContinue
-        ) {
-            LifeGridDotView(
-                totalWeeks: 4160,
-                livedWeeks: 0,
-                lostWeeks: 0,
-                mode: .full
-            )
-            .frame(height: 280)
-        }
-    }
-}
-
 // MARK: - Life grid remaining
+//
+// Absorbs the former `lifeGridFull` intro (removed 2026-05-03 — see
+// `OnboardingScreen.deprecatedScreens`). Single title, no two-beat
+// auto-advance.
 
 struct LifeGridRemainingView: View {
     let onContinue: () -> Void
@@ -208,16 +184,24 @@ struct LifeGridRemainingView: View {
         OnboardingScaffold(
             screenID: "lifeGridRemaining",
             title: "This is what's still ahead.",
-            bodyText: "Each dot you haven't lived yet is a week your habits get to shape.",
+            bodyText: "Each dot is a week your habits get to shape.",
             onContinue: onContinue
         ) {
-            LifeGridDotView(
-                totalWeeks: 4160,
-                livedWeeks: livedWeeks,
-                lostWeeks: 0,
-                mode: .remainingHighlighted
-            )
-            .frame(height: 280)
+            VStack(spacing: 8) {
+                LifeGridDotView(
+                    totalWeeks: 4160,
+                    livedWeeks: livedWeeks,
+                    lostWeeks: 0,
+                    mode: .remainingHighlighted
+                )
+                .frame(height: 280)
+                // Single-color screen: inline caption, no full legend
+                // block (it'd be two-thirds redundant). Full legend
+                // appears on the next colored screen.
+                Text("Filled green = lived. Outlined = still ahead.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
@@ -261,13 +245,19 @@ struct BigNumberPenaltyView: View {
             bodyText: "These are the years your current habits put within reach to win or lose. The clock follows what you do next.",
             onContinue: onContinue
         ) {
-            LifeGridDotView(
-                totalWeeks: 4160,
-                livedWeeks: livedWeeks,
-                lostWeeks: lostWeeks,
-                mode: .bigNumberPenalty
-            )
-            .frame(height: 280)
+            VStack(spacing: 12) {
+                LifeGridDotView(
+                    totalWeeks: 4160,
+                    livedWeeks: livedWeeks,
+                    lostWeeks: lostWeeks,
+                    mode: .bigNumberPenalty
+                )
+                .frame(height: 280)
+                // First multi-color screen — full legend introduces the
+                // green/red/gray triad. Subsequent recovery screen falls
+                // back to an info-popover (progressive disclosure).
+                LifeGridDotLegend(mode: .bigNumberPenalty)
+            }
         }
     }
 }
@@ -322,19 +312,25 @@ struct RecoveryPreviewView: View {
             continueLabel: "Continue",
             onContinue: onContinue
         ) {
-            LifeGridDotView(
-                totalWeeks: 4160,
-                livedWeeks: livedWeeks,
-                lostWeeks: lostWeeks,
-                mode: .recoveryHighlighted
-            )
-            .frame(height: 240)
-            .onAppear {
-                Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
-                    Task { @MainActor in
-                        cyclingIndex = (cyclingIndex + 1) % cyclingWords.count
+            VStack(spacing: 8) {
+                LifeGridDotView(
+                    totalWeeks: 4160,
+                    livedWeeks: livedWeeks,
+                    lostWeeks: lostWeeks,
+                    mode: .recoveryHighlighted
+                )
+                .frame(height: 240)
+                .onAppear {
+                    Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+                        Task { @MainActor in
+                            cyclingIndex = (cyclingIndex + 1) % cyclingWords.count
+                        }
                     }
                 }
+                // Legend was shown in full on the prior `bigNumberPenalty`
+                // screen one tap earlier; users carry the green/red→blue
+                // mapping. A second info chip on the very next screen
+                // is redundant clutter (per code-review simplicity pass).
             }
         }
     }

@@ -52,8 +52,6 @@ struct PaywallPrimaryView: View {
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
-            OnboardingHeader()
-                .padding(.horizontal, 24)
             paywallBody
         }
         .accessibilityIdentifier("onboarding.paywallPrimary")
