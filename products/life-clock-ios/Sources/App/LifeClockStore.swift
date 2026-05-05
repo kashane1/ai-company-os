@@ -17,6 +17,11 @@ final class LifeClockStore {
     var todayEstimate: LifeClockEstimate?
     var todayDrivers: [TimeLedgerEntry] = []
     var todayQuests: [Quest] = []
+    /// One-shot per-day picks the user made via the Plan editor. Pro-only
+    /// to write; cleared automatically when the in-memory dayKey doesn't
+    /// match today. Persisted via UserDefaults so a relaunch within the
+    /// same day preserves the user's picks.
+    private(set) var todayPlanOverrides: TodayPlanOverrides = .empty
     /// In-memory mirror of recent ledger entries. The persisted source of
     /// truth is `TimeLedgerEntry` in SwiftData; this array is maintained
     /// on every write path (`toggleQuestCompletion`, `refreshFromHealthKit`,
@@ -160,6 +165,8 @@ final class LifeClockStore {
             }
             // Restore today's habits if logged earlier.
             todayHabits = fetchHabits(for: clock.calendar.startOfDay(for: clock.now()))
+            // Restore one-shot plan picks if they're for today.
+            loadTodayPlanOverrides()
             // Restore prior ledger entries (most recent first, capped at 50).
             ledger = fetchRecentLedger(limit: 50)
             // Restore today's reflection if the user wrote one earlier.
@@ -216,8 +223,15 @@ final class LifeClockStore {
             hasTodaySignal = false
         }
         todayEstimate = baseline
-        todayQuests = questEngine.generateDailyQuests(profile: profile, snapshot: snapshot, habits: todayHabits)
+        let recentSnapshots = fetchRecentSnapshots(limit: 14)
+        todayQuests = questEngine.generateDailyQuests(
+            profile: profile,
+            snapshot: snapshot,
+            recentSnapshots: recentSnapshots,
+            habits: todayHabits
+        )
         applyPersistedCompletions(to: &todayQuests, for: dayStart)
+        applyTodayPlanOverrides()
 
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
         let weekHabits = fetchHabitsBack(7)
@@ -303,6 +317,109 @@ final class LifeClockStore {
         let service = OverrideService(modelContext: modelContext)
         try service.revertOverride(field: field, on: dayStart, recomputedAt: now)
         refreshDerivedStateAfterOverride(dayStart: dayStart, now: now)
+    }
+
+    // MARK: - Today's plan overrides (Pro)
+
+    /// Stable UserDefaults key for one-shot plan overrides.
+    private static let todayPlanOverridesKey = "lifeclock.todayPlanOverrides"
+
+    /// Variants the user can choose from for a single category, given the
+    /// latest known snapshot + history + habits. The picker UI calls this
+    /// to render swap options. Reads from persisted state — no async I/O.
+    func planVariants(for category: QuestEngine.Category) -> [Quest] {
+        guard let profile else { return [] }
+        let now = clock.now()
+        let dayStart = clock.calendar.startOfDay(for: now)
+        return questEngine.availableQuests(
+            for: category,
+            profile: profile,
+            snapshot: fetchSnapshot(for: dayStart),
+            recentSnapshots: fetchRecentSnapshots(limit: 14),
+            habits: todayHabits,
+            today: dayStart
+        )
+    }
+
+    /// Apply a user pick to today's plan. Pro-only — throws `.notEntitled`
+    /// for free users (the picker UI surfaces a paywall instead).
+    func selectPlanQuest(slug: String, in category: QuestEngine.Category) throws {
+        guard entitlements?.isPro == true else {
+            throw OverrideService.OverrideError.notEntitled
+        }
+        let now = clock.now()
+        let key = TodayPlanOverrides.dayKey(for: now, calendar: clock.calendar)
+        if todayPlanOverrides.dayKey != key {
+            todayPlanOverrides = TodayPlanOverrides(dayKey: key, picks: [:])
+        }
+        todayPlanOverrides.picks[category.rawValue] = slug
+        persistTodayPlanOverrides()
+        applyTodayPlanOverrides()
+    }
+
+    /// Drop all of today's user picks; the engine's smart defaults take
+    /// over again. Free for all users — clearing your own choice never
+    /// requires Pro.
+    func clearTodayPlanOverrides() {
+        todayPlanOverrides = .empty
+        persistTodayPlanOverrides()
+        applyTodayPlanOverrides()
+    }
+
+    private func loadTodayPlanOverrides() {
+        guard let data = UserDefaults.standard.data(forKey: Self.todayPlanOverridesKey),
+              let decoded = try? JSONDecoder().decode(TodayPlanOverrides.self, from: data)
+        else { return }
+        let key = TodayPlanOverrides.dayKey(for: clock.now(), calendar: clock.calendar)
+        // Stale (yesterday's picks) → drop them. One-shot per the v1 spec.
+        todayPlanOverrides = (decoded.dayKey == key) ? decoded : .empty
+        if todayPlanOverrides.isEmpty {
+            UserDefaults.standard.removeObject(forKey: Self.todayPlanOverridesKey)
+        }
+    }
+
+    private func persistTodayPlanOverrides() {
+        if todayPlanOverrides.isEmpty {
+            UserDefaults.standard.removeObject(forKey: Self.todayPlanOverridesKey)
+            return
+        }
+        if let data = try? JSONEncoder().encode(todayPlanOverrides) {
+            UserDefaults.standard.set(data, forKey: Self.todayPlanOverridesKey)
+        }
+    }
+
+    /// Re-applies user picks on top of the engine-generated `todayQuests`.
+    /// Each pick replaces the same-category quest if one exists, or appends
+    /// a new one (Movement may be empty when the day's step goal is met;
+    /// the user can override it back in by picking a different movement
+    /// variant). Idempotent — safe to call after every refresh.
+    private func applyTodayPlanOverrides() {
+        let key = TodayPlanOverrides.dayKey(for: clock.now(), calendar: clock.calendar)
+        guard todayPlanOverrides.dayKey == key, !todayPlanOverrides.isEmpty else { return }
+        for category in QuestEngine.Category.allCases {
+            guard let slug = todayPlanOverrides.picks[category.rawValue] else { continue }
+            let variants = planVariants(for: category)
+            guard let pick = variants.first(where: { $0.slug == slug }) else { continue }
+            if let idx = todayQuests.firstIndex(where: { Self.engineCategory(of: $0) == category }) {
+                todayQuests[idx] = pick
+            } else {
+                todayQuests.append(pick)
+            }
+        }
+        // Persisted completion state needs to survive the swap.
+        applyPersistedCompletions(to: &todayQuests, for: clock.calendar.startOfDay(for: clock.now()))
+    }
+
+    /// Map a `Quest`'s loose category string to the picker's structured
+    /// `QuestEngine.Category`. Sleep + recovery share a slot; nutrition +
+    /// habit share a slot — see QuestEngine.Category for rationale.
+    private static func engineCategory(of quest: Quest) -> QuestEngine.Category? {
+        switch quest.category.lowercased() {
+        case "movement": return .movement
+        case "sleep", "recovery": return .sleepRecovery
+        case "nutrition", "habit": return .nutritionHabit
+        default: return nil
+        }
     }
 
     /// Re-derive view-bound state after an override change. Skips the

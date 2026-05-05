@@ -2,10 +2,13 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(LifeClockStore.self) private var store
+    @Environment(SubscriptionStore.self) private var subscriptions
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @State private var quickLogPresented: Bool = false
     @State private var reflectionPresented: Bool = false
+    @State private var planEditorPresented: Bool = false
+    @State private var paywallPresented: Bool = false
 
     /// Wake animation: `wakeProgress` ramps 0→1 every time the app opens
     /// (cold launch + foreground). Both the headline number and the mascot
@@ -85,6 +88,12 @@ struct TodayView: View {
                     prompt: prompt,
                     onDismiss: { reflectionPresented = false }
                 )
+            }
+            .sheet(isPresented: $planEditorPresented) {
+                PlanEditorSheet()
+            }
+            .sheet(isPresented: $paywallPresented) {
+                PaywallSheet()
             }
             .onAppear {
                 // Cold launch: fire once. Tab-switches back to Today
@@ -405,8 +414,27 @@ struct TodayView: View {
 
     private var questsCard: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("Today's Plan")
-                .font(.headline)
+            HStack {
+                Text("Today's Plan")
+                    .font(.headline)
+                Spacer()
+                Button {
+                    if subscriptions.isPro {
+                        planEditorPresented = true
+                    } else {
+                        paywallPresented = true
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: subscriptions.isPro ? "slider.horizontal.3" : "lock.fill")
+                        Text(subscriptions.isPro ? "Edit" : "Pro")
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(subscriptions.isPro ? "today.planEdit" : "today.planEditLocked")
+            }
             Text("One small thing to notice or do.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
