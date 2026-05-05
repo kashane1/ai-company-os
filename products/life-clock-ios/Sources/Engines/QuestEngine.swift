@@ -21,12 +21,13 @@ struct QuestEngine {
     func generateDailyQuests(
         profile: UserProfile,
         snapshot: DailyHealthSnapshot?,
+        recentSnapshots: [DailyHealthSnapshot] = [],
         habits: HabitLog?
     ) -> [Quest] {
         let today = clock.calendar.startOfDay(for: clock.now())
         var quests: [Quest] = []
 
-        if let movement = movementQuest(today: today, snapshot: snapshot) {
+        if let movement = movementQuest(today: today, snapshot: snapshot, recentSnapshots: recentSnapshots) {
             quests.append(movement)
         }
         quests.append(sleepQuest(today: today, profile: profile, snapshot: snapshot))
@@ -45,8 +46,8 @@ struct QuestEngine {
 
     // MARK: - Quest generators
 
-    private func movementQuest(today: Date, snapshot: DailyHealthSnapshot?) -> Quest? {
-        let target: Double = 7_500
+    private func movementQuest(today: Date, snapshot: DailyHealthSnapshot?, recentSnapshots: [DailyHealthSnapshot]) -> Quest? {
+        let target = movementStepTarget(recentSnapshots: recentSnapshots)
         let progress = Double(snapshot?.stepCount ?? 0)
         let detail: String
         if let steps = snapshot?.stepCount, steps >= Int(target) {
@@ -155,6 +156,23 @@ struct QuestEngine {
             target: 0,
             rewardEstimateMinutes: pick.reward
         )
+    }
+
+    /// Rolling-median step target. Uses the user's last ~14 days of logged
+    /// steps (any snapshots passed in; caller controls the window) and
+    /// returns p50 × 1.10, rounded to the nearest 500. Floored at 5,000
+    /// (no demoralizingly tiny goals) and capped at 20,000 (no Strava-bro
+    /// targets for casual users). Falls back to the historical 7,500
+    /// default when we have fewer than 5 days of data, since p50 on a
+    /// thin sample is noise.
+    static let defaultStepTarget: Double = 7_500
+    private func movementStepTarget(recentSnapshots: [DailyHealthSnapshot]) -> Double {
+        let logged = recentSnapshots.compactMap { $0.stepCount }.filter { $0 > 0 }
+        guard logged.count >= 5 else { return Self.defaultStepTarget }
+        let sorted = logged.sorted()
+        let p50 = Double(sorted[sorted.count / 2])
+        let scaled = (p50 * 1.10 / 500).rounded() * 500
+        return min(20_000, max(5_000, scaled))
     }
 
     private func consistencyFallback(today: Date) -> Quest {

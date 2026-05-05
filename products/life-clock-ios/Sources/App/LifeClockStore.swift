@@ -216,7 +216,13 @@ final class LifeClockStore {
             hasTodaySignal = false
         }
         todayEstimate = baseline
-        todayQuests = questEngine.generateDailyQuests(profile: profile, snapshot: snapshot, habits: todayHabits)
+        let recentSnapshots = fetchRecentSnapshots(limit: 14)
+        todayQuests = questEngine.generateDailyQuests(
+            profile: profile,
+            snapshot: snapshot,
+            recentSnapshots: recentSnapshots,
+            habits: todayHabits
+        )
         applyPersistedCompletions(to: &todayQuests, for: dayStart)
 
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)

@@ -74,6 +74,48 @@ final class QuestEngineTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(quests.count, 1)
     }
 
+    // MARK: - History-aware movement target
+
+    private func snapshot(daysAgo: Int, steps: Int) -> DailyHealthSnapshot {
+        let date = Calendar(identifier: .gregorian).date(byAdding: .day, value: -daysAgo, to: fixedDate)!
+        let snap = DailyHealthSnapshot(date: date)
+        snap.stepCount = steps
+        return snap
+    }
+
+    func testHighStepUserGetsRaisedTarget() {
+        let engine = makeEngine()
+        let profile = makeProfile()
+        let history = (1...14).map { snapshot(daysAgo: $0, steps: 15_000) }
+        let today = DailyHealthSnapshot(date: fixedDate)
+        today.stepCount = 0
+        let quests = engine.generateDailyQuests(profile: profile, snapshot: today, recentSnapshots: history, habits: nil)
+        let movement = quests.first { $0.category == "movement" }
+        XCTAssertNotNil(movement)
+        // p50 = 15_000 → ×1.10 = 16_500 (already a 500 multiple)
+        XCTAssertEqual(movement?.target, 16_500)
+    }
+
+    func testThinHistoryFallsBackToDefaultTarget() {
+        let engine = makeEngine()
+        let profile = makeProfile()
+        let history = (1...3).map { snapshot(daysAgo: $0, steps: 15_000) }
+        let today = DailyHealthSnapshot(date: fixedDate)
+        today.stepCount = 0
+        let quests = engine.generateDailyQuests(profile: profile, snapshot: today, recentSnapshots: history, habits: nil)
+        XCTAssertEqual(quests.first { $0.category == "movement" }?.target, QuestEngine.defaultStepTarget)
+    }
+
+    func testLowStepUserIsFlooredAtFiveK() {
+        let engine = makeEngine()
+        let profile = makeProfile()
+        let history = (1...14).map { snapshot(daysAgo: $0, steps: 1_500) }
+        let today = DailyHealthSnapshot(date: fixedDate)
+        today.stepCount = 0
+        let quests = engine.generateDailyQuests(profile: profile, snapshot: today, recentSnapshots: history, habits: nil)
+        XCTAssertEqual(quests.first { $0.category == "movement" }?.target, 5_000)
+    }
+
     // MARK: - No medical recommendations
 
     func testNoQuestRecommendsMedicationOrSupplements() {
