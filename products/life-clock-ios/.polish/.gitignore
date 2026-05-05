@@ -1,0 +1,4 @@
+# Goldens are working artifacts of the simulator-driven-polish loop;
+# they're regenerated each session and should not be checked in.
+*
+!.gitignore
