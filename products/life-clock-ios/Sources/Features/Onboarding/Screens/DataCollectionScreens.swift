@@ -116,6 +116,12 @@ struct OnboardingScaffold<Content: View>: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
+        // Container ID for screen-existence checks. `children: .contain`
+        // keeps inner Continue/option-button identifiers intact — without
+        // it, SwiftUI flattens this VStack into a single element and the
+        // outer id shadows every interactive child, breaking
+        // `app.buttons["onboarding.continue"]` and the per-option ids.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.\(screenID)")
         .onAppear { telemetry.value.screenAppeared(screenID) }
     }
