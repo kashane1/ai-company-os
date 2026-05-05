@@ -2,8 +2,29 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(LifeClockStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @State private var quickLogPresented: Bool = false
     @State private var reflectionPresented: Bool = false
+
+    /// Wake-animation state — see `MorningWake`. `wakeProgress` ramps 0→1
+    /// once per local day on first foreground; both the headline number and
+    /// the mascot hands derive from it so they animate in lockstep from a
+    /// single source. `mascotWakeTrigger` is the one-shot input to the
+    /// mascot scale keyframe (incremented to fire). Both stay at "settled"
+    /// values (1.0 / 0) when reduce-motion is on or when the day's wake
+    /// has already played, so the screen renders identically to before.
+    @State private var wakeProgress: Double = 1.0
+    @State private var mascotWakeTrigger: Int = 0
+
+    /// The delta value driving both the headline count-up and the mascot
+    /// hand sweep. When `wakeProgress < 1` (mid-animation), this is a
+    /// linear interpolation from 0 toward the real delta; once settled,
+    /// it's the real delta. Single source of truth for the wake sequence.
+    private var displayedDelta: Int {
+        let real = store.todayEstimate?.dailyTimeDeltaMinutes ?? 0
+        return Int((Double(real) * wakeProgress).rounded())
+    }
 
     var body: some View {
         NavigationStack {
@@ -56,7 +77,37 @@ struct TodayView: View {
                     onDismiss: { reflectionPresented = false }
                 )
             }
+            .onAppear { triggerMorningWakeIfNeeded() }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active { triggerMorningWakeIfNeeded() }
+            }
         }
+    }
+
+    /// Plays the once-per-day wake animation if all gates pass:
+    /// - reduce-motion is OFF
+    /// - not running under XCUITest (deterministic snapshots)
+    /// - today's wake has not already fired (per `MorningWake`)
+    /// - we have a real estimate to count up to (the mascot+headline
+    ///   already render "Loading…" otherwise; no point sweeping to 0)
+    ///
+    /// Snaps `wakeProgress` to 0 with no animation, then `withAnimation`
+    /// to 1 over `MorningWake.totalDuration`. The mascot scale keyframe
+    /// fires off `mascotWakeTrigger` and runs concurrently — its own
+    /// duration sits inside the sweep budget.
+    private func triggerMorningWakeIfNeeded() {
+        guard !reduceMotion,
+              !LifeClockLaunchConfiguration.current.isUITest,
+              store.todayEstimate != nil,
+              MorningWake.shouldWake(now: store.clock.now(), calendar: store.clock.calendar)
+        else { return }
+
+        wakeProgress = 0
+        withAnimation(.easeOut(duration: MorningWake.totalDuration)) {
+            wakeProgress = 1
+        }
+        mascotWakeTrigger &+= 1
+        MorningWake.mark(now: store.clock.now(), calendar: store.clock.calendar)
     }
 
     private var quickLogCard: some View {
@@ -86,15 +137,21 @@ struct TodayView: View {
     private var headline: some View {
         Group {
             if let estimate = store.todayEstimate {
-                let delta = estimate.dailyTimeDeltaMinutes
-                let prefix = delta >= 0 ? store.toneMode.deltaPositivePrefix : store.toneMode.deltaNegativePrefix
+                // Final-value sign drives the prefix and color; mid-sweep
+                // would otherwise read "+0 min" in green for a negative
+                // day. Visible NUMBER is the wake-animated value.
+                let realDelta = estimate.dailyTimeDeltaMinutes
+                let shown = displayedDelta
+                let prefix = realDelta >= 0 ? store.toneMode.deltaPositivePrefix : store.toneMode.deltaNegativePrefix
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
                     Text("\(prefix) today")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    Text(TimeDeltaFormatter.format(minutes: delta))
+                    Text(TimeDeltaFormatter.format(minutes: shown))
                         .font(.system(size: 44, weight: .semibold, design: .rounded))
-                        .foregroundStyle(delta >= 0 ? DesignTokens.Palette.positive : DesignTokens.Palette.negative)
+                        .foregroundStyle(realDelta >= 0 ? DesignTokens.Palette.positive : DesignTokens.Palette.negative)
+                        .contentTransition(.numericText(value: Double(shown)))
+                        .monospacedDigit()
                     Text(LifeClockConfiguration.lifespanShortDisclaimer)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -154,10 +211,26 @@ struct TodayView: View {
                 .frame(height: 0)
                 .accessibilityIdentifier("today.mascotHidden")
                 .accessibilityHidden(true)
-        } else if let delta = store.todayEstimate?.dailyTimeDeltaMinutes {
-            LifeClockMascotView(minutesDelta: delta)
+        } else if store.todayEstimate != nil {
+            // Hands rotate from 12 baseline by `displayedDelta * 6°`
+            // (see `LifeClockMascotView`). Driving by `displayedDelta`
+            // means the morning sweep falls out of changing one value.
+            // The scale keyframe overlays a one-shot wake bump on top.
+            LifeClockMascotView(minutesDelta: displayedDelta)
                 .frame(maxWidth: 240, maxHeight: 240)
                 .frame(maxWidth: .infinity, alignment: .center)
+                .keyframeAnimator(
+                    initialValue: 1.0,
+                    trigger: mascotWakeTrigger
+                ) { content, scale in
+                    content.scaleEffect(scale)
+                } keyframes: { _ in
+                    KeyframeTrack {
+                        CubicKeyframe(1.00, duration: 0.0)
+                        CubicKeyframe(1.06, duration: 0.20)
+                        SpringKeyframe(1.00, duration: 0.30, spring: .bouncy)
+                    }
+                }
                 .accessibilityIdentifier("today.mascot")
         } else {
             EmptyView()
