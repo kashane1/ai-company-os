@@ -12,6 +12,25 @@ import Foundation
 ///     targets, named diets, or "clean food" / "bad food" framing.
 ///   - Never recommends medication, supplements, or specific clinical targets.
 struct QuestEngine {
+    /// Three categories the daily plan rotates through. The picker enforces
+    /// one selection per category — a user cannot stack three movement
+    /// quests. Sleep and recovery share a slot because they're the same
+    /// "wind down / reset" lever; nutrition and habit share the third slot
+    /// because they're both food/intake-shaped.
+    enum Category: String, CaseIterable, Codable {
+        case movement
+        case sleepRecovery
+        case nutritionHabit
+
+        var displayTitle: String {
+            switch self {
+            case .movement: return "Movement"
+            case .sleepRecovery: return "Sleep & Recovery"
+            case .nutritionHabit: return "Nutrition & Habit"
+            }
+        }
+    }
+
     let clock: EngineClock
 
     init(clock: EngineClock = .live) {
@@ -27,15 +46,21 @@ struct QuestEngine {
         let today = clock.calendar.startOfDay(for: clock.now())
         var quests: [Quest] = []
 
-        if let movement = movementQuest(today: today, snapshot: snapshot, recentSnapshots: recentSnapshots) {
-            quests.append(movement)
+        for category in Category.allCases {
+            let variants = availableQuests(
+                for: category,
+                profile: profile,
+                snapshot: snapshot,
+                recentSnapshots: recentSnapshots,
+                habits: habits,
+                today: today
+            )
+            // Movement variant pool returns empty when the day's step goal
+            // is already met — that slot drops out, matching prior behavior.
+            if let pick = variants.first {
+                quests.append(pick)
+            }
         }
-        quests.append(sleepQuest(today: today, profile: profile, snapshot: snapshot))
-
-        // Third slot — nutrition by default, recovery/risk when the day's
-        // logged state calls for it. This is where the "diet is a primary
-        // lever" framing lives.
-        quests.append(habitOrNutritionQuest(today: today, habits: habits))
 
         if quests.isEmpty {
             quests.append(consistencyFallback(today: today))
@@ -44,94 +69,173 @@ struct QuestEngine {
         return Array(quests.prefix(3))
     }
 
-    // MARK: - Quest generators
+    /// Returns the alternate quests the user can pick from for a single
+    /// category. The first element is the engine's smart default given
+    /// today's inputs (history-aware step target, habit-derived recovery
+    /// pick, etc.); the rest are sibling variants the picker offers as
+    /// swap options. Always 0–3 quests; never duplicates the default
+    /// slug. Movement returns empty when today's step goal is already
+    /// met, which is how that slot drops out of the daily plan.
+    func availableQuests(
+        for category: Category,
+        profile: UserProfile,
+        snapshot: DailyHealthSnapshot?,
+        recentSnapshots: [DailyHealthSnapshot] = [],
+        habits: HabitLog?,
+        today: Date? = nil
+    ) -> [Quest] {
+        let day = today ?? clock.calendar.startOfDay(for: clock.now())
+        switch category {
+        case .movement:
+            return movementVariants(today: day, snapshot: snapshot, recentSnapshots: recentSnapshots)
+        case .sleepRecovery:
+            return sleepRecoveryVariants(today: day, profile: profile, snapshot: snapshot, habits: habits)
+        case .nutritionHabit:
+            return nutritionHabitVariants(today: day, habits: habits)
+        }
+    }
 
-    private func movementQuest(today: Date, snapshot: DailyHealthSnapshot?, recentSnapshots: [DailyHealthSnapshot]) -> Quest? {
+    // MARK: - Variant pools
+
+    private func movementVariants(today: Date, snapshot: DailyHealthSnapshot?, recentSnapshots: [DailyHealthSnapshot]) -> [Quest] {
         let target = movementStepTarget(recentSnapshots: recentSnapshots)
         let progress = Double(snapshot?.stepCount ?? 0)
-        let detail: String
+
+        // Goal already met → drop the slot entirely.
         if let steps = snapshot?.stepCount, steps >= Int(target) {
-            return nil // already done
+            return []
         }
-        if snapshot?.stepCount == nil {
-            detail = "Take a 10-minute walk after a meal today."
-        } else {
-            detail = "Get to \(Int(target)) steps. A short post-dinner walk usually closes the gap."
-        }
-        let quest = Quest(
+
+        let stepsDetail: String = (snapshot?.stepCount == nil)
+            ? "Take a 10-minute walk after a meal today."
+            : "Get to \(Int(target)) steps. A short post-dinner walk usually closes the gap."
+        let stepsQuest = Quest(
             slug: "movement.steps-target.v1",
             date: today,
             title: "Move a little more",
-            detail: detail,
+            detail: stepsDetail,
             category: "movement",
             target: target,
             rewardEstimateMinutes: 18
         )
-        quest.progress = progress
-        return quest
+        stepsQuest.progress = progress
+
+        let walkQuest = Quest(
+            slug: "movement.walk-after-meal.v1",
+            date: today,
+            title: "Post-meal 10-minute walk",
+            detail: "A short walk after one meal today. Helps how that meal lands on your clock.",
+            category: "movement",
+            target: 0,
+            rewardEstimateMinutes: 12
+        )
+
+        let stairsQuest = Quest(
+            slug: "movement.stairs-instead.v1",
+            date: today,
+            title: "Take the stairs today",
+            detail: "Skip elevators where you can. Small repeated effort beats one heroic workout.",
+            category: "movement",
+            target: 0,
+            rewardEstimateMinutes: 10
+        )
+
+        return [stepsQuest, walkQuest, stairsQuest]
     }
 
-    private func sleepQuest(today: Date, profile: UserProfile, snapshot: DailyHealthSnapshot?) -> Quest {
-        let detail = "Be in bed within an hour of your usual time. Consistency matters more than total hours."
-        let quest = Quest(
+    private func sleepRecoveryVariants(today: Date, profile: UserProfile, snapshot: DailyHealthSnapshot?, habits: HabitLog?) -> [Quest] {
+        let consistencyQuest = Quest(
             slug: "sleep.consistency.v1",
             date: today,
             title: "Protect tomorrow's sleep",
-            detail: detail,
+            detail: "Be in bed within an hour of your usual time. Consistency matters more than total hours.",
             category: "sleep",
             target: profile.sleepGoalHours,
             rewardEstimateMinutes: 18
         )
-        quest.progress = snapshot?.sleepHours ?? 0
-        return quest
+        consistencyQuest.progress = snapshot?.sleepHours ?? 0
+
+        let windDownQuest = Quest(
+            slug: "sleep.wind-down.v1",
+            date: today,
+            title: "30-minute wind-down",
+            detail: "Dim lights and step away from screens 30 minutes before bed. The brain needs a runway.",
+            category: "sleep",
+            target: 0,
+            rewardEstimateMinutes: 14
+        )
+
+        let hydrationQuest = Quest(
+            slug: "recovery.hydration-early-night.v1",
+            date: today,
+            title: "Hydration + early night",
+            detail: "Aim for water before sleep. Tomorrow's clock recovers fastest with rest.",
+            category: "recovery",
+            target: 0,
+            rewardEstimateMinutes: 10
+        )
+
+        // Heavy alcohol day → recovery moves to the front.
+        if habits?.alcoholLevel.lowercased() == "heavy" {
+            return [hydrationQuest, consistencyQuest, windDownQuest]
+        }
+        return [consistencyQuest, windDownQuest, hydrationQuest]
     }
 
-    /// Picks the most relevant third quest from the user's logged state.
-    ///
-    /// Priority:
-    ///   1. Heavy alcohol logged → recovery quest (gentle, never punitive).
-    ///   2. Rough diet logged → nutrition-repair quest (one-meal nudge).
-    ///   3. No diet logged yet → "log diet quality tonight" prompt.
-    ///   4. Otherwise → rotating nutrition quest (deterministic, day-of-year
-    ///      parity).
-    private func habitOrNutritionQuest(today: Date, habits: HabitLog?) -> Quest {
-        if habits?.alcoholLevel.lowercased() == "heavy" {
-            return Quest(
-                slug: "recovery.hydration-early-night.v1",
-                date: today,
-                title: "Hydration + early night",
-                detail: "Aim for water before sleep. Tomorrow's clock recovers fastest with rest.",
-                category: "recovery",
-                target: 0,
-                rewardEstimateMinutes: 10
-            )
-        }
+    private func nutritionHabitVariants(today: Date, habits: HabitLog?) -> [Quest] {
+        let dietRoughQuest = Quest(
+            slug: "nutrition.one-better-meal.v1",
+            date: today,
+            title: "One better meal tomorrow",
+            detail: "A rough food day is feedback, not failure. One simple, whole-food meal moves things back.",
+            category: "nutrition",
+            target: 0,
+            rewardEstimateMinutes: 12
+        )
 
+        let logDietQuest = Quest(
+            slug: "nutrition.log-diet-quality.v1",
+            date: today,
+            title: "Log your diet quality tonight",
+            detail: "Great, okay, or rough — coarse is fine. Logging is what makes food visible on your clock.",
+            category: "nutrition",
+            target: 0,
+            rewardEstimateMinutes: 8
+        )
+
+        let rotatedQuest = rotatingNutritionQuest(today: today)
+        let proteinQuest = Quest(
+            slug: "nutrition.add-protein.v1",
+            date: today,
+            title: "Add protein to your next meal",
+            detail: "Eggs, beans, fish, chicken, tofu — pick one. No measuring required.",
+            category: "nutrition",
+            target: 0,
+            rewardEstimateMinutes: 12
+        )
+        let wholeFoodQuest = Quest(
+            slug: "nutrition.whole-food-meal.v1",
+            date: today,
+            title: "Add one whole-food meal",
+            detail: "A piece of fruit, a handful of nuts, a real cooked meal — anything unprocessed counts.",
+            category: "nutrition",
+            target: 0,
+            rewardEstimateMinutes: 12
+        )
+
+        // Smart-default ordering: most-relevant pick first; the other two
+        // are swap options. Dedupe: when the day's rotated quest collides
+        // with the static protein quest (the rotating pool also contains
+        // add-protein), substitute whole-food so the picker always offers
+        // three distinct slugs.
+        let alt = (rotatedQuest.slug == proteinQuest.slug) ? wholeFoodQuest : proteinQuest
         if habits?.dietQuality.lowercased() == "rough" {
-            return Quest(
-                slug: "nutrition.one-better-meal.v1",
-                date: today,
-                title: "One better meal tomorrow",
-                detail: "A rough food day is feedback, not failure. One simple, whole-food meal moves things back.",
-                category: "nutrition",
-                target: 0,
-                rewardEstimateMinutes: 12
-            )
+            return [dietRoughQuest, rotatedQuest, alt]
         }
-
         if habits?.dietQuality == nil || habits?.dietQuality.lowercased() == "unknown" {
-            return Quest(
-                slug: "nutrition.log-diet-quality.v1",
-                date: today,
-                title: "Log your diet quality tonight",
-                detail: "Great, okay, or rough — coarse is fine. Logging is what makes food visible on your clock.",
-                category: "nutrition",
-                target: 0,
-                rewardEstimateMinutes: 8
-            )
+            return [logDietQuest, rotatedQuest, alt]
         }
-
-        return rotatingNutritionQuest(today: today)
+        return [rotatedQuest, alt, dietRoughQuest]
     }
 
     private func rotatingNutritionQuest(today: Date) -> Quest {

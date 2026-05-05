@@ -116,6 +116,56 @@ final class QuestEngineTests: XCTestCase {
         XCTAssertEqual(quests.first { $0.category == "movement" }?.target, 5_000)
     }
 
+    // MARK: - Variant pools per category
+
+    func testEachCategoryReturnsAtLeastOneVariant() {
+        let engine = makeEngine()
+        let profile = makeProfile()
+        for category in QuestEngine.Category.allCases {
+            let variants = engine.availableQuests(
+                for: category,
+                profile: profile,
+                snapshot: nil,
+                recentSnapshots: [],
+                habits: nil
+            )
+            XCTAssertFalse(variants.isEmpty, "\(category) returned no variants")
+            XCTAssertLessThanOrEqual(variants.count, 3)
+            // No duplicate slugs within a category.
+            XCTAssertEqual(Set(variants.map(\.slug)).count, variants.count)
+        }
+    }
+
+    func testMovementVariantsEmptyWhenStepGoalMet() {
+        let engine = makeEngine()
+        let profile = makeProfile()
+        let snap = DailyHealthSnapshot(date: fixedDate)
+        snap.stepCount = 25_000
+        let variants = engine.availableQuests(
+            for: .movement,
+            profile: profile,
+            snapshot: snap,
+            recentSnapshots: [],
+            habits: nil
+        )
+        XCTAssertTrue(variants.isEmpty)
+    }
+
+    func testHeavyAlcoholReordersSleepRecoverySoRecoveryIsDefault() {
+        let engine = makeEngine()
+        let profile = makeProfile()
+        let habits = HabitLog(date: fixedDate)
+        habits.alcoholLevel = "heavy"
+        let variants = engine.availableQuests(
+            for: .sleepRecovery,
+            profile: profile,
+            snapshot: nil,
+            recentSnapshots: [],
+            habits: habits
+        )
+        XCTAssertEqual(variants.first?.category, "recovery")
+    }
+
     // MARK: - No medical recommendations
 
     func testNoQuestRecommendsMedicationOrSupplements() {
