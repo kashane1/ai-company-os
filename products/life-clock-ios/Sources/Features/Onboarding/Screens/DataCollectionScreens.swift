@@ -77,22 +77,6 @@ struct OnboardingScaffold<Content: View>: View {
             }
             content
             Spacer()
-            if let secondaryAction {
-                VStack(spacing: 4) {
-                    Button(secondaryAction.label, action: secondaryAction.action)
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
-                        .font(.callout)
-                        .accessibilityIdentifier(secondaryAction.identifier)
-                    if let caption = secondaryAction.caption {
-                        Text(caption)
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-            }
             Button(action: {
                 telemetry.value.screenAdvanced(screenID, durationMs: 0)
                 // Recompute the running estimate so the next screen's
@@ -113,6 +97,28 @@ struct OnboardingScaffold<Content: View>: View {
             }
             .disabled(!isContinueEnabled)
             .accessibilityIdentifier("onboarding.continue")
+            if let secondaryAction {
+                // Stacked BELOW the primary CTA (visually) but laid out
+                // AFTER it in the VStack so the primary stays pinned at
+                // the same y as every other screen's Continue. Earlier
+                // ordering (secondary above primary) drifted the primary
+                // up ~65pt on screens with a soft-skip — broke the
+                // muscle-memory tap target.
+                VStack(spacing: 4) {
+                    Button(secondaryAction.label, action: secondaryAction.action)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .font(.callout)
+                        .accessibilityIdentifier(secondaryAction.identifier)
+                    if let caption = secondaryAction.caption {
+                        Text(caption)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
