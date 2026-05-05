@@ -246,14 +246,15 @@ struct AppPreviewsView: View {
 
 // MARK: - WelcomeView
 
-/// "Welcome to Life Clock" + tagline + Let's go.
+/// Lead headline + Let's go. The persistent wordmark above already says
+/// "LIFE CLOCK"; the body title needs to add weight, not echo. Lead with
+/// the value prop instead.
 struct WelcomeView: View {
     let onContinue: () -> Void
     var body: some View {
         OnboardingScaffold(
             screenID: "welcome",
-            title: "Welcome to Life Clock.",
-            bodyText: "Earn time with better habits.",
+            title: "Earn time with better habits.",
             continueLabel: "Let's go",
             onContinue: onContinue
         ) { EmptyView() }
