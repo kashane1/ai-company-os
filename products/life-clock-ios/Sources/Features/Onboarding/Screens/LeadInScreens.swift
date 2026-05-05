@@ -150,7 +150,7 @@ struct ColdOpenView: View {
         .onTapGesture { advance() }
         .onAppear {
             telemetry.value.screenAppeared("coldOpen")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { advance() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { advance() }
         }
         .accessibilityAddTraits(.isButton)
         .accessibilityLabel("Welcome screen — tap to begin")
