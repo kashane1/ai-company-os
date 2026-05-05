@@ -19,10 +19,12 @@ struct TodayView: View {
     @State private var mascotWakeTrigger: Int = 0
     @State private var hasFiredOnce: Bool = false
 
-    /// Total wall-clock budget for the wake sequence. Operator constraint:
-    /// "<600ms total." Hand sweep + count-up share this duration; the
-    /// mascot scale keyframe runs concurrently and finishes inside it.
-    private static let wakeDuration: Double = 0.50
+    /// Wall-clock budget for the wake sequence. Hand sweep + count-up
+    /// share this duration; the mascot scale keyframe runs concurrently
+    /// and finishes inside it. Bumped from 0.50s to 1.0s after live
+    /// review — 0.5s read as "did something just flash?", 1.0s feels
+    /// like a greeting.
+    private static let wakeDuration: Double = 1.0
 
     /// The delta value driving both the headline count-up and the mascot
     /// hand sweep. When `wakeProgress < 1` (mid-animation), this is a
@@ -238,8 +240,8 @@ struct TodayView: View {
                 } keyframes: { _ in
                     KeyframeTrack {
                         CubicKeyframe(1.00, duration: 0.0)
-                        CubicKeyframe(1.06, duration: 0.20)
-                        SpringKeyframe(1.00, duration: 0.30, spring: .bouncy)
+                        CubicKeyframe(1.06, duration: 0.40)
+                        SpringKeyframe(1.00, duration: 0.60, spring: .bouncy)
                     }
                 }
                 .accessibilityIdentifier("today.mascot")
