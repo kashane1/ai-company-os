@@ -41,6 +41,8 @@ struct EngineRevealAndDialView: View {
         )
     }
 
+    @State private var hasPulsed = false
+
     var body: some View {
         engineDialBody
             .accessibilityIdentifier("onboarding.engineRevealAndDial")
@@ -50,14 +52,31 @@ struct EngineRevealAndDialView: View {
                 engineYears = ClockEngine(clock: store.clock)
                     .calculateBaseline(profile: snapshot)
                     .projectedAgeYears
-                mascotOverride.minutes = mascotDelta
+                runRevealPulse()
             }
             .onChange(of: dialYears) { _, _ in
-                mascotOverride.minutes = mascotDelta
+                // Once the user starts dialing, the dial drives the
+                // mascot. Don't re-pulse — that'd fight the input.
+                if hasPulsed { mascotOverride.minutes = mascotDelta }
             }
             .onDisappear {
                 mascotOverride.minutes = nil
             }
+    }
+
+    /// First glance at the user's clock should land with a beat, not a
+    /// silent number. Pulse forward, ease toward the dial-zero anchor,
+    /// then hand control off to the dial. Same shape as the
+    /// MeetYourClock and ArchetypeReveal beats.
+    private func runRevealPulse() {
+        mascotOverride.minutes = 110
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+            mascotOverride.minutes = -55
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                mascotOverride.minutes = mascotDelta
+                hasPulsed = true
+            }
+        }
     }
 
     private var engineDialBody: some View {
