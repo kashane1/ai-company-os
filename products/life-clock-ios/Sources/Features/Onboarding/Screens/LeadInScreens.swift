@@ -264,9 +264,14 @@ struct WelcomeView: View {
 // MARK: - MeetYourClockView
 
 /// Personifies the clock mascot. The mascot itself lives in the persistent
-/// header; the body just frames the metaphor.
+/// header; on appear, briefly nudge the override so the hands shift the
+/// instant the user reads "the hands move with you" — pay off the
+/// promise instead of stating it past a static clock.
 struct MeetYourClockView: View {
     let onContinue: () -> Void
+
+    @Environment(MascotOverride.self) private var mascotOverride
+
     var body: some View {
         OnboardingScaffold(
             screenID: "meetYourClock",
@@ -274,6 +279,20 @@ struct MeetYourClockView: View {
             bodyText: "Healthy habits earn time. Bad days cost it. The hands move with you.",
             onContinue: onContinue
         ) { EmptyView() }
+            .onAppear { runWakeNudge() }
+            .onDisappear { mascotOverride.minutes = nil }
+    }
+
+    /// Tiny demo: drift positive ~+90 min for half a second, then settle.
+    /// Shows reactivity without committing to a value before any input.
+    private func runWakeNudge() {
+        mascotOverride.minutes = 90
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            mascotOverride.minutes = -45
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                mascotOverride.minutes = 0
+            }
+        }
     }
 }
 
