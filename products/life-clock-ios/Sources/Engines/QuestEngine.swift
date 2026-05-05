@@ -183,6 +183,13 @@ struct QuestEngine {
     }
 
     private func nutritionHabitVariants(today: Date, habits: HabitLog?) -> [Quest] {
+        // Heavy-alcohol day: the recovery quest in the sleep/recovery slot
+        // IS the message for the day. Surfacing a nutrition quest alongside
+        // dilutes that single, gentle nudge — the prior single-slot engine
+        // chose recovery and stopped, and the picker keeps that semantics.
+        if habits?.alcoholLevel.lowercased() == "heavy" {
+            return []
+        }
         let dietRoughQuest = Quest(
             slug: "nutrition.one-better-meal.v1",
             date: today,
