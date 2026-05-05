@@ -109,7 +109,10 @@ struct OnboardingCoordinator: View {
         case .reactiveSlider:
             // visibilityFraming dropped in v2 — abstract framing that
             // didn't match copy used elsewhere in the app.
-            ReactiveSliderView(onContinue: { advance(to: .personalizeIntro) })
+            // personalizeIntro also cut (2026-05-05): "Let's calibrate
+            // your clock. A few questions." was filler restating what
+            // reactiveSlider had just demonstrated literally.
+            ReactiveSliderView(onContinue: { advance(to: .goalPick) })
 
         case .visibilityFraming:
             VisibilityFramingView(onContinue: { advance(to: .personalizeIntro) })
