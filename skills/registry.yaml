@@ -148,6 +148,27 @@ skills:
       claude: adapters/claude/ios-simulator-ux-audit.md
     project_skill: .claude/skills/ios-simulator-ux-audit.md
 
+  - id: simulator-driven-polish
+    name: Simulator-Driven Polish
+    path: canonical/simulator-driven-polish/skill.md
+    owner_agent: ios
+    # Editing counterpart to ios-simulator-ux-audit. Claude-only at v1.
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Contract-freeze fixture at
+    # skills/canonical/simulator-driven-polish/fixtures/happy_path.yaml
+    # locks the four modes, four decision tiers, required input fields,
+    # strong-v1 capabilities, stop conditions, failure modes, vision-doc
+    # sections, and handoff channel against silent drift. Validating
+    # python test is a v1.1 follow-up; until it lands, fixture_status is
+    # `missing` and the loader will refuse autonomous mode for this skill.
+    fixture_status: missing
+    source: internal
+    adapters:
+      claude: adapters/claude/simulator-driven-polish.md
+    project_skill: .claude/skills/simulator-driven-polish.md
+
   - id: supervisor-goal-decomposition
     name: Supervisor Goal Decomposition
     path: canonical/shared/supervisor-goal-decomposition.md

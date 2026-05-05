@@ -1,0 +1,101 @@
+# Life Clock — Vision
+
+> **Status:** Draft synthesized from the founder pack (00–14), the v2 onboarding copy, and the lighting convention memory. Operator review pending. The skill READS this file every vision-driven cycle. It may APPEND to `## Open questions`. It must NOT edit `## Decided constraints` — that section is the ratchet, operator-only.
+>
+> **Initialized:** 2026-05-04. Source docs: [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md), [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md), [03_PRD.md](03_PRD.md), [06_UX_GAME_LOOP.md](06_UX_GAME_LOOP.md), [14_OPEN_QUESTIONS.md](14_OPEN_QUESTIONS.md), [onboarding-copy/v2.md](onboarding-copy/v2.md), brand-guidelines synthesis.
+
+---
+
+## One-line soul
+
+A HealthKit-powered longevity game that turns today's habits into visible time on a personal clock — agency, not fate.
+
+## Core daily experience
+
+The 30-second loop a returning user lives:
+
+1. **Open Today.** The Life Clock is the first thing they see — hands moved since yesterday, today's delta in plain language ("+42 minutes today" or "−18 minutes — here's why").
+2. **Read the cause.** Top three drivers, one line each. ("Your strongest drivers were steps, sleep, and no alcohol logged.") The app never asserts a number it can't justify.
+3. **Take one action.** Complete one of the day's 1–3 quests, OR log one quick optional habit. Either is enough; both is bonus.
+4. **Close the app feeling motivated.** Not anxious. Not chastised. Every negative delta is paired with an actionable next step.
+5. **Tomorrow, the trajectory updates.** Passive HealthKit data and the small thing they did yesterday move the hands. The clock is a mirror that responds to behavior.
+
+Returning weekly, the user opens the **Time Ledger** to see where the time came from, and **Weekly Report** to see what to lever next.
+
+## What it is not
+
+- Not a medical device, diagnosis tool, or doctor replacement.
+- Not a real death-date oracle. The clock is an **estimate** of trajectory, not a prophecy.
+- Not a calorie tracker, food log, or photo-meal app.
+- Not a clinical longevity workup (no bloodwork interpretation in v1).
+- Not an ad-supported product. HealthKit data is never sold, mined for marketing, or used outside the app's loop.
+- Not a points/coins/XP game. The currency is **time**, full stop.
+- Not emotionally punitive by default. Drama is allowed; cruelty is not.
+- Not a daily streak-shaming app. Missed days are recoverable, not catastrophic.
+
+## Tone
+
+**Default: motivating, elegant, direct, slightly dramatic.** Coach is the default tone mode; Gentle and Memento Mori are user-selectable.
+
+The voice is closer to a respected trainer than to a wellness influencer. Terse over chatty. Confident over hedged. Specific over generic. The drama earns its place by being *true to the data* — never manufactured for engagement.
+
+Three sanctioned modes:
+
+- **Gentle** — healthspan score, time earned, future-self framing. No death-date language.
+- **Coach (default)** — uses Life Clock terminology, avoids harsh language, balanced.
+- **Memento Mori** — direct countdown framing, dramatic, but never claims medical certainty.
+
+A new tone mode (e.g. "Firm/Direct") is a Feature-tier decision and requires operator approval before shipping.
+
+## Open questions
+
+These are unresolved choices the skill should *raise* if it encounters them, not silently answer. The skill MAY append new entries here. Numbered for stable reference; operator may move resolved entries to `Decided constraints` with a date.
+
+> Seed batch from [14_OPEN_QUESTIONS.md](14_OPEN_QUESTIONS.md) and post-onboarding observations. Reduced and rephrased for the loop's purposes.
+
+1. **How intense should negative feedback be?** A −90-minute day on the Memento Mori tone — what does the screen actually look like? Where is the line between dramatic and punitive?
+2. **Should users be able to hide the clock and see only time earned?** Strategic question — does removing the clock undermine the product's identity, or is it the kindest setting for anxious users?
+3. **What is the minimum daily manual log that feels useful but not annoying?** Currently the loop asks for habit logs — at what point does asking become friction that drops retention?
+4. **How does the app communicate uncertainty without feeling weak?** Confidence is part of the product (P3 in strategy), but a wishy-washy clock undermines drama. What does "honest but compelling" look like visually?
+5. **Should a Pro user see different drivers / different quests?** Currently Pro is mostly the unlock surface (overrides, advanced trends). Should the daily loop itself feel meaningfully different?
+6. **First-paywall placement.** After initial reveal, after first weekly report, or never auto-show (Profile-only)? Trade: revenue vs. trust.
+7. **Streak treatment.** The product is anti-streak-shaming, but streaks compound retention. Is there a *kind* streak that survives a missed day without shame?
+8. **Tone-mode discoverability.** Three modes exist, most users will never change from Coach. Is that fine? Or should the app prompt a tone reconsideration after some negative-delta days?
+
+## Decided constraints
+
+> **OPERATOR-ONLY edits.** The skill cannot modify this section. Each entry should be dated and sourced. The skill refuses any move that contradicts an entry here and escalates as a Vision-question instead.
+
+### Product
+
+- **2026-05-04 — Currency is time, not points or XP.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"Product principles" #7. Time is emotionally legible. Any proposal to introduce abstract points / coins / levels is rejected; escalate as a Vision-question.
+- **2026-05-04 — Trajectory, not prophecy.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"Product principles" #2 and [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md) §"What v1 should not do". The app never claims to know a real death date; the clock is an estimate of trajectory.
+- **2026-05-04 — Confidence is shipped, not hidden.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"Product principles" #3. Sparse data lowers confidence; the app must NEVER invent precision to look more authoritative.
+- **2026-05-04 — Passive first, manual second.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"Product principles" #4. HealthKit-derived signal is the trunk; manual input is coarse, quick, and optional.
+- **2026-05-04 — Default is motivating, not punishing.** Source: [06_UX_GAME_LOOP.md](06_UX_GAME_LOOP.md) §"UX risk". Every negative delta must be paired with an actionable next step. Drama is allowed; cruelty is not.
+- **2026-05-04 — Three tone modes; Coach is default.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"App personality" + [06_UX_GAME_LOOP.md](06_UX_GAME_LOOP.md) §"Tone modes". A new tone mode is a Feature-tier decision.
+
+### Privacy / data
+
+- **2026-05-04 — HealthKit data is sacred.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"Product principles" #5. No ads. No sale of HealthKit data. No marketing/data-mining use. Any proposal touching analytics on health data is rejected outright.
+- **2026-05-04 — Local-first by default.** Source: [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md) §"What v1 should not do" + [03_PRD.md](03_PRD.md). v1 does not require an account; cloud sync is opt-in if it ships at all.
+
+### Scope (v1 non-goals)
+
+- **2026-05-04 — No bloodwork interpretation in v1.** Source: [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md). Calorie tracking and photo meals are out of scope until the daily loop has proven retention.
+- **2026-05-04 — No AI health concierge in v1.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"Product principles" #6. Daily loop must prove behavior change before clinical depth is added.
+
+### Visual conventions
+
+- **2026-05-04 — Lighting convention** *(operator memory).* Opacity 0.22, offset ratio (0.35, 0.85), radius ratio 0.55× of the reference size. World-fixed via inverse-rotation math for rotating elements. Source: user auto-memory ([feedback_life_clock_lighting_convention.md](../../../../../.claude/projects/-Users-simons-ai-company-os/memory/feedback_life_clock_lighting_convention.md)). Any visual change touching lighting/shadows must respect these constants unless the operator explicitly authorizes a deviation.
+- **2026-05-04 — Persistent mascot header.** Source: [onboarding-copy/v2.md](onboarding-copy/v2.md). The "LIFE CLOCK" small-caps wordmark plus 120×120 mascot animation appears at the top of every screen post-cold-open. The mascot reflects per-answer delta or screen-specific override. Removing this is a Feature-tier decision.
+
+### Monetization
+
+- **2026-05-04 — Annual-first pricing.** Source: [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md) §"Initial monetization" + [07_MONETIZATION.md](07_MONETIZATION.md). Avoid weekly pricing entirely (RevenueCat 2026 retention benchmark). Annual is the headline tier.
+- **2026-05-04 — Free tier is real, not crippled.** Source: [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md). Starting Life Clock + basic Apple Health import + 3 daily quests + 7-day trend remain free. Reducing this surface is a Vision-question.
+
+### Tech
+
+- **2026-05-04 — iPhone-first, iOS-only at v1.** Source: [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md) §"Concept". iPad / Watch / web are out of scope until iPhone retention is proven.
+- **2026-05-04 — Category: Health & Fitness, not Games.** Source: [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md) §"Category recommendation". The game mechanic is the retention layer; the buyer intent is health improvement. App Store category change is a Vision-question.

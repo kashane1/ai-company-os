@@ -29,6 +29,7 @@ If multiple trigger phrases could apply to a user's message, Claude MUST ask whi
 - **verification-loop-runtime** — runtime-evidence half of the verification-loop split; owns the `stale_postmortems` sub-check (operator hygiene, not registry drift)
 - **ios-build-and-sign** — produce a signed, validated iOS binary ready for TestFlight (Codex runs fastlane; Claude validates the artifact)
 - **ios-simulator-ux-audit** — run a repeatable simulator-driven UX audit on an iOS product, capture findings with evidence, and leave behind reusable docs and test hooks
+- **simulator-driven-polish** — drive the iOS app live in Simulator, identify gaps with explicit decision authority (Polish/Stretch/Feature/Vision-question), fix in tight commits, and surface only the decisions that need the operator. Modes: fix-list, freeform-polish, reference-match, vision-driven. See `docs/skills/simulator-driven-polish-guide.md` for the full operator guide.
 - **approval-flow-review** *(deferred)* — pre-validate an approval request against `packages/policies/approvals.py` before it reaches the founder queue
 - **test-coverage-audit** *(deferred)* — audit a worktree diff against the coverage policy in `packages/policies/testing.py` before commit
 
@@ -57,6 +58,7 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "check stale postmortems" / "audit operator hygiene" / "run the runtime verification loop" → `skills/canonical/verification-loop-runtime/skill.md`
 - "build the iOS app" / "sign the build" / "archive and sign" / "produce a TestFlight-ready binary" → `skills/adapters/claude/ios-build-and-sign.md`
 - "audit the UX in simulator" / "run a simulator UX audit" / "do an iOS UX audit" / "run a UX pass on the iOS app" → `skills/adapters/claude/ios-simulator-ux-audit.md`
+- "polish the app" / "polish loop" / "iterate on the iOS app" / "run the polish loop" / "drive the simulator and improve the app" / "dogfood the app" / "fix this list of issues in the app" / "match this reference in the app" / "do a vision pass on the app" / "run a vision-driven session" → `skills/adapters/claude/simulator-driven-polish.md` (editing — confirm mode before starting; if the operator wants review-only, route to `ios-simulator-ux-audit` instead)
 
 <!-- approval-flow-review and test-coverage-audit trigger phrases deferred until each skill activates (stage: active in registry). Adding them now would route users to frozen no-op contracts. -->
 

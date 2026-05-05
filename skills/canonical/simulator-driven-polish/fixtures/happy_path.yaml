@@ -1,0 +1,72 @@
+# Contract-freeze fixture for simulator-driven-polish. Locks the canonical
+# body's mode names, decision tiers, required input fields, strong-v1
+# capabilities, stop conditions, and failure modes against silent drift.
+# Drift here means the skill's contract surface changed without an explicit
+# fixture update.
+- name: happy_path
+  description: Canonical body still exposes the polish-loop contract.
+  input:
+    skill_file: canonical/simulator-driven-polish/skill.md
+  expected:
+    required_section_headings:
+      - "## Modes"
+      - "## Decision Layer (the autonomy contract)"
+      - "## Vision Artifact (`docs/products/<product-id>/vision.md`)"
+      - "## Procedure"
+      - "## Strong-v1 Capabilities (load-bearing — do not skip)"
+      - "## Reference Mode"
+      - "## Vision-Driven Mode"
+      - "## Computer-use Final Checkpoint (opt-in / mandatory in vision mode)"
+      - "## Stop Conditions"
+      - "## Output Style"
+      - "## Failure Modes"
+      - "## Boundaries"
+    required_modes:
+      - "fix-list"
+      - "freeform-polish"
+      - "reference-match"
+      - "vision-driven"
+    required_decision_tiers:
+      - "Polish"
+      - "Stretch"
+      - "Feature"
+      - "Vision-question"
+    required_input_fields:
+      - "product_id"
+      - "product path under products/<product-id>-ios/"
+      - "Xcode scheme name"
+      - "target Simulator device + iOS version"
+      - "mode (fix-list | freeform-polish | reference-match | vision-driven)"
+      - "iteration cap"
+    required_preconditions:
+      - "Xcode scheme exists in the project"
+      - "target Simulator runtime is installed"
+      - "app builds for the chosen simulator destination"
+      - "if mode is vision-driven, docs/products/<product-id>/vision.md exists or operator has authorized bootstrap"
+    required_strong_v1_capabilities:
+      - "Seed harness"
+      - "Per-iteration screenshot regression diff"
+      - "Accessibility-id accrual"
+      - "Session log → PR body"
+    required_failure_modes:
+      - "Simulator won't boot"
+      - "First launch crashes"
+      - "Onboarding gated by permission"
+      - "No seed harness"
+      - "Build fails twice consecutively"
+      - "Two-recurrence rule fires"
+      - "Operator authorizes contradicting Decided constraints"
+    required_handoff_channel:
+      - "docs/products/<product-id>/polish-<YYYY-MM-DD>.md"
+    required_vision_sections:
+      - "One-line soul"
+      - "Core daily experience"
+      - "What it is not"
+      - "Tone"
+      - "Open questions"
+      - "Decided constraints"
+    required_stop_conditions:
+      - "Iteration cap reached"
+      - "Two-recurrence rule fires"
+      - "Build fails 2 cycles in a row"
+      - "Ask-tier finding requires operator input"
