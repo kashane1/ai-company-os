@@ -135,31 +135,6 @@ struct OnboardingScaffold<Content: View>: View {
 
 // MARK: - Personalize intro
 
-struct VisibilityFramingView: View {
-    let onContinue: () -> Void
-    var body: some View {
-        OnboardingScaffold(
-            screenID: "visibilityFraming",
-            title: "Visibility is the system that works.",
-            bodyText: "Most days slip through unnoticed. Your clock is a way to make them count again — by seeing them.",
-            onContinue: onContinue
-        ) { EmptyView() }
-    }
-}
-
-struct PersonalizeIntroView: View {
-    let onContinue: () -> Void
-    var body: some View {
-        OnboardingScaffold(
-            screenID: "personalizeIntro",
-            title: "Let's calibrate your clock.",
-            bodyText: "A few questions. The clock moves as you answer.",
-            continueLabel: "Start",
-            onContinue: onContinue
-        ) { EmptyView() }
-    }
-}
-
 struct GoalPickView: View {
     let onContinue: () -> Void
     @Environment(OnboardingDraft.self) private var draft

@@ -25,12 +25,12 @@ final class LifeClockUITests: XCTestCase {
             app.otherElements["onboarding.coldOpen"].waitForExistence(timeout: 8),
             "first screen of the new flow"
         )
-        // ColdOpen auto-advances or accepts a tap; tap to skip the 2s timer.
-        app.otherElements["onboarding.coldOpen"].tap()
+        // ColdOpen auto-advances ~1.2s; let it ride or tap to skip.
 
-        XCTAssertTrue(app.otherElements["onboarding.appPreviews"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.continue"].tap()
-
+        // welcome -> meetYourClock -> reactiveSlider -> goalPick.
+        // appPreviews / visibilityFraming / personalizeIntro removed
+        // 2026-05-05; their funnel rows roll up via
+        // OnboardingScreen.deprecatedScreens.
         XCTAssertTrue(app.otherElements["onboarding.welcome"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
 
@@ -38,13 +38,6 @@ final class LifeClockUITests: XCTestCase {
         app.buttons["onboarding.continue"].tap()
 
         XCTAssertTrue(app.otherElements["onboarding.reactiveSlider"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.continue"].tap()
-
-        // Phase 4 personalize intro
-        XCTAssertTrue(app.otherElements["onboarding.visibilityFraming"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.continue"].tap()
-
-        XCTAssertTrue(app.otherElements["onboarding.personalizeIntro"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
 
         // Goal pick — must select before continue is enabled

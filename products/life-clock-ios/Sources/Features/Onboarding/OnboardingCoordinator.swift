@@ -100,24 +100,12 @@ struct OnboardingCoordinator: View {
     @ViewBuilder
     private func destination(for screen: OnboardingScreen) -> some View {
         switch screen {
-        case .appPreviews:
-            AppPreviewsView(onContinue: { advance(to: .welcome) })
         case .welcome:
             WelcomeView(onContinue: { advance(to: .meetYourClock) })
         case .meetYourClock:
             MeetYourClockView(onContinue: { advance(to: .reactiveSlider) })
         case .reactiveSlider:
-            // visibilityFraming dropped in v2 — abstract framing that
-            // didn't match copy used elsewhere in the app.
-            // personalizeIntro also cut (2026-05-05): "Let's calibrate
-            // your clock. A few questions." was filler restating what
-            // reactiveSlider had just demonstrated literally.
             ReactiveSliderView(onContinue: { advance(to: .goalPick) })
-
-        case .visibilityFraming:
-            VisibilityFramingView(onContinue: { advance(to: .personalizeIntro) })
-        case .personalizeIntro:
-            PersonalizeIntroView(onContinue: { advance(to: .goalPick) })
         case .goalPick:
             GoalPickView(onContinue: { advance(to: .baselineDOB) })
 

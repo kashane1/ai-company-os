@@ -10,14 +10,11 @@ import Foundation
 /// of their phase block when possible.
 enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
     // Lead-in (Phase 3.5)
-    case appPreviews
     case welcome
     case meetYourClock
     case reactiveSlider
 
     // Personalize intro
-    case visibilityFraming
-    case personalizeIntro
     case goalPick
 
     // Baseline data collection
@@ -69,5 +66,11 @@ extension OnboardingScreen {
         // 2026-05-03 — `lifeGridFull` merged into `lifeGridRemaining`
         // (single screen showing remaining-weeks dot grid).
         "lifeGridFull": .lifeGridRemaining,
+        // 2026-05-05 — v2 routing dropped these abstract lead-in
+        // beats. Historical funnel rows roll up to the screen that
+        // absorbed their place in the flow.
+        "appPreviews": .welcome,
+        "visibilityFraming": .goalPick,
+        "personalizeIntro": .goalPick,
     ]
 }
