@@ -111,11 +111,21 @@ struct ArchetypeRevealView: View {
     let onContinue: () -> Void
     @Environment(LifeClockStore.self) private var store
     @Environment(OnboardingDraft.self) private var draft
+    @Environment(MascotOverride.self) private var mascotOverride
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
 
     private var result: ClockEngine.ArchetypeResult {
         let snapshot = draft.materialize()
         return ClockEngine(clock: store.clock).computeArchetype(profile: snapshot)
+    }
+
+    /// Pulse magnitude scales with recovery capacity so a "Marathoner"
+    /// (high recovery) gets a brighter forward swing than someone with
+    /// slow recovery — the mascot signals the archetype, not just
+    /// movement. Capped at ±120 min so it stays in "breath" territory.
+    private var pulseMinutes: Int {
+        let signed = (result.recoveryCapacity * 2 - 1)  // [-1, 1]
+        return Int((signed * 120).rounded())
     }
 
     var body: some View {
@@ -143,6 +153,21 @@ struct ArchetypeRevealView: View {
                     leading: "Slow",
                     trailing: "Strong"
                 )
+            }
+        }
+        .onAppear { runArchetypePulse() }
+        .onDisappear { mascotOverride.minutes = nil }
+    }
+
+    /// Brief reactivity beat tied to the archetype: pulse, settle to a
+    /// recovery-capacity-shaped value, then release back to the
+    /// per-answer running estimate. Reads as "the clock noticed you".
+    private func runArchetypePulse() {
+        mascotOverride.minutes = pulseMinutes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            mascotOverride.minutes = pulseMinutes / 2
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                mascotOverride.minutes = nil
             }
         }
     }
