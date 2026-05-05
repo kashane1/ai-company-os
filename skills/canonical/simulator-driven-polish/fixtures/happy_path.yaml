@@ -57,7 +57,7 @@
       - "Two-recurrence rule fires"
       - "Operator authorizes contradicting Decided constraints"
     required_handoff_channel:
-      - "docs/products/<product-id>/polish-<YYYY-MM-DD>.md"
+      - "docs/products/<product-id>/polish-<YYYY-MM-DD>-<slug>.md"
     required_vision_sections:
       - "One-line soul"
       - "Core daily experience"

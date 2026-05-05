@@ -170,7 +170,7 @@ Triggers (any of):
 You get back:
 
 1. **A stack of commits** on the working branch — one logical fix per commit.
-2. **Session log** at `docs/products/<product-id>/polish-<YYYY-MM-DD>.md`. Append-only; same-day re-runs add a `## Session HH:MM` H2.
+2. **Session log** at `docs/products/<product-id>/polish-<YYYY-MM-DD>-<slug>.md`. The slug is a 2–5 word kebab-case descriptor of the session's focus (e.g. `today-screen-morning-greeting`, `history-density-match`, `vision-day7-returning-user`). Each session gets its own file. Slug collisions resolve to `-2`, `-3`, etc. Same-day continuations (paused and resumed) MAY append `## Session HH:MM` H2 to the existing file with your confirmation.
 3. **PR body draft** derived from the session log.
 4. **Fresh goldens** under `products/<product-id>-ios/.polish/goldens/`.
 5. **A11y identifiers** added wherever the loop touched UI.
@@ -276,7 +276,7 @@ docs/products/<product-id>/
   vision.md                         ← per-product vision (vision-driven mode)
   references/<slot>/                ← reference assets (reference-match mode)
   references/<slot>/intent.md       ← extracted design intent spec (auto-generated)
-  polish-<YYYY-MM-DD>.md            ← per-session log (auto-appended)
+  polish-<YYYY-MM-DD>-<slug>.md            ← per-session log (auto-appended)
 
 products/<product-id>-ios/.polish/goldens/
   <screen>.png                      ← per-screen golden screenshots (auto-managed)

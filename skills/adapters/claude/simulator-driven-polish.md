@@ -86,7 +86,18 @@ For each Ask in the batch, include: a short statement, the relevant screenshot, 
 
 ## Session log
 
-Append-only, dated, structured per the canonical Output Style. Path: `docs/products/<product-id>/polish-<YYYY-MM-DD>.md`. If file exists for the day, append `## Session HH:MM` H2. The log IS the handoff — keep it complete enough that the PR body can be derived directly from it.
+Path: `docs/products/<product-id>/polish-<YYYY-MM-DD>-<slug>.md`. Structured per the canonical Output Style.
+
+**Pick the slug at session start.** 2–5 kebab-case words that describe the session's focus, derived from the operator's idea + mode. Examples:
+
+- `polish-2026-05-05-today-screen-morning-greeting.md`
+- `polish-2026-05-05-history-density-match.md`
+- `polish-2026-05-05-vision-day7-returning-user.md`
+- `polish-2026-05-05-fix-list-onboarding-back-nav.md`
+
+Surface the slug to the operator before starting and let them override if it doesn't read right. If the file already exists, append `-2`, `-3`, etc. Don't merge unrelated work into one file. Same-day continuation (paused mid-session, resumed) MAY append `## Session HH:MM` H2 to the existing file — but only with operator confirmation that it is a continuation.
+
+The log IS the handoff — keep it complete enough that the PR body can be derived directly from it.
 
 ## At session end
 

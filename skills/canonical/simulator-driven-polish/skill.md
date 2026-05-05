@@ -16,7 +16,7 @@ inputs:
   - optional design-system or convention doc
 outputs:
   - a stack of focused commits on the working branch (one logical fix per commit)
-  - a session log at docs/products/<product-id>/polish-<YYYY-MM-DD>.md (append timestamped H2 if exists)
+  - a session log at docs/products/<product-id>/polish-<YYYY-MM-DD>-<slug>.md (slug = kebab-case 2–5 word descriptor of the session's focus, derived from operator's idea/mode at session start; collisions resolved by appending -2, -3, etc.)
   - updated golden screenshots under products/<product-id>-ios/.polish/goldens/
   - new accessibility identifiers added to driven elements
   - optional vision.md bootstrap or appended Open Questions
@@ -52,7 +52,7 @@ validation_steps:
 handoff_contract:
   what_is_handed_off: the commit stack + session log; PR body is derived from the log
   handed_to: operator for review, then standard PR pipeline
-  channel: docs/products/<product-id>/polish-<YYYY-MM-DD>.md (the session log IS the handoff)
+  channel: docs/products/<product-id>/polish-<YYYY-MM-DD>-<slug>.md (the session log IS the handoff)
 ---
 
 # Simulator-Driven Polish
@@ -165,7 +165,7 @@ Compounds across sessions into a fully-labeled app, free XCUITest stubs, and che
 
 ### 4. Session log → PR body
 
-The session log under `docs/products/<product-id>/polish-<YYYY-MM-DD>.md` follows a stable structure (see Output Style). At session end, the loop emits a PR body derived from the log: summary line, list of commits with one-line rationale, screenshots for visually-meaningful changes, queued Asks (resolved + outstanding), and a "next pass" section.
+The session log under `docs/products/<product-id>/polish-<YYYY-MM-DD>-<slug>.md` follows a stable structure (see Output Style). At session end, the loop emits a PR body derived from the log: summary line, list of commits with one-line rationale, screenshots for visually-meaningful changes, queued Asks (resolved + outstanding), and a "next pass" section.
 
 ## Reference Mode
 
@@ -224,10 +224,10 @@ On stop, ALWAYS emit the session log + PR body, even on partial completion.
 
 ## Output Style
 
-Session log structure (`docs/products/<product-id>/polish-<YYYY-MM-DD>.md`):
+Session log structure (`docs/products/<product-id>/polish-<YYYY-MM-DD>-<slug>.md`):
 
 ```
-# Polish Session — <product> — <YYYY-MM-DD>
+# Polish Session — <product> — <YYYY-MM-DD> — <slug>
 
 ## Mode
 <mode + payload summary>
@@ -260,7 +260,9 @@ Session log structure (`docs/products/<product-id>/polish-<YYYY-MM-DD>.md`):
 - <follow-ups for the next session>
 ```
 
-If the file already exists for the day, append a timestamped `## Session HH:MM` H2 rather than creating a sibling.
+**Slug derivation.** At session start, after confirming inputs, the skill picks a 2–5 word kebab-case slug describing the session's focus (e.g. `today-screen-morning-greeting`, `history-density-match`, `vision-day7-returning-user`, `fix-list-onboarding-back-nav`). For `fix-list` mode, summarize the list theme. For `vision-driven` open-ended runs, prefix with `vision-` and follow with the seed state or focus. Confirm the slug with the operator before starting so they can override if it doesn't read right.
+
+**Collision policy.** If `polish-<YYYY-MM-DD>-<slug>.md` already exists, append `-2`, then `-3`, etc. Don't merge unrelated work into one file. Same-day re-runs that share a focus (e.g. paused mid-session, resumed an hour later) MAY append a `## Session HH:MM` H2 to the existing file — but only if the operator confirms it's a continuation, not a new effort.
 
 ## Failure Modes
 
