@@ -7,10 +7,11 @@ import SwiftUI
 
 // MARK: - Analyzing
 
-/// Three sequential progress bars (~1.5s each, 4.5s total) showing
+/// Three sequential progress bars (~0.8s each, 2.4s total) showing
 /// "computation" before the archetype reveal. Builds anticipation;
 /// dropped in Reduce Motion to a single 1.5s gate per /deepen-plan
-/// performance review.
+/// performance review. Earlier 1.5s/stage felt like filler — the
+/// archetype is the payoff, not the loading bar.
 struct AnalyzingView: View {
     let onContinue: () -> Void
     @Environment(LifeClockStore.self) private var store
@@ -85,11 +86,12 @@ struct AnalyzingView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { advance() }
             return
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        let perStage = 0.8
+        DispatchQueue.main.asyncAfter(deadline: .now() + perStage) {
             stage = 1
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + perStage) {
                 stage = 2
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + perStage) {
                     stage = 3
                     advance()
                 }
