@@ -7,15 +7,22 @@ struct TodayView: View {
     @State private var quickLogPresented: Bool = false
     @State private var reflectionPresented: Bool = false
 
-    /// Wake-animation state — see `MorningWake`. `wakeProgress` ramps 0→1
-    /// once per local day on first foreground; both the headline number and
-    /// the mascot hands derive from it so they animate in lockstep from a
-    /// single source. `mascotWakeTrigger` is the one-shot input to the
-    /// mascot scale keyframe (incremented to fire). Both stay at "settled"
-    /// values (1.0 / 0) when reduce-motion is on or when the day's wake
-    /// has already played, so the screen renders identically to before.
+    /// Wake animation: `wakeProgress` ramps 0→1 every time the app opens
+    /// (cold launch + foreground). Both the headline number and the mascot
+    /// hands derive from it, so they animate in lockstep from a single
+    /// source. `mascotWakeTrigger` is the one-shot input to the mascot
+    /// scale keyframe (increment to fire). Tab-switches inside the same
+    /// session do NOT replay — `hasFiredOnce` keeps the on-appear path
+    /// honest, while scenePhase handles every fresh foreground.
+    /// Cadence per `feedback_life_clock_wake_animation.md` memory.
     @State private var wakeProgress: Double = 1.0
     @State private var mascotWakeTrigger: Int = 0
+    @State private var hasFiredOnce: Bool = false
+
+    /// Total wall-clock budget for the wake sequence. Operator constraint:
+    /// "<600ms total." Hand sweep + count-up share this duration; the
+    /// mascot scale keyframe runs concurrently and finishes inside it.
+    private static let wakeDuration: Double = 0.50
 
     /// The delta value driving both the headline count-up and the mascot
     /// hand sweep. When `wakeProgress < 1` (mid-animation), this is a
@@ -77,37 +84,41 @@ struct TodayView: View {
                     onDismiss: { reflectionPresented = false }
                 )
             }
-            .onAppear { triggerMorningWakeIfNeeded() }
+            .onAppear {
+                // Cold launch: fire once. Tab-switches back to Today
+                // re-call .onAppear too — the flag suppresses replay
+                // within the same session. Background→foreground is
+                // handled separately by the scenePhase listener below.
+                guard !hasFiredOnce else { return }
+                hasFiredOnce = true
+                triggerWakeIfPossible()
+            }
             .onChange(of: scenePhase) { _, newPhase in
-                if newPhase == .active { triggerMorningWakeIfNeeded() }
+                if newPhase == .active { triggerWakeIfPossible() }
             }
         }
     }
 
-    /// Plays the once-per-day wake animation if all gates pass:
+    /// Plays the wake animation if it's safe to:
     /// - reduce-motion is OFF
     /// - not running under XCUITest (deterministic snapshots)
-    /// - today's wake has not already fired (per `MorningWake`)
     /// - we have a real estimate to count up to (the mascot+headline
     ///   already render "Loading…" otherwise; no point sweeping to 0)
     ///
     /// Snaps `wakeProgress` to 0 with no animation, then `withAnimation`
-    /// to 1 over `MorningWake.totalDuration`. The mascot scale keyframe
-    /// fires off `mascotWakeTrigger` and runs concurrently — its own
-    /// duration sits inside the sweep budget.
-    private func triggerMorningWakeIfNeeded() {
+    /// to 1 over `wakeDuration`. The mascot scale keyframe fires off
+    /// `mascotWakeTrigger` and runs concurrently inside the same budget.
+    private func triggerWakeIfPossible() {
         guard !reduceMotion,
               !LifeClockLaunchConfiguration.current.isUITest,
-              store.todayEstimate != nil,
-              MorningWake.shouldWake(now: store.clock.now(), calendar: store.clock.calendar)
+              store.todayEstimate != nil
         else { return }
 
         wakeProgress = 0
-        withAnimation(.easeOut(duration: MorningWake.totalDuration)) {
+        withAnimation(.easeOut(duration: Self.wakeDuration)) {
             wakeProgress = 1
         }
         mascotWakeTrigger &+= 1
-        MorningWake.mark(now: store.clock.now(), calendar: store.clock.calendar)
     }
 
     private var quickLogCard: some View {
