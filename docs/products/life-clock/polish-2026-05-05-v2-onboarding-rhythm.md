@@ -65,6 +65,19 @@ Iteration cap: 8. Final computer-use checkpoint: yes.
   stays at the standard bottom-pinned y on every screen and the
   soft-skip sits below it.
 - [03:10] Build green; CTA lands at consistent y across the flow.
+- [03:20] `13938e6` — feat(life-clock): mascot pulse on archetype
+  reveal — Stretch — archetypeReveal. Brief reactivity beat scaled by
+  recovery capacity (±120 min ceiling).
+- [03:23] `c0043e2` — feat(life-clock): mascot pulse on engine reveal
+  first glance — Stretch — engineRevealAndDial. Pulse +110 → -55 →
+  hand-off to dial-driven mascotDelta. `hasPulsed` gate keeps the
+  pulse from fighting dial input once the user starts dragging.
+- [03:25] `3194d51` — chore(life-clock): drop dead v1 onboarding
+  screens — Polish — coordinator/screens. Deleted appPreviews /
+  visibilityFraming / personalizeIntro views + enum cases + stale
+  UITest waits. Telemetry roll-up via deprecatedScreens preserves
+  historical funnel joinability.
+- [03:30] Unit suite + recon walk green after cleanup.
 
 ## Stretch decisions (operator review)
 
@@ -86,22 +99,18 @@ Iteration cap: 8. Final computer-use checkpoint: yes.
 
 ### Resolved this session
 
-None — operator's brief was clear and I executed within
-Polish/Stretch tier.
+- **EngineRevealAndDial mascot static at reveal** → operator approved
+  pulse → `c0043e2` (forward 0.55s, settle 0.45s, then dial-driven).
+- **ArchetypeReveal mascot static** → operator approved pulse →
+  `13938e6` (recovery-capacity-shaped magnitude).
+- **Dead v1 screens** → operator approved cleanup → `3194d51`. Removed
+  appPreviews / visibilityFraming / personalizeIntro views, enum
+  cases, and coordinator branches. Telemetry roll-up via
+  `deprecatedScreens` keeps historical funnel rows joinable.
 
 ### Outstanding (cycle-end batch)
 
-- **EngineRevealAndDial mascot is static at the reveal moment.** The
-  user's first sight of "their" Life Clock number is a still mascot.
-  Consider a subtle pulse (similar shape to the MeetYourClock wake) on
-  appear for ~0.6s. Stretch — would land in 5 lines. Want me to
-  pursue?
-- **ArchetypeReveal mascot is also static.** Same opportunity, same
-  shape. Stretch.
-- **`appPreviews` and `visibilityFraming` are dead in the v2 routing
-  but their views and enum cases remain.** Cleanup is genuinely
-  out-of-scope of "rhythm" but worth a separate pass. Stretch — flag
-  for a follow-up `polish-cleanup` session.
+- None — full operator brief executed.
 
 ## Regressions caught
 
