@@ -12,6 +12,7 @@ import Foundation
 /// track whether we *asked* (`authorizationKnown`) but never claim to know
 /// whether the user denied. The Profile screen surfaces this honestly:
 /// "Not configured" → "Available" / "No data" → never "Connected" / "Denied".
+@MainActor
 protocol HealthKitServiceProtocol {
     /// True iff `HKHealthStore.isHealthDataAvailable()` (always false on iPad
     /// pre-iPadOS 17, on Mac Catalyst, etc).
