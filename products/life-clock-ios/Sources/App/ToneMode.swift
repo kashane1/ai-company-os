@@ -321,6 +321,91 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    // MARK: - Today drivers + plan card headings
+
+    /// Heading on the Today drivers card. Sits above either the empty
+    /// state or the per-driver list. The interpretation line below it is
+    /// already tone-aware via `todayInterpretation*`.
+    var todayDriversHeading: String {
+        switch self {
+        case .gentle: return "What helped today"
+        case .coach: return "Why it changed"
+        case .firmDirect: return "What moved the needle"
+        }
+    }
+
+    /// Empty-state body when there are no drivers yet (no HealthKit
+    /// connection AND no manual check-in for today).
+    var todayDriversEmptyState: String {
+        switch self {
+        case .gentle:
+            return "No data yet. Connect Apple Health or save a quick check-in to start seeing patterns."
+        case .coach:
+            return "No health data yet. Connect Apple Health or save a daily check-in to start seeing patterns."
+        case .firmDirect:
+            return "No data yet. Connect Apple Health or log a check-in. Then we can talk."
+        }
+    }
+
+    /// Heading on the Today plan card.
+    var todayPlanHeading: String {
+        switch self {
+        case .gentle: return "Gentle nudges"
+        case .coach: return "Today's Plan"
+        case .firmDirect: return "Today's orders"
+        }
+    }
+
+    /// One-line caption under the plan heading.
+    var todayPlanSubline: String {
+        switch self {
+        case .gentle: return "One small thing to notice or do."
+        case .coach: return "One small thing to notice or do."
+        case .firmDirect: return "Pick one. Do it."
+        }
+    }
+
+    // MARK: - History weekly card headings
+
+    /// Label above the weekly net-delta number.
+    var historyWeeklyNetLabel: String {
+        switch self {
+        case .gentle: return "This week, in time"
+        case .coach: return "Net this week"
+        case .firmDirect: return "Last 7 days, banked"
+        }
+    }
+
+    /// Heading on the weekly drivers card (replaces "What shaped the week").
+    var historyWeeklyDriversHeading: String {
+        switch self {
+        case .gentle: return "What helped, what didn't"
+        case .coach: return "What shaped the week"
+        case .firmDirect: return "What moved the week"
+        }
+    }
+
+    /// Heading on the weekly "next best lever" card.
+    var historyNextLeverHeading: String {
+        switch self {
+        case .gentle: return "One thing to try next"
+        case .coach: return "Next best lever"
+        case .firmDirect: return "Pull this lever next"
+        }
+    }
+
+    /// Caption under the next-best-lever value.
+    var historyNextLeverCaption: String {
+        switch self {
+        case .gentle:
+            return "Small, repeatable wins compound. Don't try to fix everything."
+        case .coach:
+            return "Small, repeatable wins compound. Don't try to fix everything."
+        case .firmDirect:
+            return "Compound the small ones. Don't chase everything."
+        }
+    }
+
     /// Inline error message in `OverrideSheet` when the user attempts an
     /// override without Pro entitlement. Doubles as the downgrade notice —
     /// surfaces at the moment of friction rather than as a separate banner.

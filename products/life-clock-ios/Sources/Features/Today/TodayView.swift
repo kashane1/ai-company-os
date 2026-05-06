@@ -293,10 +293,10 @@ struct TodayView: View {
 
     private var driversCard: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("Why it changed")
+            Text(store.toneMode.todayDriversHeading)
                 .font(.headline)
             if store.todayDrivers.isEmpty {
-                Text("No health data yet. Connect Apple Health or save a daily check-in to start seeing patterns.")
+                Text(store.toneMode.todayDriversEmptyState)
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
@@ -433,7 +433,7 @@ struct TodayView: View {
     private var questsCard: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             HStack {
-                Text("Today's Plan")
+                Text(store.toneMode.todayPlanHeading)
                     .font(.headline)
                 Spacer()
                 Button {
@@ -453,7 +453,7 @@ struct TodayView: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier(subscriptions.isPro ? "today.planEdit" : "today.planEditLocked")
             }
-            Text("One small thing to notice or do.")
+            Text(store.toneMode.todayPlanSubline)
                 .font(.caption)
                 .foregroundStyle(.secondary)
             ForEach(Array(store.todayQuests.enumerated()), id: \.element.id) { index, quest in
