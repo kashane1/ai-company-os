@@ -145,13 +145,96 @@ diet="Rough". Pre-fix mascot AX values *during* those screens stayed at
   per-answer beat vs cumulative trajectory; bodyComp/family/stress
   live-commit policy.
 
+## Session continuation — operator answered the open questions
+
+### Iter 4 — `d50a967` — feat(life-clock): cumulative mascot trajectory across onboarding
+
+Operator chose cumulative trajectory over per-answer-then-reset. Added
+`OnboardingDraft.baselineProjectedAgeYears` (latched once on the first
+non-nil engine result) and `cumulativeDeltaYears` (current minus
+baseline). `OnboardingHeader.steadyStateMinutes` now reads cumulative
+instead of `lastDelta`, so the hands carry across screens. `lastDelta`
+still drives the per-answer kick on top.
+
+### Iter 5 — `4d9e44b` — feat(life-clock): debounced live commits in bodyComp + family screens
+
+400ms debounced parsed-and-in-range commit on bodyComp height/weight
+and family age-at-passing TextField. Avoids the "user typing 120 hits 1
+first → engine sees age=1 → estimate dives → 30ms later sees 12" flicker
+without giving up the live mascot reaction once typing stabilizes.
+Cancelled on disappear.
+
+### Iter 6 — `bdb70cf` — fix(life-clock): tanh-saturate onboarding mascot to avoid full-revolution wrap
+
+**Critical bug found during the computer-use checkpoint.** The original
+header used `EngineRevealPresenter`'s ±60-min clamp, which maps to
+±360° on the minute hand — exactly one full revolution. So a strong
+cumulative loss like Daily smoker (-8y → -48 min, fine) plus alcohol
+"Most days" (-10.5y → -63 min → clamped to -60 min → -360° = visually
+the SAME as 0°) made the mascot appear stuck at baseline despite the
+engine correctly reporting the loss. Recon AX dumps confirmed the
+input value (-1h) but the visual sweep had wrapped.
+
+Fix: replaced clamp with tanh squash — `25 * tanh(years / 8)` — so
+the mascot's resting position asymptotically approaches ±25 min
+(±150°), well inside one revolution. Direction always reads, large
+cumulative losses saturate visibly without wrapping.
+
+Recon AX values after iter 6 (all on a Daily / Most days / Rough
+walk):
+
+- Smoking screen pre-tap: `+0 min` (default lifestyle is net 0 with
+  the engine — sleep +1, cardio -1, others neutral).
+- After Daily smoker: `-19 min` (-8y squashed → -19, was wrapped at
+  -60 = baseline-equivalent before).
+- Alcohol screen first appearance (smoking carries over): `-19 min` —
+  cumulative trajectory works ✓.
+- After alcohol "Most days": `-22 min` (-10.5y squashed → -22, was
+  wrapped at -60).
+- Diet screen (carry-over): `-20 min`.
+- After Diet "Rough": `-22 min` (-12y squashed → -22, asymptote).
+
+Visual inspection of `/tmp/lifeclock-polish/10b-smoking-after-daily.png`
+confirms the minute hand rotates clearly CCW into the upper-left
+quadrant — direction reads as concerned.
+
+## Computer-use checkpoint (operator-approved this run)
+
+Walked fresh onboarding via Simulator.app. Cold open → welcome →
+meetYourClock (wake-nudge plays, mascot flips +/- briefly during the
+"hands move with you" copy as designed) → reactiveSlider → goalPick
+"Live longer" → DOB default → biological sex Male → bodyComp Skip →
+smoking "Daily". Mascot is at baseline through the first six screens
+(no estimate yet), then flips CCW visibly the moment the user taps
+"Daily" — no longer wraps, the kick lands proportional to delta size.
+
+The full triumphant-positive case isn't testable from this seed alone
+because the engine model gives at most a small positive cumulative
+when the user picks defensively-good answers across all six lifestyle
+levers. Verified the asymmetric saturation reads anyway via the recon
+AX values plus mid-flow zooms.
+
+## Final commit count
+
+- `92d6754` feat(life-clock): expressive per-answer mascot reaction in onboarding header
+- `710b58e` feat(life-clock): live draft commits on onboarding slider/stepper screens
+- `fc4483b` polish(life-clock): scale onboarding mascot reaction by delta magnitude
+- `d50a967` feat(life-clock): cumulative mascot trajectory across onboarding
+- `4d9e44b` feat(life-clock): debounced live commits in bodyComp + family screens
+- `bdb70cf` fix(life-clock): tanh-saturate onboarding mascot to avoid full-revolution wrap
+
+Six logical commits inside the iteration cap of 8. All build green.
+
 ## Next pass
 
-- Operator runs the computer-use acceptance walk and confirms the
-  three-bucket reaction reads cleanly at runtime.
-- If reactions feel too sharp/soft, tune
-  `OnboardingHeader.overshootMinutes(for:)` (one func, three returns).
-- Decide cumulative-vs-per-answer at rest (above). If cumulative,
-  small change in `OnboardingDraft.recomputeEstimate`.
-- Consider unwinding the recon test back to neutral options or
-  delete it — its only role was this session's verification.
+- Operator dogfood: confirm the tanh saturation feels right.
+  `saturationMinutes` (25) and `saturationYears` (8) are the two
+  tunables in `OnboardingHeader`. Increasing `saturationMinutes` makes
+  the steady-state arc bigger (more visual range); increasing
+  `saturationYears` makes the curve gentler (more linear-feeling).
+- The recon test still walks the negative path (Daily / Most days /
+  Rough); decide whether to revert it to neutral defaults or keep it
+  as a permanent regression detector for the per-answer reaction
+  pipeline.
+- `bodyComp` debounce is 400ms; if it feels laggy, lower it. Same for
+  the family-screen TextField commits.
