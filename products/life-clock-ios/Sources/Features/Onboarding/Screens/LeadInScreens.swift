@@ -44,13 +44,14 @@ struct OnboardingHeader: View {
     /// the kick before the hands settle on the new resting position.
     @State private var reactionOvershoot: Int = 0
 
-    /// Steady-state minutes derived from `lastDelta.years` (no overshoot).
-    /// Using the explicit conversion avoids re-clamping after adding the
-    /// overshoot — the overshoot itself is bounded to ±30 min so the sum
-    /// can't escape the mascot's ±720° sweep.
+    /// Steady-state minutes — the mascot's resting position when no kick
+    /// is in flight. Reads `cumulativeDeltaYears` (gain/loss relative to
+    /// the lifestyle-free baseline) so the hands accumulate across the
+    /// onboarding flow rather than snap back to neutral on Continue.
+    /// `lastDelta` still drives the per-answer kick on top of this.
     private var steadyStateMinutes: Int {
         if let override = override.minutes { return override }
-        let years = draft.lastDelta?.years ?? 0
+        let years = draft.cumulativeDeltaYears
         let raw = Int((years * Double(EngineRevealPresenter.minutesPerYear)).rounded())
         return min(
             max(raw, EngineRevealPresenter.minMinutes),
