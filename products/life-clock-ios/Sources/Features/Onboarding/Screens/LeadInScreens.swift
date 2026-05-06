@@ -37,7 +37,18 @@ struct OnboardingHeader: View {
     @Environment(OnboardingDraft.self) private var draft
     @Environment(MascotOverride.self) private var override
 
-    private var minutesDelta: Int {
+    /// Transient overshoot added on top of the steady-state delta when an
+    /// answer produces a meaningful estimate change. Triumphant for clear
+    /// gains, concerned (flinch) for clear losses, no extra beat for
+    /// near-neutral answers — the user reads the SIGN of their answer in
+    /// the kick before the hands settle on the new resting position.
+    @State private var reactionOvershoot: Int = 0
+
+    /// Steady-state minutes derived from `lastDelta.years` (no overshoot).
+    /// Using the explicit conversion avoids re-clamping after adding the
+    /// overshoot — the overshoot itself is bounded to ±30 min so the sum
+    /// can't escape the mascot's ±720° sweep.
+    private var steadyStateMinutes: Int {
         if let override = override.minutes { return override }
         let years = draft.lastDelta?.years ?? 0
         let raw = Int((years * Double(EngineRevealPresenter.minutesPerYear)).rounded())
@@ -46,6 +57,28 @@ struct OnboardingHeader: View {
             EngineRevealPresenter.maxMinutes
         )
     }
+
+    /// What the mascot actually renders. Overshoot is only applied when no
+    /// screen-level override is driving the mascot (reactiveSlider, dial)
+    /// — those screens own the hands during their lifetime and the
+    /// reaction layer must not fight their input.
+    private var minutesDelta: Int {
+        if override.minutes != nil { return steadyStateMinutes }
+        return steadyStateMinutes + reactionOvershoot
+    }
+
+    /// Years-delta magnitude above which an answer earns an expressive
+    /// reaction beat (overshoot then settle) instead of the default smooth
+    /// spring. Tuned by inspecting baseline ClockEngine deltas: a single
+    /// lifestyle option commonly moves the estimate 0.5–4y, so 0.4y catches
+    /// real choices without firing on rounding noise.
+    private static let strongDeltaYears: Double = 0.4
+
+    /// Overshoot magnitude applied during the kick. ±30 min is ~180° on
+    /// the minute hand at 6°/min — a clearly visible beat at the 120pt
+    /// header size, but small enough that the spring back to
+    /// steady-state reads as "settle", not "second answer".
+    private static let overshootMinutes: Int = 30
 
     var body: some View {
         ZStack {
@@ -87,6 +120,28 @@ struct OnboardingHeader: View {
         .padding(.top, 8)
         .padding(.bottom, 16)
         .accessibilityIdentifier("onboarding.header")
+        .onChange(of: draft.lastDelta) { _, new in
+            triggerReaction(for: new)
+        }
+    }
+
+    /// Apply an expressive overshoot when `lastDelta` changes by enough to
+    /// read as a clearly-positive or clearly-negative answer; near-neutral
+    /// changes pass through silently and let the spring handle them.
+    /// No-ops while a screen-level override is driving the mascot.
+    private func triggerReaction(for new: AnswerDelta?) {
+        guard override.minutes == nil else { return }
+        guard let new, abs(new.years) >= Self.strongDeltaYears else { return }
+        let direction = new.years > 0 ? 1 : -1
+        reactionOvershoot = direction * Self.overshootMinutes
+        // Settle window: the overshoot persists ~0.42s — enough for the
+        // mascot's `.interpolatingSpring()` to nearly reach the kick — then
+        // releases back to 0 so the hands drift onto the new steady-state
+        // position. Two-stage timing: delay matches the spring's quarter-
+        // period; the release uses the same spring on the way down.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.42) {
+            reactionOvershoot = 0
+        }
     }
 }
 
