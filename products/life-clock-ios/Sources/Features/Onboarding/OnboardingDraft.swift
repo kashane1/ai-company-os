@@ -73,6 +73,26 @@ final class OnboardingDraft {
     /// (initial estimate has no delta to explain).
     var lastDelta: AnswerDelta?
 
+    /// Projected age the engine returned the FIRST time both birthDate
+    /// and biologicalSex were known and lifestyle inputs were still
+    /// unanswered. The persistent header mascot reads its resting
+    /// position from `(runningEstimate.projectedAgeYears - this)` so the
+    /// hands accumulate across the flow rather than snap back to neutral
+    /// after each Continue. Set once and never overwritten — that is
+    /// the property that makes the trajectory cumulative.
+    var baselineProjectedAgeYears: Double?
+
+    /// Cumulative gain/loss in projected age relative to the first
+    /// (lifestyle-free) estimate. 0 until baseline is established.
+    /// Used by `OnboardingHeader` for the mascot's steady-state hand
+    /// position; per-answer kick layers on top via `lastDelta`.
+    var cumulativeDeltaYears: Double {
+        guard let baseline = baselineProjectedAgeYears,
+              let current = runningEstimate?.projectedAgeYears
+        else { return 0 }
+        return current - baseline
+    }
+
     init() {}
 
     // MARK: - Reactive recomputation
@@ -110,6 +130,13 @@ final class OnboardingDraft {
         let previous = runningEstimate
         let next = engine.calculateBaseline(profile: snapshot)
         runningEstimate = next
+
+        // Latch the lifestyle-free baseline the first time the engine
+        // returns a value. Subsequent recomputes leave it alone — that
+        // is the anchor `cumulativeDeltaYears` measures against.
+        if baselineProjectedAgeYears == nil {
+            baselineProjectedAgeYears = next.projectedAgeYears
+        }
 
         if let previous {
             let deltaYears = next.projectedAgeYears - previous.projectedAgeYears
