@@ -34,6 +34,14 @@ struct LifeClockLaunchConfiguration {
         case notDetermined
     }
 
+    /// Test-only color-scheme override. When set, the root view binds
+    /// `.preferredColorScheme(_:)` so polish/audit recon runs can capture
+    /// each top-level screen in light AND dark without driving Settings.
+    enum ColorScheme: String {
+        case light
+        case dark
+    }
+
     let isUITest: Bool
     let scenario: Scenario
     let useMockHealth: Bool
@@ -42,6 +50,7 @@ struct LifeClockLaunchConfiguration {
     let seedStreak: Int
     let seedQuestsCompleted: Int
     let clock: EngineClock
+    let forceColorScheme: ColorScheme?
 
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
@@ -62,6 +71,7 @@ struct LifeClockLaunchConfiguration {
         }()
 
         let forcePaywall = env["LIFECLOCK_FORCE_PAYWALL"] == "1"
+        let forceColorScheme = ColorScheme(rawValue: env["LIFECLOCK_FORCE_COLOR_SCHEME"] ?? "")
         let seedStreak = max(0, Int(env["LIFECLOCK_SEED_STREAK"] ?? "") ?? 0)
         let seedQuestsCompleted = max(0, Int(env["LIFECLOCK_SEED_QUESTS_COMPLETED"] ?? "") ?? 0)
 
@@ -84,7 +94,8 @@ struct LifeClockLaunchConfiguration {
             forcePaywall: forcePaywall,
             seedStreak: seedStreak,
             seedQuestsCompleted: seedQuestsCompleted,
-            clock: clock
+            clock: clock,
+            forceColorScheme: forceColorScheme
         )
         #else
         return LifeClockLaunchConfiguration(
@@ -95,7 +106,8 @@ struct LifeClockLaunchConfiguration {
             forcePaywall: false,
             seedStreak: 0,
             seedQuestsCompleted: 0,
-            clock: .live
+            clock: .live,
+            forceColorScheme: nil
         )
         #endif
     }
