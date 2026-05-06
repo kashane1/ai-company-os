@@ -273,6 +273,54 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    // MARK: - Monthly logging banner (vision Q7, 2026-05-06)
+
+    /// Secondary line on the monthly logging banner when the day is NOT a
+    /// milestone day. Kept short and neutral — the count is the headline.
+    var monthlyLoggingNeutralLine: String {
+        switch self {
+        case .gentle: return "Steady logging. Quality follows."
+        case .coach: return "Logging is the win — quality follows."
+        case .firmDirect: return "Log the day. The rest follows."
+        }
+    }
+
+    /// Milestone copy slot. `daysLogged` is the count this month so far;
+    /// `monthName` is the long form (e.g. "May"). Copy MUST NOT shame
+    /// the user for the count — it just names the moment.
+    func monthlyLoggingMilestoneLine(
+        _ milestone: MonthlyLogging.Milestone,
+        daysLogged: Int,
+        monthName: String
+    ) -> String {
+        let phrase = daysLogged == 1 ? "1 day" : "\(daysLogged) days"
+        switch (self, milestone) {
+        case (.gentle, .start), (.coach, .start):
+            return "\(monthName) starts now. Every logged day counts."
+        case (.firmDirect, .start):
+            return "\(monthName). Day one. Log it."
+
+        case (.gentle, .quarter):
+            return "First quarter of \(monthName). \(phrase) so far."
+        case (.coach, .quarter):
+            return "First quarter done. \(phrase) in."
+        case (.firmDirect, .quarter):
+            return "Quarter through. \(phrase) banked."
+
+        case (.gentle, .half), (.coach, .half):
+            return "Halfway through \(monthName). \(phrase) logged."
+        case (.firmDirect, .half):
+            return "Halfway. \(phrase) banked."
+
+        case (.gentle, .threeQuarter):
+            return "Final stretch of \(monthName). \(phrase) so far."
+        case (.coach, .threeQuarter):
+            return "Final quarter. \(phrase) banked."
+        case (.firmDirect, .threeQuarter):
+            return "Last quarter. \(phrase) banked."
+        }
+    }
+
     /// Inline error message in `OverrideSheet` when the user attempts an
     /// override without Pro entitlement. Doubles as the downgrade notice —
     /// surfaces at the moment of friction rather than as a separate banner.

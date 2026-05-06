@@ -58,7 +58,7 @@ struct TodayView: View {
                     questsCard
                     ReflectionCard(onTap: { reflectionPresented = true })
                     quickLogCard
-                    dietStreakBanner
+                    monthlyLoggingBanner
                     DisclaimerBanner()
                 }
                 .padding(DesignTokens.Spacing.lg)
@@ -334,40 +334,50 @@ struct TodayView: View {
             : store.toneMode.todayInterpretationNegative(driverTitle: topTitle)
     }
 
-    /// A small streak chip when the user is on a diet-logging run. Only
-    /// renders at >=2 days — a "1-day streak" isn't a streak yet. The
-    /// good-day count appears as a secondary label when nonzero, which keeps
-    /// honest "rough" logs from feeling punitive (logging streak still grows).
+    /// Calendar-month "kind streak" banner (vision Q7, 2026-05-06). Shows
+    /// when the user has logged at least one day this month. The chain
+    /// cannot break: missed days never decrement the count and the only
+    /// reset is the calendar rolling over on the 1st. Milestone days
+    /// (1, 25%, 50%, 75% of the month elapsed) swap the secondary line
+    /// for tone-aware milestone copy that names the moment without
+    /// shaming the count.
     @ViewBuilder
-    private var dietStreakBanner: some View {
-        let streaks = store.dietStreaks
-        if streaks.loggingDays >= 2 {
+    private var monthlyLoggingBanner: some View {
+        let monthly = store.monthlyLogging
+        if monthly.daysLogged >= 1 {
             HStack(spacing: DesignTokens.Spacing.sm) {
-                Image(systemName: "flame.fill")
+                Image(systemName: "calendar")
                     .foregroundStyle(.orange)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(streaks.loggingDays)-day diet log streak")
+                    Text(monthly.daysLogged == 1
+                        ? "1 day logged so far · \(monthly.monthName)"
+                        : "\(monthly.daysLogged) days logged so far · \(monthly.monthName)")
                         .font(.callout.bold())
-                    if streaks.goodDays >= 2 {
-                        Text("\(streaks.goodDays) of those great or okay")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Text("Logging is the win — quality follows.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text(secondaryLine(for: monthly))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 Spacer()
             }
             .padding(DesignTokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
-            .accessibilityIdentifier("today.dietStreak")
-            .accessibilityValue("\(streaks.loggingDays) days")
+            .accessibilityIdentifier("today.monthlyLogging")
+            .accessibilityValue("\(monthly.daysLogged) days this month")
         } else {
             EmptyView()
         }
+    }
+
+    private func secondaryLine(for monthly: MonthlyLogging) -> String {
+        if let milestone = monthly.milestone {
+            return store.toneMode.monthlyLoggingMilestoneLine(
+                milestone,
+                daysLogged: monthly.daysLogged,
+                monthName: monthly.monthName
+            )
+        }
+        return store.toneMode.monthlyLoggingNeutralLine
     }
 
     /// One soft, plain-language line about today's diet impact when relevant.
