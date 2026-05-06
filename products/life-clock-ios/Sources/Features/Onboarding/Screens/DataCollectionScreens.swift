@@ -523,6 +523,12 @@ struct StrengthView: View {
             }
         ) {
             Stepper("\(perWeek) sessions per week", value: $perWeek, in: 0...7)
+                // Mirror to the draft live so the header mascot reacts to
+                // each step, not just to Continue. The coordinator's 80ms
+                // debounce coalesces rapid taps.
+                .onChange(of: perWeek) { _, new in
+                    draft.strengthFrequencyPerWeek = new
+                }
         }
     }
 }
@@ -544,6 +550,9 @@ struct CardioView: View {
             }
         ) {
             Stepper("\(minsPerWeek) min/week", value: $minsPerWeek, in: 0...600, step: 30)
+                .onChange(of: minsPerWeek) { _, new in
+                    draft.cardioMinsPerWeek = new
+                }
         }
     }
 }
@@ -566,6 +575,9 @@ struct SleepView: View {
         ) {
             Stepper(value: $hours, in: 4...12, step: 0.5) {
                 Text(String(format: "%.1f hours", hours))
+            }
+            .onChange(of: hours) { _, new in
+                draft.sleepGoalHours = new
             }
         }
     }
@@ -825,6 +837,9 @@ struct StressView: View {
                     Text("Stretched").font(.caption2).foregroundStyle(.secondary)
                 }
             }
+            .onChange(of: score) { _, new in
+                draft.perceivedStressScore = Int(new.rounded())
+            }
         }
     }
 }
@@ -854,6 +869,9 @@ struct SocialView: View {
                 Slider(value: $score, in: 3...9, step: 1)
                     .accessibilityIdentifier("onboarding.social.slider")
                 Text("Rarely").font(.caption2).foregroundStyle(.secondary)
+            }
+            .onChange(of: score) { _, new in
+                draft.lonelinessScore = Int(new.rounded())
             }
         }
     }
