@@ -35,7 +35,7 @@ Returning weekly, the user opens the **Time Ledger** to see where the time came 
 
 ## Tone
 
-**Default: motivating, elegant, direct, slightly dramatic.** Coach is the default tone mode; Gentle and Memento Mori are user-selectable.
+**Default: motivating, elegant, direct, slightly dramatic.** Coach is the default tone mode; Gentle and Firm/Direct are user-selectable.
 
 The voice is closer to a respected trainer than to a wellness influencer. Terse over chatty. Confident over hedged. Specific over generic. The drama earns its place by being *true to the data* — never manufactured for engagement.
 
@@ -43,9 +43,9 @@ Three sanctioned modes:
 
 - **Gentle** — healthspan score, time earned, future-self framing. No death-date language.
 - **Coach (default)** — uses Life Clock terminology, avoids harsh language, balanced.
-- **Memento Mori** — direct countdown framing, dramatic, but never claims medical certainty.
+- **Firm/Direct** — short, specific, no hedging. The clock keeps score. Dramatic, but never claims medical certainty. (Code identifier: `firmDirect` in `ToneMode.swift`. Earlier strategy docs called this "Memento Mori"; the shipped name is Firm/Direct.)
 
-A new tone mode (e.g. "Firm/Direct") is a Feature-tier decision and requires operator approval before shipping.
+A new tone mode beyond these three is a Feature-tier decision and requires operator approval before shipping.
 
 ## Open questions
 
@@ -53,7 +53,7 @@ These are unresolved choices the skill should *raise* if it encounters them, not
 
 > Seed batch from [14_OPEN_QUESTIONS.md](14_OPEN_QUESTIONS.md) and post-onboarding observations. Reduced and rephrased for the loop's purposes.
 
-1. **How intense should negative feedback be?** A −90-minute day on the Memento Mori tone — what does the screen actually look like? Where is the line between dramatic and punitive?
+1. **How intense should negative feedback be?** A −90-minute day on the Firm/Direct tone — what does the screen actually look like? Where is the line between dramatic and punitive?
 2. **Should users be able to hide the clock and see only time earned?** Strategic question — does removing the clock undermine the product's identity, or is it the kindest setting for anxious users?
 3. **What is the minimum daily manual log that feels useful but not annoying?** Currently the loop asks for habit logs — at what point does asking become friction that drops retention?
 4. **How does the app communicate uncertainty without feeling weak?** Confidence is part of the product (P3 in strategy), but a wishy-washy clock undermines drama. What does "honest but compelling" look like visually?
@@ -78,7 +78,7 @@ These are unresolved choices the skill should *raise* if it encounters them, not
 - **2026-05-04 — Confidence is shipped, not hidden.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"Product principles" #3. Sparse data lowers confidence; the app must NEVER invent precision to look more authoritative.
 - **2026-05-04 — Passive first, manual second.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"Product principles" #4. HealthKit-derived signal is the trunk; manual input is coarse, quick, and optional.
 - **2026-05-04 — Default is motivating, not punishing.** Source: [06_UX_GAME_LOOP.md](06_UX_GAME_LOOP.md) §"UX risk". Every negative delta must be paired with an actionable next step. Drama is allowed; cruelty is not.
-- **2026-05-04 — Three tone modes; Coach is default.** Source: [02_PRODUCT_STRATEGY.md](02_PRODUCT_STRATEGY.md) §"App personality" + [06_UX_GAME_LOOP.md](06_UX_GAME_LOOP.md) §"Tone modes". A new tone mode is a Feature-tier decision.
+- **2026-05-04 — Three tone modes (Gentle / Coach / Firm-Direct); Coach is default.** Source: shipped enum at `products/life-clock-ios/Sources/App/ToneMode.swift` (cases `gentle`, `coach`, `firmDirect`). The earlier strategy doc named the third mode "Memento Mori"; the shipped name is Firm/Direct. A fourth tone mode is a Feature-tier decision.
 - **2026-05-06 — Streak treatment is "monthly count, no streak."** Source: vision Open Question #7 resolution, [polish-2026-05-06-monthly-logging-banner.md](polish-2026-05-06-monthly-logging-banner.md). The Today banner shows `"{N} days logged so far · {Month}"` plus a tone-aware milestone line that fires on day 1 (start), 25%, 50%, and 75% of the calendar month elapsed (computed from `dayOfMonth / daysInMonth`, persistent for the day). Missed days never decrement the count or break the chain — the only reset is the calendar rolling over on the 1st. Late installers get no special treatment; they see whatever milestone the day they install lands on. The previous rolling streak (`DietStreakCalculator`, `dietStreakBanner`) and its `goodDays` derivative were dropped. Reasoning: preserves daily-loop reward without re-introducing shame on a missed day. Any reintroduction of a fragile streak (cumulative day counter that resets on a single skip) is rejected; escalate as a Vision-question.
 
 ### Privacy / data
