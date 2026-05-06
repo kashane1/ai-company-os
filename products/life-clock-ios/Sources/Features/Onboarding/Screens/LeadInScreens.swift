@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 /// Lead-in screens for the new onboarding flow (Phase 3.5 of the
 /// reveal-onboarding rebuild). These run BEFORE any data collection —
@@ -48,15 +49,22 @@ struct OnboardingHeader: View {
     /// is in flight. Reads `cumulativeDeltaYears` (gain/loss relative to
     /// the lifestyle-free baseline) so the hands accumulate across the
     /// onboarding flow rather than snap back to neutral on Continue.
-    /// `lastDelta` still drives the per-answer kick on top of this.
+    ///
+    /// **Saturation, not clamp.** `EngineRevealPresenter`'s ±60 min cap
+    /// would land the hand at ±360° on a heavily-bad answer set — one
+    /// full revolution, visually indistinguishable from baseline. We
+    /// instead tanh-squash the years input so the visible sweep
+    /// asymptotically approaches ±`saturationMinutes` (= ±150°, well
+    /// inside one revolution) — large cumulative losses saturate but
+    /// never wrap. At ±2y the hand reads as a clear nudge; at ±8y it's
+    /// near the cap; at ±12y it asymptotes.
+    private static let saturationMinutes: Double = 25
+    private static let saturationYears: Double = 8
     private var steadyStateMinutes: Int {
         if let override = override.minutes { return override }
         let years = draft.cumulativeDeltaYears
-        let raw = Int((years * Double(EngineRevealPresenter.minutesPerYear)).rounded())
-        return min(
-            max(raw, EngineRevealPresenter.minMinutes),
-            EngineRevealPresenter.maxMinutes
-        )
+        let saturated = Self.saturationMinutes * tanh(years / Self.saturationYears)
+        return Int(saturated.rounded())
     }
 
     /// What the mascot actually renders. Overshoot is only applied when no
