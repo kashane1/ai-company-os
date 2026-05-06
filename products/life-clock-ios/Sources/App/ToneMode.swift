@@ -58,7 +58,7 @@ enum ToneMode: String, CaseIterable, Identifiable {
     var deltaPositivePrefix: String {
         switch self {
         case .gentle: return "Progress gained"
-        case .coach: return "Progress today"
+        case .coach: return "Progress"
         case .firmDirect: return "Banked"
         }
     }
