@@ -62,18 +62,34 @@ final class OnboardingRhythmRecon: XCTestCase {
         wait("onboarding.bodyComp", file: "09-bodyComp")
         tapContinue()
 
-        // 10 smoking
+        // 10 smoking — pick NEGATIVE so the per-answer reaction has
+        // signal worth showing. Capture both pre-tap (mascot at baseline)
+        // and post-tap (mascot reacting) to measure the delta.
         wait("onboarding.smoking", file: "10-smoking")
-        tapByLabelContains("Never")
+        tapByLabelContains("Daily")
+        usleep(900_000) // 80ms debounce + spring + reaction window
+        capture("10b-smoking-after-daily")
         tapContinue()
 
-        // 11 alcohol
+        // 11 alcohol — POSITIVE: "Rarely or never" is baseline-positive
+        // relative to a "Daily smoker" anchor; pick "Most days" first to
+        // probe the strong-negative reaction stacking.
         wait("onboarding.alcohol", file: "11-alcohol")
-        tapByLabelContains("Rarely")
+        tapByLabelContains("Most days")
+        usleep(900_000)
+        capture("11b-alcohol-after-most-days")
         tapContinue()
 
-        // 12 strength
+        // 12 strength — bump stepper a few times to verify live-draft
+        // commits fire during input (the +/- taps should each move the
+        // mascot before Continue is even tapped).
         wait("onboarding.strength", file: "12-strength")
+        let stepUp = app.buttons["Increment"].firstMatch
+        if stepUp.waitForExistence(timeout: 2) {
+            for _ in 0..<5 { stepUp.tap() }
+        }
+        usleep(900_000)
+        capture("12b-strength-after-5-stepups")
         tapContinue()
 
         // 13 cardio
@@ -84,9 +100,11 @@ final class OnboardingRhythmRecon: XCTestCase {
         wait("onboarding.sleep", file: "14-sleep")
         tapContinue()
 
-        // 15 diet
+        // 15 diet — strong negative for one more reaction sample.
         wait("onboarding.diet", file: "15-diet")
-        tapByLabelContains("Okay")
+        tapByLabelContains("Rough")
+        usleep(900_000)
+        capture("15b-diet-after-rough")
         tapContinue()
 
         // 16 sensitiveConsent — take the skip path

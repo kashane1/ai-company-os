@@ -68,17 +68,22 @@ struct OnboardingHeader: View {
     }
 
     /// Years-delta magnitude above which an answer earns an expressive
-    /// reaction beat (overshoot then settle) instead of the default smooth
-    /// spring. Tuned by inspecting baseline ClockEngine deltas: a single
-    /// lifestyle option commonly moves the estimate 0.5–4y, so 0.4y catches
-    /// real choices without firing on rounding noise.
-    private static let strongDeltaYears: Double = 0.4
+    /// reaction beat. Tuned against measured ClockEngine deltas: smoking
+    /// "Daily" ≈ -0.8y (strong), alcohol "Most days" ≈ -0.25y (moderate),
+    /// diet "Rough" ≈ -0.15y (mild). 0.1y catches all three; below that
+    /// is rounding noise that should pass through as a smooth spring.
+    private static let reactionThresholdYears: Double = 0.1
 
-    /// Overshoot magnitude applied during the kick. ±30 min is ~180° on
-    /// the minute hand at 6°/min — a clearly visible beat at the 120pt
-    /// header size, but small enough that the spring back to
-    /// steady-state reads as "settle", not "second answer".
-    private static let overshootMinutes: Int = 30
+    /// Overshoot magnitude scales with delta strength so a "Rough" diet
+    /// reads as a smaller flinch than "Daily smoker". Three buckets keep
+    /// the dispatch obvious; finer interpolation didn't read differently
+    /// at the 120pt header size during dogfood.
+    private static func overshootMinutes(for years: Double) -> Int {
+        let magnitude = abs(years)
+        if magnitude >= 0.5 { return 30 }
+        if magnitude >= 0.25 { return 20 }
+        return 12
+    }
 
     var body: some View {
         ZStack {
@@ -131,9 +136,9 @@ struct OnboardingHeader: View {
     /// No-ops while a screen-level override is driving the mascot.
     private func triggerReaction(for new: AnswerDelta?) {
         guard override.minutes == nil else { return }
-        guard let new, abs(new.years) >= Self.strongDeltaYears else { return }
+        guard let new, abs(new.years) >= Self.reactionThresholdYears else { return }
         let direction = new.years > 0 ? 1 : -1
-        reactionOvershoot = direction * Self.overshootMinutes
+        reactionOvershoot = direction * Self.overshootMinutes(for: new.years)
         // Settle window: the overshoot persists ~0.42s — enough for the
         // mascot's `.interpolatingSpring()` to nearly reach the kick — then
         // releases back to 0 so the hands drift onto the new steady-state
