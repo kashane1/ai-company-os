@@ -137,7 +137,10 @@ struct LifeClockLaunchConfiguration {
         profile.disclaimerAcceptedAt = now
         context.insert(profile)
 
-        // Seed N days of diet-logged HabitLog entries to drive the streak banner.
+        // Seed N days of diet-logged HabitLog entries backward from `now`. With
+        // a `LIFECLOCK_FIXED_DATE` inside the current month, this drives the
+        // monthlyLoggingBanner — N becomes the count if all seeded days fall
+        // in the same calendar month.
         if seedStreak > 0 {
             for offset in 0..<seedStreak {
                 guard let day = calendar.date(byAdding: .day, value: -offset, to: now) else { continue }

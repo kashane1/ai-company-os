@@ -42,7 +42,7 @@ final class LifeClockStore {
     var todayHabits: HabitLog?
     var lastHealthAuthError: String?
     var hasTodaySignal: Bool = false
-    var dietStreaks: DietStreaks = .zero
+    var monthlyLogging: MonthlyLogging = .zero
     /// Result of `WrapUpCoordinator.pendingWrapUp(...)` after the most recent
     /// refresh. Observed by `LifeClockApp` to drive sheet presentation.
     /// Cleared by `markWrapUpShown(_:)` after the sheet dismisses.
@@ -114,7 +114,7 @@ final class LifeClockStore {
     /// container here defends every caller without changing the existing
     /// `init(modelContext:)` signature.
     @ObservationIgnored private let modelContainer: ModelContainer
-    @ObservationIgnored private let streakCalculator: DietStreakCalculator
+    @ObservationIgnored private let monthlyLoggingCalculator: MonthlyLoggingCalculator
     @ObservationIgnored private let notificationsService: NotificationsServiceProtocol
     @ObservationIgnored private let wrapUpCoordinator: WrapUpCoordinator
     @ObservationIgnored private let completionBadgeEngine = CompletionBadgeEngine()
@@ -142,7 +142,7 @@ final class LifeClockStore {
         self.clock = engineClock
         self.clockEngine = ClockEngine(clock: engineClock)
         self.questEngine = QuestEngine(clock: engineClock)
-        self.streakCalculator = DietStreakCalculator(calendar: engineClock.calendar)
+        self.monthlyLoggingCalculator = MonthlyLoggingCalculator(calendar: engineClock.calendar)
         self.notificationsService = notificationsService
         self.wrapUpCoordinator = WrapUpCoordinator(clock: engineClock)
         self.healthAuthorizationKnown = healthService.authorizationKnown
@@ -237,7 +237,9 @@ final class LifeClockStore {
         let weekHabits = fetchHabitsBack(7)
         weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: weekHabits, profile: profile)
 
-        dietStreaks = streakCalculator.compute(habits: fetchHabitsBack(60), asOf: now)
+        // 60 days back covers any current month plus the prior one's tail
+        // for safe boundary handling near month-rollover.
+        monthlyLogging = monthlyLoggingCalculator.compute(habits: fetchHabitsBack(60), asOf: now)
         recomputeYesterdayDelta(profile: profile, now: now)
         lastWeekDeltaMinutes = weekly?.netTimeDeltaMinutes
         recomputePendingWrapUp(profile: profile, now: now)
@@ -823,7 +825,7 @@ final class LifeClockStore {
             completedQuestDays: completedQuestDays.count,
             threeQuestDays: completedByDay.values.filter { $0.count >= 3 }.count,
             checkInDays: Set(habits.map { dayKey(for: $0.date) }).count,
-            dietLoggingStreakDays: dietStreaks.loggingDays,
+            monthlyLogDays: monthlyLogging.daysLogged,
             supportiveDietDays: habits.filter { ["great", "okay"].contains($0.dietQuality.lowercased()) }.count,
             greatDietDays: habits.filter { $0.dietQuality.lowercased() == "great" }.count,
             lowRiskRecoveryDays: habits.filter { habit in

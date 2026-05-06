@@ -19,7 +19,7 @@ final class CompletionBadgeEngineTests: XCTestCase {
             completedQuestDays: 7,
             threeQuestDays: 1,
             checkInDays: 7,
-            dietLoggingStreakDays: 3,
+            monthlyLogDays: 3,
             supportiveDietDays: 7,
             greatDietDays: 1,
             lowRiskRecoveryDays: 7,

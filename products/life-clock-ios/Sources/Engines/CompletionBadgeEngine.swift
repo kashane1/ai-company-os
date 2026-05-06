@@ -73,7 +73,10 @@ struct CompletionBadgeProgress {
     var completedQuestDays: Int = 0
     var threeQuestDays: Int = 0
     var checkInDays: Int = 0
-    var dietLoggingStreakDays: Int = 0
+    /// Distinct days logged in the current calendar month. Replaced the old
+    /// `dietLoggingStreakDays` (rolling-streak metric) on 2026-05-06 when
+    /// vision Q7 resolved to "monthly count, no streak."
+    var monthlyLogDays: Int = 0
     var supportiveDietDays: Int = 0
     var greatDietDays: Int = 0
     var lowRiskRecoveryDays: Int = 0
@@ -247,13 +250,13 @@ struct CompletionBadgeEngine {
             thresholds: [(1, .bronze), (7, .silver), (30, .gold)],
             value: \.greatDietDays
         ) + tiered(
-            base: "nutrition.streak",
-            title: "Food log streak",
-            detail: "Kept a current diet logging streak.",
-            image: "flame.fill",
+            base: "nutrition.month",
+            title: "Days logged this month",
+            detail: "Logged a diet day this month.",
+            image: "calendar",
             category: .nutrition,
             thresholds: [(3, .bronze), (7, .silver), (14, .gold), (30, .platinum)],
-            value: \.dietLoggingStreakDays
+            value: \.monthlyLogDays
         ) + tiered(
             base: "recovery.lowrisk",
             title: "Clean recovery day",
