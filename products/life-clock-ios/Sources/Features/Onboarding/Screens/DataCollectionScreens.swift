@@ -344,6 +344,26 @@ struct BodyCompView: View {
         return resolvedHeightCm != nil && resolvedWeightKg != nil
     }
 
+    /// Debounced live commit of parsed height + weight to the draft.
+    /// Free-form numeric typing means intermediate strings ("1" mid-typing
+    /// "170") would feed the engine garbage; debouncing 400ms after the
+    /// last keystroke + gating on `parsesAndInRange` keeps the live
+    /// mascot reaction useful without flicker. Cancelled on disappear so
+    /// a navigated-away screen can't write stale values.
+    @State private var bodyCompCommit: Task<Void, Never>?
+
+    private func scheduleBodyCompCommit() {
+        bodyCompCommit?.cancel()
+        bodyCompCommit = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled, enabled else { return }
+            if let h = resolvedHeightCm, let w = resolvedWeightKg {
+                draft.heightCm = h
+                draft.weightKg = w
+            }
+        }
+    }
+
     var body: some View {
         @Bindable var draft = draft
         return OnboardingScaffold(
@@ -410,6 +430,14 @@ struct BodyCompView: View {
                 }
             }
         }
+        .onChange(of: feetString) { _, _ in scheduleBodyCompCommit() }
+        .onChange(of: inchesString) { _, _ in scheduleBodyCompCommit() }
+        .onChange(of: poundsString) { _, _ in scheduleBodyCompCommit() }
+        .onChange(of: cmString) { _, _ in scheduleBodyCompCommit() }
+        .onChange(of: kgString) { _, _ in scheduleBodyCompCommit() }
+        .onChange(of: enabled) { _, _ in scheduleBodyCompCommit() }
+        .onChange(of: unitSystem) { _, _ in scheduleBodyCompCommit() }
+        .onDisappear { bodyCompCommit?.cancel() }
     }
 
     @ViewBuilder
@@ -719,6 +747,31 @@ private struct FamilyLongevityForm: View {
     @State private var alive: Bool? = nil
     @State private var ageString: String = ""
     @State private var preferNotToSay = false
+    /// Debounced live commit so the header mascot reacts to the parental-
+    /// longevity answer during input rather than only on Continue. 400ms
+    /// after the last keystroke avoids the "user typing 120 hits 1 first
+    /// → engine sees age=1 → estimate dives → 30ms later sees 12 → estimate
+    /// dives more" flicker.
+    @State private var commitTask: Task<Void, Never>?
+
+    private func scheduleCommit() {
+        commitTask?.cancel()
+        commitTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled else { return }
+            if preferNotToSay {
+                aliveBinding(nil)
+                ageBinding(nil)
+                return
+            }
+            aliveBinding(alive)
+            if alive == false, let age = parsedAge {
+                ageBinding(age)
+            } else if alive != false {
+                ageBinding(nil)
+            }
+        }
+    }
 
     /// Parsed age, or nil if the field is empty / out of range. The
     /// 0…120 bound covers every plausible age-at-death; the lower bound
@@ -803,6 +856,10 @@ private struct FamilyLongevityForm: View {
                     }
                 }
             }
+            .onChange(of: alive) { _, _ in scheduleCommit() }
+            .onChange(of: ageString) { _, _ in scheduleCommit() }
+            .onChange(of: preferNotToSay) { _, _ in scheduleCommit() }
+            .onDisappear { commitTask?.cancel() }
         }
     }
 }
