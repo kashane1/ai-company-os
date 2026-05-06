@@ -5,6 +5,7 @@ struct TodayView: View {
     @Environment(SubscriptionStore.self) private var subscriptions
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var quickLogPresented: Bool = false
     @State private var reflectionPresented: Bool = false
     @State private var planEditorPresented: Bool = false
@@ -65,6 +66,13 @@ struct TodayView: View {
                 .readableColumn()
             }
             .navigationTitle(store.toneMode.todayHeadline)
+            // At accessibility text sizes a large title with "Today's
+            // progress" / "Today's reckoning" overflows and ellipsizes
+            // (caught 2026-05-06 axxl recon — "Today's prog…"). Inline
+            // mode lets the title shrink to the available width.
+            .navigationBarTitleDisplayMode(
+                dynamicTypeSize.isAccessibilitySize ? .inline : .large
+            )
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

@@ -21,6 +21,11 @@ struct ProfileView: View {
                             Text(mode.displayName).tag(mode)
                         }
                     }
+                    // .menu keeps the selection on its own line as a
+                    // dropdown trigger instead of letting the in-row
+                    // trailing text truncate ("Defaul...erage" caught
+                    // 2026-05-06 axxl recon).
+                    .pickerStyle(.menu)
                     Text(store.toneMode.description)
                         .font(.caption)
                         .foregroundStyle(.secondary)

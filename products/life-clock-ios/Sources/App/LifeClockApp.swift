@@ -50,6 +50,7 @@ struct LifeClockApp: App {
                 .environment(store)
                 .environment(subscriptions)
                 .tint(store.palette.accent)
+                .preferredColorScheme(forcedColorScheme)
                 .task {
                     await store.bootstrap()
                     hasBootstrapped = true
@@ -109,6 +110,14 @@ struct LifeClockApp: App {
                 }
             }
         )
+    }
+
+    private var forcedColorScheme: ColorScheme? {
+        switch launchConfiguration.forceColorScheme {
+        case .light: return .light
+        case .dark: return .dark
+        case nil: return nil
+        }
     }
 
     private func wrapUpMinutes(for wrapUp: WrapUpCoordinator.PendingWrapUp) -> Int {
