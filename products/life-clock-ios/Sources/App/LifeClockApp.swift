@@ -134,11 +134,21 @@ struct RootView: View {
     @Query private var profiles: [UserProfile]
 
     var body: some View {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["LIFECLOCK_RESEARCH"] == "kind-streak" {
+            KindStreakResearchView()
+        } else if profiles.isEmpty {
+            OnboardingCoordinator()
+        } else {
+            MainTabView()
+        }
+        #else
         if profiles.isEmpty {
             OnboardingCoordinator()
         } else {
             MainTabView()
         }
+        #endif
     }
 }
 
