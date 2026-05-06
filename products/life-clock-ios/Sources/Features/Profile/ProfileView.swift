@@ -141,6 +141,7 @@ struct ProfileView: View {
                         Button("Upgrade to Pro") {
                             paywallPresented = true
                         }
+                        .accessibilityIdentifier("profile.upgrade")
                     }
                     Button {
                         restorePurchases()
@@ -151,6 +152,7 @@ struct ProfileView: View {
                         }
                     }
                     .disabled(restoring)
+                    .accessibilityIdentifier("profile.restore")
                 }
 
                 Section("Privacy") {

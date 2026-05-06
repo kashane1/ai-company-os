@@ -34,6 +34,7 @@ struct HistoryView: View {
                 .readableColumn()
             }
             .navigationTitle("History")
+            .accessibilityIdentifier("history.screen")
             .navigationDestination(for: DayDetailRoute.self) { route in
                 DayDetailView(dayStart: route.dayStart)
             }
@@ -165,6 +166,7 @@ struct HistoryView: View {
                 content
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("history.row.pro")
         } else {
             // Free users get a read-only summary. Tapping nudges toward
             // the upgrade since per-day detail/editing is Pro-only.
@@ -174,6 +176,7 @@ struct HistoryView: View {
                 content
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("history.row.locked")
         }
     }
 
@@ -255,6 +258,7 @@ struct HistoryView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .padding(.top, DesignTokens.Spacing.xs)
+                .accessibilityIdentifier("history.foggedUnlock")
             }
             .padding(DesignTokens.Spacing.md)
         }
@@ -308,6 +312,7 @@ struct HistoryView: View {
                     .padding(.vertical, DesignTokens.Spacing.xs)
             }
             .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("history.weeklyTeaserUnlock")
         }
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
