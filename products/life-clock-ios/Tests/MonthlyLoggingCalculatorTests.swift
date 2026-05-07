@@ -138,4 +138,25 @@ final class MonthlyLoggingCalculatorTests: XCTestCase {
             XCTAssertFalse(tone.monthlyLoggingNeutralLine.isEmpty)
         }
     }
+
+    /// Locks the operator brief: tone-aware milestone copy on gentle /
+    /// coach / firmDirect must actually differ. Earlier passes shared
+    /// copy across gentle+coach at start and half — the polish session
+    /// of 2026-05-06 split them. This guard prevents quiet regression.
+    func testTonesDifferAtEveryMilestone() {
+        for milestone in [
+            MonthlyLogging.Milestone.start,
+            .quarter, .half, .threeQuarter
+        ] {
+            let lines = ToneMode.allCases.map {
+                $0.monthlyLoggingMilestoneLine(
+                    milestone, daysLogged: 6, monthName: "May"
+                )
+            }
+            XCTAssertEqual(
+                Set(lines).count, lines.count,
+                "tones share copy at \(milestone): \(lines)"
+            )
+        }
+    }
 }
