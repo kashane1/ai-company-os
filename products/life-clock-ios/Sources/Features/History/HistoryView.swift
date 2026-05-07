@@ -324,7 +324,7 @@ struct HistoryView: View {
 
     private func netCard(_ report: WeeklyReport) -> some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-            Text("Net this week").font(.subheadline).foregroundStyle(.secondary)
+            Text(store.toneMode.historyWeeklyNetLabel).font(.subheadline).foregroundStyle(.secondary)
             Text(TimeDeltaFormatter.format(minutes: report.netTimeDeltaMinutes))
                 .font(.system(size: 40, weight: .semibold, design: .rounded))
                 .foregroundStyle(report.netTimeDeltaMinutes >= 0
@@ -344,7 +344,7 @@ struct HistoryView: View {
 
     private func driversCard(_ report: WeeklyReport) -> some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Text("What shaped the week")
+            Text(store.toneMode.historyWeeklyDriversHeading)
                 .font(.headline)
             row(label: "Top positive", value: report.topPositiveDriver, color: DesignTokens.Palette.positive)
             row(label: "Top drag", value: report.topNegativeDriver, color: DesignTokens.Palette.negative)
@@ -359,12 +359,12 @@ struct HistoryView: View {
 
     private func leverCard(_ report: WeeklyReport) -> some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-            Text("Next best lever")
+            Text(store.toneMode.historyNextLeverHeading)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             Text(report.nextBestLever.capitalized)
                 .font(.title3.bold())
-            Text("Small, repeatable wins compound. Don't try to fix everything.")
+            Text(store.toneMode.historyNextLeverCaption)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
