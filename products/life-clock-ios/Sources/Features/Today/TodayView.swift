@@ -481,6 +481,10 @@ struct TodayView: View {
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        // `.contain` preserves child identifiers (today.planEditLocked,
+        // today.planAction.<i>) instead of clobbering them with the
+        // container's own id, which is the default SwiftUI behavior.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("today.plan")
     }
 }
