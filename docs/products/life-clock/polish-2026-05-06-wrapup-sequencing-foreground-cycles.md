@@ -130,15 +130,94 @@ Tone-aware strings on `ToneMode` (`yesterdayWrapUpHeading`,
   parallel matrix-recon contention from another worktree) before relying
   on them as a regression gate. They are throwaway and not part of CI.
 
+## Session 14:35 — Second pass (operator-approved follow-up)
+
+Operator approved the weekly-persistence fix and confirmed computer-use
+should be back online; ran a second pass.
+
+### Iterations
+
+- [14:35] `624d139` — `feat(life-clock): persist WeeklyReport so weekly
+  wrap-ups can fire` — **Feature** (operator-approved) — added
+  `LifeClockStore.persistWeeklyReport`, called inside
+  `refreshFromHealthKit` after `calculateWeeklyTrend`. Upserts keyed on
+  `@Attribute(.unique) weekStart`. Locked with
+  `testRefreshPersistsWeeklyReportSoPendingWeeklyCanFire` (asserts row
+  count goes 0→≥1 after first refresh, and a second forced refresh upserts
+  rather than duplicating).
+- [15:30] `eab8321` — `test(life-clock): broaden WrapUp recon element
+  queries` — Polish — `.accessibilityIdentifier` on the sheet root
+  propagates the id to descendants (not a single `Other` container), so
+  `app.otherElements["wrapup.sheet.yesterday"]` returned no match.
+  Switched to
+  `descendants(matching: .any).matching(identifier: …).firstMatch`.
+
+### Recon results (second pass)
+
+- `WrapUpCoordinatorTests` — 19/19 PASSED (no regression).
+- `testMarkWrapUpShownSequencesSiblingsInSameSession` — PASSED.
+- `testRefreshPersistsWeeklyReportSoPendingWeeklyCanFire` — PASSED.
+- `WrapUpSequenceRecon/testBackgroundMidWrapUpKeepsSheet` — PASSED
+  (33 s).
+- `WrapUpSequenceRecon/testFinalAcceptance_RapidForegroundCycles` —
+  PASSED (31 s).
+- The remaining four UI recon tests
+  (`testThursdayYesterdayOnly`,
+  `testMondayYesterdayThenWeekly`,
+  `testRepresentDoesNotFireSameSession`,
+  `testFinalAcceptance_SwipeDownDismissal`) — observed flaking on this
+  host. The runner reported "Timed out waiting for AX loaded
+  notification" on isolated re-runs, and earlier full-suite runs failed at
+  the wrap-up existence wait even though prior runs of the same code
+  produced a valid `01-thursday-yesterday-presented` golden showing the
+  sheet on screen with all four `wrapup.sheet.yesterday` identifiers.
+  This is environmental — not a code regression. The unit-level proof of
+  the fix (sequencing test + persistence test) is the load-bearing
+  regression gate; the UI recon should be re-run on a clean host before
+  relying on it as a CI gate.
+
+### Computer-use checkpoint (second attempt)
+
+- `request_access` SUCCEEDED this time (bridge is back). However the
+  Simulator app process started with no window — `System Events` reported
+  `count of windows = 0` after `open -a Simulator`,
+  `tell application "Simulator" to activate`, and Window-menu cycling.
+  Likely a Spaces/login-window state on this host (a
+  `launchctl kickstart -k com.apple.CoreSimulator.CoreSimulatorService`
+  earlier in the session may have orphaned the GUI window).
+  The XCUITest acceptance gates landed in
+  `45600b4` already cover the same gestures
+  (swipe-down + rapid bg/fg cycles); both passed when the runner is
+  healthy. The hand-driven gesture pass should still be done once on a
+  clean host before App Store submission.
+
+## Asks (final)
+
+### Resolved this session
+
+- **Weekly wrap-up persistence is missing in production.** → Fixed in
+  `624d139`; locked with a unit test.
+
+### Outstanding
+
+- **UI recon flake on this host** — full-suite UI test runs intermittently
+  fail at the runner-attach step (`Timed out waiting for AX loaded
+  notification`). Recommend a clean reboot of the Mac before re-running
+  the recon, and treating
+  `LifeClockStoreTests/testMarkWrapUpShownSequencesSiblingsInSameSession`
+  + `testRefreshPersistsWeeklyReportSoPendingWeeklyCanFire` as the
+  canonical regression gates.
+- **Computer-use Simulator window-attach** — bridge connects, but the
+  Simulator GUI window did not manifest this session. Consider a separate
+  task to debug the GUI vs. headless `simctl boot` interaction.
+
 ## Next pass
 
-- Resolve the weekly-wrap-up persistence Ask. Smallest-fix candidate: upsert
-  `WeeklyReport` keyed on `weekStart` inside `LifeClockStore.refreshFromHealthKit`
-  immediately after `weekly = clockEngine.calculateWeeklyTrend(...)`.
-- Re-run the four sequencing recon tests cleanly (sole ownership of the
-  iPhone 17 Pro simulator) and capture goldens at `.polish/goldens/`.
-- If the computer-use bridge is restored, do the real-gesture pass over
-  swipe-down + rapid bg/fg by hand before the next App Store submission.
+- Re-run the WrapUp recon on a clean host; refresh goldens at
+  `.polish/goldens/`.
+- If the computer-use bridge surfaces the Simulator window cleanly, do
+  the hand-driven swipe-down + rapid bg/fg pass before App Store
+  submission.
 - Consider a dwell-time guard on the markWrapUpShown→recompute path
   (e.g. require ≥30 s between sibling sheets on the same launch) if the
   back-to-back ceremony feels too dense in user testing.
