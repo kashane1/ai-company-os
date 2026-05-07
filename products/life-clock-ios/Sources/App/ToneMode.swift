@@ -329,10 +329,13 @@ enum ToneMode: String, CaseIterable, Identifiable {
 
     /// Heading on the Today drivers card. Sits above either the empty
     /// state or the per-driver list. The interpretation line below it is
-    /// already tone-aware via `todayInterpretation*`.
+    /// already tone-aware via `todayInterpretation*`. Sign-neutral by
+    /// design — coach and firmDirect read fine on a bad day; gentle's
+    /// previous "What helped today" misread when every visible driver
+    /// was negative (caught 2026-05-07 vision-bad-day-three-tones recon).
     var todayDriversHeading: String {
         switch self {
-        case .gentle: return "What helped today"
+        case .gentle: return "What shaped today"
         case .coach: return "Why it changed"
         case .firmDirect: return "What moved the needle"
         }
