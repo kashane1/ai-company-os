@@ -106,9 +106,21 @@ struct QuestEngine {
             return []
         }
 
-        let stepsDetail: String = (snapshot?.stepCount == nil)
-            ? "Take a 10-minute walk after a meal today."
-            : "Get to \(Int(target)) steps. A short post-dinner walk usually closes the gap."
+        // Surface the personalization signal in copy: when we have ≥5 logged
+        // days the target is the user's own p50 + 10% (clamped 5k–20k); when
+        // we don't, the 7500 default is admittedly arbitrary and the quest
+        // should not pretend otherwise. This makes the picker read as
+        // "we're tuning to you" instead of "stock 7500 for everyone."
+        let loggedDays = recentSnapshots.compactMap { $0.stepCount }.filter { $0 > 0 }.count
+        let isPersonalized = loggedDays >= 5
+        let stepsDetail: String
+        if snapshot?.stepCount == nil {
+            stepsDetail = "Take a 10-minute walk after a meal today."
+        } else if isPersonalized {
+            stepsDetail = "Get to \(Int(target)) steps — tuned from your last \(loggedDays) days. A short post-dinner walk usually closes the gap."
+        } else {
+            stepsDetail = "Get to \(Int(target)) steps. A short post-dinner walk usually closes the gap. (We'll tune this once we have a week of your data.)"
+        }
         let stepsQuest = Quest(
             slug: "movement.steps-target.v1",
             date: today,
