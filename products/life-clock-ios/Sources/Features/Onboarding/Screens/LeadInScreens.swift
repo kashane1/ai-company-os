@@ -219,6 +219,13 @@ struct ColdOpenView: View {
         .onTapGesture { advance() }
         .onAppear {
             telemetry.value.screenAppeared("coldOpen")
+            // Debug-only: when LIFECLOCK_JUMP_TO is set, the coordinator's
+            // jump fixture has already replaced the path. Skip the timed
+            // auto-advance so it doesn't push `.welcome` on top of the
+            // jump target.
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["LIFECLOCK_JUMP_TO"] != nil { return }
+            #endif
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { advance() }
         }
         .accessibilityAddTraits(.isButton)
