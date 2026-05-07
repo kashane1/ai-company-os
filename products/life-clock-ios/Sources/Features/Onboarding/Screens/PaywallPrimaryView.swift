@@ -104,6 +104,7 @@ struct PaywallPrimaryView: View {
             }
             .font(.caption)
             .foregroundStyle(.secondary)
+            .accessibilityIdentifier("paywall.restore")
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)

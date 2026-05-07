@@ -101,6 +101,7 @@ final class HealthKitAggregatorTests: XCTestCase {
 }
 
 final class MockHealthKitServiceAuthorizationTests: XCTestCase {
+    @MainActor
     func testRequestAuthorizationFlipsFlag() async throws {
         let service = MockHealthKitService(preAuthorized: false)
         XCTAssertFalse(service.authorizationKnown)
@@ -108,6 +109,7 @@ final class MockHealthKitServiceAuthorizationTests: XCTestCase {
         XCTAssertTrue(service.authorizationKnown)
     }
 
+    @MainActor
     func testSimulateNoDataReturnsNilSnapshot() async {
         let service = MockHealthKitService(simulateNoData: true)
         let snap = await service.dailySnapshot(for: Date(timeIntervalSince1970: 1_800_000_000))
