@@ -34,6 +34,9 @@ _none — both planned Stretch commits landed without operator input._
    - Recommendation: **(a)**. The operator framed the Pro-lock value as "preview-then-paywall, not 'you can't do this' wall" — cancel-restore is the equivalent affordance for committed users (preview-the-swap, commit-on-Done) and the picker becomes safer to explore. Cost is one snapshot field + one button.
    - Goldens for context: `01-today-pro.png` (Today as Pro before edit). Editor goldens to come once `PlanEditorRecon` runs green.
 
+3. **`PlanEditorRecon` walk-variant lookup is fragile under contention** _(Polish, deferred)_
+   `testFinalAcceptance_VariantSurvivesSwipeDown` and `testProVariantPickPersistsWithinDay` both fail at `walkOption.waitForExistence(timeout: 3)` (`PlanEditorRecon.swift:169` / `:69`) when the host has 4+ concurrent `xcodebuild test` processes running. With contention low (1–2 concurrent), `testProEditorExposesAllCategories` completed in ~30 s; with contention at 5+, individual cases stretch to 200+ s and the 3-second wait is insufficient. Mitigation already shipped in `936672b`: FIXED_DATE pinning + 12 s launch wait. Remaining lever: bump the `walkOption.waitForExistence` to 8–12 s _and_ explicitly scroll the editor's ScrollView before querying, since SwiftUI's non-lazy ScrollView still requires the row to be in the visible viewport for some AX queries. **Recommendation:** one-line `timeout: 10` bump + `scrollUntilVisible(anyDescendant:)` before the walk-option query. Did not land here because the loop had already tripped two-recurrence on this finding.
+
 2. **"Preview-then-paywall" framing for the Free Pro lock** _(Vision-question)_
    The operator phrased this as preview-then-paywall rather than "you can't do this." Today's plan card _already_ shows the engine's defaults to Free users — only the chip routes to paywall (`today.planEditLocked → PaywallSheet`). Two readings:
    - **(a)** Current behavior is already preview-then-paywall by construction: Free users see today's plan content (the variants the engine picked); they only hit the paywall when they try to swap. No change needed.
@@ -43,7 +46,8 @@ _none — both planned Stretch commits landed without operator input._
 
 ## Regressions caught
 
-- _Pending PlanEditorRecon run + golden refresh — final state to be appended once `xcodebuild test` returns._ No source-only regressions noticed in the Polish/Stretch fixes; the only screens the loop intentionally changed are PlanEditorSheet (entirely new copy + ids) and the movement quest detail line on Today's plan card.
+- No source-only regressions in the Polish/Stretch fixes. The only screens the loop intentionally changed are PlanEditorSheet (new tone-aware copy + ids) and the movement quest detail line on Today's plan card.
+- **PlanEditorRecon flap under contention** (commit `936672b` partially mitigated): pinning `LIFECLOCK_FIXED_DATE` to the deterministic mock-RNG seed and bumping launch waits to 12 s did not stabilize `testFinalAcceptance_VariantSurvivesSwipeDown` / `testProVariantPickPersistsWithinDay` / `testTomorrowReset_OverridesClearedOnNewDay` on this machine. Two of two retry cycles failed `walkOption.waitForExistence(timeout: 3)` at `PlanEditorRecon.swift:169`. Environment: 5 concurrent `xcodebuild test` processes from neighboring Claude sessions on the same project; per-test runtime ballooned to **214 s** for `testFinalAcceptance_VariantSurvivesSwipeDown` (vs ~30 s on the first run when contention was lighter). Surfaced as Outstanding Ask (3) — **not chased further this session per the two-recurrence rule.**
 
 ## A11y identifiers added
 
