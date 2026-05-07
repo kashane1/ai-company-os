@@ -186,4 +186,59 @@ final class WrapUpSequenceRecon: XCTestCase {
             app.buttons["wrapup.dismissCTA"].firstMatch.tap()
         }
     }
+
+    // MARK: - Final acceptance gestures (computer-use substitute)
+
+    /// Real swipe-down dismissal — the binding `set(nil)` path that runs
+    /// markWrapUpShown when the user dismisses via gesture rather than CTA.
+    /// Substitutes for the computer-use bridge final pass when unavailable.
+    func testFinalAcceptance_SwipeDownDismissal() {
+        let app = makeApp(fixedDate: "2026-04-30T12:00:00Z")
+        app.launch()
+
+        let yesterday = app.otherElements["wrapup.sheet.yesterday"]
+        XCTAssertTrue(yesterday.waitForExistence(timeout: 10))
+        snapshot(app, name: "10-before-swipe")
+
+        // Swipe down from inside the sheet to dismiss without CTA tap.
+        // Anchor on the sheet element itself — the inner heading staticText
+        // may not be queryable with a tone-localized label.
+        yesterday.swipeDown()
+
+        let gone = NSPredicate(format: "exists == false")
+        expectation(for: gone, evaluatedWith: yesterday)
+        waitForExpectations(timeout: 5)
+        snapshot(app, name: "11-after-swipe")
+        XCTAssertFalse(yesterday.exists, "swipe-down must dismiss the wrap-up sheet")
+    }
+
+    /// Rapid foreground/background cycles while the sheet is up. Catches the
+    /// scenePhase-driven recompute regression where a flapping foreground
+    /// could clobber pendingWrapUp.
+    func testFinalAcceptance_RapidForegroundCycles() {
+        let app = makeApp(fixedDate: "2026-04-30T12:00:00Z")
+        app.launch()
+
+        let yesterday = app.otherElements["wrapup.sheet.yesterday"]
+        XCTAssertTrue(yesterday.waitForExistence(timeout: 10))
+
+        // 3 quick bg/fg cycles, no dismissal between them.
+        for cycle in 1...3 {
+            XCUIDevice.shared.press(.home)
+            // Short cycle; the 300s short-circuit in refreshFromHealthKit
+            // means most of these stay cached.
+            sleep(1)
+            app.activate()
+            XCTAssertTrue(
+                yesterday.waitForExistence(timeout: 3),
+                "yesterday wrap-up sheet must survive rapid cycle #\(cycle)"
+            )
+        }
+        snapshot(app, name: "12-after-rapid-cycles")
+
+        // Sheet still tappable — flapping must not break interaction.
+        if app.buttons["wrapup.dismissCTA"].firstMatch.exists {
+            app.buttons["wrapup.dismissCTA"].firstMatch.tap()
+        }
+    }
 }
