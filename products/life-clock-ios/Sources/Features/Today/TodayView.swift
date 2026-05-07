@@ -353,10 +353,10 @@ struct TodayView: View {
     private var monthlyLoggingBanner: some View {
         let monthly = store.monthlyLogging
         if monthly.daysLogged >= 1 {
-            HStack(spacing: DesignTokens.Spacing.sm) {
+            HStack(alignment: .firstTextBaseline, spacing: DesignTokens.Spacing.sm) {
                 Image(systemName: "calendar")
                     .foregroundStyle(.orange)
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(monthly.daysLogged == 1
                         ? "1 day logged so far · \(monthly.monthName)"
                         : "\(monthly.daysLogged) days logged so far · \(monthly.monthName)")
@@ -365,7 +365,7 @@ struct TodayView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Spacer()
+                Spacer(minLength: 0)
             }
             .padding(DesignTokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
