@@ -53,6 +53,7 @@ struct OnboardingCoordinator: View {
         .environment(telemetry)
         .environment(draft)
         .environment(mascotOverride)
+        .onAppear { applyJumpFixtureIfNeeded() }
         // Shell-level reactor: any draft input mutation schedules a
         // debounced recompute so the persistent mascot reflects the
         // current state without waiting for Continue. 80ms balances
@@ -246,6 +247,57 @@ struct OnboardingCoordinator: View {
             [.year], from: date, to: store.clock.now()
         ).year ?? 0
         return yearsFromNow >= 18
+    }
+
+    /// Debug-only: jump straight to a terminal-tier onboarding screen
+    /// for polish audits. Set `LIFECLOCK_JUMP_TO=recoveryPreview` (or
+    /// `healthKitAuth` / `paywallPrimary` / `entryView`) at launch.
+    /// Pre-populates the draft so the persistent header's cumulative
+    /// trajectory is non-zero and `RecoveryPreviewView` has the inputs
+    /// it needs (DOB, sex, lifestyle answers).
+    ///
+    /// No-op in Release builds — the env-var read is `#if DEBUG` only.
+    private func applyJumpFixtureIfNeeded() {
+        #if DEBUG
+        guard let raw = ProcessInfo.processInfo.environment["LIFECLOCK_JUMP_TO"],
+              let target = OnboardingScreen(rawValue: raw),
+              path.isEmpty
+        else { return }
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        draft.birthDate = calendar.date(from: DateComponents(year: 1985, month: 6, day: 15))
+        draft.biologicalSex = "male"
+        draft.heightCm = 178
+        draft.weightKg = 82
+        let engine = ClockEngine(clock: store.clock)
+        // Latch a CLEAN (lifestyle-free) baseline first so the persistent
+        // mascot's cumulative delta reflects the answers we're about to
+        // load — not zero. Without this, baselineProjectedAgeYears is
+        // assigned alongside the loaded inputs and current-baseline=0.
+        draft.recomputeEstimate(using: engine)
+        // Now load lifestyle answers that yield a clearly-negative
+        // trajectory — that's the realistic state at the recovery-preview
+        // screen (the user just confirmed a dial; the headline reads
+        // "N more years"). A perfectly-healthy fixture would land on the
+        // yearsBack==0 fallback copy and not exercise the primary layout.
+        draft.smokingStatus = "heavy"
+        draft.alcoholFrequency = "heavy"
+        draft.strengthFrequencyPerWeek = 0
+        draft.cardioMinsPerWeek = 0
+        draft.sleepGoalHours = 5.5
+        draft.dietQualityBaseline = "rough"
+        draft.primaryGoal = .liveLonger
+        draft.toneMode = .coach
+        draft.personalAdjustmentYears = -2
+        draft.anchorAdjustedAt = store.clock.now()
+        draft.recomputeEstimate(using: engine)
+
+        // Match `engineRevealAndDial.onConfirm` — terminal screens are
+        // unreachable via back-nav, so the path is `[target]` not the
+        // accumulated trail to it.
+        path = [target]
+        #endif
     }
 
     private func completeOnboarding() {
