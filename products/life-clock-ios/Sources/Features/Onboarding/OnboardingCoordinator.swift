@@ -321,11 +321,23 @@ struct EntryView: View {
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
 
     var body: some View {
+        // Brief safety-net frame: the parent gate flips as soon as the
+        // profile lands in the SwiftData store, so this is at most a
+        // single render. Even so, give it the same vertical rhythm as
+        // every other terminal screen — flexible top spacer + content
+        // block + flexible bottom spacer — instead of letting SwiftUI
+        // center a tiny VStack in the residual safe area below the
+        // persistent header. The earlier "Almost there…" copy felt
+        // generic-app; the new line names the moment.
         VStack(spacing: 16) {
+            Spacer()
             ProgressView()
-            Text("Almost there…")
+            Text("Setting up your clock…")
+                .font(.body)
                 .foregroundStyle(.secondary)
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityIdentifier("onboarding.entryView")
         .onAppear {
             telemetry.value.screenAppeared("entryView")
