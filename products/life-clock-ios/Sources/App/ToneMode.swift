@@ -365,6 +365,35 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// PlanEditorSheet — navigation-bar title.
+    var planEditorTitle: String {
+        switch self {
+        case .gentle: return "Today's plan"
+        case .coach: return "Edit today's plan"
+        case .firmDirect: return "Pick today's plan"
+        }
+    }
+
+    /// PlanEditorSheet — caption under the title. Communicates the
+    /// one-pick-per-category rule + the one-shot semantics.
+    var planEditorSubtitle: String {
+        switch self {
+        case .gentle: return "Swap any line for another. One pick per area, just for today."
+        case .coach: return "One pick per category. Resets tomorrow."
+        case .firmDirect: return "One pick per slot. Today only. Resets at midnight."
+        }
+    }
+
+    /// PlanEditorSheet — destructive button that drops user picks and
+    /// returns the engine defaults.
+    var planEditorResetCTA: String {
+        switch self {
+        case .gentle: return "Use today's defaults"
+        case .coach: return "Reset to defaults"
+        case .firmDirect: return "Drop my picks"
+        }
+    }
+
     // MARK: - History weekly card headings
 
     /// Label above the weekly net-delta number.

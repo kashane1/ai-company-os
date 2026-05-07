@@ -16,10 +16,11 @@ struct PlanEditorSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
-                    Text("One pick per category. Resets tomorrow.")
+                    Text(store.toneMode.planEditorSubtitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .padding(.bottom, DesignTokens.Spacing.xs)
+                        .accessibilityIdentifier("planEditor.subtitle")
 
                     ForEach(QuestEngine.Category.allCases, id: \.self) { category in
                         categorySection(category)
@@ -28,7 +29,7 @@ struct PlanEditorSheet: View {
                     Button(role: .destructive) {
                         store.clearTodayPlanOverrides()
                     } label: {
-                        Label("Reset to defaults", systemImage: "arrow.counterclockwise")
+                        Label(store.toneMode.planEditorResetCTA, systemImage: "arrow.counterclockwise")
                     }
                     .accessibilityIdentifier("planEditor.reset")
                     .padding(.top, DesignTokens.Spacing.md)
@@ -36,7 +37,7 @@ struct PlanEditorSheet: View {
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
             }
-            .navigationTitle("Edit today's plan")
+            .navigationTitle(store.toneMode.planEditorTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -55,10 +56,12 @@ struct PlanEditorSheet: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             Text(category.displayTitle)
                 .font(.headline)
+                .accessibilityIdentifier("planEditor.categoryTitle.\(category.rawValue)")
             if variants.isEmpty {
                 Text("No options today — already covered.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("planEditor.empty.\(category.rawValue)")
             } else {
                 ForEach(variants, id: \.slug) { quest in
                     questRow(quest, isSelected: selectedSlug == quest.slug, category: category)
