@@ -559,4 +559,84 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertNil(store.profile)
         XCTAssertFalse(store.hasCompletedOnboarding)
     }
+
+    // MARK: - Wrap-up sequencing
+
+    /// Regression guard for the polish session
+    /// `polish-2026-05-06-wrapup-sequencing-foreground-cycles`.
+    ///
+    /// Before the fix, `markWrapUpShown` cleared `pendingWrapUp = nil` but
+    /// did not recompute, so a queued sibling (weekly after yesterday on a
+    /// Monday return) was silently dropped until the next foreground cycle.
+    /// This test pins the in-session sequencing contract: yesterday wins
+    /// first, dismissing it triggers a recompute, weekly fires next.
+    func testMarkWrapUpShownSequencesSiblingsInSameSession() async throws {
+        // 2027-01-18 is a Monday (UTC). firstWeekday=Monday → both pending.
+        // Match EngineClock.fixed's UTC calendar so day-keys align with
+        // what WrapUpCoordinator queries.
+        let monday = Date(timeIntervalSince1970: 1_768_780_800)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: monday)!
+        let weekStart = calendar.date(byAdding: .day, value: -7, to: monday)!
+        let onboarded = calendar.date(byAdding: .day, value: -30, to: monday)!
+
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+
+        // Seed a returning user, yesterday snapshot with data, prior-week
+        // report. Mirrors what the seed harness writes for
+        // `LIFECLOCK_SEED_STREAK > 0`.
+        let profile = UserProfile(
+            birthDate: Date(timeIntervalSince1970: 631_152_000),
+            biologicalSex: "female",
+            toneMode: ToneMode.coach.rawValue
+        )
+        profile.onboardingCompletedAt = onboarded
+        context.insert(profile)
+
+        let yesterdaySnapshot = DailyHealthSnapshot(date: calendar.startOfDay(for: yesterday))
+        yesterdaySnapshot.stepCount = 8_400
+        yesterdaySnapshot.exerciseMinutes = 32
+        yesterdaySnapshot.sleepHours = 7.4
+        yesterdaySnapshot.activeEnergyKcal = 410
+        yesterdaySnapshot.sourceCompleteness = 0.8
+        context.insert(yesterdaySnapshot)
+
+        let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart)!
+        let report = WeeklyReport(weekStart: weekStart, weekEnd: weekEnd)
+        context.insert(report)
+        try? context.save()
+
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(monday)
+        )
+        await store.bootstrap()
+
+        guard case .yesterday = store.pendingWrapUp else {
+            XCTFail("expected yesterday wrap-up to win first, got \(String(describing: store.pendingWrapUp))")
+            return
+        }
+
+        store.markWrapUpShown(store.pendingWrapUp!)
+
+        // Sequencing contract: weekly takes the slot in the SAME launch,
+        // without waiting for a scenePhase active transition.
+        guard case .weekly(let resolved) = store.pendingWrapUp else {
+            XCTFail(
+                "expected weekly wrap-up to sequence in after yesterday dismissal, got \(String(describing: store.pendingWrapUp))"
+            )
+            return
+        }
+        XCTAssertEqual(
+            calendar.startOfDay(for: resolved),
+            calendar.startOfDay(for: weekStart)
+        )
+
+        // And dismissing weekly clears the slot — no third sibling lurking.
+        store.markWrapUpShown(store.pendingWrapUp!)
+        XCTAssertNil(store.pendingWrapUp, "no further siblings expected")
+    }
 }

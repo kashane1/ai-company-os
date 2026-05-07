@@ -487,6 +487,12 @@ final class LifeClockStore {
         profile.lastShownWeeklyWrapUpWeek = advanced.lastShownWeeklyWrapUpWeek
         try? modelContext.save()
         pendingWrapUp = nil
+        // Recompute so a queued sibling (e.g. weekly wrap-up after the user
+        // dismissed yesterday on a Monday return) sequences in within the
+        // same launch instead of waiting for the next foreground transition.
+        // Coordinator's monotonic guards prevent re-presenting what we just
+        // marked shown.
+        recomputePendingWrapUp(profile: profile, now: now)
     }
 
     private func daySnapshot(from snapshot: DailyHealthSnapshot) -> WrapUpCoordinator.DaySnapshot {
