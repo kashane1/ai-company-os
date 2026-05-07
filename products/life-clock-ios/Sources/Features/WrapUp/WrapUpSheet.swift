@@ -43,6 +43,7 @@ struct WrapUpSheet: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
                 .padding(.top, DesignTokens.Spacing.lg)
+                .accessibilityIdentifier("wrapup.heading")
 
             ClockHandView(signedMinutes: signedMinutes, duration: animationDuration)
 
@@ -68,11 +69,22 @@ struct WrapUpSheet: View {
             .buttonStyle(.borderedProminent)
             .padding(.horizontal, DesignTokens.Spacing.lg)
             .padding(.bottom, DesignTokens.Spacing.lg)
+            .accessibilityIdentifier("wrapup.dismissCTA")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityIdentifier(wrapUpKindIdentifier)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(false)
+    }
+
+    /// Stable id distinguishing yesterday vs weekly so XCUITest can wait on
+    /// the right sheet during sequencing checks.
+    private var wrapUpKindIdentifier: String {
+        switch wrapUp {
+        case .yesterday: return "wrapup.sheet.yesterday"
+        case .weekly: return "wrapup.sheet.weekly"
+        }
     }
 
     private var deltaColor: Color {
