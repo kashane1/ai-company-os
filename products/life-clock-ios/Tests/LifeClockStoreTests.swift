@@ -639,4 +639,51 @@ final class LifeClockStoreTests: XCTestCase {
         store.markWrapUpShown(store.pendingWrapUp!)
         XCTAssertNil(store.pendingWrapUp, "no further siblings expected")
     }
+
+    /// Regression guard for the production weekly-report persistence fix.
+    /// Pre-fix, `calculateWeeklyTrend` set `store.weekly` in-memory but the
+    /// `WeeklyReport` was never inserted into the model context, so
+    /// `pendingWeekly` (which reads through `fetchRecentWeeklyReports`)
+    /// returned nil regardless of date and the weekly wrap-up was dead code.
+    func testRefreshPersistsWeeklyReportSoPendingWeeklyCanFire() async throws {
+        let monday = Date(timeIntervalSince1970: 1_768_780_800)  // 2027-01-18 UTC
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+
+        let profile = UserProfile(
+            birthDate: Date(timeIntervalSince1970: 631_152_000),
+            biologicalSex: "female",
+            toneMode: ToneMode.coach.rawValue
+        )
+        profile.onboardingCompletedAt = calendar.date(byAdding: .day, value: -30, to: monday)!
+        context.insert(profile)
+        try? context.save()
+
+        // Pre-condition: no WeeklyReport rows exist.
+        let preCount = (try? context.fetch(FetchDescriptor<WeeklyReport>()))?.count ?? -1
+        XCTAssertEqual(preCount, 0, "fixture should start with no WeeklyReport rows")
+
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(monday)
+        )
+        await store.bootstrap()
+
+        let postCount = (try? context.fetch(FetchDescriptor<WeeklyReport>()))?.count ?? 0
+        XCTAssertGreaterThan(
+            postCount,
+            0,
+            "refreshFromHealthKit must persist the computed WeeklyReport so pendingWeekly has a row to query"
+        )
+
+        // Idempotent: a second refresh upserts (no duplicate-unique violation),
+        // and total count does not jump.
+        await store.refreshFromHealthKit(force: true)
+        let secondCount = (try? context.fetch(FetchDescriptor<WeeklyReport>()))?.count ?? 0
+        XCTAssertEqual(secondCount, postCount, "subsequent refresh must upsert, not duplicate")
+    }
 }
