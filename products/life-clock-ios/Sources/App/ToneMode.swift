@@ -295,7 +295,9 @@ enum ToneMode: String, CaseIterable, Identifiable {
     ) -> String {
         let phrase = daysLogged == 1 ? "1 day" : "\(daysLogged) days"
         switch (self, milestone) {
-        case (.gentle, .start), (.coach, .start):
+        case (.gentle, .start):
+            return "A fresh \(monthName). Every day you log is yours."
+        case (.coach, .start):
             return "\(monthName) starts now. Every logged day counts."
         case (.firmDirect, .start):
             return "\(monthName). Day one. Log it."
@@ -307,7 +309,9 @@ enum ToneMode: String, CaseIterable, Identifiable {
         case (.firmDirect, .quarter):
             return "Quarter through. \(phrase) banked."
 
-        case (.gentle, .half), (.coach, .half):
+        case (.gentle, .half):
+            return "Halfway through \(monthName). \(phrase) so far."
+        case (.coach, .half):
             return "Halfway through \(monthName). \(phrase) logged."
         case (.firmDirect, .half):
             return "Halfway. \(phrase) banked."
