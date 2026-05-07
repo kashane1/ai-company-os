@@ -99,11 +99,18 @@ struct PaywallPrimaryView: View {
             }
             .accessibilityIdentifier("paywall.purchase")
 
+            // Centered + .callout to match the soft-skip secondary slot
+            // the scaffold uses on every other terminal-tier onboarding
+            // screen (e.g. healthKitAuth's "Not now"). Earlier styling
+            // (.caption + leading alignment) drifted away from that
+            // muscle-memory pattern.
             Button("Restore") {
                 Task { await subscriptions.refreshEntitlements() }
             }
-            .font(.caption)
+            .buttonStyle(.plain)
+            .font(.callout)
             .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
             .accessibilityIdentifier("paywall.restore")
         }
         .padding(.horizontal, 24)
