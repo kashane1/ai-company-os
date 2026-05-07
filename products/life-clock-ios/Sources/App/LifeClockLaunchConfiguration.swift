@@ -51,6 +51,11 @@ struct LifeClockLaunchConfiguration {
     let seedQuestsCompleted: Int
     let clock: EngineClock
     let forceColorScheme: ColorScheme?
+    /// `LIFECLOCK_SEED_TONE=gentle|coach|firm_direct` overrides the seeded
+    /// `UserProfile.toneMode` when scenario is `.onboarded`. Lets simulator
+    /// audits screenshot each tone deterministically without driving Profile
+    /// to flip the picker.
+    let seedTone: ToneMode?
 
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
@@ -74,6 +79,7 @@ struct LifeClockLaunchConfiguration {
         let forceColorScheme = ColorScheme(rawValue: env["LIFECLOCK_FORCE_COLOR_SCHEME"] ?? "")
         let seedStreak = max(0, Int(env["LIFECLOCK_SEED_STREAK"] ?? "") ?? 0)
         let seedQuestsCompleted = max(0, Int(env["LIFECLOCK_SEED_QUESTS_COMPLETED"] ?? "") ?? 0)
+        let seedTone = ToneMode(rawValue: env["LIFECLOCK_SEED_TONE"] ?? "")
 
         let clock: EngineClock = {
             if let iso = env["LIFECLOCK_FIXED_DATE"],
@@ -95,7 +101,8 @@ struct LifeClockLaunchConfiguration {
             seedStreak: seedStreak,
             seedQuestsCompleted: seedQuestsCompleted,
             clock: clock,
-            forceColorScheme: forceColorScheme
+            forceColorScheme: forceColorScheme,
+            seedTone: seedTone
         )
         #else
         return LifeClockLaunchConfiguration(
@@ -107,7 +114,8 @@ struct LifeClockLaunchConfiguration {
             seedStreak: 0,
             seedQuestsCompleted: 0,
             clock: .live,
-            forceColorScheme: nil
+            forceColorScheme: nil,
+            seedTone: nil
         )
         #endif
     }
@@ -140,12 +148,13 @@ struct LifeClockLaunchConfiguration {
         let profile = UserProfile(
             birthDate: Date(timeIntervalSince1970: 631_152_000),
             biologicalSex: "female",
-            toneMode: ToneMode.coach.rawValue
+            toneMode: (seedTone ?? .coach).rawValue
         )
         profile.sleepGoalHours = 7.5
         profile.strengthFrequencyPerWeek = 2
         profile.dietQualityBaseline = "okay"
         profile.onboardingCompletedAt = now
+        profile.onboardingV2CompletedAt = now
         profile.disclaimerAcceptedAt = now
         context.insert(profile)
 
