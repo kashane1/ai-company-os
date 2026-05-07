@@ -145,6 +145,16 @@ struct LifeClockLaunchConfiguration {
 
         let now = clock.now()
         let calendar = clock.calendar
+        // Back-date onboarding by `seedStreak` days when seeding a returning
+        // user. The wrap-up reinstall guard (`today >= onboardedAt + 2`) and
+        // weekly recency window both need real elapsed days; without this the
+        // wrap-up flow is unreachable from a fresh seed. Min 2 days when
+        // streak ≥ 2, so any returning-user fixture is past the guard.
+        let onboardedAt: Date = {
+            guard seedStreak > 0 else { return now }
+            let daysBack = max(2, seedStreak)
+            return calendar.date(byAdding: .day, value: -daysBack, to: now) ?? now
+        }()
         let profile = UserProfile(
             birthDate: Date(timeIntervalSince1970: 631_152_000),
             biologicalSex: "female",
@@ -153,15 +163,19 @@ struct LifeClockLaunchConfiguration {
         profile.sleepGoalHours = 7.5
         profile.strengthFrequencyPerWeek = 2
         profile.dietQualityBaseline = "okay"
-        profile.onboardingCompletedAt = now
-        profile.onboardingV2CompletedAt = now
-        profile.disclaimerAcceptedAt = now
+        profile.onboardingCompletedAt = onboardedAt
+        profile.onboardingV2CompletedAt = onboardedAt
+        profile.disclaimerAcceptedAt = onboardedAt
         context.insert(profile)
 
         // Seed N days of diet-logged HabitLog entries backward from `now`. With
         // a `LIFECLOCK_FIXED_DATE` inside the current month, this drives the
         // monthlyLoggingBanner — N becomes the count if all seeded days fall
-        // in the same calendar month.
+        // in the same calendar month. Also seeds matching DailyHealthSnapshot
+        // rows so wrap-up integration audits (yesterday + weekly) have real
+        // data; without these rows the wrap-up flow is unreachable from a
+        // fresh seed (`pendingYesterday` requires a snapshot with
+        // `hasMinimumData == true`).
         if seedStreak > 0 {
             for offset in 0..<seedStreak {
                 guard let day = calendar.date(byAdding: .day, value: -offset, to: now) else { continue }
@@ -173,6 +187,35 @@ struct LifeClockLaunchConfiguration {
                 log.stressLevel = "medium"
                 log.strengthTraining = false
                 context.insert(log)
+
+                let snapshot = DailyHealthSnapshot(date: dayStart)
+                snapshot.stepCount = 8_400
+                snapshot.distanceMeters = 6_400
+                snapshot.exerciseMinutes = 32
+                snapshot.activeEnergyKcal = 410
+                snapshot.sleepHours = 7.4
+                snapshot.sleepConsistencyScore = 0.78
+                snapshot.restingHeartRate = 60
+                snapshot.sourceCompleteness = 0.85
+                snapshot.lastRecomputedAt = now
+                context.insert(snapshot)
+            }
+
+            // Seed WeeklyReport rows for the past 4 weeks so weekly wrap-ups
+            // (Monday only) have rows to query. NOTE: production currently
+            // never persists WeeklyReport — this is a fixture-only assist
+            // until `LifeClockStore.refreshFromHealthKit` learns to upsert
+            // them. Tracked in the wrap-up-sequencing session log.
+            for weeksBack in 1...4 {
+                guard let weekStart = calendar.date(
+                    byAdding: .day,
+                    value: -weeksBack * 7,
+                    to: calendar.startOfDay(for: now)
+                ) else { continue }
+                guard let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart) else { continue }
+                let report = WeeklyReport(weekStart: weekStart, weekEnd: weekEnd)
+                report.netTimeDeltaMinutes = 0
+                context.insert(report)
             }
         }
 
