@@ -96,8 +96,20 @@ final class SubscriptionStore: EntitlementProviding {
         // falls through to the production sandbox path. Set
         // `LIFECLOCK_SIMULATOR_PRO_DISABLED=1` in the environment to
         // exercise the real paywall flow on the simulator.
-        if ProcessInfo.processInfo.environment["LIFECLOCK_SIMULATOR_PRO_DISABLED"] == nil {
+        let env = ProcessInfo.processInfo.environment
+        if env["LIFECLOCK_SIMULATOR_PRO_DISABLED"] == nil {
             entitledProductIDs = [PaywallProductID.lifetime.rawValue]
+            return
+        }
+        // Pro is explicitly disabled. Under XCUITest we want a deterministic
+        // empty-entitlements state without iterating Transaction.current-
+        // Entitlements, which has been seen to stall in test mode (the
+        // sandbox StoreKit framework is configured per-scheme but hasn't
+        // always finished warming up by the time .task fires). For human
+        // simulator runs we still fall through to the real StoreKit path
+        // so a manual purchase exercises the production code.
+        if env["LIFECLOCK_UI_TEST"] == "1" {
+            entitledProductIDs = []
             return
         }
         #endif
