@@ -171,6 +171,11 @@ struct PlanEditorSheet: View {
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        // `.contain` keeps child ids (planEditor.categoryTitle.<raw>,
+        // planEditor.empty.<raw>, planEditor.option.<slug>) reachable
+        // instead of letting this container's id swallow them. Same
+        // shape as `today.plan` in TodayView.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("planEditor.category.\(category.rawValue)")
     }
 
