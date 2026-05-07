@@ -56,6 +56,16 @@ struct LifeClockLaunchConfiguration {
     /// audits screenshot each tone deterministically without driving Profile
     /// to flip the picker.
     let seedTone: ToneMode?
+    /// `LIFECLOCK_HEALTH_PROFILE=baseline|poor` shapes the mock service's
+    /// daily snapshot. `poor` powers the bad-day polish recon — see
+    /// `MockHealthKitService.HealthProfile`.
+    let healthProfile: MockHealthKitService.HealthProfile
+    /// `LIFECLOCK_SEED_BAD_DAY=1` overrides today's seeded HabitLog with
+    /// the all-bad combination (rough diet, heavy alcohol, smoking,
+    /// skip/binge rhythm, no whole-food anchor, high stress, no strength).
+    /// Composed with `LIFECLOCK_HEALTH_PROFILE=poor` it lands the user on
+    /// a ≈ −90 minute Today screen for the three-tone vision audit.
+    let seedBadDayToday: Bool
 
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
@@ -80,6 +90,10 @@ struct LifeClockLaunchConfiguration {
         let seedStreak = max(0, Int(env["LIFECLOCK_SEED_STREAK"] ?? "") ?? 0)
         let seedQuestsCompleted = max(0, Int(env["LIFECLOCK_SEED_QUESTS_COMPLETED"] ?? "") ?? 0)
         let seedTone = ToneMode(rawValue: env["LIFECLOCK_SEED_TONE"] ?? "")
+        let healthProfile = MockHealthKitService.HealthProfile(
+            rawValue: env["LIFECLOCK_HEALTH_PROFILE"] ?? ""
+        ) ?? .baseline
+        let seedBadDayToday = env["LIFECLOCK_SEED_BAD_DAY"] == "1"
 
         let clock: EngineClock = {
             if let iso = env["LIFECLOCK_FIXED_DATE"],
@@ -102,7 +116,9 @@ struct LifeClockLaunchConfiguration {
             seedQuestsCompleted: seedQuestsCompleted,
             clock: clock,
             forceColorScheme: forceColorScheme,
-            seedTone: seedTone
+            seedTone: seedTone,
+            healthProfile: healthProfile,
+            seedBadDayToday: seedBadDayToday
         )
         #else
         return LifeClockLaunchConfiguration(
@@ -115,7 +131,9 @@ struct LifeClockLaunchConfiguration {
             seedQuestsCompleted: 0,
             clock: .live,
             forceColorScheme: nil,
-            seedTone: nil
+            seedTone: nil,
+            healthProfile: .baseline,
+            seedBadDayToday: false
         )
         #endif
     }
@@ -127,14 +145,14 @@ struct LifeClockLaunchConfiguration {
         guard useMockHealth else { return HealthKitConfiguration.service() }
         switch healthAuth {
         case .authorized:
-            return MockHealthKitService(preAuthorized: true)
+            return MockHealthKitService(preAuthorized: true, healthProfile: healthProfile)
         case .denied:
             // Simulates denial: marked as "asked" so the UI doesn't keep prompting,
             // but returns no data. Matches the protocol stance that authorizationKnown
             // never claims to know whether grant succeeded — empty snapshots are the signal.
             return MockHealthKitService(simulateNoData: true, preAuthorized: true)
         case .notDetermined:
-            return MockHealthKitService(preAuthorized: false)
+            return MockHealthKitService(preAuthorized: false, healthProfile: healthProfile)
         }
     }
 
@@ -163,15 +181,30 @@ struct LifeClockLaunchConfiguration {
         // monthlyLoggingBanner — N becomes the count if all seeded days fall
         // in the same calendar month.
         if seedStreak > 0 {
+            let todayStart = calendar.startOfDay(for: now)
             for offset in 0..<seedStreak {
                 guard let day = calendar.date(byAdding: .day, value: -offset, to: now) else { continue }
                 let dayStart = calendar.startOfDay(for: day)
                 let log = HabitLog(date: dayStart)
-                log.dietQuality = "okay"
-                log.alcoholLevel = "none"
-                log.smokingVaping = false
-                log.stressLevel = "medium"
-                log.strengthTraining = false
+                if seedBadDayToday && dayStart == todayStart {
+                    // Bad-day-today fixture for the simulator-driven-polish
+                    // vision audit. Combined with `LIFECLOCK_HEALTH_PROFILE=poor`
+                    // this produces a clearly-negative `dailyTimeDeltaMinutes`
+                    // (≈ −90) without inventing new tone copy.
+                    log.dietQuality = "rough"
+                    log.alcoholLevel = "heavy"
+                    log.smokingVaping = true
+                    log.stressLevel = "high"
+                    log.strengthTraining = false
+                    log.dietAmountRhythm = "skipBinge"
+                    log.wholeFoodMeal = "no"
+                } else {
+                    log.dietQuality = "okay"
+                    log.alcoholLevel = "none"
+                    log.smokingVaping = false
+                    log.stressLevel = "medium"
+                    log.strengthTraining = false
+                }
                 context.insert(log)
             }
         }
