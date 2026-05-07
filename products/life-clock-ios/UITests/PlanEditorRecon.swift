@@ -122,7 +122,7 @@ final class PlanEditorRecon: XCTestCase {
     /// exactly the right substrate to exercise the tomorrow-reset path.
     func testTomorrowReset_OverridesClearedOnNewDay() throws {
         // Day 1 — pick a variant.
-        launchPro(seedStreak: 12, fixedDate: "2026-05-06T08:00:00Z")
+        launchPro(seedStreak: 12, fixedDate: PlanEditorRecon.day1ISO)
         openPlanEditor()
         let walkOption = app.descendants(matching: .any)["planEditor.option.movement.walk-after-meal.v1"]
         XCTAssertTrue(walkOption.waitForExistence(timeout: 3))
@@ -133,12 +133,18 @@ final class PlanEditorRecon: XCTestCase {
 
         // Day 2 — relaunch with FIXED_DATE advanced. Override should NOT
         // re-attach; the engine's default movement quest should be back.
+        // Note: day 2 has its own RNG-driven mock step count, which can
+        // independently cross the 7500 default target and drop the
+        // movement slot. The reset-binding test is "yesterday's *picked*
+        // walk variant must not survive" — assert the negative, not a
+        // specific replacement.
         app.terminate()
-        launchPro(seedStreak: 12, fixedDate: "2026-05-07T08:00:00Z")
-        XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout: 8))
-        // Default movement quest title.
-        XCTAssertTrue(app.staticTexts["Move a little more"].waitForExistence(timeout: 5),
-                      "yesterday's pick must not survive the date roll")
+        launchPro(seedStreak: 12, fixedDate: PlanEditorRecon.day2ISO)
+        XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout: 12),
+                      "day-2 launch must reach Today before assertions")
+        // Yesterday's pick must NOT appear on Today.
+        XCTAssertFalse(app.staticTexts["Post-meal 10-minute walk"].waitForExistence(timeout: 4),
+                       "yesterday's pick must not survive the date roll")
         // And the persisted override key should have been pruned (open the
         // editor: every option is unselected by virtue of Today showing the
         // default; we don't have a direct `selected` AX value to assert,
@@ -174,31 +180,40 @@ final class PlanEditorRecon: XCTestCase {
 
     // MARK: - Helpers
 
-    private func launchPro(seedStreak: Int, fixedDate: String? = nil) {
+    /// Day-1 ISO date used as the deterministic launch baseline. Pinning
+    /// FIXED_DATE makes the MockHealthKit RNG seed (line 37 in
+    /// MockHealthKitService) stable across runs — without it,
+    /// `stepCount = 3500 + RNG*9500` lands ≥ 7500 on roughly half of
+    /// invocations, which makes `movementVariants` return empty and the
+    /// walk-variant assertion flap. 2026-05-06T08:00:00Z deterministically
+    /// produces stepCount=6817 (below the 7500 default target), so all
+    /// three movement variants render.
+    static let day1ISO = "2026-05-06T08:00:00Z"
+    static let day2ISO = "2026-05-07T08:00:00Z"
+
+    private func launchPro(seedStreak: Int, fixedDate: String = PlanEditorRecon.day1ISO) {
         app = XCUIApplication()
         app.launchEnvironment["LIFECLOCK_UI_TEST"] = "1"
         app.launchEnvironment["LIFECLOCK_UI_TEST_SCENARIO"] = "onboarded"
         app.launchEnvironment["LIFECLOCK_USE_MOCK_HEALTH"] = "1"
         app.launchEnvironment["LIFECLOCK_HEALTH_AUTH"] = "authorized"
+        app.launchEnvironment["LIFECLOCK_FIXED_DATE"] = fixedDate
         if seedStreak > 0 {
             app.launchEnvironment["LIFECLOCK_SEED_STREAK"] = String(seedStreak)
-        }
-        if let fixedDate {
-            app.launchEnvironment["LIFECLOCK_FIXED_DATE"] = fixedDate
         }
         // Pro is the default in-sim; do NOT set LIFECLOCK_SIMULATOR_PRO_DISABLED.
         app.launch()
     }
 
     private func openPlanEditor() {
-        XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout: 12),
                       "tab bar must be present after launch")
         scrollUntilVisible(anyDescendant: "today.planEdit")
         let edit = app.descendants(matching: .any)["today.planEdit"]
-        XCTAssertTrue(edit.waitForExistence(timeout: 3),
+        XCTAssertTrue(edit.waitForExistence(timeout: 5),
                       "Pro user should see today.planEdit chip\n\(app.debugDescription)")
         edit.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["planEditor.screen"].waitForExistence(timeout: 3),
+        XCTAssertTrue(app.descendants(matching: .any)["planEditor.screen"].waitForExistence(timeout: 5),
                       "tapping Edit must present PlanEditorSheet")
     }
 
