@@ -62,14 +62,15 @@ final class WrapUpSequenceRecon: XCTestCase {
         let app = makeApp(fixedDate: "2026-04-30T12:00:00Z")
         app.launch()
 
-        let yesterday = app.otherElements["wrapup.sheet.yesterday"]
-        XCTAssertTrue(
-            yesterday.waitForExistence(timeout: 10),
-            "expected yesterday wrap-up on Thursday return"
-        )
+        let yesterday = app.descendants(matching: .any).matching(identifier: "wrapup.sheet.yesterday").firstMatch
+        let appeared = yesterday.waitForExistence(timeout: 15)
+        if !appeared {
+            snapshot(app, name: "00-thursday-no-yesterday-DIAG")
+        }
+        XCTAssertTrue(appeared, "expected yesterday wrap-up on Thursday return")
         snapshot(app, name: "01-thursday-yesterday-presented")
 
-        let weekly = app.otherElements["wrapup.sheet.weekly"]
+        let weekly = app.descendants(matching: .any).matching(identifier: "wrapup.sheet.weekly").firstMatch
         XCTAssertFalse(weekly.exists, "weekly must not present on Thursday")
 
         // Tap the in-sheet CTA, capture post-dismiss state.
@@ -87,7 +88,7 @@ final class WrapUpSequenceRecon: XCTestCase {
         let app = makeApp(fixedDate: "2026-05-04T12:00:00Z")
         app.launch()
 
-        let yesterday = app.otherElements["wrapup.sheet.yesterday"]
+        let yesterday = app.descendants(matching: .any).matching(identifier: "wrapup.sheet.yesterday").firstMatch
         XCTAssertTrue(
             yesterday.waitForExistence(timeout: 10),
             "expected yesterday wrap-up to win first on Monday"
@@ -106,7 +107,7 @@ final class WrapUpSequenceRecon: XCTestCase {
         // once." The coordinator returns weekly on the next call, but
         // markWrapUpShown does not recompute, so we expect this to FAIL
         // until the fix lands. Capture the state either way.
-        let weekly = app.otherElements["wrapup.sheet.weekly"]
+        let weekly = app.descendants(matching: .any).matching(identifier: "wrapup.sheet.weekly").firstMatch
         let appeared = weekly.waitForExistence(timeout: 5)
         snapshot(app, name: appeared ? "05-monday-weekly-sequenced" : "05-monday-weekly-MISSING")
         XCTAssertTrue(
@@ -134,7 +135,7 @@ final class WrapUpSequenceRecon: XCTestCase {
         let app = makeApp(fixedDate: "2026-04-30T12:00:00Z")
         app.launch()
 
-        let yesterday = app.otherElements["wrapup.sheet.yesterday"]
+        let yesterday = app.descendants(matching: .any).matching(identifier: "wrapup.sheet.yesterday").firstMatch
         XCTAssertTrue(yesterday.waitForExistence(timeout: 10))
         app.buttons["wrapup.dismissCTA"].firstMatch.tap()
         let yesterdayGone = NSPredicate(format: "exists == false")
@@ -165,7 +166,7 @@ final class WrapUpSequenceRecon: XCTestCase {
         let app = makeApp(fixedDate: "2026-04-30T12:00:00Z")
         app.launch()
 
-        let yesterday = app.otherElements["wrapup.sheet.yesterday"]
+        let yesterday = app.descendants(matching: .any).matching(identifier: "wrapup.sheet.yesterday").firstMatch
         XCTAssertTrue(yesterday.waitForExistence(timeout: 10))
         snapshot(app, name: "08-yesterday-before-bg")
 
@@ -196,7 +197,7 @@ final class WrapUpSequenceRecon: XCTestCase {
         let app = makeApp(fixedDate: "2026-04-30T12:00:00Z")
         app.launch()
 
-        let yesterday = app.otherElements["wrapup.sheet.yesterday"]
+        let yesterday = app.descendants(matching: .any).matching(identifier: "wrapup.sheet.yesterday").firstMatch
         XCTAssertTrue(yesterday.waitForExistence(timeout: 10))
         snapshot(app, name: "10-before-swipe")
 
@@ -219,7 +220,7 @@ final class WrapUpSequenceRecon: XCTestCase {
         let app = makeApp(fixedDate: "2026-04-30T12:00:00Z")
         app.launch()
 
-        let yesterday = app.otherElements["wrapup.sheet.yesterday"]
+        let yesterday = app.descendants(matching: .any).matching(identifier: "wrapup.sheet.yesterday").firstMatch
         XCTAssertTrue(yesterday.waitForExistence(timeout: 10))
 
         // 3 quick bg/fg cycles, no dismissal between them.
