@@ -52,7 +52,6 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
 
     // Paywall
     case paywallPrimary
-    case entryView
 
     var id: String { rawValue }
 }
@@ -72,5 +71,11 @@ extension OnboardingScreen {
         "appPreviews": .welcome,
         "visibilityFraming": .goalPick,
         "personalizeIntro": .goalPick,
+        // 2026-05-07 — `entryView` (the post-paywall "Setting up your
+        // clock…" placeholder) was dropped. The parent `RootView`
+        // gate flip happens on profile-write, so the screen was a
+        // one-frame safety-net that didn't earn its place.
+        // Historical telemetry rolls into `paywallPrimary`.
+        "entryView": .paywallPrimary,
     ]
 }

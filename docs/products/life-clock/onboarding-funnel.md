@@ -90,10 +90,16 @@ coldOpen
   → healthKitAuth
   → paywallPrimary              [paywallShown: primary]
     ├── purchase:
-    │   → entryView             [paywallDismissed: purchasedSuccessfully, purchased: <productID>]
+    │   → MainTabView           [paywallDismissed: purchasedSuccessfully, purchased: <productID>]
     └── close:
-        → entryView             [paywallDismissed: closed]
+        → MainTabView           [paywallDismissed: closed]
 ```
+
+> **2026-05-07** — the post-paywall `entryView` placeholder was dropped.
+> `paywallPrimary.onClose` writes the profile and `RootView`'s @Query
+> on `UserProfile` swaps to `MainTabView` directly. Historical
+> `entryView.appeared` events roll into `paywallPrimary` via
+> `OnboardingScreen.deprecatedScreens`.
 
 ## Drop-off thresholds (gating)
 

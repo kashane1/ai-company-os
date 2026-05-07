@@ -184,18 +184,15 @@ struct OnboardingCoordinator: View {
 
         case .paywallPrimary:
             PaywallPrimaryView(onClose: {
-                // Free fallback: complete onboarding now (writes the
-                // profile) and route to the entry view.
+                // Free fallback: write the profile. The parent
+                // `RootView`'s @Query observes the new UserProfile and
+                // swaps to `MainTabView` — no intermediate placeholder
+                // screen. We deliberately do NOT advance the path; if
+                // the gate flip ever lags a frame, the user briefly
+                // sees the dismissed paywall, which is preferable to a
+                // generic "Almost there…" filler.
                 completeOnboarding()
-                advance(to: .entryView)
             })
-
-        case .entryView:
-            // Terminal — completing onboarding flips
-            // `LifeClockApp`'s gate (profile exists) so this view is
-            // dismissed by the parent. Show a brief "all set" until
-            // that happens.
-            EntryView()
         }
     }
 
@@ -215,7 +212,6 @@ struct OnboardingCoordinator: View {
         .recoveryPreview,
         .healthKitAuth,
         .paywallPrimary,
-        .entryView,
     ]
 
     /// True iff the back chevron in the persistent header should be
@@ -251,7 +247,7 @@ struct OnboardingCoordinator: View {
 
     /// Debug-only: jump straight to a terminal-tier onboarding screen
     /// for polish audits. Set `LIFECLOCK_JUMP_TO=recoveryPreview` (or
-    /// `healthKitAuth` / `paywallPrimary` / `entryView`) at launch.
+    /// `healthKitAuth` / `paywallPrimary`) at launch.
     /// Pre-populates the draft so the persistent header's cumulative
     /// trajectory is non-zero and `RecoveryPreviewView` has the inputs
     /// it needs (DOB, sex, lifestyle answers).
@@ -314,33 +310,3 @@ struct OnboardingCoordinator: View {
     }
 }
 
-// MARK: - Terminal entry view
-
-struct EntryView: View {
-    @Environment(LifeClockStore.self) private var store
-    @Environment(OnboardingTelemetryHolder.self) private var telemetry
-
-    var body: some View {
-        // Brief safety-net frame: the parent gate flips as soon as the
-        // profile lands in the SwiftData store, so this is at most a
-        // single render. Even so, give it the same vertical rhythm as
-        // every other terminal screen — flexible top spacer + content
-        // block + flexible bottom spacer — instead of letting SwiftUI
-        // center a tiny VStack in the residual safe area below the
-        // persistent header. The earlier "Almost there…" copy felt
-        // generic-app; the new line names the moment.
-        VStack(spacing: 16) {
-            Spacer()
-            ProgressView()
-            Text("Setting up your clock…")
-                .font(.body)
-                .foregroundStyle(.secondary)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityIdentifier("onboarding.entryView")
-        .onAppear {
-            telemetry.value.screenAppeared("entryView")
-        }
-    }
-}
