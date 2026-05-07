@@ -64,50 +64,79 @@ final class PlanEditorRecon: XCTestCase {
         openPlanEditor()
 
         // Pick the "post-meal walk" variant (slug from QuestEngine).
-        let walkSlug = "movement.walk-after-meal.v1"
-        let walkOption = app.descendants(matching: .any)["planEditor.option.\(walkSlug)"]
-        XCTAssertTrue(walkOption.waitForExistence(timeout: 3),
-                      "expected movement walk variant to be present")
+        let walkOption = waitForVariantOption(slug: "movement.walk-after-meal.v1")
         walkOption.tap()
 
-        // Close + reopen.
+        // Done → store should persist the pick.
         app.buttons["planEditor.done"].tap()
-        XCTAssertTrue(waitForGone(id: "planEditor.screen", timeout: 3),
+        XCTAssertTrue(waitForGone(id: "planEditor.screen", timeout: 5),
                       "sheet should dismiss on Done")
-        openPlanEditor()
-
-        // The same row should still be selected — assert via accessibility
-        // value or by re-querying the option (its checkmark + text are the
-        // same node; selection is implicit in the AX hierarchy of the row
-        // button label which we can't easily assert without a value, so
-        // assert the override fed Today: switch to Today and verify the
-        // movement quest title matches the picked variant).
-        app.buttons["planEditor.done"].tap()
 
         // Today's plan should now show the walk title.
-        let walkTitle = app.staticTexts["Post-meal 10-minute walk"]
-        XCTAssertTrue(walkTitle.waitForExistence(timeout: 3),
-                      "picked variant should appear in the Today plan list")
+        XCTAssertTrue(app.staticTexts["Post-meal 10-minute walk"].waitForExistence(timeout: 5),
+                      "picked variant should appear in the Today plan list after Done")
     }
 
     // MARK: - Pro path: reset clears overrides
 
     /// Reset CTA wipes every pick and the engine defaults take over.
     func testProResetClearsAllOverrides() throws {
+        // Stage 1: pick a variant + Done so the store actually has an
+        // override to reset later.
+        launchPro(seedStreak: 12)
+        openPlanEditor()
+        waitForVariantOption(slug: "movement.walk-after-meal.v1").tap()
+        app.buttons["planEditor.done"].tap()
+        XCTAssertTrue(app.staticTexts["Post-meal 10-minute walk"].waitForExistence(timeout: 5),
+                      "stage 1 sanity: pick should land in Today")
+
+        // Stage 2: reopen, reset, Done — Today should revert to the
+        // engine default movement quest.
+        openPlanEditor()
+        app.buttons["planEditor.reset"].tap()
+        app.buttons["planEditor.done"].tap()
+        XCTAssertTrue(app.staticTexts["Move a little more"].waitForExistence(timeout: 5),
+                      "after reset + Done, engine default movement quest should return")
+    }
+
+    // MARK: - Pro path: Cancel + swipe-down do NOT commit (Ask 1)
+
+    /// Picking a variant and then dismissing without Done must NOT
+    /// touch the store. Today's plan card should still show whatever
+    /// it showed before the sheet opened.
+    func testProCancelDoesNotCommit() throws {
+        launchPro(seedStreak: 12)
+
+        // Capture the baseline movement quest title from Today (whatever
+        // engine picked first — variants are deterministic under FIXED_DATE).
+        XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout: 12))
+        scrollUntilVisible(anyDescendant: "today.planAction.0")
+
+        openPlanEditor()
+        waitForVariantOption(slug: "movement.walk-after-meal.v1").tap()
+        // Cancel via the toolbar button.
+        app.buttons["planEditor.cancel"].tap()
+        XCTAssertTrue(waitForGone(id: "planEditor.screen", timeout: 5),
+                      "Cancel must dismiss the sheet")
+
+        // The picked walk title must NOT be on Today (because Cancel
+        // discarded the draft).
+        XCTAssertFalse(app.staticTexts["Post-meal 10-minute walk"].waitForExistence(timeout: 3),
+                       "Cancel must not commit the draft pick")
+    }
+
+    /// Swipe-down dismissal behaves like Cancel.
+    func testProSwipeDownDoesNotCommit() throws {
         launchPro(seedStreak: 12)
         openPlanEditor()
 
-        let walkOption = app.descendants(matching: .any)["planEditor.option.movement.walk-after-meal.v1"]
-        XCTAssertTrue(walkOption.waitForExistence(timeout: 3))
-        walkOption.tap()
+        waitForVariantOption(slug: "movement.walk-after-meal.v1").tap()
+        app.descendants(matching: .any)["planEditor.screen"].swipeDown(velocity: .fast)
+        XCTAssertTrue(waitForGone(id: "planEditor.screen", timeout: 5),
+                      "swipe-down must dismiss the sheet")
 
-        app.buttons["planEditor.reset"].tap()
-        // Reset stays inside the sheet; just close + verify Today reverts
-        // to the engine default ("Move a little more" — the steps quest).
-        app.buttons["planEditor.done"].tap()
-        let stepsTitle = app.staticTexts["Move a little more"]
-        XCTAssertTrue(stepsTitle.waitForExistence(timeout: 3),
-                      "after reset, engine default movement quest should return")
+        XCTAssertFalse(app.staticTexts["Post-meal 10-minute walk"].waitForExistence(timeout: 3),
+                       "swipe-down must not commit the draft pick (Ask 1)")
     }
 
     // MARK: - Tomorrow reset (one-shot semantics)
@@ -124,9 +153,7 @@ final class PlanEditorRecon: XCTestCase {
         // Day 1 — pick a variant.
         launchPro(seedStreak: 12, fixedDate: PlanEditorRecon.day1ISO)
         openPlanEditor()
-        let walkOption = app.descendants(matching: .any)["planEditor.option.movement.walk-after-meal.v1"]
-        XCTAssertTrue(walkOption.waitForExistence(timeout: 3))
-        walkOption.tap()
+        waitForVariantOption(slug: "movement.walk-after-meal.v1").tap()
         app.buttons["planEditor.done"].tap()
         XCTAssertTrue(app.staticTexts["Post-meal 10-minute walk"].waitForExistence(timeout: 3),
                       "day-1 sanity: pick should land in Today")
@@ -153,29 +180,36 @@ final class PlanEditorRecon: XCTestCase {
 
     // MARK: - Final acceptance gate (substitute for computer-use checkpoint)
 
-    /// The local computer-use bridge has been unreachable across the last
-    /// two polish sessions. This test stands in for the requested final
-    /// real-finger checkpoint: it taps a variant, dismisses the sheet via
-    /// swipe-down (not the Done button), and asserts the pick still
-    /// persisted — the gesture path matters because swipe-down dismissal
-    /// is the most-likely real-user exit and the current implementation
-    /// commits picks immediately on tap, so the swipe path must not lose
-    /// the override.
-    func testFinalAcceptance_VariantSurvivesSwipeDown() throws {
+    /// Final acceptance gate. Real-finger checkpoint is now done via
+    /// computer-use on the Simulator window (the bridge came back online
+    /// in this session). This XCUITest stands as the regression net for
+    /// the full Done-commits-but-Cancel-reverts contract:
+    ///   - row tap → Done   →  Today shows the picked title
+    ///   - row tap → Cancel →  Today does NOT show the picked title
+    ///
+    /// (Cancel + swipe-down each have their own focused test above; this
+    /// test exercises both branches in one launch to catch any state
+    /// bleed between the draft and the store.)
+    func testFinalAcceptance_DonePersists_CancelReverts() throws {
         launchPro(seedStreak: 12)
+
+        // Branch 1: pick → Done → Today reflects the pick.
         openPlanEditor()
+        waitForVariantOption(slug: "movement.walk-after-meal.v1").tap()
+        app.buttons["planEditor.done"].tap()
+        XCTAssertTrue(app.staticTexts["Post-meal 10-minute walk"].waitForExistence(timeout: 5),
+                      "Done must commit the draft pick to Today")
 
-        let walkOption = app.descendants(matching: .any)["planEditor.option.movement.walk-after-meal.v1"]
-        XCTAssertTrue(walkOption.waitForExistence(timeout: 3))
-        walkOption.tap()
-
-        // Swipe-down dismiss the sheet from inside it.
-        app.descendants(matching: .any)["planEditor.screen"].swipeDown(velocity: .fast)
-
-        XCTAssertTrue(waitForGone(id: "planEditor.screen", timeout: 4),
-                      "swipe-down must dismiss the sheet")
+        // Branch 2: open again, change pick to stairs, Cancel → Today
+        // still shows walk (the Done-committed value), not stairs.
+        openPlanEditor()
+        waitForVariantOption(slug: "movement.stairs-instead.v1").tap()
+        app.buttons["planEditor.cancel"].tap()
+        XCTAssertTrue(waitForGone(id: "planEditor.screen", timeout: 5))
         XCTAssertTrue(app.staticTexts["Post-meal 10-minute walk"].waitForExistence(timeout: 4),
-                      "variant pick must survive a swipe-down dismissal")
+                      "Cancel must NOT overwrite the previously-Done pick")
+        XCTAssertFalse(app.staticTexts["Take the stairs today"].waitForExistence(timeout: 2),
+                       "Cancel-discarded stairs pick must not appear on Today")
     }
 
     // MARK: - Helpers
@@ -215,6 +249,20 @@ final class PlanEditorRecon: XCTestCase {
         edit.tap()
         XCTAssertTrue(app.descendants(matching: .any)["planEditor.screen"].waitForExistence(timeout: 5),
                       "tapping Edit must present PlanEditorSheet")
+    }
+
+    /// Wait for a variant option, scrolling the editor's ScrollView if
+    /// the row is below the fold. Bumped timeout to 10 s (was 3) per
+    /// Ask 3 — under host contention (4+ concurrent xcodebuild
+    /// processes) per-tap latency easily exceeds 3 s.
+    @discardableResult
+    private func waitForVariantOption(slug: String) -> XCUIElement {
+        let id = "planEditor.option.\(slug)"
+        scrollUntilVisible(anyDescendant: id, attempts: 6)
+        let opt = app.descendants(matching: .any)[id]
+        XCTAssertTrue(opt.waitForExistence(timeout: 10),
+                      "expected variant option \(id) to be present")
+        return opt
     }
 
     private func scrollUntilVisible(anyDescendant id: String, attempts: Int = 8) {
