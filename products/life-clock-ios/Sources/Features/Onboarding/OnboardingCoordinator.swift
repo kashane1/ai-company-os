@@ -289,10 +289,23 @@ struct OnboardingCoordinator: View {
         draft.anchorAdjustedAt = store.clock.now()
         draft.recomputeEstimate(using: engine)
 
+        // Defer the path swap one runloop tick. Mutating `path` from
+        // inside `.onAppear` races with `NavigationStack`'s view-tree
+        // settle, leaving the destination view's `GeometryReader` and
+        // `Canvas(rendersAsynchronously: true)` paths fighting for the
+        // same first frame — the cold-open's auto-advance dispatch
+        // (gated on `LIFECLOCK_JUMP_TO`) and our path swap landed in
+        // an order that pushed `.welcome` on top of `[target]`. A 50ms
+        // `asyncAfter` lands after the current runloop frame and the
+        // NavigationStack has stabilized, so the destination renders
+        // alone on top.
+        //
         // Match `engineRevealAndDial.onConfirm` — terminal screens are
         // unreachable via back-nav, so the path is `[target]` not the
         // accumulated trail to it.
-        path = [target]
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            path = [target]
+        }
         #endif
     }
 
