@@ -86,14 +86,90 @@ None this session — the gentle drivers heading change is straight Polish
 (no dimension swap, no copy register shift) and lives within the existing
 sign-neutral pattern that coach and firmDirect already follow.
 
+## Session 22:30 — V1 / V2 follow-up
+
+Operator approved V1 + V2 implementation after reviewing the cycle-end
+batch. V3 remains open pending operator scoping decision.
+
+- [22:30] **Polish (V1)** — softened the three most accusatory firmDirect
+  reflection prompts. "lie you told yourself today" → "story you told
+  yourself today"; "smallest hard thing you ducked today" → "smallest
+  hard thing you'll face tonight"; "excuse you're tired of hearing
+  yourself make" → "move you keep stalling on". Other nine prompts in
+  `firmDirectPool` unchanged — register stays pointed; accusation goes.
+  Commit `13bffcc`.
+- [22:31] **Polish (V2)** — added `ToneMode.interpretationTitle(from:)`
+  that strips " — sedentary day" / " — light day" suffixes from the
+  movement-driver title before interpolating into
+  `todayInterpretationNegative`. Driver list still shows the full
+  qualifier; only the interpretation sentence is cleaned. Locked with
+  four `ToneModeTests` covering both qualifiers across all three tones
+  + negative-control tests for non-movement titles (sleep, alcohol).
+  Tests green. Commit `8f94363`.
+- [22:34] Re-ran the three Today recon methods. Verified across all
+  three tones:
+  - gentle: `Today is pulling against your healthspan — 1874 steps is
+    the main drag.` (was: stacked two em-dashes)
+  - coach: `Today is working against you, mostly because of 1874
+    steps.` (was: trailing " — sedentary day.")
+  - firmDirect: `Today's in the red. 1874 steps is the cost.` (was:
+    "1874 steps — sedentary day is the cost.")
+
+  Driver list still renders the full title `1874 steps — sedentary day`
+  against `-12 min` so the user can see the engine's reasoning.
+
+### V3 clarification (pending operator scoping)
+
+Operator asked whether **all** plan items in `PlanEditorSheet` (the 1-of-3
+pick across three categories) are tone-neutral. Answer: yes.
+[QuestEngine.swift](../../../products/life-clock-ios/Sources/Engines/QuestEngine.swift)
+hardcodes 13 distinct quests with plain titles + details:
+
+| Category | Sample quest |
+|---|---|
+| Movement | "Move a little more" / "Get to 7500 steps. A short post-dinner walk usually closes the gap." |
+| Sleep & Recovery | "Hydration + early night" / "Aim for water before sleep. Tomorrow's clock recovers fastest with rest." |
+| Nutrition & Habit | "One better meal tomorrow" / "A rough food day is feedback, not failure. One simple, whole-food meal moves things back." |
+
+`QuestEngine.generateDailyQuests` doesn't take `ToneMode` at all, so the
+same coach-flavored copy lands under firmDirect's "Today's orders" and
+gentle's "Gentle nudges". A user picking firmDirect for its register
+gets coach copy on the action they actually take.
+
+Tone-keying every quest = **78 strings** (13 quests × 3 tones × title +
+detail) — bigger lift than V1 + V2 combined and likely wants a copy
+review before shipping. Recommended scoping for a follow-up session:
+
+1. Presenter pattern (e.g. `ToneMode.title(for: quest)` /
+   `ToneMode.detail(for: quest)`) keyed by `quest.slug` — keeps the
+   engine + persistence tone-blind, decorates at the view boundary.
+2. One-shot copy-review pass on all 78 strings before commit.
+3. Distinctness lock — `testTonesDifferAtEveryQuestSlug` mirroring
+   the existing `testTonesDifferAtEveryMilestone` pattern from
+   monthly-banner.
+4. Surfaces touched: `TodayView` plan card; `PlanEditorSheet`. Same
+   slug stays in `Quest.slug` so completed-quest matching is unchanged.
+
+Out of scope for this session — flag for a fresh slug like
+`polish-<YYYY-MM-DD>-quest-tone-keying`.
+
 ## Asks
 
 ### Resolved this session
 
-None — operator's brief was the audit itself. The audit's verdict on the
-six brief-named constraints is captured below.
+- **V1** — firmDirect reflection accusation prompts → softened three
+  most-accusatory slots (commit `13bffcc`); resolves vision Open
+  Question #1.
+- **V2** — `todayInterpretationNegative` movement-qualifier stack →
+  stripped in interpretation slot only (commit `8f94363`).
 
-### Outstanding (cycle-end batch)
+### Outstanding (next session)
+
+- **V3** — quest copy is fully tone-neutral. Operator wants per-tone
+  variants. See V3 clarification above for proposed scoping (presenter
+  pattern, 78 strings, separate session).
+
+### Outstanding from initial audit (V1 + V2 now resolved above)
 
 **V1 — firmDirect reflection prompt pool reads accusatory on a bad day.
 Does this cross the cruelty line, or is "the clock keeps score" allowed
