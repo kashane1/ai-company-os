@@ -154,13 +154,23 @@ enum ToneMode: String, CaseIterable, Identifiable {
 
     func todayInterpretationNegative(driverTitle: String?) -> String {
         if let title = driverTitle, !title.isEmpty {
+            // 2026-05-07 vision-bad-day-three-tones audit (V2): the movement
+            // driver names sub-2.5k-step days as "<n> steps — sedentary day"
+            // and sub-5k-step days as "<n> steps — light day". Inlining the
+            // raw title into the interpretation template stacks two em-dashes
+            // for gentle ("...healthspan — <n> steps — sedentary day is the
+            // main drag.") and reads as cruel-adjacent for firmDirect
+            // ("Today's in the red. <n> steps — sedentary day is the cost.").
+            // Strip the qualifier in the interpretation slot only; the driver
+            // list (`today.driver.movement`) keeps the full title.
+            let cleanedTitle = Self.interpretationTitle(from: title)
             switch self {
             case .gentle:
-                return "Today is pulling against your healthspan — \(title) is the main drag."
+                return "Today is pulling against your healthspan — \(cleanedTitle) is the main drag."
             case .coach:
-                return "Today is working against you, mostly because of \(title)."
+                return "Today is working against you, mostly because of \(cleanedTitle)."
             case .firmDirect:
-                return "Today's in the red. \(title) is the cost."
+                return "Today's in the red. \(cleanedTitle) is the cost."
             }
         } else {
             switch self {
@@ -169,6 +179,22 @@ enum ToneMode: String, CaseIterable, Identifiable {
             case .firmDirect: return "Today's in the red."
             }
         }
+    }
+
+    /// Strips the movement-driver qualifier suffix (" — sedentary day",
+    /// " — light day") so the interpretation sentence reads cleanly.
+    /// Other driver titles ("4.7h sleep — too short", "Heavy alcohol logged")
+    /// pass through unchanged — only the movement qualifiers cause the
+    /// em-dash stack flagged by the bad-day audit.
+    private static func interpretationTitle(from rawTitle: String) -> String {
+        var trimmed = rawTitle
+        for suffix in [" — sedentary day", " — light day"] {
+            if trimmed.hasSuffix(suffix) {
+                trimmed.removeLast(suffix.count)
+                break
+            }
+        }
+        return trimmed
     }
 
     /// Used when no estimate is available yet (cold launch, pre-data).

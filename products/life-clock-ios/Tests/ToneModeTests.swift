@@ -66,4 +66,52 @@ final class ToneModeTests: XCTestCase {
         XCTAssertFalse(makeLine(netDelta: -15).shouldShow)
         XCTAssertFalse(makeLine(netDelta: -15, dietQuality: "okay", rhythm: "right", anchor: "yes").shouldShow)
     }
+
+    // MARK: - Interpretation movement-qualifier strip (V2 from
+    // 2026-05-07 vision-bad-day-three-tones audit)
+
+    /// "<n> steps — sedentary day" must lose the qualifier when piped into
+    /// the negative interpretation slot for any tone — otherwise the
+    /// sentence stacks two em-dashes (gentle) or reads cruel-adjacent
+    /// (firmDirect "...is the cost.").
+    func testInterpretationStripsSedentaryDayQualifier() {
+        let raw = "1874 steps — sedentary day"
+        for tone in ToneMode.allCases {
+            let line = tone.todayInterpretationNegative(driverTitle: raw)
+            XCTAssertFalse(
+                line.contains("— sedentary day"),
+                "\(tone.rawValue) interpretation kept the qualifier: \(line)"
+            )
+            XCTAssertTrue(
+                line.contains("1874 steps"),
+                "\(tone.rawValue) interpretation dropped the steps count: \(line)"
+            )
+        }
+    }
+
+    /// Same rule for the lighter cousin used at 2.5k–5k steps.
+    func testInterpretationStripsLightDayQualifier() {
+        let raw = "3200 steps — light day"
+        for tone in ToneMode.allCases {
+            let line = tone.todayInterpretationNegative(driverTitle: raw)
+            XCTAssertFalse(line.contains("— light day"), "\(tone.rawValue): \(line)")
+            XCTAssertTrue(line.contains("3200 steps"), "\(tone.rawValue): \(line)")
+        }
+    }
+
+    /// Driver titles that legitimately contain " — " for non-movement
+    /// drivers (e.g. "4.7h sleep — too short") must pass through
+    /// untouched — the strip only targets the two movement qualifiers.
+    func testInterpretationLeavesNonMovementTitlesUntouched() {
+        let raw = "4.7h sleep — too short"
+        let line = ToneMode.firmDirect.todayInterpretationNegative(driverTitle: raw)
+        XCTAssertTrue(line.contains("4.7h sleep — too short"))
+    }
+
+    /// Heavy-alcohol-style titles (no qualifier suffix) round-trip exact.
+    func testInterpretationLeavesPlainTitlesExact() {
+        let raw = "Heavy alcohol logged"
+        let line = ToneMode.coach.todayInterpretationNegative(driverTitle: raw)
+        XCTAssertTrue(line.contains("Heavy alcohol logged"))
+    }
 }
