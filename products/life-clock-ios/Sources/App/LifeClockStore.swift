@@ -247,14 +247,23 @@ final class LifeClockStore {
         try? modelContext.save()
     }
 
-    /// Bounded fetch of all QuestEvent rows for AffinityEngine input.
-    /// Phase 3 ships non-cached — full table scan on every emit. This
-    /// is acceptable because the flag default is `false` (zero events
-    /// in production); when the flag flips and event counts grow, an
-    /// incremental cache (`UserProfile.affinityState: Data`) replaces
-    /// this method per master plan Out-of-Scope §1.
+    /// Bounded fetch of QuestEvent rows for AffinityEngine input.
+    /// Phase 3 ships non-cached — incremental cache via
+    /// `UserProfile.affinityState: Data` is deferred per master plan
+    /// Out-of-Scope §1.
+    ///
+    /// Defensive `fetchLimit = 5000` (perf review on PR #32): year-3
+    /// users at ~30k events would otherwise materialize ~6MB on
+    /// every emit. EMA at α=0.2 has effective half-life ≈ 3 events
+    /// per signal — events older than the most recent ~5000 contribute
+    /// well under 0.001 to the result, so the cap is semantically safe.
+    /// Sorted descending by date so the cap retains the freshest signal.
     private func fetchAllQuestEvents() -> [QuestEvent] {
-        (try? modelContext.fetch(FetchDescriptor<QuestEvent>())) ?? []
+        var descriptor = FetchDescriptor<QuestEvent>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        descriptor.fetchLimit = 5000
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// Lazy QuestPool from Bundle.main. Cached after first load so
@@ -342,9 +351,7 @@ final class LifeClockStore {
         modelContext.insert(event)
     }
 
-    /// Idempotent completed emission per (date, slug). Untoggling a
-    /// completed quest does NOT delete this row — completion is a
-    /// terminal signal and an undo doesn't undo the affinity update.
+    /// Idempotent completed emission per (date, slug).
     private func emitCompleted(slug: String, genre: String, date: Date) {
         guard profile?.useQuestPoolEngine == true else { return }
         let dayStart = clock.calendar.startOfDay(for: date)
@@ -360,12 +367,45 @@ final class LifeClockStore {
         modelContext.insert(event)
     }
 
-    /// Genre lookup for events emitted from a Quest row. Reads from
-    /// the same slugGenreMap used for backfill so the value is
-    /// consistent regardless of whether bootstrapQuestGenres has run.
+    /// Removes the `completed` event for (date, slug). Called when the
+    /// user un-ticks a quest. Symmetric with the ledger-entry cleanup
+    /// in `toggleQuestCompletion`'s un-tick branch — affinity must
+    /// reflect the user's final intent, not their initial click.
+    /// Code-review feedback on PR #32 (data-integrity #7): keeping
+    /// the row would let a stray tap permanently shift affinity in a
+    /// direction the user didn't intend.
+    private func removeCompleted(slug: String, date: Date) {
+        guard profile?.useQuestPoolEngine == true else { return }
+        let dayStart = clock.calendar.startOfDay(for: date)
+        let completedKind = QuestEventKind.completed.rawValue
+        let predicate = #Predicate<QuestEvent> { event in
+            event.date == dayStart && event.slug == slug && event.kind == completedKind
+        }
+        guard let matches = try? modelContext.fetch(FetchDescriptor<QuestEvent>(predicate: predicate)) else {
+            return
+        }
+        for event in matches {
+            modelContext.delete(event)
+        }
+    }
+
+    /// Single source of truth for slug→genre lookup. Architecture
+    /// review on PR #32 flagged duplicated lookup logic across
+    /// `eventGenre(for:)` and inline `slugGenreMap[slug]` calls.
+    /// Both paths now go through `genreFor(slug:)` (with optional
+    /// quest-row override when the row already carries non-empty
+    /// genre — applies to events emitted from a persisted Quest).
+    private static func genreFor(slug: String) -> String {
+        slugGenreMap[slug] ?? ""
+    }
+
+    /// Genre lookup for events emitted from a Quest row. Prefers the
+    /// row's own `genre` (which may be more specific than the slug
+    /// map for slugs added post-Phase-3) and falls through to
+    /// `slugGenreMap` otherwise.
     private func eventGenre(for quest: Quest) -> String {
         if !quest.genre.isEmpty { return quest.genre }
-        return Self.slugGenreMap[quest.slug] ?? ""
+        return Self.genreFor(slug: quest.slug)
     }
 
     /// Idempotent. Walks all `Quest` rows with `genre == ""`, populates
@@ -598,24 +638,29 @@ final class LifeClockStore {
             todayPlanOverrides = TodayPlanOverrides(dayKey: key, picks: [:])
         }
         // Phase 3c task 12: emit `replaced` for the slug being swapped
-        // OUT (if any) and `picked` for the slug being added. NOT the
-        // same as task-15 G7: replaced is per-event, not deduped, so
-        // A→B→A→B yields four `replaced` rows. Picked is deduped per
-        // (date, slug). All gated behind useQuestPoolEngine inside the
-        // emit helpers — flag-off path is unchanged.
+        // OUT (if any) and `picked` for the slug being added.
+        // Replaced is per-event, NOT deduped, so A→B→A→B yields four
+        // `replaced` rows (master plan G7 — back-and-forth signals
+        // indecision). Picked IS deduped per (date, slug). All gated
+        // behind useQuestPoolEngine inside the emit helpers.
         let dayStart = clock.calendar.startOfDay(for: now)
         let priorSlug = todayPlanOverrides.picks[category.rawValue]
             ?? todayQuests.first(where: { Self.engineCategory(of: $0) == category })?.slug
         if let priorSlug, priorSlug != slug {
-            let priorGenre = Self.slugGenreMap[priorSlug] ?? ""
-            emitReplaced(slug: priorSlug, genre: priorGenre, date: dayStart)
+            emitReplaced(slug: priorSlug, genre: Self.genreFor(slug: priorSlug), date: dayStart)
         }
-        let newGenre = Self.slugGenreMap[slug] ?? ""
-        emitPicked(slug: slug, genre: newGenre, date: dayStart)
+        emitPicked(slug: slug, genre: Self.genreFor(slug: slug), date: dayStart)
 
         todayPlanOverrides.picks[category.rawValue] = slug
         persistTodayPlanOverrides()
         applyTodayPlanOverrides()
+        // Code-review feedback on PR #32 (data-integrity #8): the
+        // emit helpers insert into modelContext; persistTodayPlanOverrides
+        // saves UserDefaults, NOT modelContext. Without an explicit
+        // save here, picked/replaced events would rely on SwiftData's
+        // autosave — which has no guaranteed cadence. A force-quit
+        // between insert and the next save would lose them.
+        try? modelContext.save()
     }
 
     /// Drop all of today's user picks; the engine's smart defaults take
@@ -999,6 +1044,12 @@ final class LifeClockStore {
                 modelContext.delete(entry)
                 ledger.removeAll { $0.id == entry.id }
             }
+            // Phase 3c data-correctness: un-tick removes the matching
+            // `completed` event so affinity reflects the user's final
+            // intent. Code-review feedback on PR #32 (data-integrity
+            // #7) — without this, a stray tap permanently shifts
+            // affinity in a direction the user un-did.
+            removeCompleted(slug: quest.slug, date: clock.calendar.startOfDay(for: now))
             emit(.questUndone)
         }
         try? modelContext.save()

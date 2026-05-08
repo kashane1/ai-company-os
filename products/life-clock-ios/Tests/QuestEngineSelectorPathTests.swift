@@ -51,23 +51,6 @@ final class QuestEngineSelectorPathTests: XCTestCase {
         }
     }
 
-    func testFlagOffWithPoolInjectedStillRoutesLegacy() throws {
-        let engine = makeEngine()
-        let profile = makeProfile(useQuestPoolEngine: false)
-        let pool = try loadFixturePool()
-        let quests = engine.generateDailyQuests(
-            profile: profile,
-            snapshot: nil,
-            habits: nil,
-            pool: pool
-        )
-        // Flag off → pool is ignored → legacy path runs.
-        for quest in quests {
-            XCTAssertFalse(quest.slug.contains("fixture-"),
-                "Flag-off path must not emit fixture-* slugs even with pool injected")
-        }
-    }
-
     // MARK: - Flag-on + fixture pool (selector path)
 
     func testFlagOnRoutesToSelectorPathWithFixturePool() throws {

@@ -226,12 +226,18 @@ enum QuestSelector {
         //                marking a once-completed picked row as
         //                passed_over here is bounded — affinity has
         //                already converged on >30-day-old signals.
-        let oldDescriptor = FetchDescriptor<QuestEvent>(
+        // Defensive `fetchLimit = 1000` (perf review on PR #32):
+        // a user offline 6 months would otherwise materialize 500+
+        // rows in one save, stalling cold launch ~500ms. Excess rows
+        // resolve on subsequent days (idempotent — re-running the
+        // resolver picks up whatever's left).
+        var oldDescriptor = FetchDescriptor<QuestEvent>(
             predicate: #Predicate<QuestEvent> { event in
                 event.date < cutoff && event.resolvedKind == nil
                     && (event.kind == "shown" || event.kind == "picked")
             }
         )
+        oldDescriptor.fetchLimit = 1000
         let veryOld = try context.fetch(oldDescriptor)
         for event in veryOld {
             event.resolvedKind = QuestResolvedKind.passedOver.rawValue

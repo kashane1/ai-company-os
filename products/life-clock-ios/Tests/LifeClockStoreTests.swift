@@ -1026,7 +1026,11 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertEqual(completedEvents.first?.slug, first.slug)
     }
 
-    func testCompletedEventNotEmittedOnUntick() async throws {
+    /// PR #32 review fix (data-integrity #7): un-ticking a completion
+    /// removes the matching `completed` event so affinity reflects the
+    /// user's final intent, not their initial click. Symmetric with the
+    /// ledger-entry deletion that already happens on un-tick.
+    func testUntickRemovesCompletedEventForDataCorrectness() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
         let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
         await store.refreshFromHealthKit()
@@ -1035,16 +1039,25 @@ final class LifeClockStoreTests: XCTestCase {
             return
         }
         store.toggleQuestCompletion(first)   // tick → emit completed
-        store.toggleQuestCompletion(first)   // un-tick → no new event
-
-        let completedEvents = try context.fetch(
+        let afterTick = try context.fetch(
             FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "completed" })
         )
-        XCTAssertEqual(completedEvents.count, 1,
-            "Un-ticking a completed quest must NOT delete the completion event — completion is a terminal signal")
+        XCTAssertEqual(afterTick.count, 1)
+
+        store.toggleQuestCompletion(first)   // un-tick → DELETE completed event
+
+        let afterUntick = try context.fetch(
+            FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "completed" })
+        )
+        XCTAssertEqual(afterUntick.count, 0,
+            "Un-ticking must DELETE the completed event — affinity should reflect the user's final state, not poison from a stray tap")
     }
 
-    func testCompletedEventDedupedOnReTick() async throws {
+    /// Re-ticking after un-tick re-emits a single completed event (the
+    /// previous one was deleted on un-tick). This is the canonical
+    /// "user changed their mind back" path: tick → un-tick → re-tick
+    /// produces exactly one completed row.
+    func testReTickAfterUntickProducesOneCompletedEvent() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
         let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
         await store.refreshFromHealthKit()
@@ -1052,15 +1065,15 @@ final class LifeClockStoreTests: XCTestCase {
             XCTFail("Expected at least one quest")
             return
         }
-        store.toggleQuestCompletion(first)
-        store.toggleQuestCompletion(first)
-        store.toggleQuestCompletion(first)
+        store.toggleQuestCompletion(first)   // tick
+        store.toggleQuestCompletion(first)   // un-tick (deletes event)
+        store.toggleQuestCompletion(first)   // re-tick (emits fresh event)
 
         let completedEvents = try context.fetch(
             FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "completed" })
         )
         XCTAssertEqual(completedEvents.count, 1,
-            "Re-tick after un-tick must NOT create a duplicate completed event — emitCompleted dedups per (date, slug)")
+            "After tick → un-tick → re-tick, exactly one completed event should exist")
     }
 
     // MARK: - Phase 3c task 15 + 3d task 16: daily-cycle hook
