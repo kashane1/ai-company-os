@@ -41,9 +41,94 @@ struct QuestEngine {
         profile: UserProfile,
         snapshot: DailyHealthSnapshot?,
         recentSnapshots: [DailyHealthSnapshot] = [],
-        habits: HabitLog?
+        habits: HabitLog?,
+        events: [QuestEvent] = [],
+        pool: QuestPool? = nil
     ) -> [Quest] {
         let today = clock.calendar.startOfDay(for: clock.now())
+
+        // Phase 3c flag branch: route through the selector path when
+        // useQuestPoolEngine is on AND a non-empty pool is available.
+        // Empty-pool guard (Phase 3 plan G26): if the flag is on but
+        // the production JSON is empty (Phase 4 hasn't authored slugs
+        // yet), fall through to the legacy 15-quest path. Avoids
+        // surfacing 3× consistency-fallback to every user every day
+        // if Phase 5a flips the flag before Phase 4 ships content.
+        if profile.useQuestPoolEngine, let resolvedPool = pool, !resolvedPool.isEmpty {
+            return selectorPath(
+                pool: resolvedPool,
+                profile: profile,
+                recentSnapshots: recentSnapshots,
+                events: events,
+                today: today
+            )
+        }
+
+        return legacyEnginePath(
+            profile: profile,
+            snapshot: snapshot,
+            recentSnapshots: recentSnapshots,
+            habits: habits,
+            today: today
+        )
+    }
+
+    /// Phase 3c selector-path materialization. Pool selector returns
+    /// `[PoolQuest]` (typed value objects); this method converts each
+    /// to a `Quest` SwiftData row with the slug, target, and
+    /// snapshotted tone-keyed copy. Tone resolution at render time
+    /// (per master plan G2) is the views' responsibility — they
+    /// should consult `pool.copy(for:tone:)` rather than reading
+    /// `Quest.title` directly. Title/detail are populated here as a
+    /// best-effort snapshot so legacy view code that hasn't migrated
+    /// continues to render something sensible.
+    private func selectorPath(
+        pool: QuestPool,
+        profile: UserProfile,
+        recentSnapshots: [DailyHealthSnapshot],
+        events: [QuestEvent],
+        today: Date
+    ) -> [Quest] {
+        let affinity = AffinityEngine.computeAffinities(events: events)
+        let needWeight = NeedWeightEngine.compute(profile: profile, recentSnapshots: recentSnapshots)
+        let picked = QuestSelector.select(
+            pool: pool,
+            affinity: affinity,
+            needWeight: needWeight,
+            profile: profile,
+            today: today,
+            events: events
+        )
+        if picked.isEmpty {
+            return [consistencyFallback(today: today)]
+        }
+        let tone = ToneMode.fromStored(profile.toneMode)
+        return picked.map { poolQuest in
+            let copy = poolQuest.copy[tone] ?? poolQuest.copy[.coach] ?? ToneCopy(title: poolQuest.intent, detail: "")
+            let target = poolQuest.target?.value ?? 1
+            return Quest(
+                slug: poolQuest.slug,
+                date: today,
+                title: copy.title,
+                detail: copy.detail,
+                category: poolQuest.genre.rawValue,
+                target: target,
+                rewardEstimateMinutes: 5,
+                genre: poolQuest.genre.rawValue
+            )
+        }
+    }
+
+    /// Legacy inlined-Quest path. Unchanged behavior from Phase 1/2.
+    /// Continues to be the production code path because `useQuestPoolEngine`
+    /// defaults to `false`.
+    private func legacyEnginePath(
+        profile: UserProfile,
+        snapshot: DailyHealthSnapshot?,
+        recentSnapshots: [DailyHealthSnapshot],
+        habits: HabitLog?,
+        today: Date
+    ) -> [Quest] {
         var quests: [Quest] = []
 
         for category in Category.allCases {

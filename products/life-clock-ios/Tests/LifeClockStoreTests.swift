@@ -943,4 +943,171 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertEqual(stored.title, "Steps target")
         XCTAssertEqual(stored.target, 8000)
     }
+
+    // MARK: - Phase 3c: Event emission hooks
+    //
+    // Integration tests for the four QuestEvent hook points and the
+    // useQuestPoolEngine flag. Flag-off path: zero events ever written
+    // (legacy QuestEngine continues unchanged). Flag-on path: events
+    // emitted at engine emit, plan editor swap, and quest tick.
+
+    private func makePhase3cStore(flagOn: Bool, day: Date) async throws -> (LifeClockStore, ModelContext) {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let mockHealth = MockHealthKitService(seed: 11)
+        let store = LifeClockStore(
+            healthService: mockHealth,
+            modelContext: context,
+            engineClock: .fixed(day)
+        )
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        profile.useQuestPoolEngine = flagOn
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+        return (store, context)
+    }
+
+    func testFlagOffWritesNoQuestEvents() async throws {
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, context) = try await makePhase3cStore(flagOn: false, day: day)
+        await store.refreshFromHealthKit()
+        if let first = store.todayQuests.first {
+            store.toggleQuestCompletion(first)
+        }
+        let events = try context.fetch(FetchDescriptor<QuestEvent>())
+        XCTAssertEqual(events.count, 0,
+            "Flag-off path must write zero QuestEvent rows — legacy engine path is unchanged")
+    }
+
+    func testFlagOnEmitsShownEventsAfterRefresh() async throws {
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        await store.refreshFromHealthKit()
+
+        let shownEvents = try context.fetch(
+            FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "shown" })
+        )
+        XCTAssertGreaterThan(shownEvents.count, 0,
+            "Flag-on path must emit shown events for every emitted slug")
+        let slugs = Set(shownEvents.map(\.slug))
+        XCTAssertEqual(slugs.count, shownEvents.count,
+            "Shown events should be deduped per (date, slug)")
+    }
+
+    func testShownEventDedupedOnDoubleRefresh() async throws {
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        await store.refreshFromHealthKit()
+        let firstCount = try context.fetch(
+            FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "shown" })
+        ).count
+
+        await store.refreshFromHealthKit(force: true)
+        let secondCount = try context.fetch(
+            FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "shown" })
+        ).count
+        XCTAssertEqual(firstCount, secondCount,
+            "Shown event count must not grow on double-refresh same day — emitShown is idempotent")
+    }
+
+    func testCompletedEventEmittedOnTickWhenFlagIsOn() async throws {
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        await store.refreshFromHealthKit()
+        guard let first = store.todayQuests.first else {
+            XCTFail("Expected at least one quest")
+            return
+        }
+        store.toggleQuestCompletion(first)
+
+        let completedEvents = try context.fetch(
+            FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "completed" })
+        )
+        XCTAssertEqual(completedEvents.count, 1)
+        XCTAssertEqual(completedEvents.first?.slug, first.slug)
+    }
+
+    func testCompletedEventNotEmittedOnUntick() async throws {
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        await store.refreshFromHealthKit()
+        guard let first = store.todayQuests.first else {
+            XCTFail("Expected at least one quest")
+            return
+        }
+        store.toggleQuestCompletion(first)   // tick → emit completed
+        store.toggleQuestCompletion(first)   // un-tick → no new event
+
+        let completedEvents = try context.fetch(
+            FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "completed" })
+        )
+        XCTAssertEqual(completedEvents.count, 1,
+            "Un-ticking a completed quest must NOT delete the completion event — completion is a terminal signal")
+    }
+
+    func testCompletedEventDedupedOnReTick() async throws {
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        await store.refreshFromHealthKit()
+        guard let first = store.todayQuests.first else {
+            XCTFail("Expected at least one quest")
+            return
+        }
+        store.toggleQuestCompletion(first)
+        store.toggleQuestCompletion(first)
+        store.toggleQuestCompletion(first)
+
+        let completedEvents = try context.fetch(
+            FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "completed" })
+        )
+        XCTAssertEqual(completedEvents.count, 1,
+            "Re-tick after un-tick must NOT create a duplicate completed event — emitCompleted dedups per (date, slug)")
+    }
+
+    // MARK: - Phase 3c task 15 + 3d task 16: daily-cycle hook
+
+    func testDistinctOpenDaysIncrementsOnFirstForegroundOfDay() async throws {
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, _) = try await makePhase3cStore(flagOn: true, day: day)
+        await store.refreshFromHealthKit()
+        XCTAssertEqual(store.profile?.distinctOpenDays, 1)
+        XCTAssertNotNil(store.profile?.lastForegroundDay)
+    }
+
+    func testDistinctOpenDaysDoesNotDoubleIncrementSameDay() async throws {
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, _) = try await makePhase3cStore(flagOn: true, day: day)
+        await store.refreshFromHealthKit()
+        await store.refreshFromHealthKit(force: true)
+        XCTAssertEqual(store.profile?.distinctOpenDays, 1,
+            "distinctOpenDays must not double-increment within the same calendar day")
+    }
+
+    func testDistinctOpenDaysIncrementsAcrossDays() async throws {
+        let day1 = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, _) = try await makePhase3cStore(flagOn: true, day: day1)
+        await store.refreshFromHealthKit()
+        let firstCount = store.profile?.distinctOpenDays ?? 0
+
+        // Simulate "user opened yesterday, now opening today" by
+        // backdating lastForegroundDay one day. The engine clock is
+        // immutable so we can't move forward; the daily-cycle hook
+        // only cares that lastForegroundDay < today's start.
+        let oneDayBack = Calendar.current.date(byAdding: .day, value: -1, to: store.profile!.lastForegroundDay!)!
+        store.profile?.lastForegroundDay = oneDayBack
+
+        await store.refreshFromHealthKit(force: true)
+        XCTAssertEqual(store.profile?.distinctOpenDays, firstCount + 1,
+            "distinctOpenDays must increment when first foreground of a new local day fires")
+    }
+
+    func testDistinctOpenDaysCountsForFlagOffUsersToo() async throws {
+        // The counter increments unconditionally so it's accurate from
+        // day 1 — ready for whenever the flag flips. EOD resolver is
+        // the only daily-cycle action that's flag-gated.
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let (store, _) = try await makePhase3cStore(flagOn: false, day: day)
+        await store.refreshFromHealthKit()
+        XCTAssertEqual(store.profile?.distinctOpenDays, 1,
+            "distinctOpenDays should increment regardless of useQuestPoolEngine flag")
+    }
 }
