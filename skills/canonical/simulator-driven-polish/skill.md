@@ -3,7 +3,7 @@ id: simulator-driven-polish
 name: Simulator-Driven Polish
 purpose: Drive an iOS app live in Simulator, identify gaps and rough edges with explicit decision authority, fix them in tight commits, and surface only the decisions that need the operator. Replaces the manual dogfood-and-iterate loop with a structured, bounded agentic loop.
 owner_agent: ios
-target_runtimes: [claude]
+target_runtimes: [claude, codex]
 stage: active
 inputs:
   - product_id (e.g. life-clock)
@@ -25,6 +25,7 @@ allowed_edit_boundaries:
   - products/<product-id>-ios/**
   - docs/products/<product-id>/**
   - skills/adapters/claude/simulator-driven-polish.md (only when explicitly editing the skill itself)
+  - skills/adapters/codex/simulator-driven-polish.md (only when explicitly editing the skill itself)
 forbidden_areas:
   - packages/policies/
   - state/
@@ -53,6 +54,12 @@ handoff_contract:
   what_is_handed_off: the commit stack + session log; PR body is derived from the log
   handed_to: operator for review, then standard PR pipeline
   channel: docs/products/<product-id>/polish-<YYYY-MM-DD>-<slug>.md (the session log IS the handoff)
+codex_adaptation_notes: |
+  Codex follows the canonical loop through
+  skills/adapters/codex/simulator-driven-polish.md. The adapter owns runtime
+  translation: shell-first xcodebuild/simctl invocation, apply_patch edits,
+  numbered chat asks, Computer Use final-check rules, and repo-backed session
+  logs in place of assistant memory writes.
 ---
 
 # Simulator-Driven Polish

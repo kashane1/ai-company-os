@@ -59,6 +59,11 @@ _GROUP_LABELS: dict[str, str] = {
     "required_pack_sections": "pack section",
     "required_lane_coverage_keys": "lane coverage key",
     "required_character_limits": "character limit",
+    "required_modes": "mode",
+    "required_decision_tiers": "decision tier",
+    "required_strong_v1_capabilities": "strong-v1 capability",
+    "required_vision_sections": "vision section",
+    "required_stop_conditions": "stop condition",
 }
 
 
