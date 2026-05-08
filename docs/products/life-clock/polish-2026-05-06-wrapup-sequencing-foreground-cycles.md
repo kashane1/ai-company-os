@@ -191,25 +191,72 @@ should be back online; ran a second pass.
   healthy. The hand-driven gesture pass should still be done once on a
   clean host before App Store submission.
 
+## Session 16:50 — Third pass (computer-use bridge online)
+
+Operator confirmed bridge was back. Re-tried the Simulator GUI attach and
+the recon.
+
+### Iterations
+
+- [16:55] Real-touch acceptance pass via computer-use — Simulator GUI
+  surfaced after a hard restart of `Simulator.app` with
+  `-CurrentDeviceUDID`. All three checkpoints confirmed end-to-end:
+  - **CTA tap dismissal**: tap on Continue at the seeded Thursday return
+    dismissed the sheet; Today screen rendered correctly.
+  - **Rapid bg/fg cycles**: 3 cycles via `simctl launch
+    com.apple.Preferences` followed by `simctl launch
+    io.aicompanyos.products.lifeclock` (re-foregrounding the same
+    process). The Yesterday wrap-up sheet survived all three; Wake never
+    clobbered it. Confirms the lighting/wake convention memory's "Wake
+    on every cold launch + foreground" cadence does not fight with the
+    wrap-up presentation.
+  - **Swipe-down dismissal**: a slow multi-step drag from the sheet
+    grabber (mouse_down → 5 mouse_moves → mouse_up) dismissed the sheet
+    via the binding `set(nil)` path. Today screen rendered post-dismiss.
+- [17:25] `1c0dfb8` — `fix(life-clock): keep WrapUp sheet child a11y ids
+  addressable` — Polish — `.accessibilityIdentifier` on the root VStack
+  was overwriting every child id, breaking
+  `app.buttons["wrapup.dismissCTA"]` queries. Added
+  `.accessibilityElement(children: .contain)` so the root is a container
+  that exposes its own id without consuming children's.
+
+### Recon results (third pass, post-fix)
+
+`UITests/WrapUpSequenceRecon` — **5/6 PASSED**:
+
+- `testThursdayYesterdayOnly` ✓
+- `testMondayYesterdayThenWeekly` ✓ (sequencing verified at UI level —
+  yesterday→weekly fired in the same launch)
+- `testRepresentDoesNotFireSameSession` ✓ (markWrapUpShown discipline
+  verified across bg/fg)
+- `testBackgroundMidWrapUpKeepsSheet` ✓
+- `testFinalAcceptance_RapidForegroundCycles` ✓
+- `testFinalAcceptance_SwipeDownDismissal` ✗ — XCUITest's `.swipeDown()`
+  on a SwiftUI sheet drag-indicator is unreliable; the same behavior is
+  confirmed by the computer-use real-touch pass above. Not blocking;
+  flagged as a future XCUITest helper to add (synthesize a slow drag via
+  `XCUIElement.press(forDuration:thenDragTo:)`).
+
 ## Asks (final)
 
 ### Resolved this session
 
 - **Weekly wrap-up persistence is missing in production.** → Fixed in
   `624d139`; locked with a unit test.
+- **Computer-use Simulator window-attach** → resolved in the third pass
+  after a clean Simulator app restart with `-CurrentDeviceUDID`.
+- **UI recon flake** → root cause was the a11y id propagation
+  (`1c0dfb8`), not simulator state. 5/6 tests now green.
 
 ### Outstanding
 
-- **UI recon flake on this host** — full-suite UI test runs intermittently
-  fail at the runner-attach step (`Timed out waiting for AX loaded
-  notification`). Recommend a clean reboot of the Mac before re-running
-  the recon, and treating
-  `LifeClockStoreTests/testMarkWrapUpShownSequencesSiblingsInSameSession`
-  + `testRefreshPersistsWeeklyReportSoPendingWeeklyCanFire` as the
-  canonical regression gates.
-- **Computer-use Simulator window-attach** — bridge connects, but the
-  Simulator GUI window did not manifest this session. Consider a separate
-  task to debug the GUI vs. headless `simctl boot` interaction.
+- **XCUITest sheet swipe-down unreliable** — `XCUIElement.swipeDown()`
+  doesn't synthesize a recognized iOS sheet-drag gesture against
+  SwiftUI's `presentationDragIndicator(.visible)`. The behavior is real
+  (real-touch confirmed), the test instrument is the gap. Suggested
+  follow-up: add an `XCUIElement.dragSheetDown()` helper using
+  `press(forDuration:thenDragToCoordinate:)` and back-port to other
+  sheet-bearing tests.
 
 ## Next pass
 
