@@ -54,22 +54,35 @@ final class QuestSelectorEligibilityTests: XCTestCase {
         XCTAssertTrue(QuestSelector.isEligible(quest, profile: p))
     }
 
-    func testRequiresSmokerExcludesNonSmokers() {
+    func testRequiresSmokerExcludesNonSmokersAndFormerSmokers() {
         let quest = makeQuest(
             slug: "activity.smoker-only.v1",
             eligibility: EligibilityFilter(requiresSmoker: true)
         )
+        // Onboarding emits "none" / "former" / "light" / "heavy".
+        // "Former" is not a current smoker — cessation slugs target
+        // them via requiresSmoker:false, not requiresSmoker:true.
         XCTAssertFalse(QuestSelector.isEligible(
             quest,
             profile: makeProfile(smokingStatus: "none")
         ))
+        XCTAssertFalse(QuestSelector.isEligible(
+            quest,
+            profile: makeProfile(smokingStatus: "former")
+        ))
         XCTAssertTrue(QuestSelector.isEligible(
             quest,
-            profile: makeProfile(smokingStatus: "daily")
+            profile: makeProfile(smokingStatus: "light")
+        ))
+        XCTAssertTrue(QuestSelector.isEligible(
+            quest,
+            profile: makeProfile(smokingStatus: "heavy")
         ))
     }
 
-    func testRequiresSmokerFalseExcludesSmokers() {
+    func testRequiresSmokerFalseIncludesFormerSmokers() {
+        // Cessation-supportive slugs target requiresSmoker:false. Former
+        // smokers are exactly the population that should reach them.
         let quest = makeQuest(
             slug: "activity.non-smoker-only.v1",
             eligibility: EligibilityFilter(requiresSmoker: false)
@@ -78,18 +91,28 @@ final class QuestSelectorEligibilityTests: XCTestCase {
             quest,
             profile: makeProfile(smokingStatus: "none")
         ))
+        XCTAssertTrue(QuestSelector.isEligible(
+            quest,
+            profile: makeProfile(smokingStatus: "former")
+        ))
         XCTAssertFalse(QuestSelector.isEligible(
             quest,
-            profile: makeProfile(smokingStatus: "social")
+            profile: makeProfile(smokingStatus: "light")
+        ))
+        XCTAssertFalse(QuestSelector.isEligible(
+            quest,
+            profile: makeProfile(smokingStatus: "heavy")
         ))
     }
 
     func testRequiresDrinkerHandlesRareAndNoneAsLightDrinker() {
+        // Onboarding emits "rare" / "weekly" / "daily". "none" is
+        // included defensively in case onboarding adds it. "rare" is
+        // not habitual — weekly+ is.
         let quest = makeQuest(
             slug: "activity.drinker-only.v1",
             eligibility: EligibilityFilter(requiresDrinker: true)
         )
-        // "none" and "rare" are both light → quest excluded
         XCTAssertFalse(QuestSelector.isEligible(
             quest,
             profile: makeProfile(alcoholFrequency: "none")
@@ -98,7 +121,6 @@ final class QuestSelectorEligibilityTests: XCTestCase {
             quest,
             profile: makeProfile(alcoholFrequency: "rare")
         ))
-        // "weekly" / "daily" → drinker → included
         XCTAssertTrue(QuestSelector.isEligible(
             quest,
             profile: makeProfile(alcoholFrequency: "weekly")

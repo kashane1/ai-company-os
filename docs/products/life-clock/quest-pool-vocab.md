@@ -100,8 +100,21 @@ at the same moment. Bookkeeping is single-source (the
 Every authored slug carries copy for `gentle`, `coach`, and `firmDirect`.
 The voice guide for each register lives in
 [docs/plans/2026-05-08-feat-quest-pool-phase-4-and-5-plan.md §4.4](../../plans/2026-05-08-feat-quest-pool-phase-4-and-5-plan.md).
-The vocab smoke-test in `QuestPoolToneParityTests.swift` enforces it at
-build time.
+The vocab smoke-test in `QuestPoolToneParityTests.swift` enforces a
+forbidden-vocab list at build time.
+
+### Forbidden vocabulary (mirrored from `QuestPoolToneParityTests.swift`)
+
+| Tone | Words that fail the build |
+|---|---|
+| `gentle` MUST NOT contain | `Banked`, `owe`, `owed`, `tally`, `reckoning` |
+| `firm_direct` MUST NOT contain | `softly`, `gently`, `perhaps`, `maybe`, `if you'd like` |
+| `coach` | (no gate — coach tolerates either register) |
+
+The lists are kept short on purpose to avoid false positives on ordinary
+words. `QuestPoolToneParityTests.firmDirectOnlyVocab` and `gentleOnlyVocab`
+are the runtime source of truth — update both in lock-step if you
+add a word.
 
 ## Authoring checklist
 

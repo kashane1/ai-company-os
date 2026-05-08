@@ -98,29 +98,23 @@ enum TimeOfDayWindow: String, Codable, Sendable {
 }
 
 /// Hard-filter that runs BEFORE scoring in `QuestSelector.select(...)`.
-/// Restored in Phase 4a (cut from Phase 2 per simplicity-reviewer when the
-/// fixture pool had no contraindicated slugs and production pool was empty).
-/// Now load-bearing because authored slugs reference contraindications.
-///
-/// Field semantics:
-///   * `requiresSmoker`: nil = any; true = `smokingStatus != "none"`;
-///     false = `smokingStatus == "none"`.
-///   * `requiresDrinker`: nil = any; true = `alcoholFrequency` ∉
-///     `{"none","rare"}`; false = `alcoholFrequency` ∈ `{"none","rare"}`.
-///   * `requiresStrengthRoutine`: nil = any; true =
-///     `strengthFrequencyPerWeek > 0`; false = `strengthFrequencyPerWeek == 0`.
-///   * `coldStartReachable`: when false, the slug is excluded for users
-///     with `distinctOpenDays < 7`. Use for slugs that need familiarity to
-///     be useful (e.g. zone-2 framing assumes the user has engaged with
-///     activity tracking).
-///   * `timeOfDay`: nil or `anytime` = no gating. `morning`/`midday`/`evening`
-///     are recorded as authoring intent; routing is non-load-bearing in
-///     Phase 4a (no time-of-day refresh trigger yet).
+/// Restored in Phase 4a; authored slugs reference contraindications.
+/// Predicate semantics live on `QuestSelector.isEligible(_:profile:)` —
+/// see `isCurrentSmoker` / `isHabitualDrinker` for enum-value mappings.
 struct EligibilityFilter: Codable, Equatable, Hashable, Sendable {
+    /// nil = any; true = current smoker; false = not a current smoker
+    /// (includes "former" — cessation-supportive slugs reach them).
     let requiresSmoker: Bool?
+    /// nil = any; true = habitual drinker (`weekly`+); false = not.
     let requiresDrinker: Bool?
+    /// nil = any; true = `strengthFrequencyPerWeek > 0`; false = == 0.
     let requiresStrengthRoutine: Bool?
+    /// When false, exclude until `distinctOpenDays >=
+    /// QuestSelector.coldStartDayThreshold`. Use for slugs whose framing
+    /// assumes the user has engaged (e.g., zone-2 cardio).
     let coldStartReachable: Bool
+    /// Authoring intent only in Phase 4a. Decoded but non-load-bearing —
+    /// no time-of-day refresh hook exists yet. Phase 4b/c may activate it.
     let timeOfDay: TimeOfDayWindow?
 
     init(
@@ -136,10 +130,6 @@ struct EligibilityFilter: Codable, Equatable, Hashable, Sendable {
         self.coldStartReachable = coldStartReachable
         self.timeOfDay = timeOfDay
     }
-
-    /// The "anyone, anytime" filter. Equivalent to `nil` at the call site;
-    /// useful when an author wants to record the field explicitly.
-    static let unrestricted = EligibilityFilter()
 }
 
 /// One pre-authored quest. Loaded from JSON; immutable in memory.

@@ -235,10 +235,11 @@ final class QuestPoolToneParityTests: XCTestCase {
                 }
             }
 
-            // Gate 3: parity anchors (intent + optional target) are
-            // single fields on PoolQuest; the type system already
-            // prevents per-tone divergence. Pin the shape so a future
-            // refactor adding per-tone overrides fails compilation here.
+            // Gate 3: parity-anchor fields are non-empty at load time.
+            // Per-tone divergence is structurally impossible (intent +
+            // target live on PoolQuest, not ToneCopy), so this gate
+            // catches authoring mistakes only — empty metric/unit
+            // strings, empty intent.
             XCTAssertFalse(quest.intent.isEmpty, "\(quest.slug) has empty intent")
             if let target = quest.target {
                 XCTAssertFalse(target.metric.isEmpty, "\(quest.slug) target has empty metric")

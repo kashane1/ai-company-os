@@ -56,6 +56,13 @@ enum QuestSelector {
     /// are bulk-resolved to `passed_over`. Per perf review.
     static let eodWalkCapDays: Int = 30
 
+    /// Days of distinct app-opens at which `discoveryDamp` saturates AND
+    /// `coldStartReachable: false` slugs unlock. The two thresholds must
+    /// stay equal — a user clears discovery damp and unlocks late-window
+    /// slugs at the same moment. Single source of truth so a future damp
+    /// retune can't silently drift the filter.
+    static let coldStartDayThreshold: Int = 7
+
     // MARK: - Public
 
     /// Pick today's slate of up to 3 quests, one per genre. Pure
@@ -153,24 +160,15 @@ enum QuestSelector {
     /// `eligibility` field is always eligible — preserves the fixture
     /// pool's "anyone, anytime" shape and lets authors omit the field
     /// when there's no contraindication to record.
-    ///
-    /// Field semantics match the doc-comment on `EligibilityFilter`. The
-    /// 7-day cold-start threshold matches `discoveryDamp`'s saturation
-    /// point (Phase 3 plan G16): a user clears discovery damp at the same
-    /// moment they unlock cold-start-only slugs.
     static func isEligible(_ quest: PoolQuest, profile: UserProfile) -> Bool {
         guard let filter = quest.eligibility else { return true }
 
         if let needsSmoker = filter.requiresSmoker {
-            let isSmoker = profile.smokingStatus != "none"
-            if needsSmoker != isSmoker { return false }
+            if needsSmoker != Self.isCurrentSmoker(profile.smokingStatus) { return false }
         }
 
         if let needsDrinker = filter.requiresDrinker {
-            let lightDrinker = profile.alcoholFrequency == "none"
-                || profile.alcoholFrequency == "rare"
-            let isDrinker = !lightDrinker
-            if needsDrinker != isDrinker { return false }
+            if needsDrinker != Self.isHabitualDrinker(profile.alcoholFrequency) { return false }
         }
 
         if let needsRoutine = filter.requiresStrengthRoutine {
@@ -178,14 +176,44 @@ enum QuestSelector {
             if needsRoutine != hasRoutine { return false }
         }
 
-        if !filter.coldStartReachable && profile.distinctOpenDays < 7 {
+        if !filter.coldStartReachable && profile.distinctOpenDays < Self.coldStartDayThreshold {
             return false
         }
 
-        // `timeOfDay` is recorded but non-load-bearing in Phase 4a. Phase
-        // 4b/c may begin to gate on it once a time-of-day refresh hook
-        // exists.
+        // `timeOfDay` is decoded for forward-compat but non-load-bearing
+        // in Phase 4a (no time-of-day refresh hook). Authors should leave
+        // it `anytime` until 4b/c lands the routing.
         return true
+    }
+
+    /// Onboarding picker emits `none | former | light | heavy`. "Current
+    /// smoker" means actively smoking — `light` or `heavy`. "Former" is
+    /// NOT a current smoker; a cessation-supportive slug with
+    /// `requiresSmoker: false` should reach a former smoker. The default
+    /// branch never fires for shipped enum values; the assertion catches
+    /// new onboarding values that didn't update this predicate.
+    static func isCurrentSmoker(_ status: String) -> Bool {
+        switch status {
+        case "light", "heavy": return true
+        case "none", "former": return false
+        default:
+            assertionFailure("Unknown smokingStatus value \"\(status)\" — update QuestSelector.isCurrentSmoker")
+            return false
+        }
+    }
+
+    /// Onboarding picker emits `rare | weekly | daily`. UserProfile's
+    /// default is `rare`. A "habitual drinker" means `weekly` or more.
+    /// Includes the unused `none` value defensively in case onboarding
+    /// adds it later. Default branch fails fast in DEBUG.
+    static func isHabitualDrinker(_ frequency: String) -> Bool {
+        switch frequency {
+        case "weekly", "daily": return true
+        case "rare", "none": return false
+        default:
+            assertionFailure("Unknown alcoholFrequency value \"\(frequency)\" — update QuestSelector.isHabitualDrinker")
+            return false
+        }
     }
 
     // MARK: - End-of-day resolution
@@ -299,13 +327,13 @@ enum QuestSelector {
 
     // MARK: - Cold-start discovery dampening
 
-    /// `0.3 + 0.7 × min(distinctOpenDays / 7, 1)`. Day 1 → 0.3,
-    /// day 7+ → 1.0. Applied as the exponent on affinity in the
-    /// score formula so day-1 affinity contributes only `0.5^0.3 ≈
+    /// `0.3 + 0.7 × min(distinctOpenDays / coldStartDayThreshold, 1)`.
+    /// Day 1 → 0.3, day 7+ → 1.0. Applied as the exponent on affinity in
+    /// the score formula so day-1 affinity contributes only `0.5^0.3 ≈
     /// 0.81`× of its full weight; by day 7 it contributes `0.5^1 =
     /// 0.5`× (full).
     static func discoveryDamp(distinctOpenDays: Int) -> Double {
-        let progress = min(Double(distinctOpenDays) / 7.0, 1.0)
+        let progress = min(Double(distinctOpenDays) / Double(coldStartDayThreshold), 1.0)
         return 0.3 + 0.7 * progress
     }
 

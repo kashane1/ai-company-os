@@ -193,6 +193,65 @@ final class QuestPoolTests: XCTestCase {
     }
 
 
+    // MARK: - Vocabulary lock (exclusion-group typo gate)
+
+    /// Phase 4a §4.2 locks 7 exclusion-group names. A typo in `activity.json`
+    /// (e.g. `meal-anchor` instead of `meal-adjacent`) would silently
+    /// degrade the conflict pass to a no-op without failing any other
+    /// test. This gate keeps the JSON in sync with the documented vocab.
+    /// New groups should land via a vocab-doc update + a one-line addition
+    /// here, in the same PR.
+    private static let lockedExclusionGroups: Set<String> = [
+        "meal-adjacent",
+        "evening-energy",
+        "pre-bed-stimulant",
+        "morning-cardio",
+        "intense-exertion",
+        "screen-time",
+        "meal-timing",
+    ]
+
+    func testProductionPoolExclusionGroupsAreInLockedVocabulary() throws {
+        let pool = try QuestPool.loadFromBundle(hostBundle)
+        for quest in pool.quests.values {
+            for group in quest.exclusionGroups {
+                XCTAssertTrue(
+                    Self.lockedExclusionGroups.contains(group),
+                    "\(quest.slug) uses unknown exclusion group \"\(group)\". " +
+                    "Either fix the typo or extend QuestPoolTests.lockedExclusionGroups + quest-pool-vocab.md."
+                )
+            }
+        }
+    }
+
+    // MARK: - Cold-start safety
+
+    /// Every genre with authored content must have at least one slug
+    /// reachable for a default cold-start user (no smoking, no drinking,
+    /// no strength routine, day 0). Otherwise the selector skips the
+    /// genre entirely on day 1 — a regression of the genre-floor invariant.
+    /// Phase 4a only authors activity, so this gate is activity-scoped
+    /// for now; Phase 4b/c will widen it.
+    func testActivityIsReachableForDefaultColdStartProfile() throws {
+        let pool = try QuestPool.loadFromBundle(hostBundle)
+        let activity = pool.quests(in: .activity)
+        guard !activity.isEmpty else { return }
+
+        let birthDate = Date(timeIntervalSince1970: 631_152_000)
+        let coldStart = UserProfile(birthDate: birthDate, biologicalSex: "female")
+        coldStart.smokingStatus = "none"
+        coldStart.alcoholFrequency = "rare"
+        coldStart.strengthFrequencyPerWeek = 0
+        coldStart.distinctOpenDays = 0
+
+        let eligible = activity.filter { QuestSelector.isEligible($0, profile: coldStart) }
+        XCTAssertGreaterThan(
+            eligible.count, 0,
+            "No activity slug is reachable for a cold-start non-strength user. " +
+            "Genre would starve the user on day 1."
+        )
+    }
+
     // MARK: - EligibilityFilter (Phase 4a)
 
     func testEligibilityFilterRoundTripsThroughJSON() throws {
