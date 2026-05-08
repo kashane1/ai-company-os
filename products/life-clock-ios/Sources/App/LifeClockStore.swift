@@ -172,9 +172,72 @@ final class LifeClockStore {
             // Restore today's reflection if the user wrote one earlier.
             reloadTodayReflection()
         }
+        // V1.5.0: backfill `Quest.genre` for any persisted Quests that
+        // landed before the field existed. Idempotent — subsequent runs
+        // find no `genre == ""` rows and short-circuit. Safe to call on
+        // every launch. Migration must complete before this runs;
+        // SwiftData's ModelContainer init makes that the case.
+        bootstrapQuestGenres()
         await refreshFromHealthKit()
         notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
         await reconcileNotifications()
+    }
+
+    // MARK: - Quest genre backfill (V1.5.0)
+    //
+    // Maps legacy `Quest.slug` values to their corresponding `Genre.rawValue`.
+    // Source of truth: the migration table in
+    // docs/plans/2026-05-08-feat-quest-pool-affinity-engine-plan.md
+    // (Migration Mapping section).
+    //
+    // The fallback `consistency.open-app-tomorrow.v1` slug intentionally
+    // has no genre — it's out-of-pool engine machinery. Affinity
+    // computation ignores events whose `genre` doesn't map to a known
+    // `Genre`, so leaving it empty is safe.
+    private static let slugGenreMap: [String: String] = [
+        "movement.steps-target.v1":         "activity",
+        "movement.walk-after-meal.v1":      "activity",
+        "movement.stairs-instead.v1":       "activity",
+        "sleep.consistency.v1":             "sleep",
+        "sleep.wind-down.v1":               "sleep",
+        "recovery.hydration-early-night.v1": "sleep",
+        "nutrition.one-better-meal.v1":     "diet",
+        "nutrition.log-diet-quality.v1":    "diet",
+        "nutrition.whole-food-meal.v1":     "diet",
+        // Reclassified per master plan: this slug's primary action is
+        // the walk, not the meal — re-homes from "diet" to "activity".
+        "nutrition.walk-after-dinner.v1":   "activity",
+        "nutrition.water-with-meal.v1":     "diet",
+        "nutrition.add-protein.v1":         "diet",
+        "nutrition.eat-meal-slowly.v1":     "diet",
+        "nutrition.less-processed.v1":      "diet",
+    ]
+
+    /// Idempotent. Walks all `Quest` rows with `genre == ""`, populates
+    /// `genre` from the slug→genre map, saves the context. Safe to
+    /// re-run — subsequent calls find no unbackfilled rows.
+    /// Phase 3 of the quest-pool affinity engine (todo 049 #2).
+    /// `internal` (not `private`) so unit tests can exercise the
+    /// idempotency contract directly via `@testable import`.
+    func bootstrapQuestGenres() {
+        let descriptor = FetchDescriptor<Quest>(
+            predicate: #Predicate { $0.genre == "" }
+        )
+        guard let unbackfilled = try? modelContext.fetch(descriptor), !unbackfilled.isEmpty else {
+            return
+        }
+        var changed = false
+        for quest in unbackfilled {
+            if let genre = Self.slugGenreMap[quest.slug] {
+                quest.genre = genre
+                changed = true
+            }
+            // Slugs not in the map (e.g. consistency.open-app-tomorrow.v1)
+            // stay with genre == "" — this is intentional, not a bug.
+        }
+        if changed {
+            try? modelContext.save()
+        }
     }
 
     // MARK: - HealthKit-driven recompute
@@ -1117,7 +1180,7 @@ final class LifeClockStore {
     /// copied from the engine-emitted instance so daily refresh stays accurate;
     /// completedAt is left to the caller.
     @discardableResult
-    private func upsertQuest(_ quest: Quest) -> Quest {
+    func upsertQuest(_ quest: Quest) -> Quest {
         let stored = fetchStoredQuest(slug: quest.slug, on: quest.date) ?? {
             let new = Quest(
                 id: quest.id,
@@ -1127,7 +1190,8 @@ final class LifeClockStore {
                 detail: quest.detail,
                 category: quest.category,
                 target: quest.target,
-                rewardEstimateMinutes: quest.rewardEstimateMinutes
+                rewardEstimateMinutes: quest.rewardEstimateMinutes,
+                genre: quest.genre
             )
             new.progress = quest.progress
             modelContext.insert(new)
@@ -1138,6 +1202,16 @@ final class LifeClockStore {
         stored.target = quest.target
         stored.progress = quest.progress
         stored.rewardEstimateMinutes = quest.rewardEstimateMinutes
+        // Phase 3 V1.5.0: propagate `genre` on update (todo 049 #1).
+        // GUARDED against the empty-default sentinel — otherwise the
+        // legacy QuestEngine emit path (which constructs Quests without
+        // setting genre) and the consistency-fallback path (which
+        // carries genre = "" by design, plan G16) would clobber a
+        // previously-backfilled non-empty genre. Per data-integrity
+        // review on the deepened Phase 3 plan.
+        if !quest.genre.isEmpty {
+            stored.genre = quest.genre
+        }
         return stored
     }
 

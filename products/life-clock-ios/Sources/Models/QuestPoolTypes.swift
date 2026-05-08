@@ -20,7 +20,48 @@ enum Genre: String, Codable, CaseIterable, Identifiable, Sendable {
     case diet
     case sleep
 
-var id: String { rawValue }
+    var id: String { rawValue }
+}
+
+// MARK: - QuestEvent kind enums (Phase 3)
+//
+// SwiftData stores `QuestEvent.kind` and `QuestEvent.resolvedKind` as plain
+// `String` (matching the existing `TimeLedgerEntry.driverType` convention).
+// Every read/write site funnels through these enums, so a typo becomes a
+// compile-time error rather than a silent affinity skew. Source-of-truth
+// lives here in the Models layer.
+//
+// Phase 3 of the quest-pool affinity engine — todo 049 #3.
+
+/// The four-event lifecycle for a quest slug on a given day.
+/// Emitted by the engine + plan-editor + completion-toggle paths in
+/// `LifeClockStore`. Read by `AffinityEngine.computeAffinities(events:)`.
+enum QuestEventKind: String, CaseIterable, Codable, Sendable {
+    /// Engine emitted this slug into today's slate (or as an alternate
+    /// in the plan editor). Logged once per (date, slug) — idempotent.
+    case shown
+    /// User added this slug to today's plan via the editor. Idempotent at
+    /// the SwiftData layer is application-level; the same (date, slug)
+    /// can have one `picked` row.
+    case picked
+    /// User swapped this slug OUT of today's plan via the editor (slug
+    /// A → slug B logs `replaced(A) + picked(B)`). Stronger negative
+    /// signal than passive non-engagement — weighted 1.5× in the EMA.
+    case replaced
+    /// User ticked this slug as completed on Today. Strongest positive
+    /// signal — target = 1.0 in the EMA.
+    case completed
+}
+
+/// End-of-day resolution outcome for `shown` and `picked` rows that
+/// never reached a terminal kind by the day boundary. Filled by
+/// `QuestSelector.resolveEndOfDay(...)` on the next foreground past
+/// midnight. `nil` for terminal-at-emit kinds (`replaced`, `completed`).
+enum QuestResolvedKind: String, CaseIterable, Codable, Sendable {
+    /// Was `shown`, never `picked` by EOD. Mild negative signal in the EMA.
+    case passedOver = "passed_over"
+    /// Was `picked`, never `completed` by EOD. Stronger negative signal.
+    case abandoned
 }
 
 /// Optional structured target for a slug. Activity and sleep slugs typically

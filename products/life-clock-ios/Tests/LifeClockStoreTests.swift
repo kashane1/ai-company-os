@@ -686,4 +686,202 @@ final class LifeClockStoreTests: XCTestCase {
         let secondCount = (try? context.fetch(FetchDescriptor<WeeklyReport>()))?.count ?? 0
         XCTAssertEqual(secondCount, postCount, "subsequent refresh must upsert, not duplicate")
     }
+
+    // MARK: - Phase 3: bootstrapQuestGenres backfill (todo 049 #2)
+
+    func testBootstrapQuestGenresBackfillsLegacyRows() throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+
+        // Insert three legacy Quests with empty genre — the V1.4.0
+        // additive default state for any rows that landed before
+        // the field existed.
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+        let movement = Quest(
+            slug: "movement.steps-target.v1",
+            date: day,
+            title: "Steps",
+            detail: "",
+            category: "movement",
+            target: 7500,
+            rewardEstimateMinutes: 5
+        )
+        let recoveryHydration = Quest(
+            slug: "recovery.hydration-early-night.v1",
+            date: day,
+            title: "Hydrate",
+            detail: "",
+            category: "recovery",
+            target: 1,
+            rewardEstimateMinutes: 1
+        )
+        // Reclassified slug — primary action is the walk, re-homes to activity.
+        let walkAfterDinner = Quest(
+            slug: "nutrition.walk-after-dinner.v1",
+            date: day,
+            title: "Walk after dinner",
+            detail: "",
+            category: "nutrition",
+            target: 1,
+            rewardEstimateMinutes: 5
+        )
+        context.insert(movement)
+        context.insert(recoveryHydration)
+        context.insert(walkAfterDinner)
+        try context.save()
+
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(day)
+        )
+        store.bootstrapQuestGenres()
+
+        let after = try context.fetch(FetchDescriptor<Quest>())
+        let bySlug = Dictionary(uniqueKeysWithValues: after.map { ($0.slug, $0.genre) })
+        XCTAssertEqual(bySlug["movement.steps-target.v1"], "activity")
+        XCTAssertEqual(bySlug["recovery.hydration-early-night.v1"], "sleep",
+            "recovery+hydration re-homes to sleep per the migration mapping")
+        XCTAssertEqual(bySlug["nutrition.walk-after-dinner.v1"], "activity",
+            "walk-after-dinner reclassifies to activity (primary action is the walk)")
+    }
+
+    func testBootstrapQuestGenresIsIdempotent() throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+        let quest = Quest(
+            slug: "movement.steps-target.v1",
+            date: day,
+            title: "Steps",
+            detail: "",
+            category: "movement",
+            target: 7500,
+            rewardEstimateMinutes: 5
+        )
+        context.insert(quest)
+        try context.save()
+
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(day)
+        )
+        store.bootstrapQuestGenres()
+        let firstGenre = try context.fetch(FetchDescriptor<Quest>()).first?.genre
+        XCTAssertEqual(firstGenre, "activity")
+
+        // Second run is a no-op — no fresh writes, value stable.
+        store.bootstrapQuestGenres()
+        let secondGenre = try context.fetch(FetchDescriptor<Quest>()).first?.genre
+        XCTAssertEqual(secondGenre, "activity")
+    }
+
+    func testBootstrapQuestGenresLeavesConsistencyFallbackAtEmpty() throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+        // The consistency fallback is intentionally NOT in the slug→genre
+        // map — it's out-of-pool engine machinery and stays at genre = "".
+        let consistency = Quest(
+            slug: "consistency.open-app-tomorrow.v1",
+            date: day,
+            title: "Open the app tomorrow",
+            detail: "",
+            category: "consistency",
+            target: 1,
+            rewardEstimateMinutes: 0
+        )
+        context.insert(consistency)
+        try context.save()
+
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(day)
+        )
+        store.bootstrapQuestGenres()
+        let after = try XCTUnwrap(try context.fetch(FetchDescriptor<Quest>()).first)
+        XCTAssertEqual(after.genre, "",
+            "Out-of-pool consistency fallback must stay at genre == \"\" — it has no genre by design")
+    }
+
+    // MARK: - Phase 3: upsertQuest empty-genre guard (todo 049 #1)
+
+    func testUpsertQuestPropagatesGenreOnInsert() throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(day)
+        )
+        let incoming = Quest(
+            slug: "activity.fixture-walk-after-meal.v1",
+            date: day,
+            title: "Walk",
+            detail: "",
+            category: "activity",
+            target: 10,
+            rewardEstimateMinutes: 5,
+            genre: "activity"
+        )
+        let stored = store.upsertQuest(incoming)
+        XCTAssertEqual(stored.genre, "activity",
+            "Insert path must propagate genre")
+    }
+
+    func testUpsertQuestWithEmptyGenreDoesNotClobberBackfilledRow() throws {
+        // The dominant clobber risk: an upstream caller (legacy engine
+        // path or the consistency fallback) emits a Quest with the
+        // default genre = "", and upsertQuest's update branch overwrites
+        // a previously-backfilled non-empty genre. The empty-genre
+        // guard prevents this.
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+
+        // Pre-existing row with non-empty genre (post-backfill state).
+        let existing = Quest(
+            slug: "movement.steps-target.v1",
+            date: day,
+            title: "Steps",
+            detail: "",
+            category: "movement",
+            target: 7500,
+            rewardEstimateMinutes: 5,
+            genre: "activity"
+        )
+        context.insert(existing)
+        try context.save()
+
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(day)
+        )
+
+        // Emit a fresh Quest with the SAME slug but genre = "" (the
+        // legacy path's default state). The guard must preserve the
+        // backfilled "activity" value.
+        let incoming = Quest(
+            slug: "movement.steps-target.v1",
+            date: day,
+            title: "Steps target",
+            detail: "Refreshed copy",
+            category: "movement",
+            target: 8000,
+            rewardEstimateMinutes: 5
+            // genre defaults to ""
+        )
+        let stored = store.upsertQuest(incoming)
+        XCTAssertEqual(stored.genre, "activity",
+            "Empty incoming genre must NOT clobber a previously-backfilled non-empty value")
+        // Other mutable fields ARE refreshed (this proves the update
+        // branch ran and the genre guard is the only thing protecting
+        // genre, not a no-op):
+        XCTAssertEqual(stored.title, "Steps target")
+        XCTAssertEqual(stored.target, 8000)
+    }
 }

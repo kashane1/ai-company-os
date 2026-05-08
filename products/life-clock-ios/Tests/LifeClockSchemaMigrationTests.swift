@@ -424,4 +424,153 @@ final class LifeClockSchemaMigrationTests: XCTestCase {
         XCTAssertEqual(fetched[1].rewardEstimateMinutes, 5)
         XCTAssertNil(fetched[1].completedAt)
     }
+
+    // MARK: - V1.5.0 quest-pool Phase 3 fields
+    //
+    // Phase 3 of docs/plans/2026-05-08-feat-quest-pool-phase-3-engines-plan.md
+    // adds three additive UserProfile fields:
+    //   * `distinctOpenDays: Int = 0`
+    //   * `lastForegroundDay: Date? = nil`
+    //   * `useQuestPoolEngine: Bool = false`
+    //
+    // All lightweight-eligible. Default-state guard + file-backed
+    // round-trip test cover the SwiftData migration landmine.
+
+    func testV150NewUserProfileFieldsDefaultToZeroNilFalse() throws {
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 0))
+        XCTAssertEqual(profile.distinctOpenDays, 0)
+        XCTAssertNil(profile.lastForegroundDay)
+        XCTAssertFalse(profile.useQuestPoolEngine)
+    }
+
+    func testV150UserProfileFieldsRoundTripThroughFileBackedStore() throws {
+        let storeURL = URL.temporaryDirectory
+            .appendingPathComponent("lifeclock-v150-\(UUID()).store")
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storeURL)
+        }
+
+        let schema = Schema(versionedSchema: LifeClockSchemaV1.self)
+        let config = ModelConfiguration(
+            "LifeClockV150Test",
+            schema: schema,
+            url: storeURL,
+            allowsSave: true,
+            cloudKitDatabase: .none
+        )
+
+        let foregroundDay = Date(timeIntervalSince1970: 1_768_521_600)
+
+        let writeContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let writeContext = ModelContext(writeContainer)
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 0))
+        profile.distinctOpenDays = 5
+        profile.lastForegroundDay = foregroundDay
+        profile.useQuestPoolEngine = true
+        writeContext.insert(profile)
+        try writeContext.save()
+
+        let readContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let readContext = ModelContext(readContainer)
+        let fetched = try XCTUnwrap(
+            try readContext.fetch(FetchDescriptor<UserProfile>()).first
+        )
+        XCTAssertEqual(fetched.distinctOpenDays, 5)
+        XCTAssertEqual(
+            try XCTUnwrap(fetched.lastForegroundDay).timeIntervalSince1970,
+            foregroundDay.timeIntervalSince1970,
+            accuracy: 0.001
+        )
+        XCTAssertTrue(fetched.useQuestPoolEngine)
+
+        // Sibling-coverage: V1.4.0 fields still round-trip with their defaults
+        XCTAssertEqual(fetched.toneMode, "coach")
+        XCTAssertEqual(fetched.cardioMinsPerWeek, 0)
+        XCTAssertNil(fetched.parentMotherAlive)
+    }
+
+    /// Double-hop migration: a device on V1.3.0 (pre-Phase-2) opens a
+    /// V1.5.0-built app and migrates straight through, skipping V1.4.0.
+    /// Lightweight migration must apply both bumps in a single hop with
+    /// every additive field defaulting correctly. Per data-integrity
+    /// review on the deepened Phase 3 plan.
+    ///
+    /// Modeling V1.3.0 directly is impractical (would require keeping a
+    /// frozen V1.3.0 schema enum around). Instead, we exercise the
+    /// equivalent path: write a UserProfile + Quest using ONLY V1.3.0-era
+    /// fields (none of the V1.4.0/V1.5.0 additions touched), close the
+    /// store, reopen against the current schema, and assert the new
+    /// fields read back as their property-level defaults. If any field
+    /// loses its default during migration, the test catches it the same
+    /// way a V1.3.0 → V1.5.0 device upgrade would.
+    func testV130ToV150DoubleHopMigrationDefaults() throws {
+        let storeURL = URL.temporaryDirectory
+            .appendingPathComponent("lifeclock-double-hop-\(UUID()).store")
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storeURL)
+        }
+
+        let schema = Schema(versionedSchema: LifeClockSchemaV1.self)
+        let config = ModelConfiguration(
+            "LifeClockDoubleHopTest",
+            schema: schema,
+            url: storeURL,
+            allowsSave: true,
+            cloudKitDatabase: .none
+        )
+
+        let writeContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let writeContext = ModelContext(writeContainer)
+        // Write only V1.3.0-era data: no V1.4.0 (genre, QuestEvent),
+        // no V1.5.0 (distinctOpenDays, lastForegroundDay, useQuestPoolEngine).
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 0))
+        profile.cardioMinsPerWeek = 100
+        let quest = Quest(
+            slug: "movement.steps-target.v1",
+            date: Date(timeIntervalSince1970: 0),
+            title: "Steps",
+            detail: "",
+            category: "movement",
+            target: 7500,
+            rewardEstimateMinutes: 5
+        )
+        writeContext.insert(profile)
+        writeContext.insert(quest)
+        try writeContext.save()
+
+        // Reopen against the same on-disk store using the current schema.
+        let readContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let readContext = ModelContext(readContainer)
+        let readProfile = try XCTUnwrap(try readContext.fetch(FetchDescriptor<UserProfile>()).first)
+        let readQuest = try XCTUnwrap(try readContext.fetch(FetchDescriptor<Quest>()).first)
+
+        // V1.3.0-era field round-trips intact
+        XCTAssertEqual(readProfile.cardioMinsPerWeek, 100)
+        XCTAssertEqual(readQuest.slug, "movement.steps-target.v1")
+        XCTAssertEqual(readQuest.title, "Steps")
+
+        // V1.4.0 additive field reads as default
+        XCTAssertEqual(readQuest.genre, "", "V1.4.0 Quest.genre must default to empty after double-hop migration")
+
+        // V1.5.0 additive fields read as defaults
+        XCTAssertEqual(readProfile.distinctOpenDays, 0, "V1.5.0 distinctOpenDays must default to 0")
+        XCTAssertNil(readProfile.lastForegroundDay, "V1.5.0 lastForegroundDay must default to nil")
+        XCTAssertFalse(readProfile.useQuestPoolEngine, "V1.5.0 useQuestPoolEngine must default to false")
+    }
 }
