@@ -72,6 +72,11 @@ struct WrapUpSheet: View {
             .accessibilityIdentifier("wrapup.dismissCTA")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // `.contain` keeps child identifiers (heading, dismissCTA) addressable
+        // while still exposing the kind identifier on the container element.
+        // Without this, the kind id propagates down and overwrites
+        // wrapup.dismissCTA on the inner Button.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(wrapUpKindIdentifier)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
