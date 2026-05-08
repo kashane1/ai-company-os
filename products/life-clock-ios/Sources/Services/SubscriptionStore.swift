@@ -109,7 +109,15 @@ final class SubscriptionStore: EntitlementProviding {
         // simulator runs we still fall through to the real StoreKit path
         // so a manual purchase exercises the production code.
         if env["LIFECLOCK_UI_TEST"] == "1" {
-            entitledProductIDs = []
+            // `LIFECLOCK_FORCE_PRO=1` lets a recon driver capture Pro-gated
+            // surfaces (e.g. `PlanEditorSheet`) under XCUITest without
+            // wiring a real StoreKit purchase. Bypasses the empty-state
+            // shortcut above; everything else stays deterministic.
+            if env["LIFECLOCK_FORCE_PRO"] == "1" {
+                entitledProductIDs = [PaywallProductID.lifetime.rawValue]
+            } else {
+                entitledProductIDs = []
+            }
             return
         }
         #endif

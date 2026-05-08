@@ -45,16 +45,24 @@ enum ReflectionPrompts {
         "What's one win from today, however small?",
     ]
 
+    // 2026-05-07 vision-bad-day-three-tones audit (V1) softened the three
+    // most accusatory prompts that stacked on top of "Today's reckoning /
+    // Owed today / -1h 37m" on a clearly-negative day. Register stays
+    // pointed; accusation goes. Held three slots: "lie you told yourself"
+    // → "story you told yourself"; "smallest hard thing you ducked" →
+    // "smallest hard thing you'll face tonight"; "excuse you're tired of
+    // hearing yourself make" → "move you keep stalling on". The remaining
+    // nine prompts are unchanged — firmDirect still keeps score.
     static let firmDirectPool: [String] = [
         "What did you do today that bought time on the clock?",
         "What did you do today that cost you?",
-        "What's the lie you told yourself today?",
-        "What's the smallest hard thing you ducked today?",
+        "What's the story you told yourself today?",
+        "What's the smallest hard thing you'll face tonight?",
         "What would you change if today were on the record?",
         "What did the clock just say about your choices?",
         "What's the next move — and are you actually going to make it?",
         "Where did you settle today?",
-        "What's the excuse you're tired of hearing yourself make?",
+        "What's the move you keep stalling on?",
         "What did you put off that you keep putting off?",
         "Who do you want to be tomorrow — and what does that cost tonight?",
         "What's the one decision today you'd want back?",
