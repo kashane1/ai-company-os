@@ -21,10 +21,6 @@ import Foundation
 struct QuestPool: Sendable {
 let quests: [String: PoolQuest]
 
-init(quests: [String: PoolQuest]) {
-        self.quests = quests
-    }
-
 init(quests: [PoolQuest]) {
         var dict: [String: PoolQuest] = [:]
         for quest in quests {
@@ -99,9 +95,16 @@ extension QuestPool {
         let decoder = JSONDecoder()
 
         for name in basenames {
-            guard let url = bundle.url(forResource: name, withExtension: "json", subdirectory: "QuestPool")
-                ?? bundle.url(forResource: name, withExtension: "json")
-            else {
+            // The QuestPool/ subdirectory is preserved in the .app bundle via
+            // project.yml's folder-reference (`type: folder`). If a future
+            // refactor flattens the resources, this lookup fails loudly at
+            // load time — which is correct: the build is the wrong shape.
+            // No silent flat-bundle fallback.
+            guard let url = bundle.url(
+                forResource: name,
+                withExtension: "json",
+                subdirectory: "QuestPool"
+            ) else {
                 throw LoadError.missingResource(name)
             }
             let data: Data

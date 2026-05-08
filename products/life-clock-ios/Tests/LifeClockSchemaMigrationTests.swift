@@ -398,11 +398,18 @@ final class LifeClockSchemaMigrationTests: XCTestCase {
             .sorted { $0.slug < $1.slug }
         XCTAssertEqual(fetched.count, 2)
 
+        // Mirror the HabitLog sibling-field pattern at line 197 — every Quest
+        // column must round-trip so a future refactor that silently drops a
+        // property-level default surfaces here, not on user devices.
         XCTAssertEqual(fetched[0].slug, "activity.fixture-walk-after-meal.v1")
         XCTAssertEqual(fetched[0].genre, "activity")
-        // Sibling fields must round-trip with their original defaults
         XCTAssertEqual(fetched[0].category, "movement")
         XCTAssertEqual(fetched[0].title, "Walk after meal")
+        XCTAssertEqual(fetched[0].detail, "")
+        XCTAssertEqual(fetched[0].target, 10)
+        XCTAssertEqual(fetched[0].progress, 0)
+        XCTAssertEqual(fetched[0].rewardEstimateMinutes, 5)
+        XCTAssertNil(fetched[0].completedAt)
 
         XCTAssertEqual(fetched[1].slug, "movement.steps-target.v1")
         XCTAssertEqual(
@@ -410,5 +417,11 @@ final class LifeClockSchemaMigrationTests: XCTestCase {
             "Legacy Quest without explicit genre must read back as empty string — engine treats empty as 'needs backfill'"
         )
         XCTAssertEqual(fetched[1].category, "movement")
+        XCTAssertEqual(fetched[1].title, "Steps target")
+        XCTAssertEqual(fetched[1].detail, "")
+        XCTAssertEqual(fetched[1].target, 7500)
+        XCTAssertEqual(fetched[1].progress, 0)
+        XCTAssertEqual(fetched[1].rewardEstimateMinutes, 5)
+        XCTAssertNil(fetched[1].completedAt)
     }
 }

@@ -139,6 +139,24 @@ final class QuestPoolTests: XCTestCase {
         XCTAssertThrowsError(try JSONDecoder().decode([PoolQuest].self, from: json))
     }
 
+    func testDecodeFailsOnEmptyIntent() throws {
+        let json = """
+        [{
+            "slug": "activity.something.v1",
+            "genre": "activity",
+            "intent": "",
+            "exclusionGroups": [],
+            "copy": {
+                "gentle":      { "title": "g", "detail": "g" },
+                "coach":       { "title": "c", "detail": "c" },
+                "firm_direct": { "title": "f", "detail": "f" }
+            }
+        }]
+        """.data(using: .utf8)!
+        XCTAssertThrowsError(try JSONDecoder().decode([PoolQuest].self, from: json))
+    }
+
+
     // MARK: - Duplicate-slug detection across files
 
     func testDuplicateSlugAcrossFilesThrows() throws {

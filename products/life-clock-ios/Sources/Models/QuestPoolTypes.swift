@@ -106,6 +106,21 @@ init(from decoder: Decoder) throws {
             )
         }
 
+        // Intent is the parity anchor for slugs without a numeric target —
+        // an empty value collapses every targetless slug onto the same
+        // bucket and skews affinity in Phase 3. Require non-empty.
+        // (A stricter "slug embeds intent" check was considered but
+        // rejected: fixture slugs use a `fixture-` prefix in the intent
+        // token to namespace from production, and production authoring
+        // tooling will catch genuine slug↔intent typos.)
+        guard !intent.isEmpty else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .intent,
+                in: c,
+                debugDescription: "PoolQuest \(slug) has empty intent"
+            )
+        }
+
         // Tone parity at decode: every slug must have all three tone variants.
         // Surfaces missing-tone bugs as a load-time failure, not a nil at
         // render time. JSON keys are strings; the in-memory dict is typed.
