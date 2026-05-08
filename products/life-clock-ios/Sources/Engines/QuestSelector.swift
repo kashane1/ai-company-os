@@ -74,11 +74,19 @@ enum QuestSelector {
         let damp = discoveryDamp(distinctOpenDays: profile.distinctOpenDays)
         let calendar = Calendar.current
 
-        // 2. Score every slug per-genre, pick top-1.
+        // 2. Hard-filter ineligible slugs BEFORE scoring (Phase 4a).
+        //    `isEligible` short-circuits when the slug carries no filter,
+        //    so the fixture pool (no eligibility fields) passes through
+        //    unchanged.
+        let eligibleByGenre: [Genre: [PoolQuest]] = pool.byGenre.mapValues { genreQuests in
+            genreQuests.filter { Self.isEligible($0, profile: profile) }
+        }
+
+        // 3. Score every eligible slug per-genre, pick top-1.
         var picks: [Genre: PoolQuest] = [:]
         var scores: [String: Double] = [:]
         for genre in Genre.allCases {
-            let candidates = pool.quests(in: genre)
+            let candidates = eligibleByGenre[genre] ?? []
             guard !candidates.isEmpty else { continue }
             for quest in candidates {
                 let score = score(
@@ -104,9 +112,10 @@ enum QuestSelector {
             picks[genre] = ranked.first
         }
 
-        // 3. Conflict pass: drop lower-scored picks that share an
+        // 4. Conflict pass: drop lower-scored picks that share an
         //    exclusionGroup with a higher-scored pick. Replace with
-        //    the next-best non-conflicting slug in its genre.
+        //    the next-best non-conflicting slug in its genre. Only
+        //    eligible slugs are considered for replacement.
         for _ in 0..<maxConflictIterations {
             guard let conflict = firstExclusionConflict(in: picks, scores: scores) else {
                 break
@@ -118,7 +127,7 @@ enum QuestSelector {
             let droppedSlug = picks[droppedGenre]?.slug
             let surviving = picks.filter { $0.key != droppedGenre }
             let usedGroups = Set(surviving.values.flatMap(\.exclusionGroups))
-            let candidates = pool.quests(in: droppedGenre)
+            let candidates = (eligibleByGenre[droppedGenre] ?? [])
                 .filter { $0.slug != droppedSlug && !sharesGroup($0, with: usedGroups) }
                 .sorted {
                     let a = scores[$0.slug] ?? 0
@@ -136,6 +145,47 @@ enum QuestSelector {
         }
 
         return Genre.allCases.compactMap { picks[$0] }
+    }
+
+    // MARK: - Eligibility filter (Phase 4a)
+
+    /// Phase 4a hard-filter, applied BEFORE scoring. A slug with no
+    /// `eligibility` field is always eligible — preserves the fixture
+    /// pool's "anyone, anytime" shape and lets authors omit the field
+    /// when there's no contraindication to record.
+    ///
+    /// Field semantics match the doc-comment on `EligibilityFilter`. The
+    /// 7-day cold-start threshold matches `discoveryDamp`'s saturation
+    /// point (Phase 3 plan G16): a user clears discovery damp at the same
+    /// moment they unlock cold-start-only slugs.
+    static func isEligible(_ quest: PoolQuest, profile: UserProfile) -> Bool {
+        guard let filter = quest.eligibility else { return true }
+
+        if let needsSmoker = filter.requiresSmoker {
+            let isSmoker = profile.smokingStatus != "none"
+            if needsSmoker != isSmoker { return false }
+        }
+
+        if let needsDrinker = filter.requiresDrinker {
+            let lightDrinker = profile.alcoholFrequency == "none"
+                || profile.alcoholFrequency == "rare"
+            let isDrinker = !lightDrinker
+            if needsDrinker != isDrinker { return false }
+        }
+
+        if let needsRoutine = filter.requiresStrengthRoutine {
+            let hasRoutine = profile.strengthFrequencyPerWeek > 0
+            if needsRoutine != hasRoutine { return false }
+        }
+
+        if !filter.coldStartReachable && profile.distinctOpenDays < 7 {
+            return false
+        }
+
+        // `timeOfDay` is recorded but non-load-bearing in Phase 4a. Phase
+        // 4b/c may begin to gate on it once a time-of-day refresh hook
+        // exists.
+        return true
     }
 
     // MARK: - End-of-day resolution

@@ -90,6 +90,58 @@ init(title: String, detail: String) {
     }
 }
 
+/// Optional time-of-day window. `anytime` and a nil filter behave the same;
+/// the explicit value lets authors document intent without wiring routing.
+/// Phase 4a records the field; Phase 4b/c may begin to gate on it.
+enum TimeOfDayWindow: String, Codable, Sendable {
+    case morning, midday, evening, anytime
+}
+
+/// Hard-filter that runs BEFORE scoring in `QuestSelector.select(...)`.
+/// Restored in Phase 4a (cut from Phase 2 per simplicity-reviewer when the
+/// fixture pool had no contraindicated slugs and production pool was empty).
+/// Now load-bearing because authored slugs reference contraindications.
+///
+/// Field semantics:
+///   * `requiresSmoker`: nil = any; true = `smokingStatus != "none"`;
+///     false = `smokingStatus == "none"`.
+///   * `requiresDrinker`: nil = any; true = `alcoholFrequency` ∉
+///     `{"none","rare"}`; false = `alcoholFrequency` ∈ `{"none","rare"}`.
+///   * `requiresStrengthRoutine`: nil = any; true =
+///     `strengthFrequencyPerWeek > 0`; false = `strengthFrequencyPerWeek == 0`.
+///   * `coldStartReachable`: when false, the slug is excluded for users
+///     with `distinctOpenDays < 7`. Use for slugs that need familiarity to
+///     be useful (e.g. zone-2 framing assumes the user has engaged with
+///     activity tracking).
+///   * `timeOfDay`: nil or `anytime` = no gating. `morning`/`midday`/`evening`
+///     are recorded as authoring intent; routing is non-load-bearing in
+///     Phase 4a (no time-of-day refresh trigger yet).
+struct EligibilityFilter: Codable, Equatable, Hashable, Sendable {
+    let requiresSmoker: Bool?
+    let requiresDrinker: Bool?
+    let requiresStrengthRoutine: Bool?
+    let coldStartReachable: Bool
+    let timeOfDay: TimeOfDayWindow?
+
+    init(
+        requiresSmoker: Bool? = nil,
+        requiresDrinker: Bool? = nil,
+        requiresStrengthRoutine: Bool? = nil,
+        coldStartReachable: Bool = true,
+        timeOfDay: TimeOfDayWindow? = nil
+    ) {
+        self.requiresSmoker = requiresSmoker
+        self.requiresDrinker = requiresDrinker
+        self.requiresStrengthRoutine = requiresStrengthRoutine
+        self.coldStartReachable = coldStartReachable
+        self.timeOfDay = timeOfDay
+    }
+
+    /// The "anyone, anytime" filter. Equivalent to `nil` at the call site;
+    /// useful when an author wants to record the field explicitly.
+    static let unrestricted = EligibilityFilter()
+}
+
 /// One pre-authored quest. Loaded from JSON; immutable in memory.
 ///
 /// Tone parity (D3): for a given `slug`, all three tone variants reference
@@ -104,6 +156,7 @@ let intent: String                // parity anchor
 let target: QuestTarget?          // parity anchor when present
 let copy: [ToneMode: ToneCopy]    // type-safe; all three tones required
 let exclusionGroups: [String]     // for daily-set conflict avoidance
+let eligibility: EligibilityFilter?  // nil = unrestricted (Phase 4a)
 
 init(
         slug: String,
@@ -111,7 +164,8 @@ init(
         intent: String,
         target: QuestTarget?,
         copy: [ToneMode: ToneCopy],
-        exclusionGroups: [String]
+        exclusionGroups: [String],
+        eligibility: EligibilityFilter? = nil
     ) {
         self.slug = slug
         self.genre = genre
@@ -119,12 +173,13 @@ init(
         self.target = target
         self.copy = copy
         self.exclusionGroups = exclusionGroups
+        self.eligibility = eligibility
     }
 }
 
 extension PoolQuest: Codable {
     private enum CodingKeys: String, CodingKey {
-        case slug, genre, intent, target, copy, exclusionGroups
+        case slug, genre, intent, target, copy, exclusionGroups, eligibility
     }
 
 init(from decoder: Decoder) throws {
@@ -135,6 +190,7 @@ init(from decoder: Decoder) throws {
         let target = try c.decodeIfPresent(QuestTarget.self, forKey: .target)
         let raw = try c.decode([String: ToneCopy].self, forKey: .copy)
         let exclusionGroups = try c.decodeIfPresent([String].self, forKey: .exclusionGroups) ?? []
+        let eligibility = try c.decodeIfPresent(EligibilityFilter.self, forKey: .eligibility)
 
         // Slug format: <genre>.<intent-shortname>.v<digits>
         // Validated at decode so authoring mistakes surface at load time.
@@ -183,7 +239,8 @@ init(from decoder: Decoder) throws {
             intent: intent,
             target: target,
             copy: typed,
-            exclusionGroups: exclusionGroups
+            exclusionGroups: exclusionGroups,
+            eligibility: eligibility
         )
     }
 
@@ -197,5 +254,6 @@ func encode(to encoder: Encoder) throws {
         for (tone, value) in copy { raw[tone.rawValue] = value }
         try c.encode(raw, forKey: .copy)
         try c.encode(exclusionGroups, forKey: .exclusionGroups)
+        try c.encodeIfPresent(eligibility, forKey: .eligibility)
     }
 }
