@@ -236,6 +236,9 @@ final class LifeClockStore {
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
         let weekHabits = fetchHabitsBack(7)
         weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: weekHabits, profile: profile)
+        if let weekly {
+            persistWeeklyReport(weekly)
+        }
 
         // 60 days back covers any current month plus the prior one's tail
         // for safe boundary handling near month-rollover.
@@ -487,6 +490,12 @@ final class LifeClockStore {
         profile.lastShownWeeklyWrapUpWeek = advanced.lastShownWeeklyWrapUpWeek
         try? modelContext.save()
         pendingWrapUp = nil
+        // Recompute so a queued sibling (e.g. weekly wrap-up after the user
+        // dismissed yesterday on a Monday return) sequences in within the
+        // same launch instead of waiting for the next foreground transition.
+        // Coordinator's monotonic guards prevent re-presenting what we just
+        // marked shown.
+        recomputePendingWrapUp(profile: profile, now: now)
     }
 
     private func daySnapshot(from snapshot: DailyHealthSnapshot) -> WrapUpCoordinator.DaySnapshot {
@@ -954,6 +963,30 @@ final class LifeClockStore {
             sortBy: [SortDescriptor(\.weekStart, order: .reverse)]
         )
         return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    /// Upsert the freshly-computed weekly report keyed on `weekStart`.
+    /// `calculateWeeklyTrend` returns a transient `WeeklyReport` value; if a
+    /// row already exists for that week, copy fields onto it (avoids
+    /// `@Attribute(.unique)` violation), else insert. Pending weekly
+    /// wrap-up presentation reads through `fetchRecentWeeklyReports`, so
+    /// without this the weekly wrap-up is unreachable in production.
+    private func persistWeeklyReport(_ report: WeeklyReport) {
+        let weekStart = clock.calendar.startOfDay(for: report.weekStart)
+        let descriptor = FetchDescriptor<WeeklyReport>(
+            predicate: #Predicate { $0.weekStart == weekStart }
+        )
+        if let existing = (try? modelContext.fetch(descriptor))?.first {
+            existing.weekEnd = report.weekEnd
+            existing.netTimeDeltaMinutes = report.netTimeDeltaMinutes
+            existing.topPositiveDriver = report.topPositiveDriver
+            existing.topNegativeDriver = report.topNegativeDriver
+            existing.nextBestLever = report.nextBestLever
+            existing.confidenceRaw = report.confidenceRaw
+        } else {
+            modelContext.insert(report)
+        }
+        try? modelContext.save()
     }
 
     /// Upsert today's snapshot. The HK service returns a transient

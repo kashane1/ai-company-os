@@ -43,6 +43,7 @@ struct WrapUpSheet: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
                 .padding(.top, DesignTokens.Spacing.lg)
+                .accessibilityIdentifier("wrapup.heading")
 
             ClockHandView(signedMinutes: signedMinutes, duration: animationDuration)
 
@@ -68,11 +69,27 @@ struct WrapUpSheet: View {
             .buttonStyle(.borderedProminent)
             .padding(.horizontal, DesignTokens.Spacing.lg)
             .padding(.bottom, DesignTokens.Spacing.lg)
+            .accessibilityIdentifier("wrapup.dismissCTA")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // `.contain` keeps child identifiers (heading, dismissCTA) addressable
+        // while still exposing the kind identifier on the container element.
+        // Without this, the kind id propagates down and overwrites
+        // wrapup.dismissCTA on the inner Button.
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(wrapUpKindIdentifier)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(false)
+    }
+
+    /// Stable id distinguishing yesterday vs weekly so XCUITest can wait on
+    /// the right sheet during sequencing checks.
+    private var wrapUpKindIdentifier: String {
+        switch wrapUp {
+        case .yesterday: return "wrapup.sheet.yesterday"
+        case .weekly: return "wrapup.sheet.weekly"
+        }
     }
 
     private var deltaColor: Color {
