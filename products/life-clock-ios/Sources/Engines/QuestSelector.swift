@@ -213,20 +213,29 @@ enum QuestSelector {
             }
         }
 
-        // Bulk pass for rows older than the cap that may exist (e.g.,
-        // user offline 60+ days). Cheap fetch + assignment loop.
-        if let veryOldCutoff = calendar.date(byAdding: .day, value: -eodWalkCapDays, to: todayStart) {
-            let oldDescriptor = FetchDescriptor<QuestEvent>(
-                predicate: #Predicate<QuestEvent> { event in
-                    event.date < veryOldCutoff && event.resolvedKind == nil
-                        && (event.kind == "shown" || event.kind == "picked")
-                }
-            )
-            let veryOld = try context.fetch(oldDescriptor)
-            for event in veryOld {
-                event.resolvedKind = QuestResolvedKind.passedOver.rawValue
-                event.resolvedAt = today
+        // Bulk pass for rows older than the 30-day cap (user offline
+        // 60+ days). Reuses the same `cutoff` boundary as the windowed
+        // pass — together they partition the unresolved space:
+        //   - In-window  (cutoff ≤ date < todayStart): co-occurrence
+        //                check above prevents over-counting picked
+        //                rows that completed, or shown rows that
+        //                replaced/picked.
+        //   - Out-of-window (date < cutoff): bulk-resolve to
+        //                passed_over without correlation, intentionally.
+        //                These rows are >30 days old; the cost of
+        //                marking a once-completed picked row as
+        //                passed_over here is bounded — affinity has
+        //                already converged on >30-day-old signals.
+        let oldDescriptor = FetchDescriptor<QuestEvent>(
+            predicate: #Predicate<QuestEvent> { event in
+                event.date < cutoff && event.resolvedKind == nil
+                    && (event.kind == "shown" || event.kind == "picked")
             }
+        )
+        let veryOld = try context.fetch(oldDescriptor)
+        for event in veryOld {
+            event.resolvedKind = QuestResolvedKind.passedOver.rawValue
+            event.resolvedAt = today
         }
 
         try context.save()

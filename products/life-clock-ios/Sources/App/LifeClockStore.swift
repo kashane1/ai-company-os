@@ -1181,6 +1181,18 @@ final class LifeClockStore {
     /// completedAt is left to the caller.
     @discardableResult
     func upsertQuest(_ quest: Quest) -> Quest {
+        // Resolve the incoming genre at the boundary so the same value
+        // is applied symmetrically on both insert and update. If the
+        // caller passed an empty default (legacy engine path or the
+        // consistency fallback), look up a known genre by slug; only
+        // use the fallback "" if the slug isn't in the map either.
+        // This eliminates the insert/update-branch asymmetry flagged
+        // by the data-integrity review on PR #31.
+        let resolvedGenre: String = {
+            if !quest.genre.isEmpty { return quest.genre }
+            return Self.slugGenreMap[quest.slug] ?? ""
+        }()
+
         let stored = fetchStoredQuest(slug: quest.slug, on: quest.date) ?? {
             let new = Quest(
                 id: quest.id,
@@ -1191,7 +1203,7 @@ final class LifeClockStore {
                 category: quest.category,
                 target: quest.target,
                 rewardEstimateMinutes: quest.rewardEstimateMinutes,
-                genre: quest.genre
+                genre: resolvedGenre
             )
             new.progress = quest.progress
             modelContext.insert(new)
@@ -1204,13 +1216,10 @@ final class LifeClockStore {
         stored.rewardEstimateMinutes = quest.rewardEstimateMinutes
         // Phase 3 V1.5.0: propagate `genre` on update (todo 049 #1).
         // GUARDED against the empty-default sentinel — otherwise the
-        // legacy QuestEngine emit path (which constructs Quests without
-        // setting genre) and the consistency-fallback path (which
-        // carries genre = "" by design, plan G16) would clobber a
-        // previously-backfilled non-empty genre. Per data-integrity
-        // review on the deepened Phase 3 plan.
-        if !quest.genre.isEmpty {
-            stored.genre = quest.genre
+        // legacy QuestEngine emit path and the consistency-fallback
+        // path would clobber a previously-backfilled non-empty genre.
+        if !resolvedGenre.isEmpty {
+            stored.genre = resolvedGenre
         }
         return stored
     }

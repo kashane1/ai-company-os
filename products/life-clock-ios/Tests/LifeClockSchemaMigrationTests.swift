@@ -497,21 +497,30 @@ final class LifeClockSchemaMigrationTests: XCTestCase {
         XCTAssertNil(fetched.parentMotherAlive)
     }
 
-    /// Double-hop migration: a device on V1.3.0 (pre-Phase-2) opens a
-    /// V1.5.0-built app and migrates straight through, skipping V1.4.0.
-    /// Lightweight migration must apply both bumps in a single hop with
-    /// every additive field defaulting correctly. Per data-integrity
-    /// review on the deepened Phase 3 plan.
+    /// Honest scope (per code-review feedback on PR #31): this test
+    /// does NOT exercise SwiftData's cross-version migration code
+    /// path. Both writes and reads use the same `LifeClockSchemaV1`
+    /// enum at version 1.5.0, so the runtime sees no version delta
+    /// and never invokes lightweight migration. What this test
+    /// actually proves: when a UserProfile and a Quest are written
+    /// with the V1.5.0 init signatures (which omit the new fields),
+    /// the property-level defaults take effect and round-trip
+    /// correctly through a real on-disk store.
     ///
-    /// Modeling V1.3.0 directly is impractical (would require keeping a
-    /// frozen V1.3.0 schema enum around). Instead, we exercise the
-    /// equivalent path: write a UserProfile + Quest using ONLY V1.3.0-era
-    /// fields (none of the V1.4.0/V1.5.0 additions touched), close the
-    /// store, reopen against the current schema, and assert the new
-    /// fields read back as their property-level defaults. If any field
-    /// loses its default during migration, the test catches it the same
-    /// way a V1.3.0 → V1.5.0 device upgrade would.
-    func testV130ToV150DoubleHopMigrationDefaults() throws {
+    /// True cross-version coverage (V1.3.0 → V1.5.0) requires either
+    /// (a) keeping a frozen `LifeClockSchemaV1_3` enum in test
+    /// sources, or (b) hand-rolling a SQLite store with the V1.3.0
+    /// column list. Both are deferred — see todo 050.
+    ///
+    /// Useful complement to the existing
+    /// `testNewFieldsRoundTripThroughFileBackedStore` and
+    /// `testV150UserProfileFieldsRoundTripThroughFileBackedStore`.
+    /// Together they catch property-level-default regressions at the
+    /// SAME-version round-trip layer; cross-version migration
+    /// failures of the kind documented in
+    /// `swiftdata-mandatory-attribute-migration-landmine.md` would
+    /// surface only on real-device build verification.
+    func testV150FieldsDefaultCorrectlyOnFileBackedRoundTripWithLegacyShapedWrites() throws {
         let storeURL = URL.temporaryDirectory
             .appendingPathComponent("lifeclock-double-hop-\(UUID()).store")
         addTeardownBlock {

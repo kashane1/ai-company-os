@@ -832,6 +832,65 @@ final class LifeClockStoreTests: XCTestCase {
             "Insert path must propagate genre")
     }
 
+    /// Code-review feedback on PR #31 (data-integrity #5): the insert
+    /// branch was previously asymmetric with the update branch's
+    /// empty-genre guard. A legacy caller passing `genre = ""` on
+    /// insert wrote a fresh row with empty genre, relying on the
+    /// next-launch `bootstrapQuestGenres` to backfill. The fix
+    /// resolves genre at the boundary via `slugGenreMap` lookup, so
+    /// the insert path lands the right value immediately when the
+    /// slug is known.
+    func testUpsertQuestResolvesGenreFromSlugMapOnInsertWhenIncomingIsEmpty() throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(day)
+        )
+        // Slug IS in the map but caller passes empty genre (legacy path).
+        let legacy = Quest(
+            slug: "movement.steps-target.v1",
+            date: day,
+            title: "Steps target",
+            detail: "",
+            category: "movement",
+            target: 7500,
+            rewardEstimateMinutes: 5
+            // genre defaults to ""
+        )
+        let stored = store.upsertQuest(legacy)
+        XCTAssertEqual(stored.genre, "activity",
+            "Insert path must resolve genre from slug→genre map when caller passes empty default")
+    }
+
+    func testUpsertQuestInsertGracefullyHandlesUnmappedSlug() throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 7),
+            modelContext: context,
+            engineClock: .fixed(day)
+        )
+        // The consistency fallback isn't in the map (intentional —
+        // out-of-pool engine machinery). Insert path falls through to
+        // empty genre.
+        let consistency = Quest(
+            slug: "consistency.open-app-tomorrow.v1",
+            date: day,
+            title: "Open the app tomorrow",
+            detail: "",
+            category: "consistency",
+            target: 1,
+            rewardEstimateMinutes: 0
+        )
+        let stored = store.upsertQuest(consistency)
+        XCTAssertEqual(stored.genre, "",
+            "Out-of-pool slug must remain at genre = \"\" — affinity engine ignores it")
+    }
+
     func testUpsertQuestWithEmptyGenreDoesNotClobberBackfilledRow() throws {
         // The dominant clobber risk: an upstream caller (legacy engine
         // path or the consistency fallback) emits a Quest with the
