@@ -24,8 +24,8 @@ final class QuestPoolTests: XCTestCase {
 
     /// Current Phase 4 sub-phase shape. Updates on each landing; pinned
     /// here so unintentional content drift is a test failure.
-    /// Phase 4b state: activity + diet authored (30 each), sleep empty.
-    func testProductionPoolPhase4bShape() throws {
+    /// Phase 4c state: all three genres authored (30 each = 90 slugs).
+    func testProductionPoolPhase4cShape() throws {
         let pool = try QuestPool.loadFromBundle(hostBundle)
         XCTAssertEqual(
             pool.quests(in: .activity).count,
@@ -39,8 +39,13 @@ final class QuestPoolTests: XCTestCase {
         )
         XCTAssertEqual(
             pool.quests(in: .sleep).count,
-            0,
-            "Phase 4b leaves sleep empty (Phase 4c authors it)"
+            30,
+            "Phase 4c expects 30 authored sleep slugs"
+        )
+        XCTAssertEqual(
+            pool.quests.count,
+            90,
+            "Production pool should hold exactly 90 authored slugs after Phase 4c"
         )
     }
 
@@ -104,6 +109,16 @@ final class QuestPoolTests: XCTestCase {
             pool.quests(in: .diet),
             expected: Self.dietIntents,
             genre: "Diet"
+        )
+    }
+
+    func testProductionSleepIntentGridIsFullyCovered() throws {
+        // Phase 4c §4.1 intent grid.
+        let pool = try QuestPool.loadFromBundle(hostBundle)
+        assertIntentGridFullyCovered(
+            pool.quests(in: .sleep),
+            expected: Self.sleepIntents,
+            genre: "Sleep"
         )
     }
 
@@ -268,6 +283,10 @@ final class QuestPoolTests: XCTestCase {
 
     func testDietIsReachableForDefaultColdStartProfile() throws {
         try assertGenreReachableForColdStart(.diet)
+    }
+
+    func testSleepIsReachableForDefaultColdStartProfile() throws {
+        try assertGenreReachableForColdStart(.sleep)
     }
 
     private func assertGenreReachableForColdStart(_ genre: Genre) throws {

@@ -163,6 +163,10 @@ final class QuestPoolToneParityTests: XCTestCase {
         try assertEveryGenreSlugIsReachable(.diet)
     }
 
+    func testEverySleepSlugIsReachable() throws {
+        try assertEveryGenreSlugIsReachable(.sleep)
+    }
+
     private func assertEveryGenreSlugIsReachable(_ genre: Genre) throws {
         let pool = try QuestPool.loadFromBundle(hostBundle)
         let candidates = pool.quests(in: genre)

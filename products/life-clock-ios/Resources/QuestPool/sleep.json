@@ -1,1 +1,612 @@
-[]
+[
+  {
+    "slug": "sleep.dim-lights-30.v1",
+    "genre": "sleep",
+    "intent": "wind-down",
+    "target": { "metric": "minutes", "value": 30, "unit": "min" },
+    "exclusionGroups": ["evening-energy"],
+    "copy": {
+      "gentle": {
+        "title": "Dim the lights half an hour before bed",
+        "detail": "Soften the brightness around the house in the half hour before sleep. The body reads it as evening and slows down."
+      },
+      "coach": {
+        "title": "Dim lights 30 min before bed",
+        "detail": "Drop overhead lighting thirty minutes before bedtime. Melatonin lifts cleanly when ambient light drops."
+      },
+      "firm_direct": {
+        "title": "Lights low. 30 min before bed.",
+        "detail": "Half hour before bed: kill overhead lights. Lamps only. Phone brightness down."
+      }
+    }
+  },
+  {
+    "slug": "sleep.quiet-half-hour.v1",
+    "genre": "sleep",
+    "intent": "wind-down",
+    "target": { "metric": "minutes", "value": 30, "unit": "min" },
+    "exclusionGroups": ["evening-energy"],
+    "copy": {
+      "gentle": {
+        "title": "Half an hour of quiet before bed",
+        "detail": "Soft music, a tidy of the kitchen, a cup of tea. A low-stimulation half hour before sleep."
+      },
+      "coach": {
+        "title": "30-minute quiet wind-down",
+        "detail": "Spend the last 30 minutes on low-stimulation activities — tea, light cleanup, soft music. Sleep onset eases."
+      },
+      "firm_direct": {
+        "title": "Quiet 30 minutes. Pre-bed.",
+        "detail": "Half hour before bed: no work, no doom-scroll, no high-stim TV. Tea. Tidy. Music low."
+      }
+    }
+  },
+  {
+    "slug": "sleep.bedtime-routine.v1",
+    "genre": "sleep",
+    "intent": "wind-down",
+    "exclusionGroups": ["evening-energy"],
+    "copy": {
+      "gentle": {
+        "title": "A small bedtime ritual tonight",
+        "detail": "Three things you do every night, in the same order — wash up, dim the lights, climb in. Routines settle the body."
+      },
+      "coach": {
+        "title": "Run your bedtime routine tonight",
+        "detail": "Same three steps, same order, every night. The sequence itself becomes a sleep cue."
+      },
+      "firm_direct": {
+        "title": "Routine. Same order. Tonight.",
+        "detail": "Wash up. Lights down. Bed. Same order, every night. Build the cue."
+      }
+    }
+  },
+  {
+    "slug": "sleep.same-bedtime-window.v1",
+    "genre": "sleep",
+    "intent": "consistency",
+    "target": { "metric": "minutes", "value": 30, "unit": "min-window" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Bedtime within half an hour of usual",
+        "detail": "Tonight, aim for your normal bedtime, give or take thirty minutes. Routine shows up in sleep quality."
+      },
+      "coach": {
+        "title": "Bedtime within ±30 min of usual",
+        "detail": "Hit your normal bedtime within a half-hour window tonight. Circadian rhythm rewards consistency."
+      },
+      "firm_direct": {
+        "title": "Bed. Usual time. ±30 min.",
+        "detail": "Within thirty minutes of your normal bedtime. No drift. No 'just one more episode.'"
+      }
+    }
+  },
+  {
+    "slug": "sleep.lights-out-consistent.v1",
+    "genre": "sleep",
+    "intent": "consistency",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Lights out at the same time tonight",
+        "detail": "Whatever time you usually sleep — aim for the same tonight. The body settles into rhythm."
+      },
+      "coach": {
+        "title": "Lights-out at your usual time",
+        "detail": "Match tonight's lights-out to your typical week. The rhythm is what carries the sleep, not just the duration."
+      },
+      "firm_direct": {
+        "title": "Lights out. Usual hour.",
+        "detail": "Same lights-out as a normal week night. Phone in dock. Eyes closed."
+      }
+    }
+  },
+  {
+    "slug": "sleep.wake-time-consistent.v1",
+    "genre": "sleep",
+    "intent": "consistency",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Wake up at the usual hour tomorrow",
+        "detail": "Try not to sleep in much — even a small consistency helps the body line up its rhythm."
+      },
+      "coach": {
+        "title": "Same wake time tomorrow",
+        "detail": "Set the alarm for your typical wake hour, even if it's the weekend. Wake-time consistency drives the next bedtime."
+      },
+      "firm_direct": {
+        "title": "Wake. Usual hour. No drift.",
+        "detail": "Alarm at your normal time. No snooze. Out of bed. Tomorrow's sleep starts here."
+      }
+    }
+  },
+  {
+    "slug": "sleep.cool-room.v1",
+    "genre": "sleep",
+    "intent": "environment",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Make the bedroom a little cooler tonight",
+        "detail": "Drop the thermostat a couple of degrees, or crack the window. Cool rooms sleep deeper."
+      },
+      "coach": {
+        "title": "Cool the bedroom tonight",
+        "detail": "Set the bedroom around 65–68°F. Sleep architecture deepens; you spend more time in the restorative stages."
+      },
+      "firm_direct": {
+        "title": "Bedroom. Cool tonight.",
+        "detail": "Thermostat down a few degrees. Window cracked if needed. Cooler than the rest of the house."
+      }
+    }
+  },
+  {
+    "slug": "sleep.dark-room.v1",
+    "genre": "sleep",
+    "intent": "environment",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A darker bedroom tonight",
+        "detail": "Curtains pulled, a sleep mask if you have one, devices flipped face-down. Even small light leaks add up."
+      },
+      "coach": {
+        "title": "Block more light tonight",
+        "detail": "Pull curtains tight, mask any device LEDs, sleep mask if needed. Darkness lifts melatonin further."
+      },
+      "firm_direct": {
+        "title": "Room. Dark. Tonight.",
+        "detail": "Curtains shut. LEDs covered. Sleep mask if you have one. No glow in the room."
+      }
+    }
+  },
+  {
+    "slug": "sleep.quiet-room.v1",
+    "genre": "sleep",
+    "intent": "environment",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A quieter bedroom tonight",
+        "detail": "Earplugs, a fan, a white-noise track — whatever softens the sound layer. The body wakes less when it's quiet."
+      },
+      "coach": {
+        "title": "Quiet the bedroom tonight",
+        "detail": "Add a sound buffer: earplugs, a fan, or white noise. Fewer micro-arousals, more continuous sleep."
+      },
+      "firm_direct": {
+        "title": "Room. Quiet tonight.",
+        "detail": "Earplugs. Fan. White noise app. Pick one. Use it tonight."
+      }
+    }
+  },
+  {
+    "slug": "sleep.caffeine-cutoff-noon.v1",
+    "genre": "sleep",
+    "intent": "pre-bed-stimulant-cut",
+    "exclusionGroups": ["pre-bed-stimulant"],
+    "copy": {
+      "gentle": {
+        "title": "No caffeine after noon today",
+        "detail": "Try moving the cutoff to noon. Tea after, water, decaf. Sleep tonight will feel different."
+      },
+      "coach": {
+        "title": "Caffeine cutoff at noon",
+        "detail": "Last cup before noon. Caffeine's half-life is ~6 hours; the noon coffee still touches midnight sleep."
+      },
+      "firm_direct": {
+        "title": "Caffeine off. Noon.",
+        "detail": "Last cup before 12. After: water, herbal, decaf. Strict cutoff."
+      }
+    }
+  },
+  {
+    "slug": "sleep.last-coffee-by-noon.v1",
+    "genre": "sleep",
+    "intent": "pre-bed-stimulant-cut",
+    "exclusionGroups": ["pre-bed-stimulant"],
+    "copy": {
+      "gentle": {
+        "title": "Make your last coffee a noon coffee",
+        "detail": "If you'd usually have an afternoon cup, skip it today and see how sleep lands."
+      },
+      "coach": {
+        "title": "Last coffee at noon today",
+        "detail": "Move the final coffee to lunchtime. Then water, tea, or decaf. Most people notice deeper sleep within nights."
+      },
+      "firm_direct": {
+        "title": "Final coffee. Noon. Today.",
+        "detail": "Last coffee at lunchtime. Afternoon: tea or water. No relapse cup at 3pm."
+      }
+    }
+  },
+  {
+    "slug": "sleep.decaf-afternoon.v1",
+    "genre": "sleep",
+    "intent": "pre-bed-stimulant-cut",
+    "exclusionGroups": ["pre-bed-stimulant"],
+    "copy": {
+      "gentle": {
+        "title": "Switch to decaf in the afternoon",
+        "detail": "Same warm-cup ritual, just decaffeinated. The flavor of the routine stays; the stimulant load drops."
+      },
+      "coach": {
+        "title": "Decaf afternoon today",
+        "detail": "Keep the coffee ritual; swap to decaf in the afternoon. Same comfort, no carry-over to bedtime."
+      },
+      "firm_direct": {
+        "title": "Afternoon. Decaf only.",
+        "detail": "Cup at 3pm? Decaf. Cup at 5pm? Decaf. No regular after lunch."
+      }
+    }
+  },
+  {
+    "slug": "sleep.phone-out-of-bedroom.v1",
+    "genre": "sleep",
+    "intent": "screen-cut",
+    "exclusionGroups": ["screen-time"],
+    "copy": {
+      "gentle": {
+        "title": "Phone outside the bedroom tonight",
+        "detail": "Charge it in the kitchen or hallway. The morning notifications can wait. Sleep gets deeper."
+      },
+      "coach": {
+        "title": "Phone out of bedroom tonight",
+        "detail": "Charge the phone in another room. Removes the mid-night scroll temptation; reduces blue light at wake."
+      },
+      "firm_direct": {
+        "title": "Phone. Other room. Tonight.",
+        "detail": "Phone charges in the kitchen, hallway, anywhere not the bedroom. Alarm clock if needed. Done."
+      }
+    }
+  },
+  {
+    "slug": "sleep.screens-off-1hr.v1",
+    "genre": "sleep",
+    "intent": "screen-cut",
+    "target": { "metric": "minutes", "value": 60, "unit": "min" },
+    "exclusionGroups": ["screen-time"],
+    "copy": {
+      "gentle": {
+        "title": "Screens off an hour before bed",
+        "detail": "Phone, laptop, TV — off an hour before sleep. A book, a chat, a slow tea. The eyes thank you."
+      },
+      "coach": {
+        "title": "Screens off 60 min before bed",
+        "detail": "All screens off an hour before bedtime. Blue light suppression flips back on; sleep onset shortens."
+      },
+      "firm_direct": {
+        "title": "Screens off. 60 min before bed.",
+        "detail": "Hour before bed: phone face-down, TV off, laptop closed. No exceptions tonight."
+      }
+    }
+  },
+  {
+    "slug": "sleep.no-screen-in-bed.v1",
+    "genre": "sleep",
+    "intent": "screen-cut",
+    "exclusionGroups": ["screen-time"],
+    "copy": {
+      "gentle": {
+        "title": "No screens once you're in bed",
+        "detail": "If you read in bed, paper instead of screen. The bed stays a place for sleep, not for scrolling."
+      },
+      "coach": {
+        "title": "Bed = no screens tonight",
+        "detail": "Once you're in bed, no phone, no tablet. Reading: paper-book or e-ink. Strengthens the bed-sleep association."
+      },
+      "firm_direct": {
+        "title": "In bed. No screens.",
+        "detail": "Pillow hits, screen down. Phone on dresser. Book if you read. Eyes closed otherwise."
+      }
+    }
+  },
+  {
+    "slug": "sleep.bedtime-stretch.v1",
+    "genre": "sleep",
+    "intent": "recovery-aid",
+    "target": { "metric": "minutes", "value": 5, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Five gentle stretches before bed",
+        "detail": "Forward fold, slow neck rolls, a quiet hip opener. Five minutes that softens the body before sleep."
+      },
+      "coach": {
+        "title": "5-min bedtime stretch",
+        "detail": "Five minutes of slow stretches before bed: forward fold, neck rolls, hip opener. Releases the day's tension."
+      },
+      "firm_direct": {
+        "title": "Stretch. 5 min. Pre-bed.",
+        "detail": "Forward fold. Neck rolls. One hip opener. Five minutes. Then bed."
+      }
+    }
+  },
+  {
+    "slug": "sleep.breathing-pre-sleep.v1",
+    "genre": "sleep",
+    "intent": "recovery-aid",
+    "target": { "metric": "minutes", "value": 5, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A few minutes of slow breath before sleep",
+        "detail": "In through the nose for four, out for six. Five minutes of slow breath as you settle in."
+      },
+      "coach": {
+        "title": "5-min slow breathing before bed",
+        "detail": "Four-in, six-out for five minutes. Activates the parasympathetic system; sleep onset eases."
+      },
+      "firm_direct": {
+        "title": "Breathe slow. 5 min.",
+        "detail": "In four. Out six. Five minutes. Lying down. Then sleep."
+      }
+    }
+  },
+  {
+    "slug": "sleep.journal-3-things.v1",
+    "genre": "sleep",
+    "intent": "recovery-aid",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Three things from today, on paper",
+        "detail": "Before lights out, write down three small things from today — anything good, anything noticed."
+      },
+      "coach": {
+        "title": "Journal 3 things before bed",
+        "detail": "Three things from today, written quickly. Closes the mental open-loops that keep the brain busy at lights-out."
+      },
+      "firm_direct": {
+        "title": "Three things. Paper. Pre-bed.",
+        "detail": "Three lines about today. Pen, paper. Two minutes. Then sleep."
+      }
+    }
+  },
+  {
+    "slug": "sleep.skip-late-nap.v1",
+    "genre": "sleep",
+    "intent": "nap-discipline",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Skip a late-afternoon nap today",
+        "detail": "If a tired wave hits after 4pm, a walk or a glass of water often does the job better than sleep."
+      },
+      "coach": {
+        "title": "No naps after 4pm today",
+        "detail": "Late naps eat into nighttime sleep pressure. After 4pm: walk, water, light snack instead."
+      },
+      "firm_direct": {
+        "title": "No naps. After 4pm.",
+        "detail": "Tired at 4pm? Walk. Water. Snack. Don't lie down. Save it for bedtime."
+      }
+    }
+  },
+  {
+    "slug": "sleep.cap-naps-20min.v1",
+    "genre": "sleep",
+    "intent": "nap-discipline",
+    "target": { "metric": "minutes", "value": 20, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Keep a nap to about twenty minutes",
+        "detail": "If a nap lands today, set a small timer. Twenty minutes is the sweet spot — no grogginess after."
+      },
+      "coach": {
+        "title": "Cap any nap at 20 minutes",
+        "detail": "Set a timer; twenty minutes max. Stops you from dropping into deep sleep, avoids the post-nap fog."
+      },
+      "firm_direct": {
+        "title": "Nap. 20 min cap.",
+        "detail": "Timer for twenty. No more. Get up when it rings. No second alarm."
+      }
+    }
+  },
+  {
+    "slug": "sleep.nap-before-3pm.v1",
+    "genre": "sleep",
+    "intent": "nap-discipline",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "If you nap, before 3pm",
+        "detail": "Earlier naps don't compete with bedtime. Aim for before three if a rest is needed."
+      },
+      "coach": {
+        "title": "Nap before 3pm only",
+        "detail": "Naps before mid-afternoon don't dent night sleep. Past 3pm: skip and ride it out."
+      },
+      "firm_direct": {
+        "title": "Nap. Before 3pm. Or skip.",
+        "detail": "If napping today: before 3pm. After that: skip. Walk it off."
+      }
+    }
+  },
+  {
+    "slug": "sleep.sun-on-waking.v1",
+    "genre": "sleep",
+    "intent": "morning-light",
+    "target": { "metric": "minutes", "value": 5, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Five minutes of morning daylight",
+        "detail": "Step outside, or sit by a sunny window, in the first hour after waking. The day starts cleaner."
+      },
+      "coach": {
+        "title": "5-min morning sunlight",
+        "detail": "Five minutes of outdoor daylight in the first hour up. Anchors circadian rhythm; tonight's sleep gets the benefit."
+      },
+      "firm_direct": {
+        "title": "Sun. 5 min. AM.",
+        "detail": "First hour up: outside for five. No sunglasses, no hood. Light on the eyes."
+      }
+    }
+  },
+  {
+    "slug": "sleep.open-curtains-immediately.v1",
+    "genre": "sleep",
+    "intent": "morning-light",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Open the curtains right after waking",
+        "detail": "First action after coffee, or before — let the daylight in. The body knows it's morning."
+      },
+      "coach": {
+        "title": "Curtains open on rising",
+        "detail": "Open all curtains within minutes of getting up. Indoor light fast-tracks the wake-up signal."
+      },
+      "firm_direct": {
+        "title": "Curtains. Open. AM.",
+        "detail": "Out of bed, curtains open. Every window. Light in immediately."
+      }
+    }
+  },
+  {
+    "slug": "sleep.morning-walk-light.v1",
+    "genre": "sleep",
+    "intent": "morning-light",
+    "target": { "metric": "minutes", "value": 5, "unit": "min" },
+    "exclusionGroups": ["morning-cardio"],
+    "copy": {
+      "gentle": {
+        "title": "A short outdoor walk in the morning",
+        "detail": "Five minutes around the block before screens take over. The light counts; the movement counts more."
+      },
+      "coach": {
+        "title": "5-min outdoor walk after waking",
+        "detail": "Within an hour of waking, five minutes outdoors. Sunlight on the eyes plus light movement — circadian gold."
+      },
+      "firm_direct": {
+        "title": "Walk. 5 min. Morning.",
+        "detail": "First hour: shoes on, outside, walk five. No phone meeting on the way. Just light and feet."
+      }
+    }
+  },
+  {
+    "slug": "sleep.no-eating-after-9.v1",
+    "genre": "sleep",
+    "intent": "late-meal-cut",
+    "exclusionGroups": ["meal-timing"],
+    "copy": {
+      "gentle": {
+        "title": "No eating after nine tonight",
+        "detail": "Last bite by nine. Tea or water after if hunger nudges. Sleep onset gets noticeably softer."
+      },
+      "coach": {
+        "title": "No food after 9pm tonight",
+        "detail": "Stop eating by 9pm. Two-plus hours before bed lets digestion settle and sleep deepen."
+      },
+      "firm_direct": {
+        "title": "No food. After 9pm.",
+        "detail": "Kitchen closes at 9. Water and tea after. No sneaky snack."
+      }
+    }
+  },
+  {
+    "slug": "sleep.close-kitchen-2hr-before.v1",
+    "genre": "sleep",
+    "intent": "late-meal-cut",
+    "target": { "metric": "minutes", "value": 120, "unit": "min" },
+    "exclusionGroups": ["meal-timing"],
+    "copy": {
+      "gentle": {
+        "title": "Stop eating two hours before bed",
+        "detail": "Whenever bedtime is, plan the last bite for two hours before. Digestion gets a head start; sleep gets deeper."
+      },
+      "coach": {
+        "title": "Last bite 2 hours before bed",
+        "detail": "Set a personal kitchen-close two hours before bedtime. Reduces reflux risk; deepens sleep architecture."
+      },
+      "firm_direct": {
+        "title": "Stop eating. 2 hours pre-bed.",
+        "detail": "Whatever your bedtime: kitchen closes two hours before. Plan dinner accordingly."
+      }
+    }
+  },
+  {
+    "slug": "sleep.small-dinner-tonight.v1",
+    "genre": "sleep",
+    "intent": "late-meal-cut",
+    "exclusionGroups": ["meal-timing"],
+    "copy": {
+      "gentle": {
+        "title": "A lighter dinner tonight",
+        "detail": "If dinner runs late or sleep needs help, eat less than usual. The body falls asleep cleaner without a heavy load."
+      },
+      "coach": {
+        "title": "Lighter dinner tonight",
+        "detail": "Eat smaller than usual at dinner. Big late meals sit on the chest at bedtime; smaller meals slip into sleep."
+      },
+      "firm_direct": {
+        "title": "Dinner. Small tonight.",
+        "detail": "Cut dinner portion. No heavy plate before bed. Save the big meal for lunch tomorrow."
+      }
+    }
+  },
+  {
+    "slug": "sleep.water-front-loaded.v1",
+    "genre": "sleep",
+    "intent": "hydration-timing",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Drink most of your water early today",
+        "detail": "Front-load hydration before evening. Less water at night means fewer trips up at 3am."
+      },
+      "coach": {
+        "title": "Front-load water before evening",
+        "detail": "Hit most of your water target by 6pm. Reduces overnight bathroom trips; sleep stays continuous."
+      },
+      "firm_direct": {
+        "title": "Water. Front-loaded. Before 6pm.",
+        "detail": "Hydrate hard before evening. After 6pm: small sips only. Fewer wake-ups tonight."
+      }
+    }
+  },
+  {
+    "slug": "sleep.taper-evening-fluids.v1",
+    "genre": "sleep",
+    "intent": "hydration-timing",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Less to drink in the last two hours",
+        "detail": "Taper liquids in the two hours before bed. The body sleeps through better when the bladder is calm."
+      },
+      "coach": {
+        "title": "Taper fluids 2 hours before bed",
+        "detail": "Cut down liquid intake in the last two hours. A few sips for thirst, but no full glasses. Continuous sleep follows."
+      },
+      "firm_direct": {
+        "title": "Fluids. Taper. 2 hours pre-bed.",
+        "detail": "Last two hours before bed: small sips only. No tea, no big water glass. Bladder settles."
+      }
+    }
+  },
+  {
+    "slug": "sleep.small-sips-after-7.v1",
+    "genre": "sleep",
+    "intent": "hydration-timing",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Just small sips after seven tonight",
+        "detail": "After 7pm, small sips when needed. Front-load the day's water; let the evening run light."
+      },
+      "coach": {
+        "title": "Small sips only after 7pm",
+        "detail": "Past 7pm: small sips for thirst, no full glasses. Bladder calms; mid-night wake-ups drop."
+      },
+      "firm_direct": {
+        "title": "After 7pm: sips only.",
+        "detail": "Past seven: sips for thirst. No tea pot. No filling water bottles. Sleep through."
+      }
+    }
+  }
+]
