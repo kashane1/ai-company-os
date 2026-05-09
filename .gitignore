@@ -33,3 +33,5 @@ state/handshake/
 # Xcode per-user UI state — binary, machine-specific, changes on every open.
 xcuserdata/
 *.xcuserstate
+
+.claude/scheduled_tasks.lock
