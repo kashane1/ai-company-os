@@ -23,12 +23,20 @@ struct TodayView: View {
     @State private var mascotWakeTrigger: Int = 0
     @State private var hasFiredOnce: Bool = false
 
-    /// One-shot trigger for the quest-completion mascot pulse (vision Q14,
-    /// 2026-05-09). Increments on every completion-overlay INCREASE
-    /// (check), not decrease (uncheck). Drives a parallel keyframe to
-    /// `mascotWakeTrigger`. Reduce Motion suppresses the keyframe but
-    /// not the success haptic.
+    /// One-shot trigger for the quest-completion mascot SCALE keyframe
+    /// (vision Q14, 2026-05-09). Increments on every completion-overlay
+    /// INCREASE (check), not decrease (uncheck). Suppressed entirely
+    /// when Reduce Motion is on — the visible clock movement (gated
+    /// by LifeClockMascotView's own reduceMotion check) carries the
+    /// moment without a celebration scale pulse.
     @State private var questCompletionPulseTrigger: Int = 0
+
+    /// Separate trigger for the success haptic so haptic fires under
+    /// Reduce Motion even when the scale pulse is suppressed. iOS's
+    /// "Reduce Motion" accessibility setting does not disable haptics —
+    /// users with motion sensitivity often rely on haptic feedback.
+    @State private var questCompletionHapticTrigger: Int = 0
+
     /// Last observed `completionOverlay` value, used to detect
     /// increase-vs-decrease transitions for the pulse trigger.
     @State private var lastObservedOverlay: Int = 0
@@ -176,7 +184,15 @@ struct TodayView: View {
                     lastObservedOverlay = newValue
                     return
                 }
-                questCompletionPulseTrigger &+= 1
+                // Haptic fires regardless of Reduce Motion (haptics are
+                // a separate accessibility surface). Scale keyframe
+                // suppressed under Reduce Motion — the visible mascot
+                // hand spring (already reduceMotion-gated inside
+                // LifeClockMascotView) carries the visual moment.
+                questCompletionHapticTrigger &+= 1
+                if !reduceMotion {
+                    questCompletionPulseTrigger &+= 1
+                }
                 lastObservedOverlay = newValue
             }
         }
@@ -357,7 +373,7 @@ struct TodayView: View {
                         SpringKeyframe(1.00, duration: 0.30, spring: .bouncy)
                     }
                 }
-                .sensoryFeedback(.success, trigger: questCompletionPulseTrigger)
+                .sensoryFeedback(.success, trigger: questCompletionHapticTrigger)
                 .accessibilityIdentifier("today.mascot")
         } else {
             EmptyView()
