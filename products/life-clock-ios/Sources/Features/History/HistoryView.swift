@@ -101,6 +101,7 @@ struct HistoryView: View {
             DesignTokens.Palette.elevated,
             in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
         )
+        .accessibilityIdentifier("history.longAbsence")
     }
 
     // MARK: - Weekly card (preserves WeeklyReportView semantics)
