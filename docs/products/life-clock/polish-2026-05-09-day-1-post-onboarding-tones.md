@@ -114,10 +114,39 @@ None this session.
 
 ## Final-check
 
-Computer-use acceptance pass was attempted but `request_access` for the
-Simulator app timed out. Fell back to `xcrun simctl io ... screenshot`
-+ a Swift CGEvent helper (`/tmp/scroll_sim`) for taps and drags — works
-for vertical scrolls but mis-fires on tab-bar taps roughly 1/3 of the
-time, which is what cost iter-2's PlanEditor verification. Logging the
-limitation here so the next session can decide whether to invest in a
-better helper or wait for the macOS computer-use grant to clear.
+Operator approved Simulator computer-use access on the second request.
+Drove the device via `mcp__computer-use__*` tools at full tier:
+
+1. **Iter-1 fix verified live on gentle History.** Tapped History from
+   Today; "What helped, what didn't" rendered with "Top positive: Sleep"
+   in green and "Top drag: Nothing held you back" in secondary color.
+   No em-dash regression. Symmetrical positive-side placeholder also
+   exercised across the three tones via the simctl-driven recapture
+   above.
+2. **PlanEditor sheet exercised.** Tapped Today's Plan → Edit; sheet
+   opens cleanly. Three categories render with their variants:
+   - Movement: 1-minute single-leg stand / 15-minute bike or rowing
+     session / Bodyweight circuit, 3 rounds.
+   - Sleep & Recovery: Run your bedtime routine tonight / 5-min bedtime
+     stretch / 5-min slow breathing before bed.
+   - Nutrition & Habit: Eat within an hour of waking / Caffeine cutoff
+     at 2pm today / Slow chewing at one meal.
+3. **Step-target quest fallback copy NOT surfaceable from this fixture.**
+   The `movement.steps-target.v1` quest (the one with the "(We'll tune
+   this once we have a week of your data.)" Day-1 fallback added in
+   commit `1bd363a`) is absent from Movement's variant list in this
+   fixture's PlanEditor. Movement instead shows the three pool
+   alternatives above. Possible causes (untriaged):
+   - The QuestEngine is selecting a different default Movement quest
+     when the auto-Pro fixture's `historicalImporter` has back-filled
+     ≥5 days of mock snapshots, so the step-target quest never enters
+     the slot in the first place.
+   - The plan-variants resolver may filter out the steps-target quest
+     when `loggedDays` crosses the personalization threshold.
+   Either way, source-side the fallback string is verified by reading
+   the Phase-3 step-target diff. Live verification needs a true free /
+   `loggedDays < 5` fixture — this loops back to Ask F4
+   (`LIFECLOCK_FORCE_FREE=1` recon knob).
+4. **Cancel button on PlanEditor works** (returned to Today; underlying
+   view briefly rendered black before the next tab-switch — transient,
+   not a regression).
