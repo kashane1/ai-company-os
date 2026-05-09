@@ -175,3 +175,275 @@ None this session. Every element the recon driver touched
 - Recon-driver cleanup: delete `TopLevelMatrixRecon.swift` once the
   follow-up captures are done; keep `LIFECLOCK_FORCE_COLOR_SCHEME`
   permanently.
+
+---
+
+## Session 2026-05-09 — Onboarding terminals palette delta
+
+Continuation of the 2026-05-06 cycle's `Next pass` deferrals. Original
+matrix excluded the three terminal-tier onboarding screens explicitly
+called out as out-of-scope: `recoveryPreview`, `healthKitAuth`,
+`paywallPrimary`. Those were swept here under the same observer (the
+shipping design system + accessibility & color invariants) but with an
+extra dimension — the user-selectable palette (`defaultNavy` /
+`auroraCool` / `sunsetWarm`) that the v1 palette feature surfaced.
+Total recon: 3 palettes × 2 schemes (`light` / `dark`) × 2 sizes
+(`default` / `axxl`) = 12 cells × 3 screens = 36 captures at
+`/tmp/lifeclock-polish/onboarding-terminals/<palette>-<scheme>-<size>/`.
+
+The earlier (since-shipped) `entryView` cut (`d262a75`) removed the
+fourth surface that would otherwise have been swept here; the
+`PlanEditorSheet` and `monthlyLoggingBanner` rows the matrix audit
+listed as deferred have already had their own dedicated polish passes
+on 2026-05-06 and need no further sweep at this dimensionality.
+
+- Iteration cap: 8.
+- Final computer-use checkpoint: no.
+- Simulator target: iPhone 17 Pro, iOS 26.4 simulator (booted).
+- Scheme: `LifeClock` (regenerated `LifeClock.xcodeproj` via
+  `xcodegen` at session start).
+- Seed harness: `LIFECLOCK_UI_TEST_SCENARIO=onboarding`,
+  `LIFECLOCK_JUMP_TO=recoveryPreview`,
+  `LIFECLOCK_HEALTH_AUTH=authorized`,
+  `LIFECLOCK_USE_MOCK_HEALTH=1`, plus the new
+  `LIFECLOCK_FORCE_PALETTE` knob this session ships.
+
+### Iterations
+
+- [15:01] `bc55ae2` — chore(life-clock): LIFECLOCK_FORCE_PALETTE
+  launch knob — Polish — scaffolding. Adds the third polish-recon
+  override (alongside `FORCE_COLOR_SCHEME` and `FORCE_PAYWALL`).
+  Parses `LIFECLOCK_FORCE_PALETTE=default-navy|aurora-cool|sunset-warm`
+  in `LifeClockLaunchConfiguration.current` (DEBUG-only), applies on
+  the pre-bootstrap store so the very first frame tints correctly
+  (including jump-to-terminal-onboarding launches that never load a
+  UserProfile), and mirrors into the seeded `UserProfile.paletteId` so
+  bootstrap()'s restore on `.onboarded` runs converges on the forced
+  value.
+- [15:08] `4c17668` — chore(life-clock): onboarding-terminals matrix
+  recon harness — Polish — scaffolding. Adds the throwaway
+  `OnboardingTerminalsRecon` UI test sweeping
+  `(palette × color-scheme × Dynamic Type)` on the three terminal
+  screens. Each cell jumps to `recoveryPreview` via
+  `LIFECLOCK_JUMP_TO`, taps `onboarding.continue` to advance to
+  `healthKitAuth`, then takes the soft-skip ("Not now") path to
+  `paywallPrimary` so no system permission dialog interrupts the
+  capture sequence. Slated for deletion alongside
+  `TopLevelMatrixRecon` once the follow-up captures are done;
+  `LIFECLOCK_FORCE_PALETTE` stays.
+- [15:11] First sweep run — every cell emits
+  `02-healthKitAuth-MISSING-continue` because
+  `app.buttons["onboarding.continue"]` returns nothing on
+  `recoveryPreview`. Stopped the run after 4 cells.
+- [15:14] `7866d62` — fix(life-clock): a11y children:.contain on
+  RecoveryPreviewView — Polish — recoveryPreview. The outer VStack
+  carrying `.accessibilityIdentifier("onboarding.recoveryPreview")`
+  was missing the `.accessibilityElement(children: .contain)` modifier
+  that `OnboardingScaffold` uses for the same reason — SwiftUI
+  flattens the VStack into one a11y element and the screen id
+  shadows the inner `onboarding.continue`, the headline id, and the
+  cycling-phrase id. Mirrors the modifier already on the scaffold.
+  Restored test driveability of the recovery → healthKitAuth advance.
+- [15:17] Restart sweep. Every cell now produces all 3 captures, but
+  every cell still emits a "paywallPrimary never appeared" assertion
+  failure on the existence wait — same root cause, one screen further
+  down. The screenshot is captured anyway (XCTAssertTrue records the
+  failure but doesn't return), so the matrix completed at 36 / 36
+  PNGs.
+- [15:24] `8ef0f9d` — fix(life-clock): a11y children:.contain on
+  PaywallPrimaryView — Polish — paywallPrimary. Same root cause as
+  `7866d62`. Restores `paywall.close`, `paywall.purchase`,
+  `paywall.restore`, and the per-tier ids to XCUITest queries.
+- [15:32] Smoke-rebuild + single-cell rerun
+  (`testNavyDarkDefault`) — passes cleanly. Both a11y fixes are
+  load-bearing for any future polish recon on these surfaces.
+
+### Stretch decisions (operator review)
+
+None this session. Both fixes match the existing scaffold convention
+verbatim — no design-system departures, no copy changes.
+
+### Asks
+
+#### Resolved this session
+
+None.
+
+#### Outstanding (cycle-end batch)
+
+##### F6 — LifeGridDotView dots invisible across the entire reveal escalator (Stretch / pre-existing bug)
+
+In every captured `01-recoveryPreview.png` (light + dark, default + axxl,
+all three palettes), the 240pt dot-grid region between the headline /
+cycling-phrase block and the legend renders as flat empty space. The
+AX dump confirms the view is in tree with the right size and the
+right derived label
+(`'Life grid: approximately 16 years could be recovered.'`), so the
+container is laid out correctly and the dot-style switch reaches the
+"recoveryHighlighted" branch — but the Canvas pass appears to never
+deposit visible dots.
+
+Cross-check against the prior `OnboardingRhythmRecon` artefact at
+`/tmp/lifeclock-polish/21-lifeGridRemaining.png` shows the SAME
+empty-region behavior on `lifeGridRemaining` (a sibling screen in the
+five-step escalator reached via the normal flow, not via
+`LIFECLOCK_JUMP_TO`). So this is not a recon-harness artifact — the
+reveal escalator's hero artifact has been invisible at runtime on at
+least two of its four screens.
+
+The `LifeGridDotView` body uses
+`Canvas(rendersAsynchronously: true)` with a `progress: Double`
+state-driven opacity. Two candidate root causes:
+
+1. **`onAppear` race vs. asynchronous Canvas commit.** `progress`
+   starts at 0 and the `.onAppear` runs
+   `withAnimation(.easeInOut(duration: 0.6)) { progress = 1 }`. Under
+   `rendersAsynchronously: true` the first frame is committed before
+   the animation lands; if the asynchronous path doesn't observe the
+   subsequent state delivery the canvas stays at opacity 0
+   permanently.
+2. **Geometry-reader 0×0 first frame.** `positions` is computed in
+   `onAppear` from `geo.size`. If the GeometryReader's first frame is
+   sized 0×0 (during a NavigationStack push transition), `positions`
+   is `[]`, and the `onChange(of: geo.size)` recompute runs but the
+   Canvas's `drawDots` short-circuits on `positions.isEmpty` for
+   that initial frame; under async rendering the second frame's draw
+   may not be re-issued.
+
+Either way: the four-screen reveal escalator (`lifeGridFull` →
+`lifeGridRemaining` → `bigNumberPenalty` → `recoveryPreview`) is
+this product's emotional payload, and it's currently blank. **Out of
+scope for autonomous polish — root-cause fix needs to be done with
+RenderInstrument visibility**, not from screenshots. Queued as
+Stretch + Vision-question; operator should pick one of:
+(a) `progress = 1` immediately when `accessibilityReduceMotion` is
+on AND when running under `LIFECLOCK_UI_TEST=1` so recon captures
+land in their final state; (b) drop `rendersAsynchronously: true`
+on this Canvas (4160 dots is on the edge of where the perf gain
+matters anyway); (c) ship a focused commit gated on the
+`Canvas(...).id(positions)` trick so a positions update forces a
+fresh first frame.
+
+Captures (per palette / scheme / size) showing the empty grid are at
+`/tmp/lifeclock-polish/onboarding-terminals/*/01-recoveryPreview.png`.
+
+##### F7 — All three terminal screens overflow without a ScrollView at Accessibility-XL (Stretch)
+
+At `axxl` Dynamic Type:
+
+- `recoveryPreview`: legend HStack truncates labels —
+  `Liv… N… Re… Stil…` (`/tmp/lifeclock-polish/onboarding-terminals/*-axxl/01-recoveryPreview.png`).
+- `healthKitAuth`: title `"Let your clock learn from your body."` is
+  shrunk to one line + ellipsis (`Let your cloc…`); body
+  `"Read steps, exercise, sleep, and resting heart rate from Apple
+  Health. You can change this any time in Settings."` shrunk to
+  `Read steps, exer…`. Caused by `OnboardingScaffold`'s plain VStack
+  layout — when Continue + secondary action eat enough vertical
+  space, the title block compresses and Text falls back to
+  `.truncationMode(.tail)`. (`/tmp/lifeclock-polish/onboarding-terminals/*-axxl/02-healthKitAuth.png`)
+- `paywallPrimary`: the `"Earn time, every day."` headline + the
+  `"Pro keeps your full history…"` subtitle are pushed off-screen
+  entirely; tier rows show `Year… $49…`, `Lifeti… $12…`,
+  `Mont… $7…` with prices truncated; the per-month equivalent line
+  reads `≈ $4.1…`. Continue + Restore are also off-screen.
+  (`/tmp/lifeclock-polish/onboarding-terminals/*-axxl/03-paywallPrimary.png`)
+
+This is one finding because it's one root cause: the static-layout
+`OnboardingScaffold` and the custom-layout `PaywallPrimaryView` /
+`RecoveryPreviewView` all use plain VStacks, no ScrollView. At axxl
+sizes the cumulative content (title + body + content + Continue +
+secondary) exceeds viewport height and SwiftUI truncates Text
+greedily. Affects every onboarding screen at axxl, not just these
+three — so the right scope is a scaffold-level fix that the
+operator should sign off on before I ship it. Options:
+(a) wrap the scaffold body in `ScrollView` and pin the Continue
+button to the bottom safe-area; (b) wrap the entire scaffold in
+`ScrollView`, accepting that the Continue button scrolls with the
+content (less muscle-memory-stable); (c) keep static layout and add
+`minimumScaleFactor` everywhere (defeats the point of Dynamic Type).
+Touches every onboarding screen — Ask before doing.
+
+Captures (per palette / scheme): the `*-axxl` directories under
+`/tmp/lifeclock-polish/onboarding-terminals/`.
+
+##### F8 — Mascot clock face contrast in dark mode (carried from F4)
+
+The 2026-05-06 audit's F4 (mascot clock face stays bright on every
+surface in dark mode) reproduces verbatim on all three terminal
+screens — the persistent header mascot is shared. Carry-over, not a
+new finding; documenting here only so this session's outstanding
+queue is complete. F4's options A/B/C still apply and still need an
+operator pick.
+
+### Regressions caught
+
+- None unintended this session. The two a11y fixes change AX-tree
+  shape only and are explicitly mirroring the OnboardingScaffold
+  convention.
+- The "paywallPrimary never appeared" failures from the first sweep
+  were caused by THIS session's recon driver hitting a pre-existing
+  AX shadowing issue on `PaywallPrimaryView` — same shape as the
+  recoveryPreview AX bug. Both are fixed.
+
+### A11y identifiers added
+
+- None added. Two existing screen-root identifiers fixed
+  (`onboarding.recoveryPreview`, `onboarding.paywallPrimary`) by
+  adding `.accessibilityElement(children: .contain)` so inner
+  identifiers (`onboarding.continue`, `paywall.close`,
+  `paywall.purchase`, `paywall.restore`, the per-tier ids) survive
+  the SwiftUI flatten pass.
+
+### Invariants verified
+
+- **orange-not-red invariant** (LifeClockPalette.swift:3-5) holds
+  across all 36 captures.
+  - `recoveryPreview` uses `LifeGridDotView.GridMode.recoveryHighlighted`,
+    which paints `.blue` for the recoverable dots — never `.red`.
+    The `bigNumberPenalty` mode that uses `.red` is one screen
+    earlier in the escalator and is not part of this audit.
+  - `healthKitAuth` uses `.red` only on the
+    `store.lastHealthAuthError` text, which never renders under
+    `LIFECLOCK_HEALTH_AUTH=authorized` (mock auth never errors).
+  - `paywallPrimary` has no raw `.red`/`.orange` — only
+    `.accentColor`, `.tint`, `.secondary`, `.tertiary`,
+    `Color(.secondarySystemBackground)`, `.white`. The
+    `sunset-warm` palette's accent color
+    (`Color(red: 0.85, green: 0.42, blue: 0.20)`) renders as warm
+    orange rather than alarming red, visible on the Continue
+    button's fill and the selected-tier checkmark — clearly
+    distinct from the `LifeClockPalette.heartbeatRed`
+    `Color(red: 0.86, green: 0.18, blue: 0.18)` that paints the
+    mascot's ECG line as the documented exception.
+- **Inline title on Today** (commit `7083351`,
+  TodayView.swift:124) verified statically — the
+  `dynamicTypeSize.isAccessibilitySize ? .inline : .large` ternary
+  is intact in source; no code path overrides it. Today wasn't
+  recaptured in this session (it's in the original 5/6 audit
+  scope, not the terminals delta), so live verification falls to
+  the next pass that touches Today.
+
+### Vision updates
+
+- Open Questions appended: F6 (LifeGridDotView Canvas opacity), F7
+  (axxl scaffold overflow). Both pending operator direction;
+  neither contradicts an existing Decided constraint.
+- Decided constraints proposed: none (operator-only edit).
+
+### Next pass
+
+- Resolve F6 (LifeGridDotView invisible). The whole reveal
+  escalator's emotional payload depends on it. Suggest pairing with a
+  short Instrument / SwiftUI Inspector session before shipping —
+  blind-fixing on screenshots risks landing on the wrong root cause.
+- Resolve F7 (axxl overflow on onboarding scaffold). Affects every
+  data-collection screen; touch is at scaffold root. Pair with the
+  `keyboardAvoidance` trial before shipping so we don't redo the
+  layout twice.
+- Same-finding-twice rule: F4 (mascot dark-mode contrast) has now
+  appeared in two consecutive sessions without operator
+  direction — treat next appearance as a hard stop.
+- Recon-driver cleanup: drop both `TopLevelMatrixRecon.swift` and
+  `OnboardingTerminalsRecon.swift` once F6 + F7 land. Keep
+  `LIFECLOCK_FORCE_PALETTE` permanently — it composes with
+  `FORCE_COLOR_SCHEME` for any future axxl matrix and is cheap.
