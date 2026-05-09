@@ -55,6 +55,14 @@ Goldens captured under `products/life-clock-ios/.polish/goldens/`.
 - [09:30] `8f4d913` — fix(life-clock): tone-keyed empty placeholders for weekly drivers — Polish — `history.weekly.drivers`
 - [09:31] `c77140d` — chore: ignore .claude/scheduled_tasks.lock runtime file — Chore — repo
 
+Iter-1 post-fix verified live across all three tones:
+
+- gentle → `postfix-gentle-history.png` reads "Top drag / Nothing held you back" in secondary color.
+- coach → `postfix-coach-history.png` reads "Top drag / No drag this week" in secondary color.
+- firm_direct → `postfix-firm_direct-history.png` reads "Top drag / No drag." in secondary color.
+
+The em-dash placeholder is gone from all three; the negative-driver row no longer reads as a broken state on a clean week.
+
 ## Stretch decisions (operator review)
 
 None this session.
