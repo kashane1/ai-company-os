@@ -152,7 +152,16 @@ Per vision Q11 precedent ("needs an operator yes before adding 14+ new tone keys
 - `04_profile_hkdenied_{top,mid}.png` — HK-denied states
 - `05_profile_freeProperly_{top,mid}.png` — true Free with `LIFECLOCK_SIMULATOR_PRO_DISABLED=1`
 
-**Computer-use checkpoint:** `request_access` to Simulator timed out twice on the macOS approval dialog — fell back to `cliclick` for swipe gestures (installed mid-session via brew) + `simctl io ... screenshot` for capture. The `cliclick`-driven path validated the visible reorder, the SafetyNet sheet entry, and the Privacy footer position. The remaining gestures the AX-tree/simctl path can't fully express (long-press on destructive Delete-all-data → confirm dialog; multi-touch; Reduce Motion) are queued for operator visual review.
+**Computer-use checkpoint:** Initial `request_access` attempts timed out twice on the macOS approval dialog — fell back to `cliclick`-driven scrolls + `simctl io screenshot`. **Operator granted Simulator access at session-end; full real-touch acceptance pass completed:**
+
+- ✅ **Free top → bottom scroll** (Tone → Appearance → Daily reminder → Apple Health → Height & weight → Completion badges → Subscription → SafetyNet → About → Privacy → DEBUG reset). Section ordering verified end-to-end with real swipe gestures.
+- ✅ **SafetyNet entry tap → sheet present.** "Take a softer path" sheet opened cleanly with three affordances (Switch to Gentle / Hide the clock / Talk to someone). Done button dismissed.
+- ✅ **Daily reminder toggle interaction** (Pro state). Toggling ON revealed the conditional `Time` row showing **8:00 PM** — the 20:00 default within the 8…22 clamp. The reorder did not break the conditional reveal or the footer text. Confirms the `dailyReminderSection` view-builder extraction in commit b7cb168 preserves behavior.
+- ✅ **"Upgrade to Pro" tap → PaywallSheet present** (Free state). Annual $49.99 / Monthly $7.99 / Lifetime $129.99 tiers render. Side observation captured: subscription auto-renews fineprint contains a literal `"[your name]"` string ("…cancelled in iOS Settings → [your name] → Subscriptions"). Out of scope here — flag for a future copy pass.
+- ✅ **Pro Subscription branch verified** (`LIFECLOCK_FORCE_PRO=1`). Section reads `"Life Clock Pro · Active"` (sealed icon) + `"Restore purchases"`. **No "Manage Subscription" row** — Ask 1 confirmed end-to-end.
+- ⏭️ **Skipped: tapping Delete all data.** SwiftUI `Button(role: .destructive)` in a Form fires immediately without a native confirm dialog; tapping it would reset the seeded state mid-acceptance pass. Visual styling (red text, destructive role) verified in screenshots; behavior is the same `store.resetForOnboarding()` path the dev reset uses, which has separate test coverage.
+
+Net: every major interaction surface in the new ordering responded as expected. No regressions caught beyond the queued out-of-scope findings.
 
 ## Next pass
 
