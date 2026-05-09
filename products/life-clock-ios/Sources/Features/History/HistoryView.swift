@@ -382,8 +382,18 @@ struct HistoryView: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             Text(store.toneMode.historyWeeklyDriversHeading)
                 .font(.headline)
-            row(label: "Top positive", value: report.topPositiveDriver, color: DesignTokens.Palette.positive)
-            row(label: "Top drag", value: report.topNegativeDriver, color: DesignTokens.Palette.negative)
+            row(
+                label: "Top positive",
+                value: report.topPositiveDriver,
+                emptyPlaceholder: store.toneMode.historyTopPositiveEmpty,
+                color: DesignTokens.Palette.positive
+            )
+            row(
+                label: "Top drag",
+                value: report.topNegativeDriver,
+                emptyPlaceholder: store.toneMode.historyTopDragEmpty,
+                color: DesignTokens.Palette.negative
+            )
         }
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -412,11 +422,22 @@ struct HistoryView: View {
         )
     }
 
-    private func row(label: String, value: String, color: Color) -> some View {
-        HStack {
+    private func row(
+        label: String,
+        value: String,
+        emptyPlaceholder: String,
+        color: Color
+    ) -> some View {
+        let trimmed = value.trimmingCharacters(in: .whitespaces)
+        let isEmpty = trimmed.isEmpty || trimmed == "—" || trimmed == "-"
+        return HStack {
             Text(label).foregroundStyle(.secondary)
             Spacer()
-            Text(value.capitalized).foregroundStyle(color)
+            if isEmpty {
+                Text(emptyPlaceholder).foregroundStyle(.secondary)
+            } else {
+                Text(value.capitalized).foregroundStyle(color)
+            }
         }
         .font(.callout)
     }

@@ -464,6 +464,29 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Placeholder when the weekly report has no positive drivers (engine
+    /// stores "—" in that case). Renders in the secondary color rather than
+    /// the green positive color so an empty week reads as quiet, not as a
+    /// red-flagged absence.
+    var historyTopPositiveEmpty: String {
+        switch self {
+        case .gentle: return "Nothing stood out yet"
+        case .coach: return "No clear positive yet"
+        case .firmDirect: return "Nothing on the board"
+        }
+    }
+
+    /// Placeholder when the weekly report has no negative drivers. A
+    /// useful signal in itself ("nothing pulled you down this week"); the
+    /// em-dash the engine emits doesn't carry that meaning to a new user.
+    var historyTopDragEmpty: String {
+        switch self {
+        case .gentle: return "Nothing held you back"
+        case .coach: return "No drag this week"
+        case .firmDirect: return "No drag."
+        }
+    }
+
     /// Heading on the weekly "next best lever" card.
     var historyNextLeverHeading: String {
         switch self {
