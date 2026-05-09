@@ -132,6 +132,59 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertEqual(store.todayDrivers.count, 0, "no signal path must not invent daily drivers")
     }
 
+    /// Pre-onboarding snapshots (e.g. 10y of HealthKit history pulled in by
+    /// `HistoricalImportCoordinator` after a Pro upgrade) must not count
+    /// toward badge progress. Repro 2026-05-09: a freshly-onboarded user
+    /// who taps History triggers the 10y backfill, then sees Profile show
+    /// "22 of 60 earned" with `data.rich.100` unlocked despite zero days
+    /// of using the app.
+    func testCompletionBadgesDoNotCountSnapshotsBeforeOnboarding() async throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(preAuthorized: true),
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+
+        // Backdate 200 rich-signal snapshots into the pre-onboarding window.
+        let cal = Calendar.lifeClockUTC
+        for offset in 1...200 {
+            guard let day = cal.date(byAdding: .day, value: -offset, to: fixedDate) else { continue }
+            let snap = DailyHealthSnapshot(date: cal.startOfDay(for: day))
+            snap.stepCount = 12_000
+            snap.exerciseMinutes = 45
+            snap.sleepHours = 8.0
+            snap.sleepConsistencyScore = 0.9
+            snap.restingHeartRate = 58
+            snap.activeEnergyKcal = 500
+            snap.distanceMeters = 9_400
+            snap.sourceCompleteness = 0.9
+            context.insert(snap)
+        }
+        try context.save()
+
+        let badges = store.completionBadges()
+        let unlocked = Set(badges.filter { $0.isUnlocked }.map { $0.id })
+
+        // The two onboarding-tier badges that fire on the seeded inputs:
+        // health authorization is known (Signal linked) and a profile exists
+        // with onboardingCompletedAt set (Clock started). Everything else
+        // must stay locked because every backdated snapshot precedes
+        // onboarding day.
+        XCTAssertTrue(unlocked.contains("start.first-profile"))
+        XCTAssertTrue(unlocked.contains("start.health-connected"))
+        XCTAssertFalse(unlocked.contains("data.rich.100"),
+                       "100-day rich-signal badge must require 100 days of post-onboarding rich snapshots")
+        XCTAssertFalse(unlocked.contains("data.rich.30"))
+        XCTAssertFalse(unlocked.contains("data.rich.7"))
+        XCTAssertFalse(unlocked.contains("movement.steps7500.30"))
+        XCTAssertFalse(unlocked.contains("exercise.minutes30.30"))
+        XCTAssertFalse(unlocked.contains("sleep.goal.30"))
+    }
+
     func testSetBodyMetricsPersistsCanonicalMetricValues() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
