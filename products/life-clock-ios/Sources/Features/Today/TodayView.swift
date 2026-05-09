@@ -30,13 +30,46 @@ struct TodayView: View {
     /// like a greeting.
     private static let wakeDuration: Double = 1.0
 
+    /// In-day "felt time" surcharge: the sum of `rewardEstimateMinutes`
+    /// for today's quests the user has marked complete. Persist-banked
+    /// per vision Q14 / Q-plan-1 — completing a quest visibly moves the
+    /// clock and the move PERSISTS for the rest of the day; unchecking
+    /// retracts.
+    ///
+    /// Derived (not @State); the store's observable mechanism re-fires
+    /// `displayedDelta` on every `toggleQuestCompletion` write. Day
+    /// boundary clears it automatically because today's `Quest`
+    /// instances become yesterday's at midnight and today's fresh
+    /// quests have `completedAt == nil`. No special-case code.
+    ///
+    /// Important model-truth note: this overlay does NOT enter
+    /// `ClockEngine.calculateDailyDelta`. Quest reward minutes are a
+    /// projection of *tomorrow's* HK signal (more steps from the walk,
+    /// etc.), not earned-today. The visible headline shows
+    /// `canonical + overlay`; the canonical (model truth) is recoverable
+    /// by inspecting `store.todayEstimate?.dailyTimeDeltaMinutes`.
+    private var completionOverlay: Int {
+        let dayStart = store.clock.calendar.startOfDay(for: store.clock.now())
+        return store.todayQuests
+            .filter { quest in
+                guard let completedAt = quest.completedAt else { return false }
+                return store.clock.calendar.isDate(completedAt, inSameDayAs: dayStart)
+            }
+            .map(\.rewardEstimateMinutes)
+            .reduce(0, +)
+    }
+
     /// The delta value driving both the headline count-up and the mascot
     /// hand sweep. When `wakeProgress < 1` (mid-animation), this is a
-    /// linear interpolation from 0 toward the real delta; once settled,
-    /// it's the real delta. Single source of truth for the wake sequence.
+    /// linear interpolation from 0 toward `(canonical + overlay)`; once
+    /// settled, it's `(canonical + overlay)`. Single source of truth for
+    /// the wake sequence + the persist-banked completion sequence.
+    /// `LifeClockMascotView`'s existing
+    /// `.animation(.interpolatingSpring(), value: minutesDelta)` handles
+    /// the visual transition on every overlay change for free.
     private var displayedDelta: Int {
         let real = store.todayEstimate?.dailyTimeDeltaMinutes ?? 0
-        return Int((Double(real) * wakeProgress).rounded())
+        return Int(((Double(real) + Double(completionOverlay)) * wakeProgress).rounded())
     }
 
     var body: some View {
