@@ -9,7 +9,8 @@
       "Grep(*)",
       "NotebookEdit(*)",
       "WebFetch(*)",
-      "WebSearch(*)"
+      "WebSearch(*)",
+      "mcp__computer-use__*"
     ]
   }
 }
