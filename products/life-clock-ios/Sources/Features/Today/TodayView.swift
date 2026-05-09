@@ -23,6 +23,16 @@ struct TodayView: View {
     @State private var mascotWakeTrigger: Int = 0
     @State private var hasFiredOnce: Bool = false
 
+    /// One-shot trigger for the quest-completion mascot pulse (vision Q14,
+    /// 2026-05-09). Increments on every completion-overlay INCREASE
+    /// (check), not decrease (uncheck). Drives a parallel keyframe to
+    /// `mascotWakeTrigger`. Reduce Motion suppresses the keyframe but
+    /// not the success haptic.
+    @State private var questCompletionPulseTrigger: Int = 0
+    /// Last observed `completionOverlay` value, used to detect
+    /// increase-vs-decrease transitions for the pulse trigger.
+    @State private var lastObservedOverlay: Int = 0
+
     /// Wall-clock budget for the wake sequence. Hand sweep + count-up
     /// share this duration; the mascot scale keyframe runs concurrently
     /// and finishes inside it. Bumped from 0.50s to 1.0s after live
@@ -143,10 +153,31 @@ struct TodayView: View {
                 // handled separately by the scenePhase listener below.
                 guard !hasFiredOnce else { return }
                 hasFiredOnce = true
+                lastObservedOverlay = completionOverlay
                 triggerWakeIfPossible()
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active { triggerWakeIfPossible() }
+            }
+            .onChange(of: completionOverlay) { oldValue, newValue in
+                // Pulse fires only on overlay increase (check), not
+                // decrease (uncheck). Uncheck path is the visible
+                // mascot retraction alone — no celebration feedback.
+                guard newValue > oldValue else {
+                    lastObservedOverlay = newValue
+                    return
+                }
+                // Defer if wake is still in flight; the pulse + haptic
+                // would compete with the count-up. Wake completes inside
+                // 1.0s; a tap during wake is rare. Per plan Q-plan-7
+                // discussion, we do not retroactively fire after wake
+                // settles — the visible clock movement is the message.
+                guard wakeProgress >= 1.0 else {
+                    lastObservedOverlay = newValue
+                    return
+                }
+                questCompletionPulseTrigger &+= 1
+                lastObservedOverlay = newValue
             }
         }
     }
@@ -310,6 +341,23 @@ struct TodayView: View {
                         SpringKeyframe(1.00, duration: 0.60, spring: .bouncy)
                     }
                 }
+                // Quest-completion pulse, parallel to the wake keyframe
+                // above. Subtler scale than wake (1.045 vs 1.06) and
+                // shorter (520ms vs ~1s) — wake is a "good morning,"
+                // pulse is a "nice tap" acknowledgement. Vision Q14.
+                .keyframeAnimator(
+                    initialValue: 1.0,
+                    trigger: questCompletionPulseTrigger
+                ) { content, scale in
+                    content.scaleEffect(scale)
+                } keyframes: { _ in
+                    KeyframeTrack {
+                        CubicKeyframe(1.00, duration: 0.0)
+                        CubicKeyframe(1.045, duration: 0.22)
+                        SpringKeyframe(1.00, duration: 0.30, spring: .bouncy)
+                    }
+                }
+                .sensoryFeedback(.success, trigger: questCompletionPulseTrigger)
                 .accessibilityIdentifier("today.mascot")
         } else {
             EmptyView()
