@@ -387,6 +387,14 @@ struct RecoveryPreviewView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
+        // `children: .contain` keeps inner identifiers (the Continue
+        // button's `onboarding.continue`, the cycling-phrase id, the
+        // headline id) intact. Without it, SwiftUI flattens this VStack
+        // into a single accessibility element and the outer screen id
+        // shadows every child — `app.buttons["onboarding.continue"]`
+        // returns nothing. OnboardingScaffold takes the same approach;
+        // matching it here avoids the asymmetry.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.recoveryPreview")
         .onAppear {
             telemetry.value.screenAppeared("recoveryPreview")
