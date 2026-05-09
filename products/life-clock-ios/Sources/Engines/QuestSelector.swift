@@ -154,6 +154,41 @@ enum QuestSelector {
         return Genre.allCases.compactMap { picks[$0] }
     }
 
+    /// Score and sort all eligible slugs in a single genre. Used by
+    /// `QuestEngine.availableQuests` (plan editor alternates) — returns
+    /// the same scoring used by `select(...)`'s pre-conflict ranking, so
+    /// the picked slug is always the first element of the result.
+    /// Phase 5b factor-out from the per-genre block of `select(...)`.
+    static func rankEligibleByScore(
+        pool: QuestPool,
+        genre: Genre,
+        affinity: [Genre: Double],
+        needWeight: [Genre: Double],
+        profile: UserProfile,
+        today: Date,
+        events: [QuestEvent]
+    ) -> [PoolQuest] {
+        let candidates = pool.quests(in: genre).filter { isEligible($0, profile: profile) }
+        guard !candidates.isEmpty else { return [] }
+        let damp = discoveryDamp(distinctOpenDays: profile.distinctOpenDays)
+        let calendar = Calendar.current
+        let latestShown = latestShownBySlug(events: events)
+        let aff = affinity[genre] ?? AffinityEngine.initialAffinity
+        let need = needWeight[genre] ?? 0.5
+        return candidates.sorted { a, b in
+            let sa = score(
+                for: a, affinity: aff, needWeight: need, discoveryDamp: damp,
+                today: today, latestShown: latestShown, calendar: calendar
+            )
+            let sb = score(
+                for: b, affinity: aff, needWeight: need, discoveryDamp: damp,
+                today: today, latestShown: latestShown, calendar: calendar
+            )
+            if sa != sb { return sa > sb }
+            return a.slug < b.slug
+        }
+    }
+
     // MARK: - Eligibility filter (Phase 4a)
 
     /// Phase 4a hard-filter, applied BEFORE scoring. A slug with no

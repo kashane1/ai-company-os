@@ -239,14 +239,10 @@ final class LifeClockStore {
         if let last = profile.lastForegroundDay, last >= dayStart {
             return
         }
-        // Run EOD resolver first (only when flag is on — flag-off
-        // means no events ever existed, so resolver has nothing to do).
-        if profile.useQuestPoolEngine {
-            try? QuestSelector.resolveEndOfDay(context: modelContext, today: now)
-        }
-        // Then increment counter + update last-foreground marker. Both
-        // unconditional (run even when flag is off) so the counter is
-        // accurate from day 1, ready for whenever the flag flips.
+        // Run EOD resolver first. Phase 5b: legacy path is gone, so this
+        // always runs — every user is on the pool engine.
+        try? QuestSelector.resolveEndOfDay(context: modelContext, today: now)
+        // Then increment counter + update last-foreground marker.
         profile.distinctOpenDays += 1
         profile.lastForegroundDay = dayStart
         try? modelContext.save()
@@ -303,15 +299,15 @@ final class LifeClockStore {
     //   replaced  — user swaps slug A → slug B (logs replaced(A) + picked(B))
     //   completed — user ticks a quest done
     //
-    // All four emissions are gated behind `profile.useQuestPoolEngine`.
-    // When the flag is off (default), the legacy QuestEngine path runs
-    // and zero events are written. Tests flip the flag and inject the
-    // fixture pool to exercise the new path.
+    // Phase 5b: every user is on the pool engine, so the emit helpers no
+    // longer gate on `useQuestPoolEngine`. The pre-onboarding `profile ==
+    // nil` short-circuit remains — there's nothing to attribute events to
+    // before onboarding completes.
 
     /// Idempotent shown emission per (date, slug). Phase 3 plan task 10
     /// + master plan G14. Re-emit on the same day is a no-op.
     private func emitShown(slug: String, genre: String, date: Date) {
-        guard profile?.useQuestPoolEngine == true else { return }
+        guard profile != nil else { return }
         let dayStart = clock.calendar.startOfDay(for: date)
         let shownKind = QuestEventKind.shown.rawValue
         let predicate = #Predicate<QuestEvent> { event in
@@ -330,7 +326,7 @@ final class LifeClockStore {
     /// the same slug shouldn't normally happen — but the dedup is
     /// defensive against double-fire.
     private func emitPicked(slug: String, genre: String, date: Date) {
-        guard profile?.useQuestPoolEngine == true else { return }
+        guard profile != nil else { return }
         let dayStart = clock.calendar.startOfDay(for: date)
         let pickedKind = QuestEventKind.picked.rawValue
         let predicate = #Predicate<QuestEvent> { event in
@@ -350,7 +346,7 @@ final class LifeClockStore {
     /// signal because back-and-forth indicates indecision, not strong
     /// rejection.
     private func emitReplaced(slug: String, genre: String, date: Date) {
-        guard profile?.useQuestPoolEngine == true else { return }
+        guard profile != nil else { return }
         let dayStart = clock.calendar.startOfDay(for: date)
         let event = QuestEvent(date: dayStart, slug: slug, genre: genre, kind: QuestEventKind.replaced.rawValue)
         modelContext.insert(event)
@@ -358,7 +354,7 @@ final class LifeClockStore {
 
     /// Idempotent completed emission per (date, slug).
     private func emitCompleted(slug: String, genre: String, date: Date) {
-        guard profile?.useQuestPoolEngine == true else { return }
+        guard profile != nil else { return }
         let dayStart = clock.calendar.startOfDay(for: date)
         let completedKind = QuestEventKind.completed.rawValue
         let predicate = #Predicate<QuestEvent> { event in
@@ -380,7 +376,7 @@ final class LifeClockStore {
     /// the row would let a stray tap permanently shift affinity in a
     /// direction the user didn't intend.
     private func removeCompleted(slug: String, date: Date) {
-        guard profile?.useQuestPoolEngine == true else { return }
+        guard profile != nil else { return }
         let dayStart = clock.calendar.startOfDay(for: date)
         let completedKind = QuestEventKind.completed.rawValue
         let predicate = #Predicate<QuestEvent> { event in
@@ -521,8 +517,9 @@ final class LifeClockStore {
         // is on so the selector path can run. fetchAllQuestEvents()
         // returns [] until any event is emitted (flag-off → empty).
         // Pool resolution is lazy-loaded from Bundle.main on first call.
-        let events = profile.useQuestPoolEngine ? fetchAllQuestEvents() : []
-        let pool = profile.useQuestPoolEngine ? lazyLoadedQuestPool() : nil
+        // Phase 5b: legacy path retired — always fetch events + pool.
+        let events = fetchAllQuestEvents()
+        let pool = lazyLoadedQuestPool()
         todayQuests = questEngine.generateDailyQuests(
             profile: profile,
             snapshot: snapshot,
@@ -640,13 +637,14 @@ final class LifeClockStore {
     /// latest known snapshot + history + habits. The picker UI calls this
     /// to render swap options. Reads from persisted state — no async I/O.
     func planVariants(for category: QuestEngine.Category) -> [Quest] {
-        guard let profile else { return [] }
+        guard let profile, let pool = lazyLoadedQuestPool() else { return [] }
         let now = clock.now()
         let dayStart = clock.calendar.startOfDay(for: now)
         return questEngine.availableQuests(
             for: category,
             profile: profile,
-            snapshot: fetchSnapshot(for: dayStart),
+            pool: pool,
+            events: fetchAllQuestEvents(),
             recentSnapshots: fetchRecentSnapshots(limit: 14),
             habits: todayHabits,
             today: dayStart
@@ -668,8 +666,7 @@ final class LifeClockStore {
         // OUT (if any) and `picked` for the slug being added.
         // Replaced is per-event, NOT deduped, so A→B→A→B yields four
         // `replaced` rows (master plan G7 — back-and-forth signals
-        // indecision). Picked IS deduped per (date, slug). All gated
-        // behind useQuestPoolEngine inside the emit helpers.
+        // indecision). Picked IS deduped per (date, slug).
         let dayStart = clock.calendar.startOfDay(for: now)
         let priorSlug = todayPlanOverrides.picks[category.rawValue]
             ?? todayQuests.first(where: { Self.engineCategory(of: $0) == category })?.slug

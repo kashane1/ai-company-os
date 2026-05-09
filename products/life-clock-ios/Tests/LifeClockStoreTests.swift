@@ -946,12 +946,12 @@ final class LifeClockStoreTests: XCTestCase {
 
     // MARK: - Phase 3c: Event emission hooks
     //
-    // Integration tests for the four QuestEvent hook points and the
-    // useQuestPoolEngine flag. Flag-off path: zero events ever written
-    // (legacy QuestEngine continues unchanged). Flag-on path: events
-    // emitted at engine emit, plan editor swap, and quest tick.
+    // Integration tests for the four QuestEvent hook points. Phase 5b
+    // retired the legacy `useQuestPoolEngine` off-path; the flag-off
+    // tests below are gone (the path no longer exists). Every user
+    // emits events at refresh + plan editor swap + quest tick.
 
-    private func makePhase3cStore(flagOn: Bool, day: Date) async throws -> (LifeClockStore, ModelContext) {
+    private func makePhase3cStore(day: Date) async throws -> (LifeClockStore, ModelContext) {
         let container = try LifeClockContainer.make(inMemory: true)
         let context = container.mainContext
         let mockHealth = MockHealthKitService(seed: 11)
@@ -961,26 +961,13 @@ final class LifeClockStoreTests: XCTestCase {
             engineClock: .fixed(day)
         )
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
-        profile.useQuestPoolEngine = flagOn
         store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
         return (store, context)
     }
 
-    func testFlagOffWritesNoQuestEvents() async throws {
+    func testRefreshEmitsShownEvents() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, context) = try await makePhase3cStore(flagOn: false, day: day)
-        await store.refreshFromHealthKit()
-        if let first = store.todayQuests.first {
-            store.toggleQuestCompletion(first)
-        }
-        let events = try context.fetch(FetchDescriptor<QuestEvent>())
-        XCTAssertEqual(events.count, 0,
-            "Flag-off path must write zero QuestEvent rows — legacy engine path is unchanged")
-    }
-
-    func testFlagOnEmitsShownEventsAfterRefresh() async throws {
-        let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        let (store, context) = try await makePhase3cStore(day: day)
         await store.refreshFromHealthKit()
 
         let shownEvents = try context.fetch(
@@ -995,7 +982,7 @@ final class LifeClockStoreTests: XCTestCase {
 
     func testShownEventDedupedOnDoubleRefresh() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        let (store, context) = try await makePhase3cStore(day: day)
         await store.refreshFromHealthKit()
         let firstCount = try context.fetch(
             FetchDescriptor<QuestEvent>(predicate: #Predicate { $0.kind == "shown" })
@@ -1009,9 +996,9 @@ final class LifeClockStoreTests: XCTestCase {
             "Shown event count must not grow on double-refresh same day — emitShown is idempotent")
     }
 
-    func testCompletedEventEmittedOnTickWhenFlagIsOn() async throws {
+    func testCompletedEventEmittedOnTick() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        let (store, context) = try await makePhase3cStore(day: day)
         await store.refreshFromHealthKit()
         guard let first = store.todayQuests.first else {
             XCTFail("Expected at least one quest")
@@ -1032,7 +1019,7 @@ final class LifeClockStoreTests: XCTestCase {
     /// ledger-entry deletion that already happens on un-tick.
     func testUntickRemovesCompletedEventForDataCorrectness() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        let (store, context) = try await makePhase3cStore(day: day)
         await store.refreshFromHealthKit()
         guard let first = store.todayQuests.first else {
             XCTFail("Expected at least one quest")
@@ -1059,7 +1046,7 @@ final class LifeClockStoreTests: XCTestCase {
     /// produces exactly one completed row.
     func testReTickAfterUntickProducesOneCompletedEvent() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, context) = try await makePhase3cStore(flagOn: true, day: day)
+        let (store, context) = try await makePhase3cStore(day: day)
         await store.refreshFromHealthKit()
         guard let first = store.todayQuests.first else {
             XCTFail("Expected at least one quest")
@@ -1080,7 +1067,7 @@ final class LifeClockStoreTests: XCTestCase {
 
     func testDistinctOpenDaysIncrementsOnFirstForegroundOfDay() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, _) = try await makePhase3cStore(flagOn: true, day: day)
+        let (store, _) = try await makePhase3cStore(day: day)
         await store.refreshFromHealthKit()
         XCTAssertEqual(store.profile?.distinctOpenDays, 1)
         XCTAssertNotNil(store.profile?.lastForegroundDay)
@@ -1088,7 +1075,7 @@ final class LifeClockStoreTests: XCTestCase {
 
     func testDistinctOpenDaysDoesNotDoubleIncrementSameDay() async throws {
         let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, _) = try await makePhase3cStore(flagOn: true, day: day)
+        let (store, _) = try await makePhase3cStore(day: day)
         await store.refreshFromHealthKit()
         await store.refreshFromHealthKit(force: true)
         XCTAssertEqual(store.profile?.distinctOpenDays, 1,
@@ -1097,7 +1084,7 @@ final class LifeClockStoreTests: XCTestCase {
 
     func testDistinctOpenDaysIncrementsAcrossDays() async throws {
         let day1 = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, _) = try await makePhase3cStore(flagOn: true, day: day1)
+        let (store, _) = try await makePhase3cStore(day: day1)
         await store.refreshFromHealthKit()
         let firstCount = store.profile?.distinctOpenDays ?? 0
 
@@ -1113,14 +1100,4 @@ final class LifeClockStoreTests: XCTestCase {
             "distinctOpenDays must increment when first foreground of a new local day fires")
     }
 
-    func testDistinctOpenDaysCountsForFlagOffUsersToo() async throws {
-        // The counter increments unconditionally so it's accurate from
-        // day 1 — ready for whenever the flag flips. EOD resolver is
-        // the only daily-cycle action that's flag-gated.
-        let day = Date(timeIntervalSince1970: 1_800_000_000)
-        let (store, _) = try await makePhase3cStore(flagOn: false, day: day)
-        await store.refreshFromHealthKit()
-        XCTAssertEqual(store.profile?.distinctOpenDays, 1,
-            "distinctOpenDays should increment regardless of useQuestPoolEngine flag")
-    }
 }

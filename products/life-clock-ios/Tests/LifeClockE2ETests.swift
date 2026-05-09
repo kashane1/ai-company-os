@@ -50,7 +50,10 @@ final class LifeClockE2ETests: XCTestCase {
         XCTAssertNotNil(store.weekly)
         XCTAssertTrue(store.isAdultUser, "DOB 1990 vs as-of 2027 → adult")
 
-        // Quick log — heavy alcohol day. Engine should produce a recovery quest.
+        // Quick log — heavy alcohol day. Phase 5b: the pool engine's
+        // heavy-alcohol response surfaces through affinity over time, not
+        // single-day legacy "recovery" category swap. The same-day check
+        // here just confirms the habit log persists and quests render.
         let habits = HabitLog(date: fixedDate)
         habits.alcoholLevel = "heavy"
         habits.dietQuality = "rough"
@@ -58,10 +61,7 @@ final class LifeClockE2ETests: XCTestCase {
 
         XCTAssertNotNil(store.todayHabits, "habit log must be persisted + cached on the store")
         XCTAssertEqual(store.todayHabits?.alcoholLevel, "heavy")
-        XCTAssertTrue(
-            store.todayQuests.contains { $0.category == "recovery" },
-            "heavy-alcohol day must shift the risk quest to a recovery quest, not a punitive one"
-        )
+        XCTAssertFalse(store.todayQuests.isEmpty, "today's slate should not be empty")
 
         // Quest completion — should land in the ledger with the pinned timestamp.
         let initialLedgerCount = store.ledger.count

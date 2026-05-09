@@ -1,15 +1,10 @@
 import XCTest
 @testable import LifeClock
 
-/// Phase 3c flag-branch tests for `QuestEngine.generateDailyQuests`.
-/// Pinned behavior:
-///   - Flag off: legacy 15-quest path runs unchanged. Existing
-///     `QuestEngineTests` cover this; this file just spot-checks
-///     that adding the new optional parameters didn't change
-///     the legacy default.
-///   - Flag on + non-empty pool: routes through QuestSelector.
-///   - Flag on + empty pool (G26): falls back to legacy path
-///     gracefully, no consistency-fallback spam.
+/// Phase 5b (V1.6.0+): selector-path tests for `QuestEngine.generateDailyQuests`.
+/// The legacy 15-quest path was retired here; the only remaining branches
+/// in `generateDailyQuests` are pool-driven select + a deadlock fallback
+/// when the pool is missing or empty.
 final class QuestEngineSelectorPathTests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_800_000_000)
     private let birthDate = Date(timeIntervalSince1970: 631_152_000)
@@ -18,44 +13,19 @@ final class QuestEngineSelectorPathTests: XCTestCase {
         QuestEngine(clock: .fixed(fixedDate))
     }
 
-    private func makeProfile(useQuestPoolEngine: Bool = false) -> UserProfile {
-        let p = UserProfile(birthDate: birthDate, biologicalSex: "female")
-        p.useQuestPoolEngine = useQuestPoolEngine
-        return p
+    private func makeProfile() -> UserProfile {
+        UserProfile(birthDate: birthDate, biologicalSex: "female")
     }
 
     private func loadFixturePool() throws -> QuestPool {
         try QuestPool.loadFromBundle(Bundle.main, basenames: ["fixture"])
     }
 
-    // MARK: - Flag-off path (legacy preserved)
+    // MARK: - Selector path (fixture pool)
 
-    func testFlagOffPreservesLegacyEnginePath() {
+    func testFixturePoolEmitsThreeQuestsOnePerGenre() throws {
         let engine = makeEngine()
-        let profile = makeProfile(useQuestPoolEngine: false)
-        let quests = engine.generateDailyQuests(
-            profile: profile,
-            snapshot: nil,
-            habits: nil
-        )
-        XCTAssertGreaterThanOrEqual(quests.count, 1)
-        XCTAssertLessThanOrEqual(quests.count, 3)
-        // Legacy slugs use category prefixes like "movement.*", "sleep.*",
-        // "nutrition.*", NOT "activity.*"/"diet.*"/"sleep.*" pool format.
-        let legacyPrefixes = ["movement.", "sleep.", "recovery.", "nutrition.", "consistency."]
-        for quest in quests {
-            XCTAssertTrue(
-                legacyPrefixes.contains(where: { quest.slug.hasPrefix($0) }),
-                "Flag-off path must emit legacy-prefix slugs, got \(quest.slug)"
-            )
-        }
-    }
-
-    // MARK: - Flag-on + fixture pool (selector path)
-
-    func testFlagOnRoutesToSelectorPathWithFixturePool() throws {
-        let engine = makeEngine()
-        let profile = makeProfile(useQuestPoolEngine: true)
+        let profile = makeProfile()
         let pool = try loadFixturePool()
         let quests = engine.generateDailyQuests(
             profile: profile,
@@ -64,7 +34,6 @@ final class QuestEngineSelectorPathTests: XCTestCase {
             pool: pool
         )
         XCTAssertEqual(quests.count, 3, "Selector path emits exactly 3 quests (one per genre, hard floor)")
-        // All slugs come from the fixture pool format.
         let fixturePrefixes = ["activity.fixture-", "diet.fixture-", "sleep.fixture-"]
         for quest in quests {
             XCTAssertTrue(
@@ -72,14 +41,13 @@ final class QuestEngineSelectorPathTests: XCTestCase {
                 "Selector path must emit fixture-pool slugs, got \(quest.slug)"
             )
         }
-        // Hard floor: every genre represented exactly once.
         let genres = Set(quests.map(\.genre))
         XCTAssertEqual(genres, Set(["activity", "diet", "sleep"]))
     }
 
-    func testFlagOnEmitsTitleFromPoolToneCopy() throws {
+    func testEmitsTitleFromPoolToneCopy() throws {
         let engine = makeEngine()
-        let profile = makeProfile(useQuestPoolEngine: true)
+        let profile = makeProfile()
         profile.toneMode = "coach"
         let pool = try loadFixturePool()
         let quests = engine.generateDailyQuests(
@@ -88,42 +56,44 @@ final class QuestEngineSelectorPathTests: XCTestCase {
             habits: nil,
             pool: pool
         )
-        // Spot-check: the activity pick should have a non-empty title
-        // sourced from the pool's coach-tone copy.
         let activity = quests.first(where: { $0.genre == "activity" })
         XCTAssertNotNil(activity)
         XCTAssertFalse(activity?.title.isEmpty ?? true)
     }
 
-    // MARK: - Empty-pool guard (G26)
+    // MARK: - Empty / missing pool fallback
 
-    func testFlagOnWithEmptyPoolFallsBackToLegacyPath() throws {
+    func testEmptyPoolEmitsConsistencyFallback() {
         let engine = makeEngine()
-        let profile = makeProfile(useQuestPoolEngine: true)
-        let emptyPool = QuestPool(quests: [])
+        let profile = makeProfile()
         let quests = engine.generateDailyQuests(
             profile: profile,
             snapshot: nil,
             habits: nil,
-            pool: emptyPool
+            pool: QuestPool(quests: [])
         )
-        // Empty pool + flag on → graceful fallback to legacy path.
-        // Verify slugs are legacy format, NOT 3× consistency-fallback.
-        let legacyPrefixes = ["movement.", "sleep.", "recovery.", "nutrition."]
-        let nonConsistencyCount = quests.filter { quest in
-            legacyPrefixes.contains(where: { quest.slug.hasPrefix($0) })
-        }.count
-        XCTAssertGreaterThan(
-            nonConsistencyCount, 0,
-            "Empty-pool fallback must route to legacy path, not 3× consistency-fallback"
+        XCTAssertEqual(quests.count, 1)
+        XCTAssertEqual(quests.first?.slug, "consistency.open-app-tomorrow.v1")
+    }
+
+    func testNilPoolEmitsConsistencyFallback() {
+        let engine = makeEngine()
+        let profile = makeProfile()
+        let quests = engine.generateDailyQuests(
+            profile: profile,
+            snapshot: nil,
+            habits: nil,
+            pool: nil
         )
+        XCTAssertEqual(quests.count, 1)
+        XCTAssertEqual(quests.first?.slug, "consistency.open-app-tomorrow.v1")
     }
 
     // MARK: - Determinism
 
     func testSelectorPathDeterministicOnSameInputs() throws {
         let engine = makeEngine()
-        let profile = makeProfile(useQuestPoolEngine: true)
+        let profile = makeProfile()
         let pool = try loadFixturePool()
         let a = engine.generateDailyQuests(profile: profile, snapshot: nil, habits: nil, pool: pool)
         let b = engine.generateDailyQuests(profile: profile, snapshot: nil, habits: nil, pool: pool)
