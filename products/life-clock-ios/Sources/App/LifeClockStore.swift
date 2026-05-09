@@ -1181,10 +1181,23 @@ final class LifeClockStore {
     }
 
     private func completionBadgeProgress() -> CompletionBadgeProgress {
-        let habits = fetchAllHabits()
-        let quests = fetchAllQuests()
-        let snapshots = fetchAllSnapshots()
-        let reports = fetchAllWeeklyReports()
+        // Cap source rows to days at or after the user finished onboarding.
+        // Without this, a Pro upgrade triggers the 10-year HealthKit backfill
+        // (`HistoricalImportCoordinator`), and the badge engine treats those
+        // pre-LifeClock days as "Rich signal days," instantly unlocking
+        // tier-100 badges. The badge titles ("Captured a day with strong
+        // data completeness") imply days WHILE USING the app, not history
+        // imported from before. Reproduced 2026-05-09 — see
+        // docs/products/life-clock/polish-2026-05-09-badge-overcount-fix.md.
+        let onboardingDay: Date? = profile?.onboardingCompletedAt.map { dayKey(for: $0) }
+        let filterByOnboarding: (Date) -> Bool = { date in
+            guard let onboardingDay else { return false }
+            return date >= onboardingDay
+        }
+        let habits = fetchAllHabits().filter { filterByOnboarding(dayKey(for: $0.date)) }
+        let quests = fetchAllQuests().filter { filterByOnboarding(dayKey(for: $0.date)) }
+        let snapshots = fetchAllSnapshots().filter { filterByOnboarding(dayKey(for: $0.date)) }
+        let reports = fetchAllWeeklyReports().filter { filterByOnboarding(dayKey(for: $0.weekStart)) }
         let completedQuests = quests.filter { $0.completedAt != nil }
         let completedQuestDays = Set(completedQuests.map { dayKey(for: $0.date) })
         let completedByDay = Dictionary(grouping: completedQuests, by: { dayKey(for: $0.date) })
