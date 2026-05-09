@@ -1,0 +1,127 @@
+[
+  {
+    "slug": "activity.fixture-walk-after-meal.v1",
+    "genre": "activity",
+    "intent": "walk-after-meal",
+    "target": { "metric": "minutes", "value": 10, "unit": "min" },
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "A short walk after dinner",
+        "detail": "Just ten gentle minutes after your evening meal. It can feel restful."
+      },
+      "coach": {
+        "title": "Walk 10 minutes after dinner",
+        "detail": "A short walk after your largest meal helps glucose response. Keep it easy."
+      },
+      "firm_direct": {
+        "title": "10 minutes. After dinner. Walk.",
+        "detail": "After tonight's biggest meal, walk ten minutes. That's the rep."
+      }
+    }
+  },
+  {
+    "slug": "activity.fixture-stairs-instead.v1",
+    "genre": "activity",
+    "intent": "stairs-instead",
+    "target": { "metric": "instances", "value": 1, "unit": "trip" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Take the stairs once today",
+        "detail": "If stairs come up, choose them once. Small choices matter."
+      },
+      "coach": {
+        "title": "One stairs-instead-of-elevator today",
+        "detail": "Pick one elevator moment and take the stairs. Counts as exercise."
+      },
+      "firm_direct": {
+        "title": "Stairs. Once. Today.",
+        "detail": "Skip one elevator. Take the stairs. Done."
+      }
+    }
+  },
+  {
+    "slug": "diet.fixture-water-with-meal.v1",
+    "genre": "diet",
+    "intent": "water-with-meal",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A glass of water with a meal",
+        "detail": "Pour a glass of water before you eat one meal today. Slow sips."
+      },
+      "coach": {
+        "title": "Water alongside one meal today",
+        "detail": "Pair one meal with a full glass of water. Helps satiety, helps hydration."
+      },
+      "firm_direct": {
+        "title": "Water with one meal. Today.",
+        "detail": "Glass of water. One meal. No soda swap-in."
+      }
+    }
+  },
+  {
+    "slug": "diet.fixture-add-protein.v1",
+    "genre": "diet",
+    "intent": "add-protein",
+    "target": { "metric": "servings", "value": 1, "unit": "meal" },
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Add a protein source to one meal",
+        "detail": "Eggs, beans, fish, tofu — pick one and add it to a meal today."
+      },
+      "coach": {
+        "title": "One protein-anchored meal today",
+        "detail": "Add 20–30g of protein to one meal. Anything that walked, swam, or grew in a pod works."
+      },
+      "firm_direct": {
+        "title": "Protein in one meal. Today.",
+        "detail": "Pick a meal. Add protein. 20–30g minimum. No exceptions."
+      }
+    }
+  },
+  {
+    "slug": "sleep.fixture-wind-down.v1",
+    "genre": "sleep",
+    "intent": "wind-down",
+    "target": { "metric": "minutes", "value": 30, "unit": "min" },
+    "exclusionGroups": ["evening-energy"],
+    "copy": {
+      "gentle": {
+        "title": "A calm 30 minutes before bed",
+        "detail": "Dim the lights, set the phone aside. Let the day soften before sleep."
+      },
+      "coach": {
+        "title": "30-minute wind-down before bed",
+        "detail": "Lower the lights, drop the screens. Sleep onset gets easier with the runway."
+      },
+      "firm_direct": {
+        "title": "30 minutes. Lights low. No screens.",
+        "detail": "Half an hour before bed: no phone, no laptop. Let sleep arrive."
+      }
+    }
+  },
+  {
+    "slug": "sleep.fixture-consistency.v1",
+    "genre": "sleep",
+    "intent": "consistency",
+    "target": { "metric": "minutes", "value": 30, "unit": "min-window" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Same bedtime, give or take",
+        "detail": "Aim for tonight's bedtime within half an hour of usual. Routine compounds."
+      },
+      "coach": {
+        "title": "Bedtime within ±30 min of usual",
+        "detail": "Hit your normal bedtime within a half-hour window tonight. Consistency is the win."
+      },
+      "firm_direct": {
+        "title": "Bed at your usual time. ±30 min.",
+        "detail": "Within thirty minutes of your normal bedtime. No drift."
+      }
+    }
+  }
+]

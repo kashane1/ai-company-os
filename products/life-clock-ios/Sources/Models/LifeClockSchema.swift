@@ -31,7 +31,16 @@ enum LifeClockSchemaV1: VersionedSchema {
     // legacy rows; @Attribute(.unique) on dayKey is safe at migration.
     // See docs/plans/2026-05-01-refactor-life-clock-tab-consolidation-plan.md
     // Phase 3 + 2026-05-02 review-fix changelog.
-    static var versionIdentifier = Schema.Version(1, 3, 0)
+    //
+    // 1.4.0 (2026-05-08): Phase 2 of the quest-pool affinity engine.
+    // Additive new `QuestEvent` entity (four-event lifecycle: shown / picked
+    // / replaced / completed — selection-side tracking that the new affinity
+    // engine reads in Phase 3). Additive `Quest.genre` field with
+    // property-level default `""`, populated at bootstrap from a slug→genre
+    // map; `Quest.category` is intentionally preserved for rollback safety
+    // and to keep `WeeklyReport.topPositiveDriver` strings consistent. See
+    // docs/plans/2026-05-08-feat-quest-pool-affinity-engine-plan.md.
+    static var versionIdentifier = Schema.Version(1, 4, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -43,6 +52,7 @@ enum LifeClockSchemaV1: VersionedSchema {
             Quest.self,
             WeeklyReport.self,
             DailyReflection.self,
+            QuestEvent.self,
         ]
     }
 
@@ -312,6 +322,17 @@ enum LifeClockSchemaV1: VersionedSchema {
         var rewardEstimateMinutes: Int = 0
         var completedAt: Date? = nil
 
+        // 1.4.0 (2026-05-08): additive `genre` field for the quest-pool
+        // affinity engine. Populated at bootstrap from a slug→genre map
+        // (LifeClockStore.bootstrapQuestGenres). Property-level default
+        // `""` keeps lightweight migration safe; engine code treats `""`
+        // as "needs backfill" and falls back to mapping by `category`.
+        // `category` is intentionally preserved (not rewritten in place)
+        // for rollback safety and cross-table vocabulary alignment with
+        // WeeklyReport driver strings. See
+        // docs/plans/2026-05-08-feat-quest-pool-affinity-engine-plan.md.
+        var genre: String = ""
+
         init(
             id: UUID = UUID(),
             slug: String,
@@ -320,7 +341,8 @@ enum LifeClockSchemaV1: VersionedSchema {
             detail: String,
             category: String,
             target: Double,
-            rewardEstimateMinutes: Int
+            rewardEstimateMinutes: Int,
+            genre: String = ""
         ) {
             self.id = id
             self.slug = slug
@@ -330,6 +352,7 @@ enum LifeClockSchemaV1: VersionedSchema {
             self.category = category
             self.target = target
             self.rewardEstimateMinutes = rewardEstimateMinutes
+            self.genre = genre
         }
     }
 
@@ -372,6 +395,59 @@ enum LifeClockSchemaV1: VersionedSchema {
             self.response = response
         }
     }
+
+    /// 1.4.0 (2026-05-08): per-event tracking for the quest-pool affinity
+    /// engine. One row per (date, slug, kind) — the `shown / picked /
+    /// replaced / completed` lifecycle. Phase 3's AffinityEngine reads this
+    /// table to compute per-genre EMA preferences; the end-of-day resolver
+    /// fills `resolvedKind` for unresolved rows on the next foreground past
+    /// midnight (gates `picked` → "abandoned" and `shown` → "passed_over").
+    ///
+    /// Brand-new entity, no legacy rows. `id` is `@Attribute(.unique)` —
+    /// safe at migration time because the table starts empty.
+    ///
+    /// Hard rule (NSCocoaErrorDomain 134110 landmine): every non-optional
+    /// stored property carries a property-level default. The default-init
+    /// pattern matches `TimeLedgerEntry`. See
+    /// docs/solutions/integration-issues/swiftdata-mandatory-attribute-migration-landmine.md
+    /// and docs/plans/2026-05-08-feat-quest-pool-affinity-engine-plan.md.
+    @Model
+    final class QuestEvent {
+        @Attribute(.unique) var id: UUID = UUID()
+        /// Calendar-day this event belongs to (start-of-day in the user's
+        /// local timezone at emit). Never re-bucketed on timezone shift —
+        /// see plan G8 for rationale.
+        var date: Date = Date(timeIntervalSince1970: 0)
+        var slug: String = ""
+        /// Denormalized genre string ("activity" / "diet" / "sleep") so
+        /// affinity computation can fetch + group without cross-table
+        /// joins to PoolQuest. Set by the emit path from the in-memory
+        /// pool entry's `genre.rawValue`.
+        var genre: String = ""
+        /// "shown" | "picked" | "replaced" | "completed". String-typed to
+        /// match the existing `driverType` convention on TimeLedgerEntry.
+        var kind: String = ""
+        /// End-of-day resolver fills these. Unresolved `shown` rows roll
+        /// forward as "passed_over"; unresolved `picked` rows as
+        /// "abandoned". Both nil for `completed` and `replaced` (already
+        /// terminal at emit).
+        var resolvedAt: Date? = nil
+        var resolvedKind: String? = nil
+
+        init(
+            id: UUID = UUID(),
+            date: Date,
+            slug: String,
+            genre: String,
+            kind: String
+        ) {
+            self.id = id
+            self.date = date
+            self.slug = slug
+            self.genre = genre
+            self.kind = kind
+        }
+    }
 }
 
 // Production code references the typealiases — never the versioned form.
@@ -384,6 +460,7 @@ typealias TimeLedgerEntry = LifeClockSchemaV1.TimeLedgerEntry
 typealias Quest = LifeClockSchemaV1.Quest
 typealias WeeklyReport = LifeClockSchemaV1.WeeklyReport
 typealias DailyReflection = LifeClockSchemaV1.DailyReflection
+typealias QuestEvent = LifeClockSchemaV1.QuestEvent
 
 enum LifeClockMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
@@ -393,5 +470,11 @@ enum LifeClockMigrationPlan: SchemaMigrationPlan {
     /// Empty for V1. When V2 lands, add a `MigrationStage.lightweight` (for
     /// renames/optional adds) or `.custom` (for data transforms). Write a
     /// snapshot test of V1 → V2 *before* shipping V2.
+    ///
+    /// Note: V1 internal version bumps (1.1.0 → 1.4.0) are all
+    /// lightweight-eligible because every change has been additive with
+    /// property-level defaults. The single VersionedSchema absorbs them
+    /// without an explicit MigrationStage — see SwiftData lightweight
+    /// migration semantics.
     static var stages: [MigrationStage] { [] }
 }

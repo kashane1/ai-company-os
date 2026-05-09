@@ -15,6 +15,14 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      # Folder reference for the quest pool — preserves the QuestPool/
+      # subdirectory in the .app bundle so QuestPool.loadFromBundle(_:)
+      # can resolve "QuestPool/<basename>.json" without flattening.
+      # Phase 2 of the quest-pool affinity engine
+      # (docs/plans/2026-05-08-feat-quest-pool-affinity-engine-plan.md).
+      - path: Resources/QuestPool
+        type: folder
+        buildPhase: resources
     info:
       path: Info.plist
       properties:

@@ -214,4 +214,214 @@ final class LifeClockSchemaMigrationTests: XCTestCase {
         XCTAssertEqual(log.dietAmountRhythm, "right")
         XCTAssertEqual(log.wholeFoodMeal, "yes")
     }
+
+    // MARK: - V1.4.0 quest-pool affinity engine
+    //
+    // Phase 2 of docs/plans/2026-05-08-feat-quest-pool-affinity-engine-plan.md
+    // adds:
+    //   * `Quest.genre: String = ""`         (additive, defaulted)
+    //   * `QuestEvent` brand-new entity      (no legacy rows; @Attribute(.unique)
+    //                                         on `id` is safe at migration time)
+    //
+    // Both are lightweight-eligible. The default-state guards below pin the
+    // contract; the file-backed round-trip exercises the migration path
+    // that the simulator's fresh-install flow never catches.
+
+    // MARK: V1.4.0 default-state guards
+
+    func testQuestGenreDefaultsToEmptyString() throws {
+        let quest = Quest(
+            slug: "movement.steps-target.v1",
+            date: Date(timeIntervalSince1970: 0),
+            title: "Steps target",
+            detail: "",
+            category: "movement",
+            target: 7500,
+            rewardEstimateMinutes: 5
+        )
+        XCTAssertEqual(
+            quest.genre, "",
+            "Quest.genre must default to empty string for SwiftData lightweight migration safety"
+        )
+    }
+
+    func testQuestEventDefaultsAreNeutral() throws {
+        let event = QuestEvent(
+            date: Date(timeIntervalSince1970: 0),
+            slug: "activity.fixture-walk-after-meal.v1",
+            genre: "activity",
+            kind: "shown"
+        )
+        XCTAssertEqual(event.slug, "activity.fixture-walk-after-meal.v1")
+        XCTAssertEqual(event.genre, "activity")
+        XCTAssertEqual(event.kind, "shown")
+        XCTAssertNil(event.resolvedAt, "resolvedAt is nil until end-of-day resolver fires")
+        XCTAssertNil(event.resolvedKind)
+    }
+
+    // MARK: V1.4.0 file-backed round-trip
+    //
+    // Real SQLite-backed store catches the NSCocoaErrorDomain 134110 landmine
+    // (in-memory containers skip lightweight migration). A regression on
+    // either property-level default would surface here, not at user device
+    // upgrade time.
+
+    func testQuestEventRoundTripsThroughFileBackedStore() throws {
+        let storeURL = URL.temporaryDirectory
+            .appendingPathComponent("lifeclock-quest-event-\(UUID()).store")
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storeURL)
+        }
+
+        let schema = Schema(versionedSchema: LifeClockSchemaV1.self)
+        let config = ModelConfiguration(
+            "LifeClockQuestEventTest",
+            schema: schema,
+            url: storeURL,
+            allowsSave: true,
+            cloudKitDatabase: .none
+        )
+
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+        let resolved = Date(timeIntervalSince1970: 1_768_608_000)
+
+        // First open: insert a shown event and a resolved (passed_over) event.
+        let writeContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let writeContext = ModelContext(writeContainer)
+        let pending = QuestEvent(
+            date: day,
+            slug: "activity.fixture-walk-after-meal.v1",
+            genre: "activity",
+            kind: "shown"
+        )
+        let resolvedEvent = QuestEvent(
+            date: day,
+            slug: "diet.fixture-water-with-meal.v1",
+            genre: "diet",
+            kind: "shown"
+        )
+        resolvedEvent.resolvedAt = resolved
+        resolvedEvent.resolvedKind = "passed_over"
+        writeContext.insert(pending)
+        writeContext.insert(resolvedEvent)
+        try writeContext.save()
+
+        // Reopen against the same on-disk store.
+        let readContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let readContext = ModelContext(readContainer)
+        let fetched = try readContext.fetch(FetchDescriptor<QuestEvent>())
+            .sorted { $0.slug < $1.slug }
+        XCTAssertEqual(fetched.count, 2)
+
+        XCTAssertEqual(fetched[0].slug, "activity.fixture-walk-after-meal.v1")
+        XCTAssertEqual(fetched[0].genre, "activity")
+        XCTAssertEqual(fetched[0].kind, "shown")
+        XCTAssertNil(fetched[0].resolvedAt)
+        XCTAssertNil(fetched[0].resolvedKind)
+
+        XCTAssertEqual(fetched[1].slug, "diet.fixture-water-with-meal.v1")
+        XCTAssertEqual(fetched[1].genre, "diet")
+        XCTAssertEqual(fetched[1].kind, "shown")
+        XCTAssertEqual(fetched[1].resolvedKind, "passed_over")
+        XCTAssertEqual(
+            try XCTUnwrap(fetched[1].resolvedAt).timeIntervalSince1970,
+            resolved.timeIntervalSince1970,
+            accuracy: 0.001
+        )
+    }
+
+    func testQuestGenreRoundTripsThroughFileBackedStore() throws {
+        let storeURL = URL.temporaryDirectory
+            .appendingPathComponent("lifeclock-quest-genre-\(UUID()).store")
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storeURL)
+        }
+
+        let schema = Schema(versionedSchema: LifeClockSchemaV1.self)
+        let config = ModelConfiguration(
+            "LifeClockQuestGenreTest",
+            schema: schema,
+            url: storeURL,
+            allowsSave: true,
+            cloudKitDatabase: .none
+        )
+
+        let day = Date(timeIntervalSince1970: 1_768_521_600)
+
+        // First open: insert a Quest with explicit genre + one with default genre.
+        let writeContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let writeContext = ModelContext(writeContainer)
+        let questWithGenre = Quest(
+            slug: "activity.fixture-walk-after-meal.v1",
+            date: day,
+            title: "Walk after meal",
+            detail: "",
+            category: "movement",
+            target: 10,
+            rewardEstimateMinutes: 5,
+            genre: "activity"
+        )
+        // Legacy-shape Quest using the older init signature — gets the
+        // property-level default for `genre` ("").
+        let legacyQuest = Quest(
+            slug: "movement.steps-target.v1",
+            date: day,
+            title: "Steps target",
+            detail: "",
+            category: "movement",
+            target: 7500,
+            rewardEstimateMinutes: 5
+        )
+        writeContext.insert(questWithGenre)
+        writeContext.insert(legacyQuest)
+        try writeContext.save()
+
+        let readContainer = try ModelContainer(
+            for: schema,
+            migrationPlan: LifeClockMigrationPlan.self,
+            configurations: [config]
+        )
+        let readContext = ModelContext(readContainer)
+        let fetched = try readContext.fetch(FetchDescriptor<Quest>())
+            .sorted { $0.slug < $1.slug }
+        XCTAssertEqual(fetched.count, 2)
+
+        // Mirror the HabitLog sibling-field pattern at line 197 — every Quest
+        // column must round-trip so a future refactor that silently drops a
+        // property-level default surfaces here, not on user devices.
+        XCTAssertEqual(fetched[0].slug, "activity.fixture-walk-after-meal.v1")
+        XCTAssertEqual(fetched[0].genre, "activity")
+        XCTAssertEqual(fetched[0].category, "movement")
+        XCTAssertEqual(fetched[0].title, "Walk after meal")
+        XCTAssertEqual(fetched[0].detail, "")
+        XCTAssertEqual(fetched[0].target, 10)
+        XCTAssertEqual(fetched[0].progress, 0)
+        XCTAssertEqual(fetched[0].rewardEstimateMinutes, 5)
+        XCTAssertNil(fetched[0].completedAt)
+
+        XCTAssertEqual(fetched[1].slug, "movement.steps-target.v1")
+        XCTAssertEqual(
+            fetched[1].genre, "",
+            "Legacy Quest without explicit genre must read back as empty string — engine treats empty as 'needs backfill'"
+        )
+        XCTAssertEqual(fetched[1].category, "movement")
+        XCTAssertEqual(fetched[1].title, "Steps target")
+        XCTAssertEqual(fetched[1].detail, "")
+        XCTAssertEqual(fetched[1].target, 7500)
+        XCTAssertEqual(fetched[1].progress, 0)
+        XCTAssertEqual(fetched[1].rewardEstimateMinutes, 5)
+        XCTAssertNil(fetched[1].completedAt)
+    }
 }
