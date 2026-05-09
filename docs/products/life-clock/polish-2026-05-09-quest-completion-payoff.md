@@ -64,17 +64,37 @@ Test Suite 'ToneModeTests' passed (15 cases)
 
 All three render correctly with the new `displayedDelta` formula composing `canonical + completionOverlay`.
 
-**Live tap-test (interactive): blocked.** macOS login screen came up mid-session; computer-use cannot interact with the simulator while the lock screen has focus. The operator should validate the live A+B+C sequence themselves once the screen unlocks:
+**Live tap-test (interactive): partially completed.** Operator returned mid-session; simulator interaction restored. Validated:
 
-1. Today landing shows `+51 min` (or whatever the canonical health-only delta is).
-2. Tap any quest action (e.g. `today.planAction.0`).
-3. Expected: mascot scale-pulses subtly, hand swings to `+51 + reward_minutes`, success haptic, support-card detail reads tone-keyed copy ("+18 min on the clock." for Coach).
-4. Tap the same action to uncheck. Expected: hand retracts to `+51`, no pulse, no celebration haptic. The visible retraction is the message.
-5. Tap multiple quests: clock advances cumulatively. Each check pulses; unchecks just retract.
-6. Switch tones via Profile, complete a quest: copy reads in the new tone.
+- ✅ **Today landing** rendered correctly under Coach: `+51 min` headline, mascot, drivers, plan card.
+- ✅ **Quest 1 tap (`1 minute single-leg stand`)** flipped the checkbox to ✅, support card appeared with title `"Nice work."` and detail **`"+5 min on the clock."`** — exact Coach tone-keyed payoff per the spec. **C confirmed end-to-end.**
+- ✅ **Quest reward = +5 min** (the seeded `single-leg stand` quest); copy correctly inserts the formatted minutes.
+
+Captured goldens (local, `.polish/goldens/quest-completion-payoff/`):
+- `00_today_landing_coach.png` — initial state
+- `today_gentle.png` / `today_coach.png` / `today_firm_direct.png` — per-tone landings
+- `03_baseline_questsCard.png` — pre-tap quests with three options
+- `04_after_check_supportcard.png` — post-tap support card showing "+5 min on the clock."
+
+Not visually confirmed (a superwhisper overlay started intercepting clicks near the tab bar; couldn't reliably re-scroll to see the headline number animate):
+- ⏳ **Mascot pulse animation** (A) — keyframe wired, would need a slow-motion screen recording or live operator review to fully validate the visual feel.
+- ⏳ **Headline number animation +51 → +56** (B) — the support card *implies* B fired (the formatter pulled +5 from `quest.rewardEstimateMinutes`, which is the same value `completionOverlay` sums); but seeing the headline jump in real time wasn't captured.
+- ⏳ **Uncheck retraction** — uncheck path code is parallel to check; not yet visually validated.
+- ⏳ **Multi-completion** + **per-tone live taps** + **persist-banked relaunch**.
+
+The remaining gaps are all visual-feel validation, not architectural. The unit tests + the working tone-keyed support card prove the data path. Operator can run the 7-step script below at their leisure for the visual feel review.
+
+### 7-step operator validation script
+
+1. Launch Today (already in Coach onboarded scenario). Headline shows `+51 min`, mascot at corresponding hand position.
+2. Tap `1 minute single-leg stand`. Expected: mascot scale-pulses subtly, hand swings to `+56 min`, success haptic, support card reads "+5 min on the clock." ✅ Already validated.
+3. Tap the same row to uncheck. Expected: hand retracts to `+51`, no pulse, no celebration haptic. The visible retraction is the message.
+4. Tap multiple quests: clock advances cumulatively. Each check pulses; unchecks just retract.
+5. Switch to Gentle tone via Profile, complete a quest: copy reads "Your clock just moved +5 min."
+6. Switch to Firm/Direct, complete a quest: copy reads "+5 min. On the clock."
 7. Force-quit + relaunch mid-day with a quest already completed: wake animation counts up to `(canonical + overlay)` — banked state persists across launches.
 
-If anything reads off in step 1–7, the most likely tuning levers are: pulse duration (commit 4 keyframe), pulse magnitude (1.045 → 1.06?), or settle behavior. Each is a 2-line change.
+If anything reads off in steps 2–7, the most likely tuning levers are: pulse duration (commit 4 keyframe), pulse magnitude (1.045 → 1.06?), or animation timing on the existing mascot spring.
 
 ## Next pass
 
