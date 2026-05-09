@@ -178,6 +178,11 @@ final class LifeClockStore {
         // every launch. Migration must complete before this runs;
         // SwiftData's ModelContainer init makes that the case.
         bootstrapQuestGenres()
+        // V1.6.0 (Phase 5a): flip legacy `useQuestPoolEngine = false`
+        // rows forward. Idempotent: subsequent launches find the flag
+        // already true and short-circuit. Existing user upgrades hit
+        // this once on the launch immediately after the V1.6.0 ship.
+        bootstrapQuestPoolEngineFlag()
         await refreshFromHealthKit()
         notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
         await reconcileNotifications()
@@ -433,6 +438,28 @@ final class LifeClockStore {
         if changed {
             try? modelContext.save()
         }
+    }
+
+    // MARK: - Phase 5a flag-flip backfill (V1.6.0)
+    //
+    // Property-default changes in SwiftData only affect new instantiations.
+    // Existing UserProfile rows persisted under V1.5.0 stay at their stored
+    // value (false). To meet plan §5a's "existing user upgrades flip on
+    // next launch" criterion, this backfill flips false → true once after
+    // the V1.6.0 ship and short-circuits thereafter.
+    //
+    // Idempotency contract:
+    //   * On first post-V1.6.0 launch: flips the persisted false → true.
+    //   * On every subsequent launch: profile.useQuestPoolEngine is already
+    //     true (either via the flip above or via a fresh-install default),
+    //     and the guard short-circuits.
+    //
+    // `internal` (not `private`) so unit tests can exercise the
+    // idempotency contract directly via `@testable import`.
+    func bootstrapQuestPoolEngineFlag() {
+        guard let profile, !profile.useQuestPoolEngine else { return }
+        profile.useQuestPoolEngine = true
+        try? modelContext.save()
     }
 
     // MARK: - HealthKit-driven recompute

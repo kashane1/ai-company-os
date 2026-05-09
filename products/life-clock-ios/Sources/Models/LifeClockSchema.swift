@@ -54,7 +54,18 @@ enum LifeClockSchemaV1: VersionedSchema {
     // Plus an `#Index` on QuestEvent's (date, slug, kind) triple — without
     // it, the idempotent-emit dedup lookup grows linearly with retention.
     // See docs/plans/2026-05-08-feat-quest-pool-phase-3-engines-plan.md.
-    static var versionIdentifier = Schema.Version(1, 5, 0)
+    //
+    // 1.6.0 (2026-05-08): Phase 5a of the quest-pool affinity engine.
+    // Default value of `useQuestPoolEngine` flipped from `false` → `true`
+    // for fresh installs. Existing installs retain whatever value was
+    // stored, so a startup-time idempotent backfill in
+    // `LifeClockStore.bootstrapQuestPoolEngineFlag()` flips the legacy
+    // false to true on next launch — meeting the plan §5a acceptance
+    // criterion that existing users move to the new path. Backfill is a
+    // value-only mutation, no schema shape change, so lightweight
+    // migration applies. See
+    // docs/plans/2026-05-08-feat-quest-pool-phase-4-and-5-plan.md §5a.
+    static var versionIdentifier = Schema.Version(1, 6, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -194,10 +205,15 @@ enum LifeClockSchemaV1: VersionedSchema {
 
         /// Feature flag for the quest-pool selector path. When true,
         /// `QuestEngine.generateDailyQuests` routes through QuestSelector
-        /// + the JSON-loaded pool. When false (default), the legacy
-        /// inlined Quest path runs unchanged. Flipped by Phase 5a after
-        /// the production pool ships and bakes ≥1 week.
-        var useQuestPoolEngine: Bool = false
+        /// + the JSON-loaded pool. When false, the legacy inlined Quest
+        /// path runs unchanged.
+        ///
+        /// Phase 5a (V1.6.0): default flipped to `true`. Existing rows
+        /// stored as `false` are migrated forward by
+        /// `LifeClockStore.bootstrapQuestPoolEngineFlag()` on next launch.
+        /// Phase 5b will retire the legacy path and remove this flag
+        /// entirely after a ≥1-week production bake.
+        var useQuestPoolEngine: Bool = true
 
         init(
             id: UUID = UUID(),

@@ -431,16 +431,23 @@ final class LifeClockSchemaMigrationTests: XCTestCase {
     // adds three additive UserProfile fields:
     //   * `distinctOpenDays: Int = 0`
     //   * `lastForegroundDay: Date? = nil`
-    //   * `useQuestPoolEngine: Bool = false`
+    //   * `useQuestPoolEngine: Bool` — added in V1.5.0 with default
+    //     false; flipped to true at V1.6.0 (Phase 5a).
     //
     // All lightweight-eligible. Default-state guard + file-backed
     // round-trip test cover the SwiftData migration landmine.
 
-    func testV150NewUserProfileFieldsDefaultToZeroNilFalse() throws {
+    /// V1.6.0 (Phase 5a): default for `useQuestPoolEngine` flipped from
+    /// false → true. Fresh-init profiles now route to the pool selector
+    /// path immediately.
+    func testNewUserProfileV160DefaultsAreCorrect() throws {
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 0))
         XCTAssertEqual(profile.distinctOpenDays, 0)
         XCTAssertNil(profile.lastForegroundDay)
-        XCTAssertFalse(profile.useQuestPoolEngine)
+        XCTAssertTrue(
+            profile.useQuestPoolEngine,
+            "V1.6.0 fresh-install default for useQuestPoolEngine must be true"
+        )
     }
 
     func testV150UserProfileFieldsRoundTripThroughFileBackedStore() throws {
@@ -577,9 +584,20 @@ final class LifeClockSchemaMigrationTests: XCTestCase {
         // V1.4.0 additive field reads as default
         XCTAssertEqual(readQuest.genre, "", "V1.4.0 Quest.genre must default to empty after double-hop migration")
 
-        // V1.5.0 additive fields read as defaults
+        // V1.5.0 additive fields read as their schema-current defaults.
+        // Note: in V1.6.0 (Phase 5a) the `useQuestPoolEngine` default
+        // flipped from false → true. Same-version round-trip writes the
+        // *current* schema's default for the fresh init that omits the
+        // field. The startup migration in
+        // `LifeClockStore.bootstrapQuestPoolEngineFlag()` handles the
+        // separate concern of flipping legacy persisted-false rows
+        // forward; that migration is unit-tested in
+        // `LifeClockStoreTests` rather than here.
         XCTAssertEqual(readProfile.distinctOpenDays, 0, "V1.5.0 distinctOpenDays must default to 0")
         XCTAssertNil(readProfile.lastForegroundDay, "V1.5.0 lastForegroundDay must default to nil")
-        XCTAssertFalse(readProfile.useQuestPoolEngine, "V1.5.0 useQuestPoolEngine must default to false")
+        XCTAssertTrue(
+            readProfile.useQuestPoolEngine,
+            "V1.6.0 useQuestPoolEngine fresh-init default must be true"
+        )
     }
 }
