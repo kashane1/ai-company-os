@@ -3,6 +3,8 @@
 > **Status:** Draft for operator review. Surfaced 2026-05-09 after operator chose A + B + C in the simulator-driven-polish vision-notifications-audit follow-up. **Does not ship yet.** This plan is the artifact to align on before the implementation session begins.
 >
 > **Sources:** vision Open Question #14 (origin: Codex polish session 2026-05-08), [polish-2026-05-08-vision-today-completion-payoff.md](../products/life-clock/polish-2026-05-08-vision-today-completion-payoff.md), code investigation 2026-05-09.
+>
+> **Revision 2 (2026-05-09):** Operator chose persist-banked over settle-back. The clock state should reflect the user's completed quests for the rest of the day; uncheck visibly retracts. State machine simplified accordingly; Q-plan-1 closed. See "Behavior model — persist-banked" below.
 
 ---
 
@@ -16,12 +18,29 @@ Close the "feels like a checkbox, not felt time" gap on daily quest completion. 
 
 Therefore:
 
-- The +28 headline today is a **health + habit** delta.
+- The **canonical headline delta** today is a **health + habit** delta (e.g. +28). This is the model truth and never changes due to user actions on the Today screen.
 - A completed quest's `rewardEstimateMinutes` (e.g. +18) is a **projection** of what the action might contribute *to tomorrow's* delta via downstream HK signal (steps, sleep, etc.).
-- Animating the clock to +46 and STAYING there overstates today's settled state — that drifts toward "prophecy, not trajectory" (a Decided constraint).
-- Animating to +46 and SETTLING BACK to +28 is honest if the visual makes "felt potential vs. settled today" legible.
+- The **visible headline number** (what the user sees) = canonical + sum of completed-quest rewards for today. This is "trajectory if you follow through," not prophecy. The model truth is recoverable by inspection (the canonical is computed from snapshots; the overlay is computed from `Quest.completedAt`).
+- The day boundary resets the overlay — tomorrow's quests are fresh `Quest` instances with `completedAt == nil`. Yesterday's gaming doesn't poison today.
+- This is honest because the user can see what they've committed to (clock high) and tomorrow's clock will reflect what their body actually delivered (HK signal validates or doesn't).
 
-The plan below lands on settle-back. A persistent "Banked: +18 min for tomorrow" indicator could optionally live elsewhere (queued, not in scope for this ship).
+## Behavior model — persist-banked
+
+**The visible headline delta + mascot hand position track this formula at all times:**
+
+```
+visibleDelta = canonicalDelta + completionOverlay
+completionOverlay = Σ rewardEstimateMinutes for today's quests where completedAt != nil
+```
+
+| Event | What happens to the visible clock |
+|---|---|
+| App opens (cold launch or foreground) | Wake animation: count up from 0 → `visibleDelta` over 1.0s. Includes any already-completed quests from earlier in the day. |
+| User checks a quest | Mascot hand animates from current `visibleDelta` to new `visibleDelta` (existing `.interpolatingSpring()`). Mascot pulse fires (A). Tone copy fades in (C). Success haptic on settle. |
+| User unchecks a quest | Mascot hand animates from current `visibleDelta` to new (lower) `visibleDelta`. **No pulse, no tone copy, no success haptic** — uncheck is undoing, not winning. Light "selection" haptic only. |
+| App backgrounded mid-day, re-foregrounded | Wake fires again, count-up to (canonical + currently-completed-overlay). Reflects in-day persistence correctly. |
+| Day rolls over while app is open (rare) | New canonical recomputes (might be 0 at midnight + a few minutes). Today's quests refresh — the now-fresh quests have `completedAt == nil` → overlay = 0. Mascot animates from yesterday-end-state to today-fresh-state via the existing spring. No special-case code; the state derivation handles it. |
+| Day rolls over while app is closed | App relaunch goes through cold-launch → wake fires against today's canonical + today's completed quests (none yet) → overlay = 0. Yesterday's banked is gone, as expected. |
 
 ## Scope
 
@@ -65,7 +84,18 @@ private var displayedDelta: Int {
 Becomes:
 
 ```swift
-@State private var completionOverlay: Int = 0  // ramps 0 → reward → 0 during the payoff sequence
+private var completionOverlay: Int {
+    // Sum of rewardEstimateMinutes for today's quests where completedAt is set.
+    // Derived; not @State. Recomputes when store.quests or store.toneMode changes.
+    let dayStart = store.clock.calendar.startOfDay(for: store.clock.now())
+    return store.todayQuests
+        .filter { quest in
+            guard let completedAt = quest.completedAt else { return false }
+            return store.clock.calendar.isDate(completedAt, inSameDayAs: dayStart)
+        }
+        .map(\.rewardEstimateMinutes)
+        .reduce(0, +)
+}
 
 private var displayedDelta: Int {
     let real = store.todayEstimate?.dailyTimeDeltaMinutes ?? 0
@@ -73,45 +103,47 @@ private var displayedDelta: Int {
 }
 ```
 
-`completionOverlay` is the in-session "felt time" surcharge. It composes correctly with `wakeProgress` so a completion that fires during a wake animation still scales with the count-up. Settled state has `completionOverlay = 0`; the headline always reflects model truth.
+`completionOverlay` is **derived state, not stored state.** No `@State`, no manual ramp-up/ramp-down logic, no day-boundary clearing code. The store's existing observable mechanism (Quest changes via `toggleQuestCompletion`) re-fires `displayedDelta` recompute, and `LifeClockMascotView`'s existing `.animation(.interpolatingSpring(), value: minutesDelta)` handles the visual transition.
 
-### State machine
+This is dramatically simpler than the settle-back state machine. Mascot animation is "free" via the existing spring; we only add the pulse + tone copy on TOP for the check path.
 
-`@State private var payoff: PayoffState = .idle` on TodayView:
+### Animation timeline (simplified by persist-banked)
 
-```
-enum PayoffState {
-    case idle
-    case advancing(quest: Quest, startedAt: Date)
-    case holding(quest: Quest)
-    case settling(quest: Quest)
-    case copyVisible(quest: Quest, until: Date)
-}
-```
+The persist-banked model collapses the state machine. There's no "settle back" phase, because the overlay doesn't go back. The mascot's existing `.interpolatingSpring(value: minutesDelta)` does most of the work for free.
 
-Transitions (durations chosen for legibility on a 60Hz device):
+**Check path** (user ticks a quest):
 
 | Phase | Duration | What happens |
 |---|---|---|
-| `.idle → .advancing` | t = 0 | Light haptic. `completionOverlay` springs to `quest.rewardEstimateMinutes` over 520ms. Mascot pulse keyframe fires (scale 1.00→1.045→1.00, lighting-convention warm highlight ramps in). Tone-keyed copy is staged but not yet shown. |
-| `.advancing → .holding` | t = 520ms | Hand and overlay rest at peak. Heartbeat continues at 30Hz. Tone copy still hidden. |
-| `.holding → .settling` | t = 870ms (350ms hold) | `completionOverlay` springs back to 0 over 250ms. Tone copy fades in at the start of this phase, anchored to the support card. Success haptic on settle. |
-| `.settling → .copyVisible` | t = 1170ms | Hand at canonical. Tone copy fully visible. Hold for 2.4s. |
-| `.copyVisible → .idle` | t = 3570ms | Tone copy fades to the existing static `"Added to your progress log."` line. Sequence ends. |
+| t = 0 | — | Light haptic on tap. `quest.completedAt = now` writes to SwiftData. Derived `completionOverlay` recomputes; `displayedDelta` increases. |
+| t = 0–520ms | 520ms | Mascot hand springs from old `displayedDelta` to new (the existing `.interpolatingSpring()` handles this). Concurrently, the mascot pulse fires (scale 1.00→1.045→1.00 over 520ms) and the lighting-convention warm highlight ramps in to opacity 0.22 over the first 200ms, holds, fades over the last 200ms. |
+| t = 520ms | — | Pulse settles, highlight gone. Hand at new resting position. Success haptic. Tone-keyed copy fades in on the support card (200ms cross-fade). |
+| t = 720–3120ms | 2.4s | Tone copy visible. Static support-card text held. |
+| t = 3120ms | 200ms | Tone copy fades out, support card returns to its default `"Added to your progress log."` line. |
 
-Total perceived motion: ~1.2s. Total reward window (motion + copy): ~3.6s.
+Total perceived motion: ~520ms. Total reward window (motion + copy): ~3.1s.
+
+**Uncheck path** (user un-ticks a quest):
+
+| Phase | Duration | What happens |
+|---|---|---|
+| t = 0 | — | Light selection haptic on tap (default toggle haptic). `quest.completedAt = nil` writes to SwiftData. Derived `completionOverlay` recomputes; `displayedDelta` decreases. |
+| t = 0–520ms | 520ms | Mascot hand springs from old `displayedDelta` down to new (existing `.interpolatingSpring()`). **No pulse, no warm highlight, no tone copy, no success haptic.** Uncheck is undoing, not winning. The clock visibly retracts. |
+
+Total perceived motion: ~520ms. No copy window. The visible retraction IS the message.
 
 ### Edge cases
 
 | Case | Behavior |
 |---|---|
-| **Undo mid-sequence** (user un-ticks before sequence ends) | `payoff → .idle`. `completionOverlay` snaps to 0 (no animation). Tone copy dismissed. Suppress success haptic if not yet fired. The toggle's `removeAll` of the TimeLedgerEntry is unchanged. |
-| **Second completion during sequence** | Skip the mascot pulse (no double-pulse, looks chaotic). Update `completionOverlay` target by adding the second quest's reward (so hand advances from current peak to a new higher peak). Reset hold timer. Replace the staged tone copy with the second quest's copy. |
-| **Reduce Motion ON** | A: no pulse. Mascot scale stays 1.0. B: no animation; `completionOverlay` jumps 0 → reward, holds 350ms, jumps back to 0. (Better UX than nothing — the user still sees the felt potential briefly.) C: copy fades in/out unchanged (cross-fades are not affected by Reduce Motion). Haptics unchanged. |
-| **Wake animation in flight** | If `wakeProgress < 1`, defer the entire payoff sequence. The `displayedDelta` formula composes correctly so a deferred sequence layered on top of an in-flight wake still reads right, but the visual conflict (two count-ups simultaneously) is too noisy. Wait until `wakeProgress == 1` then start. |
-| **Quest with rewardEstimateMinutes = 0** | Skip the sequence entirely. Tap → checkbox flips → support card unchanged. There's no felt potential to show. |
-| **Mascot already off-screen** (user scrolled down to questsCard) | Sequence still fires; the user sees the support card payoff line. The visual completion + scroll-to-keep-row-visible behavior already centers the completed row, so the mascot pulse may be partially or fully off-screen. Acceptable — the payoff is the copy and haptic in this scroll position. |
-| **Tab-switch mid-sequence** | Sequence cancels. State resets to `.idle` on next entry (don't replay; the user has already taken the action). |
+| **Undo mid-pulse** (user un-ticks during the 520ms pulse) | `quest.completedAt = nil`, derived overlay recomputes, mascot springs to new lower value. The in-flight pulse keyframe finishes its scale return-to-1.0 (don't cancel mid-keyframe; looks janky). The warm highlight fades on its existing schedule. Tone copy is dismissed if it had started fading in. No success haptic if not yet fired. |
+| **Second completion during pulse** | Skip the second pulse (no double-pulse, looks chaotic). Hand spring already handles the second advance via the new `displayedDelta`. Tone copy: replace the staged copy with the second quest's payoff (single line, latest wins). |
+| **Reduce Motion ON** | A: no pulse keyframe. Mascot scale stays 1.0. B: the mascot's `.interpolatingSpring(value: minutesDelta)` becomes `nil` already via the existing `reduceMotion ? nil : .interpolatingSpring()` line — hand snaps to new position with no animation. C: copy fades in/out unchanged (cross-fades aren't affected by Reduce Motion per Apple's guidance). Haptics unchanged. The visible retraction on uncheck is still snap-to-new-position. |
+| **Wake animation in flight** | The completion's mascot pulse defers until `wakeProgress == 1`. The `displayedDelta` recompute is fine (the formula composes), so the underlying value is correct mid-wake; only the pulse + tone copy fire after wake settles. This means a user who taps mid-wake sees the count-up land at the new (with-overlay) value, then the pulse fires on top. |
+| **Quest with rewardEstimateMinutes = 0** | Mascot doesn't move (overlay didn't change). Skip the pulse, skip the tone copy (no payoff to read). Checkbox flips, support card stays at its default text. Light haptic on tap (the default toggle haptic). |
+| **Mascot already off-screen** (user scrolled down to questsCard) | Pulse + spring fire regardless; user sees the support card's tone copy. When they scroll back up, the mascot is at its new resting position. No retroactive pulse. |
+| **Tab-switch mid-sequence** | The pulse + tone copy are tied to TodayView's lifetime. On tab-switch back, no replay. The mascot is at its current resting position (which reflects all completions made so far today). |
+| **App backgrounded mid-sequence** | Same as tab-switch. Mascot is correct via the `displayedDelta` formula on re-foreground; wake animation re-fires the count-up to the (canonical + overlay) state. No retroactive pulse. |
 
 ### Lighting-convention adherence (A)
 
@@ -175,32 +207,50 @@ Test coverage for the existing wake animation is already in place; do not break 
 
 ## Implementation order (the actual session)
 
-The Q14 polish session should land changes in this order to keep each commit independently reviewable:
+The Q14 polish session should land changes in this order to keep each commit independently reviewable. **Persist-banked dramatically simplifies B** (just a derived computed property, no state machine), so the order changes vs. the original draft.
 
-1. **Commit 1 (Polish):** add `ToneMode.questCompletionPayoff(minutes:)` + tests. No UI change yet.
-2. **Commit 2 (Stretch):** wire `SupportMomentPresenter` to use the new tone copy when the moment is `.questCompleted`. Hardcoded `"Possible impact:"` line removed. Visible tone-aware copy on completion. **C ships standalone here.**
-3. **Commit 3 (Feature):** introduce `completionOverlay: Int` state + extend `displayedDelta` formula. Drive overlay 0 → reward → 0 with the timeline above. **B ships here.** The mascot's existing `.interpolatingSpring()` animator picks up the input change automatically.
-4. **Commit 4 (Feature):** mascot pulse keyframe + lighting-convention warm highlight. **A ships here.**
-5. **Commit 5 (Polish):** state machine consolidation if commits 3+4 ended up with redundant timing logic. Refactor only; no behavior change.
-6. **Commit 6 (Stretch):** edge cases — undo, multi-completion, defer-during-wake, zero-reward skip. Each as a small named test if not already covered.
+1. **Commit 1 (Polish):** add `ToneMode.questCompletionPayoff(minutes:)` + tests. No UI change yet. Three tone-keyed strings per Q-plan-4 resolution.
+2. **Commit 2 (Feature):** introduce `completionOverlay` derived computed property + extend `displayedDelta` formula. **B ships here.** The mascot's existing `.interpolatingSpring()` animator picks up the input change automatically. Both check and uncheck paths now visibly move the clock. No haptics or pulses yet — just the math.
+3. **Commit 3 (Stretch):** wire `SupportMomentPresenter` to use the new tone copy. Hardcoded `"Possible impact:"` line removed. Tone copy fades in/out per timeline. **C ships here**, layered on B's visible clock movement.
+4. **Commit 4 (Feature):** mascot pulse keyframe + lighting-convention warm highlight. Fires only on the **check** path, not uncheck. **A ships here.**
+5. **Commit 5 (Stretch):** edge cases — undo-mid-pulse, second-completion-during-pulse, wake-defer, zero-reward, scrolled-off-mascot. Each as a small named test if not already covered.
+6. **Commit 6 (Polish):** any consolidation / cleanup discovered during the session. Refactor only.
 
-This way C ships first as the cheapest win (≈30 LOC + 2 tests, can ship even if B/A run into trouble); B ships second on top of C; A composes on B's foundation.
+C is no longer the standalone first commit because under persist-banked, the visible clock movement (B) is the load-bearing change and C's tone copy reads better with B already in place. Order optimized for "each commit ships something visibly working."
 
-Approximate LOC: ~30 (C) + ~80 (B) + ~80 (A) + ~40 (edge cases) = **~230 LOC** across product code, plus ~150 LOC of tests. One simulator-driven-polish session, mode `freeform-polish`, iteration cap 8, mandatory final-check.
+Approximate LOC: ~30 (C) + **~30 (B — much smaller now, derived not state)** + ~80 (A) + ~50 (edge cases) = **~190 LOC** across product code, plus ~120 LOC of tests. One simulator-driven-polish session, mode `freeform-polish`, iteration cap 8, mandatory final-check.
 
 ## Open questions for the operator before we ship
 
 These are the calls I'd like you to make explicitly before the implementation session starts. None block the plan; all sharpen it.
 
-**Q-plan-1 — Settle-back vs. persist-banked.** The plan settles `completionOverlay` back to 0 (the canonical health-only delta). An alternative: keep `completionOverlay` at the cumulative reward total *for the rest of the session*, with a small "Banked for tomorrow: +18 min" caption. Reading: settle-back is honest-but-fleeting (the felt moment is the moment); persist-banked is honest-but-louder (an in-session reminder of agency). My recommendation: **settle-back**, because the canonical Today screen should always tell the same model story. Persist-banked is a future Stretch surface, not part of A+B+C.
+**~~Q-plan-1 — Settle-back vs. persist-banked.~~** **RESOLVED 2026-05-09 — persist-banked.** Operator described uncheck-changes-clock behavior, which only makes sense under persist-banked. Plan revised throughout. The visible headline + mascot now track `canonical + completionOverlay` for the rest of the day; day boundary clears overlay via the per-day Quest model.
 
-**Q-plan-2 — Hand advance peak target if `rewardEstimateMinutes` exceeds the mascot's ±120 visual cap.** Rare (no shipped quest exceeds 60), but a future quest reward of +180 would saturate the visual sweep. Behavior options: (a) clamp to 120 (matches current cap), (b) extend the cap dynamically for the in-session animation, (c) skip the hand advance and let only A+C fire. Recommendation: **(a) clamp to 120**, document, ignore until a future quest forces the question. Smallest surprise.
+**Q-plan-2 — Hand advance peak target if `rewardEstimateMinutes` exceeds the mascot's ±120 visual cap.** Rare (no shipped quest exceeds 60), but a future quest reward of +180 would saturate the visual sweep. Under persist-banked, this also applies to the **cumulative** overlay (e.g. three +50 quests = +150). Behavior options: (a) clamp the visible hand to 120 but let the headline number show the true total, (b) extend the cap dynamically for in-session animations, (c) cap the hand at 120 and stop animating further completions past saturation. Recommendation: **(a) — clamp the hand at ±120, headline shows true total**. Matches the existing convention (the numeric readout is source of truth past the cap, per `LifeClockMascotView` comment). Document in the polish session.
 
-**Q-plan-3 — On a deeply negative day (−90 min), should completion still pop the hand to a less-negative number?** Yes — the gesture is "this action moves you up." A −90 day with a +18 quest pops to −72, holds, settles back to −90. The motion itself is the message: "you have agency even on bad days." Recommendation: **yes, identical behavior on negative days**. Aligns with "default is motivating, not punishing" and "every negative delta paired with an actionable next step."
+**Q-plan-3 — On a deeply negative day (−90 min), should completion still advance the hand to a less-negative number?** Yes. A −90 day with a +18 quest moves to −72 and stays there until further completions or unchecks. The motion itself is the message: "you have agency even on bad days." Recommendation: **yes, identical behavior on negative days**. Aligns with "default is motivating, not punishing."
 
-**Q-plan-4 — Should the tone copy mention "tomorrow"?** The current spec is reward-focused ("Banked: +18 min."). A more model-honest version would say "+18 min on tomorrow's clock." More honest; longer; loses some snap. Recommendation: **stay reward-focused** for the in-the-moment payoff; let the persistent static line ("Added to your progress log.") carry the model framing. The user reads the felt copy first, then the model copy underneath.
+**Q-plan-4 — Should the tone copy mention "tomorrow"?** Three options for the support-card payoff line:
+- **Reward-focused** (current spec): Gentle "You bought back +18 minutes today." / Coach "Banked: +18 min." / Firm-Direct "+18 min. Logged."
+- **Tomorrow-focused**: Gentle "You earned +18 minutes on tomorrow's clock." / Coach "+18 min toward tomorrow." / Firm-Direct "+18 min. Tomorrow."
+- **Today-focused** (matches the persist-banked visual): Gentle "Your clock just moved +18 minutes." / Coach "+18 min on the clock." / Firm-Direct "+18 min. On the clock."
 
-**Q-plan-5 — Should A+B+C all fire even when the mascot is scrolled out of view?** Currently the completion path scrolls Today to keep the completed row visible — which often pushes the mascot off-screen. The pulse + hand sweep fire whether visible or not (no perf cost; no visual lie). The user mostly sees the support card payoff in this case. Recommendation: **fire regardless of visibility**. Don't add scroll-position gating logic.
+Under persist-banked, the visible clock literally moves. **Today-focused** copy matches what the user just saw happen. **Reward-focused** is generic and works regardless of model. **Tomorrow-focused** is model-correct but reads as deferred-gratification when the visual is immediate. Recommendation: **today-focused**, because the copy should describe what the user is seeing on screen.
+
+**Q-plan-5 — Should A (mascot pulse) fire even when the mascot is scrolled out of view?** The pulse keyframe fires regardless; user sees the support card payoff in scroll-down position. Recommendation: **fire regardless**. No gating logic.
+
+**Q-plan-6 (NEW) — Should the headline number show a breakdown when there's a non-zero overlay?** Three options:
+- (a) Just the visible number: "+46 min today." Caption stays on the canonical message.
+- (b) Visible number + small caption: "+46 min today" with subtitle "+18 from completed actions."
+- (c) Two lines: "+28 today, +18 banked" — explicit split.
+
+(a) is the simplest, matches the operator's mental model of "the clock IS the user's day." (b) adds transparency for users who want to know why the number jumped. (c) is the most explicit but visually busiest. Recommendation: **(a) for the initial ship; (b) as a Stretch toggle in Profile if users get confused.**
+
+**Q-plan-7 (NEW) — Day-boundary edge case while app is open past midnight.** Rare. The persist-banked model auto-clears at midnight because today's `Quest` instances become yesterday's `Quest` instances and today's fresh quests have no completion state. Behavior on the rollover transition:
+- Mascot animates from yesterday-end to today-fresh via existing spring (could be a noticeable jump — e.g. yesterday's +46 to today's +0 morning).
+- Acceptable? Or should we suppress the jump until next foreground (the user is unlikely to be watching the screen at midnight)?
+
+Recommendation: **let the spring handle it.** A user who's awake watching at midnight sees their day reset; the visual matches reality. Suppressing would create a state-vs-display divergence we'd then have to reconcile.
 
 ## Risks and what could go wrong
 
@@ -222,7 +272,7 @@ These are the calls I'd like you to make explicitly before the implementation se
 
 ## Carry-forward (not in this ship)
 
-- Persistent "banked for tomorrow" indicator (Stretch).
-- The hand-advance behavior past the ±120 visual cap, once a quest reward forces the question.
-- Q-plan-1 if the operator changes the answer post-ship.
+- Headline breakdown caption (Q-plan-6 option b) — Stretch, file as Profile toggle if user research surfaces confusion.
+- The hand-advance behavior past the ±120 visual cap, once a quest reward forces the question (Q-plan-2).
+- Day-boundary explicit reset animation if the spring-handles-it approach (Q-plan-7) reads bad in operator review.
 - F9 (Profile reminder toggle no-op) — separate Polish session, unrelated to Q14.
