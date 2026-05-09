@@ -54,6 +54,15 @@ struct PaywallPrimaryView: View {
             .padding(.top, 8)
             paywallBody
         }
+        // `children: .contain` keeps inner identifiers (`paywall.close`,
+        // `paywall.purchase`, `paywall.restore`, the per-tier ids)
+        // visible to XCUITest queries. Without it, SwiftUI flattens
+        // this VStack into a single accessibility element and the
+        // outer screen id shadows every child — so polish recon's
+        // existence wait on `onboarding.paywallPrimary` and any
+        // per-button query both come up empty. OnboardingScaffold
+        // applies the same modifier for the same reason.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.paywallPrimary")
         .onAppear {
             telemetry.value.paywallShown(stage: .primary)
