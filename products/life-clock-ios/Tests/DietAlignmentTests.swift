@@ -90,43 +90,23 @@ final class DietAlignmentTests: XCTestCase {
     }
 
     // MARK: - QuestEngine: nutrition quests
+    //
+    // Phase 5b retired the legacy nutrition-variant pool. The behaviors
+    // that previously lived here (no-log → log-your-diet, rough-diet
+    // → repair, heavy-alcohol → recovery, no calorie/macro language)
+    // are now properties of the authored diet pool, covered by:
+    //   * `QuestPoolToneParityTests.testProductionPoolToneInvariants`
+    //   * `QuestPoolTests.testProductionDietIntentGridIsFullyCovered`
+    //   * `QuestPoolToneParityTests.testEveryDietSlugIsReachable`
+    //
+    // The ClockEngine ledger tests above remain — diet quality is still
+    // a real driver in the daily delta math, independent of which quest
+    // is surfaced.
 
-    func testNoLogYieldsLogYourDietQuest() {
-        let engine = QuestEngine(clock: .fixed(fixedDate))
-        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
-
-        let quests = engine.generateDailyQuests(profile: profile, snapshot: nil, habits: nil)
-        let nutritionQuest = quests.first { $0.category == "nutrition" }
-        XCTAssertNotNil(nutritionQuest, "no habits logged should still produce a nutrition quest")
-        XCTAssertTrue(
-            nutritionQuest?.title.lowercased().contains("log your diet") ?? false,
-            "the no-log path should nudge logging, not preach"
-        )
-    }
-
-    func testRoughDietProducesGentleRepairQuest() {
-        let engine = QuestEngine(clock: .fixed(fixedDate))
-        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
-        let habits = HabitLog(date: fixedDate)
-        habits.dietQuality = "rough"
-
-        let quests = engine.generateDailyQuests(profile: profile, snapshot: nil, habits: habits)
-        let repairQuest = quests.first { $0.category == "nutrition" }
-        XCTAssertNotNil(repairQuest)
-        let combined = (repairQuest?.title ?? "" + " " + (repairQuest?.detail ?? "")).lowercased()
-        XCTAssertTrue(
-            combined.contains("feedback") || combined.contains("better meal") || combined.contains("one"),
-            "rough-diet quest should be encouraging, not punitive"
-        )
-    }
-
-    func testNutritionQuestsContainNoCalorieOrMacroLanguage() {
-        let engine = QuestEngine(clock: .fixed(fixedDate))
-        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
-        let habits = HabitLog(date: fixedDate)
-        habits.dietQuality = "great" // forces rotating quest path
-
-        let quests = engine.generateDailyQuests(profile: profile, snapshot: nil, habits: habits)
+    func testNutritionQuestsContainNoCalorieOrMacroLanguage() throws {
+        let pool = try QuestPool.loadFromBundle(Bundle.main)
+        let dietQuests = pool.quests(in: .diet)
+        XCTAssertFalse(dietQuests.isEmpty, "Production diet pool expected non-empty")
         let blacklist = [
             "calorie", "calories", "kcal",
             "macro", "macros", "gram", "grams",
@@ -136,27 +116,18 @@ final class DietAlignmentTests: XCTestCase {
             "lose weight", "weight loss",
             "diet plan",
         ]
-        for quest in quests {
-            let combined = (quest.title + " " + quest.detail).lowercased()
-            for term in blacklist {
-                XCTAssertFalse(
-                    combined.contains(term),
-                    "nutrition quest copy must never use '\(term)': \(combined)"
-                )
+        for quest in dietQuests {
+            for tone in ToneMode.allCases {
+                guard let copy = quest.copy[tone] else { continue }
+                let combined = (copy.title + " " + copy.detail).lowercased()
+                for term in blacklist {
+                    XCTAssertFalse(
+                        combined.contains(term),
+                        "diet quest \(quest.slug) (\(tone.rawValue)) must never use '\(term)': \(combined)"
+                    )
+                }
             }
         }
-    }
-
-    func testHeavyAlcoholStillTakesPriorityOverNutrition() {
-        let engine = QuestEngine(clock: .fixed(fixedDate))
-        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
-        let habits = HabitLog(date: fixedDate)
-        habits.alcoholLevel = "heavy"
-        habits.dietQuality = "rough"
-
-        let quests = engine.generateDailyQuests(profile: profile, snapshot: nil, habits: habits)
-        XCTAssertNotNil(quests.first { $0.category == "recovery" }, "heavy-alcohol day takes priority — recovery quest, not nutrition")
-        XCTAssertNil(quests.first { $0.category == "nutrition" }, "no nutrition quest when recovery is the right move")
     }
 
     func testNutritionQuestsAreDeterministicForSameDay() {

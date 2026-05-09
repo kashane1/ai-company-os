@@ -20,7 +20,48 @@ enum Genre: String, Codable, CaseIterable, Identifiable, Sendable {
     case diet
     case sleep
 
-var id: String { rawValue }
+    var id: String { rawValue }
+}
+
+// MARK: - QuestEvent kind enums (Phase 3)
+//
+// SwiftData stores `QuestEvent.kind` and `QuestEvent.resolvedKind` as plain
+// `String` (matching the existing `TimeLedgerEntry.driverType` convention).
+// Every read/write site funnels through these enums, so a typo becomes a
+// compile-time error rather than a silent affinity skew. Source-of-truth
+// lives here in the Models layer.
+//
+// Phase 3 of the quest-pool affinity engine — todo 049 #3.
+
+/// The four-event lifecycle for a quest slug on a given day.
+/// Emitted by the engine + plan-editor + completion-toggle paths in
+/// `LifeClockStore`. Read by `AffinityEngine.computeAffinities(events:)`.
+enum QuestEventKind: String, CaseIterable, Codable, Sendable {
+    /// Engine emitted this slug into today's slate (or as an alternate
+    /// in the plan editor). Logged once per (date, slug) — idempotent.
+    case shown
+    /// User added this slug to today's plan via the editor. Idempotent at
+    /// the SwiftData layer is application-level; the same (date, slug)
+    /// can have one `picked` row.
+    case picked
+    /// User swapped this slug OUT of today's plan via the editor (slug
+    /// A → slug B logs `replaced(A) + picked(B)`). Stronger negative
+    /// signal than passive non-engagement — weighted 1.5× in the EMA.
+    case replaced
+    /// User ticked this slug as completed on Today. Strongest positive
+    /// signal — target = 1.0 in the EMA.
+    case completed
+}
+
+/// End-of-day resolution outcome for `shown` and `picked` rows that
+/// never reached a terminal kind by the day boundary. Filled by
+/// `QuestSelector.resolveEndOfDay(...)` on the next foreground past
+/// midnight. `nil` for terminal-at-emit kinds (`replaced`, `completed`).
+enum QuestResolvedKind: String, CaseIterable, Codable, Sendable {
+    /// Was `shown`, never `picked` by EOD. Mild negative signal in the EMA.
+    case passedOver = "passed_over"
+    /// Was `picked`, never `completed` by EOD. Stronger negative signal.
+    case abandoned
 }
 
 /// Optional structured target for a slug. Activity and sleep slugs typically
@@ -49,6 +90,48 @@ init(title: String, detail: String) {
     }
 }
 
+/// Optional time-of-day window. `anytime` and a nil filter behave the same;
+/// the explicit value lets authors document intent without wiring routing.
+/// Phase 4a records the field; Phase 4b/c may begin to gate on it.
+enum TimeOfDayWindow: String, Codable, Sendable {
+    case morning, midday, evening, anytime
+}
+
+/// Hard-filter that runs BEFORE scoring in `QuestSelector.select(...)`.
+/// Restored in Phase 4a; authored slugs reference contraindications.
+/// Predicate semantics live on `QuestSelector.isEligible(_:profile:)` —
+/// see `isCurrentSmoker` / `isHabitualDrinker` for enum-value mappings.
+struct EligibilityFilter: Codable, Equatable, Hashable, Sendable {
+    /// nil = any; true = current smoker; false = not a current smoker
+    /// (includes "former" — cessation-supportive slugs reach them).
+    let requiresSmoker: Bool?
+    /// nil = any; true = habitual drinker (`weekly`+); false = not.
+    let requiresDrinker: Bool?
+    /// nil = any; true = `strengthFrequencyPerWeek > 0`; false = == 0.
+    let requiresStrengthRoutine: Bool?
+    /// When false, exclude until `distinctOpenDays >=
+    /// QuestSelector.coldStartDayThreshold`. Use for slugs whose framing
+    /// assumes the user has engaged (e.g., zone-2 cardio).
+    let coldStartReachable: Bool
+    /// Authoring intent only in Phase 4a. Decoded but non-load-bearing —
+    /// no time-of-day refresh hook exists yet. Phase 4b/c may activate it.
+    let timeOfDay: TimeOfDayWindow?
+
+    init(
+        requiresSmoker: Bool? = nil,
+        requiresDrinker: Bool? = nil,
+        requiresStrengthRoutine: Bool? = nil,
+        coldStartReachable: Bool = true,
+        timeOfDay: TimeOfDayWindow? = nil
+    ) {
+        self.requiresSmoker = requiresSmoker
+        self.requiresDrinker = requiresDrinker
+        self.requiresStrengthRoutine = requiresStrengthRoutine
+        self.coldStartReachable = coldStartReachable
+        self.timeOfDay = timeOfDay
+    }
+}
+
 /// One pre-authored quest. Loaded from JSON; immutable in memory.
 ///
 /// Tone parity (D3): for a given `slug`, all three tone variants reference
@@ -63,6 +146,7 @@ let intent: String                // parity anchor
 let target: QuestTarget?          // parity anchor when present
 let copy: [ToneMode: ToneCopy]    // type-safe; all three tones required
 let exclusionGroups: [String]     // for daily-set conflict avoidance
+let eligibility: EligibilityFilter?  // nil = unrestricted (Phase 4a)
 
 init(
         slug: String,
@@ -70,7 +154,8 @@ init(
         intent: String,
         target: QuestTarget?,
         copy: [ToneMode: ToneCopy],
-        exclusionGroups: [String]
+        exclusionGroups: [String],
+        eligibility: EligibilityFilter? = nil
     ) {
         self.slug = slug
         self.genre = genre
@@ -78,12 +163,13 @@ init(
         self.target = target
         self.copy = copy
         self.exclusionGroups = exclusionGroups
+        self.eligibility = eligibility
     }
 }
 
 extension PoolQuest: Codable {
     private enum CodingKeys: String, CodingKey {
-        case slug, genre, intent, target, copy, exclusionGroups
+        case slug, genre, intent, target, copy, exclusionGroups, eligibility
     }
 
 init(from decoder: Decoder) throws {
@@ -94,6 +180,7 @@ init(from decoder: Decoder) throws {
         let target = try c.decodeIfPresent(QuestTarget.self, forKey: .target)
         let raw = try c.decode([String: ToneCopy].self, forKey: .copy)
         let exclusionGroups = try c.decodeIfPresent([String].self, forKey: .exclusionGroups) ?? []
+        let eligibility = try c.decodeIfPresent(EligibilityFilter.self, forKey: .eligibility)
 
         // Slug format: <genre>.<intent-shortname>.v<digits>
         // Validated at decode so authoring mistakes surface at load time.
@@ -142,7 +229,8 @@ init(from decoder: Decoder) throws {
             intent: intent,
             target: target,
             copy: typed,
-            exclusionGroups: exclusionGroups
+            exclusionGroups: exclusionGroups,
+            eligibility: eligibility
         )
     }
 
@@ -156,5 +244,6 @@ func encode(to encoder: Encoder) throws {
         for (tone, value) in copy { raw[tone.rawValue] = value }
         try c.encode(raw, forKey: .copy)
         try c.encode(exclusionGroups, forKey: .exclusionGroups)
+        try c.encodeIfPresent(eligibility, forKey: .eligibility)
     }
 }

@@ -1,1 +1,660 @@
-[]
+[
+  {
+    "slug": "activity.brisk-walk-20.v1",
+    "genre": "activity",
+    "intent": "cardio",
+    "target": { "metric": "minutes", "value": 20, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A twenty-minute walk today",
+        "detail": "An easy twenty minutes — let your breath rise. Outside is nice, but anywhere counts."
+      },
+      "coach": {
+        "title": "20-minute brisk walk",
+        "detail": "Twenty minutes at a pace that warms you up. Steady breath, light sweat — that's the zone."
+      },
+      "firm_direct": {
+        "title": "20 minutes. Brisk. Walk.",
+        "detail": "Twenty minutes. Pace up. Breath up. No phone scrolling — just walk."
+      }
+    }
+  },
+  {
+    "slug": "activity.cardio-zone2-15.v1",
+    "genre": "activity",
+    "intent": "cardio",
+    "target": { "metric": "minutes", "value": 15, "unit": "min" },
+    "exclusionGroups": [],
+    "eligibility": {
+      "requiresSmoker": null,
+      "requiresDrinker": null,
+      "requiresStrengthRoutine": null,
+      "coldStartReachable": false,
+      "timeOfDay": "anytime"
+    },
+    "copy": {
+      "gentle": {
+        "title": "Fifteen easy cardio minutes",
+        "detail": "A pace where you could still chat. Nothing punishing — just steady, warm motion."
+      },
+      "coach": {
+        "title": "Zone 2 cardio: 15 minutes",
+        "detail": "Conversational pace — talk-test passes. Build the aerobic base without taxing recovery."
+      },
+      "firm_direct": {
+        "title": "Zone 2. 15 minutes.",
+        "detail": "Conversation pace. No huffing. Fifteen minutes on the clock — go."
+      }
+    }
+  },
+  {
+    "slug": "activity.bike-or-row-15.v1",
+    "genre": "activity",
+    "intent": "cardio",
+    "target": { "metric": "minutes", "value": 15, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Bike or row for a quarter hour",
+        "detail": "Choose whichever sounds kinder today. Fifteen minutes, no race, just movement."
+      },
+      "coach": {
+        "title": "15-minute bike or rowing session",
+        "detail": "Pick your machine — bike or rower. Steady cadence for fifteen minutes. Counts as cardio."
+      },
+      "firm_direct": {
+        "title": "Bike. Or row. 15 min.",
+        "detail": "Pick one. Bike or rower. Fifteen minutes. Steady cadence. Done."
+      }
+    }
+  },
+  {
+    "slug": "activity.bodyweight-circuit.v1",
+    "genre": "activity",
+    "intent": "strength",
+    "target": { "metric": "rounds", "value": 3, "unit": "round" },
+    "exclusionGroups": ["intense-exertion"],
+    "eligibility": {
+      "requiresSmoker": null,
+      "requiresDrinker": null,
+      "requiresStrengthRoutine": true,
+      "coldStartReachable": true,
+      "timeOfDay": "anytime"
+    },
+    "copy": {
+      "gentle": {
+        "title": "Three gentle bodyweight rounds",
+        "detail": "Squats, push, plank — your usual. Three rounds, listening to the body. No score to settle."
+      },
+      "coach": {
+        "title": "Bodyweight circuit, 3 rounds",
+        "detail": "Squats, push-ups, plank. Three rounds with short rest between. Strength stays with use."
+      },
+      "firm_direct": {
+        "title": "Circuit. 3 rounds.",
+        "detail": "Squats. Push-ups. Plank. Three rounds. Short rest. Knock it out."
+      }
+    }
+  },
+  {
+    "slug": "activity.pushups-set.v1",
+    "genre": "activity",
+    "intent": "strength",
+    "target": { "metric": "reps", "value": 10, "unit": "rep" },
+    "exclusionGroups": ["intense-exertion"],
+    "eligibility": {
+      "requiresSmoker": null,
+      "requiresDrinker": null,
+      "requiresStrengthRoutine": true,
+      "coldStartReachable": true,
+      "timeOfDay": "anytime"
+    },
+    "copy": {
+      "gentle": {
+        "title": "A set of push-ups when you can",
+        "detail": "Ten push-ups whenever it suits — knees down is fine. The point is showing up."
+      },
+      "coach": {
+        "title": "10 push-ups today",
+        "detail": "One clean set of ten — knees-down or full, either works. Strength compounds in small reps."
+      },
+      "firm_direct": {
+        "title": "Push-ups. Set of 10.",
+        "detail": "Ten push-ups. Form first. Whenever — but today. Drop and go."
+      }
+    }
+  },
+  {
+    "slug": "activity.strength-session-30.v1",
+    "genre": "activity",
+    "intent": "strength",
+    "target": { "metric": "minutes", "value": 30, "unit": "min" },
+    "exclusionGroups": ["intense-exertion"],
+    "eligibility": {
+      "requiresSmoker": null,
+      "requiresDrinker": null,
+      "requiresStrengthRoutine": true,
+      "coldStartReachable": true,
+      "timeOfDay": "anytime"
+    },
+    "copy": {
+      "gentle": {
+        "title": "A half-hour strength session",
+        "detail": "Your usual lifts, your usual pace. Thirty minutes that the body will thank you for tomorrow."
+      },
+      "coach": {
+        "title": "30-minute strength session",
+        "detail": "A real session — your usual movements, full warm-up, working sets. Thirty minutes of focus."
+      },
+      "firm_direct": {
+        "title": "Strength. 30 min.",
+        "detail": "Warm up. Working sets. Compound lifts first. Thirty minutes of actual work."
+      }
+    }
+  },
+  {
+    "slug": "activity.steps-baseline-plus.v1",
+    "genre": "activity",
+    "intent": "steps",
+    "target": { "metric": "steps", "value": 500, "unit": "step" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A few hundred steps over usual",
+        "detail": "Aim for a small bump above your typical day. Five hundred extra is enough — no big push."
+      },
+      "coach": {
+        "title": "+500 steps over your baseline",
+        "detail": "Add about five hundred steps to your normal day. Small daily increments compound."
+      },
+      "firm_direct": {
+        "title": "+500 steps. Over baseline.",
+        "detail": "Five hundred more than your usual day. Find them. Walk meeting, longer route, parking far."
+      }
+    }
+  },
+  {
+    "slug": "activity.lunchtime-walk.v1",
+    "genre": "activity",
+    "intent": "steps",
+    "target": { "metric": "minutes", "value": 10, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A walk over lunch",
+        "detail": "Step away from the desk midday. Ten minutes outside, or a slow loop indoors — both count."
+      },
+      "coach": {
+        "title": "10-minute lunchtime walk",
+        "detail": "Get up at lunch. Ten minutes of walking before or after eating. Resets the afternoon."
+      },
+      "firm_direct": {
+        "title": "Lunch walk. 10 min.",
+        "detail": "At lunch: stand up, walk ten. No phone meeting on the way. Pure walk."
+      }
+    }
+  },
+  {
+    "slug": "activity.evening-stroll.v1",
+    "genre": "activity",
+    "intent": "steps",
+    "target": { "metric": "minutes", "value": 15, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A slow stroll after dinner",
+        "detail": "Fifteen calm minutes once dinner is settled. No pace to hit — just be outside."
+      },
+      "coach": {
+        "title": "15-minute evening stroll",
+        "detail": "After dinner, fifteen minutes of easy walking. Helps digestion and the next day's sleep."
+      },
+      "firm_direct": {
+        "title": "Stroll. After dinner. 15 min.",
+        "detail": "Post-dinner: walk fifteen minutes. Easy pace. No screen. Phone in pocket."
+      }
+    }
+  },
+  {
+    "slug": "activity.standup-each-hour.v1",
+    "genre": "activity",
+    "intent": "break-up-sitting",
+    "target": { "metric": "instances", "value": 8, "unit": "stand" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Stand up once each hour",
+        "detail": "Every hour you're sitting, rise for a moment. Stretch, sip water, look out the window."
+      },
+      "coach": {
+        "title": "Stand once every hour",
+        "detail": "Through the workday: stand and move briefly each hour. Eight stands across the day."
+      },
+      "firm_direct": {
+        "title": "Up every hour. 8 times.",
+        "detail": "Each hour: stand. Move. Sit back down. Eight times across the day. Set a timer."
+      }
+    }
+  },
+  {
+    "slug": "activity.pomodoro-walk.v1",
+    "genre": "activity",
+    "intent": "break-up-sitting",
+    "target": { "metric": "instances", "value": 4, "unit": "break" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Walk between work blocks",
+        "detail": "Every twenty-five minutes of focus, take two minutes to walk. Soft on the body, kind to focus."
+      },
+      "coach": {
+        "title": "Walk between Pomodoros",
+        "detail": "Each 25-minute focus block: stand and walk for two. Four breaks today. Resets attention."
+      },
+      "firm_direct": {
+        "title": "25 work. 2 walk. ×4.",
+        "detail": "Every 25 minutes of work: walk two. Four cycles. Phone stays at the desk."
+      }
+    }
+  },
+  {
+    "slug": "activity.desk-stretch-3.v1",
+    "genre": "activity",
+    "intent": "break-up-sitting",
+    "target": { "metric": "instances", "value": 3, "unit": "stretch" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A few stretches at your desk",
+        "detail": "Three small stretch breaks somewhere in the day — neck, shoulders, hips. A minute each."
+      },
+      "coach": {
+        "title": "3 desk-stretch breaks today",
+        "detail": "Three short stretch sessions: neck rolls, shoulder openers, seated hip stretch. One minute each."
+      },
+      "firm_direct": {
+        "title": "Stretch. ×3. At desk.",
+        "detail": "Three desk stretches today. Neck. Shoulders. Hips. One minute each. No skipping."
+      }
+    }
+  },
+  {
+    "slug": "activity.outside-15.v1",
+    "genre": "activity",
+    "intent": "outdoor",
+    "target": { "metric": "minutes", "value": 15, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Fifteen minutes outdoors",
+        "detail": "Step outside for a quarter hour. The light, the air — both count even if you only sit."
+      },
+      "coach": {
+        "title": "15 minutes outside today",
+        "detail": "Fifteen minutes outdoors — walk, sit, stand, doesn't matter. Daylight and fresh air do the work."
+      },
+      "firm_direct": {
+        "title": "Outside. 15 min.",
+        "detail": "Fifteen minutes outdoors. Door, then out. Walk, sit, lean — but be outside."
+      }
+    }
+  },
+  {
+    "slug": "activity.park-loop.v1",
+    "genre": "activity",
+    "intent": "outdoor",
+    "target": { "metric": "instances", "value": 1, "unit": "loop" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A loop around a nearby park",
+        "detail": "One slow circuit of a park or green block. Trees, sky, a little quiet. That's the rep."
+      },
+      "coach": {
+        "title": "One park loop today",
+        "detail": "Find a park or green block, walk one full loop. Distance doesn't matter — the loop does."
+      },
+      "firm_direct": {
+        "title": "Park loop. One.",
+        "detail": "Pick a park. Walk the perimeter once. No half-loops. Then home."
+      }
+    }
+  },
+  {
+    "slug": "activity.sunlit-walk.v1",
+    "genre": "activity",
+    "intent": "outdoor",
+    "target": { "metric": "minutes", "value": 10, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Ten sunlit minutes",
+        "detail": "Try to catch some daylight on a walk. Ten minutes is plenty to lift the mood."
+      },
+      "coach": {
+        "title": "10-min walk in daylight",
+        "detail": "Time a short walk for when the sun is out. Ten minutes of bright light helps sleep tonight."
+      },
+      "firm_direct": {
+        "title": "Sun. 10 min walk.",
+        "detail": "When the sun's out, walk ten. No sunglasses, no hood. Light on the face."
+      }
+    }
+  },
+  {
+    "slug": "activity.morning-stretch.v1",
+    "genre": "activity",
+    "intent": "mobility",
+    "target": { "metric": "minutes", "value": 5, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Five soft minutes of morning stretch",
+        "detail": "Out of bed, slow stretches before the day starts. Reach, twist, breathe. Five minutes is enough."
+      },
+      "coach": {
+        "title": "5-minute morning stretch",
+        "detail": "Five minutes of mobility before the day starts. Forward fold, twist, side stretch. Wakes the body."
+      },
+      "firm_direct": {
+        "title": "Stretch. AM. 5 min.",
+        "detail": "Out of bed: five minutes of stretch. Forward fold. Twist. Side reach. Then start the day."
+      }
+    }
+  },
+  {
+    "slug": "activity.hip-mobility-flow.v1",
+    "genre": "activity",
+    "intent": "mobility",
+    "target": { "metric": "minutes", "value": 5, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A short hip-mobility flow",
+        "detail": "Hips love attention. Five minutes of slow openers — figure-fours, lunges, easy circles."
+      },
+      "coach": {
+        "title": "5-minute hip mobility flow",
+        "detail": "Five minutes targeting hips: figure-four, lunge with rotation, hip circles. Sitting all day adds up."
+      },
+      "firm_direct": {
+        "title": "Hips. 5 min flow.",
+        "detail": "Five minutes. Hip openers. Figure-four. Deep lunge. Circles. Loosen up."
+      }
+    }
+  },
+  {
+    "slug": "activity.shoulder-rolls.v1",
+    "genre": "activity",
+    "intent": "mobility",
+    "target": { "metric": "reps", "value": 20, "unit": "rep" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A round of shoulder rolls",
+        "detail": "Twenty slow rolls — back, then forward. The desk-shoulders will thank you."
+      },
+      "coach": {
+        "title": "20 shoulder rolls today",
+        "detail": "Twenty controlled shoulder rolls — ten back, ten forward. Counters the screen-hunch."
+      },
+      "firm_direct": {
+        "title": "Shoulders. 20 rolls.",
+        "detail": "Ten back. Ten forward. Slow and full. Reset the desk hunch. Done."
+      }
+    }
+  },
+  {
+    "slug": "activity.stairs-instead.v1",
+    "genre": "activity",
+    "intent": "neat",
+    "target": { "metric": "instances", "value": 1, "unit": "trip" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Take the stairs once today",
+        "detail": "One time today, choose stairs over the lift. Small choices, made on purpose."
+      },
+      "coach": {
+        "title": "One stairs-instead-of-elevator",
+        "detail": "Pick one elevator moment — take the stairs instead. Counts as movement. Counts as choice."
+      },
+      "firm_direct": {
+        "title": "Stairs. Once.",
+        "detail": "Skip one elevator. Take the stairs. One flight or ten — doesn't matter. Once."
+      }
+    }
+  },
+  {
+    "slug": "activity.errand-on-foot.v1",
+    "genre": "activity",
+    "intent": "neat",
+    "target": { "metric": "instances", "value": 1, "unit": "errand" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Walk one errand instead",
+        "detail": "If something nearby needs doing, walk to it. The errand counts twice — done, plus the walk."
+      },
+      "coach": {
+        "title": "One errand on foot today",
+        "detail": "Pick a short errand — coffee, pharmacy, the corner shop — and walk instead of driving."
+      },
+      "firm_direct": {
+        "title": "One errand. Walk it.",
+        "detail": "An errand under a mile? Walk. No drive. Keys in the bowl. Shoes on. Go."
+      }
+    }
+  },
+  {
+    "slug": "activity.park-far.v1",
+    "genre": "activity",
+    "intent": "neat",
+    "target": { "metric": "instances", "value": 1, "unit": "park" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Park a little farther today",
+        "detail": "When you arrive somewhere, choose a spot a few rows out. The extra walk adds up."
+      },
+      "coach": {
+        "title": "Park farther — once today",
+        "detail": "Pick one stop — store, work, gym — and park a few rows farther than usual. Free steps."
+      },
+      "firm_direct": {
+        "title": "Park far. One stop.",
+        "detail": "One destination today: don't take the close spot. Park out. Walk in. Walk back."
+      }
+    }
+  },
+  {
+    "slug": "activity.easy-walk-10.v1",
+    "genre": "activity",
+    "intent": "recovery-walk",
+    "target": { "metric": "minutes", "value": 10, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A kind ten-minute walk",
+        "detail": "Easy pace, easy distance. Ten minutes that asks nothing of you. Movement is the only goal."
+      },
+      "coach": {
+        "title": "10-minute easy walk",
+        "detail": "Ten minutes at a recovery pace — relaxed breath, slow legs. Helps next-day freshness."
+      },
+      "firm_direct": {
+        "title": "Easy walk. 10 min.",
+        "detail": "Ten minutes. Slow pace. Heart rate low. No music push. Just walk."
+      }
+    }
+  },
+  {
+    "slug": "activity.cooldown-walk.v1",
+    "genre": "activity",
+    "intent": "recovery-walk",
+    "target": { "metric": "minutes", "value": 5, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A short cooldown amble",
+        "detail": "Five quiet minutes after a workout, or just because. Let the breath come back to even."
+      },
+      "coach": {
+        "title": "5-minute cooldown walk",
+        "detail": "Five minutes of slow walking after exertion or before bed. Brings heart rate down cleanly."
+      },
+      "firm_direct": {
+        "title": "Cooldown. 5 min.",
+        "detail": "Five minutes. Slow walk. Breath returns to normal. No checking the watch. Cool down."
+      }
+    }
+  },
+  {
+    "slug": "activity.gentle-stroll.v1",
+    "genre": "activity",
+    "intent": "recovery-walk",
+    "target": { "metric": "minutes", "value": 10, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Ten quiet stroll minutes",
+        "detail": "A slow, soft walk for ten. No agenda — just legs moving and the day going by."
+      },
+      "coach": {
+        "title": "10-minute easy stroll",
+        "detail": "Ten unhurried minutes — flat ground, conversational pace. Easy on legs and lungs."
+      },
+      "firm_direct": {
+        "title": "Stroll. 10 min.",
+        "detail": "Ten minutes. Stroll pace. Don't push. Turn at five. Walk back."
+      }
+    }
+  },
+  {
+    "slug": "activity.balance-stand-1min.v1",
+    "genre": "activity",
+    "intent": "balance",
+    "target": { "metric": "minutes", "value": 1, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Stand on one foot for a minute",
+        "detail": "Try a minute on each foot — by the counter is fine, with a hand close by. A small balance practice."
+      },
+      "coach": {
+        "title": "1 minute single-leg stand",
+        "detail": "Stand on one foot for sixty seconds, then switch. Great for ankle stability and balance with age."
+      },
+      "firm_direct": {
+        "title": "One foot. 60 sec.",
+        "detail": "Sixty seconds, one foot. Then sixty on the other. No counter-grab unless you wobble."
+      }
+    }
+  },
+  {
+    "slug": "activity.heel-to-toe-walk.v1",
+    "genre": "activity",
+    "intent": "balance",
+    "target": { "metric": "steps", "value": 20, "unit": "step" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A short heel-to-toe walk",
+        "detail": "Twenty slow steps with one foot landing right in front of the other. Like a tightrope, on the carpet."
+      },
+      "coach": {
+        "title": "20 heel-to-toe steps",
+        "detail": "Walk in a straight line, heel meeting toe. Twenty steps. Sharpens balance and proprioception."
+      },
+      "firm_direct": {
+        "title": "Heel-toe. 20 steps.",
+        "detail": "Heel touches toe each step. Straight line. Twenty steps. Don't peek at the floor — chest up."
+      }
+    }
+  },
+  {
+    "slug": "activity.single-leg-balance.v1",
+    "genre": "activity",
+    "intent": "balance",
+    "target": { "metric": "minutes", "value": 1, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A balance moment, one leg at a time",
+        "detail": "While brushing your teeth, lift one foot. Switch halfway. A small daily balance habit."
+      },
+      "coach": {
+        "title": "Single-leg balance during a routine task",
+        "detail": "Stack it with brushing teeth or making coffee — stand on one leg for thirty seconds, then switch."
+      },
+      "firm_direct": {
+        "title": "One-leg balance. Stack it.",
+        "detail": "Brushing teeth — one foot up. Thirty seconds each side. Build the habit on a habit."
+      }
+    }
+  },
+  {
+    "slug": "activity.deload-walk-10.v1",
+    "genre": "activity",
+    "intent": "deload-walk",
+    "target": { "metric": "minutes", "value": 10, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A deload-day walk",
+        "detail": "On lighter days, a kind ten minutes is the whole goal. Movement, no measurement, no push."
+      },
+      "coach": {
+        "title": "Deload day: 10-min walk",
+        "detail": "Recovery day. Ten minutes of walking — that's it. Resist adding intensity. Rest is part of training."
+      },
+      "firm_direct": {
+        "title": "Deload. Walk 10 min.",
+        "detail": "Recovery day. Ten minutes. Easy. No pace push. Rest is the work today."
+      }
+    }
+  },
+  {
+    "slug": "activity.recovery-day-walk.v1",
+    "genre": "activity",
+    "intent": "deload-walk",
+    "target": { "metric": "minutes", "value": 15, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A recovery-day walk",
+        "detail": "On a tired day, a quarter hour of slow walking is plenty. Be kind. Tomorrow comes either way."
+      },
+      "coach": {
+        "title": "15-minute recovery walk",
+        "detail": "When the body's tired, walk fifteen at a slow pace. No music, no podcast — let the system reset."
+      },
+      "firm_direct": {
+        "title": "Recovery walk. 15 min.",
+        "detail": "Tired day. Walk fifteen. Slow. No headphones. Let the nervous system come down."
+      }
+    }
+  },
+  {
+    "slug": "activity.easy-day-stroll.v1",
+    "genre": "activity",
+    "intent": "deload-walk",
+    "target": { "metric": "minutes", "value": 15, "unit": "min" },
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "An easy-day stroll",
+        "detail": "Fifteen calm minutes of strolling. Nothing to track, nothing to chase. Just the walk."
+      },
+      "coach": {
+        "title": "15-minute easy-day stroll",
+        "detail": "Easy day calls for easy work. Fifteen minutes of slow strolling — the body keeps its rhythm without taxing recovery."
+      },
+      "firm_direct": {
+        "title": "Easy day. Stroll 15.",
+        "detail": "Light day. Stroll fifteen. Don't pace-check. Don't extend. Walk and stop."
+      }
+    }
+  }
+]

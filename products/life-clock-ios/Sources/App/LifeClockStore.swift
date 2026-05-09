@@ -192,9 +192,290 @@ final class LifeClockStore {
             // Restore today's reflection if the user wrote one earlier.
             reloadTodayReflection()
         }
+        // V1.5.0: backfill `Quest.genre` for any persisted Quests that
+        // landed before the field existed. Idempotent — subsequent runs
+        // find no `genre == ""` rows and short-circuit. Safe to call on
+        // every launch. Migration must complete before this runs;
+        // SwiftData's ModelContainer init makes that the case.
+        bootstrapQuestGenres()
+        // V1.6.0 (Phase 5a): flip legacy `useQuestPoolEngine = false`
+        // rows forward. Idempotent: subsequent launches find the flag
+        // already true and short-circuit. Existing user upgrades hit
+        // this once on the launch immediately after the V1.6.0 ship.
+        bootstrapQuestPoolEngineFlag()
         await refreshFromHealthKit()
         notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
         await reconcileNotifications()
+    }
+
+    // MARK: - Quest genre backfill (V1.5.0)
+    //
+    // Maps legacy `Quest.slug` values to their corresponding `Genre.rawValue`.
+    // Source of truth: the migration table in
+    // docs/plans/2026-05-08-feat-quest-pool-affinity-engine-plan.md
+    // (Migration Mapping section).
+    //
+    // The fallback `consistency.open-app-tomorrow.v1` slug intentionally
+    // has no genre — it's out-of-pool engine machinery. Affinity
+    // computation ignores events whose `genre` doesn't map to a known
+    // `Genre`, so leaving it empty is safe.
+    private static let slugGenreMap: [String: String] = [
+        "movement.steps-target.v1":         "activity",
+        "movement.walk-after-meal.v1":      "activity",
+        "movement.stairs-instead.v1":       "activity",
+        "sleep.consistency.v1":             "sleep",
+        "sleep.wind-down.v1":               "sleep",
+        "recovery.hydration-early-night.v1": "sleep",
+        "nutrition.one-better-meal.v1":     "diet",
+        "nutrition.log-diet-quality.v1":    "diet",
+        "nutrition.whole-food-meal.v1":     "diet",
+        // Reclassified per master plan: this slug's primary action is
+        // the walk, not the meal — re-homes from "diet" to "activity".
+        "nutrition.walk-after-dinner.v1":   "activity",
+        "nutrition.water-with-meal.v1":     "diet",
+        "nutrition.add-protein.v1":         "diet",
+        "nutrition.eat-meal-slowly.v1":     "diet",
+        "nutrition.less-processed.v1":      "diet",
+    ]
+
+    // MARK: - Phase 3c/3d helpers
+
+    /// Phase 3d task 16 + 3c task 15: daily-cycle hook. On the first
+    /// foreground of a new local-calendar day, run the EOD resolver
+    /// (G23 invariant: BEFORE today's affinity read so yesterday's
+    /// passed_over / abandoned events are visible to today's
+    /// AffinityEngine.computeAffinities call). Then increment
+    /// distinctOpenDays and update lastForegroundDay.
+    ///
+    /// DST safety (G25): `Calendar.current.startOfDay(for:)` correctly
+    /// handles 25-hour and 23-hour days — single fire on either.
+    /// Cross-midnight edge: if a user opens at 23:59 and again at
+    /// 00:01, the second call sees a new dayStart and fires the
+    /// daily-cycle hook (correct — yesterday is now over).
+    private func runDailyCycleIfNewDay(profile: UserProfile, now: Date, dayStart: Date) {
+        // Cheap guard: if it's still the same calendar day as the last
+        // foreground, no work to do. Idempotent under repeated calls
+        // within the same day.
+        if let last = profile.lastForegroundDay, last >= dayStart {
+            return
+        }
+        // Run EOD resolver first. Phase 5b: legacy path is gone, so this
+        // always runs — every user is on the pool engine.
+        try? QuestSelector.resolveEndOfDay(context: modelContext, today: now)
+        // Then increment counter + update last-foreground marker.
+        profile.distinctOpenDays += 1
+        profile.lastForegroundDay = dayStart
+        try? modelContext.save()
+    }
+
+    /// Bounded fetch of QuestEvent rows for AffinityEngine input.
+    /// Phase 3 ships non-cached — incremental cache via
+    /// `UserProfile.affinityState: Data` is deferred per master plan
+    /// Out-of-Scope §1.
+    ///
+    /// Defensive `fetchLimit = 5000` (perf review on PR #32): year-3
+    /// users at ~30k events would otherwise materialize ~6MB on
+    /// every emit. EMA at α=0.2 has effective half-life ≈ 3 events
+    /// per signal — events older than the most recent ~5000 contribute
+    /// well under 0.001 to the result, so the cap is semantically safe.
+    /// Sorted descending by date so the cap retains the freshest signal.
+    private func fetchAllQuestEvents() -> [QuestEvent] {
+        var descriptor = FetchDescriptor<QuestEvent>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        descriptor.fetchLimit = 5000
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    /// Lazy QuestPool from Bundle.main. Cached after first load so
+    /// subsequent calls within the session are O(1). Loader failure
+    /// in production = fatalError per the Phase 2 design (a missing
+    /// or malformed pool JSON is a build defect, not a runtime
+    /// fallback). Tests bypass this method entirely by injecting a
+    /// pool directly through `QuestEngine.generateDailyQuests(pool:)`.
+    private var cachedQuestPool: QuestPool?
+    private func lazyLoadedQuestPool() -> QuestPool? {
+        if let cached = cachedQuestPool { return cached }
+        do {
+            let pool = try QuestPool.loadFromBundle(Bundle.main)
+            cachedQuestPool = pool
+            return pool
+        } catch {
+            // Phase 4 ships authored pool JSON. Until then, the
+            // production files are empty arrays — the loader returns
+            // an empty pool, not an error. A real load failure here
+            // (corrupted bundle, malformed JSON) is genuinely fatal
+            // since it indicates a build / signing defect.
+            assertionFailure("QuestPool.loadFromBundle failed: \(error)")
+            return nil
+        }
+    }
+
+    // MARK: - Quest event emission (Phase 3c)
+    //
+    // Four hook points emit QuestEvent rows that AffinityEngine reads:
+    //   shown     — engine emits today's slate (one per slug + alternates)
+    //   picked    — user adds a slug to today's plan
+    //   replaced  — user swaps slug A → slug B (logs replaced(A) + picked(B))
+    //   completed — user ticks a quest done
+    //
+    // Phase 5b: every user is on the pool engine, so the emit helpers no
+    // longer gate on `useQuestPoolEngine`. The pre-onboarding `profile ==
+    // nil` short-circuit remains — there's nothing to attribute events to
+    // before onboarding completes.
+
+    /// Idempotent shown emission per (date, slug). Phase 3 plan task 10
+    /// + master plan G14. Re-emit on the same day is a no-op.
+    private func emitShown(slug: String, genre: String, date: Date) {
+        guard profile != nil else { return }
+        let dayStart = clock.calendar.startOfDay(for: date)
+        let shownKind = QuestEventKind.shown.rawValue
+        let predicate = #Predicate<QuestEvent> { event in
+            event.date == dayStart && event.slug == slug && event.kind == shownKind
+        }
+        if let existing = try? modelContext.fetch(FetchDescriptor<QuestEvent>(predicate: predicate)),
+           !existing.isEmpty {
+            return
+        }
+        let event = QuestEvent(date: dayStart, slug: slug, genre: genre, kind: shownKind)
+        modelContext.insert(event)
+    }
+
+    /// Idempotent picked emission per (date, slug). The plan editor
+    /// guarantees one pick per category per day, so duplicate picks on
+    /// the same slug shouldn't normally happen — but the dedup is
+    /// defensive against double-fire.
+    private func emitPicked(slug: String, genre: String, date: Date) {
+        guard profile != nil else { return }
+        let dayStart = clock.calendar.startOfDay(for: date)
+        let pickedKind = QuestEventKind.picked.rawValue
+        let predicate = #Predicate<QuestEvent> { event in
+            event.date == dayStart && event.slug == slug && event.kind == pickedKind
+        }
+        if let existing = try? modelContext.fetch(FetchDescriptor<QuestEvent>(predicate: predicate)),
+           !existing.isEmpty {
+            return
+        }
+        let event = QuestEvent(date: dayStart, slug: slug, genre: genre, kind: pickedKind)
+        modelContext.insert(event)
+    }
+
+    /// Replaced emissions are NOT deduped (master plan G7). Every swap
+    /// of the same slug logs a separate row — A→B→A→B yields four
+    /// `replaced` rows. EMA absorbs the noise; net-zero is the right
+    /// signal because back-and-forth indicates indecision, not strong
+    /// rejection.
+    private func emitReplaced(slug: String, genre: String, date: Date) {
+        guard profile != nil else { return }
+        let dayStart = clock.calendar.startOfDay(for: date)
+        let event = QuestEvent(date: dayStart, slug: slug, genre: genre, kind: QuestEventKind.replaced.rawValue)
+        modelContext.insert(event)
+    }
+
+    /// Idempotent completed emission per (date, slug).
+    private func emitCompleted(slug: String, genre: String, date: Date) {
+        guard profile != nil else { return }
+        let dayStart = clock.calendar.startOfDay(for: date)
+        let completedKind = QuestEventKind.completed.rawValue
+        let predicate = #Predicate<QuestEvent> { event in
+            event.date == dayStart && event.slug == slug && event.kind == completedKind
+        }
+        if let existing = try? modelContext.fetch(FetchDescriptor<QuestEvent>(predicate: predicate)),
+           !existing.isEmpty {
+            return
+        }
+        let event = QuestEvent(date: dayStart, slug: slug, genre: genre, kind: completedKind)
+        modelContext.insert(event)
+    }
+
+    /// Removes the `completed` event for (date, slug). Called when the
+    /// user un-ticks a quest. Symmetric with the ledger-entry cleanup
+    /// in `toggleQuestCompletion`'s un-tick branch — affinity must
+    /// reflect the user's final intent, not their initial click.
+    /// Code-review feedback on PR #32 (data-integrity #7): keeping
+    /// the row would let a stray tap permanently shift affinity in a
+    /// direction the user didn't intend.
+    private func removeCompleted(slug: String, date: Date) {
+        guard profile != nil else { return }
+        let dayStart = clock.calendar.startOfDay(for: date)
+        let completedKind = QuestEventKind.completed.rawValue
+        let predicate = #Predicate<QuestEvent> { event in
+            event.date == dayStart && event.slug == slug && event.kind == completedKind
+        }
+        guard let matches = try? modelContext.fetch(FetchDescriptor<QuestEvent>(predicate: predicate)) else {
+            return
+        }
+        for event in matches {
+            modelContext.delete(event)
+        }
+    }
+
+    /// Single source of truth for slug→genre lookup. Architecture
+    /// review on PR #32 flagged duplicated lookup logic across
+    /// `eventGenre(for:)` and inline `slugGenreMap[slug]` calls.
+    /// Both paths now go through `genreFor(slug:)` (with optional
+    /// quest-row override when the row already carries non-empty
+    /// genre — applies to events emitted from a persisted Quest).
+    private static func genreFor(slug: String) -> String {
+        slugGenreMap[slug] ?? ""
+    }
+
+    /// Genre lookup for events emitted from a Quest row. Prefers the
+    /// row's own `genre` (which may be more specific than the slug
+    /// map for slugs added post-Phase-3) and falls through to
+    /// `slugGenreMap` otherwise.
+    private func eventGenre(for quest: Quest) -> String {
+        if !quest.genre.isEmpty { return quest.genre }
+        return Self.genreFor(slug: quest.slug)
+    }
+
+    /// Idempotent. Walks all `Quest` rows with `genre == ""`, populates
+    /// `genre` from the slug→genre map, saves the context. Safe to
+    /// re-run — subsequent calls find no unbackfilled rows.
+    /// Phase 3 of the quest-pool affinity engine (todo 049 #2).
+    /// `internal` (not `private`) so unit tests can exercise the
+    /// idempotency contract directly via `@testable import`.
+    func bootstrapQuestGenres() {
+        let descriptor = FetchDescriptor<Quest>(
+            predicate: #Predicate { $0.genre == "" }
+        )
+        guard let unbackfilled = try? modelContext.fetch(descriptor), !unbackfilled.isEmpty else {
+            return
+        }
+        var changed = false
+        for quest in unbackfilled {
+            if let genre = Self.slugGenreMap[quest.slug] {
+                quest.genre = genre
+                changed = true
+            }
+            // Slugs not in the map (e.g. consistency.open-app-tomorrow.v1)
+            // stay with genre == "" — this is intentional, not a bug.
+        }
+        if changed {
+            try? modelContext.save()
+        }
+    }
+
+    // MARK: - Phase 5a flag-flip backfill (V1.6.0)
+    //
+    // Property-default changes in SwiftData only affect new instantiations.
+    // Existing UserProfile rows persisted under V1.5.0 stay at their stored
+    // value (false). To meet plan §5a's "existing user upgrades flip on
+    // next launch" criterion, this backfill flips false → true once after
+    // the V1.6.0 ship and short-circuits thereafter.
+    //
+    // Idempotency contract:
+    //   * On first post-V1.6.0 launch: flips the persisted false → true.
+    //   * On every subsequent launch: profile.useQuestPoolEngine is already
+    //     true (either via the flip above or via a fresh-install default),
+    //     and the guard short-circuits.
+    //
+    // `internal` (not `private`) so unit tests can exercise the
+    // idempotency contract directly via `@testable import`.
+    func bootstrapQuestPoolEngineFlag() {
+        guard let profile, !profile.useQuestPoolEngine else { return }
+        profile.useQuestPoolEngine = true
+        try? modelContext.save()
     }
 
     // MARK: - HealthKit-driven recompute
@@ -203,6 +484,14 @@ final class LifeClockStore {
         guard let profile else { return }
         let now = clock.now()
         let dayStart = clock.calendar.startOfDay(for: now)
+
+        // Phase 3c/3d: daily-cycle hook fires BEFORE the short-circuit so
+        // the new-day branch always runs even when the snapshot is fresh.
+        // Order is load-bearing per Phase 3 plan G23: EOD resolver runs
+        // first, then distinctOpenDays increments. Today's affinity
+        // computation later in this method then sees yesterday's
+        // freshly-resolved passed_over / abandoned events.
+        runDailyCycleIfNewDay(profile: profile, now: now, dayStart: dayStart)
 
         // Short-circuit: if today's snapshot was just persisted, skip the HK
         // round-trip. `force: true` (e.g. on significantTimeChange or pull-to-
@@ -246,14 +535,29 @@ final class LifeClockStore {
         }
         todayEstimate = baseline
         let recentSnapshots = fetchRecentSnapshots(limit: 14)
+        // Phase 3c: feed events + pool into the engine when the flag
+        // is on so the selector path can run. fetchAllQuestEvents()
+        // returns [] until any event is emitted (flag-off → empty).
+        // Pool resolution is lazy-loaded from Bundle.main on first call.
+        // Phase 5b: legacy path retired — always fetch events + pool.
+        let events = fetchAllQuestEvents()
+        let pool = lazyLoadedQuestPool()
         todayQuests = questEngine.generateDailyQuests(
             profile: profile,
             snapshot: snapshot,
             recentSnapshots: recentSnapshots,
-            habits: todayHabits
+            habits: todayHabits,
+            events: events,
+            pool: pool
         )
         applyPersistedCompletions(to: &todayQuests, for: dayStart)
         applyTodayPlanOverrides()
+        // Phase 3c task 11: emit `shown` events for every slug in the
+        // emitted slate (flag-gated inside emitShown). Idempotent —
+        // safe to call on every refresh.
+        for quest in todayQuests {
+            emitShown(slug: quest.slug, genre: eventGenre(for: quest), date: dayStart)
+        }
 
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
         let weekHabits = fetchHabitsBack(7)
@@ -355,13 +659,14 @@ final class LifeClockStore {
     /// latest known snapshot + history + habits. The picker UI calls this
     /// to render swap options. Reads from persisted state — no async I/O.
     func planVariants(for category: QuestEngine.Category) -> [Quest] {
-        guard let profile else { return [] }
+        guard let profile, let pool = lazyLoadedQuestPool() else { return [] }
         let now = clock.now()
         let dayStart = clock.calendar.startOfDay(for: now)
         return questEngine.availableQuests(
             for: category,
             profile: profile,
-            snapshot: fetchSnapshot(for: dayStart),
+            pool: pool,
+            events: fetchAllQuestEvents(),
             recentSnapshots: fetchRecentSnapshots(limit: 14),
             habits: todayHabits,
             today: dayStart
@@ -379,9 +684,29 @@ final class LifeClockStore {
         if todayPlanOverrides.dayKey != key {
             todayPlanOverrides = TodayPlanOverrides(dayKey: key, picks: [:])
         }
+        // Phase 3c task 12: emit `replaced` for the slug being swapped
+        // OUT (if any) and `picked` for the slug being added.
+        // Replaced is per-event, NOT deduped, so A→B→A→B yields four
+        // `replaced` rows (master plan G7 — back-and-forth signals
+        // indecision). Picked IS deduped per (date, slug).
+        let dayStart = clock.calendar.startOfDay(for: now)
+        let priorSlug = todayPlanOverrides.picks[category.rawValue]
+            ?? todayQuests.first(where: { Self.engineCategory(of: $0) == category })?.slug
+        if let priorSlug, priorSlug != slug {
+            emitReplaced(slug: priorSlug, genre: Self.genreFor(slug: priorSlug), date: dayStart)
+        }
+        emitPicked(slug: slug, genre: Self.genreFor(slug: slug), date: dayStart)
+
         todayPlanOverrides.picks[category.rawValue] = slug
         persistTodayPlanOverrides()
         applyTodayPlanOverrides()
+        // Code-review feedback on PR #32 (data-integrity #8): the
+        // emit helpers insert into modelContext; persistTodayPlanOverrides
+        // saves UserDefaults, NOT modelContext. Without an explicit
+        // save here, picked/replaced events would rely on SwiftData's
+        // autosave — which has no guaranteed cadence. A force-quit
+        // between insert and the next save would lose them.
+        try? modelContext.save()
     }
 
     /// Drop all of today's user picks; the engine's smart defaults take
@@ -749,6 +1074,14 @@ final class LifeClockStore {
             )
             modelContext.insert(entry)
             ledger.insert(entry, at: 0)
+            // Phase 3c task 13: emit `completed` event. Idempotent per
+            // (date, slug) so re-tick after un-tick + re-tick is a
+            // single event. Flag-gated inside emitCompleted.
+            emitCompleted(
+                slug: quest.slug,
+                genre: eventGenre(for: stored),
+                date: clock.calendar.startOfDay(for: now)
+            )
             emit(.questCompleted(rewardMinutes: quest.rewardEstimateMinutes))
         } else {
             quest.completedAt = nil
@@ -757,6 +1090,12 @@ final class LifeClockStore {
                 modelContext.delete(entry)
                 ledger.removeAll { $0.id == entry.id }
             }
+            // Phase 3c data-correctness: un-tick removes the matching
+            // `completed` event so affinity reflects the user's final
+            // intent. Code-review feedback on PR #32 (data-integrity
+            // #7) — without this, a stray tap permanently shifts
+            // affinity in a direction the user un-did.
+            removeCompleted(slug: quest.slug, date: clock.calendar.startOfDay(for: now))
             emit(.questUndone)
         }
         try? modelContext.save()
@@ -1139,7 +1478,19 @@ final class LifeClockStore {
     /// copied from the engine-emitted instance so daily refresh stays accurate;
     /// completedAt is left to the caller.
     @discardableResult
-    private func upsertQuest(_ quest: Quest) -> Quest {
+    func upsertQuest(_ quest: Quest) -> Quest {
+        // Resolve the incoming genre at the boundary so the same value
+        // is applied symmetrically on both insert and update. If the
+        // caller passed an empty default (legacy engine path or the
+        // consistency fallback), look up a known genre by slug; only
+        // use the fallback "" if the slug isn't in the map either.
+        // This eliminates the insert/update-branch asymmetry flagged
+        // by the data-integrity review on PR #31.
+        let resolvedGenre: String = {
+            if !quest.genre.isEmpty { return quest.genre }
+            return Self.slugGenreMap[quest.slug] ?? ""
+        }()
+
         let stored = fetchStoredQuest(slug: quest.slug, on: quest.date) ?? {
             let new = Quest(
                 id: quest.id,
@@ -1149,7 +1500,8 @@ final class LifeClockStore {
                 detail: quest.detail,
                 category: quest.category,
                 target: quest.target,
-                rewardEstimateMinutes: quest.rewardEstimateMinutes
+                rewardEstimateMinutes: quest.rewardEstimateMinutes,
+                genre: resolvedGenre
             )
             new.progress = quest.progress
             modelContext.insert(new)
@@ -1160,6 +1512,13 @@ final class LifeClockStore {
         stored.target = quest.target
         stored.progress = quest.progress
         stored.rewardEstimateMinutes = quest.rewardEstimateMinutes
+        // Phase 3 V1.5.0: propagate `genre` on update (todo 049 #1).
+        // GUARDED against the empty-default sentinel — otherwise the
+        // legacy QuestEngine emit path and the consistency-fallback
+        // path would clobber a previously-backfilled non-empty genre.
+        if !resolvedGenre.isEmpty {
+            stored.genre = resolvedGenre
+        }
         return stored
     }
 

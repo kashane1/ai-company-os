@@ -1,1 +1,616 @@
-[]
+[
+  {
+    "slug": "diet.protein-anchor-meal.v1",
+    "genre": "diet",
+    "intent": "macro-shift",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Anchor one meal with protein",
+        "detail": "Eggs, beans, fish, yogurt — pick one and let it lead a meal today. Eating slows down nicely with it."
+      },
+      "coach": {
+        "title": "One protein-anchored meal today",
+        "detail": "Build a meal around a protein source. Fullness lasts longer; afternoon snack-pull eases."
+      },
+      "firm_direct": {
+        "title": "Protein. One meal. Today.",
+        "detail": "Pick a meal. Center it on a protein. Eggs, fish, beans, yogurt. No skipping."
+      }
+    }
+  },
+  {
+    "slug": "diet.fiber-side-veggies.v1",
+    "genre": "diet",
+    "intent": "macro-shift",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "A side of vegetables somewhere today",
+        "detail": "Add a vegetable or fruit alongside one meal. The colors do the work."
+      },
+      "coach": {
+        "title": "Add veg or fruit to one meal",
+        "detail": "Toss a side of greens or a piece of fruit onto one meal. Fiber smooths digestion."
+      },
+      "firm_direct": {
+        "title": "Veg side. One meal.",
+        "detail": "Add greens or fruit to one meal. Fresh, frozen — doesn't matter. Add it."
+      }
+    }
+  },
+  {
+    "slug": "diet.water-with-protein-meal.v1",
+    "genre": "diet",
+    "intent": "macro-shift",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Water alongside the protein meal",
+        "detail": "When you sit down to a protein-rich meal, pour a glass of water. Sip while you eat."
+      },
+      "coach": {
+        "title": "Water + protein at one meal",
+        "detail": "Pair a full glass of water with the protein-anchored meal. Helps satiety register."
+      },
+      "firm_direct": {
+        "title": "Water + protein. Together.",
+        "detail": "Protein meal: full glass of water on the table. Drink it. No soda swap."
+      }
+    }
+  },
+  {
+    "slug": "diet.half-plate-veg.v1",
+    "genre": "diet",
+    "intent": "portion",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Let veggies cover half a plate",
+        "detail": "When you serve a plate today, give roughly half of it to vegetables. The rest, anything goes."
+      },
+      "coach": {
+        "title": "Half-plate vegetables at one meal",
+        "detail": "Plate up so vegetables take roughly half the surface. Carbs and protein share the rest."
+      },
+      "firm_direct": {
+        "title": "Half plate. Veg.",
+        "detail": "One meal: vegetables fill half the plate. Eyeball it. Plate up. Eat."
+      }
+    }
+  },
+  {
+    "slug": "diet.skip-second-helping.v1",
+    "genre": "diet",
+    "intent": "portion",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Pass on a second serving today",
+        "detail": "If you finish a plate and the urge for more comes, wait a few minutes. Often the want softens."
+      },
+      "coach": {
+        "title": "Skip seconds at one meal",
+        "detail": "Finish your first plate, pause for ten minutes before deciding on more. Hunger usually settles."
+      },
+      "firm_direct": {
+        "title": "First plate. Pause ten.",
+        "detail": "First plate done. Wait ten minutes. Decide if you're actually still hungry."
+      }
+    }
+  },
+  {
+    "slug": "diet.smaller-plate.v1",
+    "genre": "diet",
+    "intent": "portion",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Use a smaller plate at one meal",
+        "detail": "Reach for the salad plate instead of the dinner plate today. Same food, different frame."
+      },
+      "coach": {
+        "title": "Smaller plate at one meal today",
+        "detail": "Pick a smaller plate for one meal. Visual portion cues are real — the eyes calibrate fullness."
+      },
+      "firm_direct": {
+        "title": "Smaller plate. One meal.",
+        "detail": "Salad plate, not dinner plate. Serve normal. Eat. Done."
+      }
+    }
+  },
+  {
+    "slug": "diet.water-bottle-fill.v1",
+    "genre": "diet",
+    "intent": "hydration",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Refill a water bottle once today",
+        "detail": "Fill it once, drink it down. The body settles into hydration with little nudges like this."
+      },
+      "coach": {
+        "title": "Drink one full water bottle today",
+        "detail": "Empty a full water bottle over the course of the day. Mid-afternoon energy reads better when you do."
+      },
+      "firm_direct": {
+        "title": "One bottle. Empty.",
+        "detail": "Fill a water bottle. Drink it down before evening. Refill if you can."
+      }
+    }
+  },
+  {
+    "slug": "diet.water-with-meals.v1",
+    "genre": "diet",
+    "intent": "hydration",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Water at every meal today",
+        "detail": "Each time you sit to eat, pour a glass of water first. Slow sips between bites."
+      },
+      "coach": {
+        "title": "Glass of water with each meal",
+        "detail": "Three meals, three glasses of water — each one before or alongside. Steady hydration, no spike."
+      },
+      "firm_direct": {
+        "title": "Water. Every meal.",
+        "detail": "Three meals. Three full glasses of water. Pour first, eat second."
+      }
+    }
+  },
+  {
+    "slug": "diet.morning-glass-water.v1",
+    "genre": "diet",
+    "intent": "hydration",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A glass of water on waking",
+        "detail": "Before coffee, before anything, a glass of water. The body wakes up a little kinder for it."
+      },
+      "coach": {
+        "title": "First-thing glass of water",
+        "detail": "First action on waking: a full glass of water. Rehydrates after the overnight fast."
+      },
+      "firm_direct": {
+        "title": "Wake. Drink water.",
+        "detail": "Out of bed, glass of water before anything. No coffee yet. Water first."
+      }
+    }
+  },
+  {
+    "slug": "diet.whole-food-snack.v1",
+    "genre": "diet",
+    "intent": "processed-cut",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A whole-food snack today",
+        "detail": "Fruit, nuts, hard-boiled egg, yogurt — pick one for a snack. Foods you'd recognize as themselves."
+      },
+      "coach": {
+        "title": "Whole-food snack today",
+        "detail": "Snack on something with one ingredient: an apple, a handful of nuts, a hard-boiled egg. Steadier energy follows."
+      },
+      "firm_direct": {
+        "title": "One snack. Whole food.",
+        "detail": "Apple. Nuts. Egg. Yogurt. One snack from the list. No bag with twelve ingredients."
+      }
+    }
+  },
+  {
+    "slug": "diet.skip-packaged-snack.v1",
+    "genre": "diet",
+    "intent": "processed-cut",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Pass on a packaged snack today",
+        "detail": "If a chip-bag moment hits, try a glass of water and ten minutes first. Often the want passes by."
+      },
+      "coach": {
+        "title": "Skip one packaged snack today",
+        "detail": "Notice when you'd reach for a packaged snack — water and a brief pause first. Often you're past it."
+      },
+      "firm_direct": {
+        "title": "Skip one packaged snack.",
+        "detail": "When the bag-craving hits: water, walk away, ten minutes. Don't open it. Move on."
+      }
+    }
+  },
+  {
+    "slug": "diet.fresh-instead-of-frozen.v1",
+    "genre": "diet",
+    "intent": "processed-cut",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Reach for fresh produce once today",
+        "detail": "If a meal could use fresh, choose fresh. Doesn't have to be every meal — just once."
+      },
+      "coach": {
+        "title": "Pick fresh produce for one meal",
+        "detail": "Choose fresh fruit or veg over a frozen-prepared version once today. Texture and flavor land different."
+      },
+      "firm_direct": {
+        "title": "Fresh produce. Once.",
+        "detail": "One meal today: fresh, not frozen-meal. Apple, salad, tomato — anything fresh. Use it."
+      }
+    }
+  },
+  {
+    "slug": "diet.alcohol-skip-tonight.v1",
+    "genre": "diet",
+    "intent": "vice-cut",
+    "exclusionGroups": [],
+    "eligibility": {
+      "requiresSmoker": null,
+      "requiresDrinker": true,
+      "requiresStrengthRoutine": null,
+      "coldStartReachable": true,
+      "timeOfDay": "evening"
+    },
+    "copy": {
+      "gentle": {
+        "title": "A no-alcohol evening tonight",
+        "detail": "Tea, sparkling water, something kind. Tonight, no glass. Sleep usually thanks you."
+      },
+      "coach": {
+        "title": "Alcohol-free evening tonight",
+        "detail": "Skip the evening drink. Sleep deepens, morning shows up cleaner. Replace with sparkling water if needed."
+      },
+      "firm_direct": {
+        "title": "No alcohol tonight.",
+        "detail": "Tonight: zero. Sparkling water in the wine glass. One evening. Done."
+      }
+    }
+  },
+  {
+    "slug": "diet.caffeine-cutoff-2pm.v1",
+    "genre": "diet",
+    "intent": "vice-cut",
+    "exclusionGroups": ["pre-bed-stimulant"],
+    "copy": {
+      "gentle": {
+        "title": "No caffeine after early afternoon",
+        "detail": "Try a 2pm cutoff today. Tea, water, decaf after. Sleep onset gets noticeably softer."
+      },
+      "coach": {
+        "title": "Caffeine cutoff at 2pm today",
+        "detail": "Last caffeinated drink before 2pm. Half-life is long; the 2pm cup still touches midnight sleep."
+      },
+      "firm_direct": {
+        "title": "Caffeine off. 2pm.",
+        "detail": "Last cup before 2pm. After that: water, herbal tea, decaf. No exceptions."
+      }
+    }
+  },
+  {
+    "slug": "diet.smaller-pour.v1",
+    "genre": "diet",
+    "intent": "vice-cut",
+    "exclusionGroups": [],
+    "eligibility": {
+      "requiresSmoker": null,
+      "requiresDrinker": true,
+      "requiresStrengthRoutine": null,
+      "coldStartReachable": true,
+      "timeOfDay": "evening"
+    },
+    "copy": {
+      "gentle": {
+        "title": "A smaller pour tonight",
+        "detail": "If you'll have one tonight, pour a little less. Same ritual, gentler dose."
+      },
+      "coach": {
+        "title": "Smaller pour tonight",
+        "detail": "Pour less than usual — a few ounces in, not the full glass. Sleep architecture shifts back."
+      },
+      "firm_direct": {
+        "title": "Smaller pour. Tonight.",
+        "detail": "Less than your usual. Half-glass, not a full pour. One drink, smaller."
+      }
+    }
+  },
+  {
+    "slug": "diet.early-dinner.v1",
+    "genre": "diet",
+    "intent": "timing",
+    "exclusionGroups": ["meal-timing"],
+    "copy": {
+      "gentle": {
+        "title": "Dinner a little earlier today",
+        "detail": "If dinner usually lands late, try a half-hour earlier. The body settles for sleep more easily."
+      },
+      "coach": {
+        "title": "Eat dinner earlier today",
+        "detail": "Move dinner up by 30 minutes. Digestion gets a head start before bed; sleep onset comes cleaner."
+      },
+      "firm_direct": {
+        "title": "Dinner earlier. 30 min.",
+        "detail": "Eat dinner half an hour before usual. Plan it now. Done."
+      }
+    }
+  },
+  {
+    "slug": "diet.finish-eating-by-8pm.v1",
+    "genre": "diet",
+    "intent": "timing",
+    "exclusionGroups": ["meal-timing"],
+    "copy": {
+      "gentle": {
+        "title": "Try to be done eating by 8pm",
+        "detail": "Last bite by eight. The night runs gentler when the kitchen closes early."
+      },
+      "coach": {
+        "title": "Last bite before 8pm tonight",
+        "detail": "Aim to be done eating by 8pm. Two-hour window before bed lets the body shift to rest."
+      },
+      "firm_direct": {
+        "title": "Stop eating. 8pm.",
+        "detail": "Kitchen closes at 8pm. No exceptions. Water and tea after."
+      }
+    }
+  },
+  {
+    "slug": "diet.breakfast-within-1hr.v1",
+    "genre": "diet",
+    "intent": "timing",
+    "exclusionGroups": ["meal-timing"],
+    "copy": {
+      "gentle": {
+        "title": "Breakfast within an hour of waking",
+        "detail": "Even something small — a piece of fruit, a yogurt — within the first hour. The day starts kinder."
+      },
+      "coach": {
+        "title": "Eat within an hour of waking",
+        "detail": "Get something in within 60 minutes of getting up. Stabilizes blood sugar for the morning."
+      },
+      "firm_direct": {
+        "title": "Eat. First hour.",
+        "detail": "Out of bed, food in within 60 minutes. Yogurt, fruit, eggs. Fuel up."
+      }
+    }
+  },
+  {
+    "slug": "diet.whole-grain-swap.v1",
+    "genre": "diet",
+    "intent": "quality-upgrade",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Reach for the whole-grain version",
+        "detail": "Bread, pasta, rice — pick the whole-grain one today. The taste grows on you."
+      },
+      "coach": {
+        "title": "Whole-grain swap once today",
+        "detail": "Choose whole-grain over refined for one item: bread, rice, pasta. Slower energy curve, longer satiety."
+      },
+      "firm_direct": {
+        "title": "Whole grain. One swap.",
+        "detail": "Whole-grain bread. Brown rice. Whole-wheat pasta. One swap. Done."
+      }
+    }
+  },
+  {
+    "slug": "diet.colorful-fruit.v1",
+    "genre": "diet",
+    "intent": "quality-upgrade",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "A deeply-colored fruit today",
+        "detail": "Berries, plums, oranges, mango — something bright. The brighter, the more the body notices."
+      },
+      "coach": {
+        "title": "One deeply-colored fruit today",
+        "detail": "Pick a fruit with deep color: berries, plums, mango, oranges. Color tracks with antioxidant content."
+      },
+      "firm_direct": {
+        "title": "Bright fruit. Today.",
+        "detail": "Berries. Plums. Mango. One serving. The brighter, the better."
+      }
+    }
+  },
+  {
+    "slug": "diet.olive-oil-cooking.v1",
+    "genre": "diet",
+    "intent": "quality-upgrade",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Cook with olive oil today",
+        "detail": "Where you'd use butter or vegetable oil, try olive instead. The flavor leans Mediterranean."
+      },
+      "coach": {
+        "title": "Olive oil for one cook today",
+        "detail": "Use olive oil where you'd default to butter or seed oil. Mediterranean-leaning flavor, fewer saturated fats."
+      },
+      "firm_direct": {
+        "title": "Olive oil. One cook.",
+        "detail": "Pan, olive oil, food. Skip the butter today. Cook normally."
+      }
+    }
+  },
+  {
+    "slug": "diet.meal-no-screens.v1",
+    "genre": "diet",
+    "intent": "mindful-eating",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "One meal, no screens",
+        "detail": "Phone away, TV off, laptop closed for one sitting. The food tastes more like itself."
+      },
+      "coach": {
+        "title": "One screen-free meal today",
+        "detail": "Eat one meal with no screens around. You notice fullness signals you'd otherwise scroll past."
+      },
+      "firm_direct": {
+        "title": "Meal. No screens.",
+        "detail": "Phone face-down. TV off. One full meal. Eyes on food."
+      }
+    }
+  },
+  {
+    "slug": "diet.chew-slowly.v1",
+    "genre": "diet",
+    "intent": "mindful-eating",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Chew slowly at one meal today",
+        "detail": "Set the fork down between bites. Notice the chewing. The meal stretches and the body settles."
+      },
+      "coach": {
+        "title": "Slow chewing at one meal",
+        "detail": "Put the fork down between bites at one meal. Fullness lands earlier when chewing isn't rushed."
+      },
+      "firm_direct": {
+        "title": "Chew slow. One meal.",
+        "detail": "Fork down between bites. Chew. Swallow. Pick up. One meal that pace."
+      }
+    }
+  },
+  {
+    "slug": "diet.first-three-bites.v1",
+    "genre": "diet",
+    "intent": "mindful-eating",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Notice the first three bites",
+        "detail": "At one meal, let the first three bites have your attention. Texture, temperature, taste. Then carry on."
+      },
+      "coach": {
+        "title": "Pay attention to the first three bites",
+        "detail": "First three bites of one meal: full attention. Real attention recalibrates how the rest of the meal feels."
+      },
+      "firm_direct": {
+        "title": "First three bites. Attention.",
+        "detail": "Bite one. Bite two. Bite three. Full focus. Then eat normally."
+      }
+    }
+  },
+  {
+    "slug": "diet.water-instead-of-soda.v1",
+    "genre": "diet",
+    "intent": "swap",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Water instead of soda once today",
+        "detail": "If a soda moment shows up, swap it for sparkling water with lemon. Same fizz, different load."
+      },
+      "coach": {
+        "title": "One soda swap to water today",
+        "detail": "When you'd reach for soda, choose sparkling water or plain water with lemon. Cuts the sugar pulse."
+      },
+      "firm_direct": {
+        "title": "Water. Not soda.",
+        "detail": "Soda craving: sparkling water. Lemon if needed. No swap-back."
+      }
+    }
+  },
+  {
+    "slug": "diet.fruit-instead-of-sweet.v1",
+    "genre": "diet",
+    "intent": "swap",
+    "exclusionGroups": ["meal-adjacent"],
+    "copy": {
+      "gentle": {
+        "title": "Fruit when something sweet is wanted",
+        "detail": "When the sweet pull comes today, try fruit first. Often it's enough."
+      },
+      "coach": {
+        "title": "Fruit instead of dessert today",
+        "detail": "When a sweet craving lands, reach for fruit before the sugar option. Berries, mango, an orange — usually enough."
+      },
+      "firm_direct": {
+        "title": "Fruit. Not dessert.",
+        "detail": "Dessert moment: bowl of fruit. Eat it slowly. Move on to the next thing."
+      }
+    }
+  },
+  {
+    "slug": "diet.tea-instead-of-coffee.v1",
+    "genre": "diet",
+    "intent": "swap",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Tea instead of one coffee today",
+        "detail": "Swap one coffee for tea — green, black, herbal. The afternoon wave of jitters eases."
+      },
+      "coach": {
+        "title": "One coffee swapped for tea",
+        "detail": "Replace one coffee with tea — green or black has caffeine, herbal has none. Smoother all-day energy."
+      },
+      "firm_direct": {
+        "title": "Tea. Not coffee. Once.",
+        "detail": "One cup today: tea, not coffee. Brew it. Drink it. Stop after."
+      }
+    }
+  },
+  {
+    "slug": "diet.prep-one-ingredient.v1",
+    "genre": "diet",
+    "intent": "pre-meal-prep",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Prep one ingredient ahead",
+        "detail": "Wash some fruit, dice an onion, cook a pot of grains. One thing ready makes tomorrow's meal closer."
+      },
+      "coach": {
+        "title": "Prep one ingredient for tomorrow",
+        "detail": "Wash fruit, dice an onion, cook a grain. One ingredient ahead lowers tomorrow's friction by a lot."
+      },
+      "firm_direct": {
+        "title": "Prep. One ingredient.",
+        "detail": "Wash. Chop. Cook. One thing ready for tomorrow. Container in the fridge."
+      }
+    }
+  },
+  {
+    "slug": "diet.cut-veggies-ahead.v1",
+    "genre": "diet",
+    "intent": "pre-meal-prep",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Cut some vegetables ahead today",
+        "detail": "Carrots, peppers, celery — wash and slice a few for the next couple of days. Snacking shifts when they're ready."
+      },
+      "coach": {
+        "title": "Cut a few vegetables ahead",
+        "detail": "Slice carrots, peppers, celery for the next few days. Visible-ready veg becomes the easy snack."
+      },
+      "firm_direct": {
+        "title": "Veg. Cut ahead.",
+        "detail": "Carrots. Peppers. Celery. Wash, slice, container, fridge. Done in ten."
+      }
+    }
+  },
+  {
+    "slug": "diet.cook-extra-protein.v1",
+    "genre": "diet",
+    "intent": "pre-meal-prep",
+    "exclusionGroups": [],
+    "copy": {
+      "gentle": {
+        "title": "Cook a little extra protein tonight",
+        "detail": "Make a bit more than you need. Tomorrow's lunch is half-built before the day even starts."
+      },
+      "coach": {
+        "title": "Cook double protein tonight",
+        "detail": "Cook roughly twice the protein you need for dinner. Tomorrow's salad or wrap is already half done."
+      },
+      "firm_direct": {
+        "title": "Double the protein.",
+        "detail": "Tonight: cook double. Eat half, save half. Tomorrow's lunch handled."
+      }
+    }
+  }
+]

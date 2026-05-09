@@ -40,7 +40,32 @@ enum LifeClockSchemaV1: VersionedSchema {
     // map; `Quest.category` is intentionally preserved for rollback safety
     // and to keep `WeeklyReport.topPositiveDriver` strings consistent. See
     // docs/plans/2026-05-08-feat-quest-pool-affinity-engine-plan.md.
-    static var versionIdentifier = Schema.Version(1, 4, 0)
+    //
+    // 1.5.0 (2026-05-08): Phase 3 of the quest-pool affinity engine.
+    // Three additive UserProfile fields, all property-level-defaulted:
+    //   - `distinctOpenDays: Int = 0` — drives the cold-start discovery
+    //     dampening factor in QuestSelector.
+    //   - `lastForegroundDay: Date? = nil` — start-of-day for the most
+    //     recent local-day foreground; used to detect "first foreground
+    //     of new day" and increment distinctOpenDays.
+    //   - `useQuestPoolEngine: Bool = false` — feature flag for the
+    //     selector path. False default; flipped by Phase 5a after the
+    //     production pool ships.
+    // Plus an `#Index` on QuestEvent's (date, slug, kind) triple — without
+    // it, the idempotent-emit dedup lookup grows linearly with retention.
+    // See docs/plans/2026-05-08-feat-quest-pool-phase-3-engines-plan.md.
+    //
+    // 1.6.0 (2026-05-08): Phase 5a of the quest-pool affinity engine.
+    // Default value of `useQuestPoolEngine` flipped from `false` → `true`
+    // for fresh installs. Existing installs retain whatever value was
+    // stored, so a startup-time idempotent backfill in
+    // `LifeClockStore.bootstrapQuestPoolEngineFlag()` flips the legacy
+    // false to true on next launch — meeting the plan §5a acceptance
+    // criterion that existing users move to the new path. Backfill is a
+    // value-only mutation, no schema shape change, so lightweight
+    // migration applies. See
+    // docs/plans/2026-05-08-feat-quest-pool-phase-4-and-5-plan.md §5a.
+    static var versionIdentifier = Schema.Version(1, 6, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -156,6 +181,39 @@ enum LifeClockSchemaV1: VersionedSchema {
         /// `currentProfile != nil` AND `anchorAdjustedAt == nil` get a one-time
         /// recalibration prompt rather than a full restart of onboarding.
         var onboardingV2CompletedAt: Date? = nil
+
+        // MARK: - Quest-pool affinity engine (additive 2026-05-08, V1.5.0)
+        //
+        // Property-level defaults are mandatory (NSCocoaErrorDomain 134110
+        // landmine, see docs/solutions/integration-issues/swiftdata-mandatory-attribute-migration-landmine.md).
+        // Defaults are chosen so a freshly-migrated profile reads as
+        // "first day, no engagement" — discovery damp = 0.3 and the
+        // legacy QuestEngine path runs.
+
+        /// Number of distinct local-calendar days this install has been
+        /// foregrounded. Drives the cold-start discovery dampening
+        /// factor in QuestSelector — `0.3 + 0.7 × min(d/7, 1)`.
+        /// Incremented on first foreground per local day in
+        /// `LifeClockStore.refresh()`.
+        var distinctOpenDays: Int = 0
+
+        /// Start-of-day for the most recent local-calendar day on which
+        /// this install was foregrounded. `nil` until first launch
+        /// completes. Used to gate the daily-cycle EOD resolver and the
+        /// `distinctOpenDays` increment.
+        var lastForegroundDay: Date? = nil
+
+        /// Feature flag for the quest-pool selector path. When true,
+        /// `QuestEngine.generateDailyQuests` routes through QuestSelector
+        /// + the JSON-loaded pool. When false, the legacy inlined Quest
+        /// path runs unchanged.
+        ///
+        /// Phase 5a (V1.6.0): default flipped to `true`. Existing rows
+        /// stored as `false` are migrated forward by
+        /// `LifeClockStore.bootstrapQuestPoolEngineFlag()` on next launch.
+        /// Phase 5b will retire the legacy path and remove this flag
+        /// entirely after a ≥1-week production bake.
+        var useQuestPoolEngine: Bool = true
 
         init(
             id: UUID = UUID(),

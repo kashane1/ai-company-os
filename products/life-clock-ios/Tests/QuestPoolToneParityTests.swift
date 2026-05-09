@@ -136,18 +136,156 @@ final class QuestPoolToneParityTests: XCTestCase {
         }
     }
 
-    // MARK: - Production pool placeholder
+    // MARK: - Reachability (Phase 4a §test plan)
 
-    /// Placeholder — runs against the production pool but tolerates the
-    /// Phase 2 empty state. When Phase 4 lands authored slugs, this becomes
-    /// the load-bearing parity gate for the production pool with no further
-    /// changes required.
+    /// Every authored slug must be selectable for some realistic
+    /// profile + event-history combo. A pool entry the selector can
+    /// never surface is wasted authoring work; this gate catches that
+    /// failure mode at build time.
+    ///
+    /// Approach: for each target slug T in genre G, build a profile that
+    /// satisfies T's eligibility filter, and seed events showing every
+    /// OTHER slug in G 30 days ago. T (never shown) has recency 1.0; all
+    /// others have recency exp(-30/3.5) ≈ 2e-4. T must win G's slot.
+    ///
+    /// 4b adds inverse-direction filters (`requiresDrinker: true` on
+    /// vice-cut alcohol slugs). The profile is widened to a "hyper-
+    /// permissive" one that satisfies every filter on either side:
+    /// strength + weekly drinker means both `requiresStrengthRoutine: true`
+    /// and `requiresDrinker: true` slugs survive. We don't currently
+    /// author `requires*: false` slugs, but if we do, the test will need
+    /// per-slug profile tailoring.
+    func testEveryActivitySlugIsReachable() throws {
+        try assertEveryGenreSlugIsReachable(.activity)
+    }
+
+    func testEveryDietSlugIsReachable() throws {
+        try assertEveryGenreSlugIsReachable(.diet)
+    }
+
+    func testEverySleepSlugIsReachable() throws {
+        try assertEveryGenreSlugIsReachable(.sleep)
+    }
+
+    private func assertEveryGenreSlugIsReachable(_ genre: Genre) throws {
+        let pool = try QuestPool.loadFromBundle(hostBundle)
+        let candidates = pool.quests(in: genre)
+        guard !candidates.isEmpty else {
+            XCTFail("\(genre.rawValue) pool empty — authoring expected for this phase")
+            return
+        }
+
+        let today = Date(timeIntervalSince1970: 1_800_000_000)
+        let calendar = Calendar.current
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today)!
+        let birthDate = Date(timeIntervalSince1970: 631_152_000)
+
+        let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
+        profile.smokingStatus = "light"
+        profile.alcoholFrequency = "weekly"
+        profile.strengthFrequencyPerWeek = 3
+        profile.distinctOpenDays = 30
+
+        let slugs = candidates.map(\.slug)
+        for target in slugs {
+            let others = slugs.filter { $0 != target }
+            let events = others.map { slug in
+                QuestEvent(
+                    date: thirtyDaysAgo,
+                    slug: slug,
+                    genre: genre.rawValue,
+                    kind: QuestEventKind.shown.rawValue
+                )
+            }
+
+            let picks = QuestSelector.select(
+                pool: pool,
+                affinity: [.activity: 0.5, .diet: 0.5, .sleep: 0.5],
+                needWeight: [.activity: 1.0, .diet: 1.0, .sleep: 1.0],
+                profile: profile,
+                today: today,
+                events: events
+            )
+            let pick = picks.first(where: { $0.genre == genre })
+            XCTAssertEqual(
+                pick?.slug, target,
+                "\(genre.rawValue) slug \"\(target)\" is unreachable: expected to win when all peers shown 30 days ago"
+            )
+        }
+    }
+
+    // MARK: - Production pool (Phase 4a — load-bearing)
+
+    /// All four gates from the Phase 4 plan §4.6 run against the production
+    /// pool now that activity is authored. Was a placeholder in Phase 2;
+    /// becomes the load-bearing tone-correctness lock from Phase 4a forward.
     func testProductionPoolToneInvariants() throws {
         let pool = try QuestPool.loadFromBundle(hostBundle)
+        guard !pool.isEmpty else {
+            XCTFail("Production pool is empty — Phase 4a authoring expected")
+            return
+        }
         for slug in pool.slugs {
             guard let quest = pool.quests[slug] else { continue }
+
+            // Gate 1: every authored slug has all three tones.
             for tone in ToneMode.allCases {
                 XCTAssertNotNil(quest.copy[tone], "\(slug) missing tone \(tone.rawValue)")
+            }
+
+            // Gate 2: tone strings differ pairwise. A copy-paste between
+            // tones is a build failure.
+            let tones = ToneMode.allCases
+            for i in 0..<tones.count {
+                for j in (i + 1)..<tones.count {
+                    let a = quest.copy[tones[i]]
+                    let b = quest.copy[tones[j]]
+                    XCTAssertNotEqual(
+                        a?.title, b?.title,
+                        "\(slug): \(tones[i].rawValue) and \(tones[j].rawValue) titles are identical"
+                    )
+                    XCTAssertNotEqual(
+                        a?.detail, b?.detail,
+                        "\(slug): \(tones[i].rawValue) and \(tones[j].rawValue) details are identical"
+                    )
+                }
+            }
+
+            // Gate 3: parity-anchor fields are non-empty at load time.
+            // Per-tone divergence is structurally impossible (intent +
+            // target live on PoolQuest, not ToneCopy), so this gate
+            // catches authoring mistakes only — empty metric/unit
+            // strings, empty intent.
+            XCTAssertFalse(quest.intent.isEmpty, "\(quest.slug) has empty intent")
+            if let target = quest.target {
+                XCTAssertFalse(target.metric.isEmpty, "\(quest.slug) target has empty metric")
+                XCTAssertFalse(target.unit.isEmpty, "\(quest.slug) target has empty unit")
+            }
+
+            // Gate 4: vocabulary smoke-test — gentle excludes firm-direct
+            // vocab; firm_direct excludes gentle vocab. Catches the
+            // dominant tone-drift mode.
+            for tone in ToneMode.allCases {
+                guard let copy = quest.copy[tone] else { continue }
+                let combined = (copy.title + " " + copy.detail).lowercased()
+                switch tone {
+                case .gentle:
+                    for word in Self.firmDirectOnlyVocab {
+                        XCTAssertFalse(
+                            combined.contains(word.lowercased()),
+                            "\(slug) gentle copy contains firm-direct vocabulary: \(word)"
+                        )
+                    }
+                case .firmDirect:
+                    for word in Self.gentleOnlyVocab {
+                        XCTAssertFalse(
+                            combined.contains(word.lowercased()),
+                            "\(slug) firm_direct copy contains gentle vocabulary: \(word)"
+                        )
+                    }
+                case .coach:
+                    break  // coach tolerates either register
+                }
             }
         }
     }

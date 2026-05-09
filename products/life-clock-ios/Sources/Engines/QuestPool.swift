@@ -19,26 +19,36 @@ import Foundation
 /// app startup converts the error to a `fatalError` so the next TestFlight
 /// build catches the problem before App Store rollout.
 struct QuestPool: Sendable {
-let quests: [String: PoolQuest]
+    let quests: [String: PoolQuest]
+    /// Precomputed at init for O(1) per-genre lookup. Each list is
+    /// sorted slug-ascending, which doubles as the deterministic
+    /// tiebreaker when multiple slugs in the same genre tie on score
+    /// (per Phase 3 plan G20). Phase 3 perf review (todo 049 #5).
+    let byGenre: [Genre: [PoolQuest]]
 
-init(quests: [PoolQuest]) {
+    init(quests: [PoolQuest]) {
         var dict: [String: PoolQuest] = [:]
+        var grouped: [Genre: [PoolQuest]] = [:]
         for quest in quests {
             dict[quest.slug] = quest
+            grouped[quest.genre, default: []].append(quest)
+        }
+        for genre in grouped.keys {
+            grouped[genre]?.sort { $0.slug < $1.slug }
         }
         self.quests = dict
+        self.byGenre = grouped
     }
 
     /// All slugs in the pool, in deterministic sort order.
-var slugs: [String] {
+    var slugs: [String] {
         quests.keys.sorted()
     }
 
     /// All quests for a given genre, in deterministic sort order by slug.
-func quests(in genre: Genre) -> [PoolQuest] {
-        quests.values
-            .filter { $0.genre == genre }
-            .sorted { $0.slug < $1.slug }
+    /// O(1) dict lookup (no per-call filter+sort) thanks to `byGenre`.
+    func quests(in genre: Genre) -> [PoolQuest] {
+        byGenre[genre] ?? []
     }
 
     /// O(1) tone resolution: the rendered copy for a slug at the user's
