@@ -94,8 +94,8 @@
         "detail": "Finish your first plate, pause for ten minutes before deciding on more. Hunger usually settles."
       },
       "firm_direct": {
-        "title": "No seconds.",
-        "detail": "First plate done. Wait ten. Don't go back. One round is the round today."
+        "title": "First plate. Pause ten.",
+        "detail": "First plate done. Wait ten minutes. Decide if you're actually still hungry."
       }
     }
   },
@@ -425,7 +425,7 @@
       },
       "coach": {
         "title": "Olive oil for one cook today",
-        "detail": "Use olive oil where you'd default to butter or seed oil. Heart-friendly fats land in the meal."
+        "detail": "Use olive oil where you'd default to butter or seed oil. Mediterranean-leaning flavor, fewer saturated fats."
       },
       "firm_direct": {
         "title": "Olive oil. One cook.",
@@ -529,7 +529,7 @@
       },
       "firm_direct": {
         "title": "Fruit. Not dessert.",
-        "detail": "Dessert moment: bowl of fruit. Eat it. Don't loop back to the cookie."
+        "detail": "Dessert moment: bowl of fruit. Eat it slowly. Move on to the next thing."
       }
     }
   },
