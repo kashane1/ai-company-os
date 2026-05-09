@@ -67,6 +67,13 @@ struct LifeClockLaunchConfiguration {
     /// Composed with `LIFECLOCK_HEALTH_PROFILE=poor` it lands the user on
     /// a ≈ −90 minute Today screen for the three-tone vision audit.
     let seedBadDayToday: Bool
+    /// `LIFECLOCK_SEED_LAST_LOG_DAYS_AGO=N` shifts the most recent seeded
+    /// HabitLog + DailyHealthSnapshot N days into the past. Default 0
+    /// (snapshots include today). Composes with `seedStreak`: with
+    /// `seedStreak=5` and this set to 35, snapshots land at days
+    /// −35…−39 from `now`, simulating a returning user after a long
+    /// absence. Used by the long-absence-card polish recon.
+    let seedLastLogDaysAgo: Int
 
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
@@ -95,6 +102,7 @@ struct LifeClockLaunchConfiguration {
             rawValue: env["LIFECLOCK_HEALTH_PROFILE"] ?? ""
         ) ?? .baseline
         let seedBadDayToday = env["LIFECLOCK_SEED_BAD_DAY"] == "1"
+        let seedLastLogDaysAgo = max(0, Int(env["LIFECLOCK_SEED_LAST_LOG_DAYS_AGO"] ?? "") ?? 0)
 
         let clock: EngineClock = {
             if let iso = env["LIFECLOCK_FIXED_DATE"],
@@ -119,7 +127,8 @@ struct LifeClockLaunchConfiguration {
             forceColorScheme: forceColorScheme,
             seedTone: seedTone,
             healthProfile: healthProfile,
-            seedBadDayToday: seedBadDayToday
+            seedBadDayToday: seedBadDayToday,
+            seedLastLogDaysAgo: seedLastLogDaysAgo
         )
         #else
         return LifeClockLaunchConfiguration(
@@ -134,7 +143,8 @@ struct LifeClockLaunchConfiguration {
             forceColorScheme: nil,
             seedTone: nil,
             healthProfile: .baseline,
-            seedBadDayToday: false
+            seedBadDayToday: false,
+            seedLastLogDaysAgo: 0
         )
         #endif
     }
@@ -164,14 +174,18 @@ struct LifeClockLaunchConfiguration {
 
         let now = clock.now()
         let calendar = clock.calendar
-        // Back-date onboarding by `seedStreak` days when seeding a returning
-        // user. The wrap-up reinstall guard (`today >= onboardedAt + 2`) and
-        // weekly recency window both need real elapsed days; without this the
-        // wrap-up flow is unreachable from a fresh seed. Min 2 days when
-        // streak ≥ 2, so any returning-user fixture is past the guard.
+        // Back-date onboarding by `seedStreak + seedLastLogDaysAgo` days when
+        // seeding a returning user. The wrap-up reinstall guard
+        // (`today >= onboardedAt + 2`) and weekly recency window both need
+        // real elapsed days; without this the wrap-up flow is unreachable
+        // from a fresh seed. Min 2 days when streak ≥ 2 so any
+        // returning-user fixture is past the guard. With
+        // `seedLastLogDaysAgo` set, the user must have onboarded BEFORE the
+        // earliest seeded snapshot — otherwise the longAbsenceCard's
+        // `hasOlderSnapshots` predicate stays unreachable.
         let onboardedAt: Date = {
             guard seedStreak > 0 else { return now }
-            let daysBack = max(2, seedStreak)
+            let daysBack = max(2, seedStreak + seedLastLogDaysAgo)
             return calendar.date(byAdding: .day, value: -daysBack, to: now) ?? now
         }()
         let profile = UserProfile(
@@ -198,7 +212,8 @@ struct LifeClockLaunchConfiguration {
         if seedStreak > 0 {
             let todayStart = calendar.startOfDay(for: now)
             for offset in 0..<seedStreak {
-                guard let day = calendar.date(byAdding: .day, value: -offset, to: now) else { continue }
+                let totalOffset = offset + seedLastLogDaysAgo
+                guard let day = calendar.date(byAdding: .day, value: -totalOffset, to: now) else { continue }
                 let dayStart = calendar.startOfDay(for: day)
                 let log = HabitLog(date: dayStart)
                 if seedBadDayToday && dayStart == todayStart {
