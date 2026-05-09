@@ -152,7 +152,7 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
-    @State private var selection: AppTab = .today
+    @State private var selection: AppTab = LifeClockLaunchConfiguration.current.initialTab
 
     var body: some View {
         TabView(selection: $selection) {

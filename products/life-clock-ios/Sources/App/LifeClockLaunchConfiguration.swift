@@ -74,6 +74,10 @@ struct LifeClockLaunchConfiguration {
     /// −35…−39 from `now`, simulating a returning user after a long
     /// absence. Used by the long-absence-card polish recon.
     let seedLastLogDaysAgo: Int
+    /// `LIFECLOCK_INITIAL_TAB=profile|history|today` lets a recon driver
+    /// land directly on a non-Today tab without writing an XCUITest. Used
+    /// by simulator-driven-polish runs that target Profile or History.
+    let initialTab: AppTab
 
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
@@ -103,6 +107,7 @@ struct LifeClockLaunchConfiguration {
         ) ?? .baseline
         let seedBadDayToday = env["LIFECLOCK_SEED_BAD_DAY"] == "1"
         let seedLastLogDaysAgo = max(0, Int(env["LIFECLOCK_SEED_LAST_LOG_DAYS_AGO"] ?? "") ?? 0)
+        let initialTab = AppTab(rawValue: env["LIFECLOCK_INITIAL_TAB"] ?? "") ?? .today
 
         let clock: EngineClock = {
             if let iso = env["LIFECLOCK_FIXED_DATE"],
@@ -128,7 +133,8 @@ struct LifeClockLaunchConfiguration {
             seedTone: seedTone,
             healthProfile: healthProfile,
             seedBadDayToday: seedBadDayToday,
-            seedLastLogDaysAgo: seedLastLogDaysAgo
+            seedLastLogDaysAgo: seedLastLogDaysAgo,
+            initialTab: initialTab
         )
         #else
         return LifeClockLaunchConfiguration(
@@ -144,7 +150,8 @@ struct LifeClockLaunchConfiguration {
             seedTone: nil,
             healthProfile: .baseline,
             seedBadDayToday: false,
-            seedLastLogDaysAgo: 0
+            seedLastLogDaysAgo: 0,
+            initialTab: .today
         )
         #endif
     }
