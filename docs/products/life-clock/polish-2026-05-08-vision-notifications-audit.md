@@ -93,6 +93,7 @@ The 6 AM Firm/Direct concern in the operator's prompt is **structurally impossib
 | F6 | Default-hour `20` lives in two places: `LifeClockSchema.swift:65` and `OnboardingView.swift:308`. Constant duplication | Polish (out of scope this session) | Logged for next pass |
 | F7 | Suppression mechanism (logged today → skip today's fire) is invisible to the user | Polish (out of scope this session) | Logged for next pass |
 | F8 | No "you've not opened the app in 5 days" re-engagement nudge | Feature | See Ask 5 |
+| F9 | Profile reminder toggle visually no-ops when notification auth is `.notDetermined` | Polish/Stretch (out of scope this session) | Discovered during checkpoint; see Final-check status |
 
 ## Stretch decisions
 
@@ -219,15 +220,37 @@ None — no source edits.
 
 ## Final-check status
 
-Vision-mode requires a final computer-use checkpoint. Status: **partial**.
+Vision-mode requires a final computer-use checkpoint. Status: **complete** (operator granted access mid-session after initial timeouts; resumed and finished).
 
-- **Done:** clean headless build (`xcodebuild` exit 0), install on iPhone 17 Pro simulator, launch with `LIFECLOCK_UI_TEST_SCENARIO=onboarded`, `LIFECLOCK_HEALTH_AUTH=authorized`, `LIFECLOCK_USE_MOCK_HEALTH=1`. Today screen captured at [.polish/goldens/notifications-audit/02_today_clean.png](../../../products/life-clock-ios/.polish/goldens/notifications-audit/02_today_clean.png) — confirms seed scenario + build path.
-- **Blocked:** `request_access` to Simulator timed out twice (300s each). Profile → Daily reminder section + SafetyNet sheet were the targets; both are confirmed by source reading instead.
-- **Why this is OK for THIS session:** the audit is largely a logic-and-copy review (scheduling chokepoint, tone-aware copy, SafetyNet wiring, default state). The shipped behavior is fully encoded in source and tests. The simulator visit would only have screenshotted UI that's already confirmed by reading [ProfileView.swift:55-98](../../../products/life-clock-ios/Sources/Features/Profile/ProfileView.swift) and [SafetyNetView.swift](../../../products/life-clock-ios/Sources/Features/SafetyNet/SafetyNetView.swift).
-- **Carry-forward:** when the operator next runs a session that *does* touch notifications code, the final-check should drive Profile → Daily reminder DatePicker + SafetyNet → Switch to Gentle to validate the round-trip end-to-end.
+Captured goldens (local-only — `.polish/` is gitignored):
+
+| File | What it shows | Confirms |
+|---|---|---|
+| `.polish/goldens/notifications-audit/02_today_clean.png` | Today screen, onboarded scenario, +0 min | Build path + seed scenario work |
+| `.polish/goldens/notifications-audit/03_profile_daily_reminder_off.png` | Profile → Daily reminder section, toggle OFF | Default-off state. Footer reads exactly *"We'll remind you to log if you haven't already by this time. One per day. Reminder time runs between 8 AM and 10 PM."* — the 8 AM clamp is surfaced to the user, supports Ask 4 |
+| `.polish/goldens/notifications-audit/04_profile_safety_entry.png` | Profile bottom: "If this app is making you anxious" entry | SafetyNet is reachable; subtitle reads *"Switch to Gentle tone, hide the clock, or get crisis-resource phone numbers. Always available — no questions asked."* — the soft-mode lever is the user's choice, not implicit |
+| `.polish/goldens/notifications-audit/05_safetynet_top.png` | SafetyNet sheet, three cards visible | The two notification-affecting levers (Switch to Gentle, Hide projected age and anchor date toggle) are both present and visually equal-weight; "Use Gentle now" is a primary button, "Hide" is a Toggle. Confirms Ask 3's status-quo option. |
+
+Two notable side-discoveries during the drive:
+
+- **Locked badges include "Future nudge" — "Enabled the daily reminder."** Visible in the Locked group on Profile. The app already gamifies enabling reminders (Consistency category badge). This is consistent with the audit's claim that the shipped path is opt-in; the badge incentivizes opt-in without making it default.
+- **Daily reminder toggle did not flip when tapped** in the onboarded scenario. The bound setter calls `setDailyReminder(enabled: true, hour: …)`, which writes `dailyReminderEnabled = true` to SwiftData and calls `reconcileNotifications` — but with `notificationAuthorizationStatus == .notDetermined`, the reconcile early-returns through `cancelAll()`. The persisted `true` should still bind back to the Toggle, but visually the Toggle stayed off across multiple taps.
+  - **Possible read:** the `Binding.set` callback's `Task { await store.setDailyReminder(...) }` runs asynchronously; the toggle visual has nothing to bind to until `profile.dailyReminderEnabled` updates and SwiftUI re-renders. If the iOS auth dialog should fire here but doesn't (because the request is gated to onboarding step 5), the user sees a no-op toggle. Worth a separate Polish/Stretch finding.
+  - **Filed as F9 — out of scope this session, queued for next pass.** The audit was about scheduling logic, not the toggle's UX. But this is the kind of thing the simulator visit catches that source reading would not.
+
+### F9 — Daily reminder toggle visually no-ops when notification auth is `.notDetermined` *(filed for next pass, Polish or Stretch)*
+
+The Profile toggle's setter unconditionally calls `setDailyReminder`. If the user reaches Profile with `.notDetermined` (e.g. they answered "No thanks" in onboarding and now want to opt in), tapping the toggle:
+
+1. Sets `profile.dailyReminderEnabled = true` in SwiftData
+2. Calls `reconcileNotifications` → reads `notificationAuthorizationStatus == .notDetermined` → calls `cancelAll()` (early-return path)
+3. No iOS permission dialog presents
+4. The Toggle visual *should* re-render to ON via the binding, but in our drive it stayed OFF — needs further investigation. Either way, the user gets no signal that the toggle requires permission.
+
+Suggested fix shape (for next session, with operator approval): the Profile toggle's `set` block should call `requestNotificationAuthorization` when status is `.notDetermined`, then `setDailyReminder`. The same hour-default (`?? 20`) applies. Onboarding step 5 already does this — Profile should mirror.
 
 ## Next pass
 
 - After operator answers Asks 1–5, the **Decided constraints ratchet** is the most valuable follow-up — converting recommendations into vision lock-in.
 - If Ask 5 resolves as B (ship re-engagement), open a separate `simulator-driven-polish` session in `freeform-polish` mode — that's a feature ship and needs the full loop, not an audit.
-- F4 (onboarding-step-5 denied-state inline message), F6 (consolidate `dailyReminderHour` default constant), F7 (surface the suppression behavior — e.g. Profile footer line "Logged today? We'll skip tonight's reminder") are queued **Polish-tier** items, currently out of scope per "purely audit + propose."
+- F4 (onboarding-step-5 denied-state inline message), F6 (consolidate `dailyReminderHour` default constant), F7 (surface the suppression behavior — e.g. Profile footer line "Logged today? We'll skip tonight's reminder"), F9 (Profile toggle should request notification auth when `.notDetermined`) are queued **Polish/Stretch-tier** items, currently out of scope per "purely audit + propose."
