@@ -114,4 +114,40 @@ final class ToneModeTests: XCTestCase {
         let line = ToneMode.coach.todayInterpretationNegative(driverTitle: raw)
         XCTAssertTrue(line.contains("Heavy alcohol logged"))
     }
+
+    // MARK: - questCompletionPayoff (vision Q14)
+
+    /// Pin Gentle. Catches accidental rewrites of the today-focused
+    /// tone-keyed payoff line under persist-banked.
+    func testQuestCompletionPayoff_GentleEighteenMinutes() {
+        XCTAssertEqual(
+            ToneMode.gentle.questCompletionPayoff(minutes: 18),
+            "Your clock just moved +18 min."
+        )
+    }
+
+    /// Pin Coach.
+    func testQuestCompletionPayoff_CoachEighteenMinutes() {
+        XCTAssertEqual(
+            ToneMode.coach.questCompletionPayoff(minutes: 18),
+            "+18 min on the clock."
+        )
+    }
+
+    /// Pin Firm/Direct.
+    func testQuestCompletionPayoff_FirmDirectEighteenMinutes() {
+        XCTAssertEqual(
+            ToneMode.firmDirect.questCompletionPayoff(minutes: 18),
+            "+18 min. On the clock."
+        )
+    }
+
+    /// Negative reward shouldn't crash and should pass the formatter
+    /// through unchanged. Rare but possible (a deload-day quest).
+    func testQuestCompletionPayoff_NegativeMinutesUsesFormatter() {
+        for tone in ToneMode.allCases {
+            let line = tone.questCompletionPayoff(minutes: -5)
+            XCTAssertTrue(line.contains("-5 min"), "\(tone.rawValue): \(line)")
+        }
+    }
 }

@@ -299,6 +299,23 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    // MARK: - Quest completion payoff (vision Q14, 2026-05-09)
+
+    /// Support-card payoff line shown briefly after a quest is checked
+    /// complete on Today. Today-focused — describes what the user just
+    /// saw happen on the clock, since under persist-banked the clock
+    /// visibly moved by `minutes`. Source: vision Q14 + plan
+    /// `2026-05-09-feat-life-clock-quest-completion-payoff-plan.md`
+    /// Q-plan-4 resolution.
+    func questCompletionPayoff(minutes: Int) -> String {
+        let formatted = TimeDeltaFormatter.format(minutes: minutes)
+        switch self {
+        case .gentle: return "Your clock just moved \(formatted)."
+        case .coach: return "\(formatted) on the clock."
+        case .firmDirect: return "\(formatted). On the clock."
+        }
+    }
+
     // MARK: - Monthly logging banner (vision Q7, 2026-05-06)
 
     /// Secondary line on the monthly logging banner when the day is NOT a
