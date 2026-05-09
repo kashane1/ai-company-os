@@ -22,12 +22,10 @@ final class QuestPoolTests: XCTestCase {
 
     // MARK: - Production pool
 
-    /// Phase 4a state: activity authored (30 slugs), diet + sleep still
-    /// empty. Phase 4b/4c will fill diet + sleep; this test updates with
-    /// each sub-phase. The expected counts here are also the genre-floor
-    /// guarantee for the selector — every genre with authored content
-    /// reaches the per-genre minimum coverage.
-    func testProductionPoolPhase4aShape() throws {
+    /// Current Phase 4 sub-phase shape. Updates on each landing; pinned
+    /// here so unintentional content drift is a test failure.
+    /// Phase 4b state: activity + diet authored (30 each), sleep empty.
+    func testProductionPoolPhase4bShape() throws {
         let pool = try QuestPool.loadFromBundle(hostBundle)
         XCTAssertEqual(
             pool.quests(in: .activity).count,
@@ -36,13 +34,13 @@ final class QuestPoolTests: XCTestCase {
         )
         XCTAssertEqual(
             pool.quests(in: .diet).count,
-            0,
-            "Phase 4a leaves diet empty (Phase 4b authors it)"
+            30,
+            "Phase 4b expects 30 authored diet slugs"
         )
         XCTAssertEqual(
             pool.quests(in: .sleep).count,
             0,
-            "Phase 4a leaves sleep empty (Phase 4c authors it)"
+            "Phase 4b leaves sleep empty (Phase 4c authors it)"
         )
     }
 
@@ -53,28 +51,60 @@ final class QuestPoolTests: XCTestCase {
         XCTAssertNoThrow(try QuestPool.loadFromBundle(hostBundle))
     }
 
-    func testProductionActivityIntentGridIsFullyCovered() throws {
-        // Phase 4a §4.1 intent grid: 10 intents × 3 slugs each = 30.
-        // Pin the structural shape so authoring drift (one intent with 4
-        // slugs, another with 2) shows up as a test failure.
-        let pool = try QuestPool.loadFromBundle(hostBundle)
-        let activity = pool.quests(in: .activity)
-        let countsByIntent = Dictionary(grouping: activity, by: { $0.intent })
+    /// Expected intents per genre (Phase 4 plan §4.1). Single source of
+    /// truth for the per-genre coverage tests below; lift to a Swift
+    /// constant if a future authoring tool needs to consume it.
+    private static let activityIntents: Set<String> = [
+        "cardio", "strength", "steps", "break-up-sitting", "outdoor",
+        "mobility", "neat", "recovery-walk", "balance", "deload-walk",
+    ]
+    private static let dietIntents: Set<String> = [
+        "macro-shift", "portion", "hydration", "processed-cut", "vice-cut",
+        "timing", "quality-upgrade", "mindful-eating", "swap", "pre-meal-prep",
+    ]
+    private static let sleepIntents: Set<String> = [
+        "wind-down", "consistency", "environment", "pre-bed-stimulant-cut",
+        "screen-cut", "recovery-aid", "nap-discipline", "morning-light",
+        "late-meal-cut", "hydration-timing",
+    ]
+
+    private func assertIntentGridFullyCovered(
+        _ quests: [PoolQuest],
+        expected: Set<String>,
+        genre: String
+    ) {
+        let countsByIntent = Dictionary(grouping: quests, by: { $0.intent })
             .mapValues(\.count)
-        let expectedIntents: Set<String> = [
-            "cardio", "strength", "steps", "break-up-sitting", "outdoor",
-            "mobility", "neat", "recovery-walk", "balance", "deload-walk",
-        ]
         XCTAssertEqual(
-            Set(countsByIntent.keys), expectedIntents,
-            "Activity intent set drifted from the §4.1 grid"
+            Set(countsByIntent.keys), expected,
+            "\(genre) intent set drifted from the §4.1 grid"
         )
         for (intent, count) in countsByIntent {
             XCTAssertEqual(
                 count, 3,
-                "Activity intent \"\(intent)\" should have 3 slugs, has \(count)"
+                "\(genre) intent \"\(intent)\" should have 3 slugs, has \(count)"
             )
         }
+    }
+
+    func testProductionActivityIntentGridIsFullyCovered() throws {
+        // Phase 4a §4.1 intent grid: 10 intents × 3 slugs each = 30.
+        let pool = try QuestPool.loadFromBundle(hostBundle)
+        assertIntentGridFullyCovered(
+            pool.quests(in: .activity),
+            expected: Self.activityIntents,
+            genre: "Activity"
+        )
+    }
+
+    func testProductionDietIntentGridIsFullyCovered() throws {
+        // Phase 4b §4.1 intent grid.
+        let pool = try QuestPool.loadFromBundle(hostBundle)
+        assertIntentGridFullyCovered(
+            pool.quests(in: .diet),
+            expected: Self.dietIntents,
+            genre: "Diet"
+        )
     }
 
     // MARK: - Fixture pool
@@ -233,9 +263,17 @@ final class QuestPoolTests: XCTestCase {
     /// Phase 4a only authors activity, so this gate is activity-scoped
     /// for now; Phase 4b/c will widen it.
     func testActivityIsReachableForDefaultColdStartProfile() throws {
+        try assertGenreReachableForColdStart(.activity)
+    }
+
+    func testDietIsReachableForDefaultColdStartProfile() throws {
+        try assertGenreReachableForColdStart(.diet)
+    }
+
+    private func assertGenreReachableForColdStart(_ genre: Genre) throws {
         let pool = try QuestPool.loadFromBundle(hostBundle)
-        let activity = pool.quests(in: .activity)
-        guard !activity.isEmpty else { return }
+        let candidates = pool.quests(in: genre)
+        guard !candidates.isEmpty else { return }
 
         let birthDate = Date(timeIntervalSince1970: 631_152_000)
         let coldStart = UserProfile(birthDate: birthDate, biologicalSex: "female")
@@ -244,11 +282,11 @@ final class QuestPoolTests: XCTestCase {
         coldStart.strengthFrequencyPerWeek = 0
         coldStart.distinctOpenDays = 0
 
-        let eligible = activity.filter { QuestSelector.isEligible($0, profile: coldStart) }
+        let eligible = candidates.filter { QuestSelector.isEligible($0, profile: coldStart) }
         XCTAssertGreaterThan(
             eligible.count, 0,
-            "No activity slug is reachable for a cold-start non-strength user. " +
-            "Genre would starve the user on day 1."
+            "No \(genre.rawValue) slug is reachable for a cold-start non-strength " +
+            "non-drinker non-smoker user. Genre would starve the user on day 1."
         )
     }
 

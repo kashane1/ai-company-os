@@ -138,20 +138,36 @@ final class QuestPoolToneParityTests: XCTestCase {
 
     // MARK: - Reachability (Phase 4a §test plan)
 
-    /// Every authored activity slug must be selectable for some realistic
-    /// profile + event-history combo. A pool entry that the selector can
-    /// never surface is wasted authoring work; this test catches that
+    /// Every authored slug must be selectable for some realistic
+    /// profile + event-history combo. A pool entry the selector can
+    /// never surface is wasted authoring work; this gate catches that
     /// failure mode at build time.
     ///
-    /// Approach: for each target slug T, build a profile that satisfies T's
-    /// eligibility filter, and seed events showing every OTHER activity slug
-    /// 30 days ago. T (never shown) has recency 1.0; all others have
-    /// recency exp(-30/3.5) ≈ 2e-4. T must win the activity slot.
+    /// Approach: for each target slug T in genre G, build a profile that
+    /// satisfies T's eligibility filter, and seed events showing every
+    /// OTHER slug in G 30 days ago. T (never shown) has recency 1.0; all
+    /// others have recency exp(-30/3.5) ≈ 2e-4. T must win G's slot.
+    ///
+    /// 4b adds inverse-direction filters (`requiresDrinker: true` on
+    /// vice-cut alcohol slugs). The profile is widened to a "hyper-
+    /// permissive" one that satisfies every filter on either side:
+    /// strength + weekly drinker means both `requiresStrengthRoutine: true`
+    /// and `requiresDrinker: true` slugs survive. We don't currently
+    /// author `requires*: false` slugs, but if we do, the test will need
+    /// per-slug profile tailoring.
     func testEveryActivitySlugIsReachable() throws {
+        try assertEveryGenreSlugIsReachable(.activity)
+    }
+
+    func testEveryDietSlugIsReachable() throws {
+        try assertEveryGenreSlugIsReachable(.diet)
+    }
+
+    private func assertEveryGenreSlugIsReachable(_ genre: Genre) throws {
         let pool = try QuestPool.loadFromBundle(hostBundle)
-        let activity = pool.quests(in: .activity)
-        guard !activity.isEmpty else {
-            XCTFail("Activity pool empty — Phase 4a authoring expected")
+        let candidates = pool.quests(in: genre)
+        guard !candidates.isEmpty else {
+            XCTFail("\(genre.rawValue) pool empty — authoring expected for this phase")
             return
         }
 
@@ -160,24 +176,20 @@ final class QuestPoolToneParityTests: XCTestCase {
         let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today)!
         let birthDate = Date(timeIntervalSince1970: 631_152_000)
 
-        // Permissive profile: passes every eligibility filter Phase 4a
-        // authors. Smoking/drinker booleans are set to "yes" because no
-        // 4a slug uses requiresSmoker:false or requiresDrinker:false; if
-        // 4b/4c add inverse filters, this profile gets per-slug-tailored.
         let profile = UserProfile(birthDate: birthDate, biologicalSex: "female")
-        profile.smokingStatus = "daily"
+        profile.smokingStatus = "light"
         profile.alcoholFrequency = "weekly"
         profile.strengthFrequencyPerWeek = 3
         profile.distinctOpenDays = 30
 
-        let activitySlugs = activity.map(\.slug)
-        for target in activitySlugs {
-            let others = activitySlugs.filter { $0 != target }
+        let slugs = candidates.map(\.slug)
+        for target in slugs {
+            let others = slugs.filter { $0 != target }
             let events = others.map { slug in
                 QuestEvent(
                     date: thirtyDaysAgo,
                     slug: slug,
-                    genre: "activity",
+                    genre: genre.rawValue,
                     kind: QuestEventKind.shown.rawValue
                 )
             }
@@ -190,10 +202,10 @@ final class QuestPoolToneParityTests: XCTestCase {
                 today: today,
                 events: events
             )
-            let activityPick = picks.first(where: { $0.genre == .activity })
+            let pick = picks.first(where: { $0.genre == genre })
             XCTAssertEqual(
-                activityPick?.slug, target,
-                "Activity slug \"\(target)\" is unreachable: expected to win when all peers shown 30 days ago"
+                pick?.slug, target,
+                "\(genre.rawValue) slug \"\(target)\" is unreachable: expected to win when all peers shown 30 days ago"
             )
         }
     }
