@@ -5,6 +5,8 @@
 > **Sources:** vision Open Question #14 (origin: Codex polish session 2026-05-08), [polish-2026-05-08-vision-today-completion-payoff.md](../products/life-clock/polish-2026-05-08-vision-today-completion-payoff.md), code investigation 2026-05-09.
 >
 > **Revision 2 (2026-05-09):** Operator chose persist-banked over settle-back. The clock state should reflect the user's completed quests for the rest of the day; uncheck visibly retracts. State machine simplified accordingly; Q-plan-1 closed. See "Behavior model — persist-banked" below.
+>
+> **Revision 3 (2026-05-09 implementation launch):** All Q-plans (1–7) resolved per operator approval of recommendations. Plan is now the contract; implementation session beginning. See `polish-2026-05-09-quest-completion-payoff.md` session log for execution.
 
 ---
 
@@ -224,33 +226,24 @@ Approximate LOC: ~30 (C) + **~30 (B — much smaller now, derived not state)** +
 
 These are the calls I'd like you to make explicitly before the implementation session starts. None block the plan; all sharpen it.
 
-**~~Q-plan-1 — Settle-back vs. persist-banked.~~** **RESOLVED 2026-05-09 — persist-banked.** Operator described uncheck-changes-clock behavior, which only makes sense under persist-banked. Plan revised throughout. The visible headline + mascot now track `canonical + completionOverlay` for the rest of the day; day boundary clears overlay via the per-day Quest model.
+**~~Q-plan-1 — Settle-back vs. persist-banked.~~** **RESOLVED 2026-05-09 — persist-banked.** Operator described uncheck-changes-clock behavior, which only makes sense under persist-banked.
 
-**Q-plan-2 — Hand advance peak target if `rewardEstimateMinutes` exceeds the mascot's ±120 visual cap.** Rare (no shipped quest exceeds 60), but a future quest reward of +180 would saturate the visual sweep. Under persist-banked, this also applies to the **cumulative** overlay (e.g. three +50 quests = +150). Behavior options: (a) clamp the visible hand to 120 but let the headline number show the true total, (b) extend the cap dynamically for in-session animations, (c) cap the hand at 120 and stop animating further completions past saturation. Recommendation: **(a) — clamp the hand at ±120, headline shows true total**. Matches the existing convention (the numeric readout is source of truth past the cap, per `LifeClockMascotView` comment). Document in the polish session.
+**~~Q-plan-2 — Hand advance peak past ±120 visual cap.~~** **RESOLVED 2026-05-09 — clamp the hand at ±120, headline shows true total.** Matches the existing convention (numeric readout is source of truth past the cap).
 
-**Q-plan-3 — On a deeply negative day (−90 min), should completion still advance the hand to a less-negative number?** Yes. A −90 day with a +18 quest moves to −72 and stays there until further completions or unchecks. The motion itself is the message: "you have agency even on bad days." Recommendation: **yes, identical behavior on negative days**. Aligns with "default is motivating, not punishing."
+**~~Q-plan-3 — Negative-day behavior.~~** **RESOLVED 2026-05-09 — identical behavior on negative days.** −90 + 18 quest moves to −72 and stays. Motion = "you have agency even on bad days."
 
-**Q-plan-4 — Should the tone copy mention "tomorrow"?** Three options for the support-card payoff line:
-- **Reward-focused** (current spec): Gentle "You bought back +18 minutes today." / Coach "Banked: +18 min." / Firm-Direct "+18 min. Logged."
-- **Tomorrow-focused**: Gentle "You earned +18 minutes on tomorrow's clock." / Coach "+18 min toward tomorrow." / Firm-Direct "+18 min. Tomorrow."
-- **Today-focused** (matches the persist-banked visual): Gentle "Your clock just moved +18 minutes." / Coach "+18 min on the clock." / Firm-Direct "+18 min. On the clock."
+**~~Q-plan-4 — Tone copy framing.~~** **RESOLVED 2026-05-09 — today-focused.** Strings:
+- Gentle: *"Your clock just moved +18 minutes."*
+- Coach: *"+18 min on the clock."*
+- Firm-Direct: *"+18 min. On the clock."*
 
-Under persist-banked, the visible clock literally moves. **Today-focused** copy matches what the user just saw happen. **Reward-focused** is generic and works regardless of model. **Tomorrow-focused** is model-correct but reads as deferred-gratification when the visual is immediate. Recommendation: **today-focused**, because the copy should describe what the user is seeing on screen.
+Copy describes what the user just saw happen on screen.
 
-**Q-plan-5 — Should A (mascot pulse) fire even when the mascot is scrolled out of view?** The pulse keyframe fires regardless; user sees the support card payoff in scroll-down position. Recommendation: **fire regardless**. No gating logic.
+**~~Q-plan-5 — A fires when mascot scrolled off?~~** **RESOLVED 2026-05-09 — fire regardless.** No gating logic.
 
-**Q-plan-6 (NEW) — Should the headline number show a breakdown when there's a non-zero overlay?** Three options:
-- (a) Just the visible number: "+46 min today." Caption stays on the canonical message.
-- (b) Visible number + small caption: "+46 min today" with subtitle "+18 from completed actions."
-- (c) Two lines: "+28 today, +18 banked" — explicit split.
+**~~Q-plan-6 — Headline breakdown caption?~~** **RESOLVED 2026-05-09 — option (a), just the number.** The clock IS the user's day. Breakdown caption is a future Stretch if user research surfaces confusion.
 
-(a) is the simplest, matches the operator's mental model of "the clock IS the user's day." (b) adds transparency for users who want to know why the number jumped. (c) is the most explicit but visually busiest. Recommendation: **(a) for the initial ship; (b) as a Stretch toggle in Profile if users get confused.**
-
-**Q-plan-7 (NEW) — Day-boundary edge case while app is open past midnight.** Rare. The persist-banked model auto-clears at midnight because today's `Quest` instances become yesterday's `Quest` instances and today's fresh quests have no completion state. Behavior on the rollover transition:
-- Mascot animates from yesterday-end to today-fresh via existing spring (could be a noticeable jump — e.g. yesterday's +46 to today's +0 morning).
-- Acceptable? Or should we suppress the jump until next foreground (the user is unlikely to be watching the screen at midnight)?
-
-Recommendation: **let the spring handle it.** A user who's awake watching at midnight sees their day reset; the visual matches reality. Suppressing would create a state-vs-display divergence we'd then have to reconcile.
+**~~Q-plan-7 — Midnight rollover behavior?~~** **RESOLVED 2026-05-09 — let the spring handle it.** State-and-display agree, no special-casing. A user awake at midnight sees their day reset; the visual matches reality.
 
 ## Risks and what could go wrong
 
