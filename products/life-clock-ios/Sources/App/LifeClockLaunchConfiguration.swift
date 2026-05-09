@@ -51,6 +51,11 @@ struct LifeClockLaunchConfiguration {
     let seedQuestsCompleted: Int
     let clock: EngineClock
     let forceColorScheme: ColorScheme?
+    /// `LIFECLOCK_FORCE_PALETTE=default-navy|aurora-cool|sunset-warm` overrides
+    /// the active palette, applied as the final word so it sticks regardless
+    /// of profile presence. Mirrors `forceColorScheme` for the
+    /// 3-palette × 2-scheme × 2-size onboarding-terminals matrix.
+    let forcePalette: LifeClockPalette?
     /// `LIFECLOCK_SEED_TONE=gentle|coach|firm_direct` overrides the seeded
     /// `UserProfile.toneMode` when scenario is `.onboarded`. Lets simulator
     /// audits screenshot each tone deterministically without driving Profile
@@ -99,6 +104,7 @@ struct LifeClockLaunchConfiguration {
 
         let forcePaywall = env["LIFECLOCK_FORCE_PAYWALL"] == "1"
         let forceColorScheme = ColorScheme(rawValue: env["LIFECLOCK_FORCE_COLOR_SCHEME"] ?? "")
+        let forcePalette = LifeClockPalette(rawValue: env["LIFECLOCK_FORCE_PALETTE"] ?? "")
         let seedStreak = max(0, Int(env["LIFECLOCK_SEED_STREAK"] ?? "") ?? 0)
         let seedQuestsCompleted = max(0, Int(env["LIFECLOCK_SEED_QUESTS_COMPLETED"] ?? "") ?? 0)
         let seedTone = ToneMode(rawValue: env["LIFECLOCK_SEED_TONE"] ?? "")
@@ -130,6 +136,7 @@ struct LifeClockLaunchConfiguration {
             seedQuestsCompleted: seedQuestsCompleted,
             clock: clock,
             forceColorScheme: forceColorScheme,
+            forcePalette: forcePalette,
             seedTone: seedTone,
             healthProfile: healthProfile,
             seedBadDayToday: seedBadDayToday,
@@ -147,6 +154,7 @@ struct LifeClockLaunchConfiguration {
             seedQuestsCompleted: 0,
             clock: .live,
             forceColorScheme: nil,
+            forcePalette: nil,
             seedTone: nil,
             healthProfile: .baseline,
             seedBadDayToday: false,
@@ -200,6 +208,9 @@ struct LifeClockLaunchConfiguration {
             biologicalSex: "female",
             toneMode: (seedTone ?? .coach).rawValue
         )
+        if let forcePalette {
+            profile.paletteId = forcePalette.rawValue
+        }
         profile.sleepGoalHours = 7.5
         profile.strengthFrequencyPerWeek = 2
         profile.dietQualityBaseline = "okay"

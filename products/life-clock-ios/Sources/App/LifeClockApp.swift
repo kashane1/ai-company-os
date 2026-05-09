@@ -40,6 +40,14 @@ struct LifeClockApp: App {
         // before `.task` runs and see the .notEntitled error.
         let subscriptions = SubscriptionStore()
         store.entitlements = subscriptions
+        if let forced = launchConfiguration.forcePalette {
+            // Set on the pre-bootstrap store so the first rendered frame
+            // (including jump-to-terminal-onboarding screens that never
+            // load a UserProfile) tints with the forced palette. The
+            // seed pre-writes the same value into the seeded profile, so
+            // bootstrap()'s restore won't disagree on `.onboarded` runs.
+            store.palette = forced
+        }
         _store = State(wrappedValue: store)
         _subscriptions = State(wrappedValue: subscriptions)
     }
