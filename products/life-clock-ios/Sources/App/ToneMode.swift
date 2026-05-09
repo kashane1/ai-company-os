@@ -267,18 +267,18 @@ enum ToneMode: String, CaseIterable, Identifiable {
         switch self {
         case .gentle: return "Welcome back"
         case .coach: return "Picking up where you left off"
-        case .firmDirect: return "You were gone"
+        case .firmDirect: return "Back at it"
         }
     }
 
     var historyLongAbsenceBody: String {
         switch self {
         case .gentle:
-            return "We didn't have enough data from yesterday for a wrap-up. Today's a fresh start."
+            return "Today's a fresh start — nothing to make up for."
         case .coach:
-            return "Yesterday didn't have enough data to summarize. Make today count."
+            return "Today is a clean line. Show up; the rest follows."
         case .firmDirect:
-            return "No data for yesterday. Clock starts again now."
+            return "Clock resets to now. Log today."
         }
     }
 
