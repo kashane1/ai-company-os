@@ -114,6 +114,24 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertLessThanOrEqual(store.todayQuests.count, 3)
     }
 
+    func testRefreshWithoutHealthSignalDropsConfidenceToLow() async throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(preAuthorized: true, healthProfile: .empty),
+            modelContext: container.mainContext,
+            engineClock: .fixed(fixedDate)
+        )
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+
+        await store.refreshFromHealthKit()
+
+        XCTAssertEqual(store.healthDataState, .noRecentData)
+        XCTAssertFalse(store.hasTodaySignal)
+        XCTAssertEqual(store.todayEstimate?.confidenceRaw, Confidence.low.rawValue)
+        XCTAssertEqual(store.todayDrivers.count, 0, "no signal path must not invent daily drivers")
+    }
+
     func testSetBodyMetricsPersistsCanonicalMetricValues() async throws {
         let store = try makeStore()
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")

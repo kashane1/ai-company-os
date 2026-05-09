@@ -166,7 +166,7 @@ struct TodayView: View {
 
     private var headline: some View {
         Group {
-            if let estimate = store.todayEstimate {
+            if let estimate = store.todayEstimate, canJustifyTodayHeadline {
                 // Final-value sign drives the prefix and color; mid-sweep
                 // would otherwise read "+0 min" in green for a negative
                 // day. Visible NUMBER is the wake-animated value.
@@ -190,6 +190,22 @@ struct TodayView: View {
                         ConfidenceBadge(confidence: confidence)
                     }
                 }
+            } else if let estimate = store.todayEstimate {
+                VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                    Text("Today")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(sparseHeadlineTitle)
+                        .font(.title2.weight(.semibold))
+                    Text(sparseHeadlineBody)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let confidence = Confidence(rawValue: estimate.confidenceRaw) {
+                        ConfidenceBadge(confidence: confidence)
+                    }
+                }
+                .accessibilityIdentifier("today.headlineSparse")
             } else {
                 Text("Loading…").foregroundStyle(.secondary)
             }
@@ -296,7 +312,7 @@ struct TodayView: View {
             Text(store.toneMode.todayDriversHeading)
                 .font(.headline)
             if store.todayDrivers.isEmpty {
-                Text(store.toneMode.todayDriversEmptyState)
+                Text(driversEmptyStateText)
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
@@ -326,6 +342,55 @@ struct TodayView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
         .accessibilityIdentifier("today.drivers")
+    }
+
+    private var canJustifyTodayHeadline: Bool {
+        !store.todayDrivers.isEmpty
+    }
+
+    private var sparseHeadlineTitle: String {
+        switch store.healthDataState {
+        case .unavailable:
+            return "Apple Health unavailable"
+        case .awaitingAuthorization:
+            return "Connect Apple Health"
+        case .historicalOnly:
+            return "Waiting on today's signal"
+        case .noRecentData:
+            return "Waiting on data"
+        case .availableToday:
+            return "Waiting on data"
+        }
+    }
+
+    private var sparseHeadlineBody: String {
+        switch store.healthDataState {
+        case .unavailable:
+            return "This device can't share Apple Health data, so the clock won't guess at a daily minute change."
+        case .awaitingAuthorization:
+            return "We can't justify a minute estimate until Apple Health is allowed to share today's signal."
+        case .historicalOnly:
+            return "Earlier history is still here, but we can't justify a new minute estimate until today's Apple Health data arrives."
+        case .noRecentData:
+            return "We can't currently see Apple Health data, so the clock won't invent precision."
+        case .availableToday:
+            return "We need more signal before claiming a daily minute change."
+        }
+    }
+
+    private var driversEmptyStateText: String {
+        switch store.healthDataState {
+        case .unavailable:
+            return "Apple Health isn't available on this device. Save a quick check-in to start seeing patterns."
+        case .awaitingAuthorization:
+            return "We can't see your Apple Health data yet. Connect Apple Health or save a quick check-in to start seeing patterns."
+        case .historicalOnly:
+            return "We can't see today's Apple Health data yet. Your earlier history is still here. Save a quick check-in or review what's shared in Apple Health."
+        case .noRecentData:
+            return "We can't currently see your Apple Health data. Save a quick check-in, or review what's shared in Apple Health so the clock doesn't have to guess."
+        case .availableToday:
+            return store.toneMode.todayDriversEmptyState
+        }
     }
 
     /// One-line plain-language interpretation that frames the headline

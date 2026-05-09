@@ -56,9 +56,10 @@ struct LifeClockLaunchConfiguration {
     /// audits screenshot each tone deterministically without driving Profile
     /// to flip the picker.
     let seedTone: ToneMode?
-    /// `LIFECLOCK_HEALTH_PROFILE=baseline|poor` shapes the mock service's
-    /// daily snapshot. `poor` powers the bad-day polish recon — see
-    /// `MockHealthKitService.HealthProfile`.
+    /// `LIFECLOCK_HEALTH_PROFILE=baseline|poor|empty` shapes the mock
+    /// service's daily snapshot. `poor` powers the bad-day polish recon;
+    /// `empty` simulates a fully-authorized app with no useful Apple Health
+    /// signal yet — see `MockHealthKitService.HealthProfile`.
     let healthProfile: MockHealthKitService.HealthProfile
     /// `LIFECLOCK_SEED_BAD_DAY=1` overrides today's seeded HabitLog with
     /// the all-bad combination (rough diet, heavy alcohol, smoking,

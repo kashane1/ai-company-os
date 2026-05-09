@@ -206,6 +206,59 @@ final class LifeClockUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Profile"].exists, "Profile tab should be present")
     }
 
+    func testDeniedHealthStateUsesHonestSparseCopyAcrossSurfaces() throws {
+        launchApp(
+            scenario: "onboarded",
+            extraEnvironment: [
+                "LIFECLOCK_HEALTH_AUTH": "denied",
+                "LIFECLOCK_HEALTH_PROFILE": "empty",
+            ]
+        )
+
+        XCTAssertTrue(app.otherElements["today.headlineSparse"].waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            app.staticTexts.containing("We can't currently see your Apple Health data").firstMatch.waitForExistence(timeout: 3),
+            "Today should say we can't see Apple Health instead of implying a 0-step day"
+        )
+
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.otherElements["history.emptyState"].waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            app.staticTexts.containing("We can't currently see recent Apple Health data").firstMatch.waitForExistence(timeout: 3)
+        )
+
+        app.tabBars.buttons["Profile"].tap()
+        XCTAssertTrue(app.buttons["profile.health.retry"].waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            app.staticTexts.containing("We can't currently see steps, sleep, exercise, or resting heart rate").firstMatch.waitForExistence(timeout: 3)
+        )
+    }
+
+    func testReturningUserWithoutCurrentHealthAccessKeepsHistoryButNotTodayPrecision() throws {
+        launchApp(
+            scenario: "onboarded",
+            extraEnvironment: [
+                "LIFECLOCK_HEALTH_AUTH": "notDetermined",
+                "LIFECLOCK_SEED_STREAK": "5",
+            ]
+        )
+
+        XCTAssertTrue(app.otherElements["today.headlineSparse"].waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            app.staticTexts.containing("Earlier history is still here").firstMatch.waitForExistence(timeout: 3),
+            "returning user path should acknowledge saved history without claiming a fresh minute estimate"
+        )
+
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.staticTexts["Past days"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.otherElements["history.emptyState"].exists,
+                       "seeded returning user should still have historical rows")
+
+        app.tabBars.buttons["Profile"].tap()
+        XCTAssertTrue(app.buttons["profile.health.connect"].waitForExistence(timeout: 5),
+                      "notDetermined path should still offer a real connect entry")
+    }
+
     /// Verifies the IA refactor keeps the Today's Plan section reachable
     /// directly on Today (the Plan tab no longer exists). Toggling a plan
     /// action goes through `store.toggleQuestCompletion`, mutates
@@ -259,6 +312,17 @@ final class LifeClockUITests: XCTestCase {
         app.launchEnvironment["LIFECLOCK_UI_TEST"] = "1"
         app.launchEnvironment["LIFECLOCK_UI_TEST_SCENARIO"] = scenario
         app.launchEnvironment["LIFECLOCK_USE_MOCK_HEALTH"] = "1"
+        app.launch()
+    }
+
+    private func launchApp(scenario: String, extraEnvironment: [String: String]) {
+        app = XCUIApplication()
+        app.launchEnvironment["LIFECLOCK_UI_TEST"] = "1"
+        app.launchEnvironment["LIFECLOCK_UI_TEST_SCENARIO"] = scenario
+        app.launchEnvironment["LIFECLOCK_USE_MOCK_HEALTH"] = "1"
+        for (key, value) in extraEnvironment {
+            app.launchEnvironment[key] = value
+        }
         app.launch()
     }
 }

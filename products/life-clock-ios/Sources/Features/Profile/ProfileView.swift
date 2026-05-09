@@ -98,11 +98,13 @@ struct ProfileView: View {
                 }
 
                 Section("Apple Health") {
-                    if !store.healthDataAvailable {
+                    switch store.healthDataState {
+                    case .unavailable:
                         Text("Apple Health is not available on this device.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                    } else if !store.healthAuthorizationKnown {
+                            .accessibilityIdentifier("profile.health.message")
+                    case .awaitingAuthorization:
                         Button {
                             connectAppleHealth()
                         } label: {
@@ -112,13 +114,51 @@ struct ProfileView: View {
                             }
                         }
                         .disabled(requestingAuth)
+                        .accessibilityIdentifier("profile.health.connect")
                         Text(LifeClockConfiguration.healthKitRationale)
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                    } else {
-                        let signal = store.hasTodaySignal ? "Data available today" : "No data today"
+                            .accessibilityIdentifier("profile.health.message")
+                    case .availableToday:
                         dataRow(name: "Apple Health (steps, sleep, exercise, resting HR)", status: signal)
-                        Text("If \"No data\" persists, open iOS Settings → Health → Data Access & Devices → Life Clock to review what's shared.")
+                        Text("Reading today's Apple Health signal.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("profile.health.message")
+                    case .historicalOnly:
+                        Button {
+                            connectAppleHealth()
+                        } label: {
+                            HStack {
+                                Text("Check Apple Health again")
+                                if requestingAuth { ProgressView() }
+                            }
+                        }
+                        .disabled(requestingAuth)
+                        .accessibilityIdentifier("profile.health.retry")
+                        Text("We can't see today's Apple Health data right now, but your earlier history is still here. Apple may not re-show the permission sheet for choices you've already made.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("profile.health.message")
+                        Text("If this keeps happening, review what Apple Health is sharing with Life Clock.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    case .noRecentData:
+                        Button {
+                            connectAppleHealth()
+                        } label: {
+                            HStack {
+                                Text("Check Apple Health again")
+                                if requestingAuth { ProgressView() }
+                            }
+                        }
+                        .disabled(requestingAuth)
+                        .accessibilityIdentifier("profile.health.retry")
+                        Text("We can't currently see steps, sleep, exercise, or resting heart rate from Apple Health. Apple may not re-show the permission sheet for choices you've already made.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("profile.health.message")
+                        Text("If nothing changes, review what Apple Health is sharing with Life Clock.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -216,6 +256,7 @@ struct ProfileView: View {
             Spacer()
             Text(status).font(.caption).foregroundStyle(.secondary)
         }
+        .accessibilityIdentifier("profile.health.status")
     }
 
     @ViewBuilder
@@ -422,5 +463,9 @@ struct ProfileView: View {
             await store.requestHealthAuthorization()
             requestingAuth = false
         }
+    }
+
+    private var signal: String {
+        store.hasTodaySignal ? "Reading today" : "No live data"
     }
 }

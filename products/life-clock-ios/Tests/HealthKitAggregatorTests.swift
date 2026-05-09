@@ -110,9 +110,27 @@ final class MockHealthKitServiceAuthorizationTests: XCTestCase {
     }
 
     @MainActor
+    func testUnauthorizedSnapshotReturnsNilUntilAuthorizationIsRequested() async throws {
+        let service = MockHealthKitService(preAuthorized: false)
+        let before = await service.dailySnapshot(for: Date(timeIntervalSince1970: 1_800_000_000))
+        XCTAssertNil(before, "mock should match live HealthKit: no pre-consent reads")
+
+        try await service.requestAuthorization()
+        let after = await service.dailySnapshot(for: Date(timeIntervalSince1970: 1_800_000_000))
+        XCTAssertNotNil(after, "authorized mock should resume returning fixture data")
+    }
+
+    @MainActor
     func testSimulateNoDataReturnsNilSnapshot() async {
         let service = MockHealthKitService(simulateNoData: true)
         let snap = await service.dailySnapshot(for: Date(timeIntervalSince1970: 1_800_000_000))
         XCTAssertNil(snap)
+    }
+
+    @MainActor
+    func testEmptyHealthProfileReturnsNilSnapshot() async {
+        let service = MockHealthKitService(preAuthorized: true, healthProfile: .empty)
+        let snap = await service.dailySnapshot(for: Date(timeIntervalSince1970: 1_800_000_000))
+        XCTAssertNil(snap, "empty profile should simulate an authorized-but-signal-free Apple Health setup")
     }
 }

@@ -113,6 +113,7 @@ Layered fixture knobs in `LifeClockLaunchConfiguration.swift` and `SubscriptionS
 | `LIFECLOCK_SEED_STREAK` | integer | Seeds N days of diet-logged HabitLog entries (drives the streak banner). Requires `scenario=onboarded`. |
 | `LIFECLOCK_SEED_QUESTS_COMPLETED` | integer | Seeds N completed quests for today. Requires `scenario=onboarded`. |
 | `LIFECLOCK_FIXED_DATE` | ISO-8601 (e.g. `2026-04-30T00:00:00Z`) | Pin the engine clock for deterministic flows. |
+| `LIFECLOCK_HEALTH_PROFILE` | `baseline` / `poor` / `empty` | Shapes mock Apple Health data. `empty` = authorized but no useful signal yet. |
 
 Common compositions:
 
@@ -125,6 +126,9 @@ LIFECLOCK_UI_TEST_SCENARIO=onboarded LIFECLOCK_SEED_STREAK=20 LIFECLOCK_SIMULATO
 
 # Permission-denied empty state
 LIFECLOCK_UI_TEST_SCENARIO=onboarded LIFECLOCK_HEALTH_AUTH=denied
+
+# Authorized, but Apple Health still has nothing useful to share yet
+LIFECLOCK_UI_TEST_SCENARIO=onboarded LIFECLOCK_HEALTH_AUTH=authorized LIFECLOCK_HEALTH_PROFILE=empty
 ```
 
 Release builds always return production defaults regardless of `ProcessInfo.environment` — the fixture surface is removed from the App Store binary entirely.

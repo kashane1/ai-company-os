@@ -13,6 +13,14 @@ import UserNotifications
 @MainActor
 @Observable
 final class LifeClockStore {
+    enum HealthDataState: Equatable {
+        case unavailable
+        case awaitingAuthorization
+        case availableToday
+        case historicalOnly
+        case noRecentData
+    }
+
     var profile: UserProfile?
     var todayEstimate: LifeClockEstimate?
     var todayDrivers: [TimeLedgerEntry] = []
@@ -74,6 +82,18 @@ final class LifeClockStore {
 
     var hasCheckInToday: Bool {
         todayHabits != nil
+    }
+
+    /// Coarse UI-facing health state. The app never claims to know
+    /// "denied" vs "empty" — only whether we can currently see signal.
+    var healthDataState: HealthDataState {
+        guard healthDataAvailable else { return .unavailable }
+        guard healthAuthorizationKnown else { return .awaitingAuthorization }
+        if hasTodaySignal { return .availableToday }
+        if fetchRecentSnapshots(limit: 14).contains(where: { $0.sourceCompleteness > 0 }) {
+            return .historicalOnly
+        }
+        return .noRecentData
     }
 
     /// True iff the user has a profile and reports DOB making them ≥18 as of
@@ -219,6 +239,8 @@ final class LifeClockStore {
                 || snapshot.sleepHours != nil
                 || snapshot.restingHeartRate != nil
         } else {
+            baseline.confidenceRaw = Confidence.low.rawValue
+            baseline.explanation = "Waiting for Apple Health signal before claiming a daily minute change."
             todayDrivers = []
             hasTodaySignal = false
         }

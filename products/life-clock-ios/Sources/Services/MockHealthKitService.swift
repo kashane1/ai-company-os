@@ -11,10 +11,12 @@ final class MockHealthKitService: HealthKitServiceProtocol {
     /// `poor` deliberately returns low-signal numbers (sub-2.5k steps, no
     /// exercise, <5h sleep, elevated RHR) so the simulator-driven-polish
     /// loop can audit how the app speaks on a clearly negative day without
-    /// wiring real HealthKit.
+    /// wiring real HealthKit. `empty` simulates a fully-authorized app that
+    /// still has no useful Apple Health signal yet.
     enum HealthProfile: String {
         case baseline
         case poor
+        case empty
     }
 
     let isHealthDataAvailable: Bool = true
@@ -44,12 +46,13 @@ final class MockHealthKitService: HealthKitServiceProtocol {
     }
 
     func dailySnapshot(for date: Date) async -> DailyHealthSnapshot? {
+        guard authorizationKnown else { return nil }
         guard !simulateNoData else { return nil }
         let dayStart = calendar.startOfDay(for: date)
         var rng = MockHealthKitService.seededGenerator(seed: seed, day: dayStart)
-        let snapshot = DailyHealthSnapshot(date: dayStart)
         switch healthProfile {
         case .baseline:
+            let snapshot = DailyHealthSnapshot(date: dayStart)
             snapshot.stepCount = 3_500 + Int(rng.uniform() * 9_500)
             snapshot.exerciseMinutes = Int(rng.uniform() * 60)
             snapshot.activeEnergyKcal = 200 + rng.uniform() * 600
@@ -57,7 +60,10 @@ final class MockHealthKitService: HealthKitServiceProtocol {
             snapshot.sleepConsistencyScore = rng.uniform()
             snapshot.restingHeartRate = 55 + Int(rng.uniform() * 25)
             snapshot.sourceCompleteness = 0.8
+            snapshot.distanceMeters = Double(snapshot.stepCount ?? 0) * 0.78
+            return snapshot
         case .poor:
+            let snapshot = DailyHealthSnapshot(date: dayStart)
             // Deterministic low-signal day. Numbers chosen so the engine
             // produces a clearly-negative dailyTimeDeltaMinutes (movement
             // -12 for <2.5k steps, sleep -15 for <5h, no exercise entry)
@@ -69,9 +75,11 @@ final class MockHealthKitService: HealthKitServiceProtocol {
             snapshot.sleepConsistencyScore = 0.25 + rng.uniform() * 0.15
             snapshot.restingHeartRate = 76 + Int(rng.uniform() * 8)
             snapshot.sourceCompleteness = 0.7
+            snapshot.distanceMeters = Double(snapshot.stepCount ?? 0) * 0.78
+            return snapshot
+        case .empty:
+            return nil
         }
-        snapshot.distanceMeters = Double(snapshot.stepCount ?? 0) * 0.78
-        return snapshot
     }
 
     func recentSnapshots(endingAt endDate: Date, count: Int) async -> [DailyHealthSnapshot] {
