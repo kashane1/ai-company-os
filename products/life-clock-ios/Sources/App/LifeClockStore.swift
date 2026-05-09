@@ -73,7 +73,7 @@ final class LifeClockStore {
     private(set) var todayReflection: DailyReflection?
 
     private func emit(_ intent: SupportMomentPresenter.Intent) {
-        supportMoment = supportPresenter.moment(for: intent)
+        supportMoment = supportPresenter.moment(for: intent, tone: toneMode)
     }
 
     var completedPlanCount: Int {

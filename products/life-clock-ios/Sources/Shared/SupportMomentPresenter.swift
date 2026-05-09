@@ -23,7 +23,12 @@ struct SupportMomentPresenter {
         case checkInSaved(deltaMinutes: Int, strengthLogged: Bool, hadPriorCheckIn: Bool)
     }
 
-    func moment(for intent: Intent) -> SupportMoment {
+    /// Build a `SupportMoment` for an intent. `tone` is consumed only by
+    /// intents whose copy is tone-keyed (currently `.questCompleted` —
+    /// vision Q14, 2026-05-09); other intents pass it through unread but
+    /// require it at the call site so the next person who adds a new
+    /// intent has to consider tone explicitly.
+    func moment(for intent: Intent, tone: ToneMode) -> SupportMoment {
         switch intent {
         case .onboardingComplete:
             return SupportMoment(
@@ -33,9 +38,13 @@ struct SupportMomentPresenter {
             )
 
         case let .questCompleted(rewardMinutes):
+            // Persist-banked: clock just visibly moved. Today-focused
+            // copy describes what the user just saw happen on screen.
+            // See plan `2026-05-09-feat-life-clock-quest-completion-
+            // payoff-plan.md` Q-plan-4 resolution.
             return SupportMoment(
                 title: "Nice work.",
-                detail: "Added to your progress log. Possible impact: \(TimeDeltaFormatter.format(minutes: rewardMinutes)).",
+                detail: tone.questCompletionPayoff(minutes: rewardMinutes),
                 tone: .celebration
             )
 
