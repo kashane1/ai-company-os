@@ -67,7 +67,15 @@ Recon outputs at `/tmp/lifeclock-polish/long-absence/` (kept for one-pass operat
 
 **Build:** clean `xcodegen generate` + `xcodebuild build-for-testing` exit 0.
 **Recon test:** `LongAbsenceCaptureRecon` (3 tones) passed, including wrap-up suppression assertions.
-**Acceptance:** computer-use approval timed out; falling back to simctl-driven goldens via `LongAbsenceCaptureRecon`. The recon's 3-tone matrix is the live evidence.
+**Live acceptance:** computer-use approval initially timed out; operator re-approved mid-session. Confirmed live on Simulator (iPhone 17 Pro, iOS 26.3) with real taps across all three tone fixtures:
+
+- **gentle** — Today shows "Progress gained today / +51 min" (no monthly banner, as expected); History header reads `"Welcome back" / "Today's a fresh start — nothing to make up for."` over a populated past-days list with `Fri, May 8 +51 min`. Card no longer contradicts the row.
+- **coach** — History header reads `"Picking up where you left off" / "Today is a clean line. Show up; the rest follows."` — clean above the same populated weekly + past-days surface.
+- **firmDirect** — History header reads `"Back at it" / "Clock resets to now. Log today."` — terse, no lecture; sits over `Last 7 days, banked +4h 32m`, `Fri, May 8 5653 steps · 6.5h sleep +51 min`, and the seeded `Fri, Apr 3` row.
+
+No wrap-up sheet auto-presented on any cold launch; monthly banner correctly absent on Today across all three.
+
+**Process note for the next session:** simctl env-vars require the `SIMCTL_CHILD_` prefix on the calling shell environment, NOT positional args after the bundle ID — those become argv. Caught here when the manual-launch fixture rendered the Welcome screen instead of the seeded onboarded state. Recon tests using `XCUIApplication.launchEnvironment` are unaffected.
 
 ## Next pass
 
