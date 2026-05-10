@@ -46,21 +46,30 @@ The app does not collect any data on Apple's "linked to user / not linked / used
 
 ASC → My Apps → Life Clock → App Information → Age Rating.
 
-Walk through Apple's questionnaire. Answers that match the implemented behavior (12+ rating with in-app age-gating):
+> **2026-05-10 update — Apple overhauled the rating system in July 2025.** The old `4+ / 9+ / 12+ / 17+` tiers were replaced with `4+ / 9+ / 13+ / 16+ / 18+`, with a Jan 31 2026 compliance deadline. Legacy `12+` was auto-mapped to **13+**. Apps that did not re-run the questionnaire by the deadline lost the ability to ship updates. Re-run before next submission. Full context in [09b_AGE_COMPLIANCE.md](09b_AGE_COMPLIANCE.md).
 
-- Frequent/Intense Cartoon or Fantasy Violence — **None**
-- Frequent/Intense Realistic Violence — **None**
-- Frequent/Intense Sexual Content or Nudity — **None**
-- Profanity or Crude Humor — **None**
-- Alcohol, Tobacco, or Drug Use or References — **Infrequent/Mild** (user self-reports; under-18 users don't see these prompts)
-- Mature/Suggestive Themes — **None**
-- Horror/Fear Themes — **None**
-- Gambling — **None**
-- Medical/Treatment Information — **Infrequent/Mild** (we discuss healthspan habits; we explicitly disclaim medical advice)
-- Unrestricted Web Access — **No**
-- Gambling and Contests — **No**
+Walk through Apple's questionnaire on the new tiers. Answers that match the implemented behavior (target rating: **13+** with in-app under-13 hard block + under-18 alcohol/tobacco onboarding suppression + under-18 mortality-reveal suppression):
 
-Result should be **12+**. Confirm and save.
+| Category | Answer | Rationale |
+|---|---|---|
+| Cartoon or Fantasy Violence | **None** | Mascot is non-violent. |
+| Realistic Violence | **None** | — |
+| Prolonged Graphic or Sadistic Realistic Violence | **None** | — |
+| Sexual Content or Nudity | **None** | — |
+| Graphic Sexual Content and Nudity | **None** | — |
+| Profanity or Crude Humor | **None** | Tone modes don't profane. |
+| Alcohol, Tobacco, or Drug Use or References | **Infrequent/Mild** | User self-reports baseline + daily check-in. Under-13 users hard-blocked from app entirely; under-18 users see neither the onboarding picker (since `35fdd54`) nor the QuickLog picker (`store.isAdultUser` gate). The 18+ users who do see these inputs choose from a small picker, not narrative content. |
+| Mature/Suggestive Themes | **None** | — |
+| Horror/Fear Themes | **None** | Lifespan framing is motivational, not horror. |
+| Medical/Treatment Information | **Infrequent/Mild** | Healthspan habits content + explicit medical disclaimer ([09_PRIVACY_COMPLIANCE.md](09_PRIVACY_COMPLIANCE.md) §"Medical disclaimer draft"). The "~N years on the table" reveal screen is shown once per onboarding, suppressed for under-18 — that is "infrequent" by any reasonable reading. |
+| Gambling — Simulated | **None** | — |
+| Gambling — Contests | **None** | — |
+| Unrestricted Web Access | **No** | App has no web view. |
+| Made for Kids | **No** | Life Clock is general-availability, not Kids Category. See [09b_AGE_COMPLIANCE.md](09b_AGE_COMPLIANCE.md) §2 for why Kids Category isn't right for this app. |
+
+**Expected result: 13+.** Confirm and save.
+
+**Ambiguity flag (re-verify on submission):** the questionnaire asks about *frequency*. If a future App Review reviewer reads the once-per-onboarding mortality reveal as "frequent medical/treatment information" rather than "infrequent," the result could land at 16+. Pre-launch, walk a real reviewer's POV through onboarding once with the auditor's mindset and document the answer chosen. See `docs/products/life-clock/09b_AGE_COMPLIANCE.md` §1 for the line we landed on.
 
 ## Phase 5 — In-App Purchase Setup
 
