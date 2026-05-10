@@ -115,14 +115,16 @@ func recentSnapshots(limit: Int, includingToday: Bool = false) -> [DailyHealthSn
   pinning it. **Removed the UI test** rather than ship a flaky one;
   the unit tests already lock the store-boundary contract. Queued
   as a follow-up below.
-- [15:25] Final computer-use checkpoint attempted via
-  `xcrun simctl install` + `launch` with the same env the UITest
-  uses. After an uninstall/reinstall cycle the app rendered the
-  onboarding cold-open instead of the seeded-onboarded tab view,
-  i.e. the seed-initial-state path didn't activate this cycle.
-  Did **not** chase the seed-timing further given the iteration
-  cap and the strength of the unit-test coverage. The visual
-  confirmation is still owed.
+- [15:25 – 16:40] Final computer-use checkpoint. First two attempts
+  failed because `xcrun simctl launch ... --setenv FOO=BAR` passes
+  the flags as ARGV, not as environment vars — env vars for simctl
+  must be prefixed `SIMCTL_CHILD_` in the caller's environment.
+  Once corrected, launched with `LIFECLOCK_INITIAL_TAB=history` to
+  land directly on History, dismissed the auto-presenting Yesterday
+  wrap-up sheet, and confirmed visually: fixed clock = 2027-01-14,
+  History row 1 = **"Wed, Jan 13"** (yesterday), rows descend
+  cleanly through Jan 6 with the seeded `+58 min / 8400 steps /
+  7.4h sleep` values. Today's row absent. Fix confirmed end-to-end.
 
 ## Asks for the operator (resolved + outstanding)
 
@@ -135,12 +137,7 @@ func recentSnapshots(limit: Int, includingToday: Bool = false) -> [DailyHealthSn
    wrap-up sheet, on History the first row's `staticTexts` label is
    not today's `"EEE, MMM d"` formatted string. Currently relying
    on the unit-test contract.
-2. **Visual checkpoint** — the operator should drive Today → History
-   on a seeded-onboarded build and confirm row 1's date stamp is
-   yesterday's day-of-month. The store-boundary fix is one-line
-   semantic but the visible-row-count argument in §3 above benefits
-   from a real-eye check.
-3. **Day-1 History empty state — tone-aware copy** — Polish-tier.
+2. **Day-1 History empty state — tone-aware copy** — Polish-tier.
    `historyEmptyStateBody` currently returns one of five
    single-string variants keyed on `healthDataState`. None of them
    are tone-aware (gentle / coach / firmDirect). Now that the
