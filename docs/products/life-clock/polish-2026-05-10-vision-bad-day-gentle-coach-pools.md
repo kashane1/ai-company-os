@@ -209,8 +209,31 @@ findings + a proposed symmetric ratchet for `## Decided constraints`
 
 ## Final-checkpoint footnote
 
-`mcp__computer-use__request_access` for `Simulator` + `Xcode` + `Terminal`
-timed out at 300 s — same outcome as V1 (operator AFK). Per V1 precedent,
+First attempt: `mcp__computer-use__request_access` for `Simulator` +
+`Xcode` + `Terminal` timed out at 300 s — same outcome as V1 (operator
+AFK).
+
+**Second attempt — operator approved computer-use mid-session.**
+Re-ran final checkpoint: per-tone clean install of the polished
+`LifeClock.app` with `LIFECLOCK_FIXED_DATE` chosen to land the rotation
+on the polished slot, dismissed the cold-launch wrap-up via real
+left-click on "Got it" / "Continue", screenshotted the post-dismiss
+ReflectionCard. Verified live:
+
+- **Gentle (date `2026-01-03` → gentlePool[2]):** the ReflectionCard
+  reads `Notice today` / `Where could you offer yourself a little
+  kindness tonight?` / `Reflect`. ✓ polished string renders.
+- **Coach (date `2026-01-02` → coachPool[1]):** the ReflectionCard
+  reads `What stood out today` / `What's one harder, healthier option
+  open to you tomorrow?` / `Reflect`. ✓ polished string renders.
+
+Tone-aware surrounding context also confirmed live: under coach the
+heading reads `Today's progress`, the drivers heading `Why it changed`,
+the wrap-up gives `Net zero. Holding steady is a real outcome.` +
+`Continue`; under gentle the heading reads `Today`, drivers heading
+`What shaped today`, wrap-up gives `Yesterday held steady. Even floors
+matter.` + `Got it`. The polished prompts inherit their pool's
+register correctly — gentle stays gentle, coach stays coach. Per V1 precedent,
 session fell back to a simctl-driven equivalent: per-tone clean install
 of the freshly-built `LifeClock.app`, `SIMCTL_CHILD_LIFECLOCK_*`
 env-passing for the bad-day fixture, two `LIFECLOCK_FIXED_DATE` values
