@@ -15,6 +15,7 @@ import SwiftUI
 struct ClockHandView: View {
     let signedMinutes: Int
     let duration: Double  // 1.4s daily, 2.2s weekly per spec
+    let haptic: SensoryFeedback
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var rotated = false
 
@@ -55,7 +56,7 @@ struct ClockHandView: View {
         .frame(width: 180, height: 180)
         .accessibilityElement()
         .accessibilityLabel("Clock showing \(accessibleDelta)")
-        .sensoryFeedback(.selection, trigger: rotated)
+        .sensoryFeedback(haptic, trigger: rotated)
         .onAppear { animate() }
     }
 

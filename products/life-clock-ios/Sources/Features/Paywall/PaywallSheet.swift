@@ -11,6 +11,7 @@ struct PaywallSheet: View {
     @Environment(SubscriptionStore.self) private var subscriptions
     @Environment(\.dismiss) private var dismiss
     @State private var selectedProductID: String?
+    @State private var purchaseSuccessHapticTrigger: Int = 0
 
     private var termsURL: URL { LifeClockConfiguration.termsOfUseURL }
     private var privacyURL: URL { LifeClockConfiguration.privacyPolicyURL }
@@ -52,8 +53,12 @@ struct PaywallSheet: View {
             }
         }
         .onChange(of: subscriptions.isPro) { _, newValue in
-            if newValue { dismiss() }
+            if newValue {
+                purchaseSuccessHapticTrigger &+= 1
+                dismiss()
+            }
         }
+        .sensoryFeedback(LifeClockHaptics.purchaseSuccess, trigger: purchaseSuccessHapticTrigger)
     }
 
     private var header: some View {

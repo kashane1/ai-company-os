@@ -21,6 +21,7 @@ struct TodayView: View {
     /// Cadence per `feedback_life_clock_wake_animation.md` memory.
     @State private var wakeProgress: Double = 1.0
     @State private var mascotWakeTrigger: Int = 0
+    @State private var morningWakeHapticTrigger: Int = 0
     @State private var hasFiredOnce: Bool = false
 
     /// One-shot trigger for the quest-completion mascot SCALE keyframe
@@ -36,10 +37,12 @@ struct TodayView: View {
     /// "Reduce Motion" accessibility setting does not disable haptics —
     /// users with motion sensitivity often rely on haptic feedback.
     @State private var questCompletionHapticTrigger: Int = 0
+    @State private var monthlyMilestoneHapticTrigger: Int = 0
 
     /// Last observed `completionOverlay` value, used to detect
     /// increase-vs-decrease transitions for the pulse trigger.
     @State private var lastObservedOverlay: Int = 0
+    @State private var lastMilestoneHapticKey: String?
 
     /// Wall-clock budget for the wake sequence. Hand sweep + count-up
     /// share this duration; the mascot scale keyframe runs concurrently
@@ -163,9 +166,13 @@ struct TodayView: View {
                 hasFiredOnce = true
                 lastObservedOverlay = completionOverlay
                 triggerWakeIfPossible()
+                triggerMonthlyMilestoneHapticIfNeeded()
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active { triggerWakeIfPossible() }
+            }
+            .onChange(of: store.monthlyLogging) { _, _ in
+                triggerMonthlyMilestoneHapticIfNeeded()
             }
             .onChange(of: completionOverlay) { oldValue, newValue in
                 // Pulse fires only on overlay increase (check), not
@@ -217,7 +224,25 @@ struct TodayView: View {
         withAnimation(.easeOut(duration: Self.wakeDuration)) {
             wakeProgress = 1
         }
+        morningWakeHapticTrigger &+= 1
         mascotWakeTrigger &+= 1
+    }
+
+    private func triggerMonthlyMilestoneHapticIfNeeded() {
+        guard !LifeClockLaunchConfiguration.current.isUITest,
+              let milestone = store.monthlyLogging.milestone,
+              store.monthlyLogging.daysLogged >= 1
+        else { return }
+
+        let key = [
+            store.monthlyLogging.monthName,
+            String(describing: milestone),
+            "\(store.monthlyLogging.daysLogged)",
+        ].joined(separator: ":")
+        guard key != lastMilestoneHapticKey else { return }
+
+        lastMilestoneHapticKey = key
+        monthlyMilestoneHapticTrigger &+= 1
     }
 
     private var quickLogCard: some View {
@@ -374,6 +399,7 @@ struct TodayView: View {
                     }
                 }
                 .sensoryFeedback(.success, trigger: questCompletionHapticTrigger)
+                .sensoryFeedback(LifeClockHaptics.morningWake, trigger: morningWakeHapticTrigger)
                 .accessibilityIdentifier("today.mascot")
         } else {
             EmptyView()
@@ -534,6 +560,7 @@ struct TodayView: View {
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             .accessibilityIdentifier("today.monthlyLogging")
             .accessibilityValue("\(monthly.daysLogged) days this month")
+            .sensoryFeedback(LifeClockHaptics.monthlyMilestone, trigger: monthlyMilestoneHapticTrigger)
         } else {
             EmptyView()
         }
