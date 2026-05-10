@@ -84,6 +84,12 @@ final class SubscriptionStore: EntitlementProviding {
         }
     }
 
+    /// Clears any prior `lastError` so the caller can detect a fresh
+    /// failure set during the next operation (e.g. `restore()`).
+    func clearLastError() async {
+        lastError = nil
+    }
+
     // MARK: - Entitlement state
 
     func refreshEntitlements() async {

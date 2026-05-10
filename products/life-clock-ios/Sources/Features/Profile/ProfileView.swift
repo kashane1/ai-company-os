@@ -8,6 +8,18 @@ struct ProfileView: View {
     @State private var paywallPresented: Bool = false
     @State private var safetyNetPresented: Bool = false
     @State private var bodyUnitSystem: BodyMeasurementSystem = .standard
+    @State private var restoreOutcome: RestoreOutcome?
+
+    private enum RestoreOutcome: Identifiable {
+        case restored, nothingToRestore, failed(String)
+        var id: String {
+            switch self {
+            case .restored: return "restored"
+            case .nothingToRestore: return "none"
+            case .failed(let msg): return "fail:\(msg)"
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -201,14 +213,61 @@ struct ProfileView: View {
             .sheet(isPresented: $safetyNetPresented) {
                 SafetyNetView()
             }
+            .alert(
+                restoreAlertTitle,
+                isPresented: Binding(
+                    get: { restoreOutcome != nil },
+                    set: { if !$0 { restoreOutcome = nil } }
+                ),
+                presenting: restoreOutcome
+            ) { _ in
+                Button("OK", role: .cancel) { restoreOutcome = nil }
+            } message: { outcome in
+                Text(restoreAlertMessage(for: outcome))
+            }
         }
     }
 
     private func restorePurchases() {
         restoring = true
         Task {
+            let preIsPro = subscriptions.isPro
+            // Clear any stale error so we can detect a fresh one set during
+            // this restore call.
+            await subscriptions.clearLastError()
             await subscriptions.restore()
             restoring = false
+            if let error = subscriptions.lastError {
+                restoreOutcome = .failed(error)
+            } else if subscriptions.isPro && !preIsPro {
+                restoreOutcome = .restored
+            } else if subscriptions.isPro {
+                // Already Pro before — surface a clear confirmation so the
+                // tap isn't perceived as a no-op.
+                restoreOutcome = .restored
+            } else {
+                restoreOutcome = .nothingToRestore
+            }
+        }
+    }
+
+    private var restoreAlertTitle: String {
+        switch restoreOutcome {
+        case .restored: return "Pro restored"
+        case .nothingToRestore: return "Nothing to restore"
+        case .failed: return "Restore failed"
+        case .none: return ""
+        }
+    }
+
+    private func restoreAlertMessage(for outcome: RestoreOutcome) -> String {
+        switch outcome {
+        case .restored:
+            return "Your Pro features are active on this device."
+        case .nothingToRestore:
+            return "No prior purchases were found on this Apple ID. If you expected one, make sure you're signed into the same Apple ID that bought it."
+        case .failed(let message):
+            return message
         }
     }
 
