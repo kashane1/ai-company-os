@@ -19,6 +19,16 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
 
     // Baseline data collection
     case baselineDOB
+    /// Terminal block screen reached when the DOB picker resolves to
+    /// age < 13. Per US COPPA actual-knowledge doctrine + FTC Feb 2026
+    /// safe harbor, asking DOB solely to determine age and acting on the
+    /// result is permitted; collecting any further info from the user
+    /// once we know they are < 13 is not. The user may back out of this
+    /// screen via the persistent header chevron and re-enter their DOB
+    /// — the OnboardingDraft is transient @State, so a blocked DOB does
+    /// not persist across a back-and-forward cycle. See
+    /// docs/products/life-clock/09b_AGE_COMPLIANCE.md.
+    case under13Block
     case baselineSex
     case bodyComp
     case smoking
@@ -57,6 +67,26 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
 }
 
 extension OnboardingScreen {
+    /// Where the flow goes after `baselineDOB`. Users < 13 hit the
+    /// terminal `under13Block` screen; users >= 13 (and the defensive
+    /// nil-DOB case) proceed to `baselineSex`. The `nil` branch falls
+    /// through as "proceed" rather than "block" — the picker should
+    /// always populate `birthDate`, and routing to `under13Block` on
+    /// missing DOB would be a worse UX (it'd surface the block on a
+    /// state corruption rather than on a real under-13 entry). See
+    /// docs/products/life-clock/09b_AGE_COMPLIANCE.md.
+    static func afterBaselineDOB(
+        birthDate: Date?,
+        asOf: Date,
+        calendar: Calendar
+    ) -> OnboardingScreen {
+        guard let birthDate else { return .baselineSex }
+        let age = AgeGate.ageInYears(
+            birthDate: birthDate, asOf: asOf, calendar: calendar
+        )
+        return age < 13 ? .under13Block : .baselineSex
+    }
+
     /// Where the flow goes after `bodyComp`. Adults see the smoking +
     /// alcohol pair; minors (under 18 by reported DOB) skip both and
     /// land directly on `strength`. Mirrors the post-onboarding QuickLog

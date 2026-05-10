@@ -111,7 +111,27 @@ struct OnboardingCoordinator: View {
             GoalPickView(onContinue: { advance(to: .baselineDOB) })
 
         case .baselineDOB:
-            BaselineDOBView(onContinue: { advance(to: .baselineSex) })
+            // Under-13 users hit a terminal block screen — see
+            // docs/products/life-clock/09b_AGE_COMPLIANCE.md for the
+            // COPPA actual-knowledge + FTC Feb 2026 safe-harbor rationale.
+            // Adults and teens 13+ proceed to baselineSex as before.
+            BaselineDOBView(onContinue: {
+                advance(to: OnboardingScreen.afterBaselineDOB(
+                    birthDate: draft.birthDate,
+                    asOf: store.clock.now(),
+                    calendar: .current
+                ))
+            })
+        case .under13Block:
+            // The "Re-enter date of birth" affordance pops the path one
+            // step so the user lands back on baselineDOB with the
+            // picker reset to its default. The transient @State draft
+            // is cleared of birthDate so a stale value doesn't shadow
+            // the next entry.
+            Under13BlockView(onReenterDOB: {
+                draft.birthDate = nil
+                popPath()
+            })
         case .baselineSex:
             BaselineSexView(onContinue: { advance(to: .bodyComp) })
         case .bodyComp:

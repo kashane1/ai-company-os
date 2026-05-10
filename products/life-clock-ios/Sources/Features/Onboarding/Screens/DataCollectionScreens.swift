@@ -216,6 +216,66 @@ struct BaselineDOBView: View {
     }
 }
 
+/// Terminal block screen reached when the user reports a DOB resolving
+/// to age < 13. No data is collected here — the only telemetry event is
+/// `screenAppeared("under13Block")` with no value bucket so we never log
+/// the underlying DOB.
+///
+/// Compliance posture (see `docs/products/life-clock/09b_AGE_COMPLIANCE.md`):
+/// the FTC's Feb 2026 policy statement blesses "ask DOB → block" as a
+/// safe harbor under COPPA — but only if the operator acts on the
+/// result and does not collect personal info from the user once the
+/// age is known. This screen is that "act on it" leg.
+struct Under13BlockView: View {
+    let onReenterDOB: () -> Void
+    @Environment(OnboardingTelemetryHolder.self) private var telemetry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Spacer()
+            VStack(alignment: .leading, spacing: 12) {
+                Image(systemName: "hand.raised.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
+                Text("Life Clock is for ages 13 and up.")
+                    .font(.title.bold())
+                    .accessibilityIdentifier("under13Block.title")
+                Text("Based on the date you entered, we can't set up Life Clock for you yet. If you tapped the wrong date, you can fix it below.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("under13Block.body")
+            }
+
+            Spacer()
+
+            Button(action: onReenterDOB) {
+                Text("Re-enter date of birth")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.accentColor)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .accessibilityIdentifier("under13Block.reenter")
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+        // `children: .contain` keeps the inner identifiers
+        // (`under13Block.title`, `under13Block.body`,
+        // `under13Block.reenter`) visible to XCUITest queries. Without
+        // it, SwiftUI flattens this VStack into a single accessibility
+        // element and the outer screen id shadows every child. Matches
+        // the OnboardingScaffold + RecoveryPreviewView convention.
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("onboarding.under13Block")
+        .onAppear {
+            telemetry.value.screenAppeared("under13Block")
+        }
+    }
+}
+
 struct BaselineSexView: View {
     let onContinue: () -> Void
     @Environment(OnboardingDraft.self) private var draft

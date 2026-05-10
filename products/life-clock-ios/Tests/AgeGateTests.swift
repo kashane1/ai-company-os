@@ -87,4 +87,68 @@ final class AgeGateTests: XCTestCase {
         )
         XCTAssertEqual(next, .strength)
     }
+
+    // MARK: - Under-13 block routing
+    //
+    // Pins the COPPA actual-knowledge + FTC Feb 2026 safe-harbor
+    // posture: < 13 → terminal block; >= 13 → proceed. See
+    // docs/products/life-clock/09b_AGE_COMPLIANCE.md.
+
+    func testAfterBaselineDOBTwelveYearOldGoesToBlock() {
+        // 14 years before 2027-01-15 = 2013-01-15 → exactly 13.
+        // 12-year-old DOB is 2014-06-01.
+        let dob = birthDate(year: 2014, month: 6, day: 1)
+        let next = OnboardingScreen.afterBaselineDOB(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .under13Block)
+    }
+
+    func testAfterBaselineDOBExactlyThirteenProceeds() {
+        // 13 exactly on the asOf date — at-or-above threshold, so OK.
+        let dob = birthDate(year: 2014, month: 1, day: 15)
+        let next = OnboardingScreen.afterBaselineDOB(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .baselineSex)
+    }
+
+    func testAfterBaselineDOBDayBeforeThirteenthBirthdayBlocks() {
+        // Birthday is 2014-01-16, asOf is 2014-01-15 → still 12.
+        let dob = birthDate(year: 2014, month: 1, day: 16)
+        let next = OnboardingScreen.afterBaselineDOB(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .under13Block)
+    }
+
+    func testAfterBaselineDOBSeventeenProceeds() {
+        // 17-year-old reaches baselineSex; the smoking/alcohol skip
+        // for under-18 fires later at afterBodyComp.
+        let dob = birthDate(year: 2009, month: 6, day: 1)
+        let next = OnboardingScreen.afterBaselineDOB(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .baselineSex)
+    }
+
+    func testAfterBaselineDOBAdultProceeds() {
+        let dob = birthDate(year: 1990, month: 1, day: 1)
+        let next = OnboardingScreen.afterBaselineDOB(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .baselineSex)
+    }
+
+    func testAfterBaselineDOBMissingBirthDateProceeds() {
+        // Defensive: nil DOB falls through to .baselineSex rather than
+        // .under13Block. The picker should always populate birthDate;
+        // routing to the block screen on missing DOB would surface the
+        // block on a state-corruption case rather than on a real
+        // under-13 entry.
+        let next = OnboardingScreen.afterBaselineDOB(
+            birthDate: nil, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .baselineSex)
+    }
 }
