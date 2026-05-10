@@ -39,17 +39,26 @@ enum ReflectionPrompts {
         "Where did your body ask for rest today?",
     ]
 
+    // 2026-05-10 vision-bad-day-gentle-coach-pools audit: same cycle, three
+    // coach entries failed the bad-day reading. "Where did you choose the
+    // harder, healthier option?" and "Where did you stick to the plan…?"
+    // both presupposed adherence on a −1h 37m day. "What did you avoid
+    // today that you can't keep avoiding?" crossed register into
+    // firmDirect ("can't keep avoiding" mirrors firmDirect's "move you
+    // keep stalling on"). Rewrites keep coach's forward, action-oriented
+    // posture without presupposing or accusing. The remaining nine are
+    // unchanged.
     static let coachPool: [String] = [
         "What's one decision today that future-you would thank you for?",
-        "Where did you choose the harder, healthier option?",
+        "What's one harder, healthier option open to you tomorrow?",
         "What's one small thing you'd do differently tomorrow?",
         "What's getting in the way of the day you wanted?",
         "What did you learn about yourself today?",
         "What would tomorrow look like if today was a fresh start?",
         "What's one habit moving the needle right now?",
-        "Where did you stick to the plan when it would've been easier not to?",
+        "What's a plan you want to hold to tomorrow?",
         "What's the one move that would make tomorrow easier?",
-        "What did you avoid today that you can't keep avoiding?",
+        "What's something you've been putting off that would help tomorrow?",
         "What would the next steady version of you do right now?",
         "What's one win from today, however small?",
     ]
