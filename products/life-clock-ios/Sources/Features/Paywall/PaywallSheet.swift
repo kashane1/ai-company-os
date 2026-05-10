@@ -12,6 +12,8 @@ struct PaywallSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedProductID: String?
     @State private var purchaseSuccessHapticTrigger: Int = 0
+    @State private var restoring: Bool = false
+    @State private var restoreEmptyMessageVisible: Bool = false
 
     private var termsURL: URL { LifeClockConfiguration.termsOfUseURL }
     private var privacyURL: URL { LifeClockConfiguration.privacyPolicyURL }
@@ -35,9 +37,16 @@ struct PaywallSheet: View {
                         .accessibilityIdentifier("paywall.close")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Restore") {
-                        Task { await subscriptions.restore() }
+                    Button {
+                        Task { await runRestore() }
+                    } label: {
+                        if restoring {
+                            ProgressView()
+                        } else {
+                            Text("Restore")
+                        }
                     }
+                    .disabled(restoring)
                     .accessibilityIdentifier("paywall.restore")
                 }
             }
@@ -158,7 +167,27 @@ struct PaywallSheet: View {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
+            } else if restoreEmptyMessageVisible {
+                Text("No prior purchases were found on this Apple ID.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("paywall.restoreEmpty")
             }
+        }
+    }
+
+    /// Restore + a small UX layer: spinner, disabled-while-running, and a
+    /// "nothing to restore" hint when the call succeeds without granting
+    /// entitlements. The sheet auto-dismisses on isPro flip via the
+    /// existing onChange, so a successful restore needs no extra path.
+    private func runRestore() async {
+        restoring = true
+        restoreEmptyMessageVisible = false
+        await subscriptions.clearLastError()
+        await subscriptions.restore()
+        restoring = false
+        if subscriptions.lastError == nil && !subscriptions.isPro {
+            restoreEmptyMessageVisible = true
         }
     }
 }
