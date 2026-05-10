@@ -34,6 +34,8 @@ Seeds:
 |---|---|---|---|---|---|
 | 01:15 | [`91f3e91`](../../../) | feat | Polish | ProfileView + SubscriptionStore | Three-state restore alert (restored / nothing-to-restore / failed) + `clearLastError()` so a stale prior error can't masquerade as a fresh failure |
 | 01:19 | [`f0b4b65`](../../../) | feat | Polish | PaywallSheet | Restore toolbar button: spinner + disabled while in flight; inline "No prior purchases were found" hint when sync succeeds without granting entitlements |
+| 12:11 | [`1ad9245`](../../../) | fix | Polish | ProfileView | Strip redundant `Restore failed: ` prefix from alert body — caught in the gestural final-check (title and body read the prefix twice, see [before](screenshots/2026-05-10-restore-failed-alert.png) / [after](screenshots/2026-05-10-restore-failed-alert-clean.png)) |
+| 12:12 | [`0d640e3`](../../../) | fix | Polish | PaywallSheet | `.presentationDragIndicator(.visible)` — caught in the gestural final-check; ScrollView ate drag-to-dismiss without the indicator, leaving Close as the only dismissal affordance |
 
 ## Stretch decisions (operator review)
 
@@ -116,10 +118,30 @@ Recommend the operator open one PR per resolved Q (or a single
 `subscription-lifecycle-sandbox-runs.md` log under
 `docs/products/life-clock/`) once a sandbox-test session is run.
 
-## Final check (degraded)
+## Final check (resumed — gestural pass completed)
 
-`request_access` for computer-use timed out twice in 5 minutes — same failure
-mode the 5/9 `profile-section-sweep` log documented. Fell back to:
+After the operator approved Simulator access, re-ran the gestural pass:
+
+1. **Restore (gestural).** Tapped `profile.restore` → iOS sign-in dialog
+   appeared (proves the App Store reviewer scenario is identical) → tapped
+   Cancel → my new alert fired with title `Restore failed`, body
+   `Restore failed: Request Canceled`. Two follow-up Polish commits:
+   - [`1ad9245`](../../../) strips the doubled prefix → body now reads
+     `Request Canceled`.
+   - Upstream `clearLastError()` works as designed.
+2. **Paywall dismissal (gestural).** First attempt at swipe-down failed
+   because ScrollView ate the gesture → caught a real Polish-tier bug.
+   Added `.presentationDragIndicator(.visible)` (commit pending sha) → drag
+   from the indicator dismisses cleanly to Profile.
+
+Both polish-tier final-check items satisfied. **Q0 (T8 baseline failure
+on the recon harness) still stands** as a separate triage — unrelated to
+the live-driving outcome.
+
+### Earlier degraded-check notes (kept for record)
+
+`request_access` for computer-use timed out twice in 5 minutes initially — same
+failure mode the 5/9 `profile-section-sweep` log documented. Fell back to:
 
 1. Static screenshot review of the demoted state via `simctl io booted
    screenshot` (linked above).
