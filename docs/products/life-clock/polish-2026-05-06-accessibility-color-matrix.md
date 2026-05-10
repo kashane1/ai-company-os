@@ -447,3 +447,209 @@ operator pick.
   `OnboardingTerminalsRecon.swift` once F6 + F7 land. Keep
   `LIFECLOCK_FORCE_PALETTE` permanently — it composes with
   `FORCE_COLOR_SCHEME` for any future axxl matrix and is cheap.
+
+---
+
+## Session 2026-05-09 18:34 — Verification re-run
+
+Same-day continuation. Operator picked option 2 from the pre-flight
+disambiguation: re-drive the prior delta's recon to confirm the 36
+documented onboarding-terminal captures still match current behavior,
+and live-verify the inline-title-on-Today fix that the 18:01 delta
+verified statically only.
+
+Source diff between `8ef0f9d` (the snapshot under which the prior
+delta's captures were taken) and HEAD: empty for code/resources —
+only `polish-2026-05-06-accessibility-color-matrix.md` was touched
+(by `5f421b4`, the docs append). So the verification confirms the
+build pipeline + recon harness still produce the documented behavior
+end-to-end, not that source has changed.
+
+- Iteration cap: 8. Used: 1.
+- Final computer-use checkpoint: no.
+- Simulator targets: iPhone 17 Pro, iOS 26.4 simulator
+  (`73298B82-…` for OnboardingTerminalsRecon, `DD6A5A7B-…` for
+  TopLevelMatrixRecon — run in parallel on the two booted sims).
+- Build: `xcodebuild build-for-testing` clean (`** TEST BUILD
+  SUCCEEDED **`, ~7 min).
+
+### Iterations
+
+- [18:34] Snapshotted the prior delta's `/tmp/lifeclock-polish/onboarding-terminals/`
+  baseline to `…onboarding-terminals.baseline-2026-05-09/` and computed
+  per-PNG sha256s into `/tmp/lifeclock-polish/baseline.shasums` (36
+  hashes) so the re-run can be diffed without losing the baseline.
+- [18:34] Built `LifeClock` for testing headlessly. No code change in
+  the worktree, so the build is a no-op rebuild from `bc55ae2..HEAD`'s
+  derived data; surfaces any environmental drift before the recon runs.
+- [18:38] `OnboardingTerminalsRecon` — all 12 cells passed cleanly
+  (`Executed 12 tests, with 0 failures … in 691.105 seconds`). Output:
+  36 PNGs + 36 AX dumps at `/tmp/lifeclock-polish/onboarding-terminals/`.
+- [18:39] `TopLevelMatrixRecon/testLightAXXL` + `…/testDarkAXXL` —
+  both passed (`Executed 2 tests, with 0 failures … in 266.595
+  seconds`). Output: 8 PNGs + 8 AX dumps at
+  `/tmp/lifeclock-polish/{light,dark}-axxl/`.
+- [18:44] Diffed fresh vs baseline. **All 36 sha256s differ** but the
+  **filename set is identical except one** — see Regressions caught.
+- [18:46] Visual spot-checks (samples below) confirm no behavioral
+  regression; pixel diffs are animation-phase noise, not content.
+
+### Filename diff (fresh vs baseline)
+
+```
+< default-navy-light-axxl/03-paywallPrimary-MISSING-skip.png
+> default-navy-light-axxl/03-paywallPrimary.png
+```
+
+The prior delta's baseline had one cell (`default-navy-light-axxl`)
+where `app.buttons["onboarding.healthKitAuth.skip"]` was not hittable
+in time — the recon captured a `…-MISSING-skip` diagnostic and
+returned early instead of reaching paywallPrimary. The fresh run
+finds the skip button on the first wait in that same cell and
+captures a clean `03-paywallPrimary.png` matching the other 11 cells.
+That cell's healthKitAuth screen
+(`/tmp/lifeclock-polish/onboarding-terminals/default-navy-light-axxl/02-healthKitAuth.png`)
+shows the "Not now" skip rendered and laid out, so the prior MISSING
+was a settling race, not a real defect — the recon's `sleep(1)` after
+healthKitAuth appears was sufficient this run. No code fix needed;
+the documented "matrix completed at 36 / 36 PNGs" is now actually
+36 / 36 valid PNGs rather than 35 valid + 1 diagnostic.
+
+### Pixel-level diff explanation (all 36 sha256s differ)
+
+Animation-phase noise:
+
+- `RecoveryPreviewView` rotates `cyclingIndex` every 1.5s
+  (`Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true)`) and
+  the recon's `sleep(2)` after the screen appears means the captured
+  cycling phrase is whichever tick was current at capture time —
+  non-deterministic across runs. Confirmed in spot-check: the
+  `sunset-warm-dark-axxl` fresh capture shows "of loving" (goal=
+  liveLonger, cycle index 1); a different run could land on
+  "living" (index 0) or "exploring" (index 2).
+- The persistent header mascot's minute-hand is mock-clock-driven
+  but the mock clock advances real-time inside the recon process, so
+  the hand position drifts ~1 minute between baseline (18:33-ish)
+  and fresh (18:38-ish) runs. Visible as a different time-of-day on
+  the status bar across captures (6:38 / 6:41 / 6:42).
+
+Neither source is a content regression. Visual spot-checks below
+confirm.
+
+### Visual spot-checks (sample 3 of 36)
+
+- `default-navy-light-axxl/03-paywallPrimary.png` — the previously-
+  MISSING cell. Tier prices truncated as `Year… $49…`, `Lifeti…
+  $12…`, `Mont… $7…`; per-month line `≈ $4.1…`; "Subscriptions
+  renew automatically until cancelled in Settings. Lifetime is a
+  one-tim…" tail-truncates. Matches F7 verbatim. No new finding.
+- `sunset-warm-dark-axxl/01-recoveryPreview.png` — F6 reproduces
+  (LifeGridDotView region between "of loving" and the legend is
+  empty space), F7 reproduces (legend truncates to `Liv… N… Re…
+  Stil…`), F8 reproduces (mascot bezel + face stays bright on the
+  black background). The sunset-warm Continue button renders
+  unmistakably warm orange (R0.85 G0.42 B0.20), distinct from the
+  heartbeat red on the mascot ECG line.
+- `aurora-cool-light-default/02-healthKitAuth.png` — Connect button
+  is the aurora-cool blue accent; "Not now" rendered as plain
+  secondary text below; body copy "Read steps, exercise, sleep, and
+  resting heart rate from Apple Health. You can change this any
+  time in Settings." renders without truncation at default Dynamic
+  Type; no `lastHealthAuthError` red anywhere on the screen
+  (mock auth is `authorized`, error path never enters).
+
+### Inline-title-on-Today (commit `7083351`) — live verification
+
+The 18:01 delta verified this fix in source only. This re-run drives
+it live in both axxl cells from the top-level matrix:
+
+- `light-axxl/01-today.ax.txt` and `dark-axxl/01-today.ax.txt` both
+  show `NavigationBar, …, {{0.0, 62.0}, {402.0, 54.0}}, identifier:
+  'Today's progress'` with a child `StaticText, …, label: 'Today's
+  progress'` sized `{164.3, 25.3}`. Bar height 54pt is the inline
+  title slot (large title would push it past ~96pt and add a second
+  block beneath); the full label is intact (no `'Today's prog…'`
+  truncation reported in the original 5/6 audit).
+- `today.headline` AX label is `'Loading…'` in both cells — engine
+  is warming up at capture time, expected at fresh-launch + 2s
+  settle. Doesn't affect the title-mode verification.
+
+The `dynamicTypeSize.isAccessibilitySize ? .inline : .large` ternary
+at [TodayView.swift:124](../../products/life-clock-ios/Sources/Features/Today/TodayView.swift#L124)
+is reaching the simulator's runtime as documented.
+
+### Stretch decisions (operator review)
+
+None this session — verification only, no source edits.
+
+### Asks
+
+#### Resolved this session
+
+None.
+
+#### Outstanding (cycle-end batch)
+
+All three carry over from the 18:01 delta unchanged — F6
+(LifeGridDotView blank), F7 (axxl scaffold overflow), F8 (mascot
+dark-mode contrast). F8 is now a hard-stop on next appearance per
+the same-finding-twice rule the prior `Next pass` flagged; this
+session reproduced it but did not act on it (verification scope, no
+source edits) — operator pick still pending.
+
+### Regressions caught
+
+- **Filename-set delta:** the prior baseline's
+  `default-navy-light-axxl/03-paywallPrimary-MISSING-skip.png` is
+  gone from the fresh run, replaced by a clean
+  `03-paywallPrimary.png`. Improvement, not regression. Filed as a
+  recon-harness flake, not an app bug.
+- **Pixel-level deltas across all 36 PNGs:** explained above.
+  Animation-phase noise on `RecoveryPreviewView`'s 1.5s cycling
+  timer and the mock clock's real-time minute drift. No content
+  regression; spot-checks 1/3, 2/3, 3/3 match documented behavior.
+- **TopLevelMatrixRecon's 8 PNGs (light/dark axxl + light/dark
+  default not re-shot this session):** no goldens compared — the
+  prior `light-axxl` / `dark-axxl` captures were not snapshotted
+  before this run. The two fresh axxl cells were used only to
+  live-verify the inline-title fix; their AX dumps confirm the
+  contract.
+
+### Invariants verified (re-run)
+
+- **orange-not-red invariant** (`LifeClockPalette.swift:3-5`) holds
+  across the 3 spot-checked captures (one per palette under stress
+  conditions). No `.red` outside the documented exceptions
+  (mascot ECG; `store.lastHealthAuthError` which never renders
+  under `LIFECLOCK_HEALTH_AUTH=authorized`). No automated full-36
+  pixel scan run — relying on the source-unchanged-since-`8ef0f9d`
+  guarantee plus visual spot-check.
+- **Inline title on Today** (commit `7083351`) — verified live in
+  light-axxl + dark-axxl AX dumps (NavigationBar height 54pt, full
+  label intact). Upgrades the prior delta's static verification
+  to live verification.
+
+### A11y identifiers added
+
+None. Both fixes from the 18:01 delta (`7866d62`, `8ef0f9d`) remain
+load-bearing — without them the recon couldn't reach paywallPrimary.
+
+### Vision updates
+
+- Open Questions appended: none.
+- Decided constraints proposed: none.
+
+### Next pass
+
+- Same as the 18:01 delta — F6, F7, F8 still pending operator
+  direction.
+- Recon-driver cleanup window unchanged: drop
+  `OnboardingTerminalsRecon.swift` and `TopLevelMatrixRecon.swift`
+  after F6 + F7 land. The shasum baseline at
+  `/tmp/lifeclock-polish/baseline.shasums` is throwaway — local
+  /tmp only, not checked in.
+- If we want to remove the cycling-phrase animation noise from
+  future recon diffs, the cheapest knob is to gate the timer on
+  `LIFECLOCK_UI_TEST != "1"` in `RecoveryPreviewView.onAppear` so
+  recon captures land on a stable `cyclingIndex = 0`. Out of scope
+  here; flagging for the next pass that touches that surface.
