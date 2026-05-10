@@ -50,6 +50,16 @@ None.
 
 ### Outstanding (cycle-end batch)
 
+**Q0 — `ProTouchpointsRecon` harness regression (baseline check).**
+`testTouchpoint8_RestorePurchasesFromProfile` and
+`testFinalAcceptance_PaywallSwipeDownDismissal` both fail on main against a
+clean iPhone 17 Pro simulator, and the failure reproduces against the parent
+commit's versions of the touched files. Pre-existing harness issue, not
+introduced by this PR — but it blocked this session's planned UITest-backed
+final-check. Recommend triaging before the sandbox-runs follow-up so those
+runs have a green baseline.
+
+
 The body of the operator's brief is explicitly **Feature-tier requiring real-
 device + sandbox-account testing**. None of (b)–(e) are reachable from the
 StoreKit-config simulator path; the loop polished what it could from the
@@ -105,6 +115,35 @@ reproducible without:
 Recommend the operator open one PR per resolved Q (or a single
 `subscription-lifecycle-sandbox-runs.md` log under
 `docs/products/life-clock/`) once a sandbox-test session is run.
+
+## Final check (degraded)
+
+`request_access` for computer-use timed out twice in 5 minutes — same failure
+mode the 5/9 `profile-section-sweep` log documented. Fell back to:
+
+1. Static screenshot review of the demoted state via `simctl io booted
+   screenshot` (linked above).
+2. Code review of the new alert + spinner paths.
+3. **Attempted UITest verification.** Added a `testTouchpoint8b_RestoreFiresAlert`
+   that taps `profile.restore` and asserts one of the three alert titles
+   appears. It failed at the post-tap re-existence check. Investigated by
+   running the existing `testTouchpoint8_RestorePurchasesFromProfile`
+   (reachability-only, no tap) on a clean simulator (`iPhone 17 Pro`,
+   erased + rebooted, only-one-booted) — that **also failed** with
+   `profile.restore must be reachable for free users` at line 152. To
+   confirm not-introduced-by-this-PR, checked out the parent commit's
+   versions of ProfileView/PaywallSheet/SubscriptionStore and re-ran T8 —
+   **same failure**.
+
+   T8 is broken on main; reverted the new T8b. The polish-tier fixes are
+   shipped without an automated assertion. **This is the strongest
+   Feature-tier ask of the session** beyond the lifecycle questions: the
+   `ProTouchpointsRecon` harness needs a sanity sweep before any future
+   subscription-touching polish run can rely on it. Suspected causes
+   (un-investigated): `scrollUntilVisible` attempt count too low after the
+   5/9 Profile section reorder pushed Subscription further down the form,
+   or a NavigationStack toolbar rendering change in the current Xcode
+   shifting Form-row visibility.
 
 ## Regressions caught
 
