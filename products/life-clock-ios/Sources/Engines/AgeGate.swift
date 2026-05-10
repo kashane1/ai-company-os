@@ -8,6 +8,14 @@ import Foundation
 /// download age). To keep the App Store rating at 12+ we hide alcohol /
 /// smoking pickers from users who report a DOB making them under 18.
 /// Users 18+ see the full picker set.
+///
+/// Surfaces consulting this gate:
+/// - `OnboardingScreen.afterBodyComp` — minors skip the smoking +
+///   alcohol screens entirely during onboarding.
+/// - `LifeClockStore.isAdultUser` → `QuickLogSheet` — minors don't see
+///   the smoking/vaping or alcohol pickers in the daily check-in.
+/// - `OnboardingCoordinator.shouldShowPenaltyScreen` — minors skip the
+///   `bigNumberPenalty` mortality-framing reveal screen.
 enum AgeGate {
     static func ageInYears(birthDate: Date, asOf: Date, calendar: Calendar) -> Int {
         calendar.dateComponents([.year], from: birthDate, to: asOf).year ?? 0

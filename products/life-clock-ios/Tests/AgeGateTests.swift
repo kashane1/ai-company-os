@@ -41,4 +41,50 @@ final class AgeGateTests: XCTestCase {
         let dob = birthDate(year: 2030, month: 1, day: 1)
         XCTAssertFalse(AgeGate.isAdult(birthDate: dob, asOf: asOf, calendar: calendar))
     }
+
+    // MARK: - Onboarding routing
+
+    func testAfterBodyCompAdultGoesToSmoking() {
+        let dob = birthDate(year: 1990, month: 1, day: 1)
+        let next = OnboardingScreen.afterBodyComp(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .smoking)
+    }
+
+    func testAfterBodyCompMinorSkipsToStrength() {
+        // 12-year-old — well under any plausible alcohol/tobacco gate.
+        let dob = birthDate(year: 2014, month: 6, day: 1)
+        let next = OnboardingScreen.afterBodyComp(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .strength)
+    }
+
+    func testAfterBodyCompSeventeenSkipsToStrength() {
+        // 17, day before 18th birthday — still a minor.
+        let dob = birthDate(year: 2009, month: 1, day: 16)
+        let next = OnboardingScreen.afterBodyComp(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .strength)
+    }
+
+    func testAfterBodyCompExactlyEighteenSeesSmoking() {
+        // Exactly 18 on asOf — adult bound is inclusive.
+        let dob = birthDate(year: 2009, month: 1, day: 15)
+        let next = OnboardingScreen.afterBodyComp(
+            birthDate: dob, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .smoking)
+    }
+
+    func testAfterBodyCompMissingBirthDateSkipsToStrength() {
+        // Defensive: nil DOB falls through as skip — suppressing the
+        // alcohol/tobacco prompts is the safer default for unknown age.
+        let next = OnboardingScreen.afterBodyComp(
+            birthDate: nil, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(next, .strength)
+    }
 }

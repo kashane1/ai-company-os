@@ -57,6 +57,25 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
 }
 
 extension OnboardingScreen {
+    /// Where the flow goes after `bodyComp`. Adults see the smoking +
+    /// alcohol pair; minors (under 18 by reported DOB) skip both and
+    /// land directly on `strength`. Mirrors the post-onboarding QuickLog
+    /// gate at `LifeClockStore.isAdultUser` and the ASC age-rating
+    /// questionnaire claim that under-18 users don't see those prompts.
+    /// `birthDate == nil` falls through as "skip" — the picker should
+    /// always populate it, but the safer default for an unknown age is
+    /// to suppress the alcohol/tobacco questions.
+    static func afterBodyComp(
+        birthDate: Date?,
+        asOf: Date,
+        calendar: Calendar
+    ) -> OnboardingScreen {
+        guard let birthDate,
+              AgeGate.isAdult(birthDate: birthDate, asOf: asOf, calendar: calendar)
+        else { return .strength }
+        return .smoking
+    }
+
     /// Screens removed in later flow revisions, kept here so funnel
     /// dashboards can join historical events to the current step that
     /// absorbed them. Telemetry sinks should consult this map when

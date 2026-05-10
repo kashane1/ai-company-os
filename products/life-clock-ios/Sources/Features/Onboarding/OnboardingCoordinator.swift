@@ -115,7 +115,17 @@ struct OnboardingCoordinator: View {
         case .baselineSex:
             BaselineSexView(onContinue: { advance(to: .bodyComp) })
         case .bodyComp:
-            BodyCompView(onContinue: { advance(to: .smoking) })
+            // Minors skip the smoking + alcohol pickers entirely. Matches
+            // the QuickLog `store.isAdultUser` gate and the ASC age-rating
+            // questionnaire claim ("under-18 users don't see these
+            // prompts"). Adults see the existing smoking → alcohol pair.
+            BodyCompView(onContinue: {
+                advance(to: OnboardingScreen.afterBodyComp(
+                    birthDate: draft.birthDate,
+                    asOf: store.clock.now(),
+                    calendar: .current
+                ))
+            })
         case .smoking:
             SmokingView(onContinue: { advance(to: .alcohol) })
         case .alcohol:
