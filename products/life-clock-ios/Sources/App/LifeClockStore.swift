@@ -797,8 +797,20 @@ final class LifeClockStore {
     }
 
     /// Returns the most recent N persisted snapshots for the History list.
-    func recentSnapshots(limit: Int) -> [DailyHealthSnapshot] {
-        fetchRecentSnapshots(limit: limit)
+    ///
+    /// History is yesterday-and-earlier — today's row lives on Today. When
+    /// `includingToday` is false (default), any snapshot whose date is in
+    /// the current day per the injected clock is dropped. The fetch limit
+    /// is widened by 1 internally so callers still see N rows when a
+    /// today-snapshot exists.
+    func recentSnapshots(limit: Int, includingToday: Bool = false) -> [DailyHealthSnapshot] {
+        if includingToday {
+            return fetchRecentSnapshots(limit: limit)
+        }
+        let raw = fetchRecentSnapshots(limit: limit + 1)
+        let todayStart = clock.calendar.startOfDay(for: clock.now())
+        let filtered = raw.filter { !clock.calendar.isDate($0.date, inSameDayAs: todayStart) }
+        return Array(filtered.prefix(limit))
     }
 
     /// Signed daily delta for an arbitrary persisted snapshot. Mirrors

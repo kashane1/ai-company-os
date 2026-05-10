@@ -1171,4 +1171,78 @@ final class LifeClockStoreTests: XCTestCase {
             "distinctOpenDays must increment when first foreground of a new local day fires")
     }
 
+    // MARK: - History today-exclusion
+
+    /// History is yesterday-and-earlier; today's row lives on Today.
+    /// `recentSnapshots(limit:)` must drop a snapshot whose date is in
+    /// the current day per the injected clock. The fetch limit is
+    /// widened by 1 internally so callers still see N rows when a
+    /// today-snapshot exists.
+    func testRecentSnapshotsExcludesTodayByDefault() throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(preAuthorized: true),
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        let cal = Calendar.lifeClockUTC
+        let today = cal.startOfDay(for: fixedDate)
+
+        // Seed today + 13 prior days, all date-normalized to startOfDay.
+        for offset in 0..<14 {
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { continue }
+            let snap = DailyHealthSnapshot(date: cal.startOfDay(for: day))
+            snap.stepCount = 8_000
+            snap.sleepHours = 7.0
+            snap.sourceCompleteness = 0.7
+            context.insert(snap)
+        }
+        try context.save()
+
+        let defaulted = store.recentSnapshots(limit: 7)
+        XCTAssertEqual(defaulted.count, 7,
+                       "default fetch must still return N rows when a today-snapshot exists")
+        XCTAssertFalse(defaulted.contains(where: { cal.isDate($0.date, inSameDayAs: today) }),
+                       "today's snapshot must not appear in History results")
+        XCTAssertEqual(defaulted.first?.date, cal.date(byAdding: .day, value: -1, to: today),
+                       "first row must be yesterday, not today")
+
+        let inclusive = store.recentSnapshots(limit: 7, includingToday: true)
+        XCTAssertEqual(inclusive.count, 7)
+        XCTAssertTrue(inclusive.contains(where: { cal.isDate($0.date, inSameDayAs: today) }),
+                      "opt-in path must keep today for callers that need the live row")
+    }
+
+    /// Long-absence: when no today-snapshot exists (returning user after
+    /// a gap), the today-exclusion path is a no-op. We must still surface
+    /// the older snapshots so the `hasOlderSnapshots` predicate fires.
+    func testRecentSnapshotsAfterLongAbsenceReturnsOldSnapshots() throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(preAuthorized: true),
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        let cal = Calendar.lifeClockUTC
+        let today = cal.startOfDay(for: fixedDate)
+
+        // Seed three snapshots from 30+ days ago. No today, no yesterday.
+        for offset in [30, 31, 32] {
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { continue }
+            let snap = DailyHealthSnapshot(date: cal.startOfDay(for: day))
+            snap.stepCount = 5_000
+            snap.sleepHours = 6.5
+            snap.sourceCompleteness = 0.6
+            context.insert(snap)
+        }
+        try context.save()
+
+        let rows = store.recentSnapshots(limit: 3)
+        XCTAssertEqual(rows.count, 3,
+                       "long-absence snapshots must still surface — today-exclusion is a no-op when no today row exists")
+        XCTAssertFalse(rows.contains(where: { cal.isDate($0.date, inSameDayAs: today) }))
+    }
+
 }
