@@ -100,6 +100,8 @@ None this session. Every other observation classified as Vision-question and is 
 
 The five Vision-questions below are the through-line of the operator's idea: *"the under-13 (and arguably under-18) flow has to be honest, not just a checkbox."* They cluster naturally and should probably be answered together so the policy is coherent.
 
+> **2026-05-10 update — operator-resolved.** Best-practices research (delegated to `compound-engineering:research:best-practices-researcher`, conducted 2026-05-09 evening) reframed every question below. Key surprises: (i) "12+" no longer exists in Apple's taxonomy — auto-mapped to **13+** in the July 2025 overhaul, deadline Jan 31 2026; (ii) age ratings are content advisories, not download gates; (iii) asking DOB creates COPPA "actual knowledge" the moment a <13 DOB is entered, but the [FTC Feb 2026 policy statement](https://www.ftc.gov/news-events/news/press-releases/2026/02/ftc-issues-coppa-policy-statement-incentivize-use-age-verification-technologies-protect-children) explicitly blesses "ask DOB → block" as a safe harbor; (iv) Cal AI's April 2026 removal was paywall-design (§3.1.1/§3.1.2), not age-related — but it's the active rejection vector for wellness apps; (v) parental gate before paywall is NOT Apple-required for general-availability apps. Full synthesis at [09b_AGE_COMPLIANCE.md](09b_AGE_COMPLIANCE.md). Operator chose to ship **only items 1, 2, 5** from the recommendations — risk-mitigation items deferred. Resolution per question below.
+
 #### Q1 — DOB picker lower bound. Should the DOB picker have a minimum age?
 
 **Today.** None. Picker accepts any past date including yesterday.
@@ -112,11 +114,15 @@ The five Vision-questions below are the through-line of the operator's idea: *"t
 
 **Recommendation hold pending operator answer.** This is the most policy-laden of the five.
 
+> **Resolved 2026-05-10:** Option (b) — hard-block under-13 at the DOB picker. Driven by COPPA actual-knowledge doctrine + the FTC Feb 2026 safe harbor for "ask DOB → block." Implementation in [polish-2026-05-10-under-13-block-and-asc-update.md](polish-2026-05-10-under-13-block-and-asc-update.md). Lower picker bound (option c) deferred — the block screen is the policy answer, not picker geometry.
+
 #### Q2 — Reveal escalator softening for under-18. Should `lifeGridRemaining` / `recoveryPreview` / `engineRevealAndDial` be tone-shifted (or suppressed) for minors the way `bigNumberPenalty` already is?
 
 **Today.** Only `bigNumberPenalty` is gated. Minors still see `lifeGridRemaining` ("This is what's still ahead. / Each dot is a week your habits get to shape."), `recoveryPreview` ("{N} more years"), and `engineRevealAndDial` (anchor dial pre-set from a projected lifespan).
 
 **Tradeoff.** The reveal escalator earns a lot of the product's emotional weight. Suppressing it for minors leaves them with a thinner version of onboarding; making it tone-shifted would be redundant with `ToneView` (which they reach two screens after the reveal). The cleanest answer ties to vision Open Question #9 ("Reveal-escalator tone-awareness") — answer that, then this falls out.
+
+> **Resolved 2026-05-10:** Deferred. With under-13 hard-blocked (Q1 resolution), the only minors reaching the reveal escalator are 13–17 — who Apple's age-rating taxonomy permits to see this content. No Apple rule mandates softening. Pure product/tone question; revisit alongside vision Open Question #9.
 
 #### Q3 — Tone auto-shift for under-18. Should `firmDirect` be unselectable (or non-default) for minors?
 
@@ -124,17 +130,23 @@ The five Vision-questions below are the through-line of the operator's idea: *"t
 
 **Tradeoff.** firmDirect is a deliberate aesthetic — the "respected trainer" voice the vision champions. Restricting it for minors signals safety. Forcing a softer default risks a 17-year-old who explicitly came for the firmer voice feeling like the app underestimated them. Possible middle: gentle defaults selected for under-18, with firmDirect still pickable but not the visual default in `ToneView`.
 
+> **Resolved 2026-05-10:** Deferred. Apple has no published rule restricting tone variants by age. §1.1.1 ("mean-spirited / distressing") risk is theoretical with no precedent. Operator priority is compliance, not press resilience.
+
 #### Q4 — Paywall + parental consent. Should the paywall require a "ask a grown-up" gate below some threshold?
 
 **Today.** No code-level gate. Family Sharing's "Ask to Buy" is the only consent layer, and it lives at the Apple-ID level outside our app.
 
 **Tradeoff.** Apple's IAP infrastructure already handles the kid-safety side via Ask-to-Buy. Adding our own affordance is belt-and-suspenders. If we add it, it needs a clear policy: "skip-paywall for under-18", "show paywall but disable purchase button", "show a separate kid-friendly free-tier copy"? Each carries different App Store risk profiles.
 
+> **Resolved 2026-05-10:** Deferred. Confirmed by research that parental gate before paywall is **NOT Apple-required** for general-availability apps — Apple delegates to Family Sharing's [Ask to Buy](https://support.apple.com/en-us/105055). Self-imposed gate is press-defense, not Apple-compliance. The real present rejection vector for wellness paywalls is Cal-AI-style deceptive billing design (§3.1.1/§3.1.2), and [PaywallPrimaryView.swift](../../../products/life-clock-ios/Sources/Features/Onboarding/Screens/PaywallPrimaryView.swift) was already built against that precedent.
+
 #### Q5 — DOB picker maximum date. Should the picker reject DOBs in the recent past (e.g., < 4 years ago)?
 
 **Today.** `in: ...Date()` — any past date including yesterday.
 
 **Tradeoff.** A "yesterday" DOB is implausible for a real user; it's either fat-finger or stress-testing. Light validation (DOB must be ≥ 4 years ago, the youngest plausible self-reporting age) would catch the fat-finger case without policy implications. Pure Polish if approved; left as Vision-question because the operator may want zero validation here.
+
+> **Resolved 2026-05-10:** Deferred. With Q1's under-13 hard block in place, the implausible-recent-DOB case (under-4) is captured as "under 13 → block" — same exit. Adding a separate picker max bound is cosmetic, not compliance.
 
 ## Regressions caught
 
