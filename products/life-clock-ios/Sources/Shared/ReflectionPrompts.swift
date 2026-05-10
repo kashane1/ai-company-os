@@ -15,12 +15,21 @@ import Foundation
 /// iOS 17. Use `Calendar.ordinality(of: .day, in: .year, for:)` which
 /// is iOS 8+ and computes the same value (1...365 / 1...366).
 enum ReflectionPrompts {
+    // 2026-05-10 vision-bad-day-gentle-coach-pools audit: cycled the
+    // rotation across all 12 gentle entries against the −1h 37m bad-day
+    // stack and softened two that collapsed into toothless platitude
+    // ("Where did you give yourself a little kindness today?" presupposed
+    // it happened on a clearly-rough day; "What are you grateful for in
+    // your body today?" obligated gratitude on a day the user just saw
+    // pulling against their healthspan). Rewrites stay warm and
+    // body-aware — they invite rather than presuppose. The remaining ten
+    // are unchanged.
     static let gentlePool: [String] = [
         "What did you notice about how your body felt today?",
         "What's one moment from today you want to hold onto?",
-        "Where did you give yourself a little kindness today?",
+        "Where could you offer yourself a little kindness tonight?",
         "What's one signal your body is sending you?",
-        "What are you grateful for in your body today?",
+        "What's one thing your body did for you today?",
         "What's one habit that's quietly helping you?",
         "What pulled you gently off course today?",
         "What surprised you about today?",
