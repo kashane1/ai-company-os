@@ -277,10 +277,12 @@ struct OnboardingCoordinator: View {
 
     /// Debug-only: jump straight to a terminal-tier onboarding screen
     /// for polish audits. Set `LIFECLOCK_JUMP_TO=recoveryPreview` (or
-    /// `healthKitAuth` / `paywallPrimary`) at launch.
+    /// `healthKitAuth` / `paywallPrimary` / `under13Block`) at launch.
     /// Pre-populates the draft so the persistent header's cumulative
     /// trajectory is non-zero and `RecoveryPreviewView` has the inputs
-    /// it needs (DOB, sex, lifestyle answers).
+    /// it needs (DOB, sex, lifestyle answers). The `under13Block`
+    /// target seeds a 12-year-old DOB instead of the adult default so
+    /// the draft state is consistent with the screen the user is on.
     ///
     /// No-op in Release builds — the env-var read is `#if DEBUG` only.
     private func applyJumpFixtureIfNeeded() {
@@ -292,7 +294,12 @@ struct OnboardingCoordinator: View {
 
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = .gmt
-        draft.birthDate = calendar.date(from: DateComponents(year: 1985, month: 6, day: 15))
+        // Under-13 jump uses a 12-year-old DOB so the draft state
+        // matches the screen. All other jumps use the adult default.
+        let dobComponents: DateComponents = (target == .under13Block)
+            ? DateComponents(year: 2014, month: 6, day: 15)
+            : DateComponents(year: 1985, month: 6, day: 15)
+        draft.birthDate = calendar.date(from: dobComponents)
         draft.biologicalSex = "male"
         draft.heightCm = 178
         draft.weightKg = 82
