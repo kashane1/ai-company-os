@@ -45,7 +45,11 @@ struct WrapUpSheet: View {
                 .padding(.top, DesignTokens.Spacing.lg)
                 .accessibilityIdentifier("wrapup.heading")
 
-            ClockHandView(signedMinutes: signedMinutes, duration: animationDuration)
+            ClockHandView(
+                signedMinutes: signedMinutes,
+                duration: animationDuration,
+                haptic: LifeClockHaptics.wrapUp(signedMinutes: signedMinutes)
+            )
 
             Text(TimeDeltaFormatter.format(minutes: signedMinutes))
                 .font(.system(size: 44, weight: .semibold, design: .rounded))

@@ -29,6 +29,7 @@ struct EngineRevealAndDialView: View {
     /// math 60×/sec for a constant. Cached value is the baseline; the
     /// dial layers ±yrs on top.
     @State private var engineYears: Double = 0
+    @State private var revealHapticTrigger: Int = 0
 
     private var displayedYears: Double {
         engineYears + dialYears
@@ -62,6 +63,7 @@ struct EngineRevealAndDialView: View {
             .onDisappear {
                 mascotOverride.minutes = nil
             }
+            .sensoryFeedback(LifeClockHaptics.firstReveal, trigger: revealHapticTrigger)
     }
 
     /// First glance at the user's clock should land with a beat, not a
@@ -70,6 +72,7 @@ struct EngineRevealAndDialView: View {
     /// MeetYourClock and ArchetypeReveal beats.
     private func runRevealPulse() {
         mascotOverride.minutes = 110
+        revealHapticTrigger &+= 1
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
             mascotOverride.minutes = -55
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {

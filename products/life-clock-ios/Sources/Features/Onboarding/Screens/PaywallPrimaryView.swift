@@ -27,6 +27,7 @@ struct PaywallPrimaryView: View {
     @Environment(SubscriptionStore.self) private var subscriptions
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
     @State private var selectedTier: Tier = .annual
+    @State private var purchaseSuccessHapticTrigger: Int = 0
 
     enum Tier {
         case annual, monthly, lifetime
@@ -61,10 +62,12 @@ struct PaywallPrimaryView: View {
         }
         .onChange(of: subscriptions.isPro) { _, isPro in
             if isPro {
+                purchaseSuccessHapticTrigger &+= 1
                 telemetry.value.paywallDismissed(stage: .primary, reason: .purchasedSuccessfully)
                 onClose()
             }
         }
+        .sensoryFeedback(LifeClockHaptics.purchaseSuccess, trigger: purchaseSuccessHapticTrigger)
     }
 
     private var paywallBody: some View {
