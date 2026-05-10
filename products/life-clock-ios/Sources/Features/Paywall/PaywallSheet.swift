@@ -52,6 +52,11 @@ struct PaywallSheet: View {
             }
             .accessibilityIdentifier("paywall.screen")
         }
+        // ScrollView eats drag-to-dismiss from inside content, so without
+        // a visible drag indicator the only dismissal affordance is the
+        // Close button. App Store reviewers expect system swipe-down to
+        // work — caught 2026-05-10 gestural final-check.
+        .presentationDragIndicator(.visible)
         .task {
             await subscriptions.loadProducts()
             // Pre-select annual when available.
