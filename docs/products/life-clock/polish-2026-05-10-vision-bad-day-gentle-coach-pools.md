@@ -209,4 +209,46 @@ findings + a proposed symmetric ratchet for `## Decided constraints`
 
 ## Final-checkpoint footnote
 
-Final computer-use checkpoint outcome documented at session end.
+`mcp__computer-use__request_access` for `Simulator` + `Xcode` + `Terminal`
+timed out at 300 s — same outcome as V1 (operator AFK). Per V1 precedent,
+session fell back to a simctl-driven equivalent: per-tone clean install
+of the freshly-built `LifeClock.app`, `SIMCTL_CHILD_LIFECLOCK_*`
+env-passing for the bad-day fixture, two `LIFECLOCK_FIXED_DATE` values
+chosen to land the rotation on polished prompt indices
+(2026-01-03 → gentlePool[2] = `"Where could you offer yourself a little
+kindness tonight?"`; 2026-01-02 → coachPool[1] = `"What's one harder,
+healthier option open to you tomorrow?"`), and `simctl io ... screenshot`
+for the live render.
+
+Live launch under non-UITest mode hits the cold-launch wrap-up sheet
+(yesterday net-zero → gentle's `wrapUpZeroBody` "Yesterday held steady.
+Even floors matter." renders as expected) which the simctl-only path
+cannot dismiss; partial Today screen is visible underneath. Captured
+captures live at `/tmp/lifeclock-bad-day-v2/` (gitignored, throwaway):
+`gentle-2026-01-03-polished.png` and `coach-2026-01-02-polished.png`.
+
+For the prompt-string render itself, the cleanest evidence is the
+`BadDayCaptureRecon/testCaptureGentle` AX dump under post-polish build —
+the recon's fixed date `2026-05-15` lands on rotation index 2 across
+all three pools. Re-ran the recon green (1/1, 94 s); AX dump at
+`/tmp/lifeclock-bad-day/01-today-gentle-top.ax.txt` confirms:
+
+```
+identifier: 'today.reflection',        label: 'Notice today, Where could you offer yourself a little kindness tonight?, Reflect'
+identifier: 'today.reflection.prompt', label: 'Where could you offer yourself a little kindness tonight?'
+```
+
+The polished gentle prompt renders correctly in the live Today screen
+under the bad-day fixture, in the user-visible
+(`tone.reflectionHeading="Notice today"` + prompt) shape.
+
+Note: under XCUITest the mock health drivers fell back to
+`"We can't see today's Apple Health data yet…"` rather than the −97 min
+driver stack — a known UI-test-mode behavior also flagged in V1's
+footnote. The bad-day frame is established by V1 + the simctl-driven
+non-UITest captures; the recon's contribution here is the
+prompt-string render verification only.
+
+If the operator wants the operator-acknowledged computer-use checkpoint
+specifically (and a screenshot of the post-wrap-up Today render), re-run
+the skill and approve the dialog when it appears.
