@@ -267,7 +267,13 @@ struct ProfileView: View {
         case .nothingToRestore:
             return "No prior purchases were found on this Apple ID. If you expected one, make sure you're signed into the same Apple ID that bought it."
         case .failed(let message):
-            return message
+            // SubscriptionStore.restore() prefixes its error with
+            // "Restore failed: " — strip it so the alert title doesn't
+            // read again in the body.
+            let prefix = "Restore failed: "
+            return message.hasPrefix(prefix)
+                ? String(message.dropFirst(prefix.count))
+                : message
         }
     }
 
