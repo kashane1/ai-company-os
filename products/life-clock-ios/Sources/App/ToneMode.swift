@@ -299,6 +299,73 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    // MARK: - QuickLog narration (vision Q11, 2026-05-11)
+
+    /// QuickLogSheet — top-of-sheet headline. The picker affordances + the
+    /// section labels below are intentionally NOT tone-keyed (see file
+    /// doc-comment on QuickLogSheet). Only the narration shifts.
+    var quickLogIntroHeadline: String {
+        switch self {
+        case .gentle:     return "A few quick signals help your Life Clock listen better."
+        case .coach:      return "A few quick signals help your Life Clock stay honest."
+        case .firmDirect: return "Log the day. The clock can't read what you don't tell it."
+        }
+    }
+
+    /// QuickLogSheet — subheadline directly under the headline. Same
+    /// anti-shame anchor across modes ("no calorie counting") with the
+    /// register shifting around it.
+    var quickLogIntroSubheadline: String {
+        switch self {
+        case .gentle:     return "No calorie counting. Nothing to prove."
+        case .coach:      return "No calorie counting. No judgment."
+        case .firmDirect: return "No calorie counting. Just signals."
+        }
+    }
+
+    /// QuickLogSheet — caption under the Rhythm picker (adult users only).
+    /// Coupled with the intro subheadline; if the intro pair gets keyed,
+    /// this should too — otherwise the surface develops a register split
+    /// mid-screen.
+    var quickLogRhythmCaption: String {
+        switch self {
+        case .gentle:     return "No calories, no judgment — just the shape of the day."
+        case .coach:      return "No calories, no judgment. Just rhythm."
+        case .firmDirect: return "No calorie math. Just the rhythm."
+        }
+    }
+
+    /// QuickLogSheet — footer below the "Clear today's check-in" destructive
+    /// button. Explains what clearing does. The destructive button label
+    /// itself is intentionally neutral (iOS HIG verb-noun pattern).
+    var quickLogClearFooter: String {
+        switch self {
+        case .gentle:
+            return "Clears today's check-in. Your clock will lean on Apple Health for the rest of today."
+        case .coach:
+            return "Removes today's manual signals. Your Life Clock will recompute from HealthKit signals only."
+        case .firmDirect:
+            return "Wipes today's manual log. Clock runs on Health data only."
+        }
+    }
+
+    /// QuickLogSheet — confirmation toolbar CTA. Couples tone register with
+    /// a state-branch: the label differs depending on whether the user is
+    /// saving for the first time today (`hasExistingHabits: false`) or
+    /// updating an existing log. Original literal `"Update Life Clock"`
+    /// read slightly odd on first save (the clock is not being *updated*
+    /// from a prior value).
+    func quickLogSaveCTA(hasExistingHabits: Bool) -> String {
+        switch (self, hasExistingHabits) {
+        case (.gentle, false):     return "Save today's signals"
+        case (.gentle, true):      return "Update today's signals"
+        case (.coach, false):      return "Save check-in"
+        case (.coach, true):       return "Update Life Clock"
+        case (.firmDirect, false): return "Log it"
+        case (.firmDirect, true):  return "Update the log"
+        }
+    }
+
     // MARK: - Quest completion payoff (vision Q14, 2026-05-09)
 
     /// Support-card payoff line shown briefly after a quest is checked

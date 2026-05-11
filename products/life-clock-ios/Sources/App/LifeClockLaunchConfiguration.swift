@@ -91,6 +91,16 @@ struct LifeClockLaunchConfiguration {
     /// List buttons; observed during the 2026-05-11 SafetyNet drift
     /// audit). DEBUG-only.
     let forceSafetyNet: Bool
+    /// `LIFECLOCK_FORCE_QUICK_LOG=1` auto-presents the Daily Check-In
+    /// (`QuickLogSheet`) on Today mount. Same pattern as `forceSafetyNet`
+    /// — lets polish recon capture the 3-tone × scheme × XXL grid without
+    /// driving a cliclick tap on the Today toolbar. The toolbar Button
+    /// itself is reachable via cliclick (verified during 2026-05-11
+    /// SafetyNet polish: tab bar + standalone Buttons receive taps fine;
+    /// only Buttons inside `Form`/`List` rows fail), but the forced-sheet
+    /// pattern is deterministic and shaves iterations on the screenshot
+    /// grid. DEBUG-only.
+    let forceQuickLog: Bool
 
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
@@ -123,6 +133,7 @@ struct LifeClockLaunchConfiguration {
         let seedLastLogDaysAgo = max(0, Int(env["LIFECLOCK_SEED_LAST_LOG_DAYS_AGO"] ?? "") ?? 0)
         let initialTab = AppTab(rawValue: env["LIFECLOCK_INITIAL_TAB"] ?? "") ?? .today
         let forceSafetyNet = env["LIFECLOCK_FORCE_SAFETY_NET"] == "1"
+        let forceQuickLog = env["LIFECLOCK_FORCE_QUICK_LOG"] == "1"
 
         let clock: EngineClock = {
             if let iso = env["LIFECLOCK_FIXED_DATE"],
@@ -151,7 +162,8 @@ struct LifeClockLaunchConfiguration {
             seedBadDayToday: seedBadDayToday,
             seedLastLogDaysAgo: seedLastLogDaysAgo,
             initialTab: initialTab,
-            forceSafetyNet: forceSafetyNet
+            forceSafetyNet: forceSafetyNet,
+            forceQuickLog: forceQuickLog
         )
         #else
         return LifeClockLaunchConfiguration(
@@ -170,7 +182,8 @@ struct LifeClockLaunchConfiguration {
             seedBadDayToday: false,
             seedLastLogDaysAgo: 0,
             initialTab: .today,
-            forceSafetyNet: false
+            forceSafetyNet: false,
+            forceQuickLog: false
         )
         #endif
     }

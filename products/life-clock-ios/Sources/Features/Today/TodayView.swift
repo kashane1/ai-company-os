@@ -168,6 +168,11 @@ struct TodayView: View {
                 lastObservedOverlay = completionOverlay
                 triggerWakeIfPossible()
                 triggerMonthlyMilestoneHapticIfNeeded()
+                #if DEBUG
+                if LifeClockLaunchConfiguration.current.forceQuickLog {
+                    quickLogPresented = true
+                }
+                #endif
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active { triggerWakeIfPossible() }

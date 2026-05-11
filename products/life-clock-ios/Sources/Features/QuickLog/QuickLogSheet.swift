@@ -26,6 +26,32 @@ enum DailyCheckInMapping {
 
 /// Today-screen daily check-in. Captures a few coarse manual signals and
 /// feeds them to the engine via `store.setTodayHabits(_:)`.
+///
+/// **Tone-key surface for narration only.** The intro pair
+/// (`tone.quickLogIntroHeadline` + `tone.quickLogIntroSubheadline`), the
+/// Rhythm caption (`tone.quickLogRhythmCaption`), the clear-footer body
+/// (`tone.quickLogClearFooter`), and the save CTA
+/// (`tone.quickLogSaveCTA(hasExistingHabits:)`) route through `ToneMode`
+/// keys. Vision Q11 resolution (2026-05-11).
+///
+/// **Intentionally neutral, do NOT wire through `ToneMode`:**
+/// - **Section labels** (Fuel / Rhythm / Whole food / Extras / Recovery /
+///   Strength / Nicotine) — anchored on schema fields (`dietAmountRhythm`
+///   ↔ "Rhythm"); tone-shifting risks creating navigation confusion
+///   across modes.
+/// - **Seven question prompts** under each section (`"How did food go
+///   today?"`, etc.) — picker affordances, not narration. Tone-keying
+///   them would either split the group register-randomly or push Q11's
+///   total key count past the ≥14-key threshold without payoff.
+/// - **All picker option labels** (`Great / Okay / Rough`, `None / One /
+///   A few / A lot`, etc.) — picker tags persisted into `HabitLog` and
+///   consumed by `ClockEngine` switch statements; tone-shifting them
+///   decouples display from storage.
+/// - **Destructive button label** (`"Clear today's check-in"`) — iOS HIG
+///   verb-noun pattern; tone-shifting destructive labels risks softening
+///   firmDirect into ambiguity or hardening gentle into anxiety territory.
+/// - **Nav title** (`"Daily Check-In"`) and toolbar `"Cancel"` — surface
+///   anchors and iOS standards.
 struct QuickLogSheet: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -44,9 +70,9 @@ struct QuickLogSheet: View {
             Form {
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("A few quick signals help your Life Clock stay honest.")
+                        Text(store.toneMode.quickLogIntroHeadline)
                             .font(.headline)
-                        Text("No calorie counting. No judgment.")
+                        Text(store.toneMode.quickLogIntroSubheadline)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -76,10 +102,19 @@ struct QuickLogSheet: View {
                             Text("Skipped, then over").tag("skipBinge")
                             Text("Irregular").tag("irregular")
                         }
-                        .pickerStyle(.segmented)
+                        // Q11 polish 2026-05-11: was `.segmented`. With 5
+                        // options, segmented truncated "Skipped, then over"
+                        // to "Skipped…" at the default content size on
+                        // iPhone 17 Pro. Menu picker handles long labels
+                        // gracefully and the rendering is honest.
+                        // `.labelsHidden()` because the standalone Text
+                        // above already shows the question — without this
+                        // the menu picker duplicates the prompt inline.
+                        .pickerStyle(.menu)
+                        .labelsHidden()
                         .accessibilityIdentifier("quickLog.dietAmountRhythm")
                         .accessibilityValue(dietAmountRhythm)
-                        Text("No calories, no judgment. Just rhythm.")
+                        Text(store.toneMode.quickLogRhythmCaption)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -164,7 +199,7 @@ struct QuickLogSheet: View {
                         }
                         .disabled(saving)
                     } footer: {
-                        Text("Removes today's manual signals. Your Life Clock will recompute from HealthKit signals only.")
+                        Text(store.toneMode.quickLogClearFooter)
                     }
                 }
                 Section {
@@ -183,7 +218,13 @@ struct QuickLogSheet: View {
                     Button {
                         save()
                     } label: {
-                        if saving { ProgressView() } else { Text("Update Life Clock") }
+                        if saving {
+                            ProgressView()
+                        } else {
+                            Text(store.toneMode.quickLogSaveCTA(
+                                hasExistingHabits: store.todayHabits != nil
+                            ))
+                        }
                     }
                     .disabled(saving)
                     .accessibilityIdentifier("checkIn.save")

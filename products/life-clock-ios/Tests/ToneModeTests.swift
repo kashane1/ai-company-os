@@ -20,6 +20,75 @@ final class ToneModeTests: XCTestCase {
         )
     }
 
+    // MARK: - QuickLog narration (vision Q11, 2026-05-11)
+
+    /// Pin the gentle intro headline. The "listen better" framing is the
+    /// anti-shame variant of the surface's opening line — softer than
+    /// coach's "stay honest" and far softer than firmDirect's
+    /// "the clock can't read what you don't tell it."
+    func testQuickLogIntroHeadline_GentlePinsListenBetter() {
+        XCTAssertEqual(
+            ToneMode.gentle.quickLogIntroHeadline,
+            "A few quick signals help your Life Clock listen better."
+        )
+    }
+
+    /// All three tones must keep the anti-shame anchor "no calorie
+    /// counting" — the founder pack rejects calorie thinking categorically
+    /// (see PRIVACY_COMPLIANCE.md + vision Decided constraints). Any rewrite
+    /// that drops this phrase from any tone is a regression.
+    func testQuickLogIntroSubheadline_AllTonesPreserveNoCalorieAnchor() {
+        for tone in ToneMode.allCases {
+            XCTAssertTrue(
+                tone.quickLogIntroSubheadline.lowercased().contains("no calorie"),
+                "\(tone.rawValue) intro subheadline dropped the no-calorie anchor"
+            )
+        }
+    }
+
+    /// Same anchor for the Rhythm caption (adult-only surface). The May 2
+    /// commit introduced this caption; keying it now must preserve the
+    /// "no calories, no judgment / no calorie math" framing across all
+    /// three tones.
+    func testQuickLogRhythmCaption_AllTonesPreserveNoCalorieAnchor() {
+        for tone in ToneMode.allCases {
+            XCTAssertTrue(
+                tone.quickLogRhythmCaption.lowercased().contains("no calorie"),
+                "\(tone.rawValue) rhythm caption dropped the no-calorie anchor"
+            )
+        }
+    }
+
+    /// The clear-footer must always explain what gets recomputed — that's
+    /// the load-bearing info; the register just shifts. Pin: each tone's
+    /// footer references Health / HealthKit data as the fallback source.
+    func testQuickLogClearFooter_AllTonesReferenceHealth() {
+        for tone in ToneMode.allCases {
+            let footer = tone.quickLogClearFooter.lowercased()
+            XCTAssertTrue(
+                footer.contains("health"),
+                "\(tone.rawValue) clear-footer didn't reference HealthKit/Apple Health"
+            )
+        }
+    }
+
+    /// Save CTA state-branches: first-save reads as "save / save / log it",
+    /// re-save reads as "update / update / update the log." All six cells
+    /// must be distinct from each other within a tone (no first-save ==
+    /// re-save collision) and non-empty.
+    func testQuickLogSaveCTA_StateBranchProducesDistinctLabelsPerTone() {
+        for tone in ToneMode.allCases {
+            let firstSave = tone.quickLogSaveCTA(hasExistingHabits: false)
+            let reSave = tone.quickLogSaveCTA(hasExistingHabits: true)
+            XCTAssertFalse(firstSave.isEmpty)
+            XCTAssertFalse(reSave.isEmpty)
+            XCTAssertNotEqual(
+                firstSave, reSave,
+                "\(tone.rawValue) save CTA collapses first-save and re-save into one label"
+            )
+        }
+    }
+
     // MARK: - RescueLine.shouldShow
 
     private func makeLine(
