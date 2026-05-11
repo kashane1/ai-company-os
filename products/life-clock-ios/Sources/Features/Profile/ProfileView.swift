@@ -24,6 +24,15 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             Form {
+                #if DEBUG
+                Color.clear
+                    .frame(width: 0, height: 0)
+                    .onAppear {
+                        if LifeClockLaunchConfiguration.current.forceSafetyNet {
+                            safetyNetPresented = true
+                        }
+                    }
+                #endif
                 Section("Tone") {
                     Picker("Tone mode", selection: Binding(
                         get: { store.toneMode },

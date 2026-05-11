@@ -83,6 +83,14 @@ struct LifeClockLaunchConfiguration {
     /// land directly on a non-Today tab without writing an XCUITest. Used
     /// by simulator-driven-polish runs that target Profile or History.
     let initialTab: AppTab
+    /// `LIFECLOCK_FORCE_SAFETY_NET=1` auto-presents the SafetyNet sheet
+    /// on Profile mount. Same pattern as `forcePaywall` — lets polish
+    /// recon land directly on SafetyNet across the tone × scheme grid
+    /// without depending on a cliclick tap into the List entry (iOS 26
+    /// Simulator does not always deliver cliclick `c:` events to SwiftUI
+    /// List buttons; observed during the 2026-05-11 SafetyNet drift
+    /// audit). DEBUG-only.
+    let forceSafetyNet: Bool
 
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
@@ -114,6 +122,7 @@ struct LifeClockLaunchConfiguration {
         let seedBadDayToday = env["LIFECLOCK_SEED_BAD_DAY"] == "1"
         let seedLastLogDaysAgo = max(0, Int(env["LIFECLOCK_SEED_LAST_LOG_DAYS_AGO"] ?? "") ?? 0)
         let initialTab = AppTab(rawValue: env["LIFECLOCK_INITIAL_TAB"] ?? "") ?? .today
+        let forceSafetyNet = env["LIFECLOCK_FORCE_SAFETY_NET"] == "1"
 
         let clock: EngineClock = {
             if let iso = env["LIFECLOCK_FIXED_DATE"],
@@ -141,7 +150,8 @@ struct LifeClockLaunchConfiguration {
             healthProfile: healthProfile,
             seedBadDayToday: seedBadDayToday,
             seedLastLogDaysAgo: seedLastLogDaysAgo,
-            initialTab: initialTab
+            initialTab: initialTab,
+            forceSafetyNet: forceSafetyNet
         )
         #else
         return LifeClockLaunchConfiguration(
@@ -159,7 +169,8 @@ struct LifeClockLaunchConfiguration {
             healthProfile: .baseline,
             seedBadDayToday: false,
             seedLastLogDaysAgo: 0,
-            initialTab: .today
+            initialTab: .today,
+            forceSafetyNet: false
         )
         #endif
     }
