@@ -60,13 +60,17 @@ re-grant affordance that the honest copy implies).
 
 ### Outstanding (cycle-end batch)
 
-1. **WelcomeView headline reads "Earn time with better habits."** The 4/30
+1. ~~**WelcomeView headline reads "Earn time with better habits."** The 4/30
    audit flagged "earn time back" as a gamey framing in the V1 onboarding. V2
    intentionally retained "earn time" framing — `MeetYourClockView` says
    "Healthy habits earn time. Bad days cost it." Is this an explicit Decided
    constraint, or worth revisiting before submission? Not editing without
    operator input. Screenshot:
-   `state/polish-2026-05-10-hk/denied/01-onboarding-step0.png`.
+   `state/polish-2026-05-10-hk/denied/01-onboarding-step0.png`.~~ **Resolved
+   2026-05-11 — operator confirmed "earn time" framing is strong and
+   motivational; ratcheted as a Decided constraint in [vision.md](vision.md)
+   §Decided constraints → Product (2026-05-11 entry). Open Question #10 in
+   vision.md also marked resolved.**
 
 2. **`LIFECLOCK_JUMP_TO` deferred path swap lands behind WelcomeView when the
    cold-open auto-advance fires.** Setting `LIFECLOCK_JUMP_TO=healthKitAuth`
@@ -141,3 +145,50 @@ Final screenshots saved to the goldens directory above.
   than from `.onAppear`. The current 50ms `asyncAfter` is itself a workaround
   for an older race with NavigationStack settle — likely no longer needed on
   iOS 26.
+
+## 2026-05-11 — goldens follow-up
+
+A separate polish kick re-evaluated this brief and found the audit-trail gap:
+the coverage-matrix conclusions were committed (`5539c9b`, `5d95882`) but the
+golden PNGs the log references at `products/life-clock-ios/.polish/goldens/`
+were not on disk. No new code work; just re-captured the six goldens against
+HEAD (`9aeaf4f`) so the verification artifacts match the claim.
+
+Surfaces re-captured (iPhone 17 Pro, iOS 26.3 Simulator, `LifeClock` scheme,
+debug build of HEAD after rebase on `origin/main` — picks up `7d7cc5e`
+tone-aware day-1 History empty state + `ab8c6e6`):
+
+| File | Confirms |
+|---|---|
+| `healthkit-denied-today.png` | sparse "Waiting on data" + honest body + Confidence Low + mascot at 12 (no fabricated delta) |
+| `healthkit-denied-history.png` | "Past days" → "No recent Apple Health signal. History waits for real data before showing a trend." (coach pool's `.noRecentData`, per `7d7cc5e` — replaces the pre-rebase single-string `"…History stays honest instead of inventing a trend."`) + Net this week `+0 min` Confidence Low |
+| `healthkit-denied-profile.png` | Apple Health → "Check Apple Health again" + "Apple may not re-show…" copy + "Open Settings" affordance from `5539c9b` |
+| `healthkit-notDetermined-today.png` | "Connect Apple Health" sparse headline + inline Connect button from `5d95882` + Confidence Low |
+| `healthkit-notDetermined-history.png` | "Past days" → "History fills in after a few days of Apple Health signal. You can connect from Profile." (coach pool's `.awaitingAuthorization`, per `7d7cc5e` — replaces pre-rebase `"History fills in after Apple Health can share a few days of steps, sleep, or workouts."`) |
+| `healthkit-notDetermined-profile.png` | Apple Health → "Connect Apple Health" primary button + rationale copy, no Open Settings (correctly gated to post-decision branches) |
+
+Driver convention used (mirrors yesterday's hybrid):
+`SIMCTL_CHILD_LIFECLOCK_USE_MOCK_HEALTH=1` +
+`SIMCTL_CHILD_LIFECLOCK_UI_TEST_SCENARIO=onboarded` +
+`SIMCTL_CHILD_LIFECLOCK_HEALTH_AUTH={denied,notDetermined}` +
+`SIMCTL_CHILD_LIFECLOCK_INITIAL_TAB={today,history,profile}` via
+`xcrun simctl launch booted`, 5 s settle, `xcrun simctl io booted screenshot`.
+The 2 s settle from the first attempt produced blank PNGs (pre-render
+screenshot) — recorded so the next driver uses 5 s as the floor.
+
+Five post-polish commits were checked for HK-path drift — `7037450` (QuickLog
+Q11), `e3d2d14` (SafetyNet drift), `6080439` (DayDetailView reflection
+heading), `7d7cc5e` (tone-aware day-1 History empty state), `ab8c6e6` (session
+log only). Only `7d7cc5e` touched HK-state copy on a named surface: the
+History empty-state body now reads from `ToneMode.historyEmptyStateBody(for:)`
+across all five `HealthDataState` branches, including the two this audit
+covers (`.noRecentData` for denied, `.awaitingAuthorization` for
+notDetermined). The replacement copy still honors the matrix invariants — no
+fabricated trend on denied, "fills in after signal" framing on notDetermined,
+and the coach register stays motivating-not-presuming. The two coach-pool
+strings above are the new shipped copy. No other regressions.
+
+Ask #1 resolved 2026-05-11 — operator confirmed "earn time" framing is
+strong and motivational; ratcheted as a Decided constraint in
+[vision.md](vision.md). Ask #2 (the `LIFECLOCK_JUMP_TO` race) remains
+outstanding.
