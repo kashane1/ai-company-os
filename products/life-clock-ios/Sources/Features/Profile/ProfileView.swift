@@ -105,9 +105,7 @@ struct ProfileView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("profile.health.message")
-                        Text("If this keeps happening, review what Apple Health is sharing with Life Clock.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        openSettingsButton
                     case .noRecentData:
                         Button {
                             connectAppleHealth()
@@ -123,9 +121,7 @@ struct ProfileView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("profile.health.message")
-                        Text("If nothing changes, review what Apple Health is sharing with Life Clock.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        openSettingsButton
                     }
                     if let error = store.lastHealthAuthError {
                         Text(error)
@@ -540,6 +536,24 @@ struct ProfileView: View {
             await store.requestHealthAuthorization()
             requestingAuth = false
         }
+    }
+
+    /// One-tap path to iOS Settings → Life Clock so the user can review
+    /// HealthKit toggles when Apple's permission sheet won't re-prompt.
+    /// Surfaced under `.noRecentData` / `.historicalOnly` because the
+    /// in-app "Check Apple Health again" button can't reopen the system
+    /// sheet for already-decided types. Falls back to a no-op if iOS
+    /// can't open the URL.
+    @ViewBuilder
+    private var openSettingsButton: some View {
+        Button {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        } label: {
+            Text("Open Settings")
+        }
+        .accessibilityIdentifier("profile.health.openSettings")
     }
 
     private var signal: String {
