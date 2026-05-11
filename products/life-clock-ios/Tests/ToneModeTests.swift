@@ -219,4 +219,100 @@ final class ToneModeTests: XCTestCase {
             XCTAssertTrue(line.contains("-5 min"), "\(tone.rawValue): \(line)")
         }
     }
+
+    // MARK: - historyEmptyStateBody (polish-2026-05-11)
+
+    private static let historyEmptyStateVariants: [ToneMode.HistoryEmptyHealthState] = [
+        .unavailable, .awaitingAuthorization, .historicalOnly,
+        .noRecentData, .availableToday,
+    ]
+
+    /// All 15 combinations (5 states × 3 tones) return non-empty copy.
+    func testHistoryEmptyStateBody_AllCombosNonEmpty() {
+        for tone in ToneMode.allCases {
+            for variant in Self.historyEmptyStateVariants {
+                let line = tone.historyEmptyStateBody(for: variant)
+                XCTAssertFalse(
+                    line.trimmingCharacters(in: .whitespaces).isEmpty,
+                    "\(tone.rawValue)/\(variant) returned empty copy"
+                )
+            }
+        }
+    }
+
+    /// Pairwise tone distinctness per health state — catches copy-paste
+    /// drift the same way `QuestPoolToneParityTests` does for the pool.
+    func testHistoryEmptyStateBody_TonesDifferPairwise() {
+        let tones = ToneMode.allCases
+        for variant in Self.historyEmptyStateVariants {
+            for i in 0..<tones.count {
+                for j in (i + 1)..<tones.count {
+                    let a = tones[i].historyEmptyStateBody(for: variant)
+                    let b = tones[j].historyEmptyStateBody(for: variant)
+                    XCTAssertNotEqual(
+                        a, b,
+                        "\(variant): \(tones[i].rawValue) and \(tones[j].rawValue) returned identical copy"
+                    )
+                }
+            }
+        }
+    }
+
+    /// Register guardrail: firmDirect must not lean on the mortality /
+    /// scorekeeping lexicon in this card — it's a setup state, not a
+    /// scoring moment. Mirrors the gentle/coach/firmDirect vocabulary
+    /// split locked by `QuestPoolToneParityTests`.
+    func testHistoryEmptyStateBody_FirmDirectAvoidsMortalityLexicon() {
+        let banned = ["owed", "owe ", "tally", "reckoning", "in the red", "the cost"]
+        for variant in Self.historyEmptyStateVariants {
+            let line = ToneMode.firmDirect.historyEmptyStateBody(for: variant).lowercased()
+            for word in banned {
+                XCTAssertFalse(
+                    line.contains(word),
+                    "firmDirect/\(variant) used banned vocab '\(word)': \(line)"
+                )
+            }
+        }
+    }
+
+    /// Register guardrail: gentle copy avoids platitudes that read as
+    /// filler ("every day counts", "small things matter"). Compact list
+    /// to avoid false positives on ordinary words.
+    func testHistoryEmptyStateBody_GentleAvoidsPlatitudes() {
+        let banned = [
+            "every day counts",
+            "small things matter",
+            "you've got this",
+            "small steps",
+            "small wins",
+        ]
+        for variant in Self.historyEmptyStateVariants {
+            let line = ToneMode.gentle.historyEmptyStateBody(for: variant).lowercased()
+            for word in banned {
+                XCTAssertFalse(
+                    line.contains(word),
+                    "gentle/\(variant) used platitude '\(word)': \(line)"
+                )
+            }
+        }
+    }
+
+    /// Pin Gentle day-1 (`.availableToday`) — highest-traffic combo now
+    /// that the History tab correctly excludes today. Catches accidental
+    /// rewrites of the line a brand-new user reads first.
+    func testHistoryEmptyStateBody_GentleAvailableTodayPin() {
+        XCTAssertEqual(
+            ToneMode.gentle.historyEmptyStateBody(for: .availableToday),
+            "History fills in after a few days. Today is the first one."
+        )
+    }
+
+    /// Pin Firm/Direct day-1 — verifies the register stays terse without
+    /// drifting into scorekeeping vocabulary.
+    func testHistoryEmptyStateBody_FirmDirectAvailableTodayPin() {
+        XCTAssertEqual(
+            ToneMode.firmDirect.historyEmptyStateBody(for: .availableToday),
+            "A few more days. Then History has something to say."
+        )
+    }
 }

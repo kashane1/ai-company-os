@@ -286,18 +286,15 @@ struct HistoryView: View {
     }
 
     private var historyEmptyStateBody: String {
+        let variant: ToneMode.HistoryEmptyHealthState
         switch store.healthDataState {
-        case .unavailable:
-            return "Apple Health isn't available on this device, so History needs manual check-ins before it can show patterns."
-        case .awaitingAuthorization:
-            return "History fills in after Apple Health can share a few days of steps, sleep, or workouts."
-        case .historicalOnly:
-            return "Your earlier days are still here, but we can't see today's Apple Health data yet."
-        case .noRecentData:
-            return "We can't currently see recent Apple Health data, so History stays honest instead of inventing a trend."
-        case .availableToday:
-            return "History will appear after a few days of signal."
+        case .unavailable: variant = .unavailable
+        case .awaitingAuthorization: variant = .awaitingAuthorization
+        case .historicalOnly: variant = .historicalOnly
+        case .noRecentData: variant = .noRecentData
+        case .availableToday: variant = .availableToday
         }
+        return store.toneMode.historyEmptyStateBody(for: variant)
     }
 
     /// When the free user has no real locked rows yet (new install, only

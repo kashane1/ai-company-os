@@ -260,6 +260,67 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Mirror of `LifeClockStore.HealthDataState` for the History day-1
+    /// empty-state copy. Kept here (not imported) so `ToneMode` remains
+    /// `Foundation`-only and free of SwiftData entity coupling.
+    enum HistoryEmptyHealthState {
+        case unavailable
+        case awaitingAuthorization
+        case historicalOnly
+        case noRecentData
+        case availableToday
+    }
+
+    /// Body copy for the History tab's day-1 empty-state card, when the
+    /// user has no prior snapshots (today is excluded from History as of
+    /// the 2026-05-10 store-boundary fix). Tone-keyed because new users
+    /// hit this card hardest — previously masked by today appearing as a
+    /// historical row.
+    ///
+    /// Register guardrails (per polish-2026-05-11 success criteria):
+    /// - gentle: no platitudes ("every day counts", "small things matter")
+    /// - coach:  no presumption-of-adherence ("keep showing up")
+    /// - firmDirect: no mortality lexicon ("owed", "tally", "in the red",
+    ///   "cost") — this card is a setup state, not a scorekeeping moment.
+    func historyEmptyStateBody(for state: HistoryEmptyHealthState) -> String {
+        switch (self, state) {
+        case (.gentle, .unavailable):
+            return "Apple Health isn't available on this device. A quick daily check-in is what History uses here."
+        case (.coach, .unavailable):
+            return "Apple Health isn't available on this device. Daily check-ins build History instead."
+        case (.firmDirect, .unavailable):
+            return "No Apple Health on this device. Daily check-ins build History instead."
+
+        case (.gentle, .awaitingAuthorization):
+            return "Connect Apple Health when you're ready — History fills in after a few days of steps, sleep, or workouts."
+        case (.coach, .awaitingAuthorization):
+            return "History fills in after a few days of Apple Health signal. You can connect from Profile."
+        case (.firmDirect, .awaitingAuthorization):
+            return "Connect Apple Health from Profile. History needs a few days of signal."
+
+        case (.gentle, .historicalOnly):
+            return "Today's Apple Health signal isn't through yet. Earlier days are still here."
+        case (.coach, .historicalOnly):
+            return "Today's Apple Health data hasn't arrived. Earlier days remain on file."
+        case (.firmDirect, .historicalOnly):
+            return "No Apple Health for today yet. Earlier days are intact."
+
+        case (.gentle, .noRecentData):
+            return "Apple Health isn't sharing anything yet — History waits for real signal before showing patterns."
+        case (.coach, .noRecentData):
+            return "No recent Apple Health signal. History waits for real data before showing a trend."
+        case (.firmDirect, .noRecentData):
+            return "No Apple Health signal. History stays empty until there's real data."
+
+        case (.gentle, .availableToday):
+            return "History fills in after a few days. Today is the first one."
+        case (.coach, .availableToday):
+            return "A few more days of signal and patterns start to appear here."
+        case (.firmDirect, .availableToday):
+            return "A few more days. Then History has something to say."
+        }
+    }
+
     /// Card shown in History when the user has been away long enough that
     /// the wrap-up moment was suppressed. Sits where the Yesterday card
     /// would be.
