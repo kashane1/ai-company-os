@@ -266,6 +266,14 @@ struct LifeClockLaunchConfiguration {
                 snapshot.sourceCompleteness = 0.85
                 snapshot.lastRecomputedAt = now
                 context.insert(snapshot)
+
+                let dayKey = DayKey.from(date: dayStart, calendar: calendar)
+                let reflection = DailyReflection(
+                    dayKey: dayKey,
+                    prompt: "What stood out today?",
+                    response: "A quiet moment after lunch."
+                )
+                context.insert(reflection)
             }
 
             // Seed WeeklyReport rows for the past 4 weeks so weekly wrap-ups

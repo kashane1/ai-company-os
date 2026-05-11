@@ -72,7 +72,7 @@ struct DayDetailView: View {
     private var reflectionRow: some View {
         if let reflection = store.reflection(for: dayStart) {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                Text("Reflection")
+                Text(store.toneMode.reflectionHeading)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Text(reflection.prompt)
