@@ -169,6 +169,26 @@ skills:
       claude: adapters/claude/simulator-driven-polish.md
     project_skill: .claude/skills/simulator-driven-polish.md
 
+  - id: simulator-polish-recon
+    name: Simulator-Polish Recon
+    path: canonical/simulator-polish-recon/skill.md
+    owner_agent: ios
+    # Discovery counterpart to simulator-driven-polish. Read-only — emits a
+    # backlog of polish prompts the operator picks from. Runs BEFORE polish
+    # sessions, not during them. Claude-only at v1.
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # No contract-freeze fixture yet at v1 — depth ceilings (20/40/60),
+    # variety mandate floors, 14-day cooling-off rule, and submission-
+    # readiness strict criteria are the contract surface that would
+    # eventually want a fixture. Validating python test is a v1.1 follow-up.
+    fixture_status: missing
+    source: internal
+    adapters:
+      claude: adapters/claude/simulator-polish-recon.md
+    project_skill: .claude/skills/simulator-polish-recon.md
+
   - id: supervisor-goal-decomposition
     name: Supervisor Goal Decomposition
     path: canonical/shared/supervisor-goal-decomposition.md
