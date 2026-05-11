@@ -10,6 +10,7 @@ struct TodayView: View {
     @State private var reflectionPresented: Bool = false
     @State private var planEditorPresented: Bool = false
     @State private var paywallPresented: Bool = false
+    @State private var connectingHealth: Bool = false
 
     /// Wake animation: `wakeProgress` ramps 0→1 every time the app opens
     /// (cold launch + foreground). Both the headline number and the mascot
@@ -306,6 +307,33 @@ struct TodayView: View {
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                    if store.healthDataState == .awaitingAuthorization {
+                        // Inline affordance so the sparse "Connect Apple
+                        // Health" headline isn't a dead end — without
+                        // this the user has to discover the Profile tab.
+                        // Under `.noRecentData` the system sheet won't
+                        // re-prompt (Apple caches the prior choice), so
+                        // we deliberately do NOT surface this button
+                        // there; Profile's `Open Settings` is the
+                        // correct path in that branch.
+                        Button {
+                            connectingHealth = true
+                            Task {
+                                await store.requestHealthAuthorization()
+                                connectingHealth = false
+                            }
+                        } label: {
+                            HStack(spacing: DesignTokens.Spacing.xs) {
+                                Text("Connect Apple Health")
+                                if connectingHealth { ProgressView() }
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                        .disabled(connectingHealth)
+                        .padding(.top, DesignTokens.Spacing.xs)
+                        .accessibilityIdentifier("today.headlineSparse.connect")
+                    }
                     if let confidence = Confidence(rawValue: estimate.confidenceRaw) {
                         ConfidenceBadge(confidence: confidence)
                     }
