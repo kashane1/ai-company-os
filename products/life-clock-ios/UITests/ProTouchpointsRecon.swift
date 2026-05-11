@@ -260,5 +260,23 @@ final class ProTouchpointsRecon: XCTestCase {
             app.launchEnvironment["LIFECLOCK_SEED_STREAK"] = String(seedStreak)
         }
         app.launch()
+        dismissWrapUpIfPresent()
+    }
+
+    /// `LIFECLOCK_SEED_STREAK > 0` back-dates onboarding so the wrap-up
+    /// reinstall guard is past (commit 2b3f1a4), which means an
+    /// `onboarded` launch with a streak auto-presents `WrapUpSheet`. The
+    /// modal sits over the tab bar and silently swallows
+    /// `tabBars.buttons[...].tap()`, so every Pro touchpoint that walks
+    /// into Profile fails its `scrollUntilVisible` loop. Tap the dismiss
+    /// CTA if the sheet is up; no-op otherwise.
+    private func dismissWrapUpIfPresent() {
+        let cta = app.buttons["wrapup.dismissCTA"]
+        if cta.waitForExistence(timeout: 3) {
+            cta.tap()
+            // A weekly wrap-up may immediately follow on Monday returns;
+            // tap again if a second sheet replaces the first.
+            if cta.waitForExistence(timeout: 2) { cta.tap() }
+        }
     }
 }
