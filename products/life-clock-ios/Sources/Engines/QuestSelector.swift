@@ -237,13 +237,14 @@ enum QuestSelector {
         }
     }
 
-    /// Onboarding picker emits `rare | weekly | daily`. UserProfile's
-    /// default is `rare`. A "habitual drinker" means `weekly` or more.
-    /// Includes the unused `none` value defensively in case onboarding
-    /// adds it later. Default branch fails fast in DEBUG.
+    /// Onboarding picker (`AlcoholView`) emits `rare | frequent | heavy`.
+    /// UserProfile's default is `rare`. A "habitual drinker" means
+    /// `frequent` or `heavy`. `weekly` / `daily` are kept for back-compat
+    /// with profiles persisted by the legacy `OnboardingView` picker, and
+    /// `none` is kept defensively. Default branch fails fast in DEBUG.
     static func isHabitualDrinker(_ frequency: String) -> Bool {
         switch frequency {
-        case "weekly", "daily": return true
+        case "frequent", "heavy", "weekly", "daily": return true
         case "rare", "none": return false
         default:
             assertionFailure("Unknown alcoholFrequency value \"\(frequency)\" — update QuestSelector.isHabitualDrinker")
