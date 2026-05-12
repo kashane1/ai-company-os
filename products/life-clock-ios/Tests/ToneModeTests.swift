@@ -89,6 +89,36 @@ final class ToneModeTests: XCTestCase {
         }
     }
 
+    // MARK: - todayTrajectoryPeekA11yLabel (VoiceOver pairing for the peek)
+
+    /// Pin the gentle a11y label. VoiceOver reads `<label>. <value>.
+    /// Button.` — the label is the noun half of the visible string with
+    /// number and arrow stripped, so VO doesn't say "eight seven y two m
+    /// right arrow."
+    func testTodayTrajectoryPeekA11yLabel_GentleReadsProjectionAhead() {
+        XCTAssertEqual(
+            ToneMode.gentle.todayTrajectoryPeekA11yLabel,
+            "Your projection ahead"
+        )
+    }
+
+    /// The label must not leak the number, units, or the arrow glyph
+    /// across any tone — that's the whole point of pairing it with
+    /// `formatProjectionA11y` as `accessibilityValue`.
+    func testTodayTrajectoryPeekA11yLabel_NoneLeakNumberOrArrow() {
+        for tone in ToneMode.allCases {
+            let label = tone.todayTrajectoryPeekA11yLabel
+            XCTAssertFalse(
+                label.contains("→"),
+                "\(tone.rawValue) a11y label contains arrow glyph"
+            )
+            XCTAssertFalse(
+                label.contains("y") && label.range(of: "[0-9]y", options: .regularExpression) != nil,
+                "\(tone.rawValue) a11y label leaks a bare-letter year unit"
+            )
+        }
+    }
+
     // MARK: - RescueLine.shouldShow
 
     private func makeLine(
