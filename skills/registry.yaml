@@ -181,15 +181,79 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    # No contract-freeze fixture yet at v1 — depth ceilings (20/40/60),
-    # variety mandate floors, 14-day cooling-off rule, and submission-
-    # readiness strict criteria are the contract surface that would
-    # eventually want a fixture. Validating python test is a v1.1 follow-up.
-    fixture_status: missing
+    # Contract-freeze fixture at
+    # skills/canonical/simulator-polish-recon/fixtures/happy_path.yaml
+    # locks depth ceilings (20/40/60), recon-specific tier vocabulary,
+    # variety mandate floors, observer step order, submission-readiness
+    # strict criteria, and the shared-spine dependency. Added 2026-05-12
+    # as part of the audit-sibling fork; closes the v1.1 follow-up from
+    # commit b70b1a6 (2026-05-10). Exercised by
+    # tests/python/unit/test_simulator_polish_recon_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/simulator-polish-recon.md
     project_skill: .claude/skills/simulator-polish-recon.md
+
+  - id: premium-feel-audit
+    name: Premium Feel Audit
+    path: canonical/premium-feel-audit/skill.md
+    owner_agent: ios
+    # Elevation counterpart to simulator-polish-recon. Read-only — emits
+    # a backlog of premium-elevation prompts (motion / haptics /
+    # typography / transitions / etc.) scored against
+    # docs/products/<product-id>/premium-bar.md. Sibling of recon and
+    # pro-value-audit; all three consume the shared spine at
+    # skills/canonical/shared/recon-scaffolding.md and emit prompts in
+    # the per-prompt template locked by packages/schemas/polish_prompt.py.
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Contract-freeze fixture at
+    # skills/canonical/premium-feel-audit/fixtures/happy_path.yaml locks
+    # the elevation-specific contract: observer (premium-bar.md), tier
+    # vocabulary (premium-gap, motion-incoherence, haptic-thin,
+    # typography-drift, transition-snag, empty-state-flat, loading-bare,
+    # lighting-gap, microcopy-flab, vision-question, nice-to-have),
+    # variety floors (≥2 fix-list, ≥3 freeform-polish, ≥2 reference-
+    # match, ≥1 vision-driven), and premium-readiness criteria.
+    # Exercised by tests/python/unit/test_premium_feel_audit_fixtures.py.
+    fixture_status: passing
+    source: internal
+    adapters:
+      claude: adapters/claude/premium-feel-audit.md
+    project_skill: .claude/skills/premium-feel-audit.md
+
+  - id: pro-value-audit
+    name: Pro-Value Audit
+    path: canonical/pro-value-audit/skill.md
+    owner_agent: ios
+    # Monetization counterpart to simulator-polish-recon (remedial) and
+    # premium-feel-audit (elevation). Read-only — emits a backlog of
+    # Pro-discoverability / justification / depth / trust / value-claim
+    # prompts scored against docs/products/<product-id>/pro-value-rule.md
+    # which operationalizes MONETIZATION.md's Free/Pro rule. Member of
+    # the recon-family — consumes the shared spine at
+    # skills/canonical/shared/recon-scaffolding.md and emits prompts in
+    # the per-prompt template locked by packages/schemas/polish_prompt.py.
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Contract-freeze fixture at
+    # skills/canonical/pro-value-audit/fixtures/happy_path.yaml locks
+    # the monetization-specific contract: observer (pro-value-rule.md +
+    # MONETIZATION.md), tier vocabulary (pro-thin, pro-invisible,
+    # upsell-missed, value-claim-unjustified, friction-too-high,
+    # trust-gap [submission-blocker], pro-rule-violation [submission-
+    # blocker], vision-question, nice-to-have), variety floors (≥3
+    # fix-list, ≥2 freeform-polish, ≥1 reference-match, ≥1 vision-
+    # driven), and pro-value-readiness criteria. Exercised by
+    # tests/python/unit/test_pro_value_audit_fixtures.py.
+    fixture_status: passing
+    source: internal
+    adapters:
+      claude: adapters/claude/pro-value-audit.md
+    project_skill: .claude/skills/pro-value-audit.md
 
   - id: supervisor-goal-decomposition
     name: Supervisor Goal Decomposition

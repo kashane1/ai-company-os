@@ -64,6 +64,14 @@ _GROUP_LABELS: dict[str, str] = {
     "required_strong_v1_capabilities": "strong-v1 capability",
     "required_vision_sections": "vision section",
     "required_stop_conditions": "stop condition",
+    # Audit-skill family: introduced 2026-05-12 for the recon-sibling
+    # split (premium-feel-audit, pro-value-audit). The tier vocabulary
+    # is the per-sibling differentiator and must be locked verbatim;
+    # the variety floors lock the minimum prompt-mode distribution
+    # each audit emits. See docs/plans/2026-05-12-feat-premium-and-pro-
+    # value-audit-skills-plan.md deepening §1.
+    "required_tier_vocabulary": "tier-vocabulary entry",
+    "required_variety_floors": "variety-floor entry",
 }
 
 

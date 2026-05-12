@@ -6,6 +6,17 @@ Full catalog of Claude project skills and their trigger phrases. CLAUDE.md keeps
 
 If multiple trigger phrases could apply to a user's message, Claude MUST ask which skill to invoke rather than guess. Do not silently route to the first match.
 
+### Four-way carve-out: audit/backlog/polish family
+
+The recon-family of audit skills (`simulator-polish-recon`, `premium-feel-audit`, `pro-value-audit`) and the editing skill `simulator-driven-polish` have overlapping trigger phrases. When a user's prompt is ambiguous between these four, ASK rather than guess. The intent split:
+
+- **"what regressed / what's incomplete / what's left before submission"** → `simulator-polish-recon` (remedial discovery; observer is prior coverage)
+- **"make it feel premium / elevate the app / find premium gaps / what would 10x this"** → `premium-feel-audit` (elevation discovery; observer is `premium-bar.md`)
+- **"audit Pro value / where is Pro thin / audit the paywall / make Pro stand out"** → `pro-value-audit` (monetization audit; observer is `pro-value-rule.md` + `MONETIZATION.md`)
+- **"polish the app / let's fix things live / drive the simulator / match this reference"** → `simulator-driven-polish` (editing, in-session — consumes prompts emitted by any of the three audit skills above)
+
+If the prompt is bare ("audit the app" / "improve the app" / "make it better"), surface the four options and ask before routing.
+
 ## Available Claude project skills
 
 - **product-artifact-chain** — validate/extend the founder-to-spec artifact chain
@@ -30,7 +41,9 @@ If multiple trigger phrases could apply to a user's message, Claude MUST ask whi
 - **ios-build-and-sign** — produce a signed, validated iOS binary ready for TestFlight (Codex runs fastlane; Claude validates the artifact)
 - **ios-simulator-ux-audit** — run a repeatable simulator-driven UX audit on an iOS product, capture findings with evidence, and leave behind reusable docs and test hooks
 - **simulator-driven-polish** — drive the iOS app live in Simulator, identify gaps with explicit decision authority (Polish/Stretch/Feature/Vision-question), fix in tight commits, and surface only the decisions that need the operator. Modes: fix-list, freeform-polish, reference-match, vision-driven. See `docs/skills/simulator-driven-polish-guide.md` for the full operator guide.
-- **simulator-polish-recon** — discovery counterpart to `simulator-driven-polish`. Read-only audit of vision, prior polish coverage, fixture knobs, operator memory, and submission readiness. Emits a ranked, variety-balanced backlog of polish prompts ready to copy-paste into fresh `simulator-driven-polish` sessions. Depths: quick (≤20), standard (≤40, default), deep (≤60). Minimum 10 prompts. Run BEFORE polish sessions, not during them.
+- **simulator-polish-recon** — **remedial** discovery counterpart to `simulator-driven-polish`. Read-only audit; observer is prior polish coverage (diff-against-recent-work). Emits a backlog focused on regressions, drift, and submission gaps. Sibling of `premium-feel-audit` and `pro-value-audit`. Depths: quick (≤20), standard (≤40, default), deep (≤60). Minimum 10 prompts.
+- **premium-feel-audit** — **elevation** discovery counterpart to `simulator-driven-polish`. Read-only audit; observer is `docs/products/<product-id>/premium-bar.md`. Emits a backlog focused on motion / haptics / typography / transitions / empty-state / loading / lighting / microcopy coherence. Sibling of `simulator-polish-recon`. Use when the operator wants to elevate, not remediate.
+- **pro-value-audit** — **monetization** discovery counterpart to `simulator-driven-polish`. Read-only audit; observer is `docs/products/<product-id>/pro-value-rule.md` (operationalizes MONETIZATION.md's Free/Pro rule). Emits a backlog focused on Pro discoverability, justification, perceived depth, friction-to-trial, upsell moments, trust signals, and value-claim accuracy. Trust-gaps and Free/Pro-rule violations escalate to submission-blocker tier.
 - **approval-flow-review** *(deferred)* — pre-validate an approval request against `packages/policies/approvals.py` before it reaches the founder queue
 - **test-coverage-audit** *(deferred)* — audit a worktree diff against the coverage policy in `packages/policies/testing.py` before commit
 
@@ -60,7 +73,9 @@ When the user's message matches one of these patterns (including paraphrases), r
 - "build the iOS app" / "sign the build" / "archive and sign" / "produce a TestFlight-ready binary" → `skills/adapters/claude/ios-build-and-sign.md`
 - "audit the UX in simulator" / "run a simulator UX audit" / "do an iOS UX audit" / "run a UX pass on the iOS app" → `skills/adapters/claude/ios-simulator-ux-audit.md`
 - "polish the app" / "polish loop" / "iterate on the iOS app" / "run the polish loop" / "drive the simulator and improve the app" / "dogfood the app" / "fix this list of issues in the app" / "match this reference in the app" / "do a vision pass on the app" / "run a vision-driven session" → `skills/adapters/claude/simulator-driven-polish.md` (editing — confirm mode before starting; if the operator wants review-only, route to `ios-simulator-ux-audit` instead)
-- "audit the app" / "build me a backlog" / "what should we work on" / "what gaps does the app have" / "recon the app" / "polish recon" / "find me prompts to run" / "generate polish prompts" / "what's left before submission" / "audit before polishing" → `skills/adapters/claude/simulator-polish-recon.md` (read-only discovery — emits a backlog of polish prompts; consumer is `simulator-driven-polish`)
+- "audit the app for regressions" / "audit the app for drift" / "audit the app for submission gaps" / "polish recon" / "recon the app" / "find me prompts to run" / "generate polish prompts" / "what regressed" / "what's incomplete" / "what's left before submission" / "audit before polishing" → `skills/adapters/claude/simulator-polish-recon.md` (read-only **remedial** discovery — emits a backlog of polish prompts; consumer is `simulator-driven-polish`. For elevation framing use `premium-feel-audit`; for monetization framing use `pro-value-audit`.)
+- "make it feel premium" / "make the app feel more premium" / "elevate the app" / "premium audit" / "premium-feel audit" / "premium-feel backlog" / "find premium gaps" / "what would 10x this" / "compare to the premium bar" / "what would make this feel premium" → `skills/adapters/claude/premium-feel-audit.md` (read-only **elevation** discovery — emits a backlog of motion / haptics / typography / transitions / empty-state / loading / lighting / microcopy prompts scored against `premium-bar.md`; consumer is `simulator-driven-polish`. Refuses if `premium-bar.md` is missing — operator authors the rubric.)
+- "audit Pro value" / "make Pro stand out" / "where is Pro thin" / "Pro feels weak" / "audit the paywall" / "audit Pro discoverability" / "pro-value audit" / "pro-value backlog" / "audit monetization" / "is Pro delivering value" → `skills/adapters/claude/pro-value-audit.md` (read-only **monetization** discovery — emits a backlog of Pro-discoverability / justification / depth / trust / value-claim prompts scored against `pro-value-rule.md` + `MONETIZATION.md`; consumer is `simulator-driven-polish`. Trust-gap and Free/Pro-rule-violation findings escalate to submission-blocker tier.)
 
 <!-- approval-flow-review and test-coverage-audit trigger phrases deferred until each skill activates (stage: active in registry). Adding them now would route users to frozen no-op contracts. -->
 
