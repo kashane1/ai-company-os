@@ -160,7 +160,19 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
+    @Environment(LifeClockStore.self) private var store
     @State private var selection: AppTab = LifeClockLaunchConfiguration.current.initialTab
+
+    private var futureTabVisible: Bool {
+        // Two gates: (1) onboarding complete — Future tab requires a
+        // baseline; (2) launch-config flag — DEBUG default true, RELEASE
+        // default false until Phase 4 ships. Either gate failing hides
+        // the tab entirely (no half-built UI on TestFlight; no
+        // baseline-less tab for fresh installs).
+        guard LifeClockLaunchConfiguration.current.futureTabUnlocked else { return false }
+        guard store.profile?.onboardingCompletedAt != nil else { return false }
+        return true
+    }
 
     var body: some View {
         TabView(selection: $selection) {
@@ -171,6 +183,12 @@ struct MainTabView: View {
             HistoryView()
                 .tabItem { Label(AppTab.history.title, systemImage: AppTab.history.systemImage) }
                 .tag(AppTab.history)
+
+            if futureTabVisible {
+                FutureView()
+                    .tabItem { Label(AppTab.future.title, systemImage: AppTab.future.systemImage) }
+                    .tag(AppTab.future)
+            }
 
             ProfileView()
                 .tabItem { Label(AppTab.profile.title, systemImage: AppTab.profile.systemImage) }

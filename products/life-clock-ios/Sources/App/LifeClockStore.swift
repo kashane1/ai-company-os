@@ -203,6 +203,11 @@ final class LifeClockStore {
         // already true and short-circuit. Existing user upgrades hit
         // this once on the launch immediately after the V1.6.0 ship.
         bootstrapQuestPoolEngineFlag()
+        // V1.7.0 (Phase 2): backfill `baselineHealthspanYears` for
+        // existing onboarded users so the Future tab has its anchor
+        // without re-running onboarding. Idempotent — once set the
+        // method is a no-op. Sanity-checked.
+        bootstrapV170Baseline()
         await refreshFromHealthKit()
         notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
         await reconcileNotifications()
@@ -475,6 +480,45 @@ final class LifeClockStore {
     func bootstrapQuestPoolEngineFlag() {
         guard let profile, !profile.useQuestPoolEngine else { return }
         profile.useQuestPoolEngine = true
+        try? modelContext.save()
+    }
+
+    // MARK: - V1.7.0 baseline backfill (Future tab anchor)
+    //
+    // Existing onboarded users (V1.6 stores upgraded to V1.7) have no
+    // `baselineHealthspanYears` set — `applyAnchorAdjustment` ran
+    // before the field existed. This idempotent hook runs on every
+    // cold launch (and at the end of `applyAnchorAdjustment` to heal
+    // upgraded-mid-onboarding users) until the baseline is set.
+    //
+    // Precedent: `bootstrapQuestPoolEngineFlag` (V1.6.0 Phase 5a).
+    //
+    // Sanity check (P1 review finding): wrap `ClockEngine.calculateBaseline`
+    // in `(candidate).isFinite && > currentAge`. On failure (NaN, corrupt
+    // profile, age sentinel) leave the field nil so the next launch
+    // retries — don't ship a poison baseline.
+    //
+    // `internal` so unit tests can drive the bootstrap directly.
+    func bootstrapV170Baseline() {
+        guard let profile,
+              profile.onboardingCompletedAt != nil,
+              profile.anchorAdjustedAt != nil,
+              let adjustment = profile.personalAdjustmentYears,
+              profile.baselineHealthspanYears == nil else { return }
+        let engineYears = clockEngine.calculateBaseline(profile: profile).projectedAgeYears
+        let candidate = engineYears + adjustment
+        // Sanity check — reject NaN/Inf, or any value at/below the
+        // user's current age (impossible by construction; would be a
+        // corrupt profile). Floor for projection enforced separately
+        // in HealthspanEngine.
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: profile.birthDate,
+            asOf: clock.now(),
+            calendar: clock.calendar
+        ))
+        guard candidate.isFinite, candidate > currentAge else { return }
+        profile.baselineHealthspanYears = candidate
+        profile.baselineCapturedAt = profile.anchorAdjustedAt
         try? modelContext.save()
     }
 
@@ -923,12 +967,35 @@ final class LifeClockStore {
     /// against partial-write failure. Replaces silent `try?` with
     /// explicit do/catch so a failed save doesn't leave memory dirty.
     /// Source: Phase 5 of the reveal-onboarding rebuild plan.
+    ///
+    /// V1.7.0 (Future tab plan §Phase 2): also captures
+    /// `baselineHealthspanYears` (engine + dial) and `baselineCapturedAt`
+    /// in the same save. Sanity-checked. On failure, the baseline
+    /// fields stay nil and `bootstrapV170Baseline` retries on next
+    /// cold launch.
     func applyAnchorAdjustment(years: Double) {
         guard let profile else { return }
         // Idempotency: never re-apply if already adjusted.
         guard profile.anchorAdjustedAt == nil else { return }
+        let now = clock.now()
         profile.personalAdjustmentYears = years
-        profile.anchorAdjustedAt = clock.now()
+        profile.anchorAdjustedAt = now
+        // Atomic baseline capture. Same save block as the anchor pair —
+        // if the save fails, all four fields revert.
+        let engineYears = clockEngine.calculateBaseline(profile: profile).projectedAgeYears
+        let candidate = engineYears + years
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: profile.birthDate,
+            asOf: now,
+            calendar: clock.calendar
+        ))
+        if candidate.isFinite, candidate > currentAge {
+            profile.baselineHealthspanYears = candidate
+            profile.baselineCapturedAt = now
+        }
+        // If the candidate failed the sanity check, leave the baseline
+        // fields nil — `bootstrapV170Baseline()` will retry on the next
+        // cold launch with a (hopefully repaired) profile.
         do {
             try modelContext.save()
         } catch {
@@ -936,6 +1003,8 @@ final class LifeClockStore {
             // on next launch and the user can retry cleanly.
             profile.personalAdjustmentYears = nil
             profile.anchorAdjustedAt = nil
+            profile.baselineHealthspanYears = nil
+            profile.baselineCapturedAt = nil
         }
     }
 
