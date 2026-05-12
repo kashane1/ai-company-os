@@ -26,6 +26,14 @@ struct TrajectoryChart: View {
     /// burns the 120Hz frame budget. Restored on scrub-end.
     let isScrubbing: Bool
 
+    /// 2026-05-12 polish: under Reduce Motion the snap-back animation
+    /// is also `nil` (was previously running unconditionally on
+    /// scrub-end). The mid-scrub path was already `nil` via
+    /// `isScrubbing`, but the 180ms `.smooth` on touch-up violated
+    /// the user's AX preference. See polish-2026-05-12-whatif-slider-
+    /// scrub-feel.md.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     init(
         points: [TrajectoryPoint],
         baseline: Double,
@@ -114,7 +122,10 @@ struct TrajectoryChart: View {
                 }
         }
         .chartYScale(domain: yDomain)
-        .animation(isScrubbing ? nil : .smooth(duration: 0.18), value: points)
+        .animation(
+            (isScrubbing || reduceMotion) ? nil : .smooth(duration: 0.18),
+            value: points
+        )
         .accessibilityLabel(accessibilityLabel)
     }
 

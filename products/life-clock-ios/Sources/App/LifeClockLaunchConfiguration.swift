@@ -438,6 +438,27 @@ struct LifeClockLaunchConfiguration {
         profile.onboardingCompletedAt = onboardedAt
         profile.onboardingV2CompletedAt = onboardedAt
         profile.disclaimerAcceptedAt = onboardedAt
+        // V1.7.0 (2026-05-12, polish-2026-05-12-whatif-slider-scrub-feel):
+        // when a Future-tab fixture is in play, seed the anchor +
+        // baseline fields so `FutureView`'s headline + chart + slider
+        // gates (every branch requires `profile.baselineHealthspanYears`)
+        // render on first frame. Without this, JUMP_TO=future* + the
+        // recommended FORCE_PRO + FUTURE_TAB_UNLOCKED knobs land on a
+        // blank Future tab. Scoped to JUMP_TO so legacy
+        // `scenario=.onboarded` callers that depend on a nil baseline
+        // (e.g. Today day0/day1-3 paths, baseline-bootstrap-on-launch
+        // tests) keep their existing behavior.
+        if futureJumpTo != nil {
+            profile.anchorAdjustedAt = onboardedAt
+            profile.personalAdjustmentYears = 0
+            profile.baselineCapturedAt = onboardedAt
+            // Literal — value matches what `bootstrapV170Baseline` would
+            // compute for the seeded female 1990-birth profile with the
+            // hardcoded sleepGoalHours/strengthFrequencyPerWeek/diet
+            // baseline above. Keeps the fixture decoupled from the
+            // engine's coefficient table for screenshot/diff stability.
+            profile.baselineHealthspanYears = 84.0
+        }
         context.insert(profile)
 
         // Seed N days of diet-logged HabitLog entries backward from `now`. With
