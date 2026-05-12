@@ -1,0 +1,64 @@
+# Contract-freeze fixture for premium-feel-audit. Locks the elevation-specific
+# contract surface: observer (premium-bar.md), tier vocabulary, variety floors,
+# premium-readiness criteria, and the shared-spine dependency.
+#
+# See tests/python/unit/test_premium_feel_audit_fixtures.py.
+- name: happy_path
+  description: Canonical body still exposes the premium-feel-audit contract.
+  input:
+    skill_file: canonical/premium-feel-audit/skill.md
+  expected:
+    required_section_headings:
+      - "## Observer"
+      - "## Coverage matrix (elevation-specific columns)"
+      - "## Tier vocabulary (binding — elevation-specific)"
+      - "## Variety mandate (elevation-specific floors at standard depth)"
+      - "## Premium-readiness flag — strict mode (elevation-specific)"
+      - "## Failure modes (elevation-specific)"
+      - "## Cadence"
+    required_input_fields:
+      - "product_id"
+      - "baseline"
+      - "depth (quick | standard | deep — default standard)"
+      - "minimum_prompts"
+    required_preconditions:
+      - "docs/products/<product-id>/premium-bar.md exists"
+      - "docs/products/<product-id>/vision.md exists"
+      - "skills/canonical/shared/recon-scaffolding.md exists"
+    required_failure_modes:
+      - "Missing `premium-bar.md`"
+      - "`premium-bar.md` has only stub headers"
+      - "Missing `shared/recon-scaffolding.md`"
+      - "No prior polish coverage"
+      - "Memory pass produces a contradiction"
+      - "Operator's intent is regression audit"
+      - "Operator's intent is monetization audit"
+    required_handoff_channel:
+      - "docs/products/<product-id>/premium-feel-backlog-<YYYY-MM-DD>-<focus-slug>.md"
+    required_tier_vocabulary:
+      - "premium-gap"
+      - "motion-incoherence"
+      - "haptic-thin"
+      - "typography-drift"
+      - "transition-snag"
+      - "empty-state-flat"
+      - "loading-bare"
+      - "lighting-gap"
+      - "microcopy-flab"
+      - "vision-question"
+      - "nice-to-have"
+    required_variety_floors:
+      - "≥2 `fix-list`"
+      - "≥3 `freeform-polish`"
+      - "≥2 `reference-match`"
+      - "≥1 `vision-driven`"
+    required_helper_dependencies:
+      - "canonical/shared/recon-scaffolding"
+      - "packages/schemas/polish_prompt.py"
+      - "canonical/simulator-driven-polish"
+      - "canonical/simulator-polish-recon"
+    required_validation_steps:
+      - "report file exists at the expected path with all 9 required sections"
+      - "per-prompt template adheres to packages/schemas/polish_prompt.py POLISH_PROMPT_FIELDS"
+      - "every emitted prompt cites premium-bar.md + a specific category as evidence"
+      - "memory pass was performed and the memory ledger section is present"

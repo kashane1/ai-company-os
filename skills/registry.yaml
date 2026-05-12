@@ -195,6 +195,35 @@ skills:
       claude: adapters/claude/simulator-polish-recon.md
     project_skill: .claude/skills/simulator-polish-recon.md
 
+  - id: premium-feel-audit
+    name: Premium Feel Audit
+    path: canonical/premium-feel-audit/skill.md
+    owner_agent: ios
+    # Elevation counterpart to simulator-polish-recon. Read-only — emits
+    # a backlog of premium-elevation prompts (motion / haptics /
+    # typography / transitions / etc.) scored against
+    # docs/products/<product-id>/premium-bar.md. Sibling of recon and
+    # pro-value-audit; all three consume the shared spine at
+    # skills/canonical/shared/recon-scaffolding.md and emit prompts in
+    # the per-prompt template locked by packages/schemas/polish_prompt.py.
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Contract-freeze fixture at
+    # skills/canonical/premium-feel-audit/fixtures/happy_path.yaml locks
+    # the elevation-specific contract: observer (premium-bar.md), tier
+    # vocabulary (premium-gap, motion-incoherence, haptic-thin,
+    # typography-drift, transition-snag, empty-state-flat, loading-bare,
+    # lighting-gap, microcopy-flab, vision-question, nice-to-have),
+    # variety floors (≥2 fix-list, ≥3 freeform-polish, ≥2 reference-
+    # match, ≥1 vision-driven), and premium-readiness criteria.
+    # Exercised by tests/python/unit/test_premium_feel_audit_fixtures.py.
+    fixture_status: passing
+    source: internal
+    adapters:
+      claude: adapters/claude/premium-feel-audit.md
+    project_skill: .claude/skills/premium-feel-audit.md
+
   - id: supervisor-goal-decomposition
     name: Supervisor Goal Decomposition
     path: canonical/shared/supervisor-goal-decomposition.md
