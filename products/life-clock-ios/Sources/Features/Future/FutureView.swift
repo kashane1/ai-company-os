@@ -116,6 +116,13 @@ struct FutureView: View {
                 Text(formatHealthspan(baseline))
                     .font(.system(size: 36, weight: .semibold, design: .rounded))
                     .accessibilityIdentifier("future.headline.baseline")
+                // Day-0 only — intentionally tone-neutral. No projection or
+                // delta exists yet, so this is a structural label, not
+                // narration. Routing through ToneMode here would invent
+                // urgency (firmDirect) or presume momentum (coach) before
+                // the model has data to defend either. See
+                // docs/products/life-clock/polish-2026-05-11-future-tab-v1.7.0-audit-followup.md
+                // catch #2.
                 Text("Your starting baseline")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

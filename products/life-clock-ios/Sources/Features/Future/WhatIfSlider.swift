@@ -20,6 +20,16 @@ import SwiftUI
 ///  * `highPriorityGesture` on the active slider keeps parent
 ///    ScrollView from stealing drags.
 ///
+/// **Haptic policy** lives in `LifeClockHaptics.swift` (see the
+/// `whatIfScrub*` block). Three events — begin / edge / end — fired
+/// from the `onEditingChanged` callback and the slider setter. No
+/// per-tick haptic by deliberate choice (would compete with tone
+/// copy per `LifeClockHaptics`'s doctrine).
+///
+/// **Reduce Motion** affects only the chart's snap-back animation,
+/// gated in `TrajectoryChart`. The slider thumb itself is gestural
+/// input, not a SwiftUI animation, so no stepper fallback is needed.
+///
 /// View binds to `store.sliderOverrides` via @Observable — no
 /// view-local `@State` for the overrides themselves.
 struct WhatIfSlider: View {
@@ -37,6 +47,12 @@ struct WhatIfSlider: View {
 
     /// Fired when the user taps a locked slider track (Free state).
     let onLockedTap: () -> Void
+
+    /// Haptic triggers (see `LifeClockHaptics.whatIfScrub*`). Counters
+    /// are wrapping; SwiftUI fires `.sensoryFeedback` on any change.
+    @State private var scrubBeginTrigger: Int = 0
+    @State private var scrubEdgeTrigger: Int = 0
+    @State private var scrubEndTrigger: Int = 0
 
     private var rows: [DimensionRow] {
         [
@@ -62,6 +78,9 @@ struct WhatIfSlider: View {
             DesignTokens.Palette.elevated,
             in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
         )
+        .sensoryFeedback(LifeClockHaptics.whatIfScrubBegin, trigger: scrubBeginTrigger)
+        .sensoryFeedback(LifeClockHaptics.whatIfScrubEdge, trigger: scrubEdgeTrigger)
+        .sensoryFeedback(LifeClockHaptics.whatIfScrubEnd, trigger: scrubEndTrigger)
         .accessibilityIdentifier("future.whatIfSlider")
     }
 
@@ -90,6 +109,18 @@ struct WhatIfSlider: View {
                     get: { value },
                     set: { newValue in
                         guard isPro else { return }
+                        // Edge-trigger haptic: fire once when value
+                        // first lands at the row's min or max. Step-
+                        // quantized so equality would mostly hold,
+                        // but use a half-step tolerance for safety.
+                        let epsilon = row.step * 0.5
+                        let wasAtEdge = value <= row.range.lowerBound + epsilon
+                            || value >= row.range.upperBound - epsilon
+                        let isAtEdge = newValue <= row.range.lowerBound + epsilon
+                            || newValue >= row.range.upperBound - epsilon
+                        if isAtEdge && !wasAtEdge {
+                            scrubEdgeTrigger &+= 1
+                        }
                         store.setSliderOverride(row.dim, value: newValue)
                         TelemetryRecorder.shared.emit(.futureSliderScrubbed(dimension: row.dim))
                     }
@@ -102,11 +133,13 @@ struct WhatIfSlider: View {
                         // Captures aggregates once per active scrub;
                         // multi-touch supported via the counter.
                         store.beginScrub()
+                        scrubBeginTrigger &+= 1
                     } else {
                         // Snap-back per brainstorm decision. clear
                         // BEFORE endScrub so chart shows snap-back
                         // animation; endScrub then flushes pending
                         // refresh + debounce-clears aggregates.
+                        scrubEndTrigger &+= 1
                         store.clearSliderOverrides()
                         store.endScrub()
                     }

@@ -456,9 +456,34 @@ struct LifeClockLaunchConfiguration {
         profile.onboardingCompletedAt = onboardedAt
         profile.onboardingV2CompletedAt = onboardedAt
         profile.disclaimerAcceptedAt = onboardedAt
+        // V1.7.0 baseline seeding — two orthogonal opt-in paths:
+        //
+        // 1. `LIFECLOCK_SEED_BASELINE_ADJUSTMENT=<float>` (explicit knob,
+        //    polish-2026-05-12-today-free-vs-pro-and-a11y): sets the
+        //    anchor pair only, lets `bootstrapV170Baseline()` derive
+        //    `baselineHealthspanYears` from the engine on first launch.
+        //    Used when the polish run wants the engine's actual output
+        //    (e.g. Today trajectory peek shows the real projected number).
+        //
+        // 2. `LIFECLOCK_JUMP_TO=future*` (auto-trigger,
+        //    polish-2026-05-12-whatif-slider-scrub-feel): writes the full
+        //    baseline tuple with a literal 84.0 to keep Future-tab
+        //    screenshot fixtures decoupled from the engine's coefficient
+        //    table. Without this, JUMP_TO=future* + FORCE_PRO +
+        //    FUTURE_TAB_UNLOCKED lands on a blank Future tab.
+        //
+        // Path 1 wins when both are set (explicit beats inferred). Legacy
+        // callers that depend on a nil baseline (Today day0/day1-3 paths,
+        // baseline-bootstrap-on-launch tests) keep their existing behavior
+        // by setting neither knob.
         if let adjustment = seedBaselineAdjustment {
             profile.personalAdjustmentYears = adjustment
             profile.anchorAdjustedAt = onboardedAt
+        } else if futureJumpTo != nil {
+            profile.anchorAdjustedAt = onboardedAt
+            profile.personalAdjustmentYears = 0
+            profile.baselineCapturedAt = onboardedAt
+            profile.baselineHealthspanYears = 84.0
         }
         context.insert(profile)
 
