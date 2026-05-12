@@ -145,6 +145,18 @@ struct LifeClockLaunchConfiguration {
     /// install anchor.
     let seedDaysSinceInstall: Int?
 
+    /// `LIFECLOCK_SEED_BASELINE_ADJUSTMENT=<float>` seeds the V1.7.0
+    /// anchor-dial state on an `onboarded` scenario by writing
+    /// `personalAdjustmentYears` and `anchorAdjustedAt`. The store's
+    /// `bootstrapV170Baseline()` then computes `baselineHealthspanYears`
+    /// on first launch, unlocking surfaces gated on a captured baseline
+    /// (Today trajectory peek, Future projections). Without this knob
+    /// the `onboarded` scenario simulates a user who completed onboarding
+    /// but has not yet anchored — useful for testing the pre-baseline
+    /// edge case but not for Today-peek polish walks. Opt-in: nil leaves
+    /// the anchor fields unset.
+    let seedBaselineAdjustment: Double?
+
     /// `LIFECLOCK_SEED_SLIDER_OVERRIDES=<json>` provides deterministic
     /// `HealthspanEngine.projectWith(overrides:)` inputs so a test
     /// can render the cap/floor/near-cap states without gestural
@@ -301,6 +313,10 @@ struct LifeClockLaunchConfiguration {
             guard let raw = env["LIFECLOCK_SEED_DAYS_SINCE_INSTALL"] else { return nil }
             return Int(raw).map { max(0, $0) }
         }()
+        let seedBaselineAdjustment: Double? = {
+            guard let raw = env["LIFECLOCK_SEED_BASELINE_ADJUSTMENT"] else { return nil }
+            return Double(raw)
+        }()
         let seedSliderOverridesJSON = env["LIFECLOCK_SEED_SLIDER_OVERRIDES"]
         let telemetryCapturePath = env["LIFECLOCK_TELEMETRY_CAPTURE_PATH"]
 
@@ -336,6 +352,7 @@ struct LifeClockLaunchConfiguration {
             futureTabUnlocked: futureTabUnlocked,
             futureJumpTo: futureJumpTo,
             seedDaysSinceInstall: seedDaysSinceInstall,
+            seedBaselineAdjustment: seedBaselineAdjustment,
             seedSliderOverridesJSON: seedSliderOverridesJSON,
             telemetryCapturePath: telemetryCapturePath
         )
@@ -364,6 +381,7 @@ struct LifeClockLaunchConfiguration {
             futureTabUnlocked: true,
             futureJumpTo: nil,
             seedDaysSinceInstall: nil,
+            seedBaselineAdjustment: nil,
             seedSliderOverridesJSON: nil,
             telemetryCapturePath: nil
         )
@@ -438,6 +456,10 @@ struct LifeClockLaunchConfiguration {
         profile.onboardingCompletedAt = onboardedAt
         profile.onboardingV2CompletedAt = onboardedAt
         profile.disclaimerAcceptedAt = onboardedAt
+        if let adjustment = seedBaselineAdjustment {
+            profile.personalAdjustmentYears = adjustment
+            profile.anchorAdjustedAt = onboardedAt
+        }
         context.insert(profile)
 
         // Seed N days of diet-logged HabitLog entries backward from `now`. With
