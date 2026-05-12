@@ -147,9 +147,6 @@ struct FutureView: View {
                 .accessibilityIdentifier("future.coldLaunch.line")
 
         case .warmingUp4to13:
-            // Phase 3 will land the chart; Phase 4 will land the slider.
-            // For Phase 2 we surface the N-aware transparency line
-            // (pool-with-discrete-N — read from ReflectionPrompts).
             Text(ReflectionPrompts.futureWarmingUpTransparency(
                 daysOfData: daysOfData,
                 tone: store.toneMode
@@ -157,26 +154,80 @@ struct FutureView: View {
             .font(.body)
             .foregroundStyle(.primary)
             .accessibilityIdentifier("future.warmingUp.line")
+            // V1.7.0 Phase 3: chart turns on at day 4. Confidence
+            // opacity sparser at lower N.
+            if let baseline = store.profile?.baselineHealthspanYears {
+                let projection = healthspanProjection(baseline: baseline)
+                TrajectoryChart(
+                    points: trajectoryPoints(baseline: baseline),
+                    baseline: baseline,
+                    clampState: projection.clamped
+                )
+            }
 
         case .full14plus:
-            // Phase 3 will land the chart here. Phase 2 placeholder:
-            // surface a transparent "chart coming" line so the day-state
-            // machine is testable. The DEBUG/RELEASE tab gate keeps
-            // this out of TestFlight.
-            Text("Trajectory chart lands in Phase 3.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .accessibilityIdentifier("future.full.placeholder")
+            if let baseline = store.profile?.baselineHealthspanYears {
+                let projection = healthspanProjection(baseline: baseline)
+                TrajectoryChart(
+                    points: trajectoryPoints(baseline: baseline),
+                    baseline: baseline,
+                    clampState: projection.clamped
+                )
+            }
         }
     }
 
     // MARK: - Helpers
 
-    /// Computed projection: baseline + sum-of-dimension-deltas, clamped.
-    /// Phase 2 placeholder returns baseline as-is (no engine yet).
-    /// Phase 3 wires `HealthspanEngine.currentProjection(...)`.
+    /// Live computed projection from raw HK snapshots + habits.
+    /// Recomputed every render — cheap for in-memory 14-day windows.
+    /// Phase 4 will move this onto `LifeClockStore.trajectoryCache`
+    /// for slider-scrub coalesce.
+    private func healthspanProjection(baseline: Double) -> HealthspanEngine.Projection {
+        let snapshots = store.recentSnapshots(limit: 14)
+        let habits = recentHabits()
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: store.profile?.birthDate ?? Date.distantPast,
+            asOf: store.clock.now(),
+            calendar: store.clock.calendar
+        ))
+        return HealthspanEngine.currentProjection(
+            snapshots: snapshots,
+            habits: habits,
+            baseline: baseline,
+            currentAge: currentAge,
+            clock: store.clock
+        )
+    }
+
+    /// Numeric projection in years for the headline.
     private func currentProjection(baseline: Double) -> Double {
-        baseline
+        guard dayState != .day0, dayState != .coldLaunch1to3 else {
+            return baseline
+        }
+        return healthspanProjection(baseline: baseline).healthspanYears
+    }
+
+    /// Build the 30-point trajectory for the chart.
+    private func trajectoryPoints(baseline: Double) -> [TrajectoryPoint] {
+        let snapshots = store.recentSnapshots(limit: 14)
+        let habits = recentHabits()
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: store.profile?.birthDate ?? Date.distantPast,
+            asOf: store.clock.now(),
+            calendar: store.clock.calendar
+        ))
+        return HealthspanEngine.weeklyTrajectory(
+            snapshots: snapshots,
+            habits: habits,
+            baseline: baseline,
+            currentAge: currentAge,
+            clock: store.clock
+        )
+    }
+
+    private func recentHabits() -> [HabitLog] {
+        store.recentHabits(limit: 14)
     }
 
     /// Format a healthspan-years Double as "Xy Ym" via

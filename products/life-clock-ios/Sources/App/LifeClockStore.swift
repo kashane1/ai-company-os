@@ -871,6 +871,25 @@ final class LifeClockStore {
         return result.deltaMinutes
     }
 
+    /// Returns the N most-recent persisted habit logs, optionally
+    /// excluding today. Mirrors `recentSnapshots(limit:includingToday:)`.
+    /// V1.7.0: Phase 3 trajectory chart + Phase 4 slider personal-
+    /// current anchors both need a 14-day habit window aligned to the
+    /// same convention as the snapshot accessor.
+    func recentHabits(limit: Int, includingToday: Bool = false) -> [HabitLog] {
+        var descriptor = FetchDescriptor<HabitLog>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        descriptor.fetchLimit = includingToday ? limit : limit + 1
+        let raw = (try? modelContext.fetch(descriptor)) ?? []
+        if includingToday {
+            return Array(raw.prefix(limit))
+        }
+        let todayStart = clock.calendar.startOfDay(for: clock.now())
+        let filtered = raw.filter { !clock.calendar.isDate($0.date, inSameDayAs: todayStart) }
+        return Array(filtered.prefix(limit))
+    }
+
     // MARK: - Cumulative since install (V1.7.0 — History summary section)
     //
     // Plan §Phase 1. Walks DailyHealthSnapshot + HabitLog from
