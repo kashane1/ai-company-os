@@ -22,6 +22,9 @@ import SwiftData
 struct FutureView: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(SubscriptionStore.self) private var subscriptions
+    @State private var sliderOverrides: [HealthspanEngine.Dimension: Double] = [:]
+    @State private var paywallScrollTarget: PaywallSheet.Section? = nil
+    @State private var paywallPresented: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -35,6 +38,12 @@ struct FutureView: View {
             }
             .navigationTitle("Future")
             .accessibilityIdentifier("future.screen")
+            .sheet(isPresented: $paywallPresented) {
+                PaywallSheet(scrollTo: paywallScrollTarget)
+            }
+            .onAppear {
+                TelemetryRecorder.shared.emit(.futureTabViewed)
+            }
         }
     }
 
@@ -154,8 +163,6 @@ struct FutureView: View {
             .font(.body)
             .foregroundStyle(.primary)
             .accessibilityIdentifier("future.warmingUp.line")
-            // V1.7.0 Phase 3: chart turns on at day 4. Confidence
-            // opacity sparser at lower N.
             if let baseline = store.profile?.baselineHealthspanYears {
                 let projection = healthspanProjection(baseline: baseline)
                 TrajectoryChart(
@@ -163,6 +170,11 @@ struct FutureView: View {
                     baseline: baseline,
                     clampState: projection.clamped
                 )
+                FreeNarrativeLine(
+                    perDimensionDelta: projection.perDimensionDelta,
+                    tone: store.toneMode
+                )
+                sliderSection(baseline: baseline)
             }
 
         case .full14plus:
@@ -173,16 +185,81 @@ struct FutureView: View {
                     baseline: baseline,
                     clampState: projection.clamped
                 )
+                FreeNarrativeLine(
+                    perDimensionDelta: projection.perDimensionDelta,
+                    tone: store.toneMode
+                )
+                sliderSection(baseline: baseline)
+                if subscriptions.isPro {
+                    longFormNarrativeSection(baseline: baseline)
+                }
             }
         }
     }
 
+    @ViewBuilder
+    private func sliderSection(baseline: Double) -> some View {
+        let aggregates = HealthspanEngine.aggregates(
+            snapshots: store.recentSnapshots(limit: 14),
+            habits: store.recentHabits(limit: 14)
+        )
+        WhatIfSlider(
+            baseAggregates: aggregates,
+            isPro: subscriptions.isPro,
+            onOverridesChange: { newOverrides in
+                sliderOverrides = newOverrides
+                if let dim = newOverrides.keys.first {
+                    TelemetryRecorder.shared.emit(.futureSliderScrubbed(dimension: dim))
+                }
+            },
+            onLockedTap: {
+                paywallScrollTarget = .whatIfSimulator
+                paywallPresented = true
+                TelemetryRecorder.shared.emit(.futureProPaywallPresented)
+            }
+        )
+    }
+
+    @ViewBuilder
+    private func longFormNarrativeSection(baseline: Double) -> some View {
+        let now = store.clock.now()
+        let cal = store.clock.calendar
+        let weekEnd = now.snappedToLastSunday(calendar: cal)
+        let priorEnd = cal.date(byAdding: .day, value: -7, to: weekEnd) ?? weekEnd
+        // For v1, we slice the existing 14-day store windows into
+        // "this week (last 7)" and "prior week (7..14)" using the
+        // batched store accessors. NarrativeEngine is pure over the
+        // inputs.
+        let allSnaps = store.recentSnapshots(limit: 14)
+        let allHabits = store.recentHabits(limit: 14)
+        let thisWeekSnaps = allSnaps.filter { $0.date >= weekEnd }
+        let priorWeekSnaps = allSnaps.filter { $0.date >= priorEnd && $0.date < weekEnd }
+        let thisWeekHabits = allHabits.filter { $0.date >= weekEnd }
+        let priorWeekHabits = allHabits.filter { $0.date >= priorEnd && $0.date < weekEnd }
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: store.profile?.birthDate ?? Date.distantPast,
+            asOf: now,
+            calendar: cal
+        ))
+        let narrative = NarrativeEngine.compose(
+            snapshots: thisWeekSnaps,
+            priorWeekSnapshots: priorWeekSnaps,
+            habits: thisWeekHabits,
+            priorWeekHabits: priorWeekHabits,
+            baseline: baseline,
+            currentAge: currentAge,
+            tone: store.toneMode,
+            weekEnd: weekEnd,
+            clock: store.clock
+        )
+        LongFormNarrative(narrative: narrative)
+    }
+
     // MARK: - Helpers
 
-    /// Live computed projection from raw HK snapshots + habits.
+    /// Live computed projection from raw HK snapshots + habits, with
+    /// slider overrides applied when present.
     /// Recomputed every render — cheap for in-memory 14-day windows.
-    /// Phase 4 will move this onto `LifeClockStore.trajectoryCache`
-    /// for slider-scrub coalesce.
     private func healthspanProjection(baseline: Double) -> HealthspanEngine.Projection {
         let snapshots = store.recentSnapshots(limit: 14)
         let habits = recentHabits()
@@ -191,12 +268,22 @@ struct FutureView: View {
             asOf: store.clock.now(),
             calendar: store.clock.calendar
         ))
-        return HealthspanEngine.currentProjection(
-            snapshots: snapshots,
-            habits: habits,
+        if sliderOverrides.isEmpty {
+            return HealthspanEngine.currentProjection(
+                snapshots: snapshots,
+                habits: habits,
+                baseline: baseline,
+                currentAge: currentAge,
+                clock: store.clock
+            )
+        }
+        let aggregates = HealthspanEngine.aggregates(snapshots: snapshots, habits: habits)
+        return HealthspanEngine.projectWith(
+            baseAggregates: aggregates,
+            overrides: sliderOverrides,
             baseline: baseline,
             currentAge: currentAge,
-            clock: store.clock
+            confidence: HealthspanEngine.sampleDensity(snapshots: snapshots, habits: habits)
         )
     }
 

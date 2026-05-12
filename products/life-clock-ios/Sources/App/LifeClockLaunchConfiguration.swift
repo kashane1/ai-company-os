@@ -244,8 +244,9 @@ struct LifeClockLaunchConfiguration {
             telemetryCapturePath: telemetryCapturePath
         )
         #else
-        // RELEASE: Future tab gate defaults to false until Phase 4 ships.
-        // Phase 4 PR flips this default to `true`.
+        // RELEASE: V1.7.0 Phase 4 flips futureTabUnlocked to `true`.
+        // The tab still hides when profile.onboardingCompletedAt == nil,
+        // so fresh installs never see it before onboarding completes.
         return LifeClockLaunchConfiguration(
             isUITest: false,
             scenario: .onboarding,
@@ -264,7 +265,7 @@ struct LifeClockLaunchConfiguration {
             initialTab: .today,
             forceSafetyNet: false,
             forceQuickLog: false,
-            futureTabUnlocked: false,
+            futureTabUnlocked: true,
             futureJumpTo: nil,
             seedDaysSinceInstall: nil,
             seedSliderOverridesJSON: nil,

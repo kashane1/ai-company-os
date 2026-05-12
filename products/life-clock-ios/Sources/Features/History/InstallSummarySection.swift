@@ -19,6 +19,9 @@ struct InstallSummarySection: View {
     var body: some View {
         if let summary = store.cumulativeDeltaSinceInstall() {
             content(for: summary)
+                .onAppear {
+                    TelemetryRecorder.shared.emit(.historySummaryViewed)
+                }
         } else {
             EmptyView()
         }
