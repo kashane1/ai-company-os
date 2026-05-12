@@ -220,6 +220,20 @@ enum HealthspanEngine {
         )
     }
 
+    /// Per-dimension values with slider overrides merged in: override
+    /// wins when present, else falls back to the base aggregate (else 0).
+    /// Exposed so renderers (FreeNarrativeLine threshold descriptor)
+    /// can show the same values that drove the per-dim deltas during
+    /// an active scrub.
+    static func resolvedAggregates(
+        baseAggregates: [Dimension: Double],
+        overrides: [Dimension: Double]
+    ) -> [Dimension: Double] {
+        Dimension.allCases.reduce(into: [:]) { dict, dim in
+            dict[dim] = overrides[dim] ?? baseAggregates[dim] ?? 0
+        }
+    }
+
     /// Slider-scrub primitive. Pure function over dictionaries; no
     /// SwiftData access. Phase 4 calls per `onChange` event.
     static func projectWith(
@@ -229,10 +243,7 @@ enum HealthspanEngine {
         currentAge: Double,
         confidence: Double = 1.0
     ) -> Projection {
-        // Resolved per-dim values: override wins when present, else base.
-        let resolved: [Dimension: Double] = Dimension.allCases.reduce(into: [:]) { dict, dim in
-            dict[dim] = overrides[dim] ?? baseAggregates[dim] ?? 0
-        }
+        let resolved = resolvedAggregates(baseAggregates: baseAggregates, overrides: overrides)
 
         // Raw per-dim deltas before smoking dominance.
         var deltas: [Dimension: Double] = [
@@ -283,53 +294,73 @@ enum HealthspanEngine {
     /// over a sliding window; future points all carry the current
     /// projection. The confidence ramp baked into sample density
     /// produces the visual hand-off the user expects.
+    ///
+    /// `overrides` lets Pro slider scrubs reshape the future half of
+    /// the chart in lockstep with the headline. Past points stay
+    /// anchored to the no-override projection — the slider doesn't
+    /// rewrite history — so the chart "kinks" at week 0 during scrub.
+    /// `baseAggregates` lets the caller hand in a memoized 14-day
+    /// aggregate (from `LifeClockStore.cachedBaselineAggregates`) to
+    /// keep per-onChange redraws cheap during an active scrub.
     static func weeklyTrajectory(
         snapshots: [DailyHealthSnapshot],
         habits: [HabitLog],
         baseline: Double,
         currentAge: Double,
+        overrides: [Dimension: Double] = [:],
+        baseAggregates: [Dimension: Double]? = nil,
         weeksBack: Int = 16,
         weeksForward: Int = 14,
         clock: EngineClock = .live
     ) -> [TrajectoryPoint] {
-        let current = currentProjection(
-            snapshots: snapshots,
-            habits: habits,
+        let agg = baseAggregates ?? aggregates(snapshots: snapshots, habits: habits)
+        let confidence = sampleDensity(snapshots: snapshots, habits: habits)
+        let baselineNow = projectWith(
+            baseAggregates: agg,
+            overrides: [:],
             baseline: baseline,
             currentAge: currentAge,
-            clock: clock
+            confidence: confidence
         )
+        let scrubbedNow: Projection = overrides.isEmpty
+            ? baselineNow
+            : projectWith(
+                baseAggregates: agg,
+                overrides: overrides,
+                baseline: baseline,
+                currentAge: currentAge,
+                confidence: confidence
+            )
 
         var points: [TrajectoryPoint] = []
-        // Past — sliding window over snapshots (each week steps the
-        // window forward by 7 days). For v1 we use a simple approximation:
-        // every past point is the current projection × a small ramp from
-        // baseline to current. Tests can be added in Phase 3 if needed.
+        // Past — anchored to the no-override projection. The slider
+        // changes the future, not history.
         for w in stride(from: -weeksBack, through: -1, by: 1) {
             // Confidence decreases as we go further back (less reliable
             // historical data).
-            let confidence = max(0.35, 1.0 + Double(w) / Double(weeksBack * 2))
+            let pastConfidence = max(0.35, 1.0 + Double(w) / Double(weeksBack * 2))
             // Linear interpolation from baseline at -weeksBack to
-            // current projection at -1.
+            // baseline-current at -1.
             let progress = Double(weeksBack + w) / Double(weeksBack)
-            let years = baseline + (current.healthspanYears - baseline) * progress
-            points.append(TrajectoryPoint(week: w, years: years, confidence: confidence))
+            let years = baseline + (baselineNow.healthspanYears - baseline) * progress
+            points.append(TrajectoryPoint(week: w, years: years, confidence: pastConfidence))
         }
-        // Current week
+        // Current week — uses the scrubbed projection so the chart
+        // redraws in lockstep with the headline when sliders move.
         points.append(TrajectoryPoint(
             week: 0,
-            years: current.healthspanYears,
-            confidence: current.confidence
+            years: scrubbedNow.healthspanYears,
+            confidence: scrubbedNow.confidence
         ))
-        // Future — flat at current projection (we don't predict change).
+        // Future — flat at scrubbed projection (we don't predict change).
         for w in 1...weeksForward {
             // Future confidence fades slowly — we're projecting forward,
             // not predicting.
-            let confidence = max(0.35, 1.0 - Double(w) / Double(weeksForward * 2))
+            let futureConfidence = max(0.35, 1.0 - Double(w) / Double(weeksForward * 2))
             points.append(TrajectoryPoint(
                 week: w,
-                years: current.healthspanYears,
-                confidence: confidence
+                years: scrubbedNow.healthspanYears,
+                confidence: futureConfidence
             ))
         }
         return points

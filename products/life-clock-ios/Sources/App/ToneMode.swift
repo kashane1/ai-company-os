@@ -702,6 +702,35 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Footnote under the Future headline projection: anchors the user
+    /// to their starting baseline.
+    func futureBaselineFootnote(formatted: String) -> String {
+        switch self {
+        case .gentle: return "you started at \(formatted)"
+        case .coach: return "Baseline: \(formatted)"
+        case .firmDirect: return "Started: \(formatted)"
+        }
+    }
+
+    /// Signed-delta sentence on the Future headline (e.g. "+3y 2m
+    /// earned since you started"). `sign` is the prefix glyph the
+    /// caller already chose (e.g. "+" or "−"); `magnitude` is the
+    /// formatted years+months string.
+    func futureSignedDelta(sign: String, magnitude: String, positive: Bool) -> String {
+        switch self {
+        case .gentle:
+            return positive
+                ? "\(sign)\(magnitude) earned since you started"
+                : "\(sign)\(magnitude) lost since you started"
+        case .coach:
+            return "\(sign)\(magnitude) vs your starting baseline"
+        case .firmDirect:
+            return positive
+                ? "\(sign)\(magnitude) banked"
+                : "\(sign)\(magnitude) drag"
+        }
+    }
+
     // MARK: - History summary (V1.7.0)
 
     /// Day 0 hero copy on the install-summary section.
@@ -735,14 +764,25 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Prefix for the cumulative-summary anchor sentence
+    /// ("banked since {anchor}"). Carries the valence — the ± glyph on
+    /// the hero number stays neutral per the plan / SpecFlow gap #14.
+    func historySummaryAnchorPrefix(positive: Bool) -> String {
+        switch self {
+        case .gentle: return positive ? "banked since" : "lost since"
+        case .coach: return positive ? "net since" : "behind since"
+        case .firmDirect: return positive ? "+ since" : "− since"
+        }
+    }
+
     /// Today screen trajectory-peek affordance. Routes to the Future
     /// tab on tap. `formatted` is the years+months projection (e.g.
     /// "87y 2m"). Hidden when day-state is day0 / coldLaunch1to3.
     func todayTrajectoryPeek(formatted: String) -> String {
         switch self {
-        case .gentle: return "Your trajectory: \(formatted) →"
-        case .coach: return "Your trajectory: \(formatted) →"
-        case .firmDirect: return "Trajectory: \(formatted) →"
+        case .gentle: return "Your projection ahead: \(formatted) →"
+        case .coach: return "Trajectory: \(formatted) →"
+        case .firmDirect: return "Tally: \(formatted) →"
         }
     }
 }

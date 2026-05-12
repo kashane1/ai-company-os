@@ -118,6 +118,14 @@ final class LifeClockStore {
     /// this property so any view can drive tab changes via the store.
     var selectedTab: AppTab = .today
 
+    /// Personal-current healthspan projection — the same value the
+    /// Future tab headline uses, recomputed in the store on every
+    /// write path that can change it (HK refresh save, QuickLog,
+    /// override apply/revert). Today's trajectory peek reads this
+    /// instead of re-fetching + re-aggregating per render. Nil until
+    /// the first refresh after a baseline is set.
+    private(set) var currentHealthspanProjection: HealthspanEngine.Projection?
+
     private func emit(_ intent: SupportMomentPresenter.Intent) {
         supportMoment = supportPresenter.moment(for: intent, tone: toneMode)
     }
@@ -886,6 +894,12 @@ final class LifeClockStore {
             recomputeYesterdayDelta(profile: profile, now: now)
         }
         recomputePendingWrapUp(profile: profile, now: now)
+        // V1.7.0: any Pro override mutates the per-day snapshot, which
+        // shifts both the History cumulative summary and the Future
+        // headline projection. Invalidate + recompute alongside the
+        // existing derived-state refresh.
+        invalidateCumulativeCache()
+        refreshCurrentHealthspanProjection()
     }
 
     /// Public read accessor used by the day-detail view. Returns nil when
@@ -1183,12 +1197,41 @@ final class LifeClockStore {
     /// inside its save block on any snapshot upsert so the next History
     /// tab open recomputes — eliminates the read-then-write race
     /// between background HK refresh and foreground History reads.
+    /// Also called from `setTodayHabits` and the override write paths
+    /// so retroactive habit edits invalidate the cache at the source
+    /// (defense in depth — the contentVersion mismatch path catches it
+    /// on next read regardless).
     /// (Both are @MainActor in this store, but explicit invalidation
     /// keeps the contract clear and survives a future actor split.)
     fileprivate func invalidateCumulativeCache() {
         guard let cache = fetchCumulativeCache() else { return }
         // Force contentVersion mismatch on next read; cheap.
         cache.contentVersion = -1
+    }
+
+    /// Recompute `currentHealthspanProjection` from the latest persisted
+    /// snapshots + habits + profile baseline. Called from the same write
+    /// paths as `invalidateCumulativeCache()` so the TodayView trajectory
+    /// peek stays current without re-aggregating per render.
+    fileprivate func refreshCurrentHealthspanProjection() {
+        guard let profile, let baseline = profile.baselineHealthspanYears else {
+            currentHealthspanProjection = nil
+            return
+        }
+        let snapshots = recentSnapshots(limit: 14)
+        let habits = recentHabits(limit: 14)
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: profile.birthDate,
+            asOf: clock.now(),
+            calendar: clock.calendar
+        ))
+        currentHealthspanProjection = HealthspanEngine.currentProjection(
+            snapshots: snapshots,
+            habits: habits,
+            baseline: baseline,
+            currentAge: currentAge,
+            clock: clock
+        )
     }
 
     private func fetchCumulativeCache() -> CumulativeSummaryCache? {
@@ -1607,7 +1650,13 @@ final class LifeClockStore {
         // as today 8 PM. Reconcile now reads `lastSuppressedDate` and
         // installs a one-shot for tomorrow instead.
         profile?.lastSuppressedDate = clock.calendar.startOfDay(for: clock.now())
+        // V1.7.0: retroactive habit edits invalidate the cumulative
+        // cache + projection peek. `refreshFromHealthKit` below ALSO
+        // does this on its snapshot save path, but invalidating here
+        // closes the window between save() and the HK refresh.
+        invalidateCumulativeCache()
         try? modelContext.save()
+        refreshCurrentHealthspanProjection()
         await refreshFromHealthKit()
         let updatedDelta = todayEstimate?.dailyTimeDeltaMinutes ?? previousDelta
         let deltaChange = updatedDelta - previousDelta
@@ -1874,9 +1923,11 @@ final class LifeClockStore {
         }
         // V1.7.0: invalidate the cumulative cache inside the same save
         // block. Future History tab reads recompute against the new
-        // snapshot row.
+        // snapshot row. Also recompute the store-owned trajectory peek
+        // so the Today screen reads cheaply on next render.
         invalidateCumulativeCache()
         try? modelContext.save()
+        refreshCurrentHealthspanProjection()
     }
 
     private func fetchHabitsBack(_ days: Int) -> [HabitLog] {

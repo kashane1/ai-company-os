@@ -394,26 +394,12 @@ struct TodayView: View {
         return days >= 4 && store.profile?.baselineHealthspanYears != nil
     }
 
-    /// Computes the years+months projection string for the peek.
-    /// Returns nil when no baseline (defensive — `shouldShowTrajectoryPeek`
-    /// already rules this out, but the guard keeps the view body
-    /// nil-safe).
+    /// Returns the years+months projection string for the peek. Reads
+    /// `store.currentHealthspanProjection` (recomputed in the store's
+    /// write paths) rather than re-fetching + re-aggregating per render,
+    /// so the peek stays cheap even on a Pro user with 200 days of data.
     private func currentProjectionForPeek() -> String? {
-        guard let baseline = store.profile?.baselineHealthspanYears else { return nil }
-        let snapshots = store.recentSnapshots(limit: 14)
-        let habits = store.recentHabits(limit: 14)
-        let currentAge = Double(AgeGate.ageInYears(
-            birthDate: store.profile?.birthDate ?? Date.distantPast,
-            asOf: store.clock.now(),
-            calendar: store.clock.calendar
-        ))
-        let projection = HealthspanEngine.currentProjection(
-            snapshots: snapshots,
-            habits: habits,
-            baseline: baseline,
-            currentAge: currentAge,
-            clock: store.clock
-        )
+        guard let projection = store.currentHealthspanProjection else { return nil }
         let totalMonths = Int((projection.healthspanYears * 12).rounded())
         let y = totalMonths / 12
         let m = totalMonths % 12
