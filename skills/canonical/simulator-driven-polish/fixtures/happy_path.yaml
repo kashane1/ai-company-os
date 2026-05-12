@@ -9,6 +9,7 @@
     skill_file: canonical/simulator-driven-polish/skill.md
   expected:
     required_section_headings:
+      - "## Consumed prompt contract"
       - "## Modes"
       - "## Decision Layer (the autonomy contract)"
       - "## Vision Artifact (`docs/products/<product-id>/vision.md`)"
@@ -70,3 +71,6 @@
       - "Two-recurrence rule fires"
       - "Build fails 2 cycles in a row"
       - "Ask-tier finding requires operator input"
+    required_helper_dependencies:
+      - "packages/schemas/polish_prompt.py"
+      - "POLISH_PROMPT_FIELDS"

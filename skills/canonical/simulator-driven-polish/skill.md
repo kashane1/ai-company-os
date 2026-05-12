@@ -68,6 +68,17 @@ Use this skill when an iOS product needs hands-on improvement, not just a code-o
 
 This is the editing counterpart to `ios-simulator-ux-audit`. That skill audits and reports; this skill audits AND edits AND commits, under explicit decision authority.
 
+## Consumed prompt contract
+
+This skill consumes polish prompts conforming to the schema at
+`packages/schemas/polish_prompt.py` (`POLISH_PROMPT_FIELDS`).
+Producer skills — `simulator-polish-recon`, `premium-feel-audit`,
+`pro-value-audit` — emit prompts using the 9-field template defined
+in that module and documented in `skills/canonical/shared/recon-scaffolding.md`.
+The 9 fields are: Tier, Evidence, Idea, Surfaces, Fixture knobs,
+Prior context, Success criteria, Iteration cap, Final computer-use
+checkpoint.
+
 ## Modes
 
 The loop primitives are identical across modes. What changes is the **observer** — what the agent compares the running app against.
