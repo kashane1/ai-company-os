@@ -224,6 +224,37 @@ skills:
       claude: adapters/claude/premium-feel-audit.md
     project_skill: .claude/skills/premium-feel-audit.md
 
+  - id: pro-value-audit
+    name: Pro-Value Audit
+    path: canonical/pro-value-audit/skill.md
+    owner_agent: ios
+    # Monetization counterpart to simulator-polish-recon (remedial) and
+    # premium-feel-audit (elevation). Read-only — emits a backlog of
+    # Pro-discoverability / justification / depth / trust / value-claim
+    # prompts scored against docs/products/<product-id>/pro-value-rule.md
+    # which operationalizes MONETIZATION.md's Free/Pro rule. Member of
+    # the recon-family — consumes the shared spine at
+    # skills/canonical/shared/recon-scaffolding.md and emits prompts in
+    # the per-prompt template locked by packages/schemas/polish_prompt.py.
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Contract-freeze fixture at
+    # skills/canonical/pro-value-audit/fixtures/happy_path.yaml locks
+    # the monetization-specific contract: observer (pro-value-rule.md +
+    # MONETIZATION.md), tier vocabulary (pro-thin, pro-invisible,
+    # upsell-missed, value-claim-unjustified, friction-too-high,
+    # trust-gap [submission-blocker], pro-rule-violation [submission-
+    # blocker], vision-question, nice-to-have), variety floors (≥3
+    # fix-list, ≥2 freeform-polish, ≥1 reference-match, ≥1 vision-
+    # driven), and pro-value-readiness criteria. Exercised by
+    # tests/python/unit/test_pro_value_audit_fixtures.py.
+    fixture_status: passing
+    source: internal
+    adapters:
+      claude: adapters/claude/pro-value-audit.md
+    project_skill: .claude/skills/pro-value-audit.md
+
   - id: supervisor-goal-decomposition
     name: Supervisor Goal Decomposition
     path: canonical/shared/supervisor-goal-decomposition.md

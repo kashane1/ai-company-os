@@ -1,0 +1,68 @@
+# Contract-freeze fixture for pro-value-audit. Locks the monetization-specific
+# contract surface: observer (pro-value-rule.md + MONETIZATION.md), tier
+# vocabulary, variety floors, pro-value-readiness criteria, escalation rules
+# for trust-gap and pro-rule-violation, and the shared-spine dependency.
+#
+# See tests/python/unit/test_pro_value_audit_fixtures.py.
+- name: happy_path
+  description: Canonical body still exposes the pro-value-audit contract.
+  input:
+    skill_file: canonical/pro-value-audit/skill.md
+  expected:
+    required_section_headings:
+      - "## Observer"
+      - "## Coverage matrix (monetization-specific columns)"
+      - "## Tier vocabulary (binding — monetization-specific)"
+      - "## Variety mandate (monetization-specific floors at standard depth)"
+      - "## Pro-value-readiness flag — strict mode (monetization-specific)"
+      - "## Failure modes (monetization-specific)"
+      - "## Cadence"
+    required_input_fields:
+      - "product_id"
+      - "baseline"
+      - "depth (quick | standard | deep — default standard)"
+      - "minimum_prompts"
+    required_preconditions:
+      - "docs/products/<product-id>/pro-value-rule.md exists"
+      - "docs/products/<product-id>/MONETIZATION.md exists"
+      - "docs/products/<product-id>/vision.md exists"
+      - "skills/canonical/shared/recon-scaffolding.md exists"
+    required_failure_modes:
+      - "Missing `pro-value-rule.md`"
+      - "Missing `MONETIZATION.md`"
+      - "Rubric stub"
+      - "Rubric drifts from MONETIZATION.md"
+      - "Pro touchpoint inventory is empty"
+      - "Missing `shared/recon-scaffolding.md`"
+      - "Memory pass produces a contradiction"
+      - "Operator's intent is regression audit"
+      - "Operator's intent is premium-feel audit"
+    required_handoff_channel:
+      - "docs/products/<product-id>/pro-value-backlog-<YYYY-MM-DD>-<focus-slug>.md"
+    required_tier_vocabulary:
+      - "pro-thin"
+      - "pro-invisible"
+      - "upsell-missed"
+      - "value-claim-unjustified"
+      - "friction-too-high"
+      - "trust-gap"
+      - "pro-rule-violation"
+      - "vision-question"
+      - "nice-to-have"
+    required_variety_floors:
+      - "≥3 `fix-list`"
+      - "≥2 `freeform-polish`"
+      - "≥1 `reference-match`"
+      - "≥1 `vision-driven`"
+    required_helper_dependencies:
+      - "canonical/shared/recon-scaffolding"
+      - "packages/schemas/polish_prompt.py"
+      - "canonical/simulator-driven-polish"
+      - "canonical/simulator-polish-recon"
+      - "canonical/premium-feel-audit"
+    required_validation_steps:
+      - "report file exists at the expected path with all 9 required sections"
+      - "per-prompt template adheres to packages/schemas/polish_prompt.py POLISH_PROMPT_FIELDS"
+      - "every emitted prompt cites pro-value-rule.md + a specific category + a specific Pro touchpoint as evidence"
+      - "trust-gap and pro-rule-violation findings are escalated to submission-blocker tier and surfaced in the report's executive summary"
+      - "memory pass was performed and the memory ledger section is present"
