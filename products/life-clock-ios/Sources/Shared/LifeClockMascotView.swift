@@ -249,30 +249,13 @@ struct LifeClockMascotView: View {
         // White hands with a world-fixed drop shadow — the shadow stays
         // pointing toward the bottom-right of the screen regardless of
         // the hand's rotation, simulating a static light source above.
-        //
-        // SwiftUI's `.shadow()` rotates with its parent, so to keep the
-        // shadow direction world-fixed we pre-rotate the offset by the
-        // inverse of the hand's angle. After `.rotationEffect(angle)`
-        // applies, the shadow lands at the desired world offset.
-        //
-        //   world (Wx, Wy) ← rotation(angle) ← local (Lx, Ly)
-        //   ⇒ Lx = Wx·cos(θ) + Wy·sin(θ)
-        //     Ly = -Wx·sin(θ) + Wy·cos(θ)
-        let worldDx = thickness * 0.35   // slight rightward bias
-        let worldDy = thickness * 0.85   // shadow falls below hand
-        let theta = angle.radians
-        let localDx = worldDx * cos(theta) + worldDy * sin(theta)
-        let localDy = -worldDx * sin(theta) + worldDy * cos(theta)
-
-        return Capsule()
+        // Inverse-rotation math lives in `Lighting.swift`; the convention
+        // constants (0.22 / 0.35 / 0.85 / 0.55) are the single source of
+        // truth there.
+        Capsule()
             .fill(Color.white)
             .frame(width: thickness, height: length)
-            .shadow(
-                color: .black.opacity(0.22),
-                radius: thickness * 0.55,
-                x: localDx,
-                y: localDy
-            )
+            .lightingRotatedDepth(referenceSize: thickness, angle: angle)
             .offset(y: -length / 2)
             .rotationEffect(angle)
     }

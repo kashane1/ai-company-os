@@ -49,14 +49,9 @@ struct TrajectoryChart: View {
                     DesignTokens.Palette.elevated,
                     in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
                 )
-                // Lighting convention. World-fixed; chart container
-                // doesn't rotate so no inverse-rotation math.
-                .shadow(
-                    color: .black.opacity(0.22),
-                    radius: Self.chartHeight * 0.55,
-                    x: Self.chartHeight * 0.35,
-                    y: Self.chartHeight * 0.85
-                )
+                // Lighting convention via shared modifier. Non-rotating
+                // surface; constants live in Sources/Shared/Lighting.swift.
+                .lightingDepth(referenceSize: Self.chartHeight)
 
             if case .cappedAt = clampState {
                 Text(FutureNeutralCopy.capReached)
