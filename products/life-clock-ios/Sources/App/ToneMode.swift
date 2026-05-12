@@ -734,6 +734,17 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "No signal. Connect HK or use QuickLog."
         }
     }
+
+    /// Today screen trajectory-peek affordance. Routes to the Future
+    /// tab on tap. `formatted` is the years+months projection (e.g.
+    /// "87y 2m"). Hidden when day-state is day0 / coldLaunch1to3.
+    func todayTrajectoryPeek(formatted: String) -> String {
+        switch self {
+        case .gentle: return "Your trajectory: \(formatted) →"
+        case .coach: return "Your trajectory: \(formatted) →"
+        case .firmDirect: return "Trajectory: \(formatted) →"
+        }
+    }
 }
 
 // MARK: - Future tab neutral strings (single neutral string, no per-tone variants)

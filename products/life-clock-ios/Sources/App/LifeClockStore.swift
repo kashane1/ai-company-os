@@ -113,6 +113,11 @@ final class LifeClockStore {
     /// is a no-op (token mismatch ⇒ ignore).
     private var scrubEndToken: Int = 0
 
+    /// Cross-tab navigation. The TodayView trajectory peek writes
+    /// `.future` here; MainTabView binds its `TabView` selection to
+    /// this property so any view can drive tab changes via the store.
+    var selectedTab: AppTab = .today
+
     private func emit(_ intent: SupportMomentPresenter.Intent) {
         supportMoment = supportPresenter.moment(for: intent, tone: toneMode)
     }

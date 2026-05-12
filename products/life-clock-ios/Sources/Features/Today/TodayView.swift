@@ -106,6 +106,7 @@ struct TodayView: View {
                     headline
                     mascotHero
                     clockCard
+                    trajectoryPeek
                     rescueLine
                     if let moment = store.supportMoment {
                         supportMomentCard(moment)
@@ -349,6 +350,74 @@ struct TodayView: View {
             }
         }
         .accessibilityIdentifier("today.headline")
+    }
+
+    /// V1.7.0 — small cross-screen affordance below the clock card.
+    /// Tap routes to the Future tab. Hidden when the user is on
+    /// day0 / coldLaunch1to3 (no projection yet) AND when the Future
+    /// tab is itself hidden (RELEASE pre-Phase-4 OR onboardingCompletedAt
+    /// nil). The peek doubles as Future-tab discoverability — the
+    /// tab is one of four bottom-bar tabs, so a contextual peek raises
+    /// the chance of first-time engagement (success metric: ≥40% of
+    /// full14plus users view Future tab ≥3 times in 7 days).
+    @ViewBuilder
+    private var trajectoryPeek: some View {
+        if shouldShowTrajectoryPeek, let projection = currentProjectionForPeek() {
+            Button {
+                store.selectedTab = .future
+            } label: {
+                HStack {
+                    Text(store.toneMode.todayTrajectoryPeek(formatted: projection))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("today.trajectoryPeek")
+        }
+    }
+
+    private var shouldShowTrajectoryPeek: Bool {
+        // Same gate as MainTabView's Future tab visibility.
+        guard LifeClockLaunchConfiguration.current.futureTabUnlocked else { return false }
+        guard let onboarded = store.profile?.onboardingCompletedAt else { return false }
+        let days = max(0, store.clock.calendar.dateComponents(
+            [.day],
+            from: store.clock.calendar.startOfDay(for: onboarded),
+            to: store.clock.calendar.startOfDay(for: store.clock.now())
+        ).day ?? 0)
+        // Hidden through day 3 (no chart, no slider, no narrative ⇒
+        // no number to peek at). Surfaces at day 4 alongside the
+        // warming-up chart.
+        return days >= 4 && store.profile?.baselineHealthspanYears != nil
+    }
+
+    /// Computes the years+months projection string for the peek.
+    /// Returns nil when no baseline (defensive — `shouldShowTrajectoryPeek`
+    /// already rules this out, but the guard keeps the view body
+    /// nil-safe).
+    private func currentProjectionForPeek() -> String? {
+        guard let baseline = store.profile?.baselineHealthspanYears else { return nil }
+        let snapshots = store.recentSnapshots(limit: 14)
+        let habits = store.recentHabits(limit: 14)
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: store.profile?.birthDate ?? Date.distantPast,
+            asOf: store.clock.now(),
+            calendar: store.clock.calendar
+        ))
+        let projection = HealthspanEngine.currentProjection(
+            snapshots: snapshots,
+            habits: habits,
+            baseline: baseline,
+            currentAge: currentAge,
+            clock: store.clock
+        )
+        let totalMonths = Int((projection.healthspanYears * 12).rounded())
+        let y = totalMonths / 12
+        let m = totalMonths % 12
+        return m == 0 ? "\(y)y" : "\(y)y \(m)m"
     }
 
     /// Tone-modulated "patterns, not perfection" line. Renders only when
