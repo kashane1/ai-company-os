@@ -10,6 +10,7 @@ struct LifeClockApp: App {
     @State private var subscriptions: SubscriptionStore
     @State private var hasBootstrapped: Bool = false
     @State private var forcedPaywallPresented: Bool = false
+    @State private var forcedPaywallScrollTarget: PaywallSheet.Section? = nil
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -67,7 +68,10 @@ struct LifeClockApp: App {
                     // Test-only: present the paywall on launch so an XCUITest
                     // can audit the paywall.close path without first navigating
                     // to Profile and triggering a purchase flow.
-                    if launchConfiguration.forcePaywall {
+                    // V1.7.0: also triggered by LIFECLOCK_JUMP_TO=
+                    // paywallWhatIfSection — same path, with scrollTo wired.
+                    if launchConfiguration.effectiveForcePaywall {
+                        forcedPaywallScrollTarget = launchConfiguration.effectivePaywallScrollTarget
                         forcedPaywallPresented = true
                     }
                 }
@@ -87,7 +91,7 @@ struct LifeClockApp: App {
                     }
                 }
                 .sheet(isPresented: $forcedPaywallPresented) {
-                    PaywallSheet()
+                    PaywallSheet(scrollTo: forcedPaywallScrollTarget)
                         .environment(subscriptions)
                 }
                 .sheet(item: wrapUpBinding) { wrapUp in
@@ -161,7 +165,7 @@ struct RootView: View {
 
 struct MainTabView: View {
     @Environment(LifeClockStore.self) private var store
-    @State private var selection: AppTab = LifeClockLaunchConfiguration.current.initialTab
+    @State private var selection: AppTab = LifeClockLaunchConfiguration.current.effectiveInitialTab
 
     private var futureTabVisible: Bool {
         // Two gates: (1) onboarding complete — Future tab requires a

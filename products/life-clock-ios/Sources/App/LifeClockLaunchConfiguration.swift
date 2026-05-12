@@ -159,6 +159,68 @@ struct LifeClockLaunchConfiguration {
     /// contents. nil disables capture entirely (default).
     let telemetryCapturePath: String?
 
+    // MARK: - JUMP_TO derived values
+
+    /// Effective initial tab — `LIFECLOCK_JUMP_TO=future*|paywallWhatIfSection`
+    /// implicitly selects the Future tab. Explicit `LIFECLOCK_INITIAL_TAB`
+    /// still wins when JUMP_TO is unset.
+    var effectiveInitialTab: AppTab {
+        switch futureJumpTo {
+        case .futureDay0, .futureColdLaunch, .futureWarmingUp, .futureFull,
+             .futureCapReached, .futureFloorReached:
+            return .future
+        case .paywallWhatIfSection, .reinstallRecovery, .rebaselineRitual, .none:
+            return initialTab
+        }
+    }
+
+    /// Effective `seedDaysSinceInstall` — JUMP_TO=future* presets
+    /// derived values when the explicit env var isn't set.
+    /// futureDay0=0 / futureColdLaunch=2 / futureWarmingUp=8 /
+    /// futureFull=30 (also used by cap/floor variants).
+    var effectiveSeedDaysSinceInstall: Int? {
+        if let explicit = seedDaysSinceInstall { return explicit }
+        switch futureJumpTo {
+        case .futureDay0: return 0
+        case .futureColdLaunch: return 2
+        case .futureWarmingUp: return 8
+        case .futureFull, .futureCapReached, .futureFloorReached: return 30
+        case .paywallWhatIfSection, .reinstallRecovery, .rebaselineRitual, .none: return nil
+        }
+    }
+
+    /// Whether the paywall should auto-present on launch. JUMP_TO=
+    /// `paywallWhatIfSection` triggers this (in addition to the
+    /// legacy `LIFECLOCK_FORCE_PAYWALL=1` env var).
+    var effectiveForcePaywall: Bool {
+        forcePaywall || futureJumpTo == .paywallWhatIfSection
+    }
+
+    /// Scroll target for the auto-presented paywall, when applicable.
+    /// `paywallWhatIfSection` → `.whatIfSimulator`; otherwise nil
+    /// (lands at top).
+    var effectivePaywallScrollTarget: PaywallSheet.Section? {
+        switch futureJumpTo {
+        case .paywallWhatIfSection: return .whatIfSimulator
+        default: return nil
+        }
+    }
+
+    /// Fixture-only forced projection clamp state. JUMP_TO=
+    /// `futureCapReached` / `futureFloorReached` substitutes the
+    /// engine's math so agents can land on the cap/floor UI without
+    /// re-tuning the coefficients to actually reach the boundary.
+    /// (Realistic v1 coefficients top out at baseline + ~9y, well
+    /// under the +14y cap; this knob lets us snapshot the clamp UI
+    /// regardless.) Returns nil for non-clamp JUMP_TO values.
+    var effectiveForcedClampState: HealthspanEngine.Projection.ClampState? {
+        switch futureJumpTo {
+        case .futureCapReached: return .cappedAt(0)   // baseline filled in at consume site
+        case .futureFloorReached: return .flooredAt(0)
+        default: return nil
+        }
+    }
+
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
         let env = ProcessInfo.processInfo.environment
@@ -293,7 +355,14 @@ struct LifeClockLaunchConfiguration {
     }
 
     func seedInitialStateIfNeeded(in context: ModelContext) {
-        guard scenario == .onboarded else { return }
+        // V1.7.0: LIFECLOCK_JUMP_TO=future* implies the user must
+        // already be onboarded (Future tab requires baseline). Seed
+        // when EITHER an explicit onboarded scenario OR a JUMP_TO
+        // that needs onboarded state is set.
+        let needsOnboardedSeed = scenario == .onboarded
+            || futureJumpTo != nil
+            || effectiveSeedDaysSinceInstall != nil
+        guard needsOnboardedSeed else { return }
         let descriptor = FetchDescriptor<UserProfile>()
         if let existing = try? context.fetch(descriptor), !existing.isEmpty { return }
 
@@ -314,7 +383,7 @@ struct LifeClockLaunchConfiguration {
         // tests to land on Day 0 / Day 1–6 / Day 7+ / Day 14+ without
         // also seeding a streak.
         let onboardedAt: Date = {
-            if let daysSince = seedDaysSinceInstall {
+            if let daysSince = effectiveSeedDaysSinceInstall {
                 return calendar.date(byAdding: .day, value: -daysSince, to: now) ?? now
             }
             guard seedStreak > 0 else { return now }

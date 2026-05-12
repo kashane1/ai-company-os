@@ -257,6 +257,37 @@ struct FutureView: View {
     /// slider overrides applied when present.
     /// Recomputed every render — cheap for in-memory 14-day windows.
     private func healthspanProjection(baseline: Double) -> HealthspanEngine.Projection {
+        // V1.7.0: LIFECLOCK_JUMP_TO=futureCapReached/futureFloorReached
+        // forces the clamp state for agent-native fixture parity.
+        // (Realistic v1 coefficients top out below cap; without this
+        // override an agent can't land on the cap-reached UI for
+        // snapshot testing.)
+        if let forced = LifeClockLaunchConfiguration.current.effectiveForcedClampState {
+            let cap = baseline + 14
+            let floor = max(Double(AgeGate.ageInYears(
+                birthDate: store.profile?.birthDate ?? Date.distantPast,
+                asOf: store.clock.now(),
+                calendar: store.clock.calendar
+            )) + 1, 0)
+            switch forced {
+            case .cappedAt:
+                return HealthspanEngine.Projection(
+                    healthspanYears: cap,
+                    confidence: 1.0,
+                    perDimensionDelta: [:],
+                    clamped: .cappedAt(cap)
+                )
+            case .flooredAt:
+                return HealthspanEngine.Projection(
+                    healthspanYears: floor,
+                    confidence: 1.0,
+                    perDimensionDelta: [:],
+                    clamped: .flooredAt(floor)
+                )
+            case .nearCap, .none:
+                break
+            }
+        }
         let snapshots = store.recentSnapshots(limit: 14)
         let habits = recentHabits()
         let currentAge = Double(AgeGate.ageInYears(
