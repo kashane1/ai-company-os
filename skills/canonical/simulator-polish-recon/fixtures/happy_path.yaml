@@ -1,0 +1,63 @@
+# Contract-freeze fixture for simulator-polish-recon. Locks the canonical
+# body's depth ceilings, variety floor numbers, tier vocabulary,
+# submission-readiness criteria, and observer step order against silent
+# drift. Drift here means the skill's contract surface changed without
+# an explicit fixture update.
+#
+# Closes the v1.1 follow-up flagged in commit b70b1a6 (2026-05-10) — see
+# docs/plans/2026-05-12-feat-premium-and-pro-value-audit-skills-plan.md
+# deepening §8.
+#
+# See tests/python/unit/test_simulator_polish_recon_fixtures.py.
+- name: happy_path
+  description: Canonical body still exposes the recon contract surface.
+  input:
+    skill_file: canonical/simulator-polish-recon/skill.md
+  expected:
+    required_section_headings:
+      - "## Observer"
+      - "## Coverage matrix (recon-specific columns)"
+      - "## Tier vocabulary (binding — recon-specific)"
+      - "## Variety mandate (recon-specific floors at standard depth)"
+      - "## Submission-readiness flag — strict mode (recon-specific)"
+      - "## Failure modes (recon-specific)"
+      - "## Cadence"
+    required_input_fields:
+      - "product_id"
+      - "baseline"
+      - "depth (quick | standard | deep — default standard)"
+      - "also_audit_branches"
+      - "minimum_prompts"
+    required_preconditions:
+      - "docs/products/<product-id>/vision.md exists"
+      - "skills/canonical/shared/recon-scaffolding.md exists"
+    required_failure_modes:
+      - "Missing vision.md"
+      - "Missing shared/recon-scaffolding.md"
+      - "No prior polish coverage"
+      - "Memory pass produces a contradiction"
+      - "Operator's intent is elevation, not remediation"
+      - "Operator's intent is monetization audit"
+    required_handoff_channel:
+      - "docs/products/<product-id>/polish-backlog-<YYYY-MM-DD>-<focus-slug>.md"
+    required_tier_vocabulary:
+      - "submission-blocker"
+      - "vision-question"
+      - "regression-risk"
+      - "new-surface"
+      - "drift"
+      - "branch-readiness"
+      - "nice-to-have"
+    required_variety_floors:
+      - "≥2 `fix-list`"
+      - "≥3 `freeform-polish`"
+      - "≥2 `vision-driven`"
+      - "≥1 `reference-match`"
+    required_helper_dependencies:
+      - "canonical/shared/recon-scaffolding"
+      - "packages/schemas/polish_prompt.py"
+      - "canonical/simulator-driven-polish"
+    required_validation_steps:
+      - "report file exists at the expected path with all 9 required sections"
+      - "per-prompt template adheres to packages/schemas/polish_prompt.py POLISH_PROMPT_FIELDS"
+      - "memory pass was performed and the memory ledger section is present"

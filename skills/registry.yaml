@@ -181,11 +181,15 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    # No contract-freeze fixture yet at v1 — depth ceilings (20/40/60),
-    # variety mandate floors, 14-day cooling-off rule, and submission-
-    # readiness strict criteria are the contract surface that would
-    # eventually want a fixture. Validating python test is a v1.1 follow-up.
-    fixture_status: missing
+    # Contract-freeze fixture at
+    # skills/canonical/simulator-polish-recon/fixtures/happy_path.yaml
+    # locks depth ceilings (20/40/60), recon-specific tier vocabulary,
+    # variety mandate floors, observer step order, submission-readiness
+    # strict criteria, and the shared-spine dependency. Added 2026-05-12
+    # as part of the audit-sibling fork; closes the v1.1 follow-up from
+    # commit b70b1a6 (2026-05-10). Exercised by
+    # tests/python/unit/test_simulator_polish_recon_fixtures.py.
+    fixture_status: passing
     source: internal
     adapters:
       claude: adapters/claude/simulator-polish-recon.md
