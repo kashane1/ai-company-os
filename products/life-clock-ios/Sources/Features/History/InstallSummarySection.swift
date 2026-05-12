@@ -92,9 +92,9 @@ struct InstallSummarySection: View {
         let formatted = formatDaysHours(summary.totalDeltaMinutes)
         let sign = summary.totalDeltaMinutes >= 0 ? "+" : "−"
         let anchor = anchorText(for: summary)
-        let prefix = summary.totalDeltaMinutes >= 0
-            ? "banked since"
-            : "since"
+        let prefix = store.toneMode.historySummaryAnchorPrefix(
+            positive: summary.totalDeltaMinutes >= 0
+        )
 
         return VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
             ViewThatFits(in: .horizontal) {

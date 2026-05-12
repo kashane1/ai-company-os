@@ -39,6 +39,14 @@ struct LifeClockApp: App {
         // any view. Seed from the launch config so initial-tab and
         // JUMP_TO knobs continue to land deterministically.
         store.selectedTab = launchConfiguration.effectiveInitialTab
+        // V1.7.0 fixture parity: JUMP_TO=futureCapReached/futureFloorReached
+        // pre-positions the WhatIfSlider thumbs at the extremes that
+        // justify the forced headline clamp. Without this seed the recon
+        // captures "cap reached" headline + default thumbs — visually
+        // contradictory.
+        if let seeds = launchConfiguration.effectiveSliderOverrideSeeds {
+            store.sliderOverrides = seeds
+        }
         // Construct SubscriptionStore here (rather than inline in the
         // @State default) so we can wire it as the entitlement source on
         // `store` BEFORE the first frame renders. This eliminates the

@@ -99,7 +99,7 @@ struct FutureView: View {
                 }
                 .accessibilityIdentifier("future.headline.projection")
 
-                Text("you started at \(formatHealthspan(baseline))")
+                Text(store.toneMode.futureBaselineFootnote(formatted: formatHealthspan(baseline)))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
@@ -129,11 +129,14 @@ struct FutureView: View {
         if abs(delta) >= 0.05 {  // suppress display when delta rounds to zero
             let sign = delta >= 0 ? "+" : "−"
             let magnitude = formatHealthspan(abs(delta))
-            let verb = delta >= 0 ? "earned" : "lost"
-            Text("\(sign)\(magnitude) \(verb) since you started")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .accessibilityIdentifier("future.headline.delta")
+            Text(store.toneMode.futureSignedDelta(
+                sign: sign,
+                magnitude: magnitude,
+                positive: delta >= 0
+            ))
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("future.headline.delta")
         }
     }
 
@@ -172,6 +175,7 @@ struct FutureView: View {
                 )
                 FreeNarrativeLine(
                     perDimensionDelta: projection.perDimensionDelta,
+                    aggregates: resolvedAggregatesForNarrative(),
                     tone: store.toneMode
                 )
                 sliderSection(baseline: baseline)
@@ -188,6 +192,7 @@ struct FutureView: View {
                 )
                 FreeNarrativeLine(
                     perDimensionDelta: projection.perDimensionDelta,
+                    aggregates: resolvedAggregatesForNarrative(),
                     tone: store.toneMode
                 )
                 sliderSection(baseline: baseline)
@@ -196,6 +201,22 @@ struct FutureView: View {
                 }
             }
         }
+    }
+
+    /// Resolved per-dim aggregates for the free narrative line. Reuses
+    /// the scrub-start cache when active so the threshold descriptor
+    /// updates smoothly during slider movement without re-aggregating
+    /// the 14-day window on every `onChange`.
+    private func resolvedAggregatesForNarrative() -> [HealthspanEngine.Dimension: Double] {
+        let base = store.cachedBaselineAggregates
+            ?? HealthspanEngine.aggregates(
+                snapshots: store.recentSnapshots(limit: 14),
+                habits: recentHabits()
+            )
+        return HealthspanEngine.resolvedAggregates(
+            baseAggregates: base,
+            overrides: store.sliderOverrides
+        )
     }
 
     @ViewBuilder
@@ -220,18 +241,20 @@ struct FutureView: View {
     private func longFormNarrativeSection(baseline: Double) -> some View {
         let now = store.clock.now()
         let cal = store.clock.calendar
+        // `weekEnd` is the most recent Sunday — the same date used in
+        // the narrative subhead ("Reflection from Sunday, May 10").
+        // "This week" is the 7 days ending at `weekEnd`; "prior week"
+        // is the 7 days before that. The store's 14-day window covers
+        // both buckets exactly.
         let weekEnd = now.snappedToLastSunday(calendar: cal)
-        let priorEnd = cal.date(byAdding: .day, value: -7, to: weekEnd) ?? weekEnd
-        // For v1, we slice the existing 14-day store windows into
-        // "this week (last 7)" and "prior week (7..14)" using the
-        // batched store accessors. NarrativeEngine is pure over the
-        // inputs.
+        let weekStart = cal.date(byAdding: .day, value: -7, to: weekEnd) ?? weekEnd
+        let priorWeekStart = cal.date(byAdding: .day, value: -14, to: weekEnd) ?? weekEnd
         let allSnaps = store.recentSnapshots(limit: 14)
         let allHabits = store.recentHabits(limit: 14)
-        let thisWeekSnaps = allSnaps.filter { $0.date >= weekEnd }
-        let priorWeekSnaps = allSnaps.filter { $0.date >= priorEnd && $0.date < weekEnd }
-        let thisWeekHabits = allHabits.filter { $0.date >= weekEnd }
-        let priorWeekHabits = allHabits.filter { $0.date >= priorEnd && $0.date < weekEnd }
+        let thisWeekSnaps = allSnaps.filter { $0.date >= weekStart && $0.date < weekEnd }
+        let priorWeekSnaps = allSnaps.filter { $0.date >= priorWeekStart && $0.date < weekStart }
+        let thisWeekHabits = allHabits.filter { $0.date >= weekStart && $0.date < weekEnd }
+        let priorWeekHabits = allHabits.filter { $0.date >= priorWeekStart && $0.date < weekStart }
         let currentAge = Double(AgeGate.ageInYears(
             birthDate: store.profile?.birthDate ?? Date.distantPast,
             asOf: now,
@@ -328,6 +351,10 @@ struct FutureView: View {
     }
 
     /// Build the 30-point trajectory for the chart.
+    ///
+    /// Passes the current slider overrides + memoized scrub-start
+    /// aggregates so the chart's current/future points stay in lockstep
+    /// with the headline projection during a Pro slider scrub.
     private func trajectoryPoints(baseline: Double) -> [TrajectoryPoint] {
         let snapshots = store.recentSnapshots(limit: 14)
         let habits = recentHabits()
@@ -341,6 +368,8 @@ struct FutureView: View {
             habits: habits,
             baseline: baseline,
             currentAge: currentAge,
+            overrides: store.sliderOverrides,
+            baseAggregates: store.cachedBaselineAggregates,
             clock: store.clock
         )
     }

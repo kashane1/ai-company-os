@@ -221,6 +221,40 @@ struct LifeClockLaunchConfiguration {
         }
     }
 
+    /// Fixture-only slider seed positions. JUMP_TO=
+    /// `futureCapReached` / `futureFloorReached` pre-positions the
+    /// `WhatIfSlider` thumbs at the extreme that "justifies" the
+    /// forced headline clamp — otherwise a recon screenshot captures a
+    /// contradictory state ("cap reached" headline + default thumbs).
+    /// Realistic v1 coefficients won't actually land on the engine's
+    /// cap/floor from these values; the headline's `effectiveForcedClampState`
+    /// shortcut substitutes the exact boundary value. Returns nil when
+    /// no fixture is active.
+    var effectiveSliderOverrideSeeds: [HealthspanEngine.Dimension: Double]? {
+        switch futureJumpTo {
+        case .futureCapReached:
+            return [
+                .sleep: 7.5,
+                .dietQuality: 7,
+                .steps: 12_000,
+                .exerciseMinutes: 400,
+                .extras: 0,
+                .nicotine: 0,
+            ]
+        case .futureFloorReached:
+            return [
+                .sleep: 4,
+                .dietQuality: 0,
+                .steps: 1_000,
+                .exerciseMinutes: 0,
+                .extras: 7,
+                .nicotine: 7,
+            ]
+        default:
+            return nil
+        }
+    }
+
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
         let env = ProcessInfo.processInfo.environment

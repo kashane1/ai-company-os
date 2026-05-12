@@ -186,13 +186,19 @@ enum NarrativeEngine {
     }
 
     private static func actionParagraph(tone: ToneMode, action: String) -> String {
+        // Per the Phase-0 spec, the action paragraph is the most
+        // tone-divergent slot: gentle invites, coach directs,
+        // firmDirect imperatives. The shared `action` body keeps the
+        // factual recommendation stable while each tone wraps it with
+        // distinct framing tokens so the ≥30% tone-distinctness
+        // invariant holds (enforced by `NarrativeEngineTests`).
         switch tone {
         case .gentle:
             return "For next week, you might try \(action). No pressure — small shifts compound."
         case .coach:
-            return "For next week: \(action)."
+            return "Aim this week: \(action). Stack three days and it becomes the default."
         case .firmDirect:
-            return "Next week. \(action)."
+            return "Lock it in. Do this: \(action)."
         }
     }
 

@@ -307,13 +307,22 @@ final class LifeClockStoreTests: XCTestCase {
     /// Regression guard for todo 026: completion state must persist when a
     /// quest's display title changes between sessions. Identity is the slug,
     /// not the title.
+    ///
+    /// V1.7.0 follow-up: re-derive the target slug from whichever sleep-
+    /// bucket quest the engine actually emits on `fixedDate` rather than
+    /// pinning a specific slug. The quest pool rotates the bucket choice
+    /// by day-of-year (per the pool affinity engine); hard-coding
+    /// "sleep.consistency.v1" was correct only for the rotation slot
+    /// that happened to land on the test's fixed date originally. The
+    /// invariant under test is slug-identity persistence across a copy
+    /// edit — not the specific slug.
     func testQuestCompletionSurvivesTitleRename() async throws {
         let container = try LifeClockContainer.make(inMemory: true)
         let context = container.mainContext
-        // Sleep quest is always emitted (movement quest can be nil when steps already met).
-        let slug = "sleep.consistency.v1"
 
-        // Session 1: persist a Quest manually with the engine's slug, complete it.
+        // Session 1: emit quests for fixedDate, pick the sleep-bucket one,
+        // complete it. Sleep is always emitted (movement quest can be nil
+        // when steps already met).
         let store = LifeClockStore(
             healthService: MockHealthKitService(seed: 7),
             modelContext: context,
@@ -322,10 +331,11 @@ final class LifeClockStoreTests: XCTestCase {
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
         store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
         await store.refreshFromHealthKit()
-        guard let sleepQuest = store.todayQuests.first(where: { $0.slug == slug }) else {
-            XCTFail("expected an emitted quest with slug \(slug); got slugs \(store.todayQuests.map(\.slug))")
+        guard let sleepQuest = store.todayQuests.first(where: { $0.slug.hasPrefix("sleep.") }) else {
+            XCTFail("expected at least one sleep-bucket quest; got slugs \(store.todayQuests.map(\.slug))")
             return
         }
+        let slug = sleepQuest.slug
         store.toggleQuestCompletion(sleepQuest)
         XCTAssertEqual(store.completedPlanCount, 1)
 
