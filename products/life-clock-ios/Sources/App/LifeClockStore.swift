@@ -262,7 +262,12 @@ final class LifeClockStore {
         // without re-running onboarding. Idempotent — once set the
         // method is a no-op. Sanity-checked.
         bootstrapV170Baseline()
-        await refreshFromHealthKit()
+        // `force: true` so a cold restart within the 5-minute fresh-snapshot
+        // window still emits today's quest slate and applies persisted
+        // completions. Otherwise the short-circuit at the top of
+        // `refreshFromHealthKit` returns before `applyPersistedCompletions`
+        // runs, leaving `todayQuests` empty on relaunch.
+        await refreshFromHealthKit(force: true)
         notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
         await reconcileNotifications()
     }
@@ -668,7 +673,12 @@ final class LifeClockStore {
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
         let weekHabits = fetchHabitsBack(7)
         weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: weekHabits, profile: profile)
-        if let weekly {
+        // Only persist when there's at least one snapshot — the engine's
+        // empty-input branch returns a placeholder keyed at `now`, which
+        // would beat real prior-week reports in pendingWeekly's
+        // most-recent selection and trigger a "this-week" wrap-up on the
+        // morning the user has no data yet.
+        if let weekly, !weekSnapshots.isEmpty {
             persistWeeklyReport(weekly)
         }
 
@@ -1998,6 +2008,21 @@ final class LifeClockStore {
         if didBackfill {
             try? modelContext.save()
         }
+
+        // Same-day completions remain visible even when the engine's
+        // anti-repeat selector rotates past their slug on the next
+        // refresh (e.g. cold restart after a morning completion).
+        // Append any persisted completion for today that the slate
+        // didn't already surface, so a checkmark on the user's
+        // just-completed action survives plan regeneration until
+        // tomorrow's slate.
+        let emittedSlugs = Set(quests.map(\.slug))
+        let missingCompletions = storedRows.filter { stored in
+            stored.completedAt != nil
+                && !stored.slug.isEmpty
+                && !emittedSlugs.contains(stored.slug)
+        }
+        quests.append(contentsOf: missingCompletions)
     }
 
     private struct TitleCategoryKey: Hashable {
