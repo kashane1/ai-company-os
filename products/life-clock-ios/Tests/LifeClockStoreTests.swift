@@ -526,17 +526,25 @@ final class LifeClockStoreTests: XCTestCase {
     }
 
     func testEveningLogDoesNotTriggerSuppressionPath() async throws {
-        // fixedDate is 2027-01-15 ~21:20 UTC — past 20:00. Today's
-        // reminder hour has already lapsed; reconcile should install
-        // the plain repeating trigger (no suppressUntil) because iOS
-        // will naturally fire next at tomorrow 20:00.
-        let (store, mock) = try makeStoreWithNotifications()
+        // Use a late-evening fixed date so today's 20:00 reminder hour
+        // has already passed; reconcile should install the plain
+        // repeating trigger (no suppressUntil) because iOS will
+        // naturally fire next at tomorrow 20:00.
+        let lateEvening = Date(timeIntervalSince1970: 1_800_050_400) // 2027-01-15 22:00 UTC
+        let container = try LifeClockContainer.make(inMemory: true)
+        let mock = MockNotificationsService()
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(),
+            modelContext: container.mainContext,
+            engineClock: .fixed(lateEvening),
+            notificationsService: mock
+        )
         let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
         store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
         await store.bootstrap()
         await store.setDailyReminder(enabled: true, hour: 20)
 
-        let habits = HabitLog(date: fixedDate)
+        let habits = HabitLog(date: lateEvening)
         habits.dietQuality = "great"
         await store.setTodayHabits(habits)
 
