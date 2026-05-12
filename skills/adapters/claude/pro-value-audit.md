@@ -50,7 +50,7 @@ Under 30 lines: report path, one-line state summary, pro-value-readiness color, 
 ## Failure modes specific to Claude
 
 - **Rubric stub** — refuse politely; route operator to flesh out the rubric.
-- **Rubric/MONETIZATION drift** — refuse with explicit drift report; do not pick a side.
+- **Rubric/MONETIZATION drift** — refuse with a drift report per `skill.md` § Drift report format; do not pick a side.
 - **Operator wants regression audit** — route to `simulator-polish-recon`.
 - **Operator wants premium-feel audit** — route to `premium-feel-audit`.
 - **Memory directory missing on fresh machine** — treat as "no relevant entries"; do not refuse.

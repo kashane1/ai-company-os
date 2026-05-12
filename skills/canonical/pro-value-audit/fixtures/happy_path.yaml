@@ -16,6 +16,7 @@
       - "## Variety mandate (monetization-specific floors at standard depth)"
       - "## Pro-value-readiness flag — strict mode (monetization-specific)"
       - "## Failure modes (monetization-specific)"
+      - "## Drift report format"
       - "## Cadence"
     required_input_fields:
       - "product_id"
