@@ -659,8 +659,8 @@ No silent failure swallowing. Every error class has either a UI affordance, a re
 
 ## Documentation plan
 
-- [ ] `docs/products/life-clock/healthspan-coefficients.md` — Phase 0 one-page modelling note
-- [ ] `docs/products/life-clock/future-tab-tone-pools-spec.md` — Phase 0 tone pool authoring
+- [x] `docs/products/life-clock/healthspan-coefficients.md` — Phase 0 one-page modelling note
+- [x] `docs/products/life-clock/future-tab-tone-pools-spec.md` — Phase 0 tone pool authoring
 - [ ] `docs/products/life-clock/vision.md` — append: resolution of Q5; new Decided constraints (immutable baseline; cross-screen time-unit convention with onboarding-grandfathered)
 - [ ] `docs/products/life-clock/polish-2026-MM-DD-<phase>-future-*.md` — one session log per phase
 - [ ] `docs/solutions/healthspan-projector-modeling-decisions.md` — institutional learning capture post-Phase 4
