@@ -35,6 +35,17 @@ struct TrajectoryChart: View {
     /// scrub-feel.md.
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// 2026-05-12 polish: at AX content sizes the `topLeading`
+    /// "baseline" annotation overflows the chart's plot area (it
+    /// anchors at the leftmost data mark and extends further left,
+    /// which gets clipped by the container's padding at XXL). The
+    /// dashed RuleMark + Y-axis tick at the baseline value already
+    /// convey the same info visually; the AX descriptor names the
+    /// baseline number explicitly in its summary. So at AX sizes we
+    /// drop the text annotation rather than fight the layout. See
+    /// polish-2026-05-12-trajectory-chart-a11y-colorblind-xxl.md.
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     init(
         points: [TrajectoryPoint],
         baseline: Double,
@@ -117,9 +128,11 @@ struct TrajectoryChart: View {
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [4]))
                 .foregroundStyle(.secondary)
                 .annotation(position: .topLeading, alignment: .leading, spacing: 4) {
-                    Text("baseline")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Text("baseline")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                 }
         }
         .chartYScale(domain: yDomain)
