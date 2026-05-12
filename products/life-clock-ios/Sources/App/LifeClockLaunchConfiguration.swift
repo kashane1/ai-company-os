@@ -145,6 +145,18 @@ struct LifeClockLaunchConfiguration {
     /// install anchor.
     let seedDaysSinceInstall: Int?
 
+    /// `LIFECLOCK_SEED_BASELINE_ADJUSTMENT=<float>` seeds the V1.7.0
+    /// anchor-dial state on an `onboarded` scenario by writing
+    /// `personalAdjustmentYears` and `anchorAdjustedAt`. The store's
+    /// `bootstrapV170Baseline()` then computes `baselineHealthspanYears`
+    /// on first launch, unlocking surfaces gated on a captured baseline
+    /// (Today trajectory peek, Future projections). Without this knob
+    /// the `onboarded` scenario simulates a user who completed onboarding
+    /// but has not yet anchored — useful for testing the pre-baseline
+    /// edge case but not for Today-peek polish walks. Opt-in: nil leaves
+    /// the anchor fields unset.
+    let seedBaselineAdjustment: Double?
+
     /// `LIFECLOCK_SEED_SLIDER_OVERRIDES=<json>` provides deterministic
     /// `HealthspanEngine.projectWith(overrides:)` inputs so a test
     /// can render the cap/floor/near-cap states without gestural
@@ -301,6 +313,10 @@ struct LifeClockLaunchConfiguration {
             guard let raw = env["LIFECLOCK_SEED_DAYS_SINCE_INSTALL"] else { return nil }
             return Int(raw).map { max(0, $0) }
         }()
+        let seedBaselineAdjustment: Double? = {
+            guard let raw = env["LIFECLOCK_SEED_BASELINE_ADJUSTMENT"] else { return nil }
+            return Double(raw)
+        }()
         let seedSliderOverridesJSON = env["LIFECLOCK_SEED_SLIDER_OVERRIDES"]
         let telemetryCapturePath = env["LIFECLOCK_TELEMETRY_CAPTURE_PATH"]
 
@@ -336,6 +352,7 @@ struct LifeClockLaunchConfiguration {
             futureTabUnlocked: futureTabUnlocked,
             futureJumpTo: futureJumpTo,
             seedDaysSinceInstall: seedDaysSinceInstall,
+            seedBaselineAdjustment: seedBaselineAdjustment,
             seedSliderOverridesJSON: seedSliderOverridesJSON,
             telemetryCapturePath: telemetryCapturePath
         )
@@ -364,6 +381,7 @@ struct LifeClockLaunchConfiguration {
             futureTabUnlocked: true,
             futureJumpTo: nil,
             seedDaysSinceInstall: nil,
+            seedBaselineAdjustment: nil,
             seedSliderOverridesJSON: nil,
             telemetryCapturePath: nil
         )
@@ -438,25 +456,33 @@ struct LifeClockLaunchConfiguration {
         profile.onboardingCompletedAt = onboardedAt
         profile.onboardingV2CompletedAt = onboardedAt
         profile.disclaimerAcceptedAt = onboardedAt
-        // V1.7.0 (2026-05-12, polish-2026-05-12-whatif-slider-scrub-feel):
-        // when a Future-tab fixture is in play, seed the anchor +
-        // baseline fields so `FutureView`'s headline + chart + slider
-        // gates (every branch requires `profile.baselineHealthspanYears`)
-        // render on first frame. Without this, JUMP_TO=future* + the
-        // recommended FORCE_PRO + FUTURE_TAB_UNLOCKED knobs land on a
-        // blank Future tab. Scoped to JUMP_TO so legacy
-        // `scenario=.onboarded` callers that depend on a nil baseline
-        // (e.g. Today day0/day1-3 paths, baseline-bootstrap-on-launch
-        // tests) keep their existing behavior.
-        if futureJumpTo != nil {
+        // V1.7.0 baseline seeding — two orthogonal opt-in paths:
+        //
+        // 1. `LIFECLOCK_SEED_BASELINE_ADJUSTMENT=<float>` (explicit knob,
+        //    polish-2026-05-12-today-free-vs-pro-and-a11y): sets the
+        //    anchor pair only, lets `bootstrapV170Baseline()` derive
+        //    `baselineHealthspanYears` from the engine on first launch.
+        //    Used when the polish run wants the engine's actual output
+        //    (e.g. Today trajectory peek shows the real projected number).
+        //
+        // 2. `LIFECLOCK_JUMP_TO=future*` (auto-trigger,
+        //    polish-2026-05-12-whatif-slider-scrub-feel): writes the full
+        //    baseline tuple with a literal 84.0 to keep Future-tab
+        //    screenshot fixtures decoupled from the engine's coefficient
+        //    table. Without this, JUMP_TO=future* + FORCE_PRO +
+        //    FUTURE_TAB_UNLOCKED lands on a blank Future tab.
+        //
+        // Path 1 wins when both are set (explicit beats inferred). Legacy
+        // callers that depend on a nil baseline (Today day0/day1-3 paths,
+        // baseline-bootstrap-on-launch tests) keep their existing behavior
+        // by setting neither knob.
+        if let adjustment = seedBaselineAdjustment {
+            profile.personalAdjustmentYears = adjustment
+            profile.anchorAdjustedAt = onboardedAt
+        } else if futureJumpTo != nil {
             profile.anchorAdjustedAt = onboardedAt
             profile.personalAdjustmentYears = 0
             profile.baselineCapturedAt = onboardedAt
-            // Literal — value matches what `bootstrapV170Baseline` would
-            // compute for the seeded female 1990-birth profile with the
-            // hardcoded sleepGoalHours/strengthFrequencyPerWeek/diet
-            // baseline above. Keeps the fixture decoupled from the
-            // engine's coefficient table for screenshot/diff stability.
             profile.baselineHealthspanYears = 84.0
         }
         context.insert(profile)

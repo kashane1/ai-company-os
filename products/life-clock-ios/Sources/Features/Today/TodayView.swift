@@ -362,7 +362,9 @@ struct TodayView: View {
     /// full14plus users view Future tab ≥3 times in 7 days).
     @ViewBuilder
     private var trajectoryPeek: some View {
-        if shouldShowTrajectoryPeek, let projection = currentProjectionForPeek() {
+        if shouldShowTrajectoryPeek,
+           let projection = currentProjectionForPeek(),
+           let projectionYears = store.currentHealthspanProjection?.healthspanYears {
             Button {
                 store.selectedTab = .future
             } label: {
@@ -375,6 +377,10 @@ struct TodayView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(store.toneMode.todayTrajectoryPeekA11yLabel)
+            .accessibilityValue(TimeDeltaFormatter.formatProjectionA11y(years: projectionYears))
+            .accessibilityHint("Opens the Future tab")
             .accessibilityIdentifier("today.trajectoryPeek")
         }
     }

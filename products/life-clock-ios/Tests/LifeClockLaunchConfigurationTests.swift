@@ -48,6 +48,7 @@ final class LifeClockLaunchConfigurationTests: XCTestCase {
             futureTabUnlocked: true,
             futureJumpTo: futureJumpTo,
             seedDaysSinceInstall: seedDaysSinceInstall,
+            seedBaselineAdjustment: nil,
             seedSliderOverridesJSON: nil,
             telemetryCapturePath: nil
         )

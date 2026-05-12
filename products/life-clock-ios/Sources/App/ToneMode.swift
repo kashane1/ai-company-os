@@ -785,6 +785,20 @@ enum ToneMode: String, CaseIterable, Identifiable {
         case .firmDirect: return "Tally: \(formatted) →"
         }
     }
+
+    /// VoiceOver label for the Today trajectory peek. The noun half of
+    /// `todayTrajectoryPeek(formatted:)` with the number and arrow
+    /// stripped, so VoiceOver reads "<label>. <value>. Button." cleanly
+    /// instead of pronouncing "87y 2m right arrow" as "eight seven y
+    /// two m right arrow." Pair with `TimeDeltaFormatter.formatProjectionA11y`
+    /// for the value half.
+    var todayTrajectoryPeekA11yLabel: String {
+        switch self {
+        case .gentle: return "Your projection ahead"
+        case .coach: return "Trajectory"
+        case .firmDirect: return "Tally"
+        }
+    }
 }
 
 // MARK: - Future tab neutral strings (single neutral string, no per-tone variants)
