@@ -756,7 +756,7 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertEqual(preCount, 0, "fixture should start with no WeeklyReport rows")
 
         let store = LifeClockStore(
-            healthService: MockHealthKitService(seed: 7),
+            healthService: MockHealthKitService(seed: 7, preAuthorized: true),
             modelContext: context,
             engineClock: .fixed(monday)
         )

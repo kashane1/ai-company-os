@@ -668,7 +668,12 @@ final class LifeClockStore {
         let weekSnapshots = await healthService.recentSnapshots(endingAt: now, count: 7)
         let weekHabits = fetchHabitsBack(7)
         weekly = clockEngine.calculateWeeklyTrend(snapshots: weekSnapshots, habits: weekHabits, profile: profile)
-        if let weekly {
+        // Only persist when there's at least one snapshot — the engine's
+        // empty-input branch returns a placeholder keyed at `now`, which
+        // would beat real prior-week reports in pendingWeekly's
+        // most-recent selection and trigger a "this-week" wrap-up on the
+        // morning the user has no data yet.
+        if let weekly, !weekSnapshots.isEmpty {
             persistWeeklyReport(weekly)
         }
 
