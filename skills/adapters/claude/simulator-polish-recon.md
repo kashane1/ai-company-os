@@ -15,7 +15,7 @@ Surface these inputs explicitly: `product_id`, `baseline` (default `origin/main`
 
 1. `test -f docs/products/<product-id>/vision.md` — refuse if missing; route to `simulator-driven-polish` vision-driven mode.
 2. `test -f skills/canonical/shared/recon-scaffolding.md` — refuse if missing; the spine is a hard dependency.
-3. `ls docs/products/<product-id>/polish-*.md docs/products/<product-id>/ux-audit-*.md 2>/dev/null | wc -l` — if zero, emit a one-prompt bootstrap backlog and stop.
+3. `ls docs/products/<product-id>/polish-*.md docs/products/<product-id>/ux-audit-*.md docs/products/<product-id>/polish-backlog-*.md docs/products/<product-id>/premium-feel-backlog-*.md docs/products/<product-id>/pro-value-backlog-*.md 2>/dev/null | wc -l` — if zero, emit a one-prompt bootstrap backlog and stop. Cross-skill cooling-off applies — list every sibling's backlog files so the 14-day rule has full visibility.
 4. `git status --short` — clean is fine; dirty → ask.
 5. `gh --version` — only if `also_audit_branches` is non-empty.
 

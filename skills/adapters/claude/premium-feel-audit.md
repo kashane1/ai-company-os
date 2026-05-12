@@ -16,7 +16,7 @@ Surface these inputs explicitly: `product_id`, `baseline` (default `origin/main`
 1. `test -f docs/products/<product-id>/premium-bar.md` — REFUSE if missing; operator must author rubric first.
 2. `test -f docs/products/<product-id>/vision.md` — refuse if missing.
 3. `test -f skills/canonical/shared/recon-scaffolding.md` — refuse if missing.
-4. `ls docs/products/<product-id>/polish-*.md docs/products/<product-id>/ux-audit-*.md 2>/dev/null | wc -l` — if zero, emit one-prompt bootstrap backlog.
+4. `ls docs/products/<product-id>/polish-*.md docs/products/<product-id>/ux-audit-*.md docs/products/<product-id>/polish-backlog-*.md docs/products/<product-id>/premium-feel-backlog-*.md docs/products/<product-id>/pro-value-backlog-*.md 2>/dev/null | wc -l` — if zero, emit one-prompt bootstrap backlog. Cross-skill cooling-off applies — list every sibling's backlog files so the 14-day rule has full visibility.
 5. Rubric stub check: `wc -l docs/products/<product-id>/premium-bar.md` should be ≥80 with category content; stub-headers-only → emit one-prompt bootstrap.
 
 ## Tools to reach for, in order

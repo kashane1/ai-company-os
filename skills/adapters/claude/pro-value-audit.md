@@ -17,9 +17,10 @@ Surface these inputs explicitly: `product_id`, `baseline` (default `origin/main`
 2. `test -f docs/products/<product-id>/MONETIZATION.md` — REFUSE if missing; the rubric references it as source of truth.
 3. `test -f docs/products/<product-id>/vision.md` — refuse if missing.
 4. `test -f skills/canonical/shared/recon-scaffolding.md` — refuse if missing.
-5. `ls docs/products/<product-id>/polish-*.md docs/products/<product-id>/ux-audit-*.md 2>/dev/null | wc -l` — if zero, emit one-prompt bootstrap.
+5. `ls docs/products/<product-id>/polish-*.md docs/products/<product-id>/ux-audit-*.md docs/products/<product-id>/polish-backlog-*.md docs/products/<product-id>/premium-feel-backlog-*.md docs/products/<product-id>/pro-value-backlog-*.md 2>/dev/null | wc -l` — if zero, emit one-prompt bootstrap. Cross-skill cooling-off applies — list every sibling's backlog files so the 14-day rule has full visibility.
 6. Rubric stub check: `wc -l docs/products/<product-id>/pro-value-rule.md` should be ≥80 with category content + Pro touchpoint inventory; stub-headers-only → one-prompt bootstrap.
-7. Rubric/MONETIZATION drift check: verify `pro-value-rule.md` "Free/Pro rule (verbatim)" section matches MONETIZATION.md. Drift → refuse with explicit report.
+7. Touchpoint inventory check: extract the "## Pro touchpoint inventory" section from `pro-value-rule.md`. Count the bullet entries (lines starting with `- `). If the section has zero entries, emit a one-prompt bootstrap backlog asking the operator to inventory Pro touchpoints before audit can proceed. This is separate from the stub check at step 6 — a rubric can pass the line-count stub check while having an empty touchpoint inventory.
+8. Rubric/MONETIZATION drift check: verify `pro-value-rule.md` "Free/Pro rule (verbatim)" section matches MONETIZATION.md. Drift → refuse with explicit report.
 
 ## Tools to reach for, in order
 
