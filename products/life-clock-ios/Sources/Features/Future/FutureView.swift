@@ -22,7 +22,6 @@ import SwiftData
 struct FutureView: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(SubscriptionStore.self) private var subscriptions
-    @State private var sliderOverrides: [HealthspanEngine.Dimension: Double] = [:]
     @State private var paywallScrollTarget: PaywallSheet.Section? = nil
     @State private var paywallPresented: Bool = false
 
@@ -168,7 +167,8 @@ struct FutureView: View {
                 TrajectoryChart(
                     points: trajectoryPoints(baseline: baseline),
                     baseline: baseline,
-                    clampState: projection.clamped
+                    clampState: projection.clamped,
+                    isScrubbing: store.isProjectionScrubbing
                 )
                 FreeNarrativeLine(
                     perDimensionDelta: projection.perDimensionDelta,
@@ -183,7 +183,8 @@ struct FutureView: View {
                 TrajectoryChart(
                     points: trajectoryPoints(baseline: baseline),
                     baseline: baseline,
-                    clampState: projection.clamped
+                    clampState: projection.clamped,
+                    isScrubbing: store.isProjectionScrubbing
                 )
                 FreeNarrativeLine(
                     perDimensionDelta: projection.perDimensionDelta,
@@ -206,12 +207,7 @@ struct FutureView: View {
         WhatIfSlider(
             baseAggregates: aggregates,
             isPro: subscriptions.isPro,
-            onOverridesChange: { newOverrides in
-                sliderOverrides = newOverrides
-                if let dim = newOverrides.keys.first {
-                    TelemetryRecorder.shared.emit(.futureSliderScrubbed(dimension: dim))
-                }
-            },
+            store: store,
             onLockedTap: {
                 paywallScrollTarget = .whatIfSimulator
                 paywallPresented = true
@@ -268,7 +264,7 @@ struct FutureView: View {
             asOf: store.clock.now(),
             calendar: store.clock.calendar
         ))
-        if sliderOverrides.isEmpty {
+        if store.sliderOverrides.isEmpty {
             return HealthspanEngine.currentProjection(
                 snapshots: snapshots,
                 habits: habits,
@@ -277,10 +273,15 @@ struct FutureView: View {
                 clock: store.clock
             )
         }
-        let aggregates = HealthspanEngine.aggregates(snapshots: snapshots, habits: habits)
+        // Reuse the scrub-start memoized aggregates when available
+        // (avoids re-computing the 14-day rolling values on every
+        // onChange tick during an active scrub). Falls back to a
+        // live aggregate when no scrub is in flight.
+        let aggregates = store.cachedBaselineAggregates
+            ?? HealthspanEngine.aggregates(snapshots: snapshots, habits: habits)
         return HealthspanEngine.projectWith(
             baseAggregates: aggregates,
-            overrides: sliderOverrides,
+            overrides: store.sliderOverrides,
             baseline: baseline,
             currentAge: currentAge,
             confidence: HealthspanEngine.sampleDensity(snapshots: snapshots, habits: habits)

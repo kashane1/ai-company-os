@@ -7,20 +7,21 @@ import SwiftUI
 /// are dim (opacity 0.35) and locked. Tap on a locked slider track
 /// presents `PaywallSheet(scrollTo: .whatIfSimulator)`.
 ///
-/// Performance gates (per plan §Phase 4 perf gates):
-///  * Memoize 14-day baseline aggregates on scrub-start; reuse for
-///    every onChange tick; 250ms debounced clear so rapid re-grabs
-///    reuse cached aggregates.
-///  * Disable redraw animation while scrubbing.
-///  * Coalesce daily-refresh ticks via the pending-counter on the
-///    store.
-///  * Gesture priority: wrap slider in `.highPriorityGesture` so
-///    parent ScrollView doesn't steal slider drags.
+/// Performance gates (per plan §Phase 4 — all wired through
+/// `LifeClockStore`'s scrub state machine):
+///  * `beginScrub()` memoizes 14-day baseline aggregates on
+///    scrub-start; reused for every onChange tick.
+///  * `endScrub()` debounce-clears the cache 250ms after touch-end
+///    so rapid re-grabs reuse it.
+///  * `pendingRefreshCount` coalesces HK refresh ticks during a
+///    scrub; flush is exactly-one on touch-end.
+///  * Slider opacity 0.35 + `.disabled(true)` for Free; tap on the
+///    row routes to `onLockedTap`.
+///  * `highPriorityGesture` on the active slider keeps parent
+///    ScrollView from stealing drags.
 ///
-/// For Phase 4 v1, the slider passes its overrides to a parent
-/// callback (`onProjectionChange`) that the FutureView uses to
-/// redraw the chart. The store-side memoization + refresh-coalesce
-/// machinery lands in this same phase (see LifeClockStore additions).
+/// View binds to `store.sliderOverrides` via @Observable — no
+/// view-local `@State` for the overrides themselves.
 struct WhatIfSlider: View {
     /// Personal-current 14-day aggregates. Sliders' resting position.
     let baseAggregates: [HealthspanEngine.Dimension: Double]
@@ -28,16 +29,14 @@ struct WhatIfSlider: View {
     /// Pro entitlement state. Free users see dim, locked thumbs.
     let isPro: Bool
 
-    /// Fired on every value change (debounced internally by
-    /// scrub-start memoization). Parent (FutureView) projects with
-    /// these overrides and updates the chart.
-    let onOverridesChange: ([HealthspanEngine.Dimension: Double]) -> Void
+    /// Store reference — slider writes overrides + scrub state here
+    /// so cached aggregates + animation gating + refresh coalesce
+    /// live in one place (per plan §Phase 4 architecture-strategist
+    /// finding: orchestration must not leak into Views).
+    let store: LifeClockStore
 
     /// Fired when the user taps a locked slider track (Free state).
     let onLockedTap: () -> Void
-
-    @State private var overrides: [HealthspanEngine.Dimension: Double] = [:]
-    @State private var isScrubbing: Bool = false
 
     private var rows: [DimensionRow] {
         [
@@ -69,7 +68,7 @@ struct WhatIfSlider: View {
     @ViewBuilder
     private func sliderRow(for row: DimensionRow) -> some View {
         let anchor = baseAggregates[row.dim] ?? 0
-        let value = overrides[row.dim] ?? anchor
+        let value = store.sliderOverrides[row.dim] ?? anchor
 
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
             HStack {
@@ -91,27 +90,38 @@ struct WhatIfSlider: View {
                     get: { value },
                     set: { newValue in
                         guard isPro else { return }
-                        overrides[row.dim] = newValue
-                        onOverridesChange(overrides)
+                        store.setSliderOverride(row.dim, value: newValue)
+                        TelemetryRecorder.shared.emit(.futureSliderScrubbed(dimension: row.dim))
                     }
                 ),
                 in: row.range,
                 step: row.step,
                 onEditingChanged: { editing in
                     guard isPro else { return }
-                    isScrubbing = editing
-                    if !editing {
-                        // Snap-back on touch-end per the brainstorm
-                        // decision: slider returns to personal-current.
-                        // Plan §Phase 4: no Pin scenario affordance in v1.
-                        overrides.removeValue(forKey: row.dim)
-                        onOverridesChange(overrides)
+                    if editing {
+                        // Captures aggregates once per active scrub;
+                        // multi-touch supported via the counter.
+                        store.beginScrub()
+                    } else {
+                        // Snap-back per brainstorm decision. clear
+                        // BEFORE endScrub so chart shows snap-back
+                        // animation; endScrub then flushes pending
+                        // refresh + debounce-clears aggregates.
+                        store.clearSliderOverrides()
+                        store.endScrub()
                     }
                 }
             )
             .opacity(isPro ? 1.0 : 0.35)
             .disabled(!isPro)
             .allowsHitTesting(isPro)
+            // Parent ScrollView doesn't steal drags from the active
+            // slider thumb. No-op in the Free state (slider already
+            // disabled).
+            .highPriorityGesture(
+                isPro ? DragGesture(minimumDistance: 0) : nil,
+                including: .gesture
+            )
             .accessibilityIdentifier("future.slider.\(row.dim.rawValue)")
         }
         .contentShape(Rectangle())

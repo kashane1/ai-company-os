@@ -21,6 +21,22 @@ struct TrajectoryChart: View {
     let points: [TrajectoryPoint]
     let baseline: Double
     let clampState: HealthspanEngine.Projection.ClampState
+    /// V1.7.0 Phase 4 perf gate: when true, `.animation` is `nil`.
+    /// Animating an already-smooth slider input is wasted GPU and
+    /// burns the 120Hz frame budget. Restored on scrub-end.
+    let isScrubbing: Bool
+
+    init(
+        points: [TrajectoryPoint],
+        baseline: Double,
+        clampState: HealthspanEngine.Projection.ClampState,
+        isScrubbing: Bool = false
+    ) {
+        self.points = points
+        self.baseline = baseline
+        self.clampState = clampState
+        self.isScrubbing = isScrubbing
+    }
 
     private static let chartHeight: CGFloat = 220
 
@@ -103,7 +119,7 @@ struct TrajectoryChart: View {
                 }
         }
         .chartYScale(domain: yDomain)
-        .animation(.smooth(duration: 0.18), value: points)
+        .animation(isScrubbing ? nil : .smooth(duration: 0.18), value: points)
         .accessibilityLabel(accessibilityLabel)
     }
 

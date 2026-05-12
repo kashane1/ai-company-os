@@ -72,6 +72,47 @@ final class LifeClockStore {
     /// (one `@Query` site app-wide; everything else through the store).
     private(set) var todayReflection: DailyReflection?
 
+    // MARK: - Future tab projection state (V1.7.0)
+    //
+    // Store-owned per the plan §Phase 4 architecture-strategist review
+    // finding: trajectory cache + slider scrub coordination must NOT
+    // leak into View `@State`. Views read these properties; the store
+    // owns invalidation contracts. All access `@MainActor`.
+
+    /// User-applied slider overrides during a what-if scrub. Empty
+    /// `[:]` = personal-current values (slider at rest). Phase 4
+    /// `WhatIfSlider.onOverridesChange` writes here; `FutureView`
+    /// reads via @Observable to redraw the chart.
+    var sliderOverrides: [HealthspanEngine.Dimension: Double] = [:]
+
+    /// Memoized 14-day baseline aggregates captured on scrub-start.
+    /// Reused for every `onChange` tick during a scrub so we don't
+    /// re-fetch SwiftData per tick. Cleared 250ms after touch-end
+    /// (debounced — rapid re-grabs within the window reuse it).
+    /// Nil = not scrubbing or cache cleared.
+    var cachedBaselineAggregates: [HealthspanEngine.Dimension: Double]?
+
+    /// True while any slider is actively scrubbing. Drives the
+    /// `.animation(nil, value:)` gate on the chart and the
+    /// pending-refresh queue. Multi-touch supported via the counter
+    /// (`activeScrubCount`); `isProjectionScrubbing` is true iff > 0.
+    var isProjectionScrubbing: Bool { activeScrubCount > 0 }
+
+    /// Count of in-flight slider scrubs. Multi-touch lets two fingers
+    /// scrub independently; we hold the aggregate cache + animation
+    /// gate until ALL release.
+    private(set) var activeScrubCount: Int = 0
+
+    /// Refresh ticks that arrived during a scrub. Cleared on flush;
+    /// counter (not bool) so we can observe whether anything queued
+    /// without losing edge cases.
+    private(set) var pendingRefreshCount: Int = 0
+
+    /// Monotonically-incrementing token. Bumped on every scrub-end so
+    /// any pending debounced clear that fires AFTER a new scrub-start
+    /// is a no-op (token mismatch ⇒ ignore).
+    private var scrubEndToken: Int = 0
+
     private func emit(_ intent: SupportMomentPresenter.Intent) {
         supportMoment = supportPresenter.moment(for: intent, tone: toneMode)
     }
@@ -526,6 +567,14 @@ final class LifeClockStore {
 
     func refreshFromHealthKit(force: Bool = false) async {
         guard let profile else { return }
+        // V1.7.0 Phase 4 coalesce: if a slider scrub is in flight,
+        // queue the refresh instead of running it now. `endScrub`
+        // flushes via `force: true` on touch-end. `force: true`
+        // callers bypass the queue (e.g. scrub-end flush itself,
+        // significant time change).
+        if !force, queueRefreshIfScrubbing() {
+            return
+        }
         let now = clock.now()
         let dayStart = clock.calendar.startOfDay(for: now)
 
@@ -869,6 +918,87 @@ final class LifeClockStore {
             profile: profile
         )
         return result.deltaMinutes
+    }
+
+    // MARK: - Future tab scrub coordination (V1.7.0 — Phase 4 perf gates)
+    //
+    // Per the plan §Phase 4 slider-scrub interaction spec:
+    //   * Memoize 14-day baseline aggregates on scrub-start.
+    //   * Hold for 250ms post touch-end (debounced clear) — rapid
+    //     re-grabs reuse the cache.
+    //   * Coalesce queued daily-refresh ticks during a scrub.
+    //   * Disable redraw animation while scrubbing.
+    //
+    // All entry points `@MainActor`-bound; the store as a whole is
+    // @MainActor so no actor-hop is required. The 250ms debounce
+    // uses `Task.sleep` with a monotonically-incrementing token to
+    // discard stale clears (rapid re-grab within the window means
+    // a new beginScrub bumps the token and the prior endScrub's
+    // debounced clear becomes a no-op).
+
+    /// Called by `WhatIfSlider.onEditingChanged(true)`. Captures the
+    /// current 14-day aggregates if no scrub is already active.
+    /// Increments the active-scrub counter so multi-touch is handled.
+    func beginScrub() {
+        activeScrubCount += 1
+        if cachedBaselineAggregates == nil {
+            cachedBaselineAggregates = HealthspanEngine.aggregates(
+                snapshots: recentSnapshots(limit: 14),
+                habits: recentHabits(limit: 14)
+            )
+        }
+    }
+
+    /// Called by `WhatIfSlider.onEditingChanged(false)`. Decrements
+    /// the counter; when it reaches zero, kicks off the 250ms
+    /// debounced clear of `cachedBaselineAggregates` AND flushes the
+    /// pending-refresh queue. Token-stable: a re-begin within 250ms
+    /// invalidates the in-flight clear via `scrubEndToken`.
+    func endScrub() {
+        activeScrubCount = max(0, activeScrubCount - 1)
+        guard activeScrubCount == 0 else { return }
+        scrubEndToken += 1
+        let token = scrubEndToken
+        // Flush any refresh that queued during the scrub. Exactly one
+        // refresh + crossfade per the plan's coalesce rule.
+        if pendingRefreshCount > 0 {
+            pendingRefreshCount = 0
+            Task { @MainActor in
+                await refreshFromHealthKit(force: true)
+            }
+        }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 250_000_000)  // 250ms
+            guard token == scrubEndToken else { return }     // re-grab; ignore
+            cachedBaselineAggregates = nil
+        }
+    }
+
+    /// Called by `WhatIfSlider` on each `onChange`. Cheap setter; the
+    /// view binds to `store.sliderOverrides` via @Observable.
+    func setSliderOverride(_ dim: HealthspanEngine.Dimension, value: Double?) {
+        if let value {
+            sliderOverrides[dim] = value
+        } else {
+            sliderOverrides.removeValue(forKey: dim)
+        }
+    }
+
+    /// Called by `WhatIfSlider.onEditingChanged(false)` after the
+    /// snap-back. Clears all overrides in one shot — chart returns
+    /// to personal-current.
+    func clearSliderOverrides() {
+        sliderOverrides = [:]
+    }
+
+    /// Called by HK refresh when a scrub is in flight. Returns true if
+    /// the caller should defer (queued) or false if it should proceed
+    /// normally. `flushPendingRefresh` runs the deferred refresh on
+    /// scrub-end.
+    func queueRefreshIfScrubbing() -> Bool {
+        guard isProjectionScrubbing else { return false }
+        pendingRefreshCount += 1
+        return true
     }
 
     /// Returns the N most-recent persisted habit logs, optionally
