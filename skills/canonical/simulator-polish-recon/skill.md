@@ -155,6 +155,8 @@ A cell that is "never" or "partial" on a non-trivial dimension contributes to th
 
 ## Tier vocabulary (binding — recon-specific)
 
+> Note: `submission-blocker` is a cross-sibling escalation tier defined in shared/recon-scaffolding.md § Cross-sibling escalation tier. Recon-specific tiers below.
+
 | Tier | Meaning | Variety floor (at standard depth) |
 |---|---|---|
 | `submission-blocker` | Without this, App Store submission cannot proceed (icon, screenshots, age-gate, subscription lifecycle, privacy disclosure UI, notification permission honesty) | ≥1 if focus=submission-readiness |

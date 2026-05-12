@@ -89,6 +89,33 @@ Every recon-family skill MUST NOT:
 - Contradict an entry in `Decided constraints` or operator memory (escalate to a Vision-question prompt instead)
 - Skip the variety mandate to fit a focus hint without operator approval logged in the report
 
+## Cross-sibling escalation tier
+
+`submission-blocker` is a **cross-sibling escalation tier** available to every
+recon-family audit. Any sibling MAY emit a `submission-blocker`-tier prompt
+when a finding crosses the App Store submission threshold. Examples by
+sibling:
+
+- `simulator-polish-recon`: missing app icon, missing screenshots, age-gate
+  gap, subscription lifecycle gap, privacy disclosure gap, notification-
+  permission honesty gap.
+- `premium-feel-audit`: any finding under the rubric's "Touch targets and
+  a11y (table-stakes)" section — these are submission-blocker, not premium-
+  gap.
+- `pro-value-audit`: any `trust-gap` (dark pattern, buried cancel, restore
+  broken, pricing mismatch) or `pro-rule-violation` (Pro gates content the
+  Free/Pro rule says belongs in Free).
+
+Submission-blocker prompts MUST be surfaced in the report's executive
+summary regardless of overall variety-mandate sequencing. Each sibling's
+readiness flag (submission-readiness / premium-readiness / pro-value-
+readiness) automatically goes **red** when any `submission-blocker` prompt
+is unresolved.
+
+The tier name `submission-blocker` is the canonical label across all
+recon-family siblings — do not invent synonyms (`submission-critical`,
+`release-blocker`, etc.).
+
 ## Output structure (9 binding sections, in order)
 
 Every recon-family backlog report file MUST contain these 9 sections in order. Section names are case-sensitive headings.

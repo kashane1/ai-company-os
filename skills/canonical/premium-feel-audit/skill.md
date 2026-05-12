@@ -141,6 +141,8 @@ A cell that's `weak` or `absent` on any category contributes to the surface's ve
 
 ## Tier vocabulary (binding — elevation-specific)
 
+> Note: Touch-target / a11y findings (defined in premium-bar.md § Touch targets and a11y) escalate to `submission-blocker` tier per shared/recon-scaffolding.md § Cross-sibling escalation tier.
+
 | Tier | Meaning | Variety floor (at standard depth) |
 |---|---|---|
 | `premium-gap` | Surface falls short of the rubric in a named category not covered by a more-specific tier | ≥1 |

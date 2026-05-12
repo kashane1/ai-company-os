@@ -149,6 +149,8 @@ Every Pro touchpoint in the rubric's inventory gets a row. Columns:
 
 ## Tier vocabulary (binding — monetization-specific)
 
+> Note: `trust-gap` and `pro-rule-violation` escalate to `submission-blocker` tier per shared/recon-scaffolding.md § Cross-sibling escalation tier.
+
 | Tier | Meaning | Escalation | Variety floor (at standard depth) |
 |---|---|---|---|
 | `pro-thin` | Pro surface feels shallow — Free behind a wall | normal | — |
