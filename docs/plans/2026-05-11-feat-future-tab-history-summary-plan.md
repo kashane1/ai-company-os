@@ -1,7 +1,7 @@
 ---
 title: Future tab + History summary section
 type: feat
-status: active
+status: completed
 date: 2026-05-11
 origin: docs/brainstorms/2026-05-11-life-clock-future-tab-and-history-summary-brainstorm.md
 revision: v2 (post-review trim)
