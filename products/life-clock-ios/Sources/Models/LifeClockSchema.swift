@@ -65,7 +65,28 @@ enum LifeClockSchemaV1: VersionedSchema {
     // value-only mutation, no schema shape change, so lightweight
     // migration applies. See
     // docs/plans/2026-05-08-feat-quest-pool-phase-4-and-5-plan.md §5a.
-    static var versionIdentifier = Schema.Version(1, 6, 0)
+    //
+    // 1.7.0 (2026-05-11): Future tab + History summary section. Three
+    // additive surfaces, all property-level-defaulted (per the 134110
+    // landmine doc):
+    //   - `UserProfile.baselineHealthspanYears: Double? = nil` — frozen
+    //     onboarding projection used as the Future tab's anchor. Captured
+    //     atomically inside `LifeClockStore.applyAnchorAdjustment(years:)`
+    //     and back-filled for existing onboarded users via the idempotent
+    //     `bootstrapV170Baseline()` (precedent: `bootstrapQuestPoolEngineFlag`).
+    //   - `UserProfile.baselineCapturedAt: Date? = nil` — pair with the
+    //     above for "show how old this anchor is" disclosure.
+    //   - `CumulativeSummaryCache` entity (single-row table). Caches
+    //     `LifeClockStore.cumulativeDeltaSinceInstall()` so the new
+    //     History install-summary section is O(1) on the second call
+    //     same day. `contentVersion: Int` is bumped on any retroactive
+    //     HabitLog/DailyHealthSnapshot delete so the cache invalidates
+    //     when historical rows go away.
+    // Bump is in-place inside the V1 enum (no MigrationStage.lightweight)
+    // — V1 internal version bumps absorb additive changes per the
+    // header note at :528-537.
+    // See docs/plans/2026-05-11-feat-future-tab-history-summary-plan.md.
+    static var versionIdentifier = Schema.Version(1, 7, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -78,6 +99,7 @@ enum LifeClockSchemaV1: VersionedSchema {
             WeeklyReport.self,
             DailyReflection.self,
             QuestEvent.self,
+            CumulativeSummaryCache.self,
         ]
     }
 
@@ -214,6 +236,33 @@ enum LifeClockSchemaV1: VersionedSchema {
         /// Phase 5b will retire the legacy path and remove this flag
         /// entirely after a ≥1-week production bake.
         var useQuestPoolEngine: Bool = true
+
+        // MARK: - Future tab baseline (additive 2026-05-11, V1.7.0)
+        //
+        // The Future tab anchors all projections against an immutable
+        // baseline captured at end-of-onboarding (engineYears + dial). The
+        // two fields are written atomically inside
+        // `LifeClockStore.applyAnchorAdjustment(years:)` and, for existing
+        // onboarded users on V1.7 upgrade, backfilled by the idempotent
+        // `bootstrapV170Baseline()` hook on every cold launch until set.
+        //
+        // Sanity-checked at write time: `(engineYears + dialYears).isFinite
+        // && > currentAge`. On failure the field stays nil and the next
+        // cold-launch bootstrap retries (matches the
+        // `bootstrapQuestPoolEngineFlag` resilience pattern).
+        //
+        // Both optional with `nil` default — SwiftData lightweight
+        // migration applies silently on existing V1.6 stores.
+
+        /// Frozen healthspan-years projection at end-of-onboarding. The
+        /// Future tab's anchor. Set once, never changed (re-baseline
+        /// ritual deferred to v1.1).
+        var baselineHealthspanYears: Double? = nil
+
+        /// Wall-clock time the baseline was first captured. For migrated
+        /// users (V1.6 → V1.7), this equals `anchorAdjustedAt` (the
+        /// truthful original dial-commit time).
+        var baselineCapturedAt: Date? = nil
 
         init(
             id: UUID = UUID(),
@@ -506,6 +555,58 @@ enum LifeClockSchemaV1: VersionedSchema {
             self.kind = kind
         }
     }
+
+    /// V1.7.0 (2026-05-11): single-row cache for the History install
+    /// summary section's cumulative since-install ledger. Walking 3
+    /// years of DailyHealthSnapshot + HabitLog rows is 300–800ms jank
+    /// on iPhone 14; this cache makes the second-call read O(1).
+    ///
+    /// **Single-row contract.** Code reads via `fetchFirst` and inserts
+    /// on first miss. There is no key — the row is "the cache." All
+    /// reads + writes are `@MainActor`-only.
+    ///
+    /// **Invalidation.** `contentVersion` is bumped whenever any
+    /// HabitLog or DailyHealthSnapshot is deleted (or the row count
+    /// disagrees with the expected count for the cached window). The
+    /// store reader compares the stored version against the current
+    /// content hash and recomputes on mismatch. `refreshFromHealthKit`
+    /// invalidates inside its save block on any DailyHealthSnapshot
+    /// upsert.
+    ///
+    /// **Property-level defaults.** Mandatory per the NSCocoaErrorDomain
+    /// 134110 landmine (see swiftdata-mandatory-attribute-migration-
+    /// landmine.md). Brand-new entity, no legacy rows, so any default
+    /// is safe.
+    ///
+    /// **topContributorsData** stores a JSON-encoded
+    /// `[CumulativeContributor]` triple (or shorter). Decoded
+    /// lazily via `LifeClockStore.cumulativeDeltaSinceInstall()`.
+    @Model
+    final class CumulativeSummaryCache {
+        /// Most recent date included in the cache (exclusive of today,
+        /// per `recentSnapshots(includingToday: false)` convention).
+        var lastIncludedDate: Date = Date(timeIntervalSince1970: 0)
+
+        /// Bumped on any HabitLog / DailyHealthSnapshot delete. The
+        /// content-hash check in the reader compares against
+        /// `expectedContentVersion(...)` computed from current row counts.
+        var contentVersion: Int = 0
+
+        /// Cumulative signed time delta from install to lastIncludedDate.
+        var totalDeltaMinutes: Int = 0
+
+        /// Beginning of the cache window (`max(profile.onboardingCompletedAt,
+        /// now - 3.years)`). When this equals `onboardingCompletedAt` the
+        /// hero copy reads "since {startDate}"; when it differs (3-year
+        /// truncation applied) the hero reads "since {year}".
+        var windowStart: Date = Date(timeIntervalSince1970: 0)
+
+        /// JSON-encoded `[CumulativeContributor]` (max 3). Decoded
+        /// lazily at read time; `Data = Data()` default is safe.
+        var topContributorsData: Data = Data()
+
+        init() {}
+    }
 }
 
 // Production code references the typealiases — never the versioned form.
@@ -519,6 +620,7 @@ typealias Quest = LifeClockSchemaV1.Quest
 typealias WeeklyReport = LifeClockSchemaV1.WeeklyReport
 typealias DailyReflection = LifeClockSchemaV1.DailyReflection
 typealias QuestEvent = LifeClockSchemaV1.QuestEvent
+typealias CumulativeSummaryCache = LifeClockSchemaV1.CumulativeSummaryCache
 
 enum LifeClockMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {

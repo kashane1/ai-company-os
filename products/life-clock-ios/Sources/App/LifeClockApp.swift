@@ -10,6 +10,7 @@ struct LifeClockApp: App {
     @State private var subscriptions: SubscriptionStore
     @State private var hasBootstrapped: Bool = false
     @State private var forcedPaywallPresented: Bool = false
+    @State private var forcedPaywallScrollTarget: PaywallSheet.Section? = nil
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -33,6 +34,11 @@ struct LifeClockApp: App {
             engineClock: launchConfiguration.clock,
             notificationsService: notificationsService
         )
+        // V1.7.0: tab selection lives on the store so cross-tab
+        // navigation (TodayView trajectory peek → Future) works from
+        // any view. Seed from the launch config so initial-tab and
+        // JUMP_TO knobs continue to land deterministically.
+        store.selectedTab = launchConfiguration.effectiveInitialTab
         // Construct SubscriptionStore here (rather than inline in the
         // @State default) so we can wire it as the entitlement source on
         // `store` BEFORE the first frame renders. This eliminates the
@@ -67,7 +73,10 @@ struct LifeClockApp: App {
                     // Test-only: present the paywall on launch so an XCUITest
                     // can audit the paywall.close path without first navigating
                     // to Profile and triggering a purchase flow.
-                    if launchConfiguration.forcePaywall {
+                    // V1.7.0: also triggered by LIFECLOCK_JUMP_TO=
+                    // paywallWhatIfSection — same path, with scrollTo wired.
+                    if launchConfiguration.effectiveForcePaywall {
+                        forcedPaywallScrollTarget = launchConfiguration.effectivePaywallScrollTarget
                         forcedPaywallPresented = true
                     }
                 }
@@ -87,7 +96,7 @@ struct LifeClockApp: App {
                     }
                 }
                 .sheet(isPresented: $forcedPaywallPresented) {
-                    PaywallSheet()
+                    PaywallSheet(scrollTo: forcedPaywallScrollTarget)
                         .environment(subscriptions)
                 }
                 .sheet(item: wrapUpBinding) { wrapUp in
@@ -160,10 +169,22 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
-    @State private var selection: AppTab = LifeClockLaunchConfiguration.current.initialTab
+    @Environment(LifeClockStore.self) private var store
+
+    private var futureTabVisible: Bool {
+        // Two gates: (1) onboarding complete — Future tab requires a
+        // baseline; (2) launch-config flag — DEBUG default true, RELEASE
+        // default false until Phase 4 ships. Either gate failing hides
+        // the tab entirely (no half-built UI on TestFlight; no
+        // baseline-less tab for fresh installs).
+        guard LifeClockLaunchConfiguration.current.futureTabUnlocked else { return false }
+        guard store.profile?.onboardingCompletedAt != nil else { return false }
+        return true
+    }
 
     var body: some View {
-        TabView(selection: $selection) {
+        @Bindable var store = store
+        TabView(selection: $store.selectedTab) {
             TodayView()
                 .tabItem { Label(AppTab.today.title, systemImage: AppTab.today.systemImage) }
                 .tag(AppTab.today)
@@ -171,6 +192,12 @@ struct MainTabView: View {
             HistoryView()
                 .tabItem { Label(AppTab.history.title, systemImage: AppTab.history.systemImage) }
                 .tag(AppTab.history)
+
+            if futureTabVisible {
+                FutureView()
+                    .tabItem { Label(AppTab.future.title, systemImage: AppTab.future.systemImage) }
+                    .tag(AppTab.future)
+            }
 
             ProfileView()
                 .tabItem { Label(AppTab.profile.title, systemImage: AppTab.profile.systemImage) }

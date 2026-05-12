@@ -108,4 +108,64 @@ enum ReflectionPrompts {
         case .firmDirect: return firmDirectPool
         }
     }
+
+    // MARK: - Future tab warming-up transparency line (V1.7.0)
+    //
+    // Day 4–13 transparency: N-aware copy, pre-authored per N per tone.
+    // Pool-with-discrete-N rather than templated `String(format:)` so
+    // each tone-N combination can carry tone-distinct phrasing. Per
+    // `docs/products/life-clock/future-tab-tone-pools-spec.md`.
+    //
+    // Indexing: clamps N to 4..13 then subtracts 4 for array offset.
+    // Out-of-range N returns the closest in-range string (defense for
+    // an unexpected dayState computation; the day-state machine should
+    // not call this with N outside [4,13]).
+    private static let warmingUpGentle: [String] = [
+        "4 days in. Your projection is taking shape — the picture sharpens through day 14.",
+        "5 days of signal. Still warming up; full confidence at day 14.",
+        "6 days logged. The trajectory is forming.",
+        "One week in. Your projection still has room to settle.",
+        "8 days of data. The chart is finding its footing.",
+        "9 days in. Five more days reach full confidence.",
+        "10 days. Almost the full window.",
+        "11 days. Confidence is climbing.",
+        "12 days. Two days from full read.",
+        "13 days. Tomorrow your full 14-day window kicks in.",
+    ]
+
+    private static let warmingUpCoach: [String] = [
+        "4 of 14 days logged. Projection sharpens through day 14.",
+        "5 of 14. Building toward full confidence.",
+        "6 of 14. Trajectory taking shape.",
+        "Week one done. Halfway to full read.",
+        "8 of 14. Signal is clarifying.",
+        "9 of 14. Five days to full window.",
+        "10 of 14. Closing in.",
+        "11 of 14. Three more days.",
+        "12 of 14. Two more days.",
+        "13 of 14. Full window opens tomorrow.",
+    ]
+
+    private static let warmingUpFirmDirect: [String] = [
+        "4/14 days. Full read at 14.",
+        "5/14. Building.",
+        "6/14.",
+        "7/14. Halfway.",
+        "8/14.",
+        "9/14. Five days out.",
+        "10/14.",
+        "11/14. Three days.",
+        "12/14. Two days.",
+        "13/14. Tomorrow.",
+    ]
+
+    static func futureWarmingUpTransparency(daysOfData: Int, tone: ToneMode) -> String {
+        let clamped = max(4, min(13, daysOfData))
+        let index = clamped - 4
+        switch tone {
+        case .gentle: return warmingUpGentle[index]
+        case .coach: return warmingUpCoach[index]
+        case .firmDirect: return warmingUpFirmDirect[index]
+        }
+    }
 }

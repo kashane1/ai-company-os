@@ -8,6 +8,20 @@ import StoreKit
 /// Always shows price + period, "auto-renews" disclosure, restore, ToS, and
 /// privacy links — App Review § 3.1.2 requirements.
 struct PaywallSheet: View {
+    /// Named scroll-to anchors. V1.7.0 (Future tab plan §Phase 4):
+    /// the Future tab's slider locks present `PaywallSheet(scrollTo:
+    /// .whatIfSimulator)` so the user lands directly on the
+    /// simulator section instead of scrolling past the generic
+    /// header. Default nil preserves existing behavior — every other
+    /// call site continues to land at the top.
+    enum Section: String, Hashable {
+        case top
+        case whatIfSimulator
+        case restore
+    }
+
+    let scrollTo: Section?
+
     @Environment(SubscriptionStore.self) private var subscriptions
     @Environment(\.dismiss) private var dismiss
     @State private var selectedProductID: String?
@@ -15,20 +29,40 @@ struct PaywallSheet: View {
     @State private var restoring: Bool = false
     @State private var restoreEmptyMessageVisible: Bool = false
 
+    init(scrollTo: Section? = nil) {
+        self.scrollTo = scrollTo
+    }
+
     private var termsURL: URL { LifeClockConfiguration.termsOfUseURL }
     private var privacyURL: URL { LifeClockConfiguration.privacyPolicyURL }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
-                    header
-                    productList
-                    subscribeButton
-                    fineprint
-                    DisclaimerBanner()
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
+                        header
+                            .id(Section.top)
+                        whatIfSimulatorTeaser
+                            .id(Section.whatIfSimulator)
+                        productList
+                        subscribeButton
+                        fineprint
+                            .id(Section.restore)
+                        DisclaimerBanner()
+                    }
+                    .padding(DesignTokens.Spacing.lg)
                 }
-                .padding(DesignTokens.Spacing.lg)
+                .onAppear {
+                    guard let target = scrollTo, target != .top else { return }
+                    // Defer one tick — ScrollViewReader needs the layout
+                    // pass before scrollTo lands cleanly.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                        withAnimation(.smooth(duration: 0.18)) {
+                            proxy.scrollTo(target, anchor: .top)
+                        }
+                    }
+                }
             }
             .navigationTitle(LifeClockConfiguration.proName)
             .toolbar {
@@ -82,6 +116,24 @@ struct PaywallSheet: View {
             Text("Full weekly reports, tailored action plans, and deeper trend breakdowns. Your free experience keeps working either way.")
                 .foregroundStyle(.secondary)
         }
+    }
+
+    /// V1.7.0 — the Future tab's slider tap routes here via
+    /// `PaywallSheet(scrollTo: .whatIfSimulator)`. Title-case neutral
+    /// (no per-tone variants); paywall copy is not tone-conditional in v1.
+    private var whatIfSimulatorTeaser: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+            Text("The what-if simulator")
+                .font(.title2.bold())
+            Text("Drag any of six dimensions — sleep, steps, exercise, whole food, extras, nicotine — and watch your trajectory redraw in real time. Pro only.")
+                .foregroundStyle(.secondary)
+        }
+        .padding(DesignTokens.Spacing.md)
+        .background(
+            DesignTokens.Palette.elevated,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+        )
+        .accessibilityIdentifier("paywall.whatIfSimulator")
     }
 
     private var productList: some View {

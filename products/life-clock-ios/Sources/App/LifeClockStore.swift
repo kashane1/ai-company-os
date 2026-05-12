@@ -72,6 +72,52 @@ final class LifeClockStore {
     /// (one `@Query` site app-wide; everything else through the store).
     private(set) var todayReflection: DailyReflection?
 
+    // MARK: - Future tab projection state (V1.7.0)
+    //
+    // Store-owned per the plan §Phase 4 architecture-strategist review
+    // finding: trajectory cache + slider scrub coordination must NOT
+    // leak into View `@State`. Views read these properties; the store
+    // owns invalidation contracts. All access `@MainActor`.
+
+    /// User-applied slider overrides during a what-if scrub. Empty
+    /// `[:]` = personal-current values (slider at rest). Phase 4
+    /// `WhatIfSlider.onOverridesChange` writes here; `FutureView`
+    /// reads via @Observable to redraw the chart.
+    var sliderOverrides: [HealthspanEngine.Dimension: Double] = [:]
+
+    /// Memoized 14-day baseline aggregates captured on scrub-start.
+    /// Reused for every `onChange` tick during a scrub so we don't
+    /// re-fetch SwiftData per tick. Cleared 250ms after touch-end
+    /// (debounced — rapid re-grabs within the window reuse it).
+    /// Nil = not scrubbing or cache cleared.
+    var cachedBaselineAggregates: [HealthspanEngine.Dimension: Double]?
+
+    /// True while any slider is actively scrubbing. Drives the
+    /// `.animation(nil, value:)` gate on the chart and the
+    /// pending-refresh queue. Multi-touch supported via the counter
+    /// (`activeScrubCount`); `isProjectionScrubbing` is true iff > 0.
+    var isProjectionScrubbing: Bool { activeScrubCount > 0 }
+
+    /// Count of in-flight slider scrubs. Multi-touch lets two fingers
+    /// scrub independently; we hold the aggregate cache + animation
+    /// gate until ALL release.
+    private(set) var activeScrubCount: Int = 0
+
+    /// Refresh ticks that arrived during a scrub. Cleared on flush;
+    /// counter (not bool) so we can observe whether anything queued
+    /// without losing edge cases.
+    private(set) var pendingRefreshCount: Int = 0
+
+    /// Monotonically-incrementing token. Bumped on every scrub-end so
+    /// any pending debounced clear that fires AFTER a new scrub-start
+    /// is a no-op (token mismatch ⇒ ignore).
+    private var scrubEndToken: Int = 0
+
+    /// Cross-tab navigation. The TodayView trajectory peek writes
+    /// `.future` here; MainTabView binds its `TabView` selection to
+    /// this property so any view can drive tab changes via the store.
+    var selectedTab: AppTab = .today
+
     private func emit(_ intent: SupportMomentPresenter.Intent) {
         supportMoment = supportPresenter.moment(for: intent, tone: toneMode)
     }
@@ -203,6 +249,11 @@ final class LifeClockStore {
         // already true and short-circuit. Existing user upgrades hit
         // this once on the launch immediately after the V1.6.0 ship.
         bootstrapQuestPoolEngineFlag()
+        // V1.7.0 (Phase 2): backfill `baselineHealthspanYears` for
+        // existing onboarded users so the Future tab has its anchor
+        // without re-running onboarding. Idempotent — once set the
+        // method is a no-op. Sanity-checked.
+        bootstrapV170Baseline()
         await refreshFromHealthKit()
         notificationAuthorizationStatus = await notificationsService.currentAuthorizationStatus()
         await reconcileNotifications()
@@ -478,10 +529,57 @@ final class LifeClockStore {
         try? modelContext.save()
     }
 
+    // MARK: - V1.7.0 baseline backfill (Future tab anchor)
+    //
+    // Existing onboarded users (V1.6 stores upgraded to V1.7) have no
+    // `baselineHealthspanYears` set — `applyAnchorAdjustment` ran
+    // before the field existed. This idempotent hook runs on every
+    // cold launch (and at the end of `applyAnchorAdjustment` to heal
+    // upgraded-mid-onboarding users) until the baseline is set.
+    //
+    // Precedent: `bootstrapQuestPoolEngineFlag` (V1.6.0 Phase 5a).
+    //
+    // Sanity check (P1 review finding): wrap `ClockEngine.calculateBaseline`
+    // in `(candidate).isFinite && > currentAge`. On failure (NaN, corrupt
+    // profile, age sentinel) leave the field nil so the next launch
+    // retries — don't ship a poison baseline.
+    //
+    // `internal` so unit tests can drive the bootstrap directly.
+    func bootstrapV170Baseline() {
+        guard let profile,
+              profile.onboardingCompletedAt != nil,
+              profile.anchorAdjustedAt != nil,
+              let adjustment = profile.personalAdjustmentYears,
+              profile.baselineHealthspanYears == nil else { return }
+        let engineYears = clockEngine.calculateBaseline(profile: profile).projectedAgeYears
+        let candidate = engineYears + adjustment
+        // Sanity check — reject NaN/Inf, or any value at/below the
+        // user's current age (impossible by construction; would be a
+        // corrupt profile). Floor for projection enforced separately
+        // in HealthspanEngine.
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: profile.birthDate,
+            asOf: clock.now(),
+            calendar: clock.calendar
+        ))
+        guard candidate.isFinite, candidate > currentAge else { return }
+        profile.baselineHealthspanYears = candidate
+        profile.baselineCapturedAt = profile.anchorAdjustedAt
+        try? modelContext.save()
+    }
+
     // MARK: - HealthKit-driven recompute
 
     func refreshFromHealthKit(force: Bool = false) async {
         guard let profile else { return }
+        // V1.7.0 Phase 4 coalesce: if a slider scrub is in flight,
+        // queue the refresh instead of running it now. `endScrub`
+        // flushes via `force: true` on touch-end. `force: true`
+        // callers bypass the queue (e.g. scrub-end flush itself,
+        // significant time change).
+        if !force, queueRefreshIfScrubbing() {
+            return
+        }
         let now = clock.now()
         let dayStart = clock.calendar.startOfDay(for: now)
 
@@ -827,6 +925,336 @@ final class LifeClockStore {
         return result.deltaMinutes
     }
 
+    // MARK: - Future tab scrub coordination (V1.7.0 — Phase 4 perf gates)
+    //
+    // Per the plan §Phase 4 slider-scrub interaction spec:
+    //   * Memoize 14-day baseline aggregates on scrub-start.
+    //   * Hold for 250ms post touch-end (debounced clear) — rapid
+    //     re-grabs reuse the cache.
+    //   * Coalesce queued daily-refresh ticks during a scrub.
+    //   * Disable redraw animation while scrubbing.
+    //
+    // All entry points `@MainActor`-bound; the store as a whole is
+    // @MainActor so no actor-hop is required. The 250ms debounce
+    // uses `Task.sleep` with a monotonically-incrementing token to
+    // discard stale clears (rapid re-grab within the window means
+    // a new beginScrub bumps the token and the prior endScrub's
+    // debounced clear becomes a no-op).
+
+    /// Called by `WhatIfSlider.onEditingChanged(true)`. Captures the
+    /// current 14-day aggregates if no scrub is already active.
+    /// Increments the active-scrub counter so multi-touch is handled.
+    func beginScrub() {
+        activeScrubCount += 1
+        if cachedBaselineAggregates == nil {
+            cachedBaselineAggregates = HealthspanEngine.aggregates(
+                snapshots: recentSnapshots(limit: 14),
+                habits: recentHabits(limit: 14)
+            )
+        }
+    }
+
+    /// Called by `WhatIfSlider.onEditingChanged(false)`. Decrements
+    /// the counter; when it reaches zero, kicks off the 250ms
+    /// debounced clear of `cachedBaselineAggregates` AND flushes the
+    /// pending-refresh queue. Token-stable: a re-begin within 250ms
+    /// invalidates the in-flight clear via `scrubEndToken`.
+    func endScrub() {
+        activeScrubCount = max(0, activeScrubCount - 1)
+        guard activeScrubCount == 0 else { return }
+        scrubEndToken += 1
+        let token = scrubEndToken
+        // Flush any refresh that queued during the scrub. Exactly one
+        // refresh + crossfade per the plan's coalesce rule.
+        if pendingRefreshCount > 0 {
+            pendingRefreshCount = 0
+            Task { @MainActor in
+                await refreshFromHealthKit(force: true)
+            }
+        }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 250_000_000)  // 250ms
+            guard token == scrubEndToken else { return }     // re-grab; ignore
+            cachedBaselineAggregates = nil
+        }
+    }
+
+    /// Called by `WhatIfSlider` on each `onChange`. Cheap setter; the
+    /// view binds to `store.sliderOverrides` via @Observable.
+    func setSliderOverride(_ dim: HealthspanEngine.Dimension, value: Double?) {
+        if let value {
+            sliderOverrides[dim] = value
+        } else {
+            sliderOverrides.removeValue(forKey: dim)
+        }
+    }
+
+    /// Called by `WhatIfSlider.onEditingChanged(false)` after the
+    /// snap-back. Clears all overrides in one shot — chart returns
+    /// to personal-current.
+    func clearSliderOverrides() {
+        sliderOverrides = [:]
+    }
+
+    /// Called by HK refresh when a scrub is in flight. Returns true if
+    /// the caller should defer (queued) or false if it should proceed
+    /// normally. `flushPendingRefresh` runs the deferred refresh on
+    /// scrub-end.
+    func queueRefreshIfScrubbing() -> Bool {
+        guard isProjectionScrubbing else { return false }
+        pendingRefreshCount += 1
+        return true
+    }
+
+    /// Returns the N most-recent persisted habit logs, optionally
+    /// excluding today. Mirrors `recentSnapshots(limit:includingToday:)`.
+    /// V1.7.0: Phase 3 trajectory chart + Phase 4 slider personal-
+    /// current anchors both need a 14-day habit window aligned to the
+    /// same convention as the snapshot accessor.
+    func recentHabits(limit: Int, includingToday: Bool = false) -> [HabitLog] {
+        var descriptor = FetchDescriptor<HabitLog>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        descriptor.fetchLimit = includingToday ? limit : limit + 1
+        let raw = (try? modelContext.fetch(descriptor)) ?? []
+        if includingToday {
+            return Array(raw.prefix(limit))
+        }
+        let todayStart = clock.calendar.startOfDay(for: clock.now())
+        let filtered = raw.filter { !clock.calendar.isDate($0.date, inSameDayAs: todayStart) }
+        return Array(filtered.prefix(limit))
+    }
+
+    // MARK: - Cumulative since install (V1.7.0 — History summary section)
+    //
+    // Plan §Phase 1. Walks DailyHealthSnapshot + HabitLog from
+    // `max(profile.onboardingCompletedAt, now - 3.years)` to yesterday,
+    // accumulates per-driver-type contribution, and caches the result in
+    // `CumulativeSummaryCache` (single-row @Model). Cache is invalidated
+    // by `refreshFromHealthKit` on any snapshot upsert + by a
+    // content-hash mismatch on every read (catches retroactive deletes).
+    //
+    // All operations `@MainActor`-only (the entire store is). HK refresh
+    // is also @MainActor per existing pattern, so invalidation inside its
+    // save block is race-free against History tab reads.
+    //
+    // Performance gate: first call O(N) over the window (one batched
+    // FetchDescriptor per entity, grouped into [Date: HabitLog] for the
+    // walk). Subsequent calls same-day O(1).
+
+    /// Walks the install→yesterday window, returns hero number + top-3
+    /// contributors. Returns nil when no profile loaded.
+    func cumulativeDeltaSinceInstall() -> CumulativeSummary? {
+        guard let profile,
+              let onboardingCompletedAt = profile.onboardingCompletedAt else {
+            return nil
+        }
+        let now = clock.now()
+        let calendar = clock.calendar
+        let today = calendar.startOfDay(for: now)
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else {
+            return nil
+        }
+
+        // Window start: max(onboardingCompletedAt, now - 3.years).
+        // Per P1 review: bound first-walk cost; 3-year cap with a
+        // "since {Year}" copy affordance when truncation applies.
+        let threeYearsAgo = calendar.date(byAdding: .year, value: -3, to: today) ?? today
+        let installDay = calendar.startOfDay(for: onboardingCompletedAt)
+        let windowStart = max(installDay, calendar.startOfDay(for: threeYearsAgo))
+        let truncated = windowStart > installDay
+
+        // Day 0 short-circuit: no walk needed. Returns an empty
+        // summary with daysSinceInstall == 0 so the view renders the
+        // Day-0 hero copy.
+        if windowStart > yesterday {
+            return CumulativeSummary(
+                totalDeltaMinutes: 0,
+                windowStart: windowStart,
+                lastIncludedDate: windowStart,
+                daysSinceInstall: 0,
+                topContributors: [],
+                snapshotsWithData: 0,
+                truncatedTo3Years: truncated
+            )
+        }
+
+        let daysSinceInstall = max(
+            0,
+            calendar.dateComponents([.day], from: installDay, to: today).day ?? 0
+        )
+
+        // Cache check.
+        let contentVersion = currentCumulativeContentVersion(
+            windowStart: windowStart,
+            windowEnd: yesterday
+        )
+        if let cache = fetchCumulativeCache(),
+           cache.lastIncludedDate == yesterday,
+           cache.contentVersion == contentVersion,
+           cache.windowStart == windowStart {
+            let cachedContribs = decodeContributors(cache.topContributorsData)
+            return CumulativeSummary(
+                totalDeltaMinutes: cache.totalDeltaMinutes,
+                windowStart: cache.windowStart,
+                lastIncludedDate: cache.lastIncludedDate,
+                daysSinceInstall: daysSinceInstall,
+                topContributors: cachedContribs.contributors,
+                snapshotsWithData: cachedContribs.snapshotsWithData,
+                truncatedTo3Years: truncated
+            )
+        }
+
+        // Cache miss — recompute the full window.
+        let snapshots = fetchSnapshotsInRange(start: windowStart, end: yesterday)
+        let habits = fetchHabitsInRange(start: windowStart, end: yesterday)
+        let habitsByDay: [Date: HabitLog] = habits.reduce(into: [:]) { dict, habit in
+            dict[calendar.startOfDay(for: habit.date)] = habit
+        }
+
+        var totalDelta = 0
+        var dimTotals: [CumulativeContributor.Dimension: Int] = [:]
+        var dimDayCounts: [CumulativeContributor.Dimension: Int] = [:]
+        var snapshotsWithData = 0
+
+        for snapshot in snapshots {
+            let dayStart = calendar.startOfDay(for: snapshot.date)
+            let habit = habitsByDay[dayStart]
+            let result = clockEngine.calculateDailyDelta(
+                snapshot: snapshot,
+                habits: habit,
+                profile: profile
+            )
+            totalDelta += result.deltaMinutes
+            if result.deltaMinutes != 0 || !result.drivers.isEmpty {
+                snapshotsWithData += 1
+            }
+            // Aggregate per-driver-type net + day-count.
+            for driver in result.drivers {
+                let dim = CumulativeContributor.Dimension(driverString: driver.driverType)
+                dimTotals[dim, default: 0] += driver.deltaMinutes
+                dimDayCounts[dim, default: 0] += 1
+            }
+        }
+
+        // Top-3 by absolute net delta. Filter out `.other` from the
+        // panel — it's an "unrecognized driver" bucket, not user-facing.
+        let contributors: [CumulativeContributor] = dimTotals
+            .filter { $0.key != .other && $0.value != 0 }
+            .map { dim, net in
+                CumulativeContributor(
+                    dimension: dim,
+                    netDeltaMinutes: net,
+                    topDayCount: dimDayCounts[dim] ?? 0
+                )
+            }
+            .sorted { abs($0.netDeltaMinutes) > abs($1.netDeltaMinutes) }
+            .prefix(3)
+            .map { $0 }
+
+        // Persist to cache.
+        let cache = fetchCumulativeCache() ?? {
+            let new = CumulativeSummaryCache()
+            modelContext.insert(new)
+            return new
+        }()
+        cache.lastIncludedDate = yesterday
+        cache.contentVersion = contentVersion
+        cache.totalDeltaMinutes = totalDelta
+        cache.windowStart = windowStart
+        cache.topContributorsData = encodeContributors(
+            contributors: contributors,
+            snapshotsWithData: snapshotsWithData
+        )
+        try? modelContext.save()
+
+        return CumulativeSummary(
+            totalDeltaMinutes: totalDelta,
+            windowStart: windowStart,
+            lastIncludedDate: yesterday,
+            daysSinceInstall: daysSinceInstall,
+            topContributors: contributors,
+            snapshotsWithData: snapshotsWithData,
+            truncatedTo3Years: truncated
+        )
+    }
+
+    /// Invalidate the cumulative cache. Called by `refreshFromHealthKit`
+    /// inside its save block on any snapshot upsert so the next History
+    /// tab open recomputes — eliminates the read-then-write race
+    /// between background HK refresh and foreground History reads.
+    /// (Both are @MainActor in this store, but explicit invalidation
+    /// keeps the contract clear and survives a future actor split.)
+    fileprivate func invalidateCumulativeCache() {
+        guard let cache = fetchCumulativeCache() else { return }
+        // Force contentVersion mismatch on next read; cheap.
+        cache.contentVersion = -1
+    }
+
+    private func fetchCumulativeCache() -> CumulativeSummaryCache? {
+        let descriptor = FetchDescriptor<CumulativeSummaryCache>()
+        return try? modelContext.fetch(descriptor).first
+    }
+
+    /// Content-hash for cache validity. Bumps automatically when any
+    /// HabitLog or DailyHealthSnapshot in the window is added or
+    /// deleted. Reuses `fetchCount` so we never materialize the rows
+    /// just to count them.
+    private func currentCumulativeContentVersion(windowStart: Date, windowEnd: Date) -> Int {
+        let snapshotDescriptor = FetchDescriptor<DailyHealthSnapshot>(
+            predicate: #Predicate { $0.date >= windowStart && $0.date <= windowEnd }
+        )
+        let habitDescriptor = FetchDescriptor<HabitLog>(
+            predicate: #Predicate { $0.date >= windowStart && $0.date <= windowEnd }
+        )
+        let snapshotCount = (try? modelContext.fetchCount(snapshotDescriptor)) ?? 0
+        let habitCount = (try? modelContext.fetchCount(habitDescriptor)) ?? 0
+        return snapshotCount * 1_000_000 + habitCount
+    }
+
+    private func fetchSnapshotsInRange(start: Date, end: Date) -> [DailyHealthSnapshot] {
+        let descriptor = FetchDescriptor<DailyHealthSnapshot>(
+            predicate: #Predicate { $0.date >= start && $0.date <= end },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func fetchHabitsInRange(start: Date, end: Date) -> [HabitLog] {
+        let descriptor = FetchDescriptor<HabitLog>(
+            predicate: #Predicate { $0.date >= start && $0.date <= end },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private struct EncodedContributors: Codable {
+        let contributors: [CumulativeContributor]
+        let snapshotsWithData: Int
+    }
+
+    private func encodeContributors(
+        contributors: [CumulativeContributor],
+        snapshotsWithData: Int
+    ) -> Data {
+        let payload = EncodedContributors(
+            contributors: contributors,
+            snapshotsWithData: snapshotsWithData
+        )
+        return (try? JSONEncoder().encode(payload)) ?? Data()
+    }
+
+    private func decodeContributors(_ data: Data) -> (
+        contributors: [CumulativeContributor],
+        snapshotsWithData: Int
+    ) {
+        guard !data.isEmpty,
+              let decoded = try? JSONDecoder().decode(EncodedContributors.self, from: data) else {
+            return ([], 0)
+        }
+        return (decoded.contributors, decoded.snapshotsWithData)
+    }
+
     /// Called by the wrap-up sheet on dismiss to advance the lastShown* keys
     /// and clear the pending state. Caller passes the same `PendingWrapUp`
     /// they presented so we advance the right key.
@@ -923,12 +1351,35 @@ final class LifeClockStore {
     /// against partial-write failure. Replaces silent `try?` with
     /// explicit do/catch so a failed save doesn't leave memory dirty.
     /// Source: Phase 5 of the reveal-onboarding rebuild plan.
+    ///
+    /// V1.7.0 (Future tab plan §Phase 2): also captures
+    /// `baselineHealthspanYears` (engine + dial) and `baselineCapturedAt`
+    /// in the same save. Sanity-checked. On failure, the baseline
+    /// fields stay nil and `bootstrapV170Baseline` retries on next
+    /// cold launch.
     func applyAnchorAdjustment(years: Double) {
         guard let profile else { return }
         // Idempotency: never re-apply if already adjusted.
         guard profile.anchorAdjustedAt == nil else { return }
+        let now = clock.now()
         profile.personalAdjustmentYears = years
-        profile.anchorAdjustedAt = clock.now()
+        profile.anchorAdjustedAt = now
+        // Atomic baseline capture. Same save block as the anchor pair —
+        // if the save fails, all four fields revert.
+        let engineYears = clockEngine.calculateBaseline(profile: profile).projectedAgeYears
+        let candidate = engineYears + years
+        let currentAge = Double(AgeGate.ageInYears(
+            birthDate: profile.birthDate,
+            asOf: now,
+            calendar: clock.calendar
+        ))
+        if candidate.isFinite, candidate > currentAge {
+            profile.baselineHealthspanYears = candidate
+            profile.baselineCapturedAt = now
+        }
+        // If the candidate failed the sanity check, leave the baseline
+        // fields nil — `bootstrapV170Baseline()` will retry on the next
+        // cold launch with a (hopefully repaired) profile.
         do {
             try modelContext.save()
         } catch {
@@ -936,6 +1387,8 @@ final class LifeClockStore {
             // on next launch and the user can retry cleanly.
             profile.personalAdjustmentYears = nil
             profile.anchorAdjustedAt = nil
+            profile.baselineHealthspanYears = nil
+            profile.baselineCapturedAt = nil
         }
     }
 
@@ -1419,6 +1872,10 @@ final class LifeClockStore {
             snapshot.lastRecomputedAt = recomputedAt
             modelContext.insert(snapshot)
         }
+        // V1.7.0: invalidate the cumulative cache inside the same save
+        // block. Future History tab reads recompute against the new
+        // snapshot row.
+        invalidateCumulativeCache()
         try? modelContext.save()
     }
 

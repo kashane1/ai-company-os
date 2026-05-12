@@ -42,6 +42,23 @@ struct LifeClockLaunchConfiguration {
         case dark
     }
 
+    /// `LIFECLOCK_JUMP_TO=<state>` fixture knob for the Future tab and
+    /// related surfaces. Lets an XCUITest or recon driver land on a
+    /// specific state without driving the full clock + onboarding chain.
+    /// V1.7.0 (Future tab plan §Phase 2/4) — agent-native parity: any
+    /// state the user can reach must also be reachable by fixture.
+    enum FutureJumpTo: String {
+        case futureDay0
+        case futureColdLaunch
+        case futureWarmingUp
+        case futureFull
+        case futureCapReached
+        case futureFloorReached
+        case paywallWhatIfSection
+        case reinstallRecovery   // deferred to v1.1 implementation; reserved
+        case rebaselineRitual    // deferred to v1.1 implementation; reserved
+    }
+
     let isUITest: Bool
     let scenario: Scenario
     let useMockHealth: Bool
@@ -102,6 +119,108 @@ struct LifeClockLaunchConfiguration {
     /// grid. DEBUG-only.
     let forceQuickLog: Bool
 
+    // MARK: - V1.7.0 Future tab fixture knobs (2026-05-11)
+    //
+    // Plan §Phase 2/4 agent-native parity: a recon driver or XCUITest
+    // must be able to land directly on every Future-tab state without
+    // gestural drives. Knobs compose orthogonally with existing
+    // `seedTone`, `forceColorScheme`, `forcePalette`, `clock` (FIXED_DATE).
+
+    /// `LIFECLOCK_FUTURE_TAB_UNLOCKED=1|0` overrides the default release
+    /// gate. DEBUG default `true` (tab visible); RELEASE default `false`
+    /// until Phase 4 flips the default at code level. Phase 2 + Phase 3
+    /// ship with the tab hidden in RELEASE.
+    let futureTabUnlocked: Bool
+
+    /// `LIFECLOCK_JUMP_TO=<FutureJumpTo>` lands the simulator on a
+    /// named Future-tab state. Combined with `initialTab=future`,
+    /// guarantees a deterministic first frame.
+    let futureJumpTo: FutureJumpTo?
+
+    /// `LIFECLOCK_SEED_DAYS_SINCE_INSTALL=N` shifts `onboardingCompletedAt`
+    /// N days into the past relative to `clock.now()`. Lets a recon
+    /// driver land on History summary day-1 / day-7+ states and on
+    /// Future-tab day-state thresholds (1–3 / 4–13 / 14+).
+    /// Composes with `seedStreak` — the streak is independent of the
+    /// install anchor.
+    let seedDaysSinceInstall: Int?
+
+    /// `LIFECLOCK_SEED_SLIDER_OVERRIDES=<json>` provides deterministic
+    /// `HealthspanEngine.projectWith(overrides:)` inputs so a test
+    /// can render the cap/floor/near-cap states without gestural
+    /// scrubbing. JSON shape: `{"sleep":7.5,"steps":12000,...}`.
+    /// Parsed lazily by FutureView/WhatIfSlider; this property just
+    /// carries the raw string.
+    let seedSliderOverridesJSON: String?
+
+    /// `LIFECLOCK_TELEMETRY_CAPTURE_PATH=/tmp/...json` enables an
+    /// in-memory event ring buffer that's flushed to disk on app
+    /// background. UITests assert event emission against the file
+    /// contents. nil disables capture entirely (default).
+    let telemetryCapturePath: String?
+
+    // MARK: - JUMP_TO derived values
+
+    /// Effective initial tab — `LIFECLOCK_JUMP_TO=future*|paywallWhatIfSection`
+    /// implicitly selects the Future tab. Explicit `LIFECLOCK_INITIAL_TAB`
+    /// still wins when JUMP_TO is unset.
+    var effectiveInitialTab: AppTab {
+        switch futureJumpTo {
+        case .futureDay0, .futureColdLaunch, .futureWarmingUp, .futureFull,
+             .futureCapReached, .futureFloorReached:
+            return .future
+        case .paywallWhatIfSection, .reinstallRecovery, .rebaselineRitual, .none:
+            return initialTab
+        }
+    }
+
+    /// Effective `seedDaysSinceInstall` — JUMP_TO=future* presets
+    /// derived values when the explicit env var isn't set.
+    /// futureDay0=0 / futureColdLaunch=2 / futureWarmingUp=8 /
+    /// futureFull=30 (also used by cap/floor variants).
+    var effectiveSeedDaysSinceInstall: Int? {
+        if let explicit = seedDaysSinceInstall { return explicit }
+        switch futureJumpTo {
+        case .futureDay0: return 0
+        case .futureColdLaunch: return 2
+        case .futureWarmingUp: return 8
+        case .futureFull, .futureCapReached, .futureFloorReached: return 30
+        case .paywallWhatIfSection, .reinstallRecovery, .rebaselineRitual, .none: return nil
+        }
+    }
+
+    /// Whether the paywall should auto-present on launch. JUMP_TO=
+    /// `paywallWhatIfSection` triggers this (in addition to the
+    /// legacy `LIFECLOCK_FORCE_PAYWALL=1` env var).
+    var effectiveForcePaywall: Bool {
+        forcePaywall || futureJumpTo == .paywallWhatIfSection
+    }
+
+    /// Scroll target for the auto-presented paywall, when applicable.
+    /// `paywallWhatIfSection` → `.whatIfSimulator`; otherwise nil
+    /// (lands at top).
+    var effectivePaywallScrollTarget: PaywallSheet.Section? {
+        switch futureJumpTo {
+        case .paywallWhatIfSection: return .whatIfSimulator
+        default: return nil
+        }
+    }
+
+    /// Fixture-only forced projection clamp state. JUMP_TO=
+    /// `futureCapReached` / `futureFloorReached` substitutes the
+    /// engine's math so agents can land on the cap/floor UI without
+    /// re-tuning the coefficients to actually reach the boundary.
+    /// (Realistic v1 coefficients top out at baseline + ~9y, well
+    /// under the +14y cap; this knob lets us snapshot the clamp UI
+    /// regardless.) Returns nil for non-clamp JUMP_TO values.
+    var effectiveForcedClampState: HealthspanEngine.Projection.ClampState? {
+        switch futureJumpTo {
+        case .futureCapReached: return .cappedAt(0)   // baseline filled in at consume site
+        case .futureFloorReached: return .flooredAt(0)
+        default: return nil
+        }
+    }
+
     static var current: LifeClockLaunchConfiguration {
         #if DEBUG
         let env = ProcessInfo.processInfo.environment
@@ -134,6 +253,22 @@ struct LifeClockLaunchConfiguration {
         let initialTab = AppTab(rawValue: env["LIFECLOCK_INITIAL_TAB"] ?? "") ?? .today
         let forceSafetyNet = env["LIFECLOCK_FORCE_SAFETY_NET"] == "1"
         let forceQuickLog = env["LIFECLOCK_FORCE_QUICK_LOG"] == "1"
+        // V1.7.0 Future tab knobs. DEBUG default `true` so simulator
+        // recon can hit the tab without setting an env var. RELEASE
+        // default `false` lives in the #else branch below.
+        let futureTabUnlocked: Bool = {
+            if let raw = env["LIFECLOCK_FUTURE_TAB_UNLOCKED"] {
+                return raw == "1"
+            }
+            return true
+        }()
+        let futureJumpTo = FutureJumpTo(rawValue: env["LIFECLOCK_JUMP_TO"] ?? "")
+        let seedDaysSinceInstall: Int? = {
+            guard let raw = env["LIFECLOCK_SEED_DAYS_SINCE_INSTALL"] else { return nil }
+            return Int(raw).map { max(0, $0) }
+        }()
+        let seedSliderOverridesJSON = env["LIFECLOCK_SEED_SLIDER_OVERRIDES"]
+        let telemetryCapturePath = env["LIFECLOCK_TELEMETRY_CAPTURE_PATH"]
 
         let clock: EngineClock = {
             if let iso = env["LIFECLOCK_FIXED_DATE"],
@@ -163,9 +298,17 @@ struct LifeClockLaunchConfiguration {
             seedLastLogDaysAgo: seedLastLogDaysAgo,
             initialTab: initialTab,
             forceSafetyNet: forceSafetyNet,
-            forceQuickLog: forceQuickLog
+            forceQuickLog: forceQuickLog,
+            futureTabUnlocked: futureTabUnlocked,
+            futureJumpTo: futureJumpTo,
+            seedDaysSinceInstall: seedDaysSinceInstall,
+            seedSliderOverridesJSON: seedSliderOverridesJSON,
+            telemetryCapturePath: telemetryCapturePath
         )
         #else
+        // RELEASE: V1.7.0 Phase 4 flips futureTabUnlocked to `true`.
+        // The tab still hides when profile.onboardingCompletedAt == nil,
+        // so fresh installs never see it before onboarding completes.
         return LifeClockLaunchConfiguration(
             isUITest: false,
             scenario: .onboarding,
@@ -183,7 +326,12 @@ struct LifeClockLaunchConfiguration {
             seedLastLogDaysAgo: 0,
             initialTab: .today,
             forceSafetyNet: false,
-            forceQuickLog: false
+            forceQuickLog: false,
+            futureTabUnlocked: true,
+            futureJumpTo: nil,
+            seedDaysSinceInstall: nil,
+            seedSliderOverridesJSON: nil,
+            telemetryCapturePath: nil
         )
         #endif
     }
@@ -207,7 +355,14 @@ struct LifeClockLaunchConfiguration {
     }
 
     func seedInitialStateIfNeeded(in context: ModelContext) {
-        guard scenario == .onboarded else { return }
+        // V1.7.0: LIFECLOCK_JUMP_TO=future* implies the user must
+        // already be onboarded (Future tab requires baseline). Seed
+        // when EITHER an explicit onboarded scenario OR a JUMP_TO
+        // that needs onboarded state is set.
+        let needsOnboardedSeed = scenario == .onboarded
+            || futureJumpTo != nil
+            || effectiveSeedDaysSinceInstall != nil
+        guard needsOnboardedSeed else { return }
         let descriptor = FetchDescriptor<UserProfile>()
         if let existing = try? context.fetch(descriptor), !existing.isEmpty { return }
 
@@ -222,7 +377,15 @@ struct LifeClockLaunchConfiguration {
         // `seedLastLogDaysAgo` set, the user must have onboarded BEFORE the
         // earliest seeded snapshot — otherwise the longAbsenceCard's
         // `hasOlderSnapshots` predicate stays unreachable.
+        //
+        // V1.7.0: `LIFECLOCK_SEED_DAYS_SINCE_INSTALL=N` takes precedence
+        // when set — used by the Future tab + History summary day-state
+        // tests to land on Day 0 / Day 1–6 / Day 7+ / Day 14+ without
+        // also seeding a streak.
         let onboardedAt: Date = {
+            if let daysSince = effectiveSeedDaysSinceInstall {
+                return calendar.date(byAdding: .day, value: -daysSince, to: now) ?? now
+            }
             guard seedStreak > 0 else { return now }
             let daysBack = max(2, seedStreak + seedLastLogDaysAgo)
             return calendar.date(byAdding: .day, value: -daysBack, to: now) ?? now

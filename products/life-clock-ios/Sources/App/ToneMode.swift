@@ -650,4 +650,111 @@ enum ToneMode: String, CaseIterable, Identifiable {
             return "Adjustments are Pro. Existing ones stay. Re-subscribe to edit."
         }
     }
+
+    // MARK: - Future tab + History summary (V1.7.0, 2026-05-11)
+    //
+    // Authored copy per docs/products/life-clock/future-tab-tone-pools-spec.md.
+    // The pool-with-discrete-N transparency line + free narrative
+    // templates live in `ReflectionPrompts.swift` (where pool selection
+    // already has the rotation harness). All other slots are direct
+    // properties below.
+
+    /// Future tab subtext under the projection number on warmingUp/full.
+    var futureHeadlineSubtext: String {
+        switch self {
+        case .gentle: return "Updated daily from your last 14 days."
+        case .coach: return "Updated daily. Last 14 days of signal."
+        case .firmDirect: return "14-day rolling. Updated daily."
+        }
+    }
+
+    /// Day 0 (install day) line — no chart, no slider, baseline-only.
+    var futureDay0Line: String {
+        switch self {
+        case .gentle:
+            return "Your projection arrives tomorrow. For today, your starting baseline is enough."
+        case .coach:
+            return "Projection starts tomorrow. Today: log your first day."
+        case .firmDirect:
+            return "Day zero. Projection turns on tomorrow."
+        }
+    }
+
+    /// Day 1–3 cold-launch line — baseline + this line; no chart, no slider.
+    var futureColdLaunchLine: String {
+        switch self {
+        case .gentle:
+            return "Your projection will sharpen as you log days. We're listening."
+        case .coach:
+            return "Projection sharpens with each day. Three days in, the chart turns on."
+        case .firmDirect:
+            return "Sharpens with each day. Chart unlocks at day 4."
+        }
+    }
+
+    /// Pro long-form narrative subhead. `dateText` formatted as "MMM d"
+    /// at the call site via DateFormatter.localizedString.
+    func futureWeeklyNarrativeSubhead(dateText: String) -> String {
+        switch self {
+        case .gentle: return "Reflection from Sunday, \(dateText)"
+        case .coach: return "Reflection — week ending \(dateText)"
+        case .firmDirect: return "Week ending \(dateText)"
+        }
+    }
+
+    // MARK: - History summary (V1.7.0)
+
+    /// Day 0 hero copy on the install-summary section.
+    var historySummaryDay0Hero: String {
+        switch self {
+        case .gentle: return "Your ledger starts today. Check back tomorrow."
+        case .coach: return "Ledger begins today. First entry tomorrow."
+        case .firmDirect: return "Ledger opens today."
+        }
+    }
+
+    /// Heading for the top-3 contributors panel (Day 7+).
+    var historyTopContributorsHeading: String {
+        switch self {
+        case .gentle: return "What's been moving your ledger"
+        case .coach: return "Top contributors"
+        case .firmDirect: return "Top 3"
+        }
+    }
+
+    /// Day 7+ but <3 days of HK/QuickLog data — typically HK denied
+    /// entire week. Distinct from Day-0 zero-state.
+    var historySummaryNoSignal: String {
+        switch self {
+        case .gentle:
+            return "No signal yet. Once Apple Health or your check-ins start filling in, your ledger will too."
+        case .coach:
+            return "No signal yet. Connect Apple Health or use QuickLog to start the ledger."
+        case .firmDirect:
+            return "No signal. Connect HK or use QuickLog."
+        }
+    }
+
+    /// Today screen trajectory-peek affordance. Routes to the Future
+    /// tab on tap. `formatted` is the years+months projection (e.g.
+    /// "87y 2m"). Hidden when day-state is day0 / coldLaunch1to3.
+    func todayTrajectoryPeek(formatted: String) -> String {
+        switch self {
+        case .gentle: return "Your trajectory: \(formatted) →"
+        case .coach: return "Your trajectory: \(formatted) →"
+        case .firmDirect: return "Trajectory: \(formatted) →"
+        }
+    }
+}
+
+// MARK: - Future tab neutral strings (single neutral string, no per-tone variants)
+//
+// Clamp-and-explain pattern: when projection hits the cap or floor we
+// surface a single neutral string inline rather than per-tone variants.
+// The honesty is in the data — we don't need three tones to say the
+// same factual thing. See plan §Phase 3.
+enum FutureNeutralCopy {
+    static let capReached: String = "Projection capped at 105 years."
+    static let floorReached: String = "Projection at minimum."
+    static let nearCapCompression: String = "Near projection ceiling — chart compressed."
 }
