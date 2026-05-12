@@ -126,6 +126,7 @@ struct TrajectoryChart: View {
             (isScrubbing || reduceMotion) ? nil : .smooth(duration: 0.18),
             value: points
         )
+        .accessibilityIdentifier("future.trajectory.chart")
         .accessibilityLabel(accessibilityLabel)
     }
 
