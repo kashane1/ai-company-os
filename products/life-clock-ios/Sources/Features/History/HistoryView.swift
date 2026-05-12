@@ -26,6 +26,10 @@ struct HistoryView: View {
                 // 90 history rows this matters: VStack would build all 90
                 // up front including their backgrounds + chevrons.
                 LazyVStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
+                    // V1.7.0: install-summary section sits at the top of
+                    // History. Cumulative since-install ledger. Fully
+                    // free. See Future tab + History summary plan §Phase 1.
+                    InstallSummarySection()
                     yesterdaySection
                     weeklySection
                     dailyHistorySection

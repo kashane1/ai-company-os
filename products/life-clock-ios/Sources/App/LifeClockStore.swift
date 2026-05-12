@@ -871,6 +871,236 @@ final class LifeClockStore {
         return result.deltaMinutes
     }
 
+    // MARK: - Cumulative since install (V1.7.0 — History summary section)
+    //
+    // Plan §Phase 1. Walks DailyHealthSnapshot + HabitLog from
+    // `max(profile.onboardingCompletedAt, now - 3.years)` to yesterday,
+    // accumulates per-driver-type contribution, and caches the result in
+    // `CumulativeSummaryCache` (single-row @Model). Cache is invalidated
+    // by `refreshFromHealthKit` on any snapshot upsert + by a
+    // content-hash mismatch on every read (catches retroactive deletes).
+    //
+    // All operations `@MainActor`-only (the entire store is). HK refresh
+    // is also @MainActor per existing pattern, so invalidation inside its
+    // save block is race-free against History tab reads.
+    //
+    // Performance gate: first call O(N) over the window (one batched
+    // FetchDescriptor per entity, grouped into [Date: HabitLog] for the
+    // walk). Subsequent calls same-day O(1).
+
+    /// Walks the install→yesterday window, returns hero number + top-3
+    /// contributors. Returns nil when no profile loaded.
+    func cumulativeDeltaSinceInstall() -> CumulativeSummary? {
+        guard let profile,
+              let onboardingCompletedAt = profile.onboardingCompletedAt else {
+            return nil
+        }
+        let now = clock.now()
+        let calendar = clock.calendar
+        let today = calendar.startOfDay(for: now)
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else {
+            return nil
+        }
+
+        // Window start: max(onboardingCompletedAt, now - 3.years).
+        // Per P1 review: bound first-walk cost; 3-year cap with a
+        // "since {Year}" copy affordance when truncation applies.
+        let threeYearsAgo = calendar.date(byAdding: .year, value: -3, to: today) ?? today
+        let installDay = calendar.startOfDay(for: onboardingCompletedAt)
+        let windowStart = max(installDay, calendar.startOfDay(for: threeYearsAgo))
+        let truncated = windowStart > installDay
+
+        // Day 0 short-circuit: no walk needed. Returns an empty
+        // summary with daysSinceInstall == 0 so the view renders the
+        // Day-0 hero copy.
+        if windowStart > yesterday {
+            return CumulativeSummary(
+                totalDeltaMinutes: 0,
+                windowStart: windowStart,
+                lastIncludedDate: windowStart,
+                daysSinceInstall: 0,
+                topContributors: [],
+                snapshotsWithData: 0,
+                truncatedTo3Years: truncated
+            )
+        }
+
+        let daysSinceInstall = max(
+            0,
+            calendar.dateComponents([.day], from: installDay, to: today).day ?? 0
+        )
+
+        // Cache check.
+        let contentVersion = currentCumulativeContentVersion(
+            windowStart: windowStart,
+            windowEnd: yesterday
+        )
+        if let cache = fetchCumulativeCache(),
+           cache.lastIncludedDate == yesterday,
+           cache.contentVersion == contentVersion,
+           cache.windowStart == windowStart {
+            let cachedContribs = decodeContributors(cache.topContributorsData)
+            return CumulativeSummary(
+                totalDeltaMinutes: cache.totalDeltaMinutes,
+                windowStart: cache.windowStart,
+                lastIncludedDate: cache.lastIncludedDate,
+                daysSinceInstall: daysSinceInstall,
+                topContributors: cachedContribs.contributors,
+                snapshotsWithData: cachedContribs.snapshotsWithData,
+                truncatedTo3Years: truncated
+            )
+        }
+
+        // Cache miss — recompute the full window.
+        let snapshots = fetchSnapshotsInRange(start: windowStart, end: yesterday)
+        let habits = fetchHabitsInRange(start: windowStart, end: yesterday)
+        let habitsByDay: [Date: HabitLog] = habits.reduce(into: [:]) { dict, habit in
+            dict[calendar.startOfDay(for: habit.date)] = habit
+        }
+
+        var totalDelta = 0
+        var dimTotals: [CumulativeContributor.Dimension: Int] = [:]
+        var dimDayCounts: [CumulativeContributor.Dimension: Int] = [:]
+        var snapshotsWithData = 0
+
+        for snapshot in snapshots {
+            let dayStart = calendar.startOfDay(for: snapshot.date)
+            let habit = habitsByDay[dayStart]
+            let result = clockEngine.calculateDailyDelta(
+                snapshot: snapshot,
+                habits: habit,
+                profile: profile
+            )
+            totalDelta += result.deltaMinutes
+            if result.deltaMinutes != 0 || !result.drivers.isEmpty {
+                snapshotsWithData += 1
+            }
+            // Aggregate per-driver-type net + day-count.
+            for driver in result.drivers {
+                let dim = CumulativeContributor.Dimension(driverString: driver.driverType)
+                dimTotals[dim, default: 0] += driver.deltaMinutes
+                dimDayCounts[dim, default: 0] += 1
+            }
+        }
+
+        // Top-3 by absolute net delta. Filter out `.other` from the
+        // panel — it's an "unrecognized driver" bucket, not user-facing.
+        let contributors: [CumulativeContributor] = dimTotals
+            .filter { $0.key != .other && $0.value != 0 }
+            .map { dim, net in
+                CumulativeContributor(
+                    dimension: dim,
+                    netDeltaMinutes: net,
+                    topDayCount: dimDayCounts[dim] ?? 0
+                )
+            }
+            .sorted { abs($0.netDeltaMinutes) > abs($1.netDeltaMinutes) }
+            .prefix(3)
+            .map { $0 }
+
+        // Persist to cache.
+        let cache = fetchCumulativeCache() ?? {
+            let new = CumulativeSummaryCache()
+            modelContext.insert(new)
+            return new
+        }()
+        cache.lastIncludedDate = yesterday
+        cache.contentVersion = contentVersion
+        cache.totalDeltaMinutes = totalDelta
+        cache.windowStart = windowStart
+        cache.topContributorsData = encodeContributors(
+            contributors: contributors,
+            snapshotsWithData: snapshotsWithData
+        )
+        try? modelContext.save()
+
+        return CumulativeSummary(
+            totalDeltaMinutes: totalDelta,
+            windowStart: windowStart,
+            lastIncludedDate: yesterday,
+            daysSinceInstall: daysSinceInstall,
+            topContributors: contributors,
+            snapshotsWithData: snapshotsWithData,
+            truncatedTo3Years: truncated
+        )
+    }
+
+    /// Invalidate the cumulative cache. Called by `refreshFromHealthKit`
+    /// inside its save block on any snapshot upsert so the next History
+    /// tab open recomputes — eliminates the read-then-write race
+    /// between background HK refresh and foreground History reads.
+    /// (Both are @MainActor in this store, but explicit invalidation
+    /// keeps the contract clear and survives a future actor split.)
+    fileprivate func invalidateCumulativeCache() {
+        guard let cache = fetchCumulativeCache() else { return }
+        // Force contentVersion mismatch on next read; cheap.
+        cache.contentVersion = -1
+    }
+
+    private func fetchCumulativeCache() -> CumulativeSummaryCache? {
+        let descriptor = FetchDescriptor<CumulativeSummaryCache>()
+        return try? modelContext.fetch(descriptor).first
+    }
+
+    /// Content-hash for cache validity. Bumps automatically when any
+    /// HabitLog or DailyHealthSnapshot in the window is added or
+    /// deleted. Reuses `fetchCount` so we never materialize the rows
+    /// just to count them.
+    private func currentCumulativeContentVersion(windowStart: Date, windowEnd: Date) -> Int {
+        let snapshotDescriptor = FetchDescriptor<DailyHealthSnapshot>(
+            predicate: #Predicate { $0.date >= windowStart && $0.date <= windowEnd }
+        )
+        let habitDescriptor = FetchDescriptor<HabitLog>(
+            predicate: #Predicate { $0.date >= windowStart && $0.date <= windowEnd }
+        )
+        let snapshotCount = (try? modelContext.fetchCount(snapshotDescriptor)) ?? 0
+        let habitCount = (try? modelContext.fetchCount(habitDescriptor)) ?? 0
+        return snapshotCount * 1_000_000 + habitCount
+    }
+
+    private func fetchSnapshotsInRange(start: Date, end: Date) -> [DailyHealthSnapshot] {
+        let descriptor = FetchDescriptor<DailyHealthSnapshot>(
+            predicate: #Predicate { $0.date >= start && $0.date <= end },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func fetchHabitsInRange(start: Date, end: Date) -> [HabitLog] {
+        let descriptor = FetchDescriptor<HabitLog>(
+            predicate: #Predicate { $0.date >= start && $0.date <= end },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private struct EncodedContributors: Codable {
+        let contributors: [CumulativeContributor]
+        let snapshotsWithData: Int
+    }
+
+    private func encodeContributors(
+        contributors: [CumulativeContributor],
+        snapshotsWithData: Int
+    ) -> Data {
+        let payload = EncodedContributors(
+            contributors: contributors,
+            snapshotsWithData: snapshotsWithData
+        )
+        return (try? JSONEncoder().encode(payload)) ?? Data()
+    }
+
+    private func decodeContributors(_ data: Data) -> (
+        contributors: [CumulativeContributor],
+        snapshotsWithData: Int
+    ) {
+        guard !data.isEmpty,
+              let decoded = try? JSONDecoder().decode(EncodedContributors.self, from: data) else {
+            return ([], 0)
+        }
+        return (decoded.contributors, decoded.snapshotsWithData)
+    }
+
     /// Called by the wrap-up sheet on dismiss to advance the lastShown* keys
     /// and clear the pending state. Caller passes the same `PendingWrapUp`
     /// they presented so we advance the right key.
@@ -1488,6 +1718,10 @@ final class LifeClockStore {
             snapshot.lastRecomputedAt = recomputedAt
             modelContext.insert(snapshot)
         }
+        // V1.7.0: invalidate the cumulative cache inside the same save
+        // block. Future History tab reads recompute against the new
+        // snapshot row.
+        invalidateCumulativeCache()
         try? modelContext.save()
     }
 
