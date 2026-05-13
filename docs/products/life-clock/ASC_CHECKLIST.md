@@ -184,7 +184,7 @@ After TestFlight feedback and any necessary fixes:
 | Guideline | Risk | Mitigation already in place |
 |---|---|---|
 | 1.4.1 Health/Medical | Claims of accuracy, diagnosis, treatment | `LifeClockConfiguration.medicalDisclaimer` + DisclaimerBanner on every screen + "estimate" framing throughout |
-| 1.4.5 / 5.1.3 HealthKit | Data sale, ads, third-party sharing | `cloudKitDatabase: .none`, no analytics SDK, no backend, no `NSHealthUpdateUsageDescription` (read-only) |
+| 1.4.5 / 5.1.3 HealthKit | Data sale, ads, third-party sharing | `cloudKitDatabase: .none`, no analytics SDK, no backend. `NSHealthUpdateUsageDescription` is declared as forward-looking ("may save optional wellness entries… if you choose to enable this later"); v1 ships read-only — no write call sites exist in `Sources/`. |
 | 3.1.1 In-App Purchase | External purchase flow | StoreKit 2 only; no web checkout |
 | 3.1.2 Subscriptions | Missing renewal disclosure, ToS, restore | All three present in `PaywallSheet` |
 | 4.0 Design / Minimum functionality | "Just a website" / dead app | Six functional screens + engines + persistence |

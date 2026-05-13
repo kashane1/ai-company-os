@@ -20,19 +20,33 @@ This should be used carefully:
 - not as a personal guarantee
 - not as a clinical life table substitute
 
+## Two engines (both ship)
+
+The shipped app uses two parallel projection layers. **The doc must distinguish them.**
+
+- **`ClockEngine`** (`Sources/Engines/ClockEngine.swift`) — emits the **additive daily minutes ledger**. Calculates `baseline`, `dailyDelta`, and `weeklyTrend`. This is what powers Today's signed delta + History per-day decomposition.
+- **`HealthspanEngine`** (`Sources/Engines/HealthspanEngine.swift`) — emits the **years-based healthspan projection** shown on the Future tab and as the headline projection number. Coefficient table lives in `docs/products/life-clock/healthspan-coefficients.md` and is verbatim-matched to the engine's published constants (14 coefficients, +14y cap above baseline, smoking-dominance 0.3× scale, floor at `currentAge + 1`).
+
+When a section below talks about "the clock," interpret it as `ClockEngine` unless explicitly otherwise.
+
 ## Score components
 
-### Baseline profile score
+### Baseline profile score (engine inputs as shipped)
 
-Inputs:
+The shipped baseline engine reads **all** of these from `UserProfile`:
 
-- age
-- sex if provided
-- height/weight/BMI
+- age (from `birthDate`)
+- biological sex
+- height + weight → BMI (computed inline)
 - smoking status
 - alcohol frequency
-- general activity level
-- sleep baseline
+- **cardio minutes per week** (`cardioMinsPerWeek`)
+- **strength frequency per week**
+- sleep goal hours
+- diet quality baseline (`dietQualityBaseline`)
+- **parental longevity** (mother + father age-at-death / alive)
+- **PSS-10 perceived stress score** (`perceivedStressScore` — vision Q9 Decided constraint 2026-05-12)
+- **UCLA-3 loneliness score** (`lonelinessScore` — vision Q9 Decided constraint 2026-05-12)
 
 ### Daily behavior score
 
@@ -115,13 +129,13 @@ The UI should show:
 - "Based on Apple Health steps, workouts, and sleep"
 - "Missing: heart rate, VO2 max"
 
-## Smoothing
+## Smoothing (as shipped — honest)
 
-The clock should not swing wildly day by day. Use smoothing:
+The clock should not swing wildly day by day. **v1 ships an additive rolling sum, not an EMA.** Specifically:
 
-- daily time delta for immediate feedback
-- weekly trend for actual Life Clock movement
-- significant warning before big negative changes
+- Daily time delta for immediate feedback — accurate.
+- Weekly trend = additive sum of daily deltas across the seven-day window (`ClockEngine.calculateWeeklyTrend`). No exponential smoothing or anti-jitter logic.
+- "Significant warning before big negative changes" — not implemented in v1; the rescue line (`rescueLine` on Today) is the only soft-interpretation layer for negative deltas. Trajectory math (`HealthspanEngine.weeklyTrajectory`) uses linear interpolation from `baseline at -weeksBack` to `baseline-current at -1`, not a sliding window of historical aggregates — see engine comment for the v1 simplification rationale.
 
 ## Safety boundaries
 

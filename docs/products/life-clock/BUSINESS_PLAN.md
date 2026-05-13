@@ -63,26 +63,23 @@ Start with a free consumer core that creates habit and trust, then monetize adva
 
 ### Free value
 
-The free version must be useful enough to build trust:
-
-- baseline Life Clock
-- Apple Health step/workout/sleep import
-- daily time delta
-- limited daily quests
-- 7-day history
+See [`MONETIZATION.md`](MONETIZATION.md) § Free for the canonical list. Summary: starting Life Clock, basic Apple Health import (steps / exercise / active energy / resting HR / sleep / body mass), today's delta + drivers, 1-3 Today's Plan actions, recent History view (foggy-stack beyond ~3 days), Yesterday + Weekly wrap-up sheets (in-app, pull-only), QuickLog, tone modes, and the SafetyNet entry. Free should always answer "what happened today?" — the rule from `MONETIZATION.md` § Free vs Pro Rule.
 
 ### Paid value
 
-Pro should unlock depth, not basic dignity:
+Pro unlocks depth, archive, and correction power — never basic understanding. Shipped Pro (v1) per `MONETIZATION.md` § Pro Annual:
 
-- full time ledger
-- advanced health data sources
-- weekly reports
-- custom quests
-- advanced trend breakdown
-- widgets / Lock Screen surfaces
-- AI meal/photo summaries later
-- export/delete controls
+- **Full daily history** — every past day drillable in History
+- **Weekly drivers + next-best lever** — `HistoryView.weeklySection` Pro cards + richer WrapUp content
+- **Correction power** — override imported Apple Health values you know are wrong (`OverrideService`)
+- **Custom Today's Plan** — Plan Editor selects which 1-3 actions you see
+- **Deeper trend breakdown** — Future tab's What-If Simulator (`WhatIfSlider`, Pro-only)
+
+Post-v1 candidates (do not promise on the paywall as shipped Pro):
+
+- Advanced HealthKit metrics (v1.1)
+- Widgets / Lock Screen surfaces (v1.2)
+- AI meal/photo summaries (v2+)
 
 ## 6. Moat
 

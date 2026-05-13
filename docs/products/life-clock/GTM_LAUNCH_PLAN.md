@@ -6,7 +6,7 @@
 
 Functional: see how today's habits moved your clock.
 
-Emotional: earn time back.
+Emotional: earn time.
 
 Identity: become the kind of person who plays the long game.
 
@@ -16,7 +16,9 @@ Do not market as a scary death calculator first. Market as a healthspan game wit
 
 Top message:
 
-**Earn time back with better habits.**
+**Earn time with better habits.**
+
+(The forward-looking "earn time" framing — not "earn time back" — aligns to the in-app voice; vision Decided constraint 2026-05-11.)
 
 Supporting messages:
 
@@ -43,6 +45,8 @@ Supporting messages:
 - "I earned 42 minutes back today."
 
 ## 90-day launch plan
+
+> **Note (2026-05-13):** The 90-day windows below are the original April 2026 sequencing plan. The actual MVP build between 2026-04-28 and 2026-05-13 collapsed Phases 1–2 (validation + MVP) into a single build sprint, then added the reveal-onboarding rebuild + Future tab + SafetyNet + QuickLog beyond the original Phase 2 scope. TestFlight is still pending. **Current sequencing and blockers are tracked in `PHASE_STATUS.md`, not in this section.** Retain this plan as historical context for the GTM motion (creative hooks, channels, success test) but treat the day-number sequencing as superseded.
 
 ### Days 1-15: validation and design
 
@@ -83,4 +87,4 @@ Supporting messages:
 
 ## Success test
 
-The app is worth continuing if users come back after the first shock moment and complete quests for at least one week.
+The app is worth continuing if users come back after the reveal escalator and complete at least one Today's Plan action per day for the first week. (Requires post-TestFlight analytics; not instrumented in v1.)

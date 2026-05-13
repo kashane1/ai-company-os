@@ -29,18 +29,21 @@ The 2026-04-30 UX pass and the 2026-05-01 IA refactor both reframed Life Clock a
 
 ## Main surfaces
 
-The bottom tab bar is **3 tabs**: Today, History, Profile.
+The bottom tab bar is **4 tabs**: Today, History, **Future**, Profile. (`Sources/App/AppTab.swift`.) The Future tab was added after the 2026-05-01 IA consolidation; it owns long-horizon trajectory and the Pro-gated What-If Simulator.
 
 ### Today screen
 
-Today is the daily ritual surface — score, why, plan, check-in. Sections render in this order:
+Today is the daily ritual surface — score, why, plan, check-in. Sections render in this order (see `Sources/Features/Today/TodayView.swift` lines 105–119 for the canonical order):
 
-1. **Life Clock headline** — today's signed delta + projected healthspan card.
-2. **Support moment card** (conditional) — surfaced after a check-in or notable event.
-3. **Why it changed** — top 3 drivers + a one-line plain-language interpretation generated from the day's signed delta and the top driver title.
-4. **Today's Plan** — a small set of supportive actions (the data still flows from `QuestEngine`). Per-row "Potential +N min" labels were dropped in the IA refactor; the section subhead reads "One small thing to notice or do."
-5. **Quick check-in** card and toolbar entry.
-6. **Diet streak banner** (conditional, ≥2 days).
+1. **Life Clock headline** — today's signed delta + projected healthspan card (`headline`, `mascotHero`, `clockCard`).
+2. **Trajectory peek + rescue line** — the small projection callout (`trajectoryPeek`) and the soft-interpretation line shown when the delta is negative (`rescueLine`).
+3. **Support moment card** (conditional) — surfaced after a check-in or notable event (`supportMomentCard`).
+4. **Why it changed** — top 3 drivers + a one-line plain-language interpretation generated from the day's signed delta and the top driver title (`driversCard`).
+5. **Today's Plan** — a small set of supportive actions (the data still flows from `QuestEngine`). Per-row "Potential +N min" labels were dropped in the IA refactor; the section subhead reads "One small thing to notice or do." (`questsCard`.)
+6. **Reflection card** — short tone-aware reflection prompt (`ReflectionCard`).
+7. **Quick check-in** card and toolbar entry (`quickLogCard`).
+8. **Monthly logging banner** (conditional) — calendar-month logged-days count + milestone copy. Replaced the earlier diet-streak banner per vision Decided constraint 2026-05-06 ("monthly count, no streak"; `DietStreakCalculator` was dropped along with the rolling-streak concept).
+9. **Disclaimer banner** — global non-medical disclaimer (`DisclaimerBanner`).
 
 The momentum card was removed in the IA refactor — its retrospective summary belongs in History.
 
@@ -52,11 +55,17 @@ Example copy:
 
 ### History tab
 
-Owns retrospection: yesterday wrap-up card, weekly summary, daily history list (90 days for Pro, 7 days for free), drill-down per-day detail with override editing.
+Owns retrospection: yesterday wrap-up card, weekly summary (net delta + drivers + lever cards), daily history list (90 days for Pro, **3 days for free** with a paywall-fogged peek of older rows; `HistoryView.freeRowLimit = 3` in `Sources/Features/History/HistoryView.swift`), drill-down per-day detail with override editing (Pro-only). Today is excluded from the list per `polish-2026-05-10-history-excludes-today.md`; a day-1 empty state ships per `polish-2026-05-11-history-day1-empty-state-tones.md`.
+
+The weekly wrap-up sheet (`WrapUpSheet`, in-app, pull-only on cold-launch via `WrapUpCoordinator`) is a separate retrospection surface — never pushed to the lock screen. See vision Decided constraint 2026-05-09 (wrap-ups are pull, not push).
+
+### Future tab
+
+Owns long-horizon trajectory and Pro-gated What-If exploration: `TrajectoryChart` (past + projection), `WhatIfSlider` (Pro-only thumb that lets the user simulate "what if I slept more / smoked less / walked more"), `LongFormNarrative`, and state-aware copy across day0 / coldLaunch1to3 / warmingUp4to13 / full14plus (see `Sources/Features/Future/FutureView.swift`).
 
 ### Profile tab
 
-Tone-mode picker, palette picker, paywall entry, daily reminder settings, Safety Net.
+Tone-mode picker, appearance/palette picker, Body metrics, Daily reminder section (8…22 hour clamp), Apple Health permission state, Subscription section (purchase/restore/manage), Completion badges, SafetyNet entry, Privacy (delete-all-data), About. See `polish-2026-05-09-profile-section-sweep.md` for the canonical section ordering.
 
 ## Tone modes
 

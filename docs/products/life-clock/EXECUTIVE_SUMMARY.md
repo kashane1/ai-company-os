@@ -42,17 +42,17 @@ Build this as a **HealthKit-powered longevity game**, not a clinical longevity a
 
 ## MVP promise
 
-"Connect Apple Health. See today's time delta. Complete daily quests to earn time back."
+"Connect Apple Health. See today's time delta. Build a daily plan that earns time."
 
 ## MVP loop
 
-1. User completes a short baseline.
-2. User grants progressive Apple Health permissions.
-3. App calculates a starting Life Clock and confidence level.
-4. Each day, passive HealthKit data and quick manual inputs update the clock.
-5. The app shows what moved the clock most.
-6. The app gives 1-3 quests to improve tomorrow.
-7. Weekly report summarizes time earned, time lost, and best next lever.
+1. User completes a short baseline (DOB with under-13 hard block, sex, body composition, smoking/alcohol/cardio/strength/sleep/diet, PSS-10 + UCLA-3 sensitive consent).
+2. User grants Apple Health permissions in a single in-context sheet (six core types).
+3. App calculates a starting Life Clock + healthspan projection with confidence; user sets a one-time ±5y healthspan dial.
+4. Each day, passive HealthKit data and QuickLog manual inputs update the clock.
+5. Today surfaces the signed delta + the top drivers ("Why it changed") + a rescue line on negative days.
+6. Today's Plan suggests 1-3 supportive actions for the day (`Today` tab — not a separate quests tab).
+7. A weekly wrap-up sheet (in-app, presents on Monday cold-launch via `WrapUpCoordinator`) summarizes the week's net delta and the next habit to lever; History weekly cards persist the same content for browsing. See `PHASE_STATUS.md` for shipped surfaces.
 
 ## What v1 should not do
 
@@ -66,13 +66,13 @@ Build this as a **HealthKit-powered longevity game**, not a clinical longevity a
 
 ## Initial monetization
 
-Use freemium with an annual-first subscription.
+Use freemium with an annual-first subscription. See [`MONETIZATION.md`](MONETIZATION.md) for the canonical Free/Pro rule, the full feature split, "best conversion moments" wiring status, and the actual shipped SKU prices.
 
-Recommended initial pricing:
+Shipped SKUs (`MONETIZATION.md` § As shipped):
 
-- Free: starting Life Clock, basic Apple Health import, 3 daily quests, 7-day trend.
-- Pro Annual: $39.99-$59.99/year.
-- Pro Monthly: $7.99-$9.99/month.
-- Lifetime: $99.99-$149.99.
+- **Free** — starting Life Clock + baseline Apple Health import + Today + Today's Plan (1-3 actions) + recent History + Yesterday/Weekly wrap-ups + QuickLog + tone modes
+- **Pro Monthly** — $7.99 / month (`com.lifeclock.pro.monthly`)
+- **Pro Annual** — $49.99 / year (`com.lifeclock.pro.annual`)
+- **Lifetime** — $129.99 one-time (`com.lifeclock.pro.lifetime`)
 
-Avoid weekly pricing. RevenueCat's 2026 benchmark highlights materially stronger retention for yearly plans versus weekly/monthly plans, and Health & Fitness is a category where annual plans can support better long-term economics [S2].
+v1 ships without an introductory trial (`Products.storekit` has `introductoryOffer: null` for both subscriptions); a 7-day annual trial is a v1.1 candidate. Avoid weekly pricing. RevenueCat's 2026 benchmark highlights materially stronger retention for yearly plans versus weekly/monthly plans, and Health & Fitness is a category where annual plans can support better long-term economics [S2].
