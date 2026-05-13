@@ -72,16 +72,53 @@ struct WhatIfSlider: View {
             ForEach(rows, id: \.dim) { row in
                 sliderRow(for: row)
             }
+            if !isPro {
+                proFooter
+            }
         }
         .padding(DesignTokens.Spacing.md)
         .background(
             DesignTokens.Palette.elevated,
             in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
         )
+        .cardLighting()
         .sensoryFeedback(LifeClockHaptics.whatIfScrubBegin, trigger: scrubBeginTrigger)
         .sensoryFeedback(LifeClockHaptics.whatIfScrubEdge, trigger: scrubEdgeTrigger)
         .sensoryFeedback(LifeClockHaptics.whatIfScrubEnd, trigger: scrubEndTrigger)
         .accessibilityIdentifier("future.whatIfSlider")
+    }
+
+    /// Free-state footer that ratchets the depth claim per
+    /// pro-value-backlog Prompt 8. Mirrors the PaywallSheet header
+    /// bullet style + carries a tap-to-paywall affordance. Visible
+    /// only when `!isPro`.
+    private var proFooter: some View {
+        Button {
+            onLockedTap()
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: DesignTokens.Spacing.sm) {
+                Image(systemName: "sparkles")
+                    .foregroundStyle(.tint)
+                    .font(.subheadline)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Unlock the simulator")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    Text("Drag any of six dimensions; watch your trajectory redraw. Plus full daily history, weekly drivers, and override power.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.top, DesignTokens.Spacing.xs)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("future.whatIfSlider.proFooter")
     }
 
     @ViewBuilder
@@ -98,9 +135,12 @@ struct WhatIfSlider: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
                 if !isPro {
+                    // Pro-gate glyph per paywall-spec.md § Visual-signal
+                    // vocabulary: lock.fill tinted, dimmed by locked state.
                     Image(systemName: "lock.fill")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.tint)
+                        .opacity(0.5)
                         .accessibilityIdentifier("future.slider.\(row.dim.rawValue).lock")
                 }
             }

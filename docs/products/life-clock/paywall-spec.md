@@ -31,6 +31,24 @@ The header subhead reads "**Pro unlocks the depth Free hints at:**" + the bullet
 
 Aspirational bullets (advanced HealthKit, widgets, AI meal/photo) live in MONETIZATION.md § Pro Annual "Planned (post-v1)" and **do not appear in the paywall header** until they ship.
 
+## Visual-signal vocabulary (binding — two-glyph convention)
+
+Pro signaling across surfaces uses **two glyphs with different jobs**:
+
+| Glyph | Job | Color treatment | Used by |
+|---|---|---|---|
+| `sparkles` (SF Symbol) | **Pitch / discovery** — invites the user to consider Pro. Forward-looking. | `.foregroundStyle(.tint)` (full accent) | Profile "Upgrade to Pro" row, WrapUp weekly Pro signal, the only-Pro feature card affordance |
+| `lock.fill` (SF Symbol) | **Gate / state** — marks a surface as Pro-only at this moment. Stateful. | `.foregroundStyle(.tint)` with `.opacity(0.5)` when on the locked surface itself; full `.tint` when in an upsell badge | History fog overlays, Today Plan-Editor chip, Future What-If slider thumb (when `!isPro`) |
+
+Plus the active-Pro indicator on Profile (`checkmark.seal.fill` + `.tint`) — distinct because it's not a Pro pitch, it's an *active-state acknowledgment*.
+
+**Rules:**
+
+- Never use `lock.fill` for a pitch (it reads as restrictive, not invitational).
+- Never use `sparkles` for a gate (it reads as celebratory on a surface the user can't reach).
+- Never mix glyphs on a single surface. A surface either pitches (`sparkles`) or signals gating (`lock.fill`) — not both.
+- The chevron-right (`chevron.right`) at the trailing edge of a row is the universal "tap to go" affordance — applies to both pitch rows and gate rows when the tap routes somewhere.
+
 ## Discoverability touchpoints
 
 Per [`pro-value-rule.md`](pro-value-rule.md) Pro touchpoint inventory, these surfaces signal Pro to Free users:

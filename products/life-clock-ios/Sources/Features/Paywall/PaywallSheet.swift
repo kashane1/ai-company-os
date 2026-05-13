@@ -118,7 +118,7 @@ struct PaywallSheet: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
             Text("Unlock the full Life Clock")
                 .font(.title.bold())
-            Text("Pro unlocks the depth Free hints at:")
+            Text("Pro adds depth:")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
@@ -167,6 +167,7 @@ struct PaywallSheet: View {
             DesignTokens.Palette.elevated,
             in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
         )
+        .cardLighting()
         .accessibilityIdentifier("paywall.whatIfSimulator")
     }
 
@@ -226,6 +227,9 @@ struct PaywallSheet: View {
                     .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             )
             .cardLighting()
+            // Smooth selection-ring transition. reduceMotion short-circuits
+            // to instant per motion-spec.md § Reduce Motion.
+            .animation(reduceMotion ? nil : .smooth(duration: Motion.Duration.instant), value: selectedProductID)
         }
         .buttonStyle(.plain)
     }

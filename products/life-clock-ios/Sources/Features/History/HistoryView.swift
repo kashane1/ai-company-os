@@ -251,9 +251,11 @@ struct HistoryView: View {
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
 
             VStack(spacing: DesignTokens.Spacing.sm) {
+                // Pro-gate glyph per paywall-spec.md § Visual-signal vocabulary.
                 Image(systemName: "lock.fill")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.tint)
+                    .opacity(0.5)
                 Text("Import all your historical health data as a Pro member")
                     .font(.headline)
                     .multilineTextAlignment(.center)
@@ -500,8 +502,10 @@ private struct DayHistoryRowContent: View {
                     .font(.caption)
             }
             if isLocked {
+                // Pro-gate glyph per paywall-spec.md § Visual-signal vocabulary.
                 Image(systemName: "lock.fill")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.tint)
+                    .opacity(0.5)
                     .font(.caption)
             } else {
                 Image(systemName: "chevron.right")
