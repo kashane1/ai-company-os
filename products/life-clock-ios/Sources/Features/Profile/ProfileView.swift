@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 struct ProfileView: View {
     @Environment(LifeClockStore.self) private var store
@@ -7,6 +8,7 @@ struct ProfileView: View {
     @State private var restoring: Bool = false
     @State private var paywallPresented: Bool = false
     @State private var safetyNetPresented: Bool = false
+    @State private var manageSubscriptionsPresented: Bool = false
     @State private var bodyUnitSystem: BodyMeasurementSystem = .standard
     @State private var restoreOutcome: RestoreOutcome?
 
@@ -151,6 +153,22 @@ struct ProfileView: View {
                             Spacer()
                             Text("Active").foregroundStyle(.secondary).font(.caption)
                         }
+                        // Trust signal: a buried-cancel pattern is an App Review
+                        // value-claim risk (pro-value-backlog Prompt 1 — trust-gap).
+                        // `.manageSubscriptionsSheet` routes to the iOS-native
+                        // manage-subs sheet without leaving the app.
+                        Button {
+                            manageSubscriptionsPresented = true
+                        } label: {
+                            HStack {
+                                Text("Manage subscription")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .accessibilityIdentifier("profile.manageSubscription")
                     } else {
                         Button("Upgrade to Pro") {
                             paywallPresented = true
@@ -168,6 +186,7 @@ struct ProfileView: View {
                     .disabled(restoring)
                     .accessibilityIdentifier("profile.restore")
                 }
+                .manageSubscriptionsSheet(isPresented: $manageSubscriptionsPresented)
 
                 Section {
                     Button {

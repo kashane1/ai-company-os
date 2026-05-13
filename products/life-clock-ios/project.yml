@@ -30,7 +30,7 @@ targets:
         UILaunchScreen:
           UIColorName: LaunchBackground
         UIApplicationSupportsIndirectInputEvents: YES
-        NSHealthShareUsageDescription: "Life Clock reads your steps, sleep, exercise, and resting heart rate from Apple Health to estimate how today's habits move your time trajectory. Your data stays on your device."
+        NSHealthShareUsageDescription: "Life Clock reads your activity, sleep, and body-metric data from Apple Health (steps, exercise minutes, active energy, resting heart rate, sleep analysis, and body mass) to estimate how today's habits move your time trajectory. Your data stays on your device."
         NSHealthUpdateUsageDescription: "Life Clock may save optional wellness entries to Apple Health if you choose to enable this later."
     entitlements:
       path: LifeClock.entitlements

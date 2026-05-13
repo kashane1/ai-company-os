@@ -110,11 +110,40 @@ struct PaywallSheet: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
             Text("Unlock the full Life Clock")
                 .font(.title.bold())
-            Text("Full weekly reports, tailored action plans, and deeper trend breakdowns. Your free experience keeps working either way.")
+            Text("Pro unlocks the depth Free hints at:")
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                proBullet("Full daily history", detail: "every past day, drillable")
+                proBullet("Weekly drivers + next-best lever", detail: "the deeper breakdown in History and richer weekly wrap-ups")
+                proBullet("Correction power", detail: "override imported Apple Health values you know are wrong")
+                proBullet("Custom Today's Plan", detail: "pick the daily-plan actions that fit your life")
+                proBullet("Deeper trend breakdown", detail: "the Future-tab What-If Simulator")
+            }
+            Text("Your free experience keeps working either way.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("paywall.header")
+    }
+
+    /// Pro-feature bullet sourced verbatim from `MONETIZATION.md` § Pro Annual.
+    /// Do not edit copy here without updating MONETIZATION.md in lockstep —
+    /// the App Review value-claim guard requires marketing copy to match
+    /// what the app actually delivers (pro-value-backlog Prompt 2).
+    private func proBullet(_ title: String, detail: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: DesignTokens.Spacing.sm) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.tint)
+                .font(.footnote)
+            (Text(title).fontWeight(.semibold)
+                + Text(" — ")
+                + Text(detail).foregroundStyle(.secondary))
+            .font(.subheadline)
         }
     }
 
