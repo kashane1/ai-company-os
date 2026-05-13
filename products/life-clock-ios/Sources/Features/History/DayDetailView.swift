@@ -37,8 +37,12 @@ struct DayDetailView: View {
                         metricRow(field)
                     }
                 } else {
-                    Text("No data persisted for this day yet.")
-                        .foregroundStyle(.secondary)
+                    EmptyStateView(
+                        title: "Nothing logged for this day yet",
+                        body: "Apple Health hasn't synced data for this date and you didn't log any habits. Once either fires, you'll see the breakdown here.",
+                        systemImage: "calendar"
+                    )
+                    .listRowBackground(Color.clear)
                 }
 
                 reflectionRow

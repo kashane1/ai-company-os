@@ -41,10 +41,15 @@ struct ClockHandView: View {
                     .offset(y: -78)
                     .rotationEffect(.degrees(Double(hour) * 30))
             }
-            // The hand.
+            // The hand. Carries the canonical world-fixed depth shadow
+            // (lighting-spec.md) so the ceremony reads as part of the
+            // same lit-from-above scene as the Today mascot hand.
+            // `lightingRotatedDepth` comes BEFORE `.rotationEffect` so
+            // the inverse-rotation math lands the shadow in world space.
             Capsule()
                 .fill(handColor)
                 .frame(width: 4, height: 64)
+                .lightingRotatedDepth(referenceSize: 4, angle: rotated ? finalAngle : .degrees(0))
                 .offset(y: -32)
                 .rotationEffect(rotated ? finalAngle : .degrees(0))
                 .opacity(reduceMotion ? (rotated ? 1 : 0.2) : 1)

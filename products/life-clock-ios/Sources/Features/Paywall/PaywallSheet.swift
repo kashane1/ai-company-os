@@ -171,8 +171,7 @@ struct PaywallSheet: View {
                 productRow(product)
             }
             if subscriptions.products.isEmpty {
-                Text("Loading subscription options…")
-                    .foregroundStyle(.secondary)
+                LifeClockSpinner("Loading subscription options…", size: .regular)
                     .padding()
             }
         }
