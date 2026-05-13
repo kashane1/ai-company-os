@@ -239,6 +239,30 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Pro-signal copy rendered AFTER the weekly wrap-up animation lands.
+    /// Yesterday wrap-ups never show this (daily reflection ≠ upsell moment;
+    /// see [`wrap-up-spec.md`](../../../../docs/products/life-clock/wrap-up-spec.md)).
+    /// The copy quotes the Free/Pro rule from MONETIZATION.md ("Pro = depth")
+    /// in each tone's voice — does not invent a fourth voice.
+    var weeklyWrapUpProSignalTitle: String {
+        switch self {
+        case .gentle: return "See a little more with Pro"
+        case .coach: return "Go deeper this week with Pro"
+        case .firmDirect: return "Pro: the drivers and the lever"
+        }
+    }
+
+    var weeklyWrapUpProSignalBody: String {
+        switch self {
+        case .gentle:
+            return "Pro adds the three drivers behind the week and one gentle nudge for next week."
+        case .coach:
+            return "Pro shows the three drivers and the one habit to lever next week."
+        case .firmDirect:
+            return "Pro: drivers, and the one lever. Now."
+        }
+    }
+
     /// Label on the chip that appears next to a metric the user has
     /// corrected. Same word in both modes — "Adjusted" reads as a neutral
     /// status, not a judgment.
