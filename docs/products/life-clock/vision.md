@@ -114,6 +114,11 @@ These are unresolved choices the skill should *raise* if it encounters them, not
 - **2026-05-04 — Lighting convention** *(operator memory).* Opacity 0.22, offset ratio (0.35, 0.85), radius ratio 0.55× of the reference size. World-fixed via inverse-rotation math for rotating elements. Source: user auto-memory ([feedback_life_clock_lighting_convention.md](../../../../../.claude/projects/-Users-simons-ai-company-os/memory/feedback_life_clock_lighting_convention.md)). Any visual change touching lighting/shadows must respect these constants unless the operator explicitly authorizes a deviation.
 - **2026-05-04 — Persistent mascot header.** Source: [onboarding-copy/v2.md](onboarding-copy/v2.md). The "LIFE CLOCK" small-caps wordmark plus 120×120 mascot animation appears at the top of every screen post-cold-open. The mascot reflects per-answer delta or screen-specific override. Removing this is a Feature-tier decision.
 
+### References
+
+- **2026-05-13 — Premium-feel reference app: Death Clock: The Life Lab.** Source: operator decision 2026-05-13, documented in [reference-apps.md](reference-apps.md). Used as the craft benchmark for reference-match audit prompts targeting motion, transitions, reveal animations, and number-animation patterns. *Match the craft, reject the framing* — Life Clock's vision Decided constraints (trajectory-not-prophecy, no AI concierge, no bloodwork, no mortality-heavy lexicon) supersede any reference pattern. Changing this reference is a Vision-question.
+- **2026-05-13 — Pro-value reference app: MacroFactor.** Source: operator decision 2026-05-13, documented in [reference-apps.md](reference-apps.md). Used as the paywall-craft benchmark for reference-match audit prompts targeting Justification depth, pricing presentation, and adherence-neutral copy register. *Match the craft, reject the model* — Life Clock's freemium + no-trial stance is binding; MacroFactor's premium-only / 7-day-trial patterns do not transfer. Changing this reference is a Vision-question.
+
 ### Monetization
 
 - **2026-05-04 — Annual-first pricing.** Source: [00_EXECUTIVE_SUMMARY.md](00_EXECUTIVE_SUMMARY.md) §"Initial monetization" + [07_MONETIZATION.md](07_MONETIZATION.md). Avoid weekly pricing entirely (RevenueCat 2026 retention benchmark). Annual is the headline tier.
