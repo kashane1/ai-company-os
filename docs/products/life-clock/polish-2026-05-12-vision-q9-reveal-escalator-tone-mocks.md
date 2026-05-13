@@ -135,9 +135,38 @@ Tradeoffs:
 
 ## Next pass
 
-- Wait for operator pick on Q9 (a / b / c above).
-- On pick: ship the corresponding follow-up commit (specified per-option above) and remove the `Q9Variant` mock fixture. The seed-stress + `LIFECLOCK_SEED_TONE` knobs on the JUMP fixture stay — they compose with other polish runs.
+- ~~Wait for operator pick on Q9 (a / b / c above).~~ **Resolved same-day — operator picked (c). See "Q9 resolution" below.**
 - Independent of Q9 resolution: pick up the carried-over `LifeGridDotView` JUMP-fixture race (still on the cycle-end list from [2026-05-07](polish-2026-05-07-vision-terminal-screens-followup.md)) and the `RecoveryPreviewCopy.headline` `yearsBack == 0` fallback.
+
+---
+
+## Q9 resolution — option (c), inferred-softer
+
+Operator picked (c) after reviewing all three goldens. Reasoning (operator's, paraphrased): the dramatic register is load-bearing for the median user and the dial + recovery preview moment is calibrated against it, but the population most likely to be hit poorly by the dramatic register is precisely the population whose stress + connection signals SafetyNet was designed around — and we ask those questions one screen before the reveal escalator. Inferring soft register from those signals is consistent with the existing product posture; asking the user to pre-pick a voice (option b) is principled but doesn't actually move the needle for most users since they'll default to Coach without prior sample. Soft register stays a minority experience by design.
+
+### Ship-version commits
+
+- **`fix(life-clock): infer-softer reveal-escalator register from PSS + UCLA signals (Q9 option c)`**
+  - Removed the DEBUG-only `Q9Variant` enum + `revealEffectiveTone(draft:)` helper. Replaced with always-on `revealUsesSofterRegister(draft:)`: returns true iff `(draft.perceivedStressScore ?? 0) ≥ 27` AND `(draft.lonelinessScore ?? 0) ≥ 6` (matches `PerceivedStressBucket.stretched` + `LonelinessBucket.lowConnection`).
+  - `LifeGridRemainingView` and `BigNumberPenaltyView` swap to `RevealEscalatorGentleCopy` when the threshold fires; otherwise render the existing dramatic copy verbatim.
+  - When softened, both views append an inline tertiary-tint `Text("Prefer a sharper read? Switch tone in Profile anytime.")` below their existing content (above Continue). A11y identifiers `onboarding.lifeGridRemaining.toneSwitchAffordance` and `onboarding.bigNumberPenalty.toneSwitchAffordance` on the affordance lines.
+  - Tightened the gentle `bigNumberTitle` copy from `"About {N} years to work with."` → `"About {N} years to shape."` (lexical consonance with the gentle `lifeGridBody` "your habits help shape", and short enough to render on one line at iPhone 17 Pro width — the longer form truncated to `"About {N} years to work w…"` once the dot grid rendered and squeezed the title slot).
+- **`chore(life-clock): JUMP fixture env-var seed for PSS + UCLA (replace always-on seeding)`**
+  - JUMP fixture previously always seeded `perceivedStressScore = 30` + `lonelinessScore = 7` so the Q9 variant fixture could fire variant (c). Now reads `LIFECLOCK_SEED_PSS` + `LIFECLOCK_SEED_UCLA` env-vars; unset = nil (pre-Q9 fixture behavior — `revealUsesSofterRegister` returns false → dramatic register). Polish runs that want the softened reveal pass `SIMCTL_CHILD_LIFECLOCK_SEED_PSS=30 SIMCTL_CHILD_LIFECLOCK_SEED_UCLA=7`. `LIFECLOCK_SEED_TONE` knob retained from the prior session — orthogonal, useful across runs.
+
+### Ship-version goldens (verification)
+
+- **Softened (PSS=30, UCLA=7)** — softer copy + affordance:
+  - [.polish/goldens/q9_ship_soft_lifeGridRemaining.png](../../../products/life-clock-ios/.polish/goldens/q9_ship_soft_lifeGridRemaining.png) — "These weeks are still yours." + affordance line
+  - [.polish/goldens/q9_ship_soft_bigNumberPenalty.png](../../../products/life-clock-ios/.polish/goldens/q9_ship_soft_bigNumberPenalty.png) — "About 19 years to shape." + affordance line
+- **Default (no stress seed)** — dramatic copy preserved, no affordance:
+  - [.polish/goldens/q9_ship_dramatic_lifeGridRemaining.png](../../../products/life-clock-ios/.polish/goldens/q9_ship_dramatic_lifeGridRemaining.png)
+  - [.polish/goldens/q9_ship_dramatic_bigNumberPenalty.png](../../../products/life-clock-ios/.polish/goldens/q9_ship_dramatic_bigNumberPenalty.png)
+
+### Vision update
+
+- Q9 inline resolution appended at [vision.md L71](vision.md) (preserves the original question text struck-through, with the operator's pick and reasoning beneath, per the existing Q7/Q10/Q15-19 convention).
+- Decided constraint proposed (operator-only edit to `## Decided constraints`): "The reveal escalator runs in the dramatic register by default. When the user's PSS + UCLA answers on the consent screens fire both bucket thresholds (Stretched ≥27 + low-connection ≥6), `LifeGridRemainingView` and `BigNumberPenaltyView` switch to the gentle register and show an inline 'switch tone in Profile' affordance. No other reveal-escalator screen carries tone-aware copy; archetype description is already model-derived."
 
 ---
 
