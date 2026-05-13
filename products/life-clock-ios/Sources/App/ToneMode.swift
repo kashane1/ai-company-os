@@ -263,6 +263,21 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// One-line Pro pitch shown under the "Upgrade to Pro" button on
+    /// Profile (pro-value-backlog Prompt 6 — Discoverability dimension).
+    /// Quotes MONETIZATION.md § Pro Annual depth claim in each voice.
+    /// Kept short — a row, not a card.
+    var profileUpgradeSubline: String {
+        switch self {
+        case .gentle:
+            return "Full daily history, weekly drivers, and overrides — when you're ready."
+        case .coach:
+            return "Full daily history, weekly drivers + next-best lever, and correction power."
+        case .firmDirect:
+            return "Full history. Weekly drivers. Override power. The What-If Simulator."
+        }
+    }
+
     /// Label on the chip that appears next to a metric the user has
     /// corrected. Same word in both modes — "Adjusted" reads as a neutral
     /// status, not a judgment.

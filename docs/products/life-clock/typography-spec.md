@@ -10,20 +10,27 @@
 
 Dynamic Type is the iOS-native accessibility contract. A user who increases their system text size expects every label, title, and body string in the app to scale. Absolute sizes break that contract — they're frozen, which is fine for stylized readouts (the Today delta is a *figure* more than a *label*) but wrong for anything the user reads as text.
 
-## The numeric-display exception (binding, explicit)
+## The numeric-display exception (binding — role-based size families)
 
-These are the only sites permitted to use `.font(.system(size:weight:design:))` with an absolute size, because they are visual figures, not text:
+Numeric figures (signed-minute deltas, healthspan years, override input values, projection headlines, splash icons) are permitted to use `.font(.system(size:weight:design:))` with absolute sizes — they're visual figures, not text. They use a small set of **role families**, not arbitrary sizes:
 
-| Site | Size | Weight | Design |
-|---|---|---|---|
-| Today's signed-minutes headline | `.system(size: 44, weight: .semibold, design: .rounded)` | (in `WrapUpSheet` + `TodayView` headline) |
-| WrapUpSheet signed-minutes readout | same as above |
-| Healthspan dial center number | `.system(size: 28, weight: .semibold, design: .rounded)` |
-| Onboarding archetype reveal | `.system(size: 32, weight: .semibold, design: .rounded)` |
-| Reveal-escalator "big penalty number" | `.system(size: 22, weight: .semibold, design: .rounded)` |
-| Empty-state icon glyph | `.system(size: 32, weight: .regular)` (no `design:`) — applies to `EmptyStateView` |
+| Role | Canonical size(s) | Weight | Design | Used by |
+|---|---|---|---|---|
+| **Hero numeric** | 56 → 52 → 36 → 28 fallback chain via `ViewThatFits` | `.semibold` | `.rounded` | Healthspan dial center (Future tab headline, Engine reveal, Lead-in reactive slider demo) |
+| **Display numeric** | 44 | `.semibold` | `.rounded` | Today + WrapUp signed-minutes |
+| **Section numeric** | 40 → 36 → 28 → 22 fallback via `ViewThatFits` | `.semibold` | `.rounded` | History weekly net, History yesterday delta, InstallSummarySection, Day detail metric |
+| **Inline numeric** | 32 | `.semibold` | `.rounded` | Override input field, archetype reveal label |
+| **Compact numeric** | 22 | `.semibold` | `.rounded` | Day-row delta, History compact rows |
+| **Icon glyph (functional)** | 32 | `.regular` | (none) | `EmptyStateView` icon |
+| **Icon glyph (splash)** | 48 | (none) | (none) | Lead-in / data-collection screen splash icon |
 
-The design is `.rounded` for numeric figures, `.regular` for icon glyphs. The weight is `.semibold` for numeric figures, `.regular` for icon glyphs. Any new absolute-size site needs operator approval; the audit treats new entries as `typography-drift` candidates.
+The convention is:
+
+- `.semibold` weight + `.rounded` design for every numeric figure (the brand's display register).
+- Plain weight + no design override for icon-glyph roles.
+- Use `ViewThatFits(in: .horizontal)` to chain hero / section numeric sizes so the figure gracefully degrades on narrow widths.
+
+Any new absolute-size site **must map to an existing role family**. Inventing a new size = `typography-drift` audit prompt; resolve by picking the closest role.
 
 ## Allowed Dynamic Type tokens
 

@@ -24,6 +24,7 @@ struct PaywallSheet: View {
 
     @Environment(SubscriptionStore.self) private var subscriptions
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedProductID: String?
     @State private var purchaseSuccessHapticTrigger: Int = 0
     @State private var restoring: Bool = false
@@ -58,8 +59,12 @@ struct PaywallSheet: View {
                     // Defer one tick — ScrollViewReader needs the layout
                     // pass before scrollTo lands cleanly.
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                        withAnimation(.smooth(duration: Motion.Duration.instant)) {
+                        if reduceMotion {
                             proxy.scrollTo(target, anchor: .top)
+                        } else {
+                            withAnimation(.smooth(duration: Motion.Duration.instant)) {
+                                proxy.scrollTo(target, anchor: .top)
+                            }
                         }
                     }
                 }
@@ -182,12 +187,31 @@ struct PaywallSheet: View {
         return Button {
             selectedProductID = product.id
         } label: {
-            HStack {
+            HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                    Text(product.displayName).font(.headline)
+                    HStack(spacing: DesignTokens.Spacing.sm) {
+                        Text(product.displayName).font(.headline)
+                        if let badge = savingsBadge(for: product) {
+                            Text(badge)
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Color.accentColor.opacity(0.18),
+                                    in: Capsule()
+                                )
+                                .foregroundStyle(Color.accentColor)
+                                .accessibilityIdentifier("paywall.product.\(productSlug(product.id)).savings")
+                        }
+                    }
                     Text(periodLabel(product))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    if let equivalent = monthlyEquivalent(for: product) {
+                        Text(equivalent)
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.tertiary)
+                    }
                 }
                 Spacer()
                 Text(product.displayPrice)
@@ -203,6 +227,40 @@ struct PaywallSheet: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    /// Savings copy on annual + lifetime against the monthly baseline.
+    /// Computed against shipped SKU prices in `Products.storekit`:
+    /// monthly $7.99 × 12 = $95.88/yr; annual ships $49.99; lifetime $129.99.
+    /// Annual saves ~48% vs monthly cadence over 12 months.
+    /// Lifetime breaks even against monthly at ~16 months.
+    private func savingsBadge(for product: Product) -> String? {
+        switch product.id {
+        case PaywallProductID.annual.rawValue: return "Save ~48%"
+        case PaywallProductID.lifetime.rawValue: return "Best value"
+        default: return nil
+        }
+    }
+
+    /// Monthly-equivalent breakdown for the annual product.
+    /// $49.99 / 12 ≈ $4.17/mo.
+    private func monthlyEquivalent(for product: Product) -> String? {
+        guard product.id == PaywallProductID.annual.rawValue else { return nil }
+        let monthly = NSDecimalNumber(decimal: product.price / 12)
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = product.priceFormatStyle.currencyCode
+        formatter.maximumFractionDigits = 2
+        formatter.minimumFractionDigits = 2
+        guard let formatted = formatter.string(from: monthly) else { return nil }
+        return "\(formatted) / month equivalent"
+    }
+
+    private func productSlug(_ id: String) -> String {
+        if id == PaywallProductID.annual.rawValue { return "annual" }
+        if id == PaywallProductID.monthly.rawValue { return "monthly" }
+        if id == PaywallProductID.lifetime.rawValue { return "lifetime" }
+        return "unknown"
     }
 
     private func periodLabel(_ product: Product) -> String {

@@ -14,6 +14,7 @@ struct WrapUpSheet: View {
     let onDismiss: () -> Void
 
     @Environment(SubscriptionStore.self) private var subscriptions
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var paywallPresented: Bool = false
     @State private var proSignalRevealed: Bool = false
 
@@ -109,8 +110,15 @@ struct WrapUpSheet: View {
             // add a 0.4s settle on top before the signal fades in.
             guard showsProSignal else { return }
             try? await Task.sleep(nanoseconds: UInt64((animationDuration + 0.4) * 1_000_000_000))
-            withAnimation(.smooth(duration: Motion.Duration.beat)) {
+            // Reduce Motion short-circuits to an instant reveal — the
+            // signal still appears (no functional regression) but
+            // without the fade-in.
+            if reduceMotion {
                 proSignalRevealed = true
+            } else {
+                withAnimation(.smooth(duration: Motion.Duration.beat)) {
+                    proSignalRevealed = true
+                }
             }
         }
         .sheet(isPresented: $paywallPresented) {

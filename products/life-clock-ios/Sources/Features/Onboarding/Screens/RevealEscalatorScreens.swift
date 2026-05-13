@@ -371,6 +371,7 @@ struct RecoveryPreviewView: View {
     let onContinue: () -> Void
     @Environment(LifeClockStore.self) private var store
     @Environment(OnboardingDraft.self) private var draft
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var cyclingIndex: Int = 0
 
@@ -432,7 +433,7 @@ struct RecoveryPreviewView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, minHeight: 56, alignment: .center)
                     .contentTransition(.opacity)
-                    .animation(.easeInOut(duration: Motion.Duration.beat), value: cyclingIndex)
+                    .animation(reduceMotion ? nil : .easeInOut(duration: Motion.Duration.beat), value: cyclingIndex)
                     .accessibilityIdentifier("onboarding.recoveryPreview.cyclingPhrase")
             }
             .frame(maxWidth: .infinity)

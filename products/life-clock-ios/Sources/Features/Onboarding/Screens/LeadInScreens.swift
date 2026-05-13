@@ -302,6 +302,7 @@ struct ReactiveSliderView: View {
     let onContinue: () -> Void
 
     @Environment(MascotOverride.self) private var mascotOverride
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Three-dial demo: each slider ∈ [0,1]. Aggregate average drives the
     /// demo year band and the persistent header mascot via the focused
@@ -333,7 +334,7 @@ struct ReactiveSliderView: View {
                 Text(String(format: "%.0f years", demoYears))
                     .font(.system(size: 56, weight: .semibold, design: .rounded))
                     .contentTransition(.numericText(value: demoYears))
-                    .animation(.snappy, value: aggregate)
+                    .animation(reduceMotion ? nil : .snappy, value: aggregate)
                     .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("onboarding.reactiveSlider.years")
 

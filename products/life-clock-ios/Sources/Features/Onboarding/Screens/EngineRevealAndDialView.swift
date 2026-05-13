@@ -19,6 +19,7 @@ struct EngineRevealAndDialView: View {
     @Environment(OnboardingDraft.self) private var draft
     @Environment(MascotOverride.self) private var mascotOverride
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var dialYears: Double = 0
     @State private var showConfirmDialog = false
@@ -91,7 +92,7 @@ struct EngineRevealAndDialView: View {
                 Text(String(format: "%.1f years", displayedYears))
                     .font(.system(size: 56, weight: .semibold, design: .rounded))
                     .contentTransition(.numericText(value: displayedYears))
-                    .animation(.snappy, value: displayedYears)
+                    .animation(reduceMotion ? nil : .snappy, value: displayedYears)
                     .accessibilityIdentifier("onboarding.dialYears")
                 if let projected = projectedDate {
                     Text("(\(projected, style: .date))")

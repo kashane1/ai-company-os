@@ -170,8 +170,30 @@ struct ProfileView: View {
                         }
                         .accessibilityIdentifier("profile.manageSubscription")
                     } else {
-                        Button("Upgrade to Pro") {
+                        // Tone-aware Pro pitch row per pro-value-backlog
+                        // Prompt 6. Quotes MONETIZATION.md § Pro Annual
+                        // depth claim in each voice; the row is a single
+                        // button, not a card — discoverability without
+                        // upsell-heaviness.
+                        Button {
                             paywallPresented = true
+                        } label: {
+                            HStack(alignment: .firstTextBaseline, spacing: DesignTokens.Spacing.sm) {
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(.tint)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Upgrade to Pro")
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    Text(store.toneMode.profileUpgradeSubline)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
                         .accessibilityIdentifier("profile.upgrade")
                     }
