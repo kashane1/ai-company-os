@@ -27,7 +27,7 @@ Everything else (parental gates before the paywall, EU 16-floor, symmetric input
 **After July 2025 (deadline Jan 31 2026):** 4+ / 9+ / **13+ / 16+ / 18+**. Apple [auto-mapped](https://developer.apple.com/news/?id=ks775ehf) every existing app's rating; legacy 12+ became 13+.
 
 What this means for Life Clock:
-- The codebase still references "12+" in [README.md](../../../products/life-clock-ios/Sources/Engines/AgeGate.swift), [ASC_CHECKLIST.md](ASC_CHECKLIST.md), and [CLAUDE_HANDOFF.md](CLAUDE_HANDOFF.md). Update during the next polish pass.
+- ~~The codebase still references "12+" in `AgeGate.swift`, `ASC_CHECKLIST.md`, and `CLAUDE_HANDOFF.md`. Update during the next polish pass.~~ **Resolved 2026-05-13** in commit `c94cfa8` — all source + doc references now read `13+`. Verified via `grep -rE "12\+" docs/products/life-clock products/life-clock-ios/Sources` returning no matches.
 - The questionnaire content categories changed shape. Operator must re-answer in App Store Connect.
 - Apps that ignored the deadline lost the ability to ship updates ([Apple Developer News, July 2025](https://developer.apple.com/news/?id=ks775ehf)). **Verify Life Clock's rating status in ASC before next submission.**
 
