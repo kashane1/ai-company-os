@@ -321,21 +321,27 @@ struct OnboardingCoordinator: View {
         draft.sleepGoalHours = 5.5
         draft.dietQualityBaseline = "rough"
         draft.primaryGoal = .liveLonger
-        // Honor LIFECLOCK_SEED_TONE so Q9 variant (b) can land on a
-        // non-coach tone without driving ToneView. Falls back to coach
-        // for parity with prior fixture behavior.
+        // Honor LIFECLOCK_SEED_TONE so polish runs can land on a
+        // non-coach tone without driving ToneView. Falls back to coach.
         if let raw = ProcessInfo.processInfo.environment["LIFECLOCK_SEED_TONE"],
            let parsed = ToneMode(rawValue: raw) {
             draft.toneMode = parsed
         } else {
             draft.toneMode = .coach
         }
-        // Seed stretched-stress + low-connection signals so Q9 variant
-        // (c)'s inferred-softer condition can fire under the JUMP fixture.
-        // PSS 30 lands in the Stretched bucket (≥27); UCLA 7 lands in the
-        // low-connection bucket (≥6).
-        draft.perceivedStressScore = 30
-        draft.lonelinessScore = 7
+        // Optional stress + loneliness seeding so polish runs that want to
+        // exercise the reveal-escalator's softened register can do so
+        // deterministically. Default is unset → `revealUsesSofterRegister`
+        // returns false → dramatic register renders, matching pre-Q9
+        // fixture behavior.
+        if let raw = ProcessInfo.processInfo.environment["LIFECLOCK_SEED_PSS"],
+           let n = Int(raw) {
+            draft.perceivedStressScore = n
+        }
+        if let raw = ProcessInfo.processInfo.environment["LIFECLOCK_SEED_UCLA"],
+           let n = Int(raw) {
+            draft.lonelinessScore = n
+        }
         draft.personalAdjustmentYears = -2
         draft.anchorAdjustedAt = store.clock.now()
         draft.recomputeEstimate(using: engine)
