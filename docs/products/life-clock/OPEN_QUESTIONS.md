@@ -1,3 +1,5 @@
+> **Deprecated 2026-05-13.** This file is the 2026-04-27 founder-pack snapshot. Active Open Questions and Decided constraints live in [`vision.md`](vision.md) — that is the operating ledger, ratcheted by the operator. See `vision.md` § Open questions for the current list and § Decided constraints for items closed since 2026-04-27. Of the 19 questions below, 8 are now Decided in `vision.md`, 7 are still open (mappable to vision Open Qs #1–#6), and 2 are stale (FP-8, FP-11). This file is preserved for historical context only — do not add new questions here.
+
 > Source: Life Clock Founder Pack (2026-04-27). Normalized for platform use.
 
 # Open Questions

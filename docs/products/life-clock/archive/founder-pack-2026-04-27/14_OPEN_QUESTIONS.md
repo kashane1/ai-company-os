@@ -1,3 +1,5 @@
+> **Deprecated 2026-05-13.** This file is the 2026-04-27 founder-pack snapshot. Active Open Questions and Decided constraints live in [`vision.md`](vision.md). Preserved for historical context only — do not add new questions here.
+
 # Open Questions
 
 ## Brand

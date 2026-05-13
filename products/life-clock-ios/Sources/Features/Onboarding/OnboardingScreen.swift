@@ -27,7 +27,7 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
     /// screen via the persistent header chevron and re-enter their DOB
     /// — the OnboardingDraft is transient @State, so a blocked DOB does
     /// not persist across a back-and-forward cycle. See
-    /// docs/products/life-clock/09b_AGE_COMPLIANCE.md.
+    /// docs/products/life-clock/AGE_COMPLIANCE.md.
     case under13Block
     case baselineSex
     case bodyComp
@@ -74,7 +74,7 @@ extension OnboardingScreen {
     /// always populate `birthDate`, and routing to `under13Block` on
     /// missing DOB would be a worse UX (it'd surface the block on a
     /// state corruption rather than on a real under-13 entry). See
-    /// docs/products/life-clock/09b_AGE_COMPLIANCE.md.
+    /// docs/products/life-clock/AGE_COMPLIANCE.md.
     static func afterBaselineDOB(
         birthDate: Date?,
         asOf: Date,

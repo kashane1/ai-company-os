@@ -46,7 +46,7 @@ The app does not collect any data on Apple's "linked to user / not linked / used
 
 ASC → My Apps → Life Clock → App Information → Age Rating.
 
-> **2026-05-10 update — Apple overhauled the rating system in July 2025.** The old `4+ / 9+ / 12+ / 17+` tiers were replaced with `4+ / 9+ / 13+ / 16+ / 18+`, with a Jan 31 2026 compliance deadline. Legacy `12+` was auto-mapped to **13+**. Apps that did not re-run the questionnaire by the deadline lost the ability to ship updates. Re-run before next submission. Full context in [09b_AGE_COMPLIANCE.md](09b_AGE_COMPLIANCE.md).
+> **2026-05-10 update — Apple overhauled the rating system in July 2025.** The old `4+ / 9+ / 12+ / 17+` tiers were replaced with `4+ / 9+ / 13+ / 16+ / 18+`, with a Jan 31 2026 compliance deadline. Legacy `12+` was auto-mapped to **13+**. Apps that did not re-run the questionnaire by the deadline lost the ability to ship updates. Re-run before next submission. Full context in [AGE_COMPLIANCE.md](AGE_COMPLIANCE.md).
 
 Walk through Apple's questionnaire on the new tiers. Answers that match the implemented behavior (target rating: **13+** with in-app under-13 hard block + under-18 alcohol/tobacco onboarding suppression + under-18 mortality-reveal suppression):
 
@@ -65,11 +65,11 @@ Walk through Apple's questionnaire on the new tiers. Answers that match the impl
 | Gambling — Simulated | **None** | — |
 | Gambling — Contests | **None** | — |
 | Unrestricted Web Access | **No** | App has no web view. |
-| Made for Kids | **No** | Life Clock is general-availability, not Kids Category. See [09b_AGE_COMPLIANCE.md](09b_AGE_COMPLIANCE.md) §2 for why Kids Category isn't right for this app. |
+| Made for Kids | **No** | Life Clock is general-availability, not Kids Category. See [AGE_COMPLIANCE.md](AGE_COMPLIANCE.md) §2 for why Kids Category isn't right for this app. |
 
 **Expected result: 13+.** Confirm and save.
 
-**Ambiguity flag (re-verify on submission):** the questionnaire asks about *frequency*. If a future App Review reviewer reads the once-per-onboarding mortality reveal as "frequent medical/treatment information" rather than "infrequent," the result could land at 16+. Pre-launch, walk a real reviewer's POV through onboarding once with the auditor's mindset and document the answer chosen. See `docs/products/life-clock/09b_AGE_COMPLIANCE.md` §1 for the line we landed on.
+**Ambiguity flag (re-verify on submission):** the questionnaire asks about *frequency*. If a future App Review reviewer reads the once-per-onboarding mortality reveal as "frequent medical/treatment information" rather than "infrequent," the result could land at 16+. Pre-launch, walk a real reviewer's POV through onboarding once with the auditor's mindset and document the answer chosen. See `docs/products/life-clock/AGE_COMPLIANCE.md` §1 for the line we landed on.
 
 ## Phase 5 — In-App Purchase Setup
 

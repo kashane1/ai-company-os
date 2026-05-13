@@ -92,7 +92,7 @@ final class AgeGateTests: XCTestCase {
     //
     // Pins the COPPA actual-knowledge + FTC Feb 2026 safe-harbor
     // posture: < 13 → terminal block; >= 13 → proceed. See
-    // docs/products/life-clock/09b_AGE_COMPLIANCE.md.
+    // docs/products/life-clock/AGE_COMPLIANCE.md.
 
     func testAfterBaselineDOBTwelveYearOldGoesToBlock() {
         // 14 years before 2027-01-15 = 2013-01-15 → exactly 13.

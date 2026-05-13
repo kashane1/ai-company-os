@@ -77,7 +77,7 @@ WHAT'S DONE
   + Products.storekit for local sim testing
 - Diet quality elevated as first-class clock driver; DietStreakCalculator
   on Today; QuickLogSheet for coarse daily habits
-- Age-gated UI for under-18 users (AgeGate.isAdult); 12+ App Store rating
+- Age-gated UI for under-18 users (AgeGate.isAdult); under-13 hard block in onboarding (Under13Block); 13+ App Store rating (Apple deprecated 12+ in July 2025)
 - SafetyNetView (988 + Crisis Text Line + hide-the-clock toggle + switch
   to Gentle tone)
 - PrivacyInfo.xcprivacy with CA92.1 + C617.1 reasons
@@ -93,7 +93,7 @@ WHAT'S PENDING — founder-side (cannot be done from code)
   details; the app already points at the GitHub Pages URLs
 - App Store Connect: app record, IAP products matching Products.storekit
   IDs (com.lifeclock.pro.{monthly,annual,lifetime}), age-rating
-  questionnaire (answers in ASC_CHECKLIST Phase 4 → 12+)
+  questionnaire (answers in ASC_CHECKLIST Phase 4 → 13+)
 - App icon (1024x1024 + standard sizes) into AppIcon.appiconset/
 - Six App Store screenshots
 - Sandbox tester credentials for App Review notes

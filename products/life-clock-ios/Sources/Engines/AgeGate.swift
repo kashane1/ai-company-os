@@ -5,9 +5,12 @@ import Foundation
 /// return a Bool. No `Date()` calls.
 ///
 /// Implementation rationale: Apple's age rating is a *floor* (the minimum
-/// download age). To keep the App Store rating at 12+ we hide alcohol /
+/// download age). The App Store rating is **13+** (Apple deprecated the
+/// 12+ tier in July 2025 and auto-mapped Life Clock to 13+; see
+/// `docs/products/life-clock/AGE_COMPLIANCE.md`). We hide alcohol /
 /// smoking pickers from users who report a DOB making them under 18.
-/// Users 18+ see the full picker set.
+/// Users 18+ see the full picker set. Users reporting under 13 are hard-
+/// blocked at the `BaselineDOB` onboarding step (`Under13Block`).
 ///
 /// Surfaces consulting this gate:
 /// - `OnboardingScreen.afterBodyComp` — minors skip the smoking +

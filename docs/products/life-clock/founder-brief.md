@@ -1,70 +1,56 @@
-# Executive Summary
+# Life Clock — Founder Brief
 
-## Working title
+> One-pager. For partners / investors / new collaborators who need the shape in 60 seconds. For the canonical product story, see [`EXECUTIVE_SUMMARY.md`](EXECUTIVE_SUMMARY.md). For the operating ledger of decisions, see [`vision.md`](vision.md).
 
-**Life Clock** is the working title. It is not final. Other brand candidates include TimeBack, Long Game, DayBank, Clockwise, and Healthspan Quest.
+## What it is
 
-## Concept
+Life Clock is an iPhone-first Health & Fitness app that translates daily behavior into the most intuitive unit possible: **time**. Apple Health + a transparent rules engine compute "today's habits moved your projected healthspan by ±N minutes" — not a death-date prediction, an agency-led trajectory mirror. Three tone modes (gentle / coach / firm-direct) let users pick how dramatic the framing feels.
 
-Life Clock is an iPhone-first Health & Fitness app where daily behavior moves a user's projected life trajectory. Instead of presenting a fixed death date, the app turns healthspan into a game: sleep, movement, workouts, nutrition, stress, alcohol, smoking, and consistency can add or subtract time from a visible clock.
+## Where we are (2026-05-13)
 
-## Wedge
+**Pre-TestFlight.** April 28 → May 13 build sprint shipped the full MVP scope plus material additions beyond the original founder-pack plan:
 
-**Earn time back with better daily habits.**
+- 4-tab IA (Today / History / Future / Profile) with a ~29-screen reveal-onboarding escalator.
+- Two clock engines — `ClockEngine` (additive minutes ledger) + `HealthspanEngine` (years projection with bounded ±5y healthspan dial, 14 coefficients, smoking dominance, +14y cap).
+- StoreKit 2 paywall (monthly $7.99 / annual $49.99 / lifetime $129.99) with proven entitlement gates and lifecycle states.
+- Local-first SwiftData (V1.7, `cloudKitDatabase: .none`); HealthKit read-only on six core types.
+- Sensitive-consent block (PSS-10 perceived stress + UCLA-3 loneliness; vision Q9 Decided 2026-05-12).
+- Under-13 hard block in onboarding; 13+ App Store rating (Apple deprecated 12+ in July 2025).
+- SafetyNet (988 + Crisis Text Line + hide-the-clock + switch to Gentle tone).
+- One opt-in daily reminder, evening-clamped; wrap-ups are pull-not-push.
 
-This is more defensible and App Store-safe than "predict your death date." The app can still have a dramatic clock, but the product promise should be agency-based: your trajectory changes as your behavior changes.
+## Why now
 
-## Why this is worth building
+- **Apple Health saturation is real, interpretation is missing.** Step counts and sleep scores live in dashboards no one revisits. Translating them into "what did today do to my time?" creates emotional legibility a single number can't.
+- **The category is validated and the leader is over-clinical.** Death Clock: The Life Lab proves willingness to pay at $40–$100 ARPU [S1], but leans on AI/bloodwork/diagnostic framing. There's an opening for a more elegant, more game-like, more App-Store-safe interpretation.
+- **Apple's privacy stance is a moat.** Local-first with `cloudKitDatabase: .none` is a credible privacy posture in a category where everyone else collects everything.
 
-There is direct demand for the concept. Death Clock: The Life Lab is a Health & Fitness app with approximately 15K ratings at 4.8 and membership IAPs ranging roughly from $39.99 to $99.99, plus higher-ticket baseline options [S1]. That validates user curiosity and willingness to pay, but it also means a generic "death clock" app is no longer novel.
+## What's distinctive
 
-The opening is to build a more elegant, less medically risky, more game-like, Apple-native version focused on daily behavior change.
+- **Two-engine math, fully transparent.** `healthspan-coefficients.md` is the single-source-of-truth coefficient table; the engine source matches it line-for-line. No black-box AI.
+- **Tone as a first-class concern.** "Drama, not cruelty" is a ratcheted vision constraint. The firm-direct register is opt-in; default is coach; gentle hides the clock entirely. Reveal escalator pulls back on softer registers when the sensitive-consent signal indicates risk (Q9).
+- **Wrap-ups are pull-only.** Weekly + yesterday wrap-ups present as in-app sheets on cold-launch, never as push notifications. No re-engagement notifications, period.
 
-## Category recommendation
+## Where to dig in next
 
-Primary App Store category: **Health & Fitness**.
+| You want to understand… | Read |
+|---|---|
+| The product story | [`EXECUTIVE_SUMMARY.md`](EXECUTIVE_SUMMARY.md) |
+| The decision ledger (what's settled vs open) | [`vision.md`](vision.md) |
+| Tab-by-tab spec | [`PRD.md`](PRD.md), [`UX_GAME_LOOP.md`](UX_GAME_LOOP.md) |
+| The math | [`CLOCK_MODEL.md`](CLOCK_MODEL.md), [`healthspan-coefficients.md`](healthspan-coefficients.md) |
+| The Pro story | [`MONETIZATION.md`](MONETIZATION.md), [`pro-value-rule.md`](pro-value-rule.md) |
+| Engineering shape | [`TECHNICAL_ARCHITECTURE.md`](TECHNICAL_ARCHITECTURE.md) |
+| Compliance posture | [`PRIVACY_COMPLIANCE.md`](PRIVACY_COMPLIANCE.md), [`AGE_COMPLIANCE.md`](AGE_COMPLIANCE.md), [`legal/`](legal/) |
+| What's blocking TestFlight | [`PHASE_STATUS.md`](PHASE_STATUS.md), [`ASC_CHECKLIST.md`](ASC_CHECKLIST.md) |
+| Premium-feel + Pro-value gap analysis | [`premium-bar.md`](premium-bar.md), latest `premium-feel-backlog-*.md`, latest `pro-value-backlog-*.md` |
 
-Secondary positioning: **Lifestyle / habit formation / quantified self**.
+## What's next (next 30 days)
 
-Do not use Games as the primary category. The game mechanic is the retention layer; the buyer intent is health improvement.
+1. Close pro-value submission-blockers (in-app cancel pointer; paywall header rewrite from MONETIZATION § Pro Annual).
+2. Land elevation-vocabulary artifacts (`Motion.Duration` enum, extended `Lighting` modifier, shared `LifeClockSpinner` / `EmptyStateView`) from the premium-feel backlog.
+3. App Store Connect record + Phase 4 age-rating questionnaire re-run on the 4+/9+/13+/16+/18+ tiers.
+4. Fill remaining legal placeholders (publisher name, support email, jurisdiction).
+5. TestFlight.
 
-## Founder recommendation
-
-Build this as a **HealthKit-powered longevity game**, not a clinical longevity app and not a literal death prediction oracle.
-
-## MVP promise
-
-"Connect Apple Health. See today's time delta. Complete daily quests to earn time back."
-
-## MVP loop
-
-1. User completes a short baseline.
-2. User grants progressive Apple Health permissions.
-3. App calculates a starting Life Clock and confidence level.
-4. Each day, passive HealthKit data and quick manual inputs update the clock.
-5. The app shows what moved the clock most.
-6. The app gives 1-3 quests to improve tomorrow.
-7. Weekly report summarizes time earned, time lost, and best next lever.
-
-## What v1 should not do
-
-- Do not claim to know the user's real death date.
-- Do not provide diagnosis or treatment advice.
-- Do not interpret bloodwork in v1.
-- Do not build a calorie database in v1.
-- Do not sell ads or use HealthKit data for advertising.
-- Do not require every HealthKit permission on first launch.
-- Do not make the app emotionally punitive by default.
-
-## Initial monetization
-
-Use freemium with an annual-first subscription.
-
-Recommended initial pricing:
-
-- Free: starting Life Clock, basic Apple Health import, 3 daily quests, 7-day trend.
-- Pro Annual: $39.99-$59.99/year.
-- Pro Monthly: $7.99-$9.99/month.
-- Lifetime: $99.99-$149.99.
-
-Avoid weekly pricing. RevenueCat's 2026 benchmark highlights materially stronger retention for yearly plans versus weekly/monthly plans, and Health & Fitness is a category where annual plans can support better long-term economics [S2].
+Build by Kashane Brigham. Compound-engineering with Claude Code; orchestration via `ai-company-os` platform.

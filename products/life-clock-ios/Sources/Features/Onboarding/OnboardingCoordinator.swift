@@ -112,7 +112,7 @@ struct OnboardingCoordinator: View {
 
         case .baselineDOB:
             // Under-13 users hit a terminal block screen — see
-            // docs/products/life-clock/09b_AGE_COMPLIANCE.md for the
+            // docs/products/life-clock/AGE_COMPLIANCE.md for the
             // COPPA actual-knowledge + FTC Feb 2026 safe-harbor rationale.
             // Adults and teens 13+ proceed to baselineSex as before.
             BaselineDOBView(onContinue: {

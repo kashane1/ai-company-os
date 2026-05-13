@@ -221,7 +221,7 @@ struct BaselineDOBView: View {
 /// `screenAppeared("under13Block")` with no value bucket so we never log
 /// the underlying DOB.
 ///
-/// Compliance posture (see `docs/products/life-clock/09b_AGE_COMPLIANCE.md`):
+/// Compliance posture (see `docs/products/life-clock/AGE_COMPLIANCE.md`):
 /// the FTC's Feb 2026 policy statement blesses "ask DOB → block" as a
 /// safe harbor under COPPA — but only if the operator acts on the
 /// result and does not collect personal info from the user once the
