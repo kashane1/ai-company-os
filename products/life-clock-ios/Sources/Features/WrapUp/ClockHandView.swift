@@ -31,9 +31,14 @@ struct ClockHandView: View {
 
     var body: some View {
         ZStack {
-            // Static clock face.
+            // Static clock face. Carries the canonical world-fixed depth
+            // shadow per lighting-spec.md § "Where the convention should be
+            // applied next" so the ceremony reads as part of the same
+            // lit-from-above scene as the mascot's clock face. Reference
+            // size = stroke thickness (6) to match the rim's visual mass.
             Circle()
                 .stroke(DesignTokens.Palette.elevated, lineWidth: 6)
+                .lightingDepth(referenceSize: 6)
             ForEach(0..<12, id: \.self) { hour in
                 Rectangle()
                     .fill(DesignTokens.Palette.elevated)

@@ -91,8 +91,13 @@ struct OnboardingScaffold<Content: View>: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(isContinueEnabled ? Color.accentColor : Color.gray.opacity(0.4))
-                    .foregroundStyle(.white)
+                    // Dark-mode-safe disabled state: secondarySystemFill
+                    // adapts to light/dark per iOS standard. Color.gray is
+                    // fixed and reads wrong in dark mode.
+                    .background(isContinueEnabled
+                                ? AnyShapeStyle(Color.accentColor)
+                                : AnyShapeStyle(Color(.secondarySystemFill)))
+                    .foregroundStyle(isContinueEnabled ? Color.white : Color.secondary)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
             }
             .disabled(!isContinueEnabled)
