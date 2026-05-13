@@ -5,6 +5,71 @@ import SwiftUI
 ///
 /// All copy is agency-framed (no doom default, no medical-claim verbs).
 
+// MARK: - Q9 mock fixture (DEBUG-only)
+//
+// Vision-question #9 — reveal-escalator tone-awareness — has three
+// candidate directions queued for operator pick. This fixture renders
+// each one without baking the choice into shipped code. Read by
+// `LIFECLOCK_Q9_VARIANT` (DEBUG only). Removed once the operator picks
+// the direction in `polish-2026-05-12-vision-q9-reveal-escalator-tone-mocks.md`.
+
+enum Q9Variant: String {
+    /// Baseline: single dramatic register regardless of tone or signals.
+    case a
+    /// Tone-aware: ToneView precedes the reveal so reveal copy can key
+    /// off the picked tone (mocked by seeding `draft.toneMode` upstream).
+    case b
+    /// Inferred-softer: when stretched-stress + low connection signals
+    /// land on the consent screens, the reveal softens automatically.
+    case c
+
+    /// Reads `LIFECLOCK_Q9_VARIANT` in DEBUG. Release always returns `.a`
+    /// so the fixture has zero footprint on the shipped binary.
+    static var current: Q9Variant {
+        #if DEBUG
+        let raw = ProcessInfo.processInfo.environment["LIFECLOCK_Q9_VARIANT"] ?? ""
+        return Q9Variant(rawValue: raw) ?? .a
+        #else
+        return .a
+        #endif
+    }
+}
+
+/// Resolves the effective register for the reveal-escalator copy under a
+/// given mock variant. Returns `.gentle` when softening should apply,
+/// otherwise `.coach` (the current single-register voice).
+///
+/// - For variant `.b`, the draft's already-picked `toneMode` decides.
+/// - For variant `.c`, the stress + loneliness signals decide regardless
+///   of any tone pick. Thresholds match the existing buckets:
+///   PSS ≥ 27 (Stretched) and UCLA ≥ 6 (low connection).
+/// - For variant `.a`, always `.coach` — no softening.
+@MainActor
+func revealEffectiveTone(draft: OnboardingDraft) -> ToneMode {
+    switch Q9Variant.current {
+    case .a:
+        return .coach
+    case .b:
+        return draft.toneMode ?? .coach
+    case .c:
+        let stressed = (draft.perceivedStressScore ?? 0) >= 27
+        let lonely = (draft.lonelinessScore ?? 0) >= 6
+        return (stressed && lonely) ? .gentle : .coach
+    }
+}
+
+/// Gentle-register copy for the two reveal screens whose default voice is
+/// most dramatic. Coach copy stays in the views as the literal default.
+enum RevealEscalatorGentleCopy {
+    static let lifeGridTitle = "These weeks are still yours."
+    static let lifeGridBody = "Each dot is a week your habits help shape."
+
+    static func bigNumberTitle(yearsAtRisk: Int) -> String {
+        "About \(yearsAtRisk) years to work with."
+    }
+    static let bigNumberBody = "These are years your everyday choices can lift. Small steps add up; today is a fine place to start."
+}
+
 // MARK: - Analyzing
 
 /// Three sequential progress bars (~0.8s each, 2.4s total) showing
@@ -207,11 +272,22 @@ struct LifeGridRemainingView: View {
         return max(0, weeks)
     }
 
+    private var copy: (title: String, body: String) {
+        switch revealEffectiveTone(draft: draft) {
+        case .gentle:
+            return (RevealEscalatorGentleCopy.lifeGridTitle,
+                    RevealEscalatorGentleCopy.lifeGridBody)
+        default:
+            return ("This is what's still ahead.",
+                    "Each dot is a week your habits get to shape.")
+        }
+    }
+
     var body: some View {
         OnboardingScaffold(
             screenID: "lifeGridRemaining",
-            title: "This is what's still ahead.",
-            bodyText: "Each dot is a week your habits get to shape.",
+            title: copy.title,
+            bodyText: copy.body,
             onContinue: onContinue
         ) {
             VStack(spacing: 8) {
@@ -264,12 +340,24 @@ struct BigNumberPenaltyView: View {
         }
     }
 
+    private func copy(yearsAtRisk: Int) -> (title: String, body: String) {
+        switch revealEffectiveTone(draft: draft) {
+        case .gentle:
+            return (RevealEscalatorGentleCopy.bigNumberTitle(yearsAtRisk: yearsAtRisk),
+                    RevealEscalatorGentleCopy.bigNumberBody)
+        default:
+            return ("~\(yearsAtRisk) years on the table.",
+                    "These are the years your current habits put within reach to win or lose. The clock follows what you do next.")
+        }
+    }
+
     var body: some View {
         let yearsAtRisk = max(0, Int((Double(lostWeeks) / 52.0).rounded()))
+        let c = copy(yearsAtRisk: yearsAtRisk)
         return OnboardingScaffold(
             screenID: "bigNumberPenalty",
-            title: "~\(yearsAtRisk) years on the table.",
-            bodyText: "These are the years your current habits put within reach to win or lose. The clock follows what you do next.",
+            title: c.title,
+            bodyText: c.body,
             onContinue: onContinue
         ) {
             VStack(spacing: 12) {

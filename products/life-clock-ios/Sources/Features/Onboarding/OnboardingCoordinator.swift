@@ -321,7 +321,21 @@ struct OnboardingCoordinator: View {
         draft.sleepGoalHours = 5.5
         draft.dietQualityBaseline = "rough"
         draft.primaryGoal = .liveLonger
-        draft.toneMode = .coach
+        // Honor LIFECLOCK_SEED_TONE so Q9 variant (b) can land on a
+        // non-coach tone without driving ToneView. Falls back to coach
+        // for parity with prior fixture behavior.
+        if let raw = ProcessInfo.processInfo.environment["LIFECLOCK_SEED_TONE"],
+           let parsed = ToneMode(rawValue: raw) {
+            draft.toneMode = parsed
+        } else {
+            draft.toneMode = .coach
+        }
+        // Seed stretched-stress + low-connection signals so Q9 variant
+        // (c)'s inferred-softer condition can fire under the JUMP fixture.
+        // PSS 30 lands in the Stretched bucket (≥27); UCLA 7 lands in the
+        // low-connection bucket (≥6).
+        draft.perceivedStressScore = 30
+        draft.lonelinessScore = 7
         draft.personalAdjustmentYears = -2
         draft.anchorAdjustedAt = store.clock.now()
         draft.recomputeEstimate(using: engine)
