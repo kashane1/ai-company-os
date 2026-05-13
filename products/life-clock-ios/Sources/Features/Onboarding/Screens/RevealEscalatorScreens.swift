@@ -5,57 +5,27 @@ import SwiftUI
 ///
 /// All copy is agency-framed (no doom default, no medical-claim verbs).
 
-// MARK: - Q9 mock fixture (DEBUG-only)
+// MARK: - Reveal-escalator inferred-softer register
 //
-// Vision-question #9 — reveal-escalator tone-awareness — has three
-// candidate directions queued for operator pick. This fixture renders
-// each one without baking the choice into shipped code. Read by
-// `LIFECLOCK_Q9_VARIANT` (DEBUG only). Removed once the operator picks
-// the direction in `polish-2026-05-12-vision-q9-reveal-escalator-tone-mocks.md`.
+// Vision-question #9 resolved 2026-05-12 — option (c): the reveal escalator
+// softens its register when the user's just-collected stress + connection
+// signals say they may not be in a state to receive the dramatic default.
+// Thresholds match the existing telemetry buckets: PSS ≥ 27 (Stretched) and
+// UCLA ≥ 6 (low connection). When both fire, the two screens that carry
+// the most dramatic copy (`LifeGridRemainingView`, `BigNumberPenaltyView`)
+// render the gentle-register variant and show an inline affordance pointing
+// the user to Profile to switch back to a sharper voice. Median user still
+// gets the original dramatic register; only the subset flagged by SafetyNet's
+// target population sees the softened reveal. See
+// `docs/products/life-clock/polish-2026-05-12-vision-q9-reveal-escalator-tone-mocks.md`.
 
-enum Q9Variant: String {
-    /// Baseline: single dramatic register regardless of tone or signals.
-    case a
-    /// Tone-aware: ToneView precedes the reveal so reveal copy can key
-    /// off the picked tone (mocked by seeding `draft.toneMode` upstream).
-    case b
-    /// Inferred-softer: when stretched-stress + low connection signals
-    /// land on the consent screens, the reveal softens automatically.
-    case c
-
-    /// Reads `LIFECLOCK_Q9_VARIANT` in DEBUG. Release always returns `.a`
-    /// so the fixture has zero footprint on the shipped binary.
-    static var current: Q9Variant {
-        #if DEBUG
-        let raw = ProcessInfo.processInfo.environment["LIFECLOCK_Q9_VARIANT"] ?? ""
-        return Q9Variant(rawValue: raw) ?? .a
-        #else
-        return .a
-        #endif
-    }
-}
-
-/// Resolves the effective register for the reveal-escalator copy under a
-/// given mock variant. Returns `.gentle` when softening should apply,
-/// otherwise `.coach` (the current single-register voice).
-///
-/// - For variant `.b`, the draft's already-picked `toneMode` decides.
-/// - For variant `.c`, the stress + loneliness signals decide regardless
-///   of any tone pick. Thresholds match the existing buckets:
-///   PSS ≥ 27 (Stretched) and UCLA ≥ 6 (low connection).
-/// - For variant `.a`, always `.coach` — no softening.
+/// Whether the reveal escalator should render the gentle-register copy
+/// based on the user's PSS + UCLA inputs from the consent screens.
 @MainActor
-func revealEffectiveTone(draft: OnboardingDraft) -> ToneMode {
-    switch Q9Variant.current {
-    case .a:
-        return .coach
-    case .b:
-        return draft.toneMode ?? .coach
-    case .c:
-        let stressed = (draft.perceivedStressScore ?? 0) >= 27
-        let lonely = (draft.lonelinessScore ?? 0) >= 6
-        return (stressed && lonely) ? .gentle : .coach
-    }
+func revealUsesSofterRegister(draft: OnboardingDraft) -> Bool {
+    let stressed = (draft.perceivedStressScore ?? 0) >= 27
+    let lonely = (draft.lonelinessScore ?? 0) >= 6
+    return stressed && lonely
 }
 
 /// Gentle-register copy for the two reveal screens whose default voice is
@@ -65,9 +35,13 @@ enum RevealEscalatorGentleCopy {
     static let lifeGridBody = "Each dot is a week your habits help shape."
 
     static func bigNumberTitle(yearsAtRisk: Int) -> String {
-        "About \(yearsAtRisk) years to work with."
+        "About \(yearsAtRisk) years to shape."
     }
     static let bigNumberBody = "These are years your everyday choices can lift. Small steps add up; today is a fine place to start."
+
+    /// Inline affordance shown beneath the softened body so the inferred
+    /// behavior is visible and reversible.
+    static let toneSwitchAffordance = "Prefer a sharper read? Switch tone in Profile anytime."
 }
 
 // MARK: - Analyzing
@@ -272,15 +246,15 @@ struct LifeGridRemainingView: View {
         return max(0, weeks)
     }
 
+    private var softened: Bool { revealUsesSofterRegister(draft: draft) }
+
     private var copy: (title: String, body: String) {
-        switch revealEffectiveTone(draft: draft) {
-        case .gentle:
+        if softened {
             return (RevealEscalatorGentleCopy.lifeGridTitle,
                     RevealEscalatorGentleCopy.lifeGridBody)
-        default:
-            return ("This is what's still ahead.",
-                    "Each dot is a week your habits get to shape.")
         }
+        return ("This is what's still ahead.",
+                "Each dot is a week your habits get to shape.")
     }
 
     var body: some View {
@@ -304,6 +278,13 @@ struct LifeGridRemainingView: View {
                 Text("Filled green = lived. Outlined = still ahead.")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                if softened {
+                    Text(RevealEscalatorGentleCopy.toneSwitchAffordance)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 8)
+                        .accessibilityIdentifier("onboarding.lifeGridRemaining.toneSwitchAffordance")
+                }
             }
         }
     }
@@ -340,15 +321,15 @@ struct BigNumberPenaltyView: View {
         }
     }
 
+    private var softened: Bool { revealUsesSofterRegister(draft: draft) }
+
     private func copy(yearsAtRisk: Int) -> (title: String, body: String) {
-        switch revealEffectiveTone(draft: draft) {
-        case .gentle:
+        if softened {
             return (RevealEscalatorGentleCopy.bigNumberTitle(yearsAtRisk: yearsAtRisk),
                     RevealEscalatorGentleCopy.bigNumberBody)
-        default:
-            return ("~\(yearsAtRisk) years on the table.",
-                    "These are the years your current habits put within reach to win or lose. The clock follows what you do next.")
         }
+        return ("~\(yearsAtRisk) years on the table.",
+                "These are the years your current habits put within reach to win or lose. The clock follows what you do next.")
     }
 
     var body: some View {
@@ -372,6 +353,13 @@ struct BigNumberPenaltyView: View {
                 // green/red/gray triad. Subsequent recovery screen falls
                 // back to an info-popover (progressive disclosure).
                 LifeGridDotLegend(mode: .bigNumberPenalty)
+                if softened {
+                    Text(RevealEscalatorGentleCopy.toneSwitchAffordance)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 4)
+                        .accessibilityIdentifier("onboarding.bigNumberPenalty.toneSwitchAffordance")
+                }
             }
         }
     }
