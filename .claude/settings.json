@@ -12,5 +12,19 @@
       "WebSearch(*)",
       "mcp__computer-use__*"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/xcodegen-on-swift-write.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }
