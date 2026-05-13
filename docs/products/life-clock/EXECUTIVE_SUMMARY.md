@@ -4,7 +4,13 @@
 
 ## Working title
 
-**Life Clock** is the working title. It is not final. Other brand candidates include TimeBack, Long Game, DayBank, Clockwise, and Healthspan Quest.
+**Life Clock** is the resolved working name.
+
+- App Store listing name: **"Life Clock: habits earn time"**
+- In-app display name (`CFBundleDisplayName`): **"Life Clock"**
+- Tagline (`LifeClockConfiguration.appTagline`): **"Habits earn time."**
+
+See `APP_STORE_ASO.md` § Current implementation note for the canonical three-string set, and `PHASE_STATUS.md` "Resolved decisions" for the operator ratchet. Original April 2026 brand candidates retained below for repositioning reference only: TimeBack, Long Game, DayBank, Clockwise, Healthspan Quest.
 
 ## Concept
 
@@ -12,9 +18,9 @@ Life Clock is an iPhone-first Health & Fitness app where daily behavior moves a 
 
 ## Wedge
 
-**Earn time back with better daily habits.**
+**Earn time with better daily habits.**
 
-This is more defensible and App Store-safe than "predict your death date." The app can still have a dramatic clock, but the product promise should be agency-based: your trajectory changes as your behavior changes.
+This is more defensible and App Store-safe than "predict your death date." The app can still have a dramatic clock, but the product promise should be agency-based: your trajectory changes as your behavior changes. The in-app voice uses the forward-looking "earn time" phrasing (vision Decided constraint 2026-05-11); the earlier "earn time back" framing was dropped because the "back" register read as recovering-lost-time. Marketing copy aligns to the in-app voice.
 
 ## Why this is worth building
 

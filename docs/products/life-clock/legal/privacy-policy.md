@@ -1,6 +1,6 @@
 # Life Clock Privacy Policy
 
-**Last updated:** 2026-04-30
+**Last updated:** 2026-05-13
 **App:** Life Clock: habits earn time
 **Publisher:** [REPLACE WITH LEGAL ENTITY OR INDIVIDUAL NAME]
 **Contact:** [REPLACE WITH SUPPORT EMAIL]
@@ -44,7 +44,7 @@ When you onboard and use the app, you may enter:
 - Your height and weight (optional)
 - Your smoking status, alcohol frequency, baseline diet quality, baseline stress, sleep goal, weekly strength training frequency
 - Per-day "Daily Check-In" entries: alcohol level, smoking/vaping, diet quality, stress, strength training, optional notes
-- Tone-mode preference (gentle / coach)
+- Tone-mode preference (gentle / coach / firmDirect)
 - Color-palette preference (default-navy / aurora-cool / sunset-warm)
 - Daily-reminder preference (on/off + the hour you picked, between 8 AM and 10 PM)
 
@@ -86,7 +86,9 @@ If we ever change this — for example, by adding optional crash reporting — w
 
 ## Children's Privacy
 
-Life Clock is rated **12+** in the App Store. Users who report a date of birth that makes them under 18 will not see the app's smoking or alcohol logging questions. The app is not designed for children under 12, and we do not knowingly collect data from children under 12.
+Life Clock is rated **13+** in the App Store. Users who report a date of birth that makes them under 18 will not see the app's smoking or alcohol logging questions.
+
+Life Clock does not knowingly collect personal information from users under the age of 13. As part of onboarding we ask for date of birth solely to determine age. If the date entered resolves to an age below 13, the app stops the onboarding flow at a block screen — no Apple Health data is requested, no profile is created, no subscription is offered, and the date of birth itself is not retained on your device. If you believe a user under 13 has somehow provided us with information, contact us at the address in the **Contact** section below and we will delete it.
 
 ## Health Disclaimer
 

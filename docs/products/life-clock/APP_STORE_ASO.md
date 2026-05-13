@@ -12,10 +12,12 @@ Do not use Games as primary. The game layer improves engagement, but user intent
 
 Avoid launching as "Death Clock" because a direct competitor already uses that territory strongly [S1]. Also, the phrase can create unnecessary anxiety and App Review sensitivity.
 
-Current implementation note:
+Current implementation note (three distinct brand strings — do not conflate):
 
-- The app currently ships under **"Life Clock: habits earn time"**.
-- The working subtitle in code is **"See how habits move your life"**.
+- **App Store listing name** (ASC Phase 1, 30-char limit): **"Life Clock: habits earn time"**.
+- **In-app display name** (`Info.plist` `CFBundleDisplayName`, shown under the home-screen icon): **"Life Clock"**.
+- **Tagline constant** (`LifeClockConfiguration.appTagline`): **"Habits earn time."**
+- **App Store subtitle constant** (`LifeClockConfiguration.appStoreSubtitle`): **"See how habits move your life"**.
 
 ## Name candidates
 

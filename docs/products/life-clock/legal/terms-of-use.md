@@ -1,6 +1,6 @@
 # Life Clock Terms of Use
 
-**Last updated:** 2026-04-28
+**Last updated:** 2026-05-13
 **App:** Life Clock: habits earn time
 
 ## Standard EULA
@@ -63,7 +63,7 @@ You agree not to:
 
 ## Children
 
-The app is rated 12+. Users who report a date of birth that makes them under 18 will not see smoking or alcohol logging questions. The app is not for children under 12.
+The app is rated 13+. Users who report a date of birth that makes them under 18 will not see smoking or alcohol logging questions. The app is not for children under 13; users whose reported date of birth resolves to under 13 are blocked at a terminal screen in onboarding before any data is collected. See the [Privacy Policy](privacy-policy.md) § Children's Privacy for details.
 
 ## Privacy
 

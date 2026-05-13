@@ -87,9 +87,9 @@ No death-date language. Uses healthspan score, time earned, and future-self fram
 
 Default. Uses Life Clock but avoids harsh language.
 
-### Memento Mori
+### Firm/Direct (formerly "Memento Mori")
 
-More dramatic. Uses direct countdown language, but still avoids medical certainty.
+More dramatic. Uses direct countdown language, but still avoids medical certainty. Shipped enum identifier is `firmDirect` (see `Sources/App/ToneMode.swift`). The "Memento Mori" name lives only in this April 2026 founder-pack snapshot — see `vision.md` Decided constraints and the unnumbered `UX_GAME_LOOP.md` for the canonical name.
 
 ## Onboarding flow
 

@@ -174,9 +174,9 @@ After TestFlight feedback and any necessary fixes:
 - [ ] **Support URL:** could be the same GitHub Pages root.
 - [ ] **App Review Notes:**
   - Sandbox tester credentials (Phase 6).
-  - "Life Clock estimates a healthspan trajectory; it does **not** claim to predict death. The app is local-first; no health data leaves the device. Wedge is 'earn time back with better habits' — agency-led, not fear-led."
+  - "Life Clock estimates a healthspan trajectory; it does **not** claim to predict death. The app is local-first; no health data leaves the device. Wedge is 'earn time with better habits' — agency-led, not fear-led."
   - Link to `legal/privacy-policy.md` (the live URL).
-  - Tone-mode hint: "Default tone is 'Coach' (motivating, no mortality language). Tester can switch to 'Memento Mori' in Profile to see the dramatic variant."
+  - Tone-mode hint: "Default tone is 'Coach' (motivating, no mortality language). Tester can switch to 'Firm/Direct' in Profile to see the dramatic variant (shipped enum: `firmDirect`; earlier docs called this 'Memento Mori')."
 - [ ] Submit for review. Median Apple review time in 2026 is ~24 hours; expect 1–3 days.
 
 ## Common Rejection Reasons (and how we've already addressed them)

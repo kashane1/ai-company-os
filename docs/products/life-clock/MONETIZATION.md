@@ -33,42 +33,55 @@ Practical tests for future decisions:
 
 ### Free
 
-- starting Life Clock
-- basic HealthKit import
-- today's time delta
-- 3 daily quests
-- 7-day trend
-- basic manual habits
-- enough context to understand the current trajectory without paying
+- Starting Life Clock and onboarding reveal
+- Basic Apple Health import (steps, exercise minutes, active energy, resting heart rate, sleep, body mass)
+- Today's time delta and tone-aware framing
+- 1–3 Today's Plan actions per day, auto-generated from your activity
+- Recent History view (a few days; older rows paywall-fogged) and weekly net delta
+- Yesterday + weekly wrap-ups (in-app sheets on cold-launch; pull-only, never push)
+- QuickLog manual logging
+- Tone modes (gentle / coach / firmDirect) and palette pickers
+- Enough context to understand the current trajectory without paying
 
 ### Pro Annual
 
-Recommended: **$39.99-$59.99/year**
+Recommended range: **$39.99–$59.99/year**. **As shipped: $49.99/year.** See [§ As shipped](#as-shipped-2026-05) below.
 
-Unlocks:
+Unlocks (v1, shipped):
 
-- full time ledger
-- advanced HealthKit metrics
-- weekly reports
-- historical archive and richer wrap-ups
-- correction power through app-level overrides of past imported values
-- custom quests
-- deeper trend breakdown
-- widgets / Lock Screen surfaces
-- export/delete controls
-- AI meal/photo summaries later
+- **Full daily history** — every past day, drillable in History
+- **Weekly drivers + next-best lever** — the deeper weekly breakdown in History and richer weekly wrap-ups (per Pro-value backlog)
+- **Correction power** — override imported Apple Health values you know are wrong
+- **Custom Today's Plan** — pick the daily-plan actions that fit your life (Plan Editor)
+- **Deeper trend breakdown** — what's actually shaping your trajectory, including the Future-tab What-If Simulator
+
+Planned (post-v1; do not promise on the paywall as shipped Pro value):
+
+- Advanced HealthKit metrics _(v1.1 — currently no concrete advanced-HK deliverable beyond basic reads)_
+- Widgets / Lock Screen surfaces _(v1.2 — no WidgetKit target in v1)_
+- AI meal/photo summaries _(v2+)_
 
 ### Pro Monthly
 
-Recommended: **$7.99-$9.99/month**
+Recommended range: **$7.99–$9.99/month**. **As shipped: $7.99/month.**
 
-Useful for trial-conversion users who resist annual pricing.
+Useful for users who resist annual pricing or want to evaluate Pro before committing.
 
 ### Lifetime
 
-Recommended: **$99.99-$149.99**
+Recommended range: **$99.99–$149.99**. **As shipped: $129.99 one-time.**
 
 Good for indie trust and anti-subscription users.
+
+## As shipped (2026-05)
+
+The shipped SKUs in `products/life-clock-ios/Sources/Services/Products.storekit`:
+
+- `com.lifeclock.pro.monthly` — **$7.99 / month**
+- `com.lifeclock.pro.annual` — **$49.99 / year**
+- `com.lifeclock.pro.lifetime` — **$129.99 one-time**
+
+Founding-offer introductory pricing on `pro.annual` for new subscribers is still pending in App Store Connect (see `PHASE_STATUS.md`). All other strategy docs that quote pricing should link to this section rather than restate the recommended ranges.
 
 ## Paywall timing
 
@@ -76,15 +89,17 @@ Do not show a hard paywall before first value.
 
 Best conversion moments:
 
-1. After first Life Clock reveal.
-2. After the user taps locked detailed driver breakdown.
-3. After the first weekly report preview.
-4. When the user wants advanced HealthKit metrics.
-5. When the user wants widget/Lock Screen surfaces.
+1. After first Life Clock reveal. **Wired** (onboarding terminal `PaywallPrimaryView`).
+2. After the user taps a locked detailed driver breakdown. **Wired** (History fog stack + Future-tab What-If slider locked thumb).
+3. After the first weekly wrap-up preview. **Planned** — currently the WrapUpSheet has no Pro signal; see Pro-value backlog (2026-05-12) Prompt 3.
+4. When the user wants advanced HealthKit metrics. **Deferred to v1.1** — no concrete advanced-HK deliverable in v1.
+5. When the user wants widget / Lock Screen surfaces. **Deferred to v1.2** — widgets not in launch build.
 
 ## Trial stance
 
-Use a 7-day trial on annual if the app has enough immediate value. Avoid a confusing 3-day trial unless analytics later prove it.
+**v1 ships without an introductory trial.** `Products.storekit` has `"introductoryOffer": null` for both monthly and annual subscriptions, and the paywall does not claim a trial. This is deliberate: any trial language in paywall copy that isn't backed by an actual App Store Connect introductory offer is a value-claim mismatch and an App Review rejection vector.
+
+Provisioning a 7-day annual trial in App Store Connect — and updating `PaywallSheet` / `PaywallPrimaryView` to surface it — is on the v1.1 candidate list; the call depends on analytics from the trial-free launch. A confusing 3-day trial is rejected.
 
 ## What not to monetize in v1
 

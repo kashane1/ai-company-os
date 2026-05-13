@@ -70,7 +70,7 @@ Optional tone modes:
 
 - Gentle: healthspan only, no death language.
 - Coach: balanced default.
-- Memento Mori: more direct mortality framing.
+- Firm/Direct: terse, specific, no hedging. (Code: `firmDirect`. Earlier strategy drafts called this "Memento Mori"; shipped name is Firm/Direct — see `vision.md`.)
 
 ## Core product sentence
 

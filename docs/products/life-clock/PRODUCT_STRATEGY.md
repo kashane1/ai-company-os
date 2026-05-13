@@ -81,7 +81,7 @@ Optional tone modes:
 
 - Gentle: healthspan only, no death language.
 - Coach: balanced default.
-- Memento Mori: more direct mortality framing.
+- Firm/Direct: terse, specific, no hedging. (Code: `firmDirect` in `Sources/App/ToneMode.swift`. Earlier strategy drafts called this "Memento Mori"; the shipped name is Firm/Direct — see `vision.md` Decided constraints.)
 
 ## Core product sentence
 
