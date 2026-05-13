@@ -80,7 +80,7 @@ struct PaywallSheet: View {
                         Task { await runRestore() }
                     } label: {
                         if restoring {
-                            ProgressView()
+                            LifeClockSpinner()
                         } else {
                             Text("Restore")
                         }
@@ -225,6 +225,7 @@ struct PaywallSheet: View {
                     .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
                     .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             )
+            .cardLighting()
         }
         .buttonStyle(.plain)
     }
@@ -282,7 +283,7 @@ struct PaywallSheet: View {
         } label: {
             HStack {
                 if subscriptions.purchaseInFlight {
-                    ProgressView()
+                    LifeClockSpinner()
                 } else {
                     Text("Continue")
                         .font(.headline)

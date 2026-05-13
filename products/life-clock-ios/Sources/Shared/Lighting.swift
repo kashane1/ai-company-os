@@ -62,6 +62,16 @@ extension View {
         )
     }
 
+    /// Convenience for the most common case: a card-shaped surface
+    /// that wants a subtle world-fixed depth shadow. Uses `referenceSize:
+    /// 6` — small enough to read as a lift, not a drop. This is the
+    /// "third call site fires the DRY trigger" convenience from
+    /// `docs/products/life-clock/lighting-spec.md`. Use this on Today
+    /// cards, Paywall product rows, and similar elevated surfaces.
+    func cardLighting() -> some View {
+        self.lightingDepth(referenceSize: 6)
+    }
+
     /// Apply the depth-shadow convention to a rotating surface.
     /// The offset is inverse-rotated so the shadow stays oriented to
     /// the world (light from above-right) regardless of the surface's

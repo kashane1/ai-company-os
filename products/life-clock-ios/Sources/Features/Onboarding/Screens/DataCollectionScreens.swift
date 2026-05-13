@@ -1126,7 +1126,7 @@ struct HealthKitAuthView: View {
         ) {
             VStack(alignment: .leading, spacing: 12) {
                 if isRequesting {
-                    ProgressView()
+                    LifeClockSpinner()
                 }
                 if let error = store.lastHealthAuthError {
                     Text(error)

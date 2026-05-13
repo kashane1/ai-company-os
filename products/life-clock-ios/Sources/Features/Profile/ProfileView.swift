@@ -86,7 +86,7 @@ struct ProfileView: View {
                         } label: {
                             HStack {
                                 Text("Connect Apple Health")
-                                if requestingAuth { ProgressView() }
+                                if requestingAuth { LifeClockSpinner() }
                             }
                         }
                         .disabled(requestingAuth)
@@ -107,7 +107,7 @@ struct ProfileView: View {
                         } label: {
                             HStack {
                                 Text("Check Apple Health again")
-                                if requestingAuth { ProgressView() }
+                                if requestingAuth { LifeClockSpinner() }
                             }
                         }
                         .disabled(requestingAuth)
@@ -123,7 +123,7 @@ struct ProfileView: View {
                         } label: {
                             HStack {
                                 Text("Check Apple Health again")
-                                if requestingAuth { ProgressView() }
+                                if requestingAuth { LifeClockSpinner() }
                             }
                         }
                         .disabled(requestingAuth)
@@ -202,7 +202,7 @@ struct ProfileView: View {
                     } label: {
                         HStack {
                             Text("Restore purchases")
-                            if restoring { ProgressView() }
+                            if restoring { LifeClockSpinner() }
                         }
                     }
                     .disabled(restoring)

@@ -277,16 +277,27 @@ struct HistoryView: View {
     }
 
     private var historyEmptyStateCard: some View {
-        Text(historyEmptyStateBody)
-            .font(.callout)
-            .foregroundStyle(.secondary)
-            .padding(DesignTokens.Spacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                DesignTokens.Palette.elevated,
-                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-            )
-            .accessibilityIdentifier("history.emptyState")
+        // Empty state per `premium-feel-backlog-2026-05-12-standard.md`
+        // Prompt 4: card-shaped, icon + tone-aware body. The body copy
+        // is multi-state (5 health-data states); the icon is constant.
+        VStack(spacing: 10) {
+            Image(systemName: "calendar.badge.clock")
+                .font(.system(size: 28, weight: .regular))
+                .foregroundStyle(.secondary)
+            Text(historyEmptyStateBody)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(DesignTokens.Spacing.md)
+        .frame(maxWidth: .infinity)
+        .background(
+            DesignTokens.Palette.elevated,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+        )
+        .cardLighting()
+        .accessibilityIdentifier("history.emptyState")
     }
 
     private var historyEmptyStateBody: String {

@@ -190,7 +190,7 @@ struct OnboardingView: View {
                 .foregroundStyle(.secondary)
             HStack {
                 if permissionRequestInFlight {
-                    ProgressView()
+                    LifeClockSpinner()
                 }
                 Button(store.healthAuthorizationKnown ? "Check Apple Health again" : "Connect Apple Health") {
                     requestHealthAuthorization()
@@ -225,7 +225,7 @@ struct OnboardingView: View {
                 .foregroundStyle(.secondary)
             HStack {
                 if reminderRequestInFlight {
-                    ProgressView()
+                    LifeClockSpinner()
                 }
                 Button("Yes, remind me") {
                     requestDailyReminder()

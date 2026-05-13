@@ -219,7 +219,7 @@ struct QuickLogSheet: View {
                         save()
                     } label: {
                         if saving {
-                            ProgressView()
+                            LifeClockSpinner()
                         } else {
                             Text(store.toneMode.quickLogSaveCTA(
                                 hasExistingHabits: store.todayHabits != nil

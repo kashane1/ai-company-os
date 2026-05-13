@@ -271,6 +271,7 @@ struct TodayView: View {
             .padding(DesignTokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            .cardLighting()
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("today.checkInCard")
@@ -331,7 +332,7 @@ struct TodayView: View {
                         } label: {
                             HStack(spacing: DesignTokens.Spacing.xs) {
                                 Text("Connect Apple Health")
-                                if connectingHealth { ProgressView() }
+                                if connectingHealth { LifeClockSpinner() }
                             }
                         }
                         .buttonStyle(.borderedProminent)
@@ -520,6 +521,7 @@ struct TodayView: View {
             .padding(DesignTokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            .cardLighting()
             .accessibilityIdentifier("today.healthspan")
         }
     }
@@ -558,6 +560,7 @@ struct TodayView: View {
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            .cardLighting()
         .accessibilityIdentifier("today.drivers")
     }
 
@@ -652,6 +655,7 @@ struct TodayView: View {
             .padding(DesignTokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            .cardLighting()
             .accessibilityIdentifier("today.monthlyLogging")
             .accessibilityValue("\(monthly.daysLogged) days this month")
             .sensoryFeedback(LifeClockHaptics.monthlyMilestone, trigger: monthlyMilestoneHapticTrigger)
@@ -764,6 +768,7 @@ struct TodayView: View {
         .padding(DesignTokens.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            .cardLighting()
         // `.contain` preserves child identifiers (today.planEditLocked,
         // today.planAction.<i>) instead of clobbering them with the
         // container's own id, which is the default SwiftUI behavior.
