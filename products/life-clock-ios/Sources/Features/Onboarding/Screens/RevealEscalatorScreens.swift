@@ -432,7 +432,7 @@ struct RecoveryPreviewView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, minHeight: 56, alignment: .center)
                     .contentTransition(.opacity)
-                    .animation(.easeInOut(duration: 0.25), value: cyclingIndex)
+                    .animation(.easeInOut(duration: Motion.Duration.beat), value: cyclingIndex)
                     .accessibilityIdentifier("onboarding.recoveryPreview.cyclingPhrase")
             }
             .frame(maxWidth: .infinity)

@@ -58,7 +58,7 @@ struct PaywallSheet: View {
                     // Defer one tick — ScrollViewReader needs the layout
                     // pass before scrollTo lands cleanly.
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                        withAnimation(.smooth(duration: 0.18)) {
+                        withAnimation(.smooth(duration: Motion.Duration.instant)) {
                             proxy.scrollTo(target, anchor: .top)
                         }
                     }

@@ -62,13 +62,13 @@ struct LifeGridDotView: View {
                 if reduceMotion {
                     progress = 1
                 } else {
-                    withAnimation(.easeInOut(duration: 0.6)) { progress = 1 }
+                    withAnimation(.easeInOut(duration: Motion.Duration.breath)) { progress = 1 }
                 }
             }
             .onChange(of: mode) { _, _ in
                 guard !reduceMotion else { progress = 1; return }
                 progress = 0
-                withAnimation(.easeInOut(duration: 0.6)) { progress = 1 }
+                withAnimation(.easeInOut(duration: Motion.Duration.breath)) { progress = 1 }
             }
             .onChange(of: geo.size) { _, newSize in
                 positions = computePositions(in: newSize)

@@ -75,7 +75,7 @@ struct ClockHandView: View {
     private func animate() {
         guard !rotated else { return }
         if reduceMotion {
-            withAnimation(.easeInOut(duration: 0.25)) { rotated = true }
+            withAnimation(.easeInOut(duration: Motion.Duration.beat)) { rotated = true }
             return
         }
         if signedMinutes == 0 {
@@ -83,7 +83,10 @@ struct ClockHandView: View {
             rotated = true
             return
         }
-        withAnimation(.timingCurve(0.2, 0.8, 0.2, 1.0, duration: duration)) {
+        // `duration` is a narrative beat (1.4s yesterday / 2.2s weekly per
+        // wrap-up-spec.md) — above the breath tier on purpose. The curve
+        // is canonical, the duration is content.
+        withAnimation(Motion.Curve.breathing(duration: duration)) {
             rotated = true
         }
     }
