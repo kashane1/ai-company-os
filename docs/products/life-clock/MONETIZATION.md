@@ -50,7 +50,7 @@ Recommended range: **$39.99–$59.99/year**. **As shipped: $49.99/year.** See [�
 Unlocks (v1, shipped):
 
 - **Full daily history** — every past day, drillable in History
-- **Weekly drivers + next-best lever** — the deeper weekly breakdown in History and richer weekly wrap-ups (per Pro-value backlog)
+- **Weekly drivers + next-best lever** — the deeper weekly breakdown in History
 - **Correction power** — override imported Apple Health values you know are wrong
 - **Custom Today's Plan** — pick the daily-plan actions that fit your life (Plan Editor)
 - **Deeper trend breakdown** — what's actually shaping your trajectory, including the Future-tab What-If Simulator

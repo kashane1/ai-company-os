@@ -165,6 +165,21 @@ struct LifeClockLaunchConfiguration {
     /// carries the raw string.
     let seedSliderOverridesJSON: String?
 
+    /// `LIFECLOCK_SEED_SNAPSHOTS=<int>` seeds N days of
+    /// `DailyHealthSnapshot` + `HabitLog` + `DailyReflection` rows
+    /// backward from `now`, independent of `seedStreak`. Closes the
+    /// fixture composition gap the 2026-05-13 smoke test surfaced:
+    /// `LIFECLOCK_JUMP_TO=futureFull` writes a baseline tuple but
+    /// without snapshots the Future tab renders day0 because the
+    /// engine has no history to project from. With this knob set,
+    /// `JUMP_TO=futureFull` + `SEED_SNAPSHOTS=21` lands on a fully
+    /// populated Future tab with the `full14plus` slider state.
+    ///
+    /// Defaults are implied by `LIFECLOCK_JUMP_TO` when this knob
+    /// is unset — see `effectiveSeedSnapshots`. Set explicitly when
+    /// you want a non-default count.
+    let seedSnapshots: Int?
+
     /// `LIFECLOCK_TELEMETRY_CAPTURE_PATH=/tmp/...json` enables an
     /// in-memory event ring buffer that's flushed to disk on app
     /// background. UITests assert event emission against the file
@@ -198,6 +213,24 @@ struct LifeClockLaunchConfiguration {
         case .futureWarmingUp: return 8
         case .futureFull, .futureCapReached, .futureFloorReached: return 30
         case .paywallWhatIfSection, .reinstallRecovery, .rebaselineRitual, .none: return nil
+        }
+    }
+
+    /// Effective snapshot seed count — explicit
+    /// `LIFECLOCK_SEED_SNAPSHOTS` wins; otherwise JUMP_TO future-
+    /// state presets a sensible default so a single env var lands
+    /// the user on a populated Future tab. futureFull and the
+    /// clamp variants get 21 days (well past `full14plus`);
+    /// futureWarmingUp gets 7 (within the 4–13 window);
+    /// futureColdLaunch gets 2; everything else falls back to 0
+    /// (legacy behavior, snapshots tied only to `seedStreak`).
+    var effectiveSeedSnapshots: Int {
+        if let explicit = seedSnapshots { return max(0, explicit) }
+        switch futureJumpTo {
+        case .futureFull, .futureCapReached, .futureFloorReached: return 21
+        case .futureWarmingUp: return 7
+        case .futureColdLaunch: return 2
+        case .futureDay0, .paywallWhatIfSection, .reinstallRecovery, .rebaselineRitual, .none: return 0
         }
     }
 
@@ -318,6 +351,10 @@ struct LifeClockLaunchConfiguration {
             return Double(raw)
         }()
         let seedSliderOverridesJSON = env["LIFECLOCK_SEED_SLIDER_OVERRIDES"]
+        let seedSnapshots: Int? = {
+            guard let raw = env["LIFECLOCK_SEED_SNAPSHOTS"] else { return nil }
+            return Int(raw).map { max(0, $0) }
+        }()
         let telemetryCapturePath = env["LIFECLOCK_TELEMETRY_CAPTURE_PATH"]
 
         let clock: EngineClock = {
@@ -354,6 +391,7 @@ struct LifeClockLaunchConfiguration {
             seedDaysSinceInstall: seedDaysSinceInstall,
             seedBaselineAdjustment: seedBaselineAdjustment,
             seedSliderOverridesJSON: seedSliderOverridesJSON,
+            seedSnapshots: seedSnapshots,
             telemetryCapturePath: telemetryCapturePath
         )
         #else
@@ -383,6 +421,7 @@ struct LifeClockLaunchConfiguration {
             seedDaysSinceInstall: nil,
             seedBaselineAdjustment: nil,
             seedSliderOverridesJSON: nil,
+            seedSnapshots: nil,
             telemetryCapturePath: nil
         )
         #endif
@@ -414,6 +453,7 @@ struct LifeClockLaunchConfiguration {
         let needsOnboardedSeed = scenario == .onboarded
             || futureJumpTo != nil
             || effectiveSeedDaysSinceInstall != nil
+            || effectiveSeedSnapshots > 0
         guard needsOnboardedSeed else { return }
         let descriptor = FetchDescriptor<UserProfile>()
         if let existing = try? context.fetch(descriptor), !existing.isEmpty { return }
@@ -438,8 +478,9 @@ struct LifeClockLaunchConfiguration {
             if let daysSince = effectiveSeedDaysSinceInstall {
                 return calendar.date(byAdding: .day, value: -daysSince, to: now) ?? now
             }
-            guard seedStreak > 0 else { return now }
-            let daysBack = max(2, seedStreak + seedLastLogDaysAgo)
+            let streakDays = seedStreak > 0 ? max(2, seedStreak + seedLastLogDaysAgo) : 0
+            let daysBack = max(streakDays, effectiveSeedSnapshots)
+            guard daysBack > 0 else { return now }
             return calendar.date(byAdding: .day, value: -daysBack, to: now) ?? now
         }()
         let profile = UserProfile(
@@ -495,9 +536,16 @@ struct LifeClockLaunchConfiguration {
         // data; without these rows the wrap-up flow is unreachable from a
         // fresh seed (`pendingYesterday` requires a snapshot with
         // `hasMinimumData == true`).
-        if seedStreak > 0 {
+        // Snapshot/HabitLog/Reflection seeding uses the larger of seedStreak
+        // and effectiveSeedSnapshots so JUMP_TO=futureFull (+ implicit 21
+        // snapshots) lands on a populated Future tab without forcing the
+        // caller to also set seedStreak. WeeklyReport seeding (below) still
+        // gates on seedStreak because the streak-only tests are the only
+        // ones that need it.
+        let snapshotCount = max(seedStreak, effectiveSeedSnapshots)
+        if snapshotCount > 0 {
             let todayStart = calendar.startOfDay(for: now)
-            for offset in 0..<seedStreak {
+            for offset in 0..<snapshotCount {
                 let totalOffset = offset + seedLastLogDaysAgo
                 guard let day = calendar.date(byAdding: .day, value: -totalOffset, to: now) else { continue }
                 let dayStart = calendar.startOfDay(for: day)
@@ -544,11 +592,13 @@ struct LifeClockLaunchConfiguration {
                 context.insert(reflection)
             }
 
-            // Seed WeeklyReport rows for the past 4 weeks so weekly wrap-ups
-            // (Monday only) have rows to query. NOTE: production currently
-            // never persists WeeklyReport — this is a fixture-only assist
-            // until `LifeClockStore.refreshFromHealthKit` learns to upsert
-            // them. Tracked in the wrap-up-sequencing session log.
+        }
+
+        // WeeklyReport seeding stays gated on seedStreak — only streak-
+        // bearing tests need 4 weeks of weekly-wrap-up rows. JUMP_TO=
+        // future* with implicit SEED_SNAPSHOTS skips this; it's snapshot-
+        // only data that the Future tab needs.
+        if seedStreak > 0 {
             for weeksBack in 1...4 {
                 guard let weekStart = calendar.date(
                     byAdding: .day,

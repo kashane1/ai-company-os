@@ -84,7 +84,7 @@ struct PaywallPrimaryView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Earn time, every day.")
                     .font(.largeTitle.bold())
-                Text("Pro adds full daily history, weekly drivers, and the richer wrap-up.")
+                Text("Pro adds full daily history, weekly drivers, and correction power.")
                     .font(.body)
                     .foregroundStyle(.secondary)
             }

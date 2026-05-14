@@ -22,7 +22,7 @@ Both surfaces consume `SubscriptionStore` for products + entitlements. Auto-dism
 The `PaywallSheet` header carries the title + the **5 shipped Pro Annual bullets** sourced verbatim from [`MONETIZATION.md`](MONETIZATION.md) § Pro Annual:
 
 1. **Full daily history** — every past day, drillable
-2. **Weekly drivers + next-best lever** — the deeper breakdown in History and richer weekly wrap-ups
+2. **Weekly drivers + next-best lever** — the deeper breakdown in History
 3. **Correction power** — override imported Apple Health values you know are wrong
 4. **Custom Today's Plan** — pick the daily-plan actions that fit your life
 5. **Deeper trend breakdown** — the Future-tab What-If Simulator

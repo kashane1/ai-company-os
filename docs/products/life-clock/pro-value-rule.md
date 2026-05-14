@@ -85,9 +85,9 @@ The audit walks these surfaces. Update this list as Pro grows.
 - **Today** — Pro signal moments: after first Life Clock reveal (per MONETIZATION.md), after tapping a locked detailed-driver breakdown.
 - **History** — Pro signals on entries older than 7 days (Pro unlocks the full archive).
 - **Future tab** — Pro signals on long-horizon projections and detailed lever breakdowns.
-- **WrapUp** — Pro signals on richer weekly/monthly wrap-up content.
+- **WrapUp** — Pro signals via the Free-side `proSignalRow` upsell affordance on weekly wrap-ups (see [wrap-up-spec.md § Pro signal](wrap-up-spec.md)). v1 Pro state shows the same wrap-up content as Free with the affordance suppressed — the "richer wrap-ups" claim was retracted from MONETIZATION.md on 2026-05-13 to align marketing with delivery; a v1.1+ ratchet may reintroduce Pro-only weekly-driver detail (see [polish-2026-05-13-wrapup-pro-depth-decision.md](polish-2026-05-13-wrapup-pro-depth-decision.md)).
 - **Profile** — subscription status, restore button, cancel pointer (must be present per Trust criteria).
-- **Settings / subscription management** — explicit Pro state, lifecycle controls.
+- **Settings / subscription management** — explicit Pro state, lifecycle controls. **v1 routing (2026-05-13):** Profile's Subscription section is the v1 Settings-equivalent surface — Sprint A2 + commit `82d12cf` shipped Pro Active (`checkmark.seal.fill`) + Manage subscription (via `AppStore.showManageSubscriptions(in:)`) + Restore in one section, and Sprint A2 added the tone-aware Upgrade subline for Free users. A dedicated Settings tab is planned for v1.1+. The audit treats Profile and Settings as the same touchpoint until v1.1 ships a split.
 
 A surface missing from this list that gates Pro features = `pro-invisible` (the inventory is wrong; the audit emits a prompt to update the inventory and audit the missing surface).
 

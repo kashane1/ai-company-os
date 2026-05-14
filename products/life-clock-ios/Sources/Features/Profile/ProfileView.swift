@@ -169,6 +169,25 @@ struct ProfileView: View {
                             }
                         }
                         .accessibilityIdentifier("profile.manageSubscription")
+                        // Quiet always-on Pro perks recap (pro-value-backlog
+                        // 2026-05-13 Prompt 8). Pro-active depth signaling —
+                        // the user paid; surface what they have without
+                        // upsell-heaviness. Copy single-sourced from
+                        // `Shared/ProPerks.swift` (same as PaywallSheet header)
+                        // so the two never drift.
+                        VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                            Text("Your Pro perks")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.top, DesignTokens.Spacing.xs)
+                            ForEach(ProPerks.perks, id: \.title) { perk in
+                                Text("• \(perk.title)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("profile.proPerks")
                     } else {
                         // Tone-aware Pro pitch row per pro-value-backlog
                         // Prompt 6. Quotes MONETIZATION.md § Pro Annual

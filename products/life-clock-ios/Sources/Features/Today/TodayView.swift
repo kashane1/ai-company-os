@@ -216,7 +216,7 @@ struct TodayView: View {
     /// - reduce-motion is OFF
     /// - not running under XCUITest (deterministic snapshots)
     /// - we have a real estimate to count up to (the mascot+headline
-    ///   already render "Loading…" otherwise; no point sweeping to 0)
+    ///   already render the brand spinner otherwise; no point sweeping to 0)
     ///
     /// Snaps `wakeProgress` to 0 with no animation, then `withAnimation`
     /// to 1 over `wakeDuration`. The mascot scale keyframe fires off
@@ -347,7 +347,8 @@ struct TodayView: View {
                 }
                 .accessibilityIdentifier("today.headlineSparse")
             } else {
-                Text("Loading…").foregroundStyle(.secondary)
+                LifeClockSpinner("Reading your day…", size: .regular)
+                    .accessibilityIdentifier("today.headline.loading")
             }
         }
         .accessibilityIdentifier("today.headline")

@@ -50,6 +50,7 @@ final class LifeClockLaunchConfigurationTests: XCTestCase {
             seedDaysSinceInstall: seedDaysSinceInstall,
             seedBaselineAdjustment: nil,
             seedSliderOverridesJSON: nil,
+            seedSnapshots: nil,
             telemetryCapturePath: nil
         )
     }

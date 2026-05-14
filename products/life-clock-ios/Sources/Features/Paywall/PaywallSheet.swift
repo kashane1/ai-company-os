@@ -122,11 +122,9 @@ struct PaywallSheet: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                proBullet("Full daily history", detail: "every past day, drillable")
-                proBullet("Weekly drivers + next-best lever", detail: "the deeper breakdown in History and richer weekly wrap-ups")
-                proBullet("Correction power", detail: "override imported Apple Health values you know are wrong")
-                proBullet("Custom Today's Plan", detail: "pick the daily-plan actions that fit your life")
-                proBullet("Deeper trend breakdown", detail: "the Future-tab What-If Simulator")
+                ForEach(ProPerks.perks, id: \.title) { perk in
+                    proBullet(perk.title, detail: perk.detail)
+                }
             }
             Text("Your free experience keeps working either way.")
                 .font(.footnote)
@@ -136,10 +134,12 @@ struct PaywallSheet: View {
         .accessibilityIdentifier("paywall.header")
     }
 
-    /// Pro-feature bullet sourced verbatim from `MONETIZATION.md` § Pro Annual.
-    /// Do not edit copy here without updating MONETIZATION.md in lockstep —
-    /// the App Review value-claim guard requires marketing copy to match
-    /// what the app actually delivers (pro-value-backlog Prompt 2).
+    /// Pro-feature bullet whose copy is sourced from
+    /// [ProPerks.perks](../../Shared/ProPerks.swift) — the single source
+    /// of truth for the Pro feature list, kept in lockstep with
+    /// MONETIZATION.md § Pro Annual. The App Review value-claim guard
+    /// requires marketing copy to match what the app actually delivers
+    /// (pro-value-backlog 2026-05-12 Prompt 2 + 2026-05-13 Prompt 8).
     private func proBullet(_ title: String, detail: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: DesignTokens.Spacing.sm) {
             Image(systemName: "checkmark.circle.fill")
