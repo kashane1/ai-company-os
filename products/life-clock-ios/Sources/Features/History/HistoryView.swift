@@ -16,9 +16,16 @@ struct HistoryView: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(SubscriptionStore.self) private var subscriptions
     @State private var paywallPresented: Bool = false
+    @State private var pageSize: Int = Self.initialPageSize
 
     private static let freeRowLimit = 3
     private static let foggedPreviewRowCount = 6
+    /// First page renders at most 60 rows. With a 30-day import the typical
+    /// user sees their full history under this cap; only users 31+ days in
+    /// see the Load-more affordance. Keeps SwiftData fetch + LazyVStack
+    /// materialization light on initial appearance.
+    private static let initialPageSize = 60
+    private static let pageIncrement = 60
 
     var body: some View {
         NavigationStack {
@@ -124,7 +131,9 @@ struct HistoryView: View {
 
     @ViewBuilder
     private var dailyHistorySection: some View {
-        let snapshots = store.recentSnapshots(limit: HistoricalImportCoordinator.importWindowDays)
+        let result = store.recentSnapshotsPage(limit: pageSize)
+        let snapshots = result.page
+        let hasMore = result.hasMore
         if !snapshots.isEmpty {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
                 Text("Past days")
@@ -133,6 +142,9 @@ struct HistoryView: View {
                 if subscriptions.isPro {
                     importStatusBanner
                     proDailyRows(snapshots)
+                    if hasMore {
+                        loadMoreButton
+                    }
                 } else {
                     let visible = Array(snapshots.prefix(Self.freeRowLimit))
                     freeDailyRows(visible)
@@ -217,6 +229,29 @@ struct HistoryView: View {
             }
         }
         return (post, pre)
+    }
+
+    /// Trailing affordance to expand the daily history page by another
+    /// `pageIncrement` rows. Only rendered when more persisted snapshots
+    /// exist past the current boundary. Keeps initial load light so the
+    /// History screen doesn't choke on long histories.
+    private var loadMoreButton: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.2)) {
+                pageSize += Self.pageIncrement
+            }
+        } label: {
+            HStack(spacing: DesignTokens.Spacing.xs) {
+                Image(systemName: "arrow.down.circle")
+                Text("Load \(Self.pageIncrement) more days")
+                    .font(.subheadline.weight(.medium))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, DesignTokens.Spacing.sm)
+        }
+        .buttonStyle(.bordered)
+        .padding(.top, DesignTokens.Spacing.xs)
+        .accessibilityIdentifier("history.loadMore")
     }
 
     /// Full-width marker row that calls out where the user actually started

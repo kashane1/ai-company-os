@@ -945,6 +945,19 @@ final class LifeClockStore {
         return Array(filtered.prefix(limit))
     }
 
+    /// Paginated variant of `recentSnapshots`. Returns at most `limit` rows
+    /// (excluding today) along with a flag indicating whether at least one
+    /// additional persisted snapshot exists past the boundary. Used by
+    /// History to gate the "Load more" affordance without ever fetching
+    /// the full snapshot table.
+    func recentSnapshotsPage(limit: Int) -> (page: [DailyHealthSnapshot], hasMore: Bool) {
+        let raw = fetchRecentSnapshots(limit: limit + 2)
+        let todayStart = clock.calendar.startOfDay(for: clock.now())
+        let filtered = raw.filter { !clock.calendar.isDate($0.date, inSameDayAs: todayStart) }
+        let hasMore = filtered.count > limit
+        return (Array(filtered.prefix(limit)), hasMore)
+    }
+
     /// Signed daily delta for an arbitrary persisted snapshot. Mirrors
     /// `recomputeYesterdayDelta` so History rows show the same number the
     /// engine would assign that day. Returns nil when no profile is loaded.
