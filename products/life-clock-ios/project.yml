@@ -61,18 +61,12 @@ targets:
         - LifeClockTests
         - LifeClockUITests
       storeKitConfiguration: Sources/Services/Products.storekit
-      # Auto-regenerate the .xcodeproj before every build so newly-added
-      # .swift files under Sources/ are picked up without remembering to
-      # run `xcodegen generate` manually. Idempotent (~0.5s no-op when
-      # nothing changed). If Xcode shows a "Project file changed" dialog
-      # after this runs, click Revert to reload the regenerated project.
-      preActions:
-        - name: Regenerate Xcode project (xcodegen)
-          settingsTarget: LifeClock
-          script: |
-            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-            cd "${PROJECT_DIR}"
-            xcodegen generate
+      # Note: an earlier preAction here ran `xcodegen generate` on every
+      # build to pick up new Swift files automatically. It was removed
+      # because Xcode auto-cancels the build when the .pbxproj is rewritten
+      # mid-build setup, leading to a "Build Canceled" loop on every Run.
+      # If you add a new .swift file under Sources/, run `xcodegen generate`
+      # manually from products/life-clock-ios/ to refresh the project.
   LifeClockTests:
     type: bundle.unit-test
     platform: iOS
