@@ -21,6 +21,7 @@ struct ReflectionCard: View {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
                 Text(store.toneMode.reflectionHeading)
                     .font(.headline)
+                    .headingLighting()
                 if let saved = store.todayReflection {
                     Text(saved.prompt)
                         .font(.callout)

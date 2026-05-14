@@ -72,6 +72,18 @@ extension View {
         self.lightingDepth(referenceSize: 6)
     }
 
+    /// Apply the depth-shadow convention to a heading or title.
+    /// Tuned for **bold or semibold heading-tier text only** — `.headline`,
+    /// `.title`, `.title2`, `.title3` with bold/semibold weight, and the
+    /// large rounded-display deltas (`.system(size: 22+, weight: .semibold)`).
+    /// Do NOT apply to body text (`.callout`, `.subheadline`, `.caption`),
+    /// non-bold headings, or button labels. The reference size (3pt) keeps
+    /// the shadow tight against the glyph stroke so the depth reads as a
+    /// subtle lift rather than a generic drop-shadow.
+    func headingLighting() -> some View {
+        self.lightingDepth(referenceSize: 3)
+    }
+
     /// Canonical "section card" — single definition for the elevated,
     /// rounded, padded card surface used across Today, History, and
     /// other VStack-based screens. Bundles the four modifiers that

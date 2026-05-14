@@ -70,6 +70,7 @@ struct InstallSummarySection: View {
     private var day0Hero: some View {
         Text(store.toneMode.historySummaryDay0Hero)
             .font(.headline)
+            .headingLighting()
             .accessibilityIdentifier("history.installSummary.day0")
     }
 
@@ -78,6 +79,7 @@ struct InstallSummarySection: View {
     private var noSignalHero: some View {
         Text(store.toneMode.historySummaryNoSignal)
             .font(.headline)
+            .headingLighting()
             .accessibilityIdentifier("history.installSummary.noSignal")
     }
 
@@ -100,6 +102,7 @@ struct InstallSummarySection: View {
                 Text("\(sign)\(formatted)")
                     .font(.system(size: 22, weight: .semibold, design: .rounded))
             }
+            .headingLighting()
             // Same neutral foreground for ± per the plan / SpecFlow gap
             // #14. Tone copy carries valence.
 

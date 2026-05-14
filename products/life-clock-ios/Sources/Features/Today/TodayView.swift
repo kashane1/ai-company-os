@@ -293,6 +293,7 @@ struct TodayView: View {
                         .foregroundStyle(realDelta >= 0 ? DesignTokens.Palette.positive : DesignTokens.Palette.negative)
                         .contentTransition(.numericText(value: Double(shown)))
                         .monospacedDigit()
+                        .headingLighting()
                     Text(LifeClockConfiguration.lifespanShortDisclaimer)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -308,6 +309,7 @@ struct TodayView: View {
                         .foregroundStyle(.secondary)
                     Text(sparseHeadlineTitle)
                         .font(.title2.weight(.semibold))
+                        .headingLighting()
                     Text(sparseHeadlineBody)
                         .font(.callout)
                         .foregroundStyle(.secondary)
@@ -511,6 +513,7 @@ struct TodayView: View {
                     .foregroundStyle(.secondary)
                 Text(store.todayEstimate.map { TimeDeltaFormatter.format(years: $0.projectedAgeYears) } ?? "—")
                     .font(.title.bold())
+                    .headingLighting()
                 if let projected = store.todayEstimate?.projectedDate {
                     Text("Reference date: \(projected.formatted(.dateTime.year().month().day()))")
                         .font(.caption)
@@ -526,6 +529,7 @@ struct TodayView: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             Text(store.toneMode.todayDriversHeading)
                 .font(.headline)
+                .headingLighting()
             if store.todayDrivers.isEmpty {
                 Text(driversEmptyStateText)
                     .font(.callout)
@@ -712,6 +716,7 @@ struct TodayView: View {
             HStack {
                 Text(store.toneMode.todayPlanHeading)
                     .font(.headline)
+                    .headingLighting()
                 Spacer()
                 Button {
                     if subscriptions.isPro {

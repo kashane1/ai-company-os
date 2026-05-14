@@ -98,6 +98,7 @@ struct FutureView: View {
                     Text(formatHealthspan(projection))
                         .font(.system(size: 28, weight: .semibold, design: .rounded))
                 }
+                .headingLighting()
                 .accessibilityIdentifier("future.headline.projection")
 
                 Text(store.toneMode.futureBaselineFootnote(formatted: formatHealthspan(baseline)))
@@ -116,6 +117,7 @@ struct FutureView: View {
                 // Day 0 — baseline-only headline.
                 Text(formatHealthspan(baseline))
                     .font(.system(size: 36, weight: .semibold, design: .rounded))
+                    .headingLighting()
                     .accessibilityIdentifier("future.headline.baseline")
                 // Day-0 only — intentionally tone-neutral. No projection or
                 // delta exists yet, so this is a structural label, not

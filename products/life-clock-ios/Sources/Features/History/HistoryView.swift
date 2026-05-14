@@ -70,6 +70,7 @@ struct HistoryView: View {
                     .foregroundStyle(yesterdayDelta >= 0
                         ? DesignTokens.Palette.positive
                         : DesignTokens.Palette.negative)
+                    .headingLighting()
             }
             .sectionCard()
         } else if hasOlderSnapshots {
@@ -91,6 +92,7 @@ struct HistoryView: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
             Text(store.toneMode.historyLongAbsenceHeading)
                 .font(.headline)
+                .headingLighting()
             Text(store.toneMode.historyLongAbsenceBody)
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -126,6 +128,7 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
                 Text("Past days")
                     .font(.headline)
+                    .headingLighting()
                 if subscriptions.isPro {
                     importStatusBanner
                     ForEach(snapshots, id: \.date) { snapshot in
@@ -145,6 +148,7 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
                 Text("Past days")
                     .font(.headline)
+                    .headingLighting()
                 importStatusBanner
                 historyEmptyStateCard
             }
@@ -152,6 +156,7 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
                 Text("Past days")
                     .font(.headline)
+                    .headingLighting()
                 historyEmptyStateCard
             }
         }
@@ -245,6 +250,7 @@ struct HistoryView: View {
                 Text("Import all your historical health data as a Pro member")
                     .font(.headline)
                     .multilineTextAlignment(.center)
+                    .headingLighting()
                 Text("See every past day, spot the trends that shape your Life Clock, and adjust the values HealthKit gets wrong.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -331,6 +337,7 @@ struct HistoryView: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             Text("See what shaped this week")
                 .font(.headline)
+                .headingLighting()
             Text("Pro unlocks the full weekly breakdown, your strongest supportive trend, and the next habit to focus on.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -355,6 +362,7 @@ struct HistoryView: View {
                 .foregroundStyle(report.netTimeDeltaMinutes >= 0
                     ? DesignTokens.Palette.positive
                     : DesignTokens.Palette.negative)
+                .headingLighting()
             if let confidence = Confidence(rawValue: report.confidenceRaw) {
                 ConfidenceBadge(confidence: confidence)
             }
@@ -366,6 +374,7 @@ struct HistoryView: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
             Text(store.toneMode.historyWeeklyDriversHeading)
                 .font(.headline)
+                .headingLighting()
             row(
                 label: "Top positive",
                 value: report.topPositiveDriver,
@@ -389,6 +398,7 @@ struct HistoryView: View {
                 .foregroundStyle(.secondary)
             Text(report.nextBestLever.capitalized)
                 .font(.title3.bold())
+                .headingLighting()
             Text(store.toneMode.historyNextLeverCaption)
                 .font(.caption)
                 .foregroundStyle(.secondary)

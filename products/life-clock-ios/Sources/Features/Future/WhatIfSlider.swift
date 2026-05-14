@@ -69,6 +69,7 @@ struct WhatIfSlider: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
             Text("What if…")
                 .font(.headline)
+                .headingLighting()
             ForEach(rows, id: \.dim) { row in
                 sliderRow(for: row)
             }
