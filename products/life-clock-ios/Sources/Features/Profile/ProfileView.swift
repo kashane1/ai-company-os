@@ -285,6 +285,7 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .sheet(isPresented: $paywallPresented) {
                 PaywallSheet()
+                    .environment(subscriptions)
             }
             .sheet(isPresented: $safetyNetPresented) {
                 SafetyNetView()

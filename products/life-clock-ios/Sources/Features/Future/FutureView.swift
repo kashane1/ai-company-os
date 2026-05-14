@@ -39,6 +39,7 @@ struct FutureView: View {
             .accessibilityIdentifier("future.screen")
             .sheet(isPresented: $paywallPresented) {
                 PaywallSheet(scrollTo: paywallScrollTarget)
+                    .environment(subscriptions)
             }
             .onAppear {
                 TelemetryRecorder.shared.emit(.futureTabViewed)

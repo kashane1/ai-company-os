@@ -44,6 +44,7 @@ struct HistoryView: View {
             }
             .sheet(isPresented: $paywallPresented) {
                 PaywallSheet()
+                    .environment(subscriptions)
             }
             .onAppear {
                 // Pro: kick off a one-time 90-day backfill so drilldown

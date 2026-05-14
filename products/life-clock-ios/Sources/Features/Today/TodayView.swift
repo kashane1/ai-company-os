@@ -158,6 +158,7 @@ struct TodayView: View {
             }
             .sheet(isPresented: $paywallPresented) {
                 PaywallSheet()
+                    .environment(subscriptions)
             }
             .onAppear {
                 // Cold launch: fire once. Tab-switches back to Today

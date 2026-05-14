@@ -123,6 +123,7 @@ struct WrapUpSheet: View {
         }
         .sheet(isPresented: $paywallPresented) {
             PaywallSheet(scrollTo: .top)
+                .environment(subscriptions)
         }
     }
 

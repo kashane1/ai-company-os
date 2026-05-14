@@ -108,6 +108,14 @@ struct LifeClockApp: App {
                         .environment(subscriptions)
                 }
                 .sheet(item: wrapUpBinding) { wrapUp in
+                    // Sheets render in a separate presentation host;
+                    // @Observable values injected via .environment(_:) on
+                    // the presenter do not cross that boundary, so we
+                    // re-inject here. Matches the forced-paywall sheet
+                    // above. Without this, reading
+                    // @Environment(SubscriptionStore.self) inside
+                    // WrapUpSheet crashes with "No Observable object of
+                    // type SubscriptionStore found".
                     WrapUpSheet(
                         wrapUp: wrapUp,
                         signedMinutes: wrapUpMinutes(for: wrapUp),
@@ -116,6 +124,8 @@ struct LifeClockApp: App {
                             store.markWrapUpShown(wrapUp)
                         }
                     )
+                    .environment(subscriptions)
+                    .environment(store)
                 }
         }
         .modelContainer(container)
