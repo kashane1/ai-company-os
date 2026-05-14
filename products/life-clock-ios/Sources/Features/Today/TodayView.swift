@@ -108,9 +108,6 @@ struct TodayView: View {
                     clockCard
                     trajectoryPeek
                     rescueLine
-                    if let moment = store.supportMoment {
-                        supportMomentCard(moment)
-                    }
                     driversCard
                     questsCard
                     ReflectionCard(onTap: { reflectionPresented = true })
@@ -121,6 +118,27 @@ struct TodayView: View {
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
             }
+            .overlay(alignment: .top) {
+                // Toast overlay anchored just below the navigation bar.
+                // Replaces the prior inline `SupportMomentCard` slot that
+                // sat between the projected-healthspan card and the
+                // drivers card; here it floats above the content at the
+                // highest z layer of the Today screen and auto-dismisses
+                // after 3.5s (see `SupportMomentToast`). Animation is on
+                // the overlay container so insert/remove transition.
+                if let moment = store.supportMoment {
+                    SupportMomentToast(
+                        moment: moment,
+                        dismissAction: store.dismissSupportMoment
+                    )
+                    .transition(
+                        .move(edge: .top)
+                            .combined(with: .opacity)
+                    )
+                    .zIndex(1)
+                }
+            }
+            .animation(.spring(response: 0.42, dampingFraction: 0.86), value: store.supportMoment)
             .navigationTitle(store.toneMode.todayHeadline)
             // At accessibility text sizes a large title with "Today's
             // progress" / "Today's reckoning" overflows and ellipsizes
@@ -428,14 +446,6 @@ struct TodayView: View {
             anchor: store.todayHabits?.wholeFoodMeal ?? "",
             tone: store.toneMode
         )
-    }
-
-    private func supportMomentCard(_ moment: SupportMoment) -> some View {
-        SupportMomentCard(
-            moment: moment,
-            dismissAction: store.dismissSupportMoment
-        )
-        .accessibilityIdentifier("today.supportMoment")
     }
 
     /// "Projected healthspan + anchor date" card. Hidden entirely when

@@ -6,7 +6,7 @@ import Foundation
 /// The `Tone` enum was reviewed for collapse to `Bool isCelebration`
 /// during Phase 3.B sweep. Decision: keep the enum. Two named cases
 /// (`celebration` vs `calm`) read more clearly at call sites and
-/// inside `SupportMomentCard`'s icon/tint switch than a boolean would,
+/// inside `SupportMomentToast`'s icon/tint switch than a boolean would,
 /// and a future third tone (e.g. a milestone celebration distinct from
 /// per-action celebration) would be additive rather than a Bool→enum
 /// rewrite.
