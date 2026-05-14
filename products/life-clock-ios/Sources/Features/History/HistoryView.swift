@@ -6,11 +6,12 @@ import SwiftUI
 /// - Yesterday card (when a persisted snapshot exists)
 /// - This week's net + drivers (free shows net only; Pro sees drivers + lever)
 /// - Daily history list:
-///     * Free: last 7 days unblurred; days 8-90 rendered with real
-///       scaffolding behind a `.ultraThinMaterial` blur with a paywall CTA.
-///     * Pro: full 90-day list, each row tappable → `DayDetailView`.
-///       Triggers a lazy 90-day historical HK import on first visit so
-///       the list isn't empty for new Pro upgrades.
+///     * Free: last 3 days unblurred; older days fogged behind a paywall CTA.
+///     * Pro: full list, each row tappable → `DayDetailView`. Triggers a
+///       lazy 30-day historical HK import on first visit so the list isn't
+///       empty for new Pro upgrades. An install-marker row separates
+///       post-install days from imported pre-install days; pre-install
+///       days are shown for context but never feed engine calculations.
 struct HistoryView: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(SubscriptionStore.self) private var subscriptions
@@ -131,14 +132,10 @@ struct HistoryView: View {
                     .headingLighting()
                 if subscriptions.isPro {
                     importStatusBanner
-                    ForEach(snapshots, id: \.date) { snapshot in
-                        dayRow(snapshot)
-                    }
+                    proDailyRows(snapshots)
                 } else {
                     let visible = Array(snapshots.prefix(Self.freeRowLimit))
-                    ForEach(visible, id: \.date) { snapshot in
-                        dayRow(snapshot)
-                    }
+                    freeDailyRows(visible)
                     foggedPaywallStack(behind: Array(snapshots.dropFirst(Self.freeRowLimit)))
                 }
             }
@@ -160,6 +157,103 @@ struct HistoryView: View {
                 historyEmptyStateCard
             }
         }
+    }
+
+    /// Pro rows with the install-marker injected at the boundary between
+    /// post-install days (above) and imported pre-install days (below).
+    /// Pre-install days come from HealthKit for context only — engines
+    /// (Future tab, cumulative summary) anchor on `onboardingCompletedAt`
+    /// and never consume them.
+    @ViewBuilder
+    private func proDailyRows(_ snapshots: [DailyHealthSnapshot]) -> some View {
+        let split = partitionAtInstall(snapshots)
+        ForEach(split.postInstall, id: \.date) { snapshot in
+            dayRow(snapshot)
+        }
+        if !split.preInstall.isEmpty {
+            installMarkerRow
+            ForEach(split.preInstall, id: \.date) { snapshot in
+                dayRow(snapshot)
+            }
+        }
+    }
+
+    /// Free rows: same install-marker treatment, but capped to the free
+    /// preview slice so it only renders when the user's unlocked window
+    /// happens to straddle their install day.
+    @ViewBuilder
+    private func freeDailyRows(_ snapshots: [DailyHealthSnapshot]) -> some View {
+        let split = partitionAtInstall(snapshots)
+        ForEach(split.postInstall, id: \.date) { snapshot in
+            dayRow(snapshot)
+        }
+        if !split.preInstall.isEmpty {
+            installMarkerRow
+            ForEach(split.preInstall, id: \.date) { snapshot in
+                dayRow(snapshot)
+            }
+        }
+    }
+
+    /// Returns the snapshots above and below the install day. `snapshots`
+    /// is ordered newest-first, so post-install rows lead and pre-install
+    /// rows trail. When the profile or onboarding timestamp is missing
+    /// (pre-onboarding states, tests), everything is treated as post-install
+    /// and no marker is shown.
+    private func partitionAtInstall(_ snapshots: [DailyHealthSnapshot])
+        -> (postInstall: [DailyHealthSnapshot], preInstall: [DailyHealthSnapshot])
+    {
+        guard let onboarded = store.profile?.onboardingCompletedAt else {
+            return (snapshots, [])
+        }
+        let installDay = Calendar.current.startOfDay(for: onboarded)
+        var post: [DailyHealthSnapshot] = []
+        var pre: [DailyHealthSnapshot] = []
+        for snapshot in snapshots {
+            if snapshot.date < installDay {
+                pre.append(snapshot)
+            } else {
+                post.append(snapshot)
+            }
+        }
+        return (post, pre)
+    }
+
+    /// Full-width marker row that calls out where the user actually started
+    /// using Life Clock. Visually distinct from day rows: tinted background,
+    /// flag glyph, and an explanatory caption so it's obvious imported days
+    /// below don't feed forecasts.
+    private var installMarkerRow: some View {
+        HStack(alignment: .top, spacing: DesignTokens.Spacing.sm) {
+            Image(systemName: "flag.checkered")
+                .font(.title3)
+                .foregroundStyle(.tint)
+                .frame(width: 28, alignment: .center)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("You joined Life Clock here")
+                    .font(.subheadline.weight(.semibold))
+                    .headingLighting()
+                Text("Days below come from Apple Health for context. They don't affect your Life Clock or Future tab.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, DesignTokens.Spacing.sm)
+        .padding(.horizontal, DesignTokens.Spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            DesignTokens.Palette.elevated.opacity(0.35),
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.sm)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.Radius.sm)
+                .strokeBorder(.tint.opacity(0.25), lineWidth: 1)
+        )
+        .padding(.vertical, DesignTokens.Spacing.xs)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("history.installMarker")
     }
 
     @ViewBuilder

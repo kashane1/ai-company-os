@@ -1,31 +1,22 @@
 import Foundation
 import SwiftData
 
-/// Lazy full-history Pro import. Pulls daily snapshots from HealthKit
+/// Lazy historical Pro import. Pulls daily snapshots from HealthKit
 /// (chunked by week so cancel UX is meaningful and partial completion can
 /// resume) and upserts them into SwiftData by `dayKey`. Idempotent: re-runs
 /// only fetch days that don't already have a persisted row stamped within
-/// the last week — earlier rows are considered final. The window is sized
-/// generously (10 years) — HealthKit returns nil/empty for days before the
-/// user's first sample, and idempotency makes those cheap on rerun.
+/// the last week — earlier rows are considered final.
 ///
 /// Trigger: first time a Pro user opens the History tab. Run once per
 /// install in the background; user can cancel via the progress banner.
-///
-/// Performance note: the current `LiveHealthKitService.recentSnapshots`
-/// makes ~6 HK queries per day. A future optimization will collapse those
-/// into a single `HKStatisticsCollectionQuery` per metric across the full
-/// 90-day window — see PR description's "Deferred" section. The current
-/// implementation is correct and idempotent; the optimization is purely
-/// about wall-clock time on the import.
 @MainActor
 @Observable
 final class HistoricalImportCoordinator {
-    /// 10-year ceiling. HealthKit-of-record only goes back as far as the
-    /// user's first device, so days before that just return empty and the
-    /// idempotent skip keeps re-imports cheap. We don't auto-extend past
-    /// this ceiling because the chunk loop is bounded by it.
-    static let importWindowDays = 365 * 10
+    /// 30-day ceiling. Pre-install data is shown in History for context but
+    /// never feeds the engines (Future, cumulative summary) — those anchor
+    /// on `onboardingCompletedAt`. A short window keeps the import fast and
+    /// the cancel UX meaningful.
+    static let importWindowDays = 30
     static let chunkDays = 7
 
     enum Status: Equatable {
