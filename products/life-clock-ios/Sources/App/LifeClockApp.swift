@@ -189,6 +189,16 @@ struct RootView: View {
 struct MainTabView: View {
     @Environment(LifeClockStore.self) private var store
 
+    /// Width of the left/right hot zone in which an edge-swipe will be
+    /// honored as a tab switch. Anywhere inside this band — finger lifts
+    /// across the screen — counts; anywhere outside is treated as a
+    /// content gesture and ignored.
+    private static let edgeBandPoints: CGFloat = 28
+    /// Minimum horizontal translation (or predicted translation for a
+    /// flick) that registers as a tab-switch swipe. Keeps incidental
+    /// horizontal jitter on vertical scrolls from cycling tabs.
+    private static let minSwipePoints: CGFloat = 60
+
     private var futureTabVisible: Bool {
         // Two gates: (1) onboarding complete — Future tab requires a
         // baseline; (2) launch-config flag — DEBUG default true, RELEASE
@@ -200,26 +210,88 @@ struct MainTabView: View {
         return true
     }
 
+    /// Visible tabs in screen-order. Mirrors the conditional `if
+    /// futureTabVisible` inside the TabView so the swipe cycle skips a
+    /// hidden Future tab instead of routing to it and rendering nothing.
+    private var orderedVisibleTabs: [AppTab] {
+        var tabs: [AppTab] = [.today, .history]
+        if futureTabVisible { tabs.append(.future) }
+        tabs.append(.profile)
+        return tabs
+    }
+
+    /// Returns the visible tab `step` positions away from `current`,
+    /// wrapping at both ends. step > 0 → toward Profile (rightward in
+    /// the bar); step < 0 → toward Today.
+    private func cycle(_ current: AppTab, by step: Int) -> AppTab {
+        let tabs = orderedVisibleTabs
+        guard !tabs.isEmpty, let i = tabs.firstIndex(of: current) else { return current }
+        let n = tabs.count
+        let next = ((i + step) % n + n) % n
+        return tabs[next]
+    }
+
     var body: some View {
         @Bindable var store = store
-        TabView(selection: $store.selectedTab) {
-            TodayView()
-                .tabItem { Label(AppTab.today.title, systemImage: AppTab.today.systemImage) }
-                .tag(AppTab.today)
+        GeometryReader { proxy in
+            TabView(selection: $store.selectedTab) {
+                TodayView()
+                    .tabItem { Label(AppTab.today.title, systemImage: AppTab.today.systemImage) }
+                    .tag(AppTab.today)
 
-            HistoryView()
-                .tabItem { Label(AppTab.history.title, systemImage: AppTab.history.systemImage) }
-                .tag(AppTab.history)
+                HistoryView()
+                    .tabItem { Label(AppTab.history.title, systemImage: AppTab.history.systemImage) }
+                    .tag(AppTab.history)
 
-            if futureTabVisible {
-                FutureView()
-                    .tabItem { Label(AppTab.future.title, systemImage: AppTab.future.systemImage) }
-                    .tag(AppTab.future)
+                if futureTabVisible {
+                    FutureView()
+                        .tabItem { Label(AppTab.future.title, systemImage: AppTab.future.systemImage) }
+                        .tag(AppTab.future)
+                }
+
+                ProfileView()
+                    .tabItem { Label(AppTab.profile.title, systemImage: AppTab.profile.systemImage) }
+                    .tag(AppTab.profile)
             }
-
-            ProfileView()
-                .tabItem { Label(AppTab.profile.title, systemImage: AppTab.profile.systemImage) }
-                .tag(AppTab.profile)
+            .simultaneousGesture(edgeSwipeGesture(width: proxy.size.width))
         }
+    }
+
+    /// Edge-anchored horizontal swipe that cycles the selected tab with
+    /// wrap-around. Listens only when the drag *starts* within
+    /// `edgeBandPoints` of either screen edge — gestures that begin in
+    /// the middle of the screen don't trigger a tab change. Attached via
+    /// `simultaneousGesture` so vertical scrolling and the system's
+    /// NavigationStack back-swipe still work normally.
+    private func edgeSwipeGesture(width: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 20)
+            .onEnded { value in
+                let startX = value.startLocation.x
+                let nearLeftEdge = startX <= Self.edgeBandPoints
+                let nearRightEdge = startX >= width - Self.edgeBandPoints
+                guard nearLeftEdge || nearRightEdge else { return }
+
+                // Use predicted translation so a quick flick still
+                // counts even if the finger didn't travel the full
+                // minSwipePoints before lift.
+                let dx = value.translation.width
+                let effective = abs(dx) >= Self.minSwipePoints
+                    ? dx
+                    : value.predictedEndTranslation.width
+                let absH = abs(effective)
+                let absV = abs(value.translation.height)
+                // Drop predominantly-vertical drags — they're scrolls
+                // that happened to start near the edge.
+                guard absH >= Self.minSwipePoints, absH > absV else { return }
+
+                // Swipe-left (finger moves left → dx negative) reveals
+                // the tab to the LEFT in the bar; swipe-right reveals
+                // the tab to the RIGHT. So a left-swipe on Today wraps
+                // around to Profile.
+                let step = effective < 0 ? -1 : 1
+                let target = cycle(store.selectedTab, by: step)
+                guard target != store.selectedTab else { return }
+                store.selectedTab = target
+            }
     }
 }
