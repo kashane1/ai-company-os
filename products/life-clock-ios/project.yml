@@ -9,6 +9,12 @@ settings:
     SWIFT_VERSION: 5.0
     CURRENT_PROJECT_VERSION: 1
     MARKETING_VERSION: 0.1.0
+# Per-machine signing settings (DEVELOPMENT_TEAM) live in
+# LifeClock.local.xcconfig (gitignored). Xcode re-reads the xcconfig at
+# build time, so editing the team ID there does not require a regen.
+configFiles:
+  Debug: LifeClock.local.xcconfig
+  Release: LifeClock.local.xcconfig
 targets:
   LifeClock:
     type: application
@@ -41,7 +47,6 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.lifeclock
         PRODUCT_NAME: LifeClock
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: 3YCTPY88Y4
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_MACCATALYST: NO
         DEVELOPMENT_ASSET_PATHS: "\"\""
@@ -81,7 +86,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.lifeclockTests
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: 3YCTPY88Y4
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/LifeClock.app/LifeClock"
@@ -101,7 +105,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.lifeclockUITests
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: 3YCTPY88Y4
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: LifeClock
         TARGETED_DEVICE_FAMILY: "1,2"

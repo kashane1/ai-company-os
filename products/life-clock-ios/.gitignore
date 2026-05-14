@@ -1,6 +1,10 @@
 # Generated XcodeGen output — regenerate via `xcodegen generate`
 LifeClock.xcodeproj/
 
+# Per-machine signing config (DEVELOPMENT_TEAM, etc). Each developer
+# fills in their own team ID. Never commit.
+LifeClock.local.xcconfig
+
 # Xcode user data
 xcuserdata/
 *.xcuserstate
