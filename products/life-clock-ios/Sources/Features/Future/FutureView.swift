@@ -35,6 +35,7 @@ struct FutureView: View {
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
             }
+            .supportMomentToast()
             .navigationTitle("Future")
             .accessibilityIdentifier("future.screen")
             .sheet(isPresented: $paywallPresented) {

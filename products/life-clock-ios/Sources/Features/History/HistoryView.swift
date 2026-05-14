@@ -45,6 +45,7 @@ struct HistoryView: View {
                 .padding(DesignTokens.Spacing.lg)
                 .readableColumn()
             }
+            .supportMomentToast()
             .navigationTitle("History")
             .accessibilityIdentifier("history.screen")
             .navigationDestination(for: DayDetailRoute.self) { route in

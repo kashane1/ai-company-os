@@ -282,6 +282,7 @@ struct ProfileView: View {
                 }
                 #endif
             }
+            .supportMomentToast()
             .navigationTitle("Profile")
             .sheet(isPresented: $paywallPresented) {
                 PaywallSheet()
