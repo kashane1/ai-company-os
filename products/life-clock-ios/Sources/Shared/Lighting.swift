@@ -72,6 +72,28 @@ extension View {
         self.lightingDepth(referenceSize: 6)
     }
 
+    /// Canonical "section card" — single definition for the elevated,
+    /// rounded, padded card surface used across Today, History, and
+    /// other VStack-based screens. Bundles the four modifiers that
+    /// previously had to be repeated at every call site: inner padding,
+    /// max-width flush-left frame, elevated rounded background, and the
+    /// shared `.cardLighting()` shadow. Use this anywhere you would
+    /// otherwise write the four-line incantation by hand.
+    ///
+    /// Profile uses iOS `Form` + `Section` instead — Form's native row
+    /// styling doesn't compose with a per-section shadow, so the
+    /// modifier intentionally does not apply there.
+    func sectionCard() -> some View {
+        self
+            .padding(DesignTokens.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                DesignTokens.Palette.elevated,
+                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+            )
+            .cardLighting()
+    }
+
     /// Apply the depth-shadow convention to a rotating surface.
     /// The offset is inverse-rotated so the shadow stays oriented to
     /// the world (light from above-right) regardless of the surface's

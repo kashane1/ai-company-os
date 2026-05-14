@@ -27,9 +27,6 @@ struct SupportMomentCard: View {
             .buttonStyle(.plain)
             .accessibilityIdentifier("supportMoment.dismiss")
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
-        .cardLighting()
+        .sectionCard()
     }
 }

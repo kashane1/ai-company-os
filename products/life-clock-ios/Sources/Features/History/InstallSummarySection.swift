@@ -44,12 +44,7 @@ struct InstallSummarySection: View {
                 contributorsPanel(for: summary)
             }
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            DesignTokens.Palette.elevated,
-            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-        )
+        .sectionCard()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("history.installSummary")
     }

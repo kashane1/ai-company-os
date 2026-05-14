@@ -70,12 +70,7 @@ struct HistoryView: View {
                         ? DesignTokens.Palette.positive
                         : DesignTokens.Palette.negative)
             }
-            .padding(DesignTokens.Spacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                DesignTokens.Palette.elevated,
-                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-            )
+            .sectionCard()
         } else if hasOlderSnapshots {
             // No qualifying yesterday data, but the user does have history
             // — they were away. Show a supportive "welcome back" card
@@ -99,12 +94,7 @@ struct HistoryView: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            DesignTokens.Palette.elevated,
-            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-        )
+        .sectionCard()
         .accessibilityIdentifier("history.longAbsence")
     }
 
@@ -209,12 +199,7 @@ struct HistoryView: View {
                         .controlSize(.small)
                 }
             }
-            .padding(DesignTokens.Spacing.sm)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                DesignTokens.Palette.elevated,
-                in: RoundedRectangle(cornerRadius: DesignTokens.Radius.sm)
-            )
+            .sectionCard()
         case .finished, .idle, .cancelled, .failed:
             EmptyView()
         }
@@ -292,13 +277,7 @@ struct HistoryView: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity)
-        .background(
-            DesignTokens.Palette.elevated,
-            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-        )
-        .cardLighting()
+        .sectionCard()
         .accessibilityIdentifier("history.emptyState")
     }
 
@@ -364,12 +343,7 @@ struct HistoryView: View {
             .buttonStyle(.borderedProminent)
             .accessibilityIdentifier("history.weeklyTeaserUnlock")
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            DesignTokens.Palette.elevated,
-            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-        )
+        .sectionCard()
     }
 
     private func netCard(_ report: WeeklyReport) -> some View {
@@ -384,12 +358,7 @@ struct HistoryView: View {
                 ConfidenceBadge(confidence: confidence)
             }
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            DesignTokens.Palette.elevated,
-            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-        )
+        .sectionCard()
     }
 
     private func driversCard(_ report: WeeklyReport) -> some View {
@@ -409,12 +378,7 @@ struct HistoryView: View {
                 color: DesignTokens.Palette.negative
             )
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            DesignTokens.Palette.elevated,
-            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-        )
+        .sectionCard()
     }
 
     private func leverCard(_ report: WeeklyReport) -> some View {
@@ -428,12 +392,7 @@ struct HistoryView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(DesignTokens.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            DesignTokens.Palette.elevated,
-            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-        )
+        .sectionCard()
     }
 
     private func row(

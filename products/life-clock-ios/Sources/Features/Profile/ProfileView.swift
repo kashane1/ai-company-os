@@ -245,9 +245,20 @@ struct ProfileView: View {
                 }
 
                 Section("About") {
-                    DisclaimerBanner()
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
+                    // Inline disclaimer rather than `DisclaimerBanner` here:
+                    // the banner's own elevated background + a clear list
+                    // row produced a half-tinted / half-white section
+                    // (the version row below sat on the normal row bg).
+                    // Rendering as a plain row lets the whole About
+                    // section read as one uniform surface.
+                    HStack(alignment: .top, spacing: DesignTokens.Spacing.sm) {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(.secondary)
+                        Text(LifeClockConfiguration.medicalDisclaimer)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.leading)
+                    }
                     Text("\(LifeClockConfiguration.appName) · Version 0.1.0")
                         .font(.caption)
                         .foregroundStyle(.secondary)

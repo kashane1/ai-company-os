@@ -45,9 +45,7 @@ struct ReflectionCard: View {
                     }
                 }
             }
-            .padding(DesignTokens.Spacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            .sectionCard()
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
