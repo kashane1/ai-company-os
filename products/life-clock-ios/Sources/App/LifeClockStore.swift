@@ -881,11 +881,21 @@ final class LifeClockStore {
     /// Map a `Quest`'s loose category string to the picker's structured
     /// `QuestEngine.Category`. Sleep + recovery share a slot; nutrition +
     /// habit share a slot — see QuestEngine.Category for rationale.
-    private static func engineCategory(of quest: Quest) -> QuestEngine.Category? {
+    ///
+    /// Pool-driven quests (Phase 5b+) carry `Genre.rawValue` in `category`
+    /// — `"activity"`, `"sleep"`, `"diet"` — so accept those too. Without
+    /// the genre aliases, `applyTodayPlanOverrides` could not find the
+    /// engine-generated quest to replace and would APPEND the user's pick
+    /// instead, duplicating items in today's plan.
+    static func engineCategory(of quest: Quest) -> QuestEngine.Category? {
+        if let genre = Genre(rawValue: quest.genre.lowercased()),
+           let category = QuestEngine.Category(genre: genre) {
+            return category
+        }
         switch quest.category.lowercased() {
-        case "movement": return .movement
+        case "activity", "movement": return .movement
         case "sleep", "recovery": return .sleepRecovery
-        case "nutrition", "habit": return .nutritionHabit
+        case "diet", "nutrition", "habit": return .nutritionHabit
         default: return nil
         }
     }

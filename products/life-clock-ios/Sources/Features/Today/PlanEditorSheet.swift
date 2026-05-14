@@ -13,11 +13,19 @@ import SwiftUI
 /// dictionary. The store is touched in exactly two places:
 ///   - **Done** (`planEditor.done`) → loop the draft and call
 ///     `store.selectPlanQuest` for every entry that differs from the
-///     baseline (the store's overrides at sheet appear), plus
-///     `store.clearTodayPlanOverrides()` if the user cleared via Reset
-///     while inside the sheet.
+///     current store overrides, plus `store.clearTodayPlanOverrides()`
+///     if the user cleared via Reset while inside the sheet.
 ///   - **Reset** (`planEditor.reset`) → blanks `draftPicks` only; the
 ///     store stays untouched until Done.
+///
+/// **Pre-selection.** On appear the sheet pre-selects the slug that's
+/// currently effective for each category — an existing override if
+/// present, otherwise the engine-generated quest currently shown in
+/// today's plan, otherwise the top-ranked variant for that category.
+/// This ensures the user always sees exactly three items selected
+/// (matching the "today's plan is an atomic 3-tuple, swap in/out
+/// but never dissect" product invariant) and so picking a different
+/// row REPLACES the current pick rather than adding to it.
 ///
 /// **Cancel.** Cancel + swipe-down dismissal both leave the store
 /// unchanged — `draftPicks` is discarded, and the underlying Today
@@ -29,17 +37,17 @@ struct PlanEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     /// Per-category slug picks the user has touched in this sheet.
-    /// `nil` value means "the user explicitly reset this category"; an
-    /// absent key means "untouched, use baseline".
-    @State private var draftPicks: [String: String?] = [:]
+    /// An absent key means "untouched, use `initialPicks`".
+    @State private var draftPicks: [String: String] = [:]
 
-    /// Snapshot of the store's overrides at the moment the sheet
-    /// appeared. Used as the baseline for Done's diff and to suppress
-    /// no-op writes.
-    @State private var baselinePicks: [String: String] = [:]
+    /// Slug pre-selected for each category when the sheet appeared.
+    /// Mirrors the today's plan card: existing override > engine pick >
+    /// top variant. Re-read after `Reset` so the sheet still shows a
+    /// full 3-tuple to pick from.
+    @State private var initialPicks: [String: String] = [:]
 
     /// Set when the user tapped Reset inside the sheet. Done will then
-    /// call `clearTodayPlanOverrides` instead of (or before) per-category
+    /// call `clearTodayPlanOverrides` first, before any per-category
     /// writes. Discarded on Cancel along with the rest of the draft.
     @State private var draftCleared: Bool = false
 
@@ -58,12 +66,16 @@ struct PlanEditorSheet: View {
                     }
 
                     Button(role: .destructive) {
-                        // Stay inside the sheet — only blank the draft.
-                        // The store is still showing the prior plan on
-                        // the underlying Today card; Done will commit
-                        // the clear, Cancel will throw it away.
+                        // Stay inside the sheet — clear the draft and
+                        // recompute the pre-selection so the sheet
+                        // still shows a complete 3-tuple from engine
+                        // defaults. The store is still showing the
+                        // prior plan on the underlying Today card;
+                        // Done will commit the clear, Cancel will
+                        // throw it away.
                         draftPicks = [:]
                         draftCleared = true
+                        initialPicks = computeInitialPicks(ignoringOverrides: true)
                     } label: {
                         Label(store.toneMode.planEditorResetCTA, systemImage: "arrow.counterclockwise")
                     }
@@ -94,7 +106,7 @@ struct PlanEditorSheet: View {
             }
             .accessibilityIdentifier("planEditor.screen")
             .onAppear {
-                baselinePicks = store.todayPlanOverrides.picks
+                initialPicks = computeInitialPicks(ignoringOverrides: false)
                 draftPicks = [:]
                 draftCleared = false
             }
@@ -102,50 +114,67 @@ struct PlanEditorSheet: View {
         }
     }
 
-    /// Effective per-category selection given baseline + draft.
-    /// Returns nil if the user reset that category in this sheet OR
-    /// if the user reset the whole sheet via the destructive button.
+    /// Effective per-category selection given pre-selection + draft.
+    /// Falls back to `initialPicks` when the user hasn't touched a row,
+    /// so the sheet always shows the current today's-plan item highlighted
+    /// (or, if nothing was current, the top variant) per the 3-tuple
+    /// invariant.
     private func selectedSlug(for category: QuestEngine.Category) -> String? {
-        if draftCleared {
-            // After a sheet-level reset, individual category picks the
-            // user makes afterward override the cleared baseline.
-            if let drafted = draftPicks[category.rawValue], let slug = drafted {
-                return slug
-            }
-            return nil
-        }
         if let drafted = draftPicks[category.rawValue] {
-            return drafted // may be nil if the user explicitly cleared the row
+            return drafted
         }
-        return baselinePicks[category.rawValue]
+        return initialPicks[category.rawValue]
     }
 
-    /// Diff the draft against the baseline and write through. Called
-    /// only on Done.
+    /// Compute the slug to pre-select per category. Preference order:
+    ///   1. Existing override (unless `ignoringOverrides`, used after Reset).
+    ///   2. The slug currently shown in today's plan for this category.
+    ///   3. The top-ranked variant in the editor list — fallback for
+    ///      categories the engine left empty today (e.g. Movement when
+    ///      the step goal is already met). Ensures the editor always
+    ///      presents 3 selected items, satisfying "always 3 saved".
+    private func computeInitialPicks(ignoringOverrides: Bool) -> [String: String] {
+        var picks: [String: String] = [:]
+        let overrides = ignoringOverrides ? [:] : store.todayPlanOverrides.picks
+        for category in QuestEngine.Category.allCases {
+            if let slug = overrides[category.rawValue] {
+                picks[category.rawValue] = slug
+                continue
+            }
+            if let quest = store.todayQuests.first(where: { LifeClockStore.engineCategory(of: $0) == category }) {
+                picks[category.rawValue] = quest.slug
+                continue
+            }
+            if let first = store.planVariants(for: category).first {
+                picks[category.rawValue] = first.slug
+            }
+        }
+        return picks
+    }
+
+    /// Commit the final selection per category. Always writes the picks
+    /// that DIFFER from the store's current overrides; engine-derived
+    /// pre-selections that the user didn't touch are skipped unless the
+    /// engine produced no quest for that category — in which case we
+    /// write the fallback as an override so today's plan still shows
+    /// three items.
     private func commitDraft() {
         if draftCleared {
             store.clearTodayPlanOverrides()
-            // After the clear, replay any drafted picks. (Edge case:
-            // user hit Reset, then picked a new variant before Done.)
-            for category in QuestEngine.Category.allCases {
-                if let drafted = draftPicks[category.rawValue], let slug = drafted {
-                    try? store.selectPlanQuest(slug: slug, in: category)
-                }
-            }
-            return
         }
-
+        let overridesBefore = draftCleared ? [:] : store.todayPlanOverrides.picks
         for category in QuestEngine.Category.allCases {
-            guard let drafted = draftPicks[category.rawValue] else { continue }
-            let baseline = baselinePicks[category.rawValue]
-            guard drafted != baseline else { continue }
-            if let slug = drafted {
-                try? store.selectPlanQuest(slug: slug, in: category)
+            guard let slug = selectedSlug(for: category) else { continue }
+            if overridesBefore[category.rawValue] == slug { continue }
+            // If there's no existing override AND the engine is already
+            // showing this slug for this category, skip — writing would
+            // just lock in what's already happening.
+            let engineCurrent = store.todayQuests
+                .first(where: { LifeClockStore.engineCategory(of: $0) == category })?.slug
+            if overridesBefore[category.rawValue] == nil && engineCurrent == slug {
+                continue
             }
-            // `nil`-drafted (the user explicitly cleared one row) is
-            // not currently expressible from the UI — the row tap just
-            // selects, never deselects. If we add a per-category clear
-            // later, route it through the store's per-category clear.
+            try? store.selectPlanQuest(slug: slug, in: category)
         }
     }
 
