@@ -246,14 +246,30 @@ struct LifeClockMascotView: View {
     }
 
     private func hand(length: CGFloat, thickness: CGFloat, angle: Angle) -> some View {
-        // White hands with a world-fixed drop shadow — the shadow stays
-        // pointing toward the bottom-right of the screen regardless of
-        // the hand's rotation, simulating a static light source above.
-        // Inverse-rotation math lives in `Lighting.swift`; the convention
-        // constants (0.22 / 0.35 / 0.85 / 0.55) are the single source of
-        // truth there.
+        // Cross-width gradient (off-white edges → bright midline → off-white
+        // edges) reads as a rounded cylindrical rod, giving depth without
+        // growing the hand. The gradient is symmetric across the centerline
+        // so it is direction-free and never fights the world-fixed drop
+        // shadow under it — the shadow stays pointing toward screen
+        // bottom-right regardless of rotation, simulating a static light
+        // above. Inverse-rotation math lives in `Lighting.swift`; the
+        // convention constants (0.22 / 0.35 / 0.85 / 0.55) are the single
+        // source of truth there.
         Capsule()
-            .fill(Color.white)
+            .fill(
+                LinearGradient(
+                    stops: [
+                        .init(color: Color(white: 0.86), location: 0.0),
+                        .init(color: .white, location: 0.5),
+                        .init(color: Color(white: 0.86), location: 1.0),
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .overlay(
+                Capsule().strokeBorder(Color.black.opacity(0.10), lineWidth: 0.5)
+            )
             .frame(width: thickness, height: length)
             .lightingRotatedDepth(referenceSize: thickness, angle: angle)
             .offset(y: -length / 2)
