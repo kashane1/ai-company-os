@@ -108,7 +108,16 @@ struct OnboardingCoordinator: View {
         case .reactiveSlider:
             ReactiveSliderView(onContinue: { advance(to: .goalPick) })
         case .goalPick:
-            GoalPickView(onContinue: { advance(to: .baselineDOB) })
+            GoalPickView(onContinue: { advance(to: .tone) })
+
+        case .tone:
+            // Moved here from position #20 (2026-05-14 onboarding revamp).
+            // Captured early so reveal-escalator and paywall copy can be
+            // authored in the user's chosen voice from the first beat.
+            ToneView(onContinue: { advance(to: .habitFailureMode) })
+
+        case .habitFailureMode:
+            HabitFailureModeView(onContinue: { advance(to: .baselineDOB) })
 
         case .baselineDOB:
             // Under-13 users hit a terminal block screen — see
@@ -164,8 +173,10 @@ struct OnboardingCoordinator: View {
                 onContinue: { advance(to: .familyMother) },
                 onSkip: {
                     // Skip the sensitive block entirely — leave parental,
-                    // stress, and loneliness fields nil.
-                    advance(to: .tone)
+                    // stress, and loneliness fields nil. Tone moved
+                    // earlier in the 2026-05-14 revamp, so the skip
+                    // target is now `priorAttempts` (next logical step).
+                    advance(to: .priorAttempts)
                 }
             )
         case .familyMother:
@@ -175,27 +186,22 @@ struct OnboardingCoordinator: View {
         case .stress:
             StressView(onContinue: { advance(to: .social) })
         case .social:
-            SocialView(onContinue: { advance(to: .tone) })
+            SocialView(onContinue: { advance(to: .priorAttempts) })
 
-        case .tone:
-            ToneView(onContinue: { advance(to: .priorAttempts) })
         case .priorAttempts:
-            PriorAttemptsView(onContinue: { advance(to: .analyzing) })
+            PriorAttemptsView(onContinue: { advance(to: .leverGuess) })
+
+        case .leverGuess:
+            LeverGuessView(onContinue: { advance(to: .analyzing) })
 
         case .analyzing:
-            AnalyzingView(onContinue: { advance(to: .archetypeReveal) })
+            AnalyzingView(onContinue: { advance(to: .whatWeDontDo) })
+        case .whatWeDontDo:
+            WhatWeDontDoView(onContinue: { advance(to: .archetypeReveal) })
         case .archetypeReveal:
-            ArchetypeRevealView(onContinue: { advance(to: .lifeGridRemaining) })
-        case .lifeGridRemaining:
-            LifeGridRemainingView(onContinue: {
-                if shouldShowPenaltyScreen() {
-                    advance(to: .bigNumberPenalty)
-                } else {
-                    advance(to: .engineRevealAndDial)
-                }
-            })
-        case .bigNumberPenalty:
-            BigNumberPenaltyView(onContinue: { advance(to: .engineRevealAndDial) })
+            ArchetypeRevealView(onContinue: { advance(to: .healthspanReveal) })
+        case .healthspanReveal:
+            HealthspanRevealView(onContinue: { advance(to: .engineRevealAndDial) })
         case .engineRevealAndDial:
             EngineRevealAndDialView(
                 onConfirm: { dialYears in
@@ -210,7 +216,10 @@ struct OnboardingCoordinator: View {
             RecoveryPreviewView(onContinue: { advance(to: .healthKitAuth) })
 
         case .healthKitAuth:
-            HealthKitAuthView(onContinue: { advance(to: .paywallPrimary) })
+            HealthKitAuthView(onContinue: { advance(to: .receipt) })
+
+        case .receipt:
+            ReceiptView(onContinue: { advance(to: .paywallPrimary) })
 
         case .paywallPrimary:
             PaywallPrimaryView(onClose: {
@@ -241,6 +250,10 @@ struct OnboardingCoordinator: View {
     private static let noBackScreens: Set<OnboardingScreen> = [
         .recoveryPreview,
         .healthKitAuth,
+        // `receipt` is post-HealthKit-auth — going back wouldn't undo the
+        // system permission dialog, and the receipt screen is read-only
+        // by design. Treat it like the other terminal-tier screens.
+        .receipt,
         .paywallPrimary,
     ]
 
@@ -256,23 +269,6 @@ struct OnboardingCoordinator: View {
     private func popPath() {
         guard !path.isEmpty else { return }
         path.removeLast()
-    }
-
-    /// Decide whether to show the `bigNumberPenalty` framing. Suppressed
-    /// for under-18 users (legacy `isAdultBirthDate` rule) and for the
-    /// `.justCurious` goal where mortality framing isn't appropriate.
-    private func shouldShowPenaltyScreen() -> Bool {
-        let isAdult = isAdultBirthDate(draft.birthDate)
-        let isJustCurious = draft.primaryGoal == .justCurious
-        return isAdult && !isJustCurious
-    }
-
-    private func isAdultBirthDate(_ date: Date?) -> Bool {
-        guard let date else { return false }
-        let yearsFromNow = Calendar.current.dateComponents(
-            [.year], from: date, to: store.clock.now()
-        ).year ?? 0
-        return yearsFromNow >= 18
     }
 
     /// Debug-only: jump straight to a terminal-tier onboarding screen

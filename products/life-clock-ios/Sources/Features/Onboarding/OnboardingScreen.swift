@@ -17,6 +17,18 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
     // Personalize intro
     case goalPick
 
+    // Tone moved here (2026-05-14 onboarding revamp) so reveal-escalator
+    // and paywall copy can be authored in the user's chosen voice from
+    // the first reveal beat. Previously this landed at position #20 and
+    // was effectively a meta-preference; the new position threads it
+    // through every downstream copy decision.
+    case tone
+
+    // New: captured right after `tone` and BEFORE any data collection.
+    // Drives the personalized paywall headline branch and the receipt
+    // screen's coaching line. One question, five chips.
+    case habitFailureMode
+
     // Baseline data collection
     case baselineDOB
     /// Terminal block screen reached when the DOB picker resolves to
@@ -45,20 +57,36 @@ enum OnboardingScreen: String, Hashable, CaseIterable, Identifiable {
     case stress
     case social
 
-    // Tone + meta
-    case tone
+    // Meta (tone moved to position #5; only priorAttempts remains here)
     case priorAttempts
+
+    // New: user's guess at their top lever. Captured right before the
+    // analyzing screen so the archetype reveal can confirm-or-surprise.
+    case leverGuess
 
     // Reveal escalator
     case analyzing
+    /// Credibility beat between `analyzing` and `archetypeReveal`:
+    /// "no death date, no streak shame, no verdicts." Pre-empts the
+    /// doom-app suspicion exactly when the user is bracing for it.
+    case whatWeDontDo
     case archetypeReveal
-    case lifeGridRemaining
-    case bigNumberPenalty
+    /// Replaces the former `lifeGridRemaining` + `bigNumberPenalty`
+    /// dot-grid pair (deprecated 2026-05-14). Single slider-reveal screen
+    /// showing the projected healthspan with read-only sliders pinned to
+    /// the user's answered positions.
+    case healthspanReveal
     case engineRevealAndDial
     case recoveryPreview
 
     // Pre-paywall
     case healthKitAuth
+
+    /// "What you taught the clock" — input receipt shown between
+    /// `healthKitAuth` and `paywallPrimary`. Confirms what the user has
+    /// already invested so the paywall is the natural next step, not a
+    /// wall.
+    case receipt
 
     // Paywall
     case paywallPrimary
@@ -112,8 +140,12 @@ extension OnboardingScreen {
     /// reconciling old `screenAppeared` rows with the live taxonomy.
     static let deprecatedScreens: [String: OnboardingScreen] = [
         // 2026-05-03 — `lifeGridFull` merged into `lifeGridRemaining`
-        // (single screen showing remaining-weeks dot grid).
-        "lifeGridFull": .lifeGridRemaining,
+        // (single screen showing remaining-weeks dot grid). 2026-05-14
+        // — `lifeGridRemaining` itself was absorbed by `healthspanReveal`
+        // when the dot grids were replaced by sliders; the original
+        // `lifeGridFull` rows now roll up two levels into the new
+        // slider reveal.
+        "lifeGridFull": .healthspanReveal,
         // 2026-05-05 — v2 routing dropped these abstract lead-in
         // beats. Historical funnel rows roll up to the screen that
         // absorbed their place in the flow.
@@ -126,5 +158,11 @@ extension OnboardingScreen {
         // one-frame safety-net that didn't earn its place.
         // Historical telemetry rolls into `paywallPrimary`.
         "entryView": .paywallPrimary,
+        // 2026-05-14 — onboarding revamp dropped the two dot-grid
+        // reveal screens in favor of a single slider-based
+        // `healthspanReveal`. Historical funnel rows for either dot
+        // grid roll up to the screen that absorbed their place.
+        "lifeGridRemaining": .healthspanReveal,
+        "bigNumberPenalty": .healthspanReveal,
     ]
 }

@@ -61,6 +61,18 @@ final class OnboardingDraft {
     /// to `UserProfile` — it's an onboarding-only signal.
     var priorAttempts: PriorAttempts?
 
+    /// User-selected habit-failure mode from the `habitFailureMode` screen.
+    /// Drives the paywall headline branch and the receipt screen's coaching
+    /// line. Persists to `UserProfile.habitFailureMode` (raw value) at
+    /// `materialize()`.
+    var habitFailureMode: HabitFailureMode?
+
+    /// User's guess on the `leverGuess` screen about which lifestyle lever
+    /// they think moves their clock most. The archetype reveal compares
+    /// this against the engine's computed top lever. Persists to
+    /// `UserProfile.leverGuess` (raw value).
+    var leverGuess: LifeClockLever?
+
     // MARK: - Reactive engine output
 
     /// Last-computed running estimate. `nil` until both `birthDate` AND
@@ -182,6 +194,8 @@ final class OnboardingDraft {
         profile.perceivedStressScore = perceivedStressScore
         profile.lonelinessScore = lonelinessScore
         profile.primaryGoal = primaryGoal?.rawValue
+        profile.habitFailureMode = habitFailureMode?.rawValue
+        profile.leverGuess = leverGuess?.rawValue
         return profile
     }
 }

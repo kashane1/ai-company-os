@@ -338,15 +338,27 @@ struct ReactiveSliderView: View {
                     .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("onboarding.reactiveSlider.years")
 
-                dial(label: "Activity",
-                     leading: "Sedentary", trailing: "Active",
-                     value: $activity, idSuffix: "activity")
-                dial(label: "Food",
-                     leading: "Junk", trailing: "Whole foods",
-                     value: $food, idSuffix: "food")
-                dial(label: "Sleep",
-                     leading: "5 hrs", trailing: "9 hrs",
-                     value: $sleep, idSuffix: "sleep")
+                LifeClockSliderRow(
+                    label: "Activity",
+                    leadingExtremeLabel: "Sedentary",
+                    trailingExtremeLabel: "Active",
+                    value: $activity,
+                    identifierSuffix: "reactiveSlider.activity"
+                )
+                LifeClockSliderRow(
+                    label: "Food",
+                    leadingExtremeLabel: "Junk",
+                    trailingExtremeLabel: "Whole foods",
+                    value: $food,
+                    identifierSuffix: "reactiveSlider.food"
+                )
+                LifeClockSliderRow(
+                    label: "Sleep",
+                    leadingExtremeLabel: "5 hrs",
+                    trailingExtremeLabel: "9 hrs",
+                    value: $sleep,
+                    identifierSuffix: "reactiveSlider.sleep"
+                )
             }
         }
         .onAppear { mascotOverride.minutes = demoMinutesDelta }
@@ -354,35 +366,6 @@ struct ReactiveSliderView: View {
             mascotOverride.minutes = demoMinutesDelta
         }
         .onDisappear { mascotOverride.minutes = nil }
-    }
-
-    @ViewBuilder
-    private func dial(
-        label: String,
-        leading: String,
-        trailing: String,
-        value: Binding<Double>,
-        idSuffix: String
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.caption.bold())
-                .foregroundStyle(.secondary)
-                .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix).label")
-            Slider(value: value, in: 0...1)
-                .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix)")
-            HStack {
-                Text(leading)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix).leading")
-                Spacer()
-                Text(trailing)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .accessibilityIdentifier("onboarding.reactiveSlider.\(idSuffix).trailing")
-            }
-        }
     }
 }
 

@@ -67,12 +67,20 @@ struct OnboardingScaffold<Content: View>: View {
         // pushes. This scaffold only renders the per-screen body.
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
+                // `.fixedSize(horizontal: false, vertical: true)` is
+                // load-bearing: in some NavigationStack push contexts
+                // SwiftUI was clamping the title/body to one line and
+                // truncating with "...". Forcing vertical fixed sizing
+                // lets the text wrap to as many lines as it needs while
+                // staying within the horizontal frame.
                 Text(title)
                     .font(.title.bold())
+                    .fixedSize(horizontal: false, vertical: true)
                 if let bodyText {
                     Text(bodyText)
                         .font(.body)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             content
@@ -126,6 +134,14 @@ struct OnboardingScaffold<Content: View>: View {
             }
         }
         .padding(.horizontal, 24)
+        // Top inset reserves vertical breathing room beneath the
+        // persistent header (mascot + wordmark). Without it, titles
+        // that wrap to ≥2 lines render their first line behind the
+        // mascot at the top of the NavigationStack content area —
+        // visually identical to truncation even though the text is
+        // wrapping correctly. 16pt clears the mascot's drop-shadow on
+        // iPhone 17 Pro and stays modest on smaller screens.
+        .padding(.top, 16)
         .padding(.bottom, 24)
         // Container ID for screen-existence checks. `children: .contain`
         // keeps inner Continue/option-button identifiers intact — without
@@ -557,7 +573,7 @@ struct SmokingView: View {
         @Bindable var draft = draft
         return OnboardingScaffold(
             screenID: "smoking",
-            title: "Smoking",
+            title: "Smoking / nicotine",
             isContinueEnabled: draft.smokingStatus != nil,
             onContinue: onContinue
         ) {
@@ -952,11 +968,21 @@ struct StressView: View {
             }
         ) {
             VStack(alignment: .leading, spacing: 12) {
+                // Slider direction convention (2026-05-14): bad/less-good
+                // result anchored on the LEFT, positive result on the
+                // RIGHT — moving the thumb to the right always reads as
+                // "more time on the clock." Backing score (PSS-10, 0..40)
+                // grows with stress, so we drive the Slider through an
+                // inverted binding: visual position = 40 - actual score.
+                // Default `score = 14` ⇒ thumb starts ~65% to the right.
                 HStack {
-                    Text("Calm").font(.caption2).foregroundStyle(.secondary)
-                    Slider(value: $score, in: 0...40, step: 1)
-                        .accessibilityIdentifier("onboarding.stress.slider")
                     Text("Stretched").font(.caption2).foregroundStyle(.secondary)
+                    Slider(value: Binding(
+                        get: { 40 - score },
+                        set: { score = 40 - $0 }
+                    ), in: 0...40, step: 1)
+                        .accessibilityIdentifier("onboarding.stress.slider")
+                    Text("Calm").font(.caption2).foregroundStyle(.secondary)
                 }
             }
             .onChange(of: score) { _, new in
@@ -986,11 +1012,19 @@ struct SocialView: View {
                 onContinue()
             }
         ) {
+            // Same direction convention as StressView: "Rarely" (low
+            // connection = bad outcome) on the left, "Often" (high
+            // connection = good outcome) on the right. UCLA-3 backing
+            // score (3..9) grows with loneliness, so we invert through
+            // a derived binding: visual position = 12 - actual score.
             HStack {
-                Text("Often").font(.caption2).foregroundStyle(.secondary)
-                Slider(value: $score, in: 3...9, step: 1)
-                    .accessibilityIdentifier("onboarding.social.slider")
                 Text("Rarely").font(.caption2).foregroundStyle(.secondary)
+                Slider(value: Binding(
+                    get: { 12 - score },
+                    set: { score = 12 - $0 }
+                ), in: 3...9, step: 1)
+                    .accessibilityIdentifier("onboarding.social.slider")
+                Text("Often").font(.caption2).foregroundStyle(.secondary)
             }
             .onChange(of: score) { _, new in
                 draft.lonelinessScore = Int(new.rounded())
@@ -1079,9 +1113,17 @@ struct PriorAttemptsView: View {
 struct HealthKitAuthView: View {
     let onContinue: () -> Void
     @Environment(LifeClockStore.self) private var store
+    @Environment(OnboardingDraft.self) private var draft
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
     @State private var hasRequested = false
     @State private var isRequesting = false
+
+    /// Tone routed via draft (not profile — the profile doesn't exist
+    /// yet at this point in the flow). Matches the pattern used by
+    /// `HealthspanRevealView` and `PaywallPrimaryView`.
+    private var tone: ToneMode {
+        draft.toneMode ?? .coach
+    }
 
     /// Soft-skip handler — used by the scaffold's secondary action slot
     /// so the "Not now" affordance sits visually adjacent to the
@@ -1099,8 +1141,8 @@ struct HealthKitAuthView: View {
     var body: some View {
         OnboardingScaffold(
             screenID: "healthKitAuth",
-            title: "Let your clock learn from your body.",
-            bodyText: "Read steps, exercise, sleep, and resting heart rate from Apple Health. You can change this any time in Settings.",
+            title: RevealCopy.healthKitAuthTitle(tone: tone),
+            bodyText: RevealCopy.healthKitAuthBody(tone: tone),
             continueLabel: hasRequested ? "Continue" : "Connect",
             secondaryAction: hasRequested ? nil : OnboardingSecondaryAction(
                 label: "Not now",

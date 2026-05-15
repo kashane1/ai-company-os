@@ -264,6 +264,25 @@ enum LifeClockSchemaV1: VersionedSchema {
         /// truthful original dial-commit time).
         var baselineCapturedAt: Date? = nil
 
+        // MARK: - Onboarding revamp (additive 2026-05-14)
+        //
+        // Two new soft signals captured during onboarding to personalize the
+        // reveal escalator and paywall copy. Both optional with `nil` default
+        // so SwiftData lightweight migration applies silently on existing
+        // V1.7 stores. Persisted as raw enum values; decode via
+        // `HabitFailureMode.fromStored` / `LifeClockLever.fromStored`.
+
+        /// `HabitFailureMode` raw value — captured on the new
+        /// `habitFailureMode` onboarding screen. Drives the paywall headline
+        /// branch and softens the receipt copy. nil = unanswered.
+        var habitFailureMode: String? = nil
+
+        /// `LifeClockLever` raw value the user guessed moves their clock
+        /// most, captured on the new `leverGuess` screen. The archetype
+        /// reveal uses this to confirm or surprise against the engine's
+        /// computed top lever. nil = unanswered.
+        var leverGuess: String? = nil
+
         init(
             id: UUID = UUID(),
             birthDate: Date,

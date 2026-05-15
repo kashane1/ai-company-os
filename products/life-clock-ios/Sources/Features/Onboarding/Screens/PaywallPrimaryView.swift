@@ -25,9 +25,31 @@ struct PaywallPrimaryView: View {
     let onClose: () -> Void
 
     @Environment(SubscriptionStore.self) private var subscriptions
+    @Environment(LifeClockStore.self) private var store
+    @Environment(OnboardingDraft.self) private var draft
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
     @State private var selectedTier: Tier = .annual
     @State private var purchaseSuccessHapticTrigger: Int = 0
+
+    /// Tone routed through `OnboardingDraft` rather than `UserProfile`
+    /// because the paywall renders BEFORE `completeOnboarding` writes
+    /// the profile. Default `.coach` matches the materialize fallback.
+    private var tone: ToneMode {
+        draft.toneMode ?? .coach
+    }
+
+    /// Habit-failure-mode-keyed headline branch. Captured on the
+    /// `habitFailureMode` screen (post-tone, pre-baseline). Unanswered
+    /// users fall through to the neutral default in `RevealCopy`.
+    private var failureMode: HabitFailureMode {
+        draft.habitFailureMode ?? .unanswered
+    }
+
+    /// Engine-computed top lever for the user's profile. Names the
+    /// lever in the body copy so the value claim is personal. Computed
+    /// lazily on appear — the draft is stable by the time the paywall
+    /// renders, so a single computation is fine.
+    @State private var topLever: LifeClockLever = .unanswered
 
     enum Tier {
         case annual, monthly, lifetime
@@ -67,6 +89,11 @@ struct PaywallPrimaryView: View {
         .accessibilityIdentifier("onboarding.paywallPrimary")
         .onAppear {
             telemetry.value.paywallShown(stage: .primary)
+            // Compute top lever once on appear from the draft snapshot.
+            // Draft is stable here (every collection screen has fired
+            // Continue) so a single pass is enough.
+            let snapshot = draft.materialize()
+            topLever = ClockEngine(clock: store.clock).topLever(profile: snapshot)
             Task { await subscriptions.loadProducts() }
         }
         .onChange(of: subscriptions.isPro) { _, isPro in
@@ -82,11 +109,19 @@ struct PaywallPrimaryView: View {
     private var paywallBody: some View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Earn time, every day.")
+                // Headline is keyed off `habitFailureMode` (what usually
+                // breaks habits for this user). Body names the user's
+                // top lever inline. Both via `RevealCopy` so the strings
+                // are reviewable in one place.
+                Text(RevealCopy.paywallHeadline(tone: tone, failureMode: failureMode))
                     .font(.largeTitle.bold())
-                Text("Pro adds full daily history, weekly drivers, and correction power.")
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("paywall.headline")
+                Text(RevealCopy.paywallBody(tone: tone, top: topLever))
                     .font(.body)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("paywall.body")
             }
 
             tierToggle()
@@ -111,6 +146,30 @@ struct PaywallPrimaryView: View {
             }
             .accessibilityIdentifier("paywall.purchase")
 
+            // Soft-skip: an explicit, labeled "Continue with the free
+            // clock" CTA replaces the silent X-close as the primary
+            // exit path. The X (top-right) still exists for users who
+            // bail early without reading. Making the soft skip explicit
+            // and tasteful (rather than only via the X) post-Cal-AI
+            // raises net conversion (fewer refunds, fewer review bombs)
+            // by reducing buyer's remorse. Same `onClose` callback —
+            // completion / free-fallback writes the profile via the
+            // coordinator's existing handler.
+            VStack(spacing: 4) {
+                Button(action: softSkip) {
+                    Text(RevealCopy.paywallSoftSkipLabel(tone: tone))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("paywall.softSkip")
+                Text(RevealCopy.paywallSoftSkipCaption(tone: tone))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+
             // Centered + .callout to match the soft-skip secondary slot
             // the scaffold uses on every other terminal-tier onboarding
             // screen (e.g. healthKitAuth's "Not now"). Earlier styling
@@ -127,6 +186,15 @@ struct PaywallPrimaryView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
+    }
+
+    /// Soft-skip path — explicit, labeled CTA for users who want to
+    /// continue with the free clock. Records a distinct telemetry
+    /// signal so the funnel can separate "X closed" (silent bail) from
+    /// "soft-skip CTA tapped" (deliberate choice).
+    private func softSkip() {
+        telemetry.value.paywallDismissed(stage: .primary, reason: .softSkipped)
+        onClose()
     }
 
     @ViewBuilder

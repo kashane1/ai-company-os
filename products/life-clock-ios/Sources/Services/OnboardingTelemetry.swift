@@ -38,6 +38,10 @@ enum PaywallDismissReason: String {
     case closed
     case ineligibleForIntro
     case purchasedSuccessfully
+    /// User tapped the explicit "Continue with the free clock" CTA
+    /// (added 2026-05-14). Distinct from `.closed` so the funnel can
+    /// separate silent X-close bails from deliberate soft-skips.
+    case softSkipped
 }
 
 /// Production telemetry sink — writes to unified log via `Logger`.

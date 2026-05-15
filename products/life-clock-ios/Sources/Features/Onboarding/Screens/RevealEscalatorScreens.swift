@@ -11,13 +11,14 @@ import SwiftUI
 // softens its register when the user's just-collected stress + connection
 // signals say they may not be in a state to receive the dramatic default.
 // Thresholds match the existing telemetry buckets: PSS ≥ 27 (Stretched) and
-// UCLA ≥ 6 (low connection). When both fire, the two screens that carry
-// the most dramatic copy (`LifeGridRemainingView`, `BigNumberPenaltyView`)
-// render the gentle-register variant and show an inline affordance pointing
-// the user to Profile to switch back to a sharper voice. Median user still
-// gets the original dramatic register; only the subset flagged by SafetyNet's
-// target population sees the softened reveal. See
-// `docs/products/life-clock/polish-2026-05-12-vision-q9-reveal-escalator-tone-mocks.md`.
+// UCLA ≥ 6 (low connection). When both fire, the reveal-tier screens render
+// the softer copy variant (now via `RevealCopy.healthspanRevealTitle(... softened:)`).
+// Median user still gets the original register; only the subset flagged by
+// SafetyNet's target population sees the softened reveal.
+//
+// 2026-05-14: the old `RevealEscalatorGentleCopy` constants were removed
+// alongside the dot-grid screens they served. Softened-register copy
+// now lives in `RevealCopy.swift` keyed on `(tone, softened)`.
 
 /// Whether the reveal escalator should render the gentle-register copy
 /// based on the user's PSS + UCLA inputs from the consent screens.
@@ -26,22 +27,6 @@ func revealUsesSofterRegister(draft: OnboardingDraft) -> Bool {
     let stressed = (draft.perceivedStressScore ?? 0) >= 27
     let lonely = (draft.lonelinessScore ?? 0) >= 6
     return stressed && lonely
-}
-
-/// Gentle-register copy for the two reveal screens whose default voice is
-/// most dramatic. Coach copy stays in the views as the literal default.
-enum RevealEscalatorGentleCopy {
-    static let lifeGridTitle = "These weeks are still yours."
-    static let lifeGridBody = "Each dot is a week your habits help shape."
-
-    static func bigNumberTitle(yearsAtRisk: Int) -> String {
-        "About \(yearsAtRisk) years to shape."
-    }
-    static let bigNumberBody = "These are years your everyday choices can lift. Small steps add up; today is a fine place to start."
-
-    /// Inline affordance shown beneath the softened body so the inferred
-    /// behavior is visible and reversible.
-    static let toneSwitchAffordance = "Prefer a sharper read? Switch tone in Profile anytime."
 }
 
 // MARK: - Analyzing
@@ -153,9 +138,26 @@ struct ArchetypeRevealView: View {
     @Environment(MascotOverride.self) private var mascotOverride
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
 
+    /// Whether the uncertainty detail modal is open (tap on the "first
+    /// read" chip beneath the meters). Surfacing the "confidence shipped
+    /// not hidden" principle in-flow rather than burying it in Profile.
+    @State private var showingUncertaintyDetail = false
+
     private var result: ClockEngine.ArchetypeResult {
         let snapshot = draft.materialize()
         return ClockEngine(clock: store.clock).computeArchetype(profile: snapshot)
+    }
+
+    /// Engine-computed top lever for the current draft. The lever-guess
+    /// payoff block reads this and `draft.leverGuess` together to decide
+    /// whether to render the "called it" or "most guess wrong" prefix.
+    private var engineTopLever: LifeClockLever {
+        let snapshot = draft.materialize()
+        return ClockEngine(clock: store.clock).topLever(profile: snapshot)
+    }
+
+    private var tone: ToneMode {
+        draft.toneMode ?? .coach
     }
 
     /// Pulse magnitude scales with recovery capacity so a "Marathoner"
@@ -192,10 +194,24 @@ struct ArchetypeRevealView: View {
                     leading: "Slow",
                     trailing: "Strong"
                 )
+                // Lever-guess payoff: only rendered when the user
+                // answered `leverGuess` (the screen right before
+                // analyzing). Confirms or surprises depending on whether
+                // their guess matches the engine's top lever.
+                if let guess = draft.leverGuess {
+                    leverPayoffBlock(guess: guess)
+                }
+                // Uncertainty chip — tappable, opens a detail sheet
+                // explaining how the first read is computed. Honors
+                // the "confidence shipped, not hidden" repo principle.
+                uncertaintyChip
             }
         }
         .onAppear { runArchetypePulse() }
         .onDisappear { mascotOverride.minutes = nil }
+        .sheet(isPresented: $showingUncertaintyDetail) {
+            uncertaintyDetailSheet
+        }
     }
 
     /// Brief reactivity beat tied to the archetype: pulse, settle to a
@@ -228,155 +244,115 @@ struct ArchetypeRevealView: View {
             }
         }
     }
-}
 
-// MARK: - Life grid remaining
-//
-// Absorbs the former `lifeGridFull` intro (removed 2026-05-03 — see
-// `OnboardingScreen.deprecatedScreens`). Single title, no two-beat
-// auto-advance.
-
-struct LifeGridRemainingView: View {
-    let onContinue: () -> Void
-    @Environment(OnboardingDraft.self) private var draft
-
-    private var livedWeeks: Int {
-        guard let dob = draft.birthDate else { return 0 }
-        let weeks = Calendar.current.dateComponents([.weekOfYear], from: dob, to: Date()).weekOfYear ?? 0
-        return max(0, weeks)
-    }
-
-    private var softened: Bool { revealUsesSofterRegister(draft: draft) }
-
-    private var copy: (title: String, body: String) {
-        if softened {
-            return (RevealEscalatorGentleCopy.lifeGridTitle,
-                    RevealEscalatorGentleCopy.lifeGridBody)
+    @ViewBuilder
+    private func leverPayoffBlock(guess: LifeClockLever) -> some View {
+        let top = engineTopLever
+        VStack(alignment: .leading, spacing: 4) {
+            Text(RevealCopy.leverPayoffPrefix(tone: tone, guess: guess, top: top))
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+            Text(RevealCopy.leverPayoffBody(tone: tone, top: top))
+                .font(.callout)
         }
-        return ("This is what's still ahead.",
-                "Each dot is a week your habits get to shape.")
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.accentColor.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .accessibilityIdentifier("onboarding.archetypeReveal.leverPayoff")
     }
 
-    var body: some View {
-        OnboardingScaffold(
-            screenID: "lifeGridRemaining",
-            title: copy.title,
-            bodyText: copy.body,
-            onContinue: onContinue
-        ) {
-            VStack(spacing: 8) {
-                LifeGridDotView(
-                    totalWeeks: 4160,
-                    livedWeeks: livedWeeks,
-                    lostWeeks: 0,
-                    mode: .remainingHighlighted
-                )
-                .frame(height: 280)
-                // Single-color screen: inline caption, no full legend
-                // block (it'd be two-thirds redundant). Full legend
-                // appears on the next colored screen.
-                Text("Filled green = lived. Outlined = still ahead.")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                if softened {
-                    Text(RevealEscalatorGentleCopy.toneSwitchAffordance)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .padding(.top, 8)
-                        .accessibilityIdentifier("onboarding.lifeGridRemaining.toneSwitchAffordance")
-                }
+    @ViewBuilder
+    private var uncertaintyChip: some View {
+        Button { showingUncertaintyDetail = true } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "info.circle")
+                    .font(.caption.weight(.semibold))
+                Text(RevealCopy.uncertaintyChip(tone: tone))
+                    .font(.caption)
+                    .multilineTextAlignment(.leading)
+                Spacer()
             }
+            .foregroundStyle(.secondary)
         }
-    }
-}
-
-// MARK: - Big number penalty
-
-struct BigNumberPenaltyView: View {
-    let onContinue: () -> Void
-    @Environment(LifeClockStore.self) private var store
-    @Environment(OnboardingDraft.self) private var draft
-
-    private var lostWeeks: Int {
-        // Approximate "years at risk" from the lifestyle penalty.
-        let snapshot = draft.materialize()
-        let baselineYears = baseline(for: snapshot.biologicalSex)
-        let projected = ClockEngine(clock: store.clock)
-            .calculateBaseline(profile: snapshot)
-            .projectedAgeYears
-        let delta = baselineYears - projected
-        return max(0, Int((delta * 52.0).rounded()))
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("onboarding.archetypeReveal.uncertaintyChip")
     }
 
-    private var livedWeeks: Int {
-        guard let dob = draft.birthDate else { return 0 }
-        return max(0, Calendar.current.dateComponents([.weekOfYear], from: dob, to: Date()).weekOfYear ?? 0)
-    }
-
-    private func baseline(for sex: String) -> Double {
-        switch sex.lowercased() {
-        case "male", "m": return 76.5
-        case "female", "f": return 81.4
-        default: return 79.0
-        }
-    }
-
-    private var softened: Bool { revealUsesSofterRegister(draft: draft) }
-
-    private func copy(yearsAtRisk: Int) -> (title: String, body: String) {
-        if softened {
-            return (RevealEscalatorGentleCopy.bigNumberTitle(yearsAtRisk: yearsAtRisk),
-                    RevealEscalatorGentleCopy.bigNumberBody)
-        }
-        return ("~\(yearsAtRisk) years on the table.",
-                "These are the years your current habits put within reach to win or lose. The clock follows what you do next.")
-    }
-
-    var body: some View {
-        let yearsAtRisk = max(0, Int((Double(lostWeeks) / 52.0).rounded()))
-        let c = copy(yearsAtRisk: yearsAtRisk)
-        return OnboardingScaffold(
-            screenID: "bigNumberPenalty",
-            title: c.title,
-            bodyText: c.body,
-            onContinue: onContinue
-        ) {
-            VStack(spacing: 12) {
-                LifeGridDotView(
-                    totalWeeks: 4160,
-                    livedWeeks: livedWeeks,
-                    lostWeeks: lostWeeks,
-                    mode: .bigNumberPenalty
-                )
-                .frame(height: 280)
-                // First multi-color screen — full legend introduces the
-                // green/red/gray triad. Subsequent recovery screen falls
-                // back to an info-popover (progressive disclosure).
-                LifeGridDotLegend(mode: .bigNumberPenalty)
-                if softened {
-                    Text(RevealEscalatorGentleCopy.toneSwitchAffordance)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .padding(.top, 4)
-                        .accessibilityIdentifier("onboarding.bigNumberPenalty.toneSwitchAffordance")
+    @ViewBuilder
+    private var uncertaintyDetailSheet: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("How we got this")
+                    .font(.title3.bold())
+                Spacer()
+                Button {
+                    showingUncertaintyDetail = false
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
                 }
+                .accessibilityIdentifier("onboarding.archetypeReveal.uncertaintyClose")
             }
+            Text(RevealCopy.uncertaintyDetail(tone: tone))
+                .font(.body)
+            Spacer()
         }
+        .padding(24)
+        .presentationDetents([.medium])
     }
 }
 
 // MARK: - Recovery preview
+//
+// 2026-05-14 onboarding revamp: dot-grid recovery preview replaced by
+// an interactive slider screen. The user's *top lever* is unlocked;
+// dragging it up ticks the big year-count up and triggers the mascot
+// reaction. Same component as `ReactiveSliderView` (lead-in demo) and
+// `HealthspanRevealView` (read-only reveal) — the visual is now
+// load-bearing across all three reveal moments.
+//
+// The forward-looking framing (a goal-keyed cycling phrase) is preserved
+// because that was the only piece of the dot-grid version that earned
+// its place — it personalized the future the user is about to drag
+// toward. Headline still cycles, just below the slider instead of above
+// a dot wall.
 
 struct RecoveryPreviewView: View {
     let onContinue: () -> Void
     @Environment(LifeClockStore.self) private var store
     @Environment(OnboardingDraft.self) private var draft
+    @Environment(OnboardingTelemetryHolder.self) private var telemetry
+    @Environment(MascotOverride.self) private var mascotOverride
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var cyclingIndex: Int = 0
+    /// Engine baseline projection cached on appear. Same caching shape
+    /// as `EngineRevealAndDialView` — the snapshot inputs don't mutate
+    /// while this screen is visible, so a single computation is enough.
+    @State private var engineYears: Double = 0
+    /// Engine-computed top lever, cached on appear. `.unanswered` ⇒
+    /// the dragger falls back to neutral copy and binds against
+    /// `.sleep` as a visual placeholder.
+    @State private var topLever: LifeClockLever = .unanswered
+    /// User's current drag position for the unlocked lever, 0..1.
+    /// Initialized from the engine's normalized driver position so
+    /// the slider lands at the user's current value, not 0.5.
+    @State private var leverValue: Double = 0.5
+    /// Baseline driver position (the user's actual answer for the top
+    /// lever). Used to compute "earned years" = (current − baseline) ×
+    /// gain factor — so dragging back down to the baseline returns
+    /// `+0 years`, not a negative number.
+    @State private var baselineLeverValue: Double = 0.5
 
     private var goal: OnboardingGoal {
         draft.primaryGoal ?? .justCurious
+    }
+
+    private var tone: ToneMode {
+        draft.toneMode ?? .coach
     }
 
     private var cyclingWords: [String] {
@@ -389,64 +365,101 @@ struct RecoveryPreviewView: View {
         }
     }
 
-    private var lostWeeks: Int {
-        let snapshot = draft.materialize()
-        let baselineYears = ClockEngine(clock: store.clock).calculateBaseline(profile: snapshot).projectedAgeYears
-        let basePop: Double
-        switch snapshot.biologicalSex.lowercased() {
-        case "male", "m": basePop = 76.5
-        case "female", "f": basePop = 81.4
-        default: basePop = 79.0
-        }
-        let delta = basePop - baselineYears
-        return max(0, Int((delta * 52.0).rounded()))
+    /// Max years a user can "earn" by dragging the unlocked lever from
+    /// their current answer all the way to the best extreme. Chosen so
+    /// the headline reads as meaningful (1..5 years) without exceeding
+    /// the engine's actual single-lever bound. Coefficients in
+    /// `lifestyleAdjustmentYears` mean the strongest single lever
+    /// (smoking → never smoked) is worth ~8y; we cap user-facing
+    /// recovery gain at 5y because the lever guess is one of five and
+    /// we want the chip to feel earned, not arbitrary.
+    private static let maxEarnableYears: Double = 5.0
+
+    /// Years currently earned vs the user's baseline answer. Negative
+    /// values clamp at zero (dragging worse than baseline doesn't
+    /// register as "earned" — it'd contradict the screen's intent).
+    private var earnedYears: Int {
+        let delta = max(0.0, leverValue - baselineLeverValue)
+        let raw = delta * Self.maxEarnableYears
+        return Int(raw.rounded())
     }
 
-    private var livedWeeks: Int {
-        guard let dob = draft.birthDate else { return 0 }
-        return max(0, Calendar.current.dateComponents([.weekOfYear], from: dob, to: Date()).weekOfYear ?? 0)
+    /// Projected total when the user is at the current slider position.
+    /// Engine-computed baseline + the same per-lever gain math we use
+    /// for the chip. Renders as the big number.
+    private var projectedTotalYears: Double {
+        engineYears + (max(0.0, leverValue - baselineLeverValue) * Self.maxEarnableYears)
     }
 
-    @Environment(OnboardingTelemetryHolder.self) private var telemetry
+    /// Mascot kick scales with earned years so dragging up reads as a
+    /// gain. Linear, capped so the dial-screen settle behavior isn't
+    /// overshadowed.
+    private var mascotDelta: Int {
+        let years = projectedTotalYears - engineYears
+        let bounded = max(-1.5, min(Self.maxEarnableYears, years))
+        return Int((bounded / Self.maxEarnableYears * 90.0).rounded())
+    }
 
     var body: some View {
-        // Custom layout (not via OnboardingScaffold) because this
-        // screen wants a centered hero and a stable, fixed-height
-        // cycling phrase line. Previously the cycling word was
-        // concatenated into the scaffold's left-aligned title, which
-        // pushed the whole page up/down each tick as the title wrapped
-        // 1↔2 lines. Now the first line is fixed copy ("N more years")
-        // and only the second line cycles inside a height-clamped frame.
-        let yearsBack = max(0, Int((Double(lostWeeks) / 52.0).rounded()))
-        return VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 20) {
+            // Headline + cycling sub-phrase: forward-looking framing
+            // preserved from the dot-grid version. The headline cycles
+            // tone-aware copy under it.
             VStack(spacing: 6) {
-                Text(RecoveryPreviewCopy.headline(yearsBack: yearsBack))
+                Text(RevealCopy.recoveryPreviewHeadline(tone: tone))
                     .font(.title.bold())
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("onboarding.recoveryPreview.headline")
-                Text(RecoveryPreviewCopy.phrase(
-                    goal: goal,
-                    phrase: cyclingWords[cyclingIndex]
-                ))
-                    .font(.title3)
+                Text(RevealCopy.recoveryPreviewSubline(tone: tone, lever: topLever))
+                    .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, minHeight: 56, alignment: .center)
-                    .contentTransition(.opacity)
-                    .animation(reduceMotion ? nil : .easeInOut(duration: Motion.Duration.beat), value: cyclingIndex)
-                    .accessibilityIdentifier("onboarding.recoveryPreview.cyclingPhrase")
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("onboarding.recoveryPreview.subline")
             }
             .frame(maxWidth: .infinity)
 
-            VStack(spacing: 8) {
-                LifeGridDotView(
-                    totalWeeks: 4160,
-                    livedWeeks: livedWeeks,
-                    lostWeeks: lostWeeks,
-                    mode: .recoveryHighlighted
-                )
-                .frame(height: 240)
-                LifeGridDotLegend(mode: .recoveryHighlighted)
+            // Big number — engine baseline + earned years.
+            Text(String(format: "%.0f years", projectedTotalYears))
+                .font(.system(size: 56, weight: .semibold, design: .rounded))
+                .contentTransition(.numericText(value: projectedTotalYears))
+                .animation(reduceMotion ? nil : .snappy, value: leverValue)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("onboarding.recoveryPreview.years")
+
+            // Unlocked slider for the top lever.
+            LifeClockSliderRow(
+                label: leverLabel,
+                leadingExtremeLabel: leadingExtremeLabel,
+                trailingExtremeLabel: trailingExtremeLabel,
+                value: $leverValue,
+                mode: .interactive,
+                identifierSuffix: "recoveryPreview.lever"
+            )
+
+            // Goal-keyed cycling phrase keeps the destination personal.
+            Text(cyclingPhrase)
+                .font(.title3)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, minHeight: 56, alignment: .center)
+                .contentTransition(.opacity)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: cyclingIndex)
+                .accessibilityIdentifier("onboarding.recoveryPreview.cyclingPhrase")
+
+            // Earned-years chip — only visible when the user has dragged
+            // above their baseline. Reads as "+N years available."
+            if earnedYears > 0 {
+                Text(earnedChipCopy)
+                    .font(.caption.bold())
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color.accentColor.opacity(0.15))
+                    .clipShape(Capsule())
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("onboarding.recoveryPreview.earnedChip")
             }
 
             Spacer()
@@ -464,41 +477,82 @@ struct RecoveryPreviewView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
-        // `children: .contain` keeps inner identifiers (the Continue
-        // button's `onboarding.continue`, the cycling-phrase id, the
-        // headline id) intact. Without it, SwiftUI flattens this VStack
-        // into a single accessibility element and the outer screen id
-        // shadows every child — `app.buttons["onboarding.continue"]`
-        // returns nothing. OnboardingScaffold takes the same approach;
-        // matching it here avoids the asymmetry.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.recoveryPreview")
-        .onAppear {
-            telemetry.value.screenAppeared("recoveryPreview")
-            Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
-                Task { @MainActor in
-                    cyclingIndex = (cyclingIndex + 1) % cyclingWords.count
-                }
+        .onAppear { configureOnAppear() }
+        .onChange(of: leverValue) { _, _ in
+            mascotOverride.minutes = mascotDelta
+        }
+        .onDisappear {
+            mascotOverride.minutes = nil
+        }
+    }
+
+    private func configureOnAppear() {
+        telemetry.value.screenAppeared("recoveryPreview")
+        let snapshot = draft.materialize()
+        let engine = ClockEngine(clock: store.clock)
+        engineYears = engine.calculateBaseline(profile: snapshot).projectedAgeYears
+        // Top lever drives which row unlocks. Fallback to `.sleep` when
+        // the engine returns `.unanswered` so we never render a blank
+        // lever label.
+        let computed = engine.topLever(profile: snapshot)
+        topLever = (computed == .unanswered) ? .sleep : computed
+        let positions = engine.normalizedDriverPositions(profile: snapshot)
+        baselineLeverValue = positions[topLever] ?? 0.5
+        leverValue = baselineLeverValue
+        mascotOverride.minutes = mascotDelta
+
+        // Goal-keyed cycling phrase animation.
+        Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+            Task { @MainActor in
+                cyclingIndex = (cyclingIndex + 1) % cyclingWords.count
             }
         }
     }
-}
 
-struct RecoveryPreviewCopy {
-    /// Fixed first line of the recovery hero — never reflows.
-    static func headline(yearsBack: Int) -> String {
-        guard yearsBack > 0 else { return "More years ahead" }
-        return "\(yearsBack) more years"
-    }
+    private var leverLabel: String { topLever.displayName }
 
-    /// Second line — the cycling phrase. The connector ("of " vs " ")
-    /// matches the goal so the line reads naturally even when the cycle
-    /// hits a "with your kids" / "at the dinner table" phrase that
-    /// already starts with a preposition.
-    static func phrase(goal: OnboardingGoal, phrase: String) -> String {
+    private var cyclingPhrase: String {
+        let phrase = cyclingWords[cyclingIndex]
         if phrase.hasPrefix("with ") || phrase.hasPrefix("at ") {
             return phrase
         }
         return "of \(phrase)"
+    }
+
+    private var earnedChipCopy: String {
+        switch tone {
+        case .gentle: return "+\(earnedYears) years available"
+        case .coach: return "+\(earnedYears) years available"
+        case .firmDirect: return "+\(earnedYears)y on the table"
+        }
+    }
+
+    // Lever-extreme labels mirror those on `HealthspanRevealView` so a
+    // user sees the same anchors on both screens. Single source of
+    // truth could pull this from `LifeClockLever`; leaving local for
+    // now because the recovery screen may diverge (e.g. softer
+    // "rested" wording).
+    private var leadingExtremeLabel: String {
+        switch topLever {
+        case .sleep: return "Short"
+        case .movement: return "Sedentary"
+        case .food: return "Rough"
+        case .drinking: return "Heavy"
+        case .stressRecovery: return "Stretched"
+        case .unanswered: return ""
+        }
+    }
+
+    private var trailingExtremeLabel: String {
+        switch topLever {
+        case .sleep: return "Rested"
+        case .movement: return "Active"
+        case .food: return "Whole foods"
+        case .drinking: return "Rare"
+        case .stressRecovery: return "Steady"
+        case .unanswered: return ""
+        }
     }
 }
