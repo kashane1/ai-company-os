@@ -53,8 +53,11 @@ final class ClockEngineTests: XCTestCase {
         snapshot.exerciseMinutes = 35
         snapshot.sleepHours = 7.8
         snapshot.sourceCompleteness = 0.8
+        // Data-quality scoring is 50/50 user-input vs sensors. A completed
+        // check-in is what carries a sensor-rich day to .high.
+        let habits = HabitLog(date: fixedDate)
 
-        let result = engine.calculateDailyDelta(snapshot: snapshot, habits: nil, profile: profile)
+        let result = engine.calculateDailyDelta(snapshot: snapshot, habits: habits, profile: profile)
         XCTAssertGreaterThan(result.deltaMinutes, 0)
         XCTAssertEqual(result.confidence, .high)
         XCTAssertFalse(result.drivers.isEmpty)
@@ -97,9 +100,10 @@ final class ClockEngineTests: XCTestCase {
         let cal = Calendar.lifeClockUTC
 
         var snapshots: [DailyHealthSnapshot] = []
+        var habits: [HabitLog] = []
         for offset in 0..<7 {
-            let day = cal.date(byAdding: .day, value: -offset, to: fixedDate)!
-            let s = DailyHealthSnapshot(date: cal.startOfDay(for: day))
+            let day = cal.startOfDay(for: cal.date(byAdding: .day, value: -offset, to: fixedDate)!)
+            let s = DailyHealthSnapshot(date: day)
             // 6 good days, 1 bad
             if offset == 3 {
                 s.stepCount = 1_500
@@ -111,9 +115,12 @@ final class ClockEngineTests: XCTestCase {
             }
             s.sourceCompleteness = 0.8
             snapshots.append(s)
+            // Daily check-ins on every day — user-input side of data quality
+            // is fully present, so a sensor-rich week reads .high.
+            habits.append(HabitLog(date: day))
         }
 
-        let report = engine.calculateWeeklyTrend(snapshots: snapshots, habits: [], profile: profile)
+        let report = engine.calculateWeeklyTrend(snapshots: snapshots, habits: habits, profile: profile)
         // 6 good days should outweigh 1 bad day.
         XCTAssertGreaterThan(report.netTimeDeltaMinutes, 0)
         XCTAssertEqual(report.confidenceRaw, Confidence.high.rawValue)

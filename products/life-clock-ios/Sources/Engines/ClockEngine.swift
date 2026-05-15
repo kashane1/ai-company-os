@@ -440,7 +440,7 @@ struct ClockEngine {
             }
         }
 
-        let confidence = ConfidenceModel.assign(snapshot: snapshot)
+        let confidence = ConfidenceModel.assign(snapshot: snapshot, habits: habits)
         return DailyDeltaResult(deltaMinutes: totalDelta, drivers: drivers, confidence: confidence)
     }
 
@@ -608,10 +608,7 @@ struct ClockEngine {
         report.topPositiveDriver = topPositive
         report.topNegativeDriver = topNegative
         report.nextBestLever = nextLever
-        let avgCompleteness = sorted.map(\.sourceCompleteness).reduce(0, +) / Double(sorted.count)
-        report.confidenceRaw = avgCompleteness >= 0.7
-            ? Confidence.high.rawValue
-            : (avgCompleteness >= 0.4 ? Confidence.medium.rawValue : Confidence.low.rawValue)
+        report.confidenceRaw = ConfidenceModel.assignWeekly(snapshots: sorted, habits: habits).rawValue
         return report
     }
 
