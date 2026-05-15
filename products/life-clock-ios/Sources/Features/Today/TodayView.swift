@@ -105,7 +105,6 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                     headline
                     mascotHero
-                    clockCard
                     trajectoryPeek
                     rescueLine
                     driversCard
@@ -428,16 +427,10 @@ struct TodayView: View {
         )
     }
 
-    /// "Projected healthspan + anchor date" card. Hidden entirely when
-    /// `profile.hideClock` is true — replaced by the headline-only path
-    /// (the "+X min today" delta still renders above). Resolves Q5 and is
-    /// the centerpiece of the safety-net offering.
-    ///
-    /// Hero mascot above the projected-healthspan readout. Renders only
-    /// when there's an estimate AND the user hasn't hidden the clock.
-    /// Both this view and `clockCard` read from the same
-    /// `store.todayEstimate.dailyTimeDeltaMinutes` binding, so the visual
-    /// hands and the textual delta animate from a single source.
+    /// Hero mascot for Today. Renders only when there's an estimate AND
+    /// the user hasn't hidden the clock. Hands rotate from 12 baseline by
+    /// `displayedDelta × 6°` so the morning sweep falls out of changing
+    /// that one value.
     @ViewBuilder
     private var mascotHero: some View {
         if store.profile?.hideClock == true {
@@ -489,29 +482,6 @@ struct TodayView: View {
                 .accessibilityIdentifier("today.mascot")
         } else {
             EmptyView()
-        }
-    }
-
-    @ViewBuilder
-    private var clockCard: some View {
-        if store.profile?.hideClock == true {
-            EmptyView()
-        } else {
-            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                Text("Projected healthspan")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(store.todayEstimate.map { TimeDeltaFormatter.format(years: $0.projectedAgeYears) } ?? "—")
-                    .font(.title.bold())
-                    .headingLighting()
-                if let projected = store.todayEstimate?.projectedDate {
-                    Text("Reference date: \(projected.formatted(.dateTime.year().month().day()))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .sectionCard()
-            .accessibilityIdentifier("today.healthspan")
         }
     }
 
