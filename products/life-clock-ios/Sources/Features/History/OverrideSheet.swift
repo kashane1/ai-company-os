@@ -23,7 +23,7 @@ struct OverrideSheet: View {
                 TextField("Value", text: $inputText)
                     .keyboardType(field.keyboardType)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 32, weight: .semibold, design: .rounded))
+                    .font(DesignTokens.Typography.inlineNumeric)
 
                 Text(field.bounds)
                     .font(.caption)

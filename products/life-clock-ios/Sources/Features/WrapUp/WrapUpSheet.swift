@@ -64,7 +64,7 @@ struct WrapUpSheet: View {
             )
 
             Text(TimeDeltaFormatter.format(minutes: signedMinutes))
-                .font(.system(size: 44, weight: .semibold, design: .rounded))
+                .displayNumericFigure()
                 .foregroundStyle(deltaColor)
                 .accessibilityHidden(true)  // Already announced by ClockHandView
 
