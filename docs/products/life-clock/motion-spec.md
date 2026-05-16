@@ -70,11 +70,12 @@ Current ad-hoc durations and their migration targets:
 | `ClockHandView.swift:86` (custom `timingCurve`) | param | `Motion.Curve.breathing(duration:)` |
 | `LifeGridDotView.swift:65, 71` (`easeInOut`) | 0.6 | `Motion.Duration.breath` |
 | `RevealEscalatorScreens.swift:435` (`easeInOut`) | 0.25 | `Motion.Duration.beat` |
+| ~~`RevealEscalatorScreens.swift:449` (`easeInOut`)~~ | ~~0.35~~ | ~~`Motion.Duration.beat`~~ — migrated 2026-05-16 (PF-P2) |
 | `TodayView.swift:231` (wake animation `easeOut`) | `Self.wakeDuration` | `Motion.Curve.breathing(duration: Motion.Duration.breath)` |
 | `LifeClockMascotView.swift:127` (`interpolatingSpring`) | — | `Motion.Curve.spring` |
 | `EngineRevealAndDialView.swift:94` (`.snappy`) | — | `Motion.Curve.snappy` |
 | `LeadInScreens.swift:336` (`.snappy`) | — | `Motion.Curve.snappy` |
-| `TrajectoryChart.swift:139` (`.animation(...)`) | — | `Motion.Curve.smooth` with `Motion.Duration.beat` |
+| ~~`TrajectoryChart.swift:140` (`.smooth(duration:)`)~~ | ~~0.18~~ | ~~`Motion.Duration.instant`~~ — migrated 2026-05-16 (PF-P2); kept at `instant` to preserve the existing 0.18 perceived redraw speed (PF-P2 binding payload) |
 
 Migration order:
 
