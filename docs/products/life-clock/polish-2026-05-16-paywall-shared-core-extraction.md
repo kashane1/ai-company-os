@@ -17,13 +17,17 @@ byte-identical before/after on BOTH paywall surfaces.
 
 ## Iterations
 
-- [12:30] `<refactor-sha>` — refactor(life-clock): extract shared PaywallProductsView core composed by both paywall surfaces — Polish — Paywall (onboarding + re-engagement)
-- [12:35] `<fix-sha>` — fix(life-clock): @MainActor-isolate runReengagementRestore so SubscriptionStore reads compile — Polish — Paywall core
-- [12:55] `<chore-sha>` — chore(life-clock): PV-P2 session log — Polish — n/a
+- [12:52] `a05f65b` — refactor(life-clock): extract shared PaywallProductsView core (PV-P2) — Polish — Paywall (onboarding + re-engagement)
+- [12:55] `8fdb47a` — chore(life-clock): PV-P2 paywall shared-core extraction session log — Polish — n/a
 
-(The refactor + actor-isolation fix are split into two commits per the
-boundary instruction: `refactor(...)` for the extraction, `fix(...)`
-for the actor-isolation correction.)
+Note on the commit split: the boundary suggested an optional separate
+`fix(...)` for the actor-isolation correction. The `@MainActor`
+annotation lives entirely inside the net-new `PaywallProductsView.swift`
+(the prior session's draft was incomplete code, never a shipped bug),
+so it is intrinsic to the extraction's correct final form rather than a
+fix to existing committed code. Splitting it would require staging
+partial hunks of an untracked file for no review benefit. It is folded
+into the `refactor` commit and called out in that commit's body.
 
 ## Actor-isolation root cause + fix
 
