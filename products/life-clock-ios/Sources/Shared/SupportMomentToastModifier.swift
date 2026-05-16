@@ -12,6 +12,7 @@ import SwiftUI
 /// auto-dismiss and replace-and-reset on new moments.
 private struct SupportMomentToastModifier: ViewModifier {
     @Environment(LifeClockStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
         content
@@ -21,15 +22,19 @@ private struct SupportMomentToastModifier: ViewModifier {
                         moment: moment,
                         dismissAction: store.dismissSupportMoment
                     )
+                    // Reduce Motion: no slide-down; cross-fade only.
                     .transition(
-                        .move(edge: .top)
-                            .combined(with: .opacity)
+                        reduceMotion
+                            ? .opacity
+                            : .move(edge: .top).combined(with: .opacity)
                     )
                     .zIndex(1)
                 }
             }
             .animation(
-                .spring(response: 0.42, dampingFraction: 0.86),
+                reduceMotion
+                    ? nil
+                    : .spring(response: 0.42, dampingFraction: 0.86),
                 value: store.supportMoment
             )
     }
