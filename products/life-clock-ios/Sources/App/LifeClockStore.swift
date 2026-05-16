@@ -2032,20 +2032,66 @@ final class LifeClockStore {
             try? modelContext.save()
         }
 
-        // Same-day completions remain visible even when the engine's
-        // anti-repeat selector rotates past their slug on the next
-        // refresh (e.g. cold restart after a morning completion).
-        // Append any persisted completion for today that the slate
-        // didn't already surface, so a checkmark on the user's
-        // just-completed action survives plan regeneration until
-        // tomorrow's slate.
-        let emittedSlugs = Set(quests.map(\.slug))
-        let missingCompletions = storedRows.filter { stored in
-            stored.completedAt != nil
-                && !stored.slug.isEmpty
-                && !emittedSlugs.contains(stored.slug)
+        // Collapse the slate to EXACTLY one quest per category. Today's
+        // plan is an atomic 3-tuple — one Movement, one Sleep & Recovery,
+        // one Nutrition & Habit. Engine anti-repeat rotation, resurrected
+        // same-day completions, and user overrides must never push the
+        // tuple past three or let it drop below three. Earlier this tail
+        // appended every same-day completion whose slug wasn't already
+        // surfaced; combined with an override swap in the same category
+        // that resurrected the swapped-out completed quest as a 4th item.
+        //
+        // Per-category pick priority:
+        //   1. The user's deliberate override pick (the swap they just
+        //      made) — it always wins; a swapped-out completed quest is
+        //      suppressed from the plan (its completion row stays in the
+        //      DB, untouched, for streak/affinity history).
+        //   2. The most recent same-day completed quest in the category,
+        //      including one the engine rotated past — its checkmark must
+        //      survive until tomorrow's slate.
+        //   3. The engine-generated quest for the slot.
+        //   4. The top available variant — last resort so the slot is
+        //      never empty (keeps the tuple at three when the engine
+        //      emitted none for this category, e.g. Movement once the
+        //      step goal is met).
+        let overrideKey = TodayPlanOverrides.dayKey(for: dayStart, calendar: clock.calendar)
+        let activeOverrides = todayPlanOverrides.dayKey == overrideKey
+            ? todayPlanOverrides.picks
+            : [:]
+        let completedStored = storedRows.filter {
+            $0.completedAt != nil && !$0.slug.isEmpty
         }
-        quests.append(contentsOf: missingCompletions)
+        var normalized: [Quest] = []
+        for category in QuestEngine.Category.allCases {
+            let inCategory = quests.filter { Self.engineCategory(of: $0) == category }
+            var chosen: Quest?
+            if let overrideSlug = activeOverrides[category.rawValue] {
+                chosen = inCategory.first(where: { $0.slug == overrideSlug })
+                    ?? planVariants(for: category).first(where: { $0.slug == overrideSlug })
+            }
+            if chosen == nil {
+                let completedInCat = inCategory.filter { $0.completedAt != nil }
+                    + completedStored.filter { Self.engineCategory(of: $0) == category }
+                chosen = completedInCat.max(by: {
+                    ($0.completedAt ?? .distantPast) < ($1.completedAt ?? .distantPast)
+                })
+            }
+            if chosen == nil {
+                chosen = inCategory.first
+            }
+            if chosen == nil {
+                chosen = planVariants(for: category).first
+            }
+            guard let quest = chosen else { continue }
+            // A fallback pulled from planVariants carries no completion
+            // state; re-apply it from the persisted row by slug so a
+            // resurrected/overridden quest still shows its checkmark.
+            if quest.completedAt == nil, let stored = storedBySlug[quest.slug] {
+                quest.completedAt = stored.completedAt
+            }
+            normalized.append(quest)
+        }
+        quests = normalized
     }
 
     private struct TitleCategoryKey: Hashable {

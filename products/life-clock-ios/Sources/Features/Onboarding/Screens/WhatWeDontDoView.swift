@@ -76,7 +76,7 @@ struct WhatWeDontDoView: View {
             return
         }
         for idx in 0..<count {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.22 * Double(idx + 1)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.14 * Double(idx + 1)) {
                 visibleCount = idx + 1
             }
         }

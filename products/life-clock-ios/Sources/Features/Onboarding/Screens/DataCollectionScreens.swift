@@ -135,13 +135,16 @@ struct OnboardingScaffold<Content: View>: View {
         }
         .padding(.horizontal, 24)
         // Top inset reserves vertical breathing room beneath the
-        // persistent header (mascot + wordmark). Without it, titles
-        // that wrap to ≥2 lines render their first line behind the
-        // mascot at the top of the NavigationStack content area —
+        // persistent header (mascot + wordmark). Without enough inset,
+        // titles that wrap to ≥2 lines render their first line clipped
+        // against the top of the NavigationStack content area —
         // visually identical to truncation even though the text is
-        // wrapping correctly. 16pt clears the mascot's drop-shadow on
-        // iPhone 17 Pro and stays modest on smaller screens.
-        .padding(.top, 16)
+        // wrapping correctly. 16pt cleared single-line titles but was
+        // too tight for two-line titles (e.g. leverGuess: "Which habit
+        // moves your clock most?"), which sliced the top off the first
+        // line. 28pt clears the tallest two-line `.title` wrap and
+        // stays modest on smaller screens.
+        .padding(.top, 28)
         .padding(.bottom, 24)
         // Container ID for screen-existence checks. `children: .contain`
         // keeps inner Continue/option-button identifiers intact — without

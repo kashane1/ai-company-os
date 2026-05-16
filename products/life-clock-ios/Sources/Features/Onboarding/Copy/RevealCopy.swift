@@ -36,21 +36,36 @@ enum RevealCopy {
         switch tone {
         case .gentle:
             return [
-                "No death date.",
+                "No looming death clock.",
+                "No calorie counting.",
+                "No daily weigh-ins.",
                 "No streak shame if you miss a day.",
+                "No guilt trips.",
                 "No verdicts on who you are.",
+                "No data leaves your phone.",
+                "No unwanted notifications.",
             ]
         case .coach:
             return [
-                "No death date.",
+                "No looming death clock.",
+                "No calorie counting.",
+                "No daily weigh-ins.",
                 "No streak shame.",
+                "No guilt trips.",
                 "No verdicts on you as a person.",
+                "No data leaves your phone.",
+                "No unwanted notifications.",
             ]
         case .firmDirect:
             return [
-                "No death date.",
+                "No looming death clock.",
+                "No calorie counting.",
+                "No daily weigh-ins.",
                 "No streak shame.",
+                "No guilt trips.",
                 "No verdicts.",
+                "No data leaves your phone.",
+                "No unwanted notifications.",
             ]
         }
     }

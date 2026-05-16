@@ -63,6 +63,11 @@ fileprivate actor MockNotificationsService: NotificationsServiceProtocol {
     }
 }
 
+/// Grants Pro so `selectPlanQuest` (Pro-gated) can be exercised.
+fileprivate final class ProEntitlement: EntitlementProviding {
+    var isPro: Bool { true }
+}
+
 @MainActor
 final class LifeClockStoreTests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_800_000_000)
@@ -301,6 +306,73 @@ final class LifeClockStoreTests: XCTestCase {
         XCTAssertTrue(
             store2.todayQuests.contains { $0.title == completedTitle && $0.completedAt == fixedDate },
             "the regenerated plan should restore completion state for the matching action"
+        )
+    }
+
+    /// Regression: completing a plan item, then swapping that item's
+    /// category to a different quest via the Pro plan editor, must keep
+    /// today's plan at EXACTLY three items (one per category). The old
+    /// behavior resurrected the swapped-out completed quest as a 4th
+    /// item because same-day completions were re-appended by slug
+    /// without honoring the per-category 3-tuple invariant. The
+    /// completion row stays in the DB (non-destructive) — it's just
+    /// suppressed from the plan in favor of the deliberate swap.
+    func testSwapAfterCompletionKeepsPlanAtExactlyThree() async throws {
+        let container = try LifeClockContainer.make(inMemory: true)
+        let context = container.mainContext
+        let store = LifeClockStore(
+            healthService: MockHealthKitService(seed: 11),
+            modelContext: context,
+            engineClock: .fixed(fixedDate)
+        )
+        store.entitlements = ProEntitlement()
+        let profile = UserProfile(birthDate: Date(timeIntervalSince1970: 631_152_000), biologicalSex: "female")
+        store.completeOnboarding(profile: profile, tone: .coach, disclaimerAccepted: true)
+        await store.refreshFromHealthKit()
+
+        // Find a plan item whose category has at least one OTHER variant
+        // to swap to.
+        let swap = store.todayQuests.lazy.compactMap { quest -> (Quest, QuestEngine.Category, String)? in
+            guard let category = LifeClockStore.engineCategory(of: quest) else { return nil }
+            guard let other = store.planVariants(for: category)
+                .first(where: { $0.slug != quest.slug }) else { return nil }
+            return (quest, category, other.slug)
+        }.first
+        let (completedQuest, category, newSlug) = try XCTUnwrap(
+            swap, "expected a category with a swappable second variant"
+        )
+        let oldSlug = completedQuest.slug
+
+        store.toggleQuestCompletion(completedQuest)
+        XCTAssertEqual(store.completedPlanCount, 1)
+
+        try store.selectPlanQuest(slug: newSlug, in: category)
+
+        XCTAssertEqual(
+            store.todayQuests.count, 3,
+            "plan must stay an exact 3-tuple after a post-completion swap"
+        )
+        let categories = store.todayQuests.compactMap { LifeClockStore.engineCategory(of: $0) }
+        XCTAssertEqual(
+            Set(categories).count, 3,
+            "plan must hold exactly one quest per category"
+        )
+        XCTAssertTrue(
+            store.todayQuests.contains { $0.slug == newSlug },
+            "the deliberately-picked replacement must be in the plan"
+        )
+        XCTAssertFalse(
+            store.todayQuests.contains { $0.slug == oldSlug },
+            "the swapped-out completed quest must not resurrect as a 4th item"
+        )
+
+        // Non-destructive: the completion row for the old slug still
+        // exists in the store (preserved for streak/affinity history),
+        // it's just no longer surfaced on the plan.
+        let persisted = try context.fetch(FetchDescriptor<Quest>())
+        XCTAssertTrue(
+            persisted.contains { $0.slug == oldSlug && $0.completedAt != nil },
+            "completing then swapping must keep the completion record in the DB"
         )
     }
 
