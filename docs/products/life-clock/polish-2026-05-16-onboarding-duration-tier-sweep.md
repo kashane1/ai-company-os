@@ -32,9 +32,9 @@ None read as a "larger reveal" warranting `breath`.
 ## Iterations
 
 - [10:20] (baseline) — headless build green before any edit — iPhone 17 Pro Max (942B6264)
-- [10:24] <SHA1> — fix(life-clock): migrate three onboarding 0.32 easeOut sites to Motion.Duration.beat — Stretch — Onboarding (HealthspanReveal, WhatWeDontDo)
-- [10:26] <SHA2> — chore(life-clock): named Motion.Curve.snappy for Engine/LeadIn onboarding sites — Polish — Onboarding (EngineRevealAndDial, LeadIn reactiveSlider)
-- [10:28] <SHA3> — docs(life-clock): extend motion-spec migration table with PF-P3 rows — Polish — (doc)
+- [10:24] f661166 — fix(life-clock): migrate three onboarding 0.32 easeOut sites to Motion.Duration.beat — Stretch — Onboarding (HealthspanReveal, WhatWeDontDo)
+- [10:26] 97e7dae — chore(life-clock): named Motion.Curve.snappy for Engine/LeadIn onboarding sites — Polish — Onboarding (EngineRevealAndDial, LeadIn reactiveSlider)
+- [10:28] 7d3c537 — docs(life-clock): extend motion-spec migration table with PF-P3 rows — Polish — (doc)
 
 ## Stretch decisions (operator review)
 
@@ -83,7 +83,28 @@ None read as a "larger reveal" warranting `breath`.
 
 ## Computer-use checkpoint
 
-- Before/after onboarding walkthrough verdict: see report. (Captured at session end.)
+Drove the full onboarding flow live in Simulator (iPhone 17 Pro Max,
+942B6264; `LIFECLOCK_UI_TEST=1 LIFECLOCK_UI_TEST_SCENARIO=onboarding
+LIFECLOCK_USE_MOCK_HEALTH=1` for a clean in-memory onboarding). Exercised
+every migrated site:
+
+- **LeadInScreens:337** (`.snappy`→`Motion.Curve.snappy`) — dragged the
+  reactiveSlider; "81→83 years" recount showed the snappy overshoot/settle
+  unchanged.
+- **EngineRevealAndDialView:95** (`.snappy`→`Motion.Curve.snappy`) —
+  dragged the engine dial; "78.0→83.0 years" recount, snappy curve
+  identical to pre-migration (constant is definitionally `.snappy`).
+- **WhatWeDontDoView:47 & :61** (`0.32`→`beat`) — "What this isn't" screen:
+  7-bullet stagger + footer fade-in reveal read natural and unhurried, no
+  off-tier stutter.
+- **HealthspanRevealView:86** (`0.32`→`beat`) — same stagger-reveal gesture
+  class flowed cleanly through the answers-review + projected-healthspan
+  screens.
+
+**Verdict: felt pacing is indistinguishable.** The onboarding walkthrough
+is smooth end-to-end; the vocabulary migration changed no perceptible
+motion (0.32→0.30 is sub-perceptual; `.snappy`→`Motion.Curve.snappy` is
+identical). PF-P3 success criterion met.
 
 ## Next pass
 
