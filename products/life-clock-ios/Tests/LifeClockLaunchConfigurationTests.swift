@@ -41,6 +41,7 @@ final class LifeClockLaunchConfigurationTests: XCTestCase {
             seedTone: nil,
             healthProfile: .baseline,
             seedBadDayToday: false,
+            seedBadDayYesterday: false,
             seedLastLogDaysAgo: 0,
             initialTab: initialTab,
             forceSafetyNet: false,
