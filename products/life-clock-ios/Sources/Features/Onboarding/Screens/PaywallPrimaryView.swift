@@ -108,27 +108,39 @@ struct PaywallPrimaryView: View {
 
     private var paywallBody: some View {
         VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 8) {
-                // Headline is keyed off `habitFailureMode` (what usually
-                // breaks habits for this user). Body names the user's
-                // top lever inline. Both via `RevealCopy` so the strings
-                // are reviewable in one place.
-                Text(RevealCopy.paywallHeadline(tone: tone, failureMode: failureMode))
-                    .font(.largeTitle.bold())
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("paywall.headline")
-                Text(RevealCopy.paywallBody(tone: tone, top: topLever))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("paywall.body")
+            // The pitch (headline + personalized body + the concrete
+            // 5-perk enumeration + tier toggle) scrolls; the commit
+            // actions (fineprint, Continue, soft-skip, Restore) stay
+            // pinned below. Before the perks block landed this fit as a
+            // fixed VStack; the added rows overflow the smallest device
+            // and clipped the personalized headline off-screen, so the
+            // pitch is now scrollable while the CTA stays reachable —
+            // mirroring how the re-engagement `PaywallSheet` is built.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Headline is keyed off `habitFailureMode` (what
+                        // usually breaks habits for this user). Body
+                        // names the user's top lever inline. Both via
+                        // `RevealCopy` so the strings are reviewable in
+                        // one place.
+                        Text(RevealCopy.paywallHeadline(tone: tone, failureMode: failureMode))
+                            .font(.largeTitle.bold())
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("paywall.headline")
+                        Text(RevealCopy.paywallBody(tone: tone, top: topLever))
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("paywall.body")
+                    }
+
+                    proPerks
+
+                    tierToggle()
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-
-            proPerks
-
-            tierToggle()
-
-            Spacer()
 
             // Auto-renewal terms ALWAYS visible per Apple 3.1.2(c).
             // Lifetime is a non-consumable; the line covers both shapes.
@@ -207,25 +219,22 @@ struct PaywallPrimaryView: View {
     /// the highest-traffic paywall now states concretely what Pro adds,
     /// matching the depth the lower-traffic re-engagement `PaywallSheet`
     /// already has via `ProPerks.perks` (pro-value-backlog
-    /// 2026-05-15 PV-P1). `ViewThatFits` keeps it scannable on the
-    /// smallest device: title+detail when there is room, title-only
-    /// fallback rather than dropping any perk.
+    /// 2026-05-15 PV-P1). Mirrors `PaywallSheet.proBullet` verbatim —
+    /// the shipped, operator-blessed rendering: a single concatenated
+    /// Text (bold title — secondary detail) that wraps naturally on the
+    /// smallest device rather than truncating or dropping a perk.
     private var proPerks: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(ProPerks.perks, id: \.title) { perk in
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.footnote)
                         .foregroundStyle(.tint)
-                    ViewThatFits(in: .horizontal) {
-                        (Text(perk.title).font(.subheadline.weight(.semibold))
-                            + Text(" — ").font(.subheadline)
-                            + Text(perk.detail).font(.subheadline).foregroundStyle(.secondary))
-                        .fixedSize(horizontal: false, vertical: true)
-                        Text(perk.title)
-                            .font(.subheadline.weight(.semibold))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                        .font(.footnote)
+                    (Text(perk.title).fontWeight(.semibold)
+                        + Text(" — ")
+                        + Text(perk.detail).foregroundStyle(.secondary))
+                    .font(.subheadline)
+                    .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
