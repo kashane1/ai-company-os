@@ -219,17 +219,33 @@ struct TodayView: View {
     /// Snaps `wakeProgress` to 0 with no animation, then `withAnimation`
     /// to 1 over `wakeDuration`. The mascot scale keyframe fires off
     /// `mascotWakeTrigger` and runs concurrently inside the same budget.
+    ///
+    /// Reduce Motion suppresses the visual sweep + mascot scale keyframe
+    /// but NOT the wake haptic. iOS's "Reduce Motion" setting does not
+    /// disable haptics — motion-sensitive users rely on the haptic as
+    /// the greeting cue. This mirrors the quest-completion split-trigger
+    /// pattern (see `questCompletionHapticTrigger`) and is ratcheted by
+    /// operator memory `feedback_life_clock_wake_animation.md`: with RM
+    /// ON the cold-launch wake haptic STILL fires while the scale/opacity
+    /// transition is suppressed.
     private func triggerWakeIfPossible() {
-        guard !reduceMotion,
-              !LifeClockLaunchConfiguration.current.isUITest,
+        guard !LifeClockLaunchConfiguration.current.isUITest,
               store.todayEstimate != nil
         else { return }
+
+        // Greeting haptic fires every app-open regardless of Reduce
+        // Motion (haptics are not a motion modality).
+        morningWakeHapticTrigger &+= 1
+
+        // Visual sweep + mascot scale keyframe are motion — suppress
+        // entirely under Reduce Motion. The mascot+headline still render
+        // at rest, so there is no functional regression.
+        guard !reduceMotion else { return }
 
         wakeProgress = 0
         withAnimation(.easeOut(duration: Self.wakeDuration)) {
             wakeProgress = 1
         }
-        morningWakeHapticTrigger &+= 1
         mascotWakeTrigger &+= 1
     }
 
