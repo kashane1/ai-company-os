@@ -446,7 +446,7 @@ struct RecoveryPreviewView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, minHeight: 56, alignment: .center)
                 .contentTransition(.opacity)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: cyclingIndex)
+                .animation(reduceMotion ? nil : .easeInOut(duration: Motion.Duration.beat), value: cyclingIndex)
                 .accessibilityIdentifier("onboarding.recoveryPreview.cyclingPhrase")
 
             // Earned-years chip — only visible when the user has dragged

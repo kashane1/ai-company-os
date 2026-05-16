@@ -137,7 +137,7 @@ struct TrajectoryChart: View {
         }
         .chartYScale(domain: yDomain)
         .animation(
-            (isScrubbing || reduceMotion) ? nil : .smooth(duration: 0.18),
+            (isScrubbing || reduceMotion) ? nil : .smooth(duration: Motion.Duration.instant),
             value: points
         )
         .accessibilityIdentifier("future.trajectory.chart")
