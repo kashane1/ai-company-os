@@ -73,9 +73,12 @@ Current ad-hoc durations and their migration targets:
 | ~~`RevealEscalatorScreens.swift:449` (`easeInOut`)~~ | ~~0.35~~ | ~~`Motion.Duration.beat`~~ — migrated 2026-05-16 (PF-P2) |
 | `TodayView.swift:231` (wake animation `easeOut`) | `Self.wakeDuration` | `Motion.Curve.breathing(duration: Motion.Duration.breath)` |
 | `LifeClockMascotView.swift:127` (`interpolatingSpring`) | — | `Motion.Curve.spring` |
-| `EngineRevealAndDialView.swift:94` (`.snappy`) | — | `Motion.Curve.snappy` |
-| `LeadInScreens.swift:336` (`.snappy`) | — | `Motion.Curve.snappy` |
+| ~~`EngineRevealAndDialView.swift:95` (`.snappy`)~~ | ~~—~~ | ~~`Motion.Curve.snappy`~~ — migrated 2026-05-16 (PF-P3); literal→named constant, zero behavior change |
+| ~~`LeadInScreens.swift:337` (`.snappy`)~~ | ~~—~~ | ~~`Motion.Curve.snappy`~~ — migrated 2026-05-16 (PF-P3); literal→named constant, zero behavior change |
 | ~~`TrajectoryChart.swift:140` (`.smooth(duration:)`)~~ | ~~0.18~~ | ~~`Motion.Duration.instant`~~ — migrated 2026-05-16 (PF-P2); kept at `instant` to preserve the existing 0.18 perceived redraw speed (PF-P2 binding payload) |
+| ~~`HealthspanRevealView.swift:86` (`.easeOut`, lever-row stagger reveal)~~ | ~~0.32~~ | ~~`Motion.Duration.beat`~~ — migrated 2026-05-16 (PF-P3); reveal-of-single-element gesture (opacity+scale), spec beat use-for; 0.32→0.30 imperceptible |
+| ~~`WhatWeDontDoView.swift:47` (`.easeOut`, bullet stagger reveal)~~ | ~~0.32~~ | ~~`Motion.Duration.beat`~~ — migrated 2026-05-16 (PF-P3); reveal-of-single-element gesture (opacity+offset), matches sibling stagger; 0.32→0.30 imperceptible |
+| ~~`WhatWeDontDoView.swift:61` (`.easeOut`, footer fade-in)~~ | ~~0.32~~ | ~~`Motion.Duration.beat`~~ — migrated 2026-05-16 (PF-P3); evaluated against `instant` (opacity-only) but rejected: 0.32→0.18 perceptibly snappier, violates felt-pacing guardrail; reveal-of-single-element → `beat`, 0.32→0.30 imperceptible |
 
 Migration order:
 
