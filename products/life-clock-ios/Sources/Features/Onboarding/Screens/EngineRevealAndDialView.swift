@@ -92,7 +92,7 @@ struct EngineRevealAndDialView: View {
                 Text(String(format: "%.1f years", displayedYears))
                     .font(.system(size: 56, weight: .semibold, design: .rounded))
                     .contentTransition(.numericText(value: displayedYears))
-                    .animation(reduceMotion ? nil : Motion.Curve.snappy, value: displayedYears)
+                    .animation(reduceMotion ? nil : .smooth(duration: Motion.Duration.instant), value: displayedYears)
                     .accessibilityIdentifier("onboarding.dialYears")
                 if let projected = projectedDate {
                     Text("(\(projected, style: .date))")

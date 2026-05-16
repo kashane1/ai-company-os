@@ -334,7 +334,7 @@ struct ReactiveSliderView: View {
                 Text(String(format: "%.0f years", demoYears))
                     .font(.system(size: 56, weight: .semibold, design: .rounded))
                     .contentTransition(.numericText(value: demoYears))
-                    .animation(reduceMotion ? nil : Motion.Curve.snappy, value: aggregate)
+                    .animation(reduceMotion ? nil : .smooth(duration: Motion.Duration.instant), value: aggregate)
                     .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("onboarding.reactiveSlider.years")
 
