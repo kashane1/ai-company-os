@@ -89,6 +89,13 @@ struct LifeClockLaunchConfiguration {
     /// Composed with `LIFECLOCK_HEALTH_PROFILE=poor` it lands the user on
     /// a ≈ −90 minute Today screen for the three-tone vision audit.
     let seedBadDayToday: Bool
+    /// `LIFECLOCK_SEED_BAD_YESTERDAY=1` applies the same all-bad
+    /// combination as `seedBadDayToday` to *yesterday's* seeded HabitLog
+    /// instead of today's. The wrap-up reads yesterday's snapshot, so this
+    /// is the knob that drives WrapUp onto its negative-delta path (the
+    /// PF-P5 lighting verify needs it; `SEED_BAD_DAY` only mutates today,
+    /// which the wrap-up never reads).
+    let seedBadDayYesterday: Bool
     /// `LIFECLOCK_SEED_LAST_LOG_DAYS_AGO=N` shifts the most recent seeded
     /// HabitLog + DailyHealthSnapshot N days into the past. Default 0
     /// (snapshots include today). Composes with `seedStreak`: with
@@ -328,6 +335,7 @@ struct LifeClockLaunchConfiguration {
             rawValue: env["LIFECLOCK_HEALTH_PROFILE"] ?? ""
         ) ?? .baseline
         let seedBadDayToday = env["LIFECLOCK_SEED_BAD_DAY"] == "1"
+        let seedBadDayYesterday = env["LIFECLOCK_SEED_BAD_YESTERDAY"] == "1"
         let seedLastLogDaysAgo = max(0, Int(env["LIFECLOCK_SEED_LAST_LOG_DAYS_AGO"] ?? "") ?? 0)
         let initialTab = AppTab(rawValue: env["LIFECLOCK_INITIAL_TAB"] ?? "") ?? .today
         let forceSafetyNet = env["LIFECLOCK_FORCE_SAFETY_NET"] == "1"
@@ -382,6 +390,7 @@ struct LifeClockLaunchConfiguration {
             seedTone: seedTone,
             healthProfile: healthProfile,
             seedBadDayToday: seedBadDayToday,
+            seedBadDayYesterday: seedBadDayYesterday,
             seedLastLogDaysAgo: seedLastLogDaysAgo,
             initialTab: initialTab,
             forceSafetyNet: forceSafetyNet,
@@ -412,6 +421,7 @@ struct LifeClockLaunchConfiguration {
             seedTone: nil,
             healthProfile: .baseline,
             seedBadDayToday: false,
+            seedBadDayYesterday: false,
             seedLastLogDaysAgo: 0,
             initialTab: .today,
             forceSafetyNet: false,
@@ -545,16 +555,22 @@ struct LifeClockLaunchConfiguration {
         let snapshotCount = max(seedStreak, effectiveSeedSnapshots)
         if snapshotCount > 0 {
             let todayStart = calendar.startOfDay(for: now)
+            let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: todayStart)
             for offset in 0..<snapshotCount {
                 let totalOffset = offset + seedLastLogDaysAgo
                 guard let day = calendar.date(byAdding: .day, value: -totalOffset, to: now) else { continue }
                 let dayStart = calendar.startOfDay(for: day)
+                let isBadSeedDay = (seedBadDayToday && dayStart == todayStart)
+                    || (seedBadDayYesterday && dayStart == yesterdayStart)
                 let log = HabitLog(date: dayStart)
-                if seedBadDayToday && dayStart == todayStart {
-                    // Bad-day-today fixture for the simulator-driven-polish
-                    // vision audit. Combined with `LIFECLOCK_HEALTH_PROFILE=poor`
-                    // this produces a clearly-negative `dailyTimeDeltaMinutes`
-                    // (≈ −90) without inventing new tone copy.
+                if isBadSeedDay {
+                    // Bad-day fixture for the simulator-driven-polish
+                    // vision/lighting audits. Combined with
+                    // `LIFECLOCK_HEALTH_PROFILE=poor` this produces a
+                    // clearly-negative `dailyTimeDeltaMinutes` (≈ −90)
+                    // without inventing new tone copy. `SEED_BAD_DAY`
+                    // targets today; `SEED_BAD_YESTERDAY` targets the day
+                    // the wrap-up actually reads.
                     log.dietQuality = "rough"
                     log.alcoholLevel = "heavy"
                     log.smokingVaping = true
