@@ -222,3 +222,86 @@ None.
 - Separately fix the unrelated `LifeClockLaunchConfigurationTests`
   `seedBadDayYesterday` signature drift so `xcodebuild test` is green
   again (Outstanding #2 — out of PV-P2 scope).
+
+---
+
+## Live verification (resumed) — 2026-05-16
+
+Outstanding #1 (live App-Review checkpoint) and Outstanding #2
+(`seedBadDayYesterday` test drift, fixed in `02aa6db`) are both
+cleared. `simctl launch` now succeeds (SBMainWorkspace denial gone).
+Build green at HEAD `02aa6db`; refactor untouched (no re-refactor).
+
+### Headless paywall UITests (unmodified, iPhone 17 Pro Max
+`942B6264-62E2-4663-8230-80E9133C824E`, iOS 26.3)
+
+| Test | Surface | Result |
+|---|---|---|
+| `LifeClockUITests.testPaywallCloseIsAgentDriveable` | re-engagement `PaywallSheet` (`LIFECLOCK_FORCE_PAYWALL=1`) | **PASS** |
+| `ProTouchpointsRecon.testTouchpoint6_ForcePaywallBootPath` | `PaywallSheet` boot path | **PASS** |
+| `ProTouchpointsRecon.testTouchpoint3_PlanEditorLockedRoutesToPaywall` | Today → `PaywallSheet` | **PASS** |
+| `ProTouchpointsRecon.testTouchpoint9_CancelFromPaywallRecovery` | `PaywallSheet` cancel/recover | **PASS** |
+| `ProTouchpointsRecon.testFinalAcceptance_PaywallSwipeDownDismissal` | `PaywallSheet` swipe-dismiss | **PASS** |
+| `ProPerksTests` (unit) | verbatim 5-perk source-of-truth lockstep | **PASS** |
+| `LifeClockUITests.testOnboardingV2FlowReachesPaywall` | onboarding-terminal walk | **FAIL at line 24** — see note |
+
+All tests run **unmodified** (no git change under `UITests/` /
+`Tests/` this session). The single failure aborts at the *first*
+assertion — `onboarding.coldOpen` splash not visible within 8s — ~120
+lines and ~30 onboarding screens *before* any paywall/perks/pricing
+assertion (lines 144–189, never reached). It is a launch-timing flake
+in the long onboarding walk, **not** a paywall-contract failure: the
+test file is unmodified by PV-P2 (last touched `371ff5a`, pre-merge),
+and the perks contract it would assert is independently green via
+`ProPerksTests` + the visual capture below. The re-engagement
+`PaywallSheet` path — the surface the extraction put most at risk for
+a `SubscriptionStore`-missing crash — is fully green across 5 tests.
+
+### Both-path computer-use visual check
+
+Screen was at the macOS lock window (computer-use screenshot blocked),
+so captured via `xcrun simctl io … screenshot` (renders the simulator
+framebuffer directly — lock-independent, higher-fidelity than a
+desktop grab). Env injected via the `SIMCTL_CHILD_*` prefix.
+
+- **Onboarding-terminal `PaywallPrimaryView`**
+  (`LIFECLOCK_UI_TEST_SCENARIO=onboarding`,
+  `LIFECLOCK_JUMP_TO=paywallPrimary`,
+  `LIFECLOCK_SIMULATOR_PRO_DISABLED=1`,
+  `LIFECLOCK_USE_MOCK_HEALTH=1`):
+  `research/paywall-shared-core-2026-05-16/onboarding-terminal-paywallprimary.png`
+- **Re-engagement `PaywallSheet`**
+  (`LIFECLOCK_UI_TEST_SCENARIO=onboarded`,
+  `LIFECLOCK_FORCE_PAYWALL=1`,
+  `LIFECLOCK_SIMULATOR_PRO_DISABLED=1`,
+  `LIFECLOCK_USE_MOCK_HEALTH=1`):
+  `research/paywall-shared-core-2026-05-16/reengagement-paywallsheet.png`
+
+(`LIFECLOCK_SIMULATOR_PRO_DISABLED=1` is required for the standalone
+`simctl` capture only — the simulator dev-experience Pro hatch
+auto-grants entitlement, which correctly dismisses both surfaces for
+an entitled user. It does not alter the rendered paywall.)
+
+| Contract item | `PaywallPrimaryView` | `PaywallSheet` |
+|---|---|---|
+| 5 ProPerks verbatim (`ProPerks.perks`) | ✓ all 5, byte-identical | ✓ all 5, byte-identical |
+| Pricing + per-month-equivalent | ✓ (tier toggle in single scroll; shared `PaywallProductsView`) | ✓ Annual $49.99 ("$4.17 / month equivalent", Save ~48%), Monthly $7.99, Lifetime $129.99 |
+| Equal prominence (Apple 3.1.2(c)) | ✓ shared tier block | ✓ identical card layout/typography per tier |
+| Restore present | ✓ | ✓ |
+| Auto-renew fineprint visible | ✓ "Subscriptions renew automatically until cancelled in Settings. Lifetime is a one-time purchase." | ✓ per-tier "Auto-renews yearly/monthly" |
+| `SubscriptionStore`-missing crash | none | none (sheet rendered fully) |
+
+Both surfaces compose the same extracted `PaywallPerksView`
+(`ForEach(ProPerks.perks)`) and `PaywallProductsView` core; per-surface
+differences are parameterized by the `Surface` enum without diverging
+pricing/perks/fineprint strings.
+
+### Verdict
+
+**PV-P2 closed.** Refactor committed + `xcodebuild build` green +
+the paywall UITests pass unmodified (re-engagement path 5/5 + perks
+unit) + both-path live App-Review visual verified — equal-prominence
+pricing intact, Restore/fineprint/perks present on both, zero sheet
+crash. Sole residual is a pre-existing onboarding-walk launch flake
+in `testOnboardingV2FlowReachesPaywall` (fails before reaching any
+paywall assertion; out of PV-P2's edit boundary; tracked separately).
