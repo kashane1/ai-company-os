@@ -73,7 +73,7 @@ struct OverrideSheet: View {
         } catch OverrideService.OverrideError.invalidValue {
             errorMessage = "Out of range. \(field.bounds)."
         } catch OverrideService.OverrideError.snapshotMissing {
-            errorMessage = "No data for this day yet."
+            errorMessage = store.toneMode.overrideNoSnapshotMessage
         } catch {
             errorMessage = "Couldn't save. Try again."
         }

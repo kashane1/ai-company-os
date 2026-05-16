@@ -345,4 +345,61 @@ final class ToneModeTests: XCTestCase {
             "A few more days. Then History has something to say."
         )
     }
+
+    // MARK: - OverrideSheet snapshot-missing copy (PF-P7, 2026-05-16)
+
+    /// All three tones must return non-empty copy — mirrors the
+    /// `overrideNotEntitledMessage` contract for the sibling catch branch.
+    func testOverrideNoSnapshotMessage_AllTonesNonEmpty() {
+        for tone in ToneMode.allCases {
+            XCTAssertFalse(
+                tone.overrideNoSnapshotMessage
+                    .trimmingCharacters(in: .whitespaces).isEmpty,
+                "\(tone.rawValue) returned empty snapshot-missing copy"
+            )
+        }
+    }
+
+    /// Pairwise distinctness — catches copy-paste drift across tones.
+    func testOverrideNoSnapshotMessage_TonesDifferPairwise() {
+        let tones = ToneMode.allCases
+        for i in 0..<tones.count {
+            for j in (i + 1)..<tones.count {
+                XCTAssertNotEqual(
+                    tones[i].overrideNoSnapshotMessage,
+                    tones[j].overrideNoSnapshotMessage,
+                    "\(tones[i].rawValue) and \(tones[j].rawValue) returned identical copy"
+                )
+            }
+        }
+    }
+
+    /// Rubric guardrail: every variant must name the condition (no data
+    /// for this day) AND offer a concrete next step (pick a day with
+    /// data) — the anti-`empty-state-flat` requirement PF-P7 closes.
+    func testOverrideNoSnapshotMessage_AllTonesNameConditionAndNextStep() {
+        for tone in ToneMode.allCases {
+            let line = tone.overrideNoSnapshotMessage.lowercased()
+            XCTAssertTrue(
+                line.contains("no data") || line.contains("nothing was logged"),
+                "\(tone.rawValue) does not name the empty condition: \(line)"
+            )
+            XCTAssertTrue(
+                line.contains("pick a day with data"),
+                "\(tone.rawValue) does not offer a next step: \(line)"
+            )
+        }
+    }
+
+    /// The flat literal must never come back — regression pin for the
+    /// exact string PF-P7 removed.
+    func testOverrideNoSnapshotMessage_NoFlatLiteral() {
+        for tone in ToneMode.allCases {
+            XCTAssertNotEqual(
+                tone.overrideNoSnapshotMessage,
+                "No data for this day yet.",
+                "\(tone.rawValue) regressed to the flat literal"
+            )
+        }
+    }
 }

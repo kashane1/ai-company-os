@@ -690,6 +690,22 @@ enum ToneMode: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Inline error message in `OverrideSheet` when the user attempts an
+    /// override on a day that has no health snapshot to adjust. Names the
+    /// condition (nothing logged for this day) AND the next step (pick a
+    /// day with data). Correction-surface register — quiet and neutral,
+    /// no mortality lexicon, mirrors `overrideNotEntitledMessage`.
+    var overrideNoSnapshotMessage: String {
+        switch self {
+        case .gentle:
+            return "Nothing was logged for this day, so there's nothing to adjust yet. Pick a day with data to make a correction."
+        case .coach:
+            return "No data logged for this day — there's nothing to override yet. Pick a day with data."
+        case .firmDirect:
+            return "No data this day. Nothing to adjust. Pick a day with data."
+        }
+    }
+
     // MARK: - Future tab + History summary (V1.7.0, 2026-05-11)
     //
     // Authored copy per docs/products/life-clock/future-tab-tone-pools-spec.md.
