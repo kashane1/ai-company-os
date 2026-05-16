@@ -44,7 +44,7 @@ struct WhatWeDontDoView: View {
                     .opacity(idx < visibleCount ? 1 : 0)
                     .offset(x: idx < visibleCount ? 0 : -12)
                     .animation(
-                        reduceMotion ? nil : .easeOut(duration: 0.32),
+                        reduceMotion ? nil : .easeOut(duration: Motion.Duration.beat),
                         value: visibleCount
                     )
                     .accessibilityIdentifier("onboarding.whatWeDontDo.bullet.\(idx)")
@@ -58,7 +58,7 @@ struct WhatWeDontDoView: View {
                     .padding(.top, 4)
                     .opacity(visibleCount >= bullets.count ? 1 : 0)
                     .animation(
-                        reduceMotion ? nil : .easeOut(duration: 0.32),
+                        reduceMotion ? nil : .easeOut(duration: Motion.Duration.beat),
                         value: visibleCount
                     )
                     .accessibilityIdentifier("onboarding.whatWeDontDo.footer")

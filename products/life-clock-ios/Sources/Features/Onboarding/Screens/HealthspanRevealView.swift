@@ -83,7 +83,7 @@ struct HealthspanRevealView: View {
                                 .opacity(idx < visibleRows ? 1 : 0)
                                 .scaleEffect(idx < visibleRows ? 1 : 0.92, anchor: .leading)
                                 .animation(
-                                    reduceMotion ? nil : .easeOut(duration: 0.32),
+                                    reduceMotion ? nil : .easeOut(duration: Motion.Duration.beat),
                                     value: visibleRows
                                 )
                         }
