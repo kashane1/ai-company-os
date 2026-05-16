@@ -150,6 +150,43 @@ final class LifeClockUITests: XCTestCase {
             "annual tier toggle should be present with equal-prominence pricing"
         )
         XCTAssertTrue(app.buttons["paywall.close"].exists)
+
+        // PV-P1: the onboarding-terminal paywall (100% of new users)
+        // must enumerate the 5 ProPerks concretely beneath the
+        // personalized headline/body, sourced verbatim from
+        // `ProPerks.perks` (the single source of truth in lockstep with
+        // MONETIZATION.md § Pro Annual). Asserts the perks block is
+        // addressable and every perk *title* is present in the paywall
+        // AX tree. The verbatim element-for-element match against the
+        // source list is unit-tested in ProPerksTests (a UITest target
+        // cannot import the app's `ProPerks` enum). `paywall.perks`
+        // combines its children, so the titles surface as either an
+        // element label or staticText depending on Dynamic Type.
+        let perksBlock = app.otherElements["paywall.perks"]
+        XCTAssertTrue(
+            perksBlock.waitForExistence(timeout: 5),
+            "paywall.perks enumeration block must be addressable on the onboarding-terminal paywall"
+        )
+        // Verbatim with ProPerks.perks (kept in lockstep by ProPerksTests).
+        let expectedPerkTitles = [
+            "Full daily history",
+            "Weekly drivers + next-best lever",
+            "Correction power",
+            "Custom Today's Plan",
+            "Deeper trend breakdown",
+        ]
+        let perksLabel = perksBlock.label
+        for title in expectedPerkTitles {
+            let presentOnScreen =
+                perksLabel.contains(title)
+                || app.staticTexts.containing(
+                    NSPredicate(format: "label CONTAINS %@", title)
+                ).firstMatch.exists
+            XCTAssertTrue(
+                presentOnScreen,
+                "perk title '\(title)' must be enumerated on the onboarding-terminal paywall"
+            )
+        }
     }
 
     /// Original paywall agent-driveability test from Phase 2.C — still

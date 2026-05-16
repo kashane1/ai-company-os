@@ -124,6 +124,8 @@ struct PaywallPrimaryView: View {
                     .accessibilityIdentifier("paywall.body")
             }
 
+            proPerks
+
             tierToggle()
 
             Spacer()
@@ -195,6 +197,40 @@ struct PaywallPrimaryView: View {
     private func softSkip() {
         telemetry.value.paywallDismissed(stage: .primary, reason: .softSkipped)
         onClose()
+    }
+
+    /// Concrete 5-perk enumeration sourced verbatim from
+    /// `ProPerks.perks` (the single source of truth kept in lockstep
+    /// with MONETIZATION.md § Pro Annual — never re-type the strings,
+    /// App Review's value-claim guard requires a verbatim match).
+    /// Additive justification beneath the personalized headline/body:
+    /// the highest-traffic paywall now states concretely what Pro adds,
+    /// matching the depth the lower-traffic re-engagement `PaywallSheet`
+    /// already has via `ProPerks.perks` (pro-value-backlog
+    /// 2026-05-15 PV-P1). `ViewThatFits` keeps it scannable on the
+    /// smallest device: title+detail when there is room, title-only
+    /// fallback rather than dropping any perk.
+    private var proPerks: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(ProPerks.perks, id: \.title) { perk in
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.tint)
+                    ViewThatFits(in: .horizontal) {
+                        (Text(perk.title).font(.subheadline.weight(.semibold))
+                            + Text(" — ").font(.subheadline)
+                            + Text(perk.detail).font(.subheadline).foregroundStyle(.secondary))
+                        .fixedSize(horizontal: false, vertical: true)
+                        Text(perk.title)
+                            .font(.subheadline.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("paywall.perks")
     }
 
     @ViewBuilder
