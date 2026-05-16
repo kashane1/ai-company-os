@@ -46,7 +46,10 @@ struct PaywallSheet: View {
                             .id(Section.top)
                         whatIfSimulatorTeaser
                             .id(Section.whatIfSimulator)
-                        productList
+                        PaywallProductListView(
+                            surface: .reengagement,
+                            selectedProductID: $selectedProductID
+                        )
                         subscribeButton
                         fineprint
                             .id(Section.restore)
@@ -121,35 +124,20 @@ struct PaywallSheet: View {
             Text("Pro adds depth:")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                ForEach(ProPerks.perks, id: \.title) { perk in
-                    proBullet(perk.title, detail: perk.detail)
-                }
-            }
+            // Perks block now sourced from the shared `PaywallPerksView`
+            // (PV-P2) so the re-engagement sheet and the
+            // onboarding-terminal paywall cannot diverge. The
+            // `.reengagement` surface renders byte-identically to the
+            // previous hand-rolled `proBullet` loop (same
+            // `ProPerks.perks` source, same layout, no nested
+            // `paywall.perks` element).
+            PaywallPerksView(surface: .reengagement)
             Text("Your free experience keeps working either way.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("paywall.header")
-    }
-
-    /// Pro-feature bullet whose copy is sourced from
-    /// [ProPerks.perks](../../Shared/ProPerks.swift) — the single source
-    /// of truth for the Pro feature list, kept in lockstep with
-    /// MONETIZATION.md § Pro Annual. The App Review value-claim guard
-    /// requires marketing copy to match what the app actually delivers
-    /// (pro-value-backlog 2026-05-12 Prompt 2 + 2026-05-13 Prompt 8).
-    private func proBullet(_ title: String, detail: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: DesignTokens.Spacing.sm) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.tint)
-                .font(.footnote)
-            (Text(title).fontWeight(.semibold)
-                + Text(" — ")
-                + Text(detail).foregroundStyle(.secondary))
-            .font(.subheadline)
-        }
     }
 
     /// V1.7.0 — the Future tab's slider tap routes here via
@@ -171,111 +159,13 @@ struct PaywallSheet: View {
         .accessibilityIdentifier("paywall.whatIfSimulator")
     }
 
-    private var productList: some View {
-        VStack(spacing: DesignTokens.Spacing.sm) {
-            ForEach(subscriptions.products, id: \.id) { product in
-                productRow(product)
-            }
-            if subscriptions.products.isEmpty {
-                LifeClockSpinner("Loading subscription options…", size: .regular)
-                    .padding()
-            }
-        }
-    }
-
-    private func productRow(_ product: Product) -> some View {
-        let isSelected = product.id == selectedProductID
-        return Button {
-            selectedProductID = product.id
-        } label: {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                    HStack(spacing: DesignTokens.Spacing.sm) {
-                        Text(product.displayName).font(.headline)
-                        if let badge = savingsBadge(for: product) {
-                            Text(badge)
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Color.accentColor.opacity(0.18),
-                                    in: Capsule()
-                                )
-                                .foregroundStyle(Color.accentColor)
-                                .accessibilityIdentifier("paywall.product.\(productSlug(product.id)).savings")
-                        }
-                    }
-                    Text(periodLabel(product))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    if let equivalent = monthlyEquivalent(for: product) {
-                        Text(equivalent)
-                            .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                Spacer()
-                Text(product.displayPrice)
-                    .font(.headline.monospacedDigit())
-                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-            }
-            .padding(DesignTokens.Spacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
-                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
-                    .background(DesignTokens.Palette.elevated, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
-            )
-            .cardLighting()
-            // Smooth selection-ring transition. reduceMotion short-circuits
-            // to instant per motion-spec.md § Reduce Motion.
-            .animation(reduceMotion ? nil : .smooth(duration: Motion.Duration.instant), value: selectedProductID)
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// Savings copy on annual + lifetime against the monthly baseline.
-    /// Computed against shipped SKU prices in `Products.storekit`:
-    /// monthly $7.99 × 12 = $95.88/yr; annual ships $49.99; lifetime $129.99.
-    /// Annual saves ~48% vs monthly cadence over 12 months.
-    /// Lifetime breaks even against monthly at ~16 months.
-    private func savingsBadge(for product: Product) -> String? {
-        switch product.id {
-        case PaywallProductID.annual.rawValue: return "Save ~48%"
-        case PaywallProductID.lifetime.rawValue: return "Best value"
-        default: return nil
-        }
-    }
-
-    /// Monthly-equivalent breakdown for the annual product.
-    /// $49.99 / 12 ≈ $4.17/mo.
-    private func monthlyEquivalent(for product: Product) -> String? {
-        guard product.id == PaywallProductID.annual.rawValue else { return nil }
-        let monthly = NSDecimalNumber(decimal: product.price / 12)
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = product.priceFormatStyle.currencyCode
-        formatter.maximumFractionDigits = 2
-        formatter.minimumFractionDigits = 2
-        guard let formatted = formatter.string(from: monthly) else { return nil }
-        return "\(formatted) / month equivalent"
-    }
-
-    private func productSlug(_ id: String) -> String {
-        if id == PaywallProductID.annual.rawValue { return "annual" }
-        if id == PaywallProductID.monthly.rawValue { return "monthly" }
-        if id == PaywallProductID.lifetime.rawValue { return "lifetime" }
-        return "unknown"
-    }
-
-    private func periodLabel(_ product: Product) -> String {
-        switch product.id {
-        case PaywallProductID.annual.rawValue: return "Auto-renews yearly"
-        case PaywallProductID.monthly.rawValue: return "Auto-renews monthly"
-        case PaywallProductID.lifetime.rawValue: return "One-time purchase"
-        default: return ""
-        }
-    }
+    // The product list, savings badges, per-month-equivalent, period
+    // labels, and product slugs now live in the shared
+    // `PaywallProductsView` core (PV-P2) and are composed via
+    // `core.productList`. They were byte-for-byte moved — same selection
+    // semantics (`selectedProductID` binding), same strings, same
+    // `paywall.product.<slug>.savings` identifiers — so the
+    // re-engagement sheet renders identically to before.
 
     private var subscribeButton: some View {
         Button {
@@ -331,11 +221,12 @@ struct PaywallSheet: View {
     private func runRestore() async {
         restoring = true
         restoreEmptyMessageVisible = false
-        await subscriptions.clearLastError()
-        await subscriptions.restore()
+        // Restore semantics (clear-error → restore → empty-detection)
+        // are owned by the shared `PaywallProductsView` core (PV-P2) so
+        // they cannot diverge between surfaces. The sheet keeps its own
+        // spinner / disabled / empty-hint chrome, unchanged.
+        let nothingRestored = await PaywallProductsView.runReengagementRestore(subscriptions)
         restoring = false
-        if subscriptions.lastError == nil && !subscriptions.isPro {
-            restoreEmptyMessageVisible = true
-        }
+        restoreEmptyMessageVisible = nothingRestored
     }
 }

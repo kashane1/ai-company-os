@@ -28,7 +28,11 @@ struct PaywallPrimaryView: View {
     @Environment(LifeClockStore.self) private var store
     @Environment(OnboardingDraft.self) private var draft
     @Environment(OnboardingTelemetryHolder.self) private var telemetry
-    @State private var selectedTier: Tier = .annual
+    /// Selected product id. Pre-set to annual to match the prior
+    /// `selectedTier = .annual` default. Shared with the extracted
+    /// `PaywallProductsView` core (PV-P2) so the onboarding tier toggle
+    /// and the Continue purchase target stay consistent.
+    @State private var selectedProductID: String? = PaywallProductID.annual.rawValue
     @State private var purchaseSuccessHapticTrigger: Int = 0
 
     /// Tone routed through `OnboardingDraft` rather than `UserProfile`
@@ -50,17 +54,6 @@ struct PaywallPrimaryView: View {
     /// lazily on appear — the draft is stable by the time the paywall
     /// renders, so a single computation is fine.
     @State private var topLever: LifeClockLever = .unanswered
-
-    enum Tier {
-        case annual, monthly, lifetime
-        var productID: PaywallProductID {
-            switch self {
-            case .annual: return .annual
-            case .monthly: return .monthly
-            case .lifetime: return .lifetime
-            }
-        }
-    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -135,9 +128,12 @@ struct PaywallPrimaryView: View {
                             .accessibilityIdentifier("paywall.body")
                     }
 
-                    proPerks
+                    PaywallPerksView(surface: .onboarding)
 
-                    tierToggle()
+                    PaywallProductListView(
+                        surface: .onboarding,
+                        selectedProductID: $selectedProductID
+                    )
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -211,129 +207,23 @@ struct PaywallPrimaryView: View {
         onClose()
     }
 
-    /// Concrete 5-perk enumeration sourced verbatim from
-    /// `ProPerks.perks` (the single source of truth kept in lockstep
-    /// with MONETIZATION.md § Pro Annual — never re-type the strings,
-    /// App Review's value-claim guard requires a verbatim match).
-    /// Additive justification beneath the personalized headline/body:
-    /// the highest-traffic paywall now states concretely what Pro adds,
-    /// matching the depth the lower-traffic re-engagement `PaywallSheet`
-    /// already has via `ProPerks.perks` (pro-value-backlog
-    /// 2026-05-15 PV-P1). Mirrors `PaywallSheet.proBullet` verbatim —
-    /// the shipped, operator-blessed rendering: a single concatenated
-    /// Text (bold title — secondary detail) that wraps naturally on the
-    /// smallest device rather than truncating or dropping a perk.
-    private var proPerks: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(ProPerks.perks, id: \.title) { perk in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.tint)
-                        .font(.footnote)
-                    (Text(perk.title).fontWeight(.semibold)
-                        + Text(" — ")
-                        + Text(perk.detail).foregroundStyle(.secondary))
-                    .font(.subheadline)
-                    .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("paywall.perks")
-    }
-
-    @ViewBuilder
-    private func tierToggle() -> some View {
-        VStack(spacing: 8) {
-            tierRow(
-                tier: .annual,
-                title: "Yearly",
-                primaryPrice: priceString(for: .annual),
-                secondaryPrice: perMonthEquivalent()
-            )
-            tierRow(
-                tier: .lifetime,
-                title: "Lifetime",
-                primaryPrice: priceString(for: .lifetime),
-                secondaryPrice: "One-time purchase"
-            )
-            tierRow(
-                tier: .monthly,
-                title: "Monthly",
-                primaryPrice: priceString(for: .monthly),
-                secondaryPrice: nil
-            )
-        }
-    }
-
-    @ViewBuilder
-    private func tierRow(
-        tier: Tier,
-        title: String,
-        primaryPrice: String,
-        secondaryPrice: String?
-    ) -> some View {
-        Button { selectedTier = tier } label: {
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.body.bold())
-                    if let secondaryPrice {
-                        Text(secondaryPrice).font(.caption).foregroundStyle(.secondary)
-                    }
-                }
-                Spacer()
-                Text(primaryPrice).font(.title3.bold())
-                if selectedTier == tier {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
-                } else {
-                    Image(systemName: "circle").foregroundStyle(.tertiary)
-                }
-            }
-            .padding()
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(paywallTierAccessibilityID(for: tier))
-    }
-
-    private func paywallTierAccessibilityID(for tier: Tier) -> String {
-        switch tier {
-        case .annual: return "paywall.tier.annual"
-        case .monthly: return "paywall.tier.monthly"
-        case .lifetime: return "paywall.tier.lifetime"
-        }
-    }
-
-    private func product(for tier: Tier) -> Product? {
-        subscriptions.products.first { $0.id == tier.productID.rawValue }
-    }
-
-    private func priceString(for tier: Tier) -> String {
-        if let displayPrice = product(for: tier)?.displayPrice {
-            return displayPrice
-        }
-        switch tier {
-        case .annual: return "$49.99 / yr"
-        case .monthly: return "$7.99 / mo"
-        case .lifetime: return "$129.99"
-        }
-    }
-
-    private func perMonthEquivalent() -> String? {
-        guard let annual = product(for: .annual) else {
-            return "≈ $4.17 / mo equivalent"
-        }
-        let monthly = NSDecimalNumber(decimal: annual.price).doubleValue / 12
-        return String(format: "≈ $%.2f / mo equivalent", monthly)
-    }
+    // The perks block + the onboarding tier toggle + the price /
+    // per-month math now live in the shared `PaywallPerksView` /
+    // `PaywallProductListView` (PV-P2) so this onboarding wrapper and
+    // the re-engagement `PaywallSheet` cannot diverge. The personalized
+    // headline/body, soft-skip, the always-visible auto-renew line, the
+    // Continue button, and Restore stay in this shell — they are
+    // onboarding-specific and unchanged.
 
     private func purchase() {
-        guard let product = product(for: selectedTier) else { return }
+        guard
+            let id = selectedProductID,
+            let product = subscriptions.products.first(where: { $0.id == id })
+        else { return }
         Task {
             await subscriptions.purchase(product)
             if subscriptions.isPro {
-                telemetry.value.purchased(productID: selectedTier.productID.rawValue)
+                telemetry.value.purchased(productID: id)
             }
         }
     }
