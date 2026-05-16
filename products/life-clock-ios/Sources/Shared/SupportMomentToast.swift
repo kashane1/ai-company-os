@@ -60,7 +60,7 @@ struct SupportMomentToast: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
         )
-        .shadow(color: Color.black.opacity(0.18), radius: 12, y: 6)
+        .cardLighting()
         .padding(.horizontal, DesignTokens.Spacing.md)
         .padding(.top, DesignTokens.Spacing.xs)
         .accessibilityElement(children: .combine)
