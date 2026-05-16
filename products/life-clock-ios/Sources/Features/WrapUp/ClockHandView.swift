@@ -6,8 +6,9 @@ import SwiftUI
 /// large deltas don't spin forever; the numeric readout next to the clock
 /// is the source of truth.
 ///
-/// Honors Reduce Motion: replaces rotation with a 250ms cross-fade between
-/// 12:00 and the final-angle frame.
+/// Honors Reduce Motion: the rotation is reduced (not eliminated) to a
+/// single short ease-in-out beat, paired with an opacity cross-fade
+/// between the 12:00 and final-angle frames.
 ///
 /// First animation in the codebase. Pinned to `withAnimation` +
 /// `.rotationEffect`; deliberately NOT `TimelineView` (continuous) or
