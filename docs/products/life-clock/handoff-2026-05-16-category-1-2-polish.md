@@ -21,10 +21,12 @@ Batch the two 2026-05-15 audit backlogs into 3 categories, then execute Category
 | PV-P6 Q6+Q12 vision reconciliation memo | Cat 1 | ✅ Memo produced; **operator ratified both** → written to vision.md |
 | PF-P3 off-tier 0.32 + .snappy onboarding sweep | Cat 2 | ✅ Done, committed, build-green |
 | PF-P4 numeric-display token + AccessibilityXXXL clamp | Cat 2 | ✅ Done, committed, build-green |
-| **PV-P2 PaywallPrimaryView ↔ PaywallSheet shared-core extraction** | Cat 2 | ⚠️ **INCOMPLETE — uncommitted, BUILD FAILING** (see below) |
-| PV-P3 Future proFooter full14plus visual verify | Cat 2 | ⛔ Not yet run |
-| PF-P8 cross-surface motion-hierarchy sweep | Cat 2 | ⛔ Not yet run |
-| PF-P6 Reduce-Motion visual verify | Cat 2 | ⛔ Not yet run (must run LAST — verifies migrated P2/P3/P4 state) |
+| **PV-P2 PaywallPrimaryView ↔ PaywallSheet shared-core extraction** | Cat 2 | ✅ Done — resumed/fixed, committed, build-green, both-path App-Review checkpoint verified |
+| PV-P3 Future proFooter full14plus visual verify | Cat 2 | ✅ Passed clean, no source change |
+| PF-P8 cross-surface motion-hierarchy sweep | Cat 2 | ✅ Map + proposed rule delivered (Stretch — awaiting operator rule ratification) |
+| PF-P6 Reduce-Motion visual verify | Cat 2 | ✅ Done — found+fixed 2 RM defects (wake-haptic regression, missing toast guard) |
+
+**Update (post-handoff):** PV-P2's mid-refactor server crash was recovered — the partial work was finished (`a05f65b`), the actor-isolation errors fixed, both-path App-Review checkpoint verified (`e35e3bf`). A regression I introduced with the SEED_BAD_YESTERDAY knob (`LifeClockLaunchConfigurationTests.swift` initializer drift) was caught and fixed (`02aa6db`). All 13 Cat 1+2 items are complete; app build + test target both green; 30 commits `371ff5a`→`0d39152`.
 
 ## Commits on the branch (19, `371ff5a` → `4f47ea7`)
 
