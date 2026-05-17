@@ -285,10 +285,9 @@ struct MainTabView: View {
                 guard absH >= Self.minSwipePoints, absH > absV else { return }
 
                 // Swipe-left (finger moves left → dx negative) reveals
-                // the tab to the LEFT in the bar; swipe-right reveals
-                // the tab to the RIGHT. So a left-swipe on Today wraps
-                // around to Profile.
-                let step = effective < 0 ? -1 : 1
+                // the tab to the RIGHT in the bar; swipe-right reveals
+                // the tab to the LEFT — content tracks the finger.
+                let step = effective < 0 ? 1 : -1
                 let target = cycle(store.selectedTab, by: step)
                 guard target != store.selectedTab else { return }
                 store.selectedTab = target
