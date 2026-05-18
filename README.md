@@ -104,7 +104,8 @@ This repo exists to avoid those failure modes from the start.
 
 ## Current Shape
 
-The repo has moved past a paper scaffold. The current useful surface is:
+The control loop runs today — `make demo` exercises it end to end and the
+three apps under `products/` are its output. The current useful surface is:
 
 - `apps/api`
 - `apps/worker-supervisor`
@@ -127,9 +128,10 @@ Two deliberate choices are still true:
 - The dashboard is described architecturally but not scaffolded yet. The API and runtime supervisor are enough to establish platform boundaries without adding speculative frontend code.
 - OpenClaw is documented as an optional future bridge, but there is no integration code yet. That keeps orchestration owned by this repo.
 
-## End-to-End Shape
+## End-to-End Flow
 
-A healthy v1 should support this flow:
+This is the flow the control loop runs — `make demo` walks steps 1–6
+in-process and writes the resulting audit artifact to [`docs/examples/`](docs/examples/):
 
 1. A founder creates a goal such as fixing an iOS onboarding bug or preparing an App Store submission.
 2. The supervisor converts that goal into one or more typed tasks.
@@ -264,7 +266,7 @@ Current runtime truth:
 - `stop` writes a stop-request file that the running supervisor honors for clean shutdown
 - the runtime supervisor manages the existing engineering, iOS, and App Store worker loops only
 
-Suggested next implementation steps after this scaffold:
+Roadmap from the current local runtime:
 
 1. Point `AI_COMPANY_OS_DATABASE_URL` at Postgres to move the control-plane records off the default local SQLite file.
 2. Replace the current durable queue table with Redis once worker daemons are running continuously.
