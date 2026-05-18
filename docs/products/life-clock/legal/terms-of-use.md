@@ -1,6 +1,6 @@
 # Life Clock Terms of Use
 
-**Last updated:** 2026-05-13
+**Last updated:** 2026-05-16
 **App:** Life Clock: habits earn time
 
 ## Standard EULA
@@ -75,8 +75,8 @@ We may update these terms. Material changes will be announced in-app and reflect
 
 ## Contact
 
-Questions: **[REPLACE WITH SUPPORT EMAIL]**.
+Questions: **lifeclock.support@gmail.com**.
 
 ## Governing Law
 
-These terms are governed by the laws of [REPLACE WITH JURISDICTION — typically the state/country where you (the publisher) are based]. Disputes are subject to the exclusive jurisdiction of the courts of that location, except where you have a non-waivable consumer right to bring a claim in your local jurisdiction.
+These terms are governed by the laws of the State of California, USA. Disputes are subject to the exclusive jurisdiction of the courts of that location, except where you have a non-waivable consumer right to bring a claim in your local jurisdiction.

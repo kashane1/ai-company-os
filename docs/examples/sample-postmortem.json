@@ -1,0 +1,19 @@
+{
+  "created_at": "2026-05-17T18:02:30Z",
+  "excerpt_redacted": "codex exec aborted: transient upstream error",
+  "failure_code": "execution_failed",
+  "fixture_path": null,
+  "id": "pm_demo_0001",
+  "lane": "engineering",
+  "notes": "Emitted automatically on the failure path of the demo run.",
+  "owner": "founder",
+  "redaction_hits": 0,
+  "remediation_action": "Retry with backoff; surface as VALIDATION_FAILED if persistent.",
+  "root_cause_category": "external-dependency",
+  "schema_version": "1",
+  "severity": "warn",
+  "status": "open",
+  "task_id": "task_demo_0001",
+  "task_run_id": "run_demo_0001",
+  "updated_at": "2026-05-17T18:02:30Z"
+}
