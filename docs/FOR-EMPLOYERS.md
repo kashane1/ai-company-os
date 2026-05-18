@@ -21,7 +21,7 @@ Run `git log` — you should. Here is what it shows and what it means:
 
 - **First commit 2026-03-27.** This is roughly a two-month intensive build,
   not a multi-year project. I will never tell you otherwise.
-- **~565 commits, large parallel branch set.** This is not noise or
+- **~600 commits, large parallel branch set.** This is not noise or
   embellishment. It is the *output of the pipeline working*: I run many AI
   agents in parallel, each on its own branch, gated and reviewed before
   merge. The velocity is the thesis of the project, not an accident of it.
@@ -45,7 +45,7 @@ document is trying to demonstrate about how I work.
 | Every run writes a structured audit artifact, with retention | `packages/db/postmortem_store.py`, `packages/policies/postmortem_retention.py` |
 | Repo mutations are isolated, not hidden in prompts | git worktree flow; `state/` holds runtime state, never source |
 | Secrets never leak into artifacts | redaction tests asserting `sk-…` / `AKIA…` are scrubbed; `.env` gitignored; clean history |
-| Process maturity uncommon in a solo repo | `.github/workflows/tests.yml`, tests-ship-with-code policy, PR template, conventional commits, 95 Python test suites |
+| Process maturity uncommon in a solo repo | `.github/workflows/tests.yml`, tests-ship-with-code policy, PR template, conventional commits, 98 Python test files |
 
 ## Run it yourself in 10 seconds (no setup)
 

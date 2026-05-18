@@ -8,7 +8,7 @@
 
 > **Evaluating this as a hiring signal?** Read **[docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)** first — it has the honest framing, a claim→code map, and a five-minute verification path.
 
-It is not a prompt bundle and not a single mega-agent. The platform owns orchestration; agents only execute within boundaries the platform defines. Built intensively over roughly two months (~565 commits, CI on every change); it has already produced three real iOS products (`products/`) and has recurring operator workflows designed around explicit approval gates. The high commit and branch count is the output of the parallel-agent pipeline working as designed — the velocity is the thesis, not noise. Everything here is checkable from `git log` in under a minute; nothing in this README claims a tenure or production soak it can't back.
+It is not a prompt bundle and not a single mega-agent. The platform owns orchestration; agents only execute within boundaries the platform defines. Built intensively over roughly two months (~600 commits, CI on every change); it has already produced three real iOS products (`products/`) and has recurring operator workflows designed around explicit approval gates. The high commit and branch count is the output of the parallel-agent pipeline working as designed — the velocity is the thesis, not noise. Everything here is checkable from `git log` in under a minute; nothing in this README claims a tenure or production soak it can't back.
 
 ## Overview
 

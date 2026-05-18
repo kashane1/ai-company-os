@@ -7,7 +7,7 @@ Read this first when resuming on a new machine.
 An AI-first engineering system: a fleet of AI coding agents, directed by
 Kashane, that discovers product niches, builds apps, and ships them — with
 typed boundaries, human approval gates, and a replayable audit trail.
-~2 months old, ~565 commits, three iOS products. It is Kashane's flagship
+~2 months old, ~600 commits, three iOS products. It is Kashane's flagship
 side project for job applications.
 
 ## Strategy (decided, do not relitigate)
