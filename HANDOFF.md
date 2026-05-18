@@ -1,4 +1,4 @@
-# ai-company-os — session handoff (work done 2026-05-17)
+# ai-company-os — session handoff (last updated 2026-05-18)
 
 Read this first when resuming on a new machine.
 
@@ -56,21 +56,39 @@ make demo                 # zero-dep end-to-end demo, no setup
 .venv/bin/python -m pytest tests/python -q   # alt
 ```
 
+## Follow-up session 2026-05-18 (branch `claude/nifty-cori-3923dc`, not yet merged)
+
+All four prior "Next goals" are now closed:
+
+1. **Full suite run — done.** Disk recovered (was 98%, now ~36%). Running
+   the documented eval path from a clean venv surfaced a real bug:
+   `python-multipart` and `pydantic` were imported by `apps/`/`packages/`
+   but undeclared, so `pip install -e ".[test]" && pytest tests/python`
+   hit 2 collection errors on a fresh clone. Added both to
+   `pyproject.toml`; verified from a clean venv: `make demo` clean,
+   **495 passed / 1 skipped**. (Import audit: only those two were missing.)
+2. **README de-stale — done.** #2/#3/#4 were largely closed by upstream
+   commit `17c6fd8` (CONTRIBUTING.md, recurring-approval-sweep.md, README
+   status sections). Remaining tonal seams removed this session: "paper
+   scaffold", "a healthy v1 should support", "after this scaffold" →
+   present-tense where the demo/products substantiate it; deliberate
+   dashboard/OpenClaw scoping left intact.
+3. **Claim integrity pass — done.** Validated every `FOR-EMPLOYERS.md`
+   claim→code path (all 19 resolve). Stale numbers corrected to survive
+   `git log`: `~565`→`~600` commits, `95`→`98` test files, across README,
+   FOR-EMPLOYERS, and this file.
+
+Commits on this branch: `31e9f67` (deps fix), `a95f98b` (README de-stale),
+`35ae5b2` (number corrections). **Not yet merged to `origin/main`.**
+
 ## Next goals (priority order)
 
-1. **Run the full `tests/python` suite.** Last session only verified the 3
-   new files (9/9) + collection (495, no import errors); disk was 98% full
-   so the whole suite was not run. Free disk first.
-2. **De-stale the rest of the README.** Top-fold is rewritten, but lower
-   sections ("Lean V1", "Current Status: Early control-plane phase",
-   "Getting Started: minimal real control-plane slice") tonally contradict
-   "ships 3 products, ~565 commits." A skeptical top-to-bottom reader feels
-   the seam. Do a truthful de-stale pass.
-3. **Strengthen the weakest claim.** "runs recurring workflows behind
-   approval gates" is the least independently verifiable line vs the
-   code-cited ones. Add one concrete traced recurring workflow, or soften.
-4. Optional polish from the original review: `CONTRIBUTING.md`, a tiny
-   pip-installable engine quickstart, more sample artifacts.
+1. **Open a PR for branch `claude/nifty-cori-3923dc` and merge.** Self-
+   contained: dep fix + truthful doc corrections. After merge, `origin/main`
+   commit count moves to ~608 — `~600` phrasing was chosen to stay accurate
+   across the merge, so no further number edits needed.
+2. Optional polish from the original review: a tiny pip-installable engine
+   quickstart, more sample artifacts in `docs/examples/`.
 
 ## Companion
 
