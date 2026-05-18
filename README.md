@@ -8,7 +8,7 @@
 
 > **Evaluating this as a hiring signal?** Read **[docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)** first — it has the honest framing, a claim→code map, and a five-minute verification path.
 
-It is not a prompt bundle and not a single mega-agent. The platform owns orchestration; agents only execute within boundaries the platform defines. Built intensively over roughly two months (~565 commits, CI on every change); it has already produced three real iOS products (`products/`) and runs recurring workflows behind approval gates. The high commit and branch count is the output of the parallel-agent pipeline working as designed — the velocity is the thesis, not noise. Everything here is checkable from `git log` in under a minute; nothing in this README claims a tenure or production soak it can't back.
+It is not a prompt bundle and not a single mega-agent. The platform owns orchestration; agents only execute within boundaries the platform defines. Built intensively over roughly two months (~565 commits, CI on every change); it has already produced three real iOS products (`products/`) and has recurring operator workflows designed around explicit approval gates. The high commit and branch count is the output of the parallel-agent pipeline working as designed — the velocity is the thesis, not noise. Everything here is checkable from `git log` in under a minute; nothing in this README claims a tenure or production soak it can't back.
 
 ## Overview
 
@@ -102,9 +102,9 @@ Most agent systems fail for predictable reasons:
 
 This repo exists to avoid those failure modes from the start.
 
-## Lean V1
+## Current Shape
 
-The first version is intentionally small. It focuses on the smallest useful foundation:
+The repo has moved past a paper scaffold. The current useful surface is:
 
 - `apps/api`
 - `apps/worker-supervisor`
@@ -122,9 +122,9 @@ The first version is intentionally small. It focuses on the smallest useful foun
 - `state`
 - `docs`
 
-Two deliberate v1 choices:
+Two deliberate choices are still true:
 
-- The dashboard is described architecturally but not scaffolded yet. The API is enough to establish platform boundaries without adding speculative frontend code.
+- The dashboard is described architecturally but not scaffolded yet. The API and runtime supervisor are enough to establish platform boundaries without adding speculative frontend code.
 - OpenClaw is documented as an optional future bridge, but there is no integration code yet. That keeps orchestration owned by this repo.
 
 ## End-to-End Shape
@@ -185,17 +185,16 @@ Framework choices should stay lightweight until the architecture proves itself.
 
 ## Current Status
 
-Early control-plane phase.
+Working local-first control-plane slice with real product output.
 
 The immediate priorities are:
 
-- make the architecture legible
-- lock in worker boundaries
-- encode shared policy in code
-- establish Codex integration shape
+- keep the employer/evaluator path truthful from top to bottom
+- keep worker boundaries and shared policy encoded in code
+- make recurring operator workflows independently verifiable
 - keep iOS and App Store responsibilities separate
-- keep the repo safe to extend without hidden orchestration
-- make goals, tasks, approvals, events, and worker claims real enough to support a minimal control-plane runtime
+- keep runtime state out of source-controlled product and platform code
+- keep expanding the real control-plane runtime only where daily use proves the need
 
 ## Testing
 
@@ -240,7 +239,14 @@ Runtime-state isolation:
 
 ## Getting Started
 
-This repo currently provides a minimal real control-plane slice, three lane worker loops, and a thin local runtime supervisor with a CLI operator surface.
+This repo currently provides a real local control-plane slice, lane worker loops, and a thin runtime supervisor with a CLI operator surface.
+
+Install the local Python surface when you want to run more than the zero-dependency demo:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e ".[test]"
+```
 
 Local runtime operator workflow:
 
@@ -274,7 +280,9 @@ See [LICENSE](LICENSE).
 
 - [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)
 - [docs/flagship-simulator-driven-polish.md](docs/flagship-simulator-driven-polish.md) — one workflow traced end to end
+- [docs/recurring-approval-sweep.md](docs/recurring-approval-sweep.md) — recurring operator workflow traced against approval code
 - [docs/reliability-lessons.md](docs/reliability-lessons.md) — reliability decisions + the tests behind them
+- [CONTRIBUTING.md](CONTRIBUTING.md)
 - [AGENTS.md](AGENTS.md)
 - [docs/architecture.md](docs/architecture.md)
 - [docs/implementation-phases.md](docs/implementation-phases.md)

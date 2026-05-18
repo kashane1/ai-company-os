@@ -40,7 +40,8 @@ document is trying to demonstrate about how I work.
 |---|---|
 | Platform owns orchestration; agents are lane workers | `apps/worker-*`, `apps/runtime-supervisor`, `apps/api` |
 | Typed tool/task surface — enum-constrained, validated at the boundary | `packages/schemas/` — frozen dataclasses with `str, Enum` fields and explicit `to_dict`/`from_dict` (`goal.py`, `approval.py`, `event.py`, `postmortem.py`, `release.py`, `product.py`); Pydantic models guard the API surface in `apps/api/` |
-| Human-in-the-loop gates on consequential actions | `packages/policies/approvals.py`, `packages/tools/primitives/approvals.py`, `apps/approval-reviewer/main.py` |
+| Human-in-the-loop gates on consequential actions | `packages/policies/approvals.py`, `packages/policies/approval_tokens.py`, `apps/api/approval_endpoint.py`, `apps/approval-reviewer/main.py` |
+| Recurring operator workflow around approvals | `scripts/scheduled/approval_sweep_session.md`, `docs/recurring-approval-sweep.md` |
 | Every run writes a structured audit artifact, with retention | `packages/db/postmortem_store.py`, `packages/policies/postmortem_retention.py` |
 | Repo mutations are isolated, not hidden in prompts | git worktree flow; `state/` holds runtime state, never source |
 | Secrets never leak into artifacts | redaction tests asserting `sk-…` / `AKIA…` are scrubbed; `.env` gitignored; clean history |

@@ -1,6 +1,6 @@
 # Approval Flow
 
-This document explains the review and approval boundary for the engineering lane.
+This document explains the review and approval boundary for the platform.
 
 ## When A Run Becomes Reviewable
 
@@ -32,30 +32,44 @@ For each run, the system persists:
 
 These are intended to make manual inspection explicit instead of guesswork.
 
-## What Approval Is Intended To Gate Later
+## What Approval Gates
 
-The approval record created for `safe_for_review` runs is scaffolding for future phases.
-
-It is intended to gate actions such as:
+Approval records gate consequential actions such as:
 
 - commit creation
 - branch updates
 - push
 - pull request creation
 - merge
+- App Store submission
+- public release actions
+- billing, DNS, and other P0 operations
 
-None of those actions are implemented yet.
+The gate is intentionally layered. Reviewable worker output can create an
+approval record; approval tokens provide the local human confirmation surface;
+policy code decides whether a downstream action is allowed to proceed.
 
-## What Remains Manual For Now
+## Magic-Link Approval Surface
 
-For the current phase, all git history mutation remains manual.
+The local approval endpoint lives in `apps/api/approval_endpoint.py`.
+Approval links carry HMAC-signed tokens from
+`packages/policies/approval_tokens.py`, persisted by
+`packages/db/approval_token_store.py`.
 
-That means:
+Tokens are:
 
-- no auto-commit
-- no auto-push
-- no auto-PR
-- no auto-merge
-- no auto-approval
+- short-lived
+- single-use
+- device-audited
+- classified as default or P0
 
-The platform only prepares reviewable output and a pending approval record.
+Default actions can be approved with one local confirmation. P0 actions require
+a second confirmation inside the configured window before the approval can move
+to `approved`.
+
+## What Remains Manual
+
+The system still does not treat approval as blanket authority. Humans inspect
+diffs, artifacts, release state, and generated metadata before allowing
+irreversible effects. The platform prepares reviewable output, records the
+approval decision, and leaves an audit trail for the action that consumed it.

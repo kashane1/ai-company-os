@@ -35,3 +35,6 @@ xcuserdata/
 *.xcuserstate
 
 .claude/scheduled_tasks.lock
+
+# Codex desktop/app-local hooks and session metadata.
+.codex/

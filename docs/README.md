@@ -11,6 +11,7 @@ the engineering, do not read top-to-bottom — use the map below.
 - [architecture.md](architecture.md) — how the docs map to the code layout.
 - [operating-model.md](operating-model.md) — ownership boundaries.
 - [approval-policy.md](approval-policy.md) / [approval-flow.md](approval-flow.md) — the human gate.
+- [recurring-approval-sweep.md](recurring-approval-sweep.md) — recurring approval-gated operator workflow.
 - [engineering-flow.md](engineering-flow.md) / [codex-worker.md](codex-worker.md) — how a task runs.
 - [ios-lane.md](ios-lane.md) — the iOS product lane.
 - [examples/](examples/) — schema-faithful sample audit artifacts.

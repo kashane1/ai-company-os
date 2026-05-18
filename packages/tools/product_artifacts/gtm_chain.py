@@ -68,10 +68,10 @@ def validate_backlog_item(item: dict) -> list[str]:
     if platform and platform not in VALID_PLATFORMS:
         errors.append(f"invalid platform: {platform}")
 
-    # Text platforms (x, facebook) don't require slides.
+    # Text-first platforms don't require slides.
     # Visual platforms require slides only for new multi-platform items.
     topic_id = item.get("topic_id")
-    if topic_id is not None and platform not in ("x", "facebook"):
+    if topic_id is not None and platform not in ("x", "facebook", "threads"):
         if not item.get("slides"):
             errors.append(f"visual platform {platform} missing slides")
 
