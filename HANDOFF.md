@@ -17,10 +17,11 @@ Own it and show everything, truthfully. Reframe the "AI wrote this" /
 its own runs), not hide them. Every claim must survive `git log` and a
 skeptical engineer opening the cited file. No tenure/production-soak claims.
 
-## What was done this session — open in **PR #48**
+## What was done this session — **PR #48 MERGED into origin/main**
 
-Branch `portfolio/employer-facing-polish` →
-https://github.com/kashane1/ai-company-os/pull/48 (pushed, NOT merged).
+PR #48 (branch `portfolio/employer-facing-polish`) was merged on
+2026-05-18. `origin/main` is at `414a514` and includes all of the below
+plus the 35 prior upstream commits. Local `main` == `origin/main`.
 
 - README top-fold rewrite, badges, Mermaid architecture diagram, repo
   orientation table; removed a stale layout section that contradicted
@@ -42,12 +43,10 @@ https://github.com/kashane1/ai-company-os/pull/48 (pushed, NOT merged).
   legal docs) to preserve it. Runtime `state/` intentionally excluded.
 - Also pruned 34 already-merged local branches (safe `-d`; remote untouched).
 
-## Current git state (important)
+## Current git state
 
-- Local `main` is **35 commits BEHIND** `origin/main` — do NOT push `main`.
-- The work lives on branch `portfolio/employer-facing-polish` (an ancestor
-  of `origin/main` + this work), so PR #48's diff is exactly the intended
-  change. Merge the PR from GitHub when ready.
+- `origin/main` = `414a514` (PR #48 merge commit) — fully up to date.
+- On a fresh clone you get everything; just `git clone` and go.
 
 ## How to resume
 
@@ -59,19 +58,18 @@ make demo                 # zero-dep end-to-end demo, no setup
 
 ## Next goals (priority order)
 
-1. **Merge PR #48** (one click on GitHub) — or review first.
-2. **Run the full `tests/python` suite.** Last session only verified the 3
+1. **Run the full `tests/python` suite.** Last session only verified the 3
    new files (9/9) + collection (495, no import errors); disk was 98% full
    so the whole suite was not run. Free disk first.
-3. **De-stale the rest of the README.** Top-fold is rewritten, but lower
+2. **De-stale the rest of the README.** Top-fold is rewritten, but lower
    sections ("Lean V1", "Current Status: Early control-plane phase",
    "Getting Started: minimal real control-plane slice") tonally contradict
    "ships 3 products, ~565 commits." A skeptical top-to-bottom reader feels
    the seam. Do a truthful de-stale pass.
-4. **Strengthen the weakest claim.** "runs recurring workflows behind
+3. **Strengthen the weakest claim.** "runs recurring workflows behind
    approval gates" is the least independently verifiable line vs the
    code-cited ones. Add one concrete traced recurring workflow, or soften.
-5. Optional polish from the original review: `CONTRIBUTING.md`, a tiny
+4. Optional polish from the original review: `CONTRIBUTING.md`, a tiny
    pip-installable engine quickstart, more sample artifacts.
 
 ## Companion
