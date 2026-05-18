@@ -8,7 +8,7 @@ settings:
   base:
     SWIFT_VERSION: 5.0
     CURRENT_PROJECT_VERSION: 1
-    MARKETING_VERSION: 0.1.0
+    MARKETING_VERSION: 1.0
 # Per-machine signing settings (DEVELOPMENT_TEAM) live in
 # LifeClock.local.xcconfig (gitignored). Xcode re-reads the xcconfig at
 # build time, so editing the team ID there does not require a regen.

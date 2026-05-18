@@ -1,0 +1,16 @@
+{
+  "action": "merge_pr",
+  "approval_type": "engineering_change",
+  "created_at": "2026-05-17T18:02:30Z",
+  "decided_at": "2026-05-17T18:02:30Z",
+  "decided_by": "founder",
+  "decision_notes": "Diff and tests reviewed; safe to merge.",
+  "id": "appr_demo_0001",
+  "review_artifact_path": "state/artifacts/run_demo_0001/review.json",
+  "status": "approved",
+  "subject_id": "run_demo_0001",
+  "subject_type": "task_run",
+  "summary": "Engineering change to Catchbook LogEntry awaiting human review.",
+  "task_id": "task_demo_0001",
+  "task_run_id": "run_demo_0001"
+}

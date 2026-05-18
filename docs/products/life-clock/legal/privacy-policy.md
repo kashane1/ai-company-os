@@ -1,9 +1,9 @@
 # Life Clock Privacy Policy
 
-**Last updated:** 2026-05-13
+**Last updated:** 2026-05-16
 **App:** Life Clock: habits earn time
-**Publisher:** [REPLACE WITH LEGAL ENTITY OR INDIVIDUAL NAME]
-**Contact:** [REPLACE WITH SUPPORT EMAIL]
+**Publisher:** Kashane Justin Sakhakorn
+**Contact:** lifeclock.support@gmail.com
 
 ## Plain-English Summary
 
@@ -105,7 +105,7 @@ If the app's mortality framing causes anxiety, the in-app **Profile → If this 
 
 ## Contact
 
-Questions about this privacy policy: **[REPLACE WITH SUPPORT EMAIL]**.
+Questions about this privacy policy: **lifeclock.support@gmail.com**.
 
 We respond within 7 business days.
 

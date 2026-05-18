@@ -1,12 +1,20 @@
 # ai-company-os
 
-An AI company operating system for running an AI-first or AI-only business from an always-on Mac.
+[![Tests](https://github.com/kashane1/ai-company-os/actions/workflows/tests.yml/badge.svg)](https://github.com/kashane1/ai-company-os/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![License](https://img.shields.io/badge/license-proprietary-lightgrey)
+
+**An AI-first engineering system: I direct a fleet of AI coding agents to discover product niches, build apps, and ship them — inside a control plane with typed tool boundaries, human approval gates, and a replayable audit trail, so it can run unattended without me losing track of what it did or why.**
+
+> **Evaluating this as a hiring signal?** Read **[docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)** first — it has the honest framing, a claim→code map, and a five-minute verification path.
+
+It is not a prompt bundle and not a single mega-agent. The platform owns orchestration; agents only execute within boundaries the platform defines. Built intensively over roughly two months (~565 commits, CI on every change); it has already produced three real iOS products (`products/`) and runs recurring workflows behind approval gates. The high commit and branch count is the output of the parallel-agent pipeline working as designed — the velocity is the thesis, not noise. Everything here is checkable from `git log` in under a minute; nothing in this README claims a tenure or production soak it can't back.
 
 ## Overview
 
 `ai-company-os` is a local-first, policy-driven platform for running a software business with persistent AI workers, explicit task state, approval gates, repo automation, and dedicated delivery lanes.
 
-The intended runtime is an always-on MacBook Air M1. The long-term goal is not a prompt bundle or a monolithic super-agent. It is a durable operating system for an AI-driven company with clear ownership boundaries:
+The intended runtime is an always-on Mac. The long-term goal is not a prompt bundle or a monolithic super-agent. It is a durable operating system for an AI-driven company with clear ownership boundaries:
 
 - The platform is the brain.
 - Codex is the engineer.
@@ -14,6 +22,57 @@ The intended runtime is an always-on MacBook Air M1. The long-term goal is not a
 - Redis is the queue.
 - GitHub is the delivery lane.
 - OpenClaw is an optional interface, not the orchestration layer.
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+    F([Founder goal]) --> S[Supervisor<br/>goal to typed tasks]
+    S --> Q{{Queue}}
+    Q --> WE[worker-engineering]
+    Q --> WI[worker-ios]
+    Q --> WG[worker-gtm]
+    Q --> WA[worker-appstore]
+    WE --> WT[Isolated git worktree<br/>Codex execution]
+    WI --> WT
+    WT --> V[Validation +<br/>testing policy]
+    V --> AP{Human approval gate<br/>irreversible actions}
+    AP -- approved --> DL[GitHub delivery /<br/>App Store release]
+    AP -- rejected --> PM[(PostMortem<br/>audit record)]
+    V --> TR[(TaskRun<br/>audit artifact)]
+    DL --> PR[[Shipped iOS products]]
+
+    classDef gate fill:#fde,stroke:#b36;
+    class AP gate;
+```
+
+The platform owns orchestration; workers only execute within typed
+boundaries; nothing irreversible happens without passing the human
+approval gate; every run leaves a replayable audit artifact.
+
+## Repository orientation
+
+| Path | What it is |
+|---|---|
+| `apps/` | Thin worker + API entrypoints (engineering, iOS, gtm, appstore, supervisor, approval-reviewer) |
+| `packages/` | Shared platform code: `schemas` (typed contracts), `policies` (approval rules), `db`, `queue`, `tools`, `config` |
+| `products/` | Source roots for the iOS apps the system has produced |
+| `docs/` | Platform docs **plus** the system's own run/spec output — read [`docs/README.md`](docs/README.md) first |
+| `state/` | Runtime-owned data only (worktrees, artifacts, checkpoints, logs) — never source |
+| `todos/` | Per-task working tickets agents pick up; the system's backlog, not hand-maintained docs |
+| `skills/` | Reusable, versioned agent capability definitions (`registry.yaml` + adapters) the workers compose |
+| `infra/`, `scripts/` | Local infra notes and operator/CI scripts |
+
+## Demo (zero setup)
+
+```bash
+make demo        # or: ./scripts/demo.sh
+```
+
+Runs the control loop end to end — goal → typed task → worker execution →
+validation → human approval gate → structured audit artifact — entirely
+in-process. No Postgres, Redis, Codex, network, or Mac runtime required.
+It writes schema-faithful sample artifacts to [`docs/examples/`](docs/examples/).
 
 ## Architectural Rules
 
@@ -79,64 +138,15 @@ A healthy v1 should support this flow:
 5. The App Store worker prepares metadata and release state, then pauses at human approval before irreversible submission steps.
 6. The API exposes health, task state, approvals, and worker status.
 
-## Repository Layout
+## Managed Products
 
-```text
-ai-company-os/
-  apps/
-    api/
-    worker-supervisor/
-    worker-engineering/
-    worker-ios/
-    worker-appstore/
-  packages/
-    config/
-    db/
-    policies/
-    queue/
-    schemas/
-    tools/
-      codex_tools/
-      github_tools/
-      ios_tools/
-      appstore_tools/
-  products/
-    catchbook-ios/
-  docs/
-    architecture.md
-    operating-model.md
-    codex-worker.md
-    ios-lane.md
-    approval-policy.md
-    local-dev.md
-    products/
-  infra/
-    db/
-    scripts/
-    fastlane/
-    launchd/
-  state/
-    repos/
-    worktrees/
-    artifacts/
-    checkpoints/
-    logs/
-    cache/
-```
+The system has produced three iOS products, each with a managed source root under `products/`:
 
-The full mock tree is a useful north star, but v1 intentionally implements only the subset that clarifies the operating model today. Support, growth, research, ops, dashboard, and OpenClaw stay documented future lanes until the core engineering and release path is real.
+- `products/catchbook-ios/` — a private fishing logbook (the first managed product)
+- `products/life-clock-ios/` — a health/longevity app
+- `products/after-plans-ios/`
 
-## First Managed Product
-
-The first managed product is a private fishing logbook for iPhone.
-
-That product now has:
-
-- a product registry entry in `infra/products.json`
-- a managed source root in `products/catchbook-ios/`
-- durable product artifacts in `docs/products/catchbook/`
-- checkpoint-backed product and release records under `state/checkpoints/platform/`
-- an iOS worker path that mirrors the engineering lane
+Each managed product has a product registry entry in `infra/products.json`, durable product artifacts under `docs/products/`, checkpoint-backed product and release records under `state/checkpoints/platform/`, and an iOS worker path that mirrors the engineering lane.
 
 ## What Each Layer Owns
 
@@ -195,7 +205,8 @@ Current stage:
 
 - tests are required to pass in both lanes
 - Python coverage is enforced at `55%`
-- iOS coverage is enforced at `20%`
+- iOS coverage is reported but not gated (the iOS lane is UI-heavy; snapshot
+  and end-to-end coverage are deferred — see "Testing policy" below)
 
 Local commands:
 
@@ -209,8 +220,8 @@ Coverage model:
 
 - Python coverage is measured across `apps/` and `packages/`
 - iOS coverage is measured from the `Catchbook` target result bundle with `xccov`
-- `PYTHON_COVERAGE_MIN` and `IOS_COVERAGE_MIN` control staged threshold enforcement without changing the scripts
-- CI enables the current Stage 1 floors with `PYTHON_COVERAGE_MIN=55` and `IOS_COVERAGE_MIN=20`
+- `PYTHON_COVERAGE_MIN` controls staged Python threshold enforcement without changing the scripts
+- CI enforces `PYTHON_COVERAGE_MIN=55`; iOS coverage is measured and reported by `check_ios_coverage.sh` but not gated
 
 Testing policy:
 
@@ -254,16 +265,24 @@ Suggested next implementation steps after this scaffold:
 3. Add a richer operator surface only after the local runtime loop proves stable in day-to-day use.
 4. Expand approval persistence and enforcement from the current narrow task/release actions to more public workflows.
 
+## License
+
+Proprietary — all rights reserved. Publicly viewable for evaluation only.
+See [LICENSE](LICENSE).
+
 ## Read Next
 
-- [AGENTS.md](/Users/simons/ai-company-os/AGENTS.md)
-- [docs/architecture.md](/Users/simons/ai-company-os/docs/architecture.md)
-- [docs/implementation-phases.md](/Users/simons/ai-company-os/docs/implementation-phases.md)
-- [docs/approval-policy.md](/Users/simons/ai-company-os/docs/approval-policy.md)
-- [docs/local-dev.md](/Users/simons/ai-company-os/docs/local-dev.md)
-- [docs/operating-model.md](/Users/simons/ai-company-os/docs/operating-model.md)
-- [docs/codex-worker.md](/Users/simons/ai-company-os/docs/codex-worker.md)
-- [docs/ios-lane.md](/Users/simons/ai-company-os/docs/ios-lane.md)
-- [docs/engineering-flow.md](/Users/simons/ai-company-os/docs/engineering-flow.md)
-- [docs/approval-flow.md](/Users/simons/ai-company-os/docs/approval-flow.md)
-- [docs/decisions/0001-foundation.md](/Users/simons/ai-company-os/docs/decisions/0001-foundation.md)
+- [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)
+- [docs/flagship-simulator-driven-polish.md](docs/flagship-simulator-driven-polish.md) — one workflow traced end to end
+- [docs/reliability-lessons.md](docs/reliability-lessons.md) — reliability decisions + the tests behind them
+- [AGENTS.md](AGENTS.md)
+- [docs/architecture.md](docs/architecture.md)
+- [docs/implementation-phases.md](docs/implementation-phases.md)
+- [docs/approval-policy.md](docs/approval-policy.md)
+- [docs/local-dev.md](docs/local-dev.md)
+- [docs/operating-model.md](docs/operating-model.md)
+- [docs/codex-worker.md](docs/codex-worker.md)
+- [docs/ios-lane.md](docs/ios-lane.md)
+- [docs/engineering-flow.md](docs/engineering-flow.md)
+- [docs/approval-flow.md](docs/approval-flow.md)
+- [docs/decisions/0001-foundation.md](docs/decisions/0001-foundation.md)

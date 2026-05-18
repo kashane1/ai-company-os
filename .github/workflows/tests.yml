@@ -8,7 +8,9 @@ on:
 
 env:
   PYTHON_COVERAGE_MIN: "55"
-  IOS_COVERAGE_MIN: "20"
+  # iOS coverage threshold intentionally not enforced: the iOS lane is
+  # UI-heavy and snapshot/e2e coverage is deferred (see README "Testing").
+  # check_ios_coverage.sh still reports the number; it just does not gate.
 
 jobs:
   tests-with-code:

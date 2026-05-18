@@ -1,0 +1,63 @@
+{
+  "approval_id": "appr_demo_0001",
+  "artifacts": [
+    "diff.patch",
+    "review.json"
+  ],
+  "classification": "safe_for_review",
+  "diff_path": "state/artifacts/run_demo_0001/diff.patch",
+  "execution": {
+    "command": [
+      "codex",
+      "exec",
+      "--task",
+      "task_demo_0001"
+    ],
+    "command_display": "codex exec --task task_demo_0001",
+    "cwd": "state/worktrees/wt_demo_0001",
+    "exit_code": 0,
+    "finished_at": "2026-05-17T18:02:30Z",
+    "session_id": "sess_demo",
+    "started_at": "2026-05-17T18:00:00Z",
+    "stderr_path": "state/artifacts/run_demo_0001/stderr.log",
+    "stdout_path": "state/artifacts/run_demo_0001/stdout.log",
+    "timed_out": false
+  },
+  "execution_result_path": "state/artifacts/run_demo_0001/execution.json",
+  "failure_codes": [],
+  "finished_at": "2026-05-17T18:02:30Z",
+  "id": "run_demo_0001",
+  "packet_path": "state/artifacts/run_demo_0001/packet.json",
+  "post_run_git_state": {
+    "changed_files": [
+      "products/catchbook-ios/Sources/LogEntry.swift"
+    ],
+    "diff_summary": "1 file changed, 12 insertions(+), 3 deletions(-)",
+    "status_lines": [
+      " M products/catchbook-ios/Sources/LogEntry.swift"
+    ]
+  },
+  "pre_run_git_state": {
+    "changed_files": [],
+    "diff_summary": "clean worktree",
+    "status_lines": []
+  },
+  "repo_id": "repo_demo",
+  "review_artifact_path": "state/artifacts/run_demo_0001/review.json",
+  "started_at": "2026-05-17T18:00:00Z",
+  "status": "succeeded",
+  "summary": "Fixed catch-log timestamp rounding in LogEntry; tests added.",
+  "task_id": "task_demo_0001",
+  "testing_policy": null,
+  "validation_checks": [
+    {
+      "code": null,
+      "details": "Tests modified under products/catchbook-ios/Tests/",
+      "name": "tests_present_for_logic_change",
+      "passed": true
+    }
+  ],
+  "worker_lane": "engineering",
+  "worktree_id": "wt_demo_0001",
+  "worktree_path": "state/worktrees/wt_demo_0001"
+}
