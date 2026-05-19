@@ -1,80 +1,115 @@
-# ai-company-os — session handoff (work done 2026-05-17)
+# ai-company-os — session handoff (updated 2026-05-19)
 
 Read this first when resuming on a new machine.
 
 ## What this repo is
 
-An AI-first engineering system: a fleet of AI coding agents, directed by
-Kashane, that discovers product niches, builds apps, and ships them — with
-typed boundaries, human approval gates, and a replayable audit trail.
-~2 months old, ~565 commits, three iOS products. It is Kashane's flagship
-side project for job applications.
+An AI-first engineering system: Kashane directs a fleet of AI coding agents to
+discover product niches, build apps, and ship them inside a control plane with
+typed tool boundaries, human approval gates, and a replayable audit trail.
+It is the flagship job-application project. The goal is not to hide AI usage;
+the goal is to make the system legible, honest, verifiable, and impressive to a
+skeptical engineer.
 
 ## Strategy (decided, do not relitigate)
 
-Own it and show everything, truthfully. Reframe the "AI wrote this" /
-"sprawl" signals as the thesis (parallel-agent pipeline, system documents
-its own runs), not hide them. Every claim must survive `git log` and a
-skeptical engineer opening the cited file. No tenure/production-soak claims.
+Own the AI-written surface and make it easy to verify. Every employer-facing
+claim should survive:
 
-## What was done this session — **PR #48 MERGED into origin/main**
+- `git log`
+- local commands
+- opening the cited files
 
-PR #48 (branch `portfolio/employer-facing-polish`) was merged on
-2026-05-18. `origin/main` is at `414a514` and includes all of the below
-plus the 35 prior upstream commits. Local `main` == `origin/main`.
+Do not claim production soak, long tenure, or "fully autonomous" behavior
+unless the repo proves it directly. When in doubt, soften the claim.
 
-- README top-fold rewrite, badges, Mermaid architecture diagram, repo
-  orientation table; removed a stale layout section that contradicted
-  reality (catchbook-only, missing workers).
-- `docs/FOR-EMPLOYERS.md` — honest framing, claim→code map, 5-min eval path.
-- `docs/README.md` — orients a reader so docs sprawl reads as run output.
-- `docs/flagship-simulator-driven-polish.md` — one workflow traced end to
-  end, every cited path verified, real Life Clock session logs as evidence.
-- `docs/reliability-lessons.md` — 7 reliability decisions, each tied to
-  code/tests.
-- Proprietary all-rights-reserved `LICENSE`; `Makefile` + `scripts/demo.sh`
-  + `scripts/demo/run_demo.py` — zero-dependency end-to-end demo emitting
-  schema-faithful artifacts to `docs/examples/`.
-- Tests (9 passing): `tests/python/unit/test_typed_tool_surface.py`,
-  `tests/python/integration/test_end_to_end_control_loop.py`,
-  `tests/python/integration/test_audit_artifact_crash_safety.py`.
-- CI: stopped gating iOS coverage (UI-heavy lane; still reported).
-- Bundled unrelated in-progress WIP (life-clock Info.plist, project.yml,
-  legal docs) to preserve it. Runtime `state/` intentionally excluded.
-- Also pruned 34 already-merged local branches (safe `-d`; remote untouched).
+## Current verified baseline
 
-## Current git state
+- `main` and `origin/main` are aligned at `17c6fd8`
+  (`docs: tighten evaluator path and recurring approval trace`).
+- `make demo` passes.
+- `./scripts/test_python.sh` passes with `495 passed, 1 skipped`.
+- Python coverage from the last verified full run: `76%`.
+- README de-stale pass is complete enough that the top-level docs no longer
+  describe the repo as an "early scaffold."
+- `docs/recurring-approval-sweep.md` exists and traces one recurring
+  approval-gated workflow honestly.
+- `CONTRIBUTING.md` exists.
+- The GTM validator fix is already merged into the baseline.
 
-- `origin/main` = `414a514` (PR #48 merge commit) — fully up to date.
-- On a fresh clone you get everything; just `git clone` and go.
+## What changed before this handoff
 
-## How to resume
+The current `main` already includes the earlier employer-facing cleanup that:
+
+- rewrote the README top fold and repo orientation
+- added `docs/FOR-EMPLOYERS.md`
+- clarified `docs/README.md`
+- added the zero-dependency demo in `make demo` / `scripts/demo.sh`
+- generated schema-faithful sample artifacts under `docs/examples/`
+- added recurring-approval workflow tracing
+- kept the repo's framing aligned with what can actually be verified locally
+
+The old `HANDOFF.md` still described the repo around PR #48 and `414a514`.
+That is now stale and should not be reused.
+
+## Resume commands
 
 ```bash
-make demo                 # zero-dep end-to-end demo, no setup
-./scripts/test_python.sh  # full suite (NOT verified last session — disk was 98%)
-.venv/bin/python -m pytest tests/python -q   # alt
+make demo
+./scripts/test_python.sh
 ```
 
-## Next goals (priority order)
+If you want the fastest evaluator path after resuming, also check:
 
-1. **Run the full `tests/python` suite.** Last session only verified the 3
-   new files (9/9) + collection (495, no import errors); disk was 98% full
-   so the whole suite was not run. Free disk first.
-2. **De-stale the rest of the README.** Top-fold is rewritten, but lower
-   sections ("Lean V1", "Current Status: Early control-plane phase",
-   "Getting Started: minimal real control-plane slice") tonally contradict
-   "ships 3 products, ~565 commits." A skeptical top-to-bottom reader feels
-   the seam. Do a truthful de-stale pass.
-3. **Strengthen the weakest claim.** "runs recurring workflows behind
-   approval gates" is the least independently verifiable line vs the
-   code-cited ones. Add one concrete traced recurring workflow, or soften.
-4. Optional polish from the original review: `CONTRIBUTING.md`, a tiny
-   pip-installable engine quickstart, more sample artifacts.
+```bash
+./scripts/evaluator_check.sh
+```
 
-## Companion
+## Employer-readiness backlog (multi-week)
 
-The `job-hunt` repo (github.com/kashane1/job-hunt) has its own
-`HANDOFF.md`. Its application answers describe THIS repo; if the framing
-here changes materially, update `profile/raw/ai-company-os.md` there and
-regenerate.
+Keep this order unless a blocking bug or broken claim appears.
+
+1. Update and preserve the verification baseline whenever framing changes.
+2. Tighten the employer evaluation path across `README.md`,
+   `docs/FOR-EMPLOYERS.md`, `docs/README.md`, and `CONTRIBUTING.md`.
+3. Expand `docs/examples/` so the full claim set is inspectable:
+   goal, typed task, worker result, validation outcome, approval gate,
+   task-run artifact, and postmortem/follow-up artifact.
+4. Keep one low-setup employer verification script current
+   (`scripts/evaluator_check.sh`).
+5. Resolve P1 Life Clock accessibility parity for agent-driveable flows
+   (see `todos/028-pending-p1-life-clock-a11y-id-gaps-block-agent-flows.md`).
+6. Resolve P1 Life Clock quest persistence key stability
+   (see `todos/026-pending-p1-life-clock-quest-persistence-fragile-key.md`).
+7. Extract Life Clock support-moment presentation logic
+   (see `todos/027-pending-p1-life-clock-store-presentation-leak.md`).
+8. Resolve Catchbook location-model planning compatibility
+   (see `todos/001-pending-p1-define-location-migration-compatibility.md`).
+9. Improve per-product orientation under `products/*/README.md`.
+10. Maintain a short evaluator walkthrough with exact commands and expected
+    outcomes.
+11. Audit employer-facing docs for broken links and stale paths.
+12. Make recurring workflows more verifiable without overclaiming production
+    scheduling.
+13. Raise confidence in approval gates with more fail-closed coverage where
+    needed.
+14. Keep generated docs understandable without spending days reorganizing them.
+15. Mirror material framing changes into the companion `job-hunt` repo
+    (`profile/raw/ai-company-os.md`) when needed.
+
+## Current first-session target
+
+The recommended next session is:
+
+1. Refresh this handoff.
+2. Re-run `make demo` and `./scripts/test_python.sh`.
+3. Add `docs/EVALUATOR-WALKTHROUGH.md`.
+4. Add or update `scripts/evaluator_check.sh`.
+5. Wire the new evaluator path into top-level docs.
+6. Commit and push on a reviewable branch.
+
+## Companion repo
+
+`github.com/kashane1/job-hunt` has its own `HANDOFF.md`. If this repo's
+employer framing changes materially, update `profile/raw/ai-company-os.md`
+there and regenerate any dependent application answers.

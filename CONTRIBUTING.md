@@ -6,6 +6,7 @@ contributions as local development guidance, not an open-source invitation.
 ## Fast Evaluation Path
 
 ```bash
+./scripts/evaluator_check.sh
 make demo
 python3 -m venv .venv
 .venv/bin/python -m pip install -e ".[test]"
@@ -14,6 +15,8 @@ python3 -m venv .venv
 
 `make demo` has no external dependencies. It runs the control loop end to end
 and writes schema-faithful sample artifacts to `docs/examples/`.
+`./scripts/evaluator_check.sh` wraps that path and verifies the main files an
+evaluator is likely to inspect.
 
 ## Repo Boundaries
 

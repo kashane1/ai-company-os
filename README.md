@@ -6,7 +6,7 @@
 
 **An AI-first engineering system: I direct a fleet of AI coding agents to discover product niches, build apps, and ship them — inside a control plane with typed tool boundaries, human approval gates, and a replayable audit trail, so it can run unattended without me losing track of what it did or why.**
 
-> **Evaluating this as a hiring signal?** Read **[docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)** first — it has the honest framing, a claim→code map, and a five-minute verification path.
+> **Evaluating this as a hiring signal?** Start with **[docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)**, then follow **[docs/EVALUATOR-WALKTHROUGH.md](docs/EVALUATOR-WALKTHROUGH.md)** or run `./scripts/evaluator_check.sh`.
 
 It is not a prompt bundle and not a single mega-agent. The platform owns orchestration; agents only execute within boundaries the platform defines. Built intensively over roughly two months (~565 commits, CI on every change); it has already produced three real iOS products (`products/`) and has recurring operator workflows designed around explicit approval gates. The high commit and branch count is the output of the parallel-agent pipeline working as designed — the velocity is the thesis, not noise. Everything here is checkable from `git log` in under a minute; nothing in this README claims a tenure or production soak it can't back.
 
@@ -63,9 +63,20 @@ approval gate; every run leaves a replayable audit artifact.
 | `skills/` | Reusable, versioned agent capability definitions (`registry.yaml` + adapters) the workers compose |
 | `infra/`, `scripts/` | Local infra notes and operator/CI scripts |
 
+## Fast Evaluation Path
+
+For a skeptical engineer, the shortest honest path is:
+
+1. Read [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md).
+2. Run `./scripts/evaluator_check.sh` or `make demo`.
+3. Inspect `packages/schemas/`, `packages/policies/approvals.py`, and `apps/api/approval_endpoint.py`.
+4. Inspect the product roots under `products/`.
+5. Run `./scripts/test_python.sh`.
+
 ## Demo (zero setup)
 
 ```bash
+./scripts/evaluator_check.sh
 make demo        # or: ./scripts/demo.sh
 ```
 
@@ -73,6 +84,9 @@ Runs the control loop end to end — goal → typed task → worker execution �
 validation → human approval gate → structured audit artifact — entirely
 in-process. No Postgres, Redis, Codex, network, or Mac runtime required.
 It writes schema-faithful sample artifacts to [`docs/examples/`](docs/examples/).
+
+`./scripts/evaluator_check.sh` wraps that demo, verifies the key files and
+sample artifacts exist, and can optionally run a fast Python test subset.
 
 ## Architectural Rules
 
@@ -183,7 +197,7 @@ V1 is Python-first unless a stronger reason emerges. That choice keeps the first
 
 Framework choices should stay lightweight until the architecture proves itself.
 
-## Current Status
+## Current Priorities
 
 Working local-first control-plane slice with real product output.
 
@@ -239,7 +253,8 @@ Runtime-state isolation:
 
 ## Getting Started
 
-This repo currently provides a real local control-plane slice, lane worker loops, and a thin runtime supervisor with a CLI operator surface.
+This repo already provides a working local control-plane slice, lane worker
+loops, and a thin runtime supervisor with a CLI operator surface.
 
 Install the local Python surface when you want to run more than the zero-dependency demo:
 
@@ -264,7 +279,7 @@ Current runtime truth:
 - `stop` writes a stop-request file that the running supervisor honors for clean shutdown
 - the runtime supervisor manages the existing engineering, iOS, and App Store worker loops only
 
-Suggested next implementation steps after this scaffold:
+Likely next platform expansions after the current local slice:
 
 1. Point `AI_COMPANY_OS_DATABASE_URL` at Postgres to move the control-plane records off the default local SQLite file.
 2. Replace the current durable queue table with Redis once worker daemons are running continuously.
@@ -279,6 +294,7 @@ See [LICENSE](LICENSE).
 ## Read Next
 
 - [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)
+- [docs/EVALUATOR-WALKTHROUGH.md](docs/EVALUATOR-WALKTHROUGH.md)
 - [docs/flagship-simulator-driven-polish.md](docs/flagship-simulator-driven-polish.md) — one workflow traced end to end
 - [docs/recurring-approval-sweep.md](docs/recurring-approval-sweep.md) — recurring operator workflow traced against approval code
 - [docs/reliability-lessons.md](docs/reliability-lessons.md) — reliability decisions + the tests behind them

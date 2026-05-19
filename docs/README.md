@@ -8,6 +8,7 @@ the engineering, do not read top-to-bottom — use the map below.
 ## Read these first (the platform)
 
 - [FOR-EMPLOYERS.md](FOR-EMPLOYERS.md) — honest framing + claim→code map.
+- [EVALUATOR-WALKTHROUGH.md](EVALUATOR-WALKTHROUGH.md) — shortest practical review path with exact commands.
 - [architecture.md](architecture.md) — how the docs map to the code layout.
 - [operating-model.md](operating-model.md) — ownership boundaries.
 - [approval-policy.md](approval-policy.md) / [approval-flow.md](approval-flow.md) — the human gate.
