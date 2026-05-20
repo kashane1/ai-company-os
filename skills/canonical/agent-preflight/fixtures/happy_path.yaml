@@ -31,6 +31,8 @@
       - "handoff-write"
       - "stale-doc-detector"
       - "4 KB"
+      - "No product source inspection"
+      - "any file under `products/`"
     required_sections:
       - "## Purpose"
       - "## When to invoke"

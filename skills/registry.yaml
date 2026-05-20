@@ -703,11 +703,14 @@ skills:
   # These three skills support the root scaffolding added in Anti-drift
   # batch 1 (REPO_MAP.md, docs/preflight-for-agents.md,
   # docs/handoffs/INDEX.md, docs/plans/INDEX.md,
-  # scripts/ci/check_doc_paths.sh). They are intentionally agentic and
-  # landed with `fixture_status: missing`: structural fixtures freeze
-  # the canonical contract but no dedicated pytest verdict tests have
-  # been written yet. A follow-up batch should add per-skill test files
-  # and promote `fixture_status` to `passing`.
+  # scripts/ci/check_doc_paths.sh). All three are agentic and were
+  # promoted to `fixture_status: passing` in Anti-drift batch 2.1 once
+  # dedicated per-skill structural contract tests landed:
+  #   - tests/python/unit/test_agent_preflight_skill.py
+  #   - tests/python/unit/test_stale_doc_detector_skill.py
+  #   - tests/python/unit/test_handoff_write_skill.py
+  # Each test is data-driven from the skill's fixtures and mirrors the
+  # repo-onboarding structural-contract pattern.
 
   - id: agent-preflight
     name: Agent Preflight
@@ -716,7 +719,7 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    fixture_status: passing
     self_evolvable: false
     source: internal
     adapters:
@@ -730,7 +733,7 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    fixture_status: passing
     self_evolvable: false
     source: internal
     adapters:
@@ -744,7 +747,7 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    fixture_status: passing
     self_evolvable: false
     source: internal
     adapters:

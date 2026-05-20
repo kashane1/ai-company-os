@@ -182,8 +182,8 @@ docs/ios-conventions.md line 19: subsystem: "com.ai-company-os.fishing-logbook"
 
 ## Boundaries and failure modes
 
-- **Read-only outside `state/artifacts/stale-doc-detector/`.** Never
-  edits docs, even when the classification is `fix_now`. The
+- **Read-only outside `state/artifacts/stale-doc-detector/`.**
+  Never edits docs, even when the classification is `fix_now`. The
   operator (or the next skill in the chain) does the edit.
 - **No product source inspection.** Do not open Swift, `.pbxproj`,
   or any file under `products/`.
