@@ -56,25 +56,16 @@ todos — the trail is part of the audit.
 This snapshot reflects what's in the directory at the time this README
 was written. It is not authoritative — `ls todos/` is.
 
-- Total files: 72
+- Total tickets: 72
 - Pending: 23
-- Completed: 49 (see note below on the `complete` vs `completed` token)
+- Completed: 49
 - p1: 17
 - p2: 30
 - p3: 25
 
-### Token inconsistency to clean up
-
-Two status tokens are currently in use:
-
-- `completed` (older entries)
-- `complete` (later entries)
-
-The convention going forward is **`completed`** (matches the lifecycle
-states above). A future maintenance pass should rename any
-`<NNN>-complete-<priority>-<slug>.md` files to
-`<NNN>-completed-<priority>-<slug>.md` so the token is uniform. Do not
-do this in the current batch — file renames are out of scope here.
+The `complete` vs `completed` filename token inconsistency that existed
+before Anti-drift batch 1.2 has been normalized — all completed tickets
+now use `-completed-`.
 
 ## When to file a new todo
 
