@@ -18,11 +18,18 @@
 
 - `apps/` — worker and API entrypoints
 - `packages/` — shared code (config, db, policies, queue, schemas, tools)
-- `products/` — managed product source (e.g. `catchbook-ios/`)
+- `products/` — managed product source (e.g. `products/catchbook-ios/`)
 - `docs/` — architecture docs, product artifacts, decisions
 - `infra/` — local infrastructure (db, scripts, fastlane, launchd)
 - `state/` — runtime data (repos, worktrees, artifacts, checkpoints, logs)
 - `skills/` — canonical skill definitions, adapters, and registry
+- `todos/` — per-task working tickets; see [todos/README.md](todos/README.md)
+
+## Read first
+
+- [REPO_MAP.md](REPO_MAP.md) — 60-second orientation
+- [docs/preflight-for-agents.md](docs/preflight-for-agents.md) — boundaries for this session
+- [docs/skills-index.md](docs/skills-index.md) — skill catalog + trigger phrases
 
 ## Skills
 
