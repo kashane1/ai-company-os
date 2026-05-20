@@ -1,0 +1,45 @@
+inputs:
+  - name: task_scope
+    type: string
+    required: false
+  - name: include_skills_index
+    type: boolean
+    default: true
+outputs:
+  - name: branch
+    type: string
+  - name: dirty
+    type: boolean
+  - name: dirty_files
+    type: list
+    item_type: string
+  - name: read_first_present
+    type: object
+    keys:
+      - REPO_MAP.md
+      - docs/preflight-for-agents.md
+      - CLAUDE.md
+      - docs/skills-index.md
+  - name: default_safe_areas
+    type: list
+    item_type: string
+  - name: explicit_approval_areas
+    type: list
+    item_type: string
+  - name: forbidden_areas
+    type: list
+    item_type: string
+  - name: product_in_scope
+    type: boolean
+    default: false
+  - name: warnings
+    type: list
+    item_type: string
+limits:
+  - total_report_size_bytes: 4096
+required_reads:
+  - REPO_MAP.md
+  - docs/preflight-for-agents.md
+  - CLAUDE.md
+  - docs/skills-index.md
+  - infra/products.json

@@ -1,0 +1,56 @@
+# Structural fixture — stale-doc-detector happy path.
+#
+# Freezes the canonical skill body's contract: the four-tier
+# classification taxonomy, the helper-script integration, the
+# legacy-slug heuristic surface, and the do-not-edit-docs boundary.
+
+- name: happy_path_shape
+  description: |
+    The canonical skill must declare the helper integration, the four
+    classification values, the legacy-slug detection step, and the
+    read-only boundary that prevents the skill from editing docs.
+  input:
+    skill_file: canonical/stale-doc-detector/skill.md
+    contract_file: canonical/stale-doc-detector/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "scripts/ci/check_doc_paths.sh"
+      - "fix_now"
+      - "allowlist"
+      - "founder_decision"
+      - "ignore"
+      - "legacy_slug_hints"
+      - "fishing-logbook"
+      - "infra/products.json"
+      - "Read-only outside"
+      - "Never edits docs"
+      - "No product source inspection"
+    required_sections:
+      - "## Purpose"
+      - "## When to invoke"
+      - "## Contract"
+      - "## Procedure"
+      - "## Boundaries and failure modes"
+    required_contract_inputs:
+      - doc_paths
+      - product_ids
+      - legacy_slug_hints
+    required_contract_outputs:
+      - verdict
+      - path_findings
+      - name_findings
+      - helper_exit_code
+      - report_path
+
+- name: adversarial_runtime_path_must_not_be_fix_now
+  description: |
+    The skill must classify documented runtime-only paths as
+    `allowlist`, not `fix_now`, so the helper script's allowlist
+    convention is preserved instead of routinely rewriting README.
+  input:
+    skill_file: canonical/stale-doc-detector/skill.md
+  expected:
+    required_strings_in_skill:
+      - "runtime-only path"
+      - "allowlist"
+      - "RUNTIME_ALLOWED"

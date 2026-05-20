@@ -697,3 +697,56 @@ skills:
     # check is updated to accept the verdict-table fixture schema.
     fixture_status: missing
     source: internal
+
+  # ----- Anti-drift batch 2 — root-scaffolding companions -----
+  #
+  # These three skills support the root scaffolding added in Anti-drift
+  # batch 1 (REPO_MAP.md, docs/preflight-for-agents.md,
+  # docs/handoffs/INDEX.md, docs/plans/INDEX.md,
+  # scripts/ci/check_doc_paths.sh). They are intentionally agentic and
+  # landed with `fixture_status: missing`: structural fixtures freeze
+  # the canonical contract but no dedicated pytest verdict tests have
+  # been written yet. A follow-up batch should add per-skill test files
+  # and promote `fixture_status` to `passing`.
+
+  - id: agent-preflight
+    name: Agent Preflight
+    path: canonical/agent-preflight/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/agent-preflight.md
+    project_skill: .claude/skills/agent-preflight.md
+
+  - id: stale-doc-detector
+    name: Stale Doc Detector
+    path: canonical/stale-doc-detector/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/stale-doc-detector.md
+    project_skill: .claude/skills/stale-doc-detector.md
+
+  - id: handoff-write
+    name: Handoff Write
+    path: canonical/handoff-write/skill.md
+    owner_agent: any
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/handoff-write.md
+    project_skill: .claude/skills/handoff-write.md
