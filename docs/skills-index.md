@@ -47,6 +47,7 @@ If the prompt is bare ("audit the app" / "improve the app" / "make it better"), 
 - **agent-preflight** — emit a structured preflight report for a fresh agent session (git state, edit boundaries, read-first paths, product-app scope). Wraps the Anti-drift batch 1 entry docs.
 - **stale-doc-detector** — scan the entry docs for broken repo-relative paths and stale product-name patterns; classify findings as `fix_now` / `allowlist` / `founder_decision` / `ignore`. Wraps `scripts/ci/check_doc_paths.sh`.
 - **handoff-write** — write a dated session handoff under `docs/handoffs/` following the convention in `docs/handoffs/INDEX.md`. Refuses to overwrite.
+- **codex-cloud-dispatch** — dispatch a bounded fix to Codex Cloud via Chrome MCP and open a PR against `staging`. Canonicalizes the invariants previously documented in `docs/codex-cloud-dispatch.md` (that doc is now the detailed UI reference).
 - **approval-flow-review** *(deferred)* — pre-validate an approval request against `packages/policies/approvals.py` before it reaches the founder queue
 - **test-coverage-audit** *(deferred)* — audit a worktree diff against the coverage policy in `packages/policies/testing.py` before commit
 
@@ -55,7 +56,7 @@ If the prompt is bare ("audit the app" / "improve the app" / "make it better"), 
 When the user's message matches one of these patterns (including paraphrases), read and follow the named skill's Claude adapter before doing anything else.
 
 - "hand this to codex" / "dispatch to codex" / "delegate to codex" / "queue a task for codex" / "find tasks for codex" / "have codex fix X" / "send this to codex" / "run this through codex" → `skills/adapters/claude/codex-claude-handoff.md` (local dispatch, on-device worker)
-- "use codex cloud" / "dispatch via codex cloud" / "queue this on codex cloud" / "open a PR via codex cloud" → `docs/codex-cloud-dispatch.md` (Chrome-MCP-driven chatgpt.com/codex/cloud → PR against `staging`)
+- "use codex cloud" / "dispatch via codex cloud" / "queue this on codex cloud" / "open a PR via codex cloud" → `skills/adapters/claude/codex-cloud-dispatch.md` (Chrome-MCP-driven `chatgpt.com/codex/cloud` → PR against `staging`; canonical at `skills/canonical/codex-cloud-dispatch/skill.md`; detailed UI reference — pixel coordinates, known quirks — at `docs/codex-cloud-dispatch.md`)
 - "decompose this goal" / "break this down into tasks" / "turn this into worker tasks" → `skills/adapters/claude/supervisor-goal-decomposition.md`
 - "validate the artifact chain" / "check product artifacts" → `skills/adapters/claude/product-artifact-chain.md`
 - "review the iOS code" / "polish review" → `skills/adapters/claude/ios-ui-polish-review.md`

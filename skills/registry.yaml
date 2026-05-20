@@ -753,3 +753,29 @@ skills:
     adapters:
       claude: adapters/claude/handoff-write.md
     project_skill: .claude/skills/handoff-write.md
+
+  # ----- Anti-drift batch 3 — canonicalize codex-cloud-dispatch -----
+  #
+  # Previously, the trigger phrase "use codex cloud" routed directly to
+  # docs/codex-cloud-dispatch.md, bypassing the canonical → adapter →
+  # project-skill chain. Batch 3 closes that gap. The canonical skill
+  # encodes the invariants and the brief shape; the original doc is
+  # preserved as a detailed UI reference (pixel coordinates, MCP tool
+  # names, known quirks) with a top banner pointing back here. The
+  # structural fixture asserts the twelve invariants and the eight
+  # brief sections are documented in the canonical body. See
+  # tests/python/unit/test_codex_cloud_dispatch_skill.py.
+
+  - id: codex-cloud-dispatch
+    name: Codex Cloud Dispatch
+    path: canonical/codex-cloud-dispatch/skill.md
+    owner_agent: any
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/codex-cloud-dispatch.md
+    project_skill: .claude/skills/codex-cloud-dispatch.md

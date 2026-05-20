@@ -1,5 +1,15 @@
 # Codex Cloud dispatch via Chrome MCP
 
+> **Operational source of truth is the canonical skill** at
+> [`skills/canonical/codex-cloud-dispatch/skill.md`](../skills/canonical/codex-cloud-dispatch/skill.md)
+> (Claude adapter:
+> [`skills/adapters/claude/codex-cloud-dispatch.md`](../skills/adapters/claude/codex-cloud-dispatch.md)).
+> The canonical skill encodes the invariants, the brief structure,
+> and the five-phase procedure. This doc is the detailed UI
+> reference — pixel coordinates, MCP tool names, the contenteditable
+> typing sequence, and the known quirks — that the canonical skill
+> points back to.
+
 How to queue a bounded fix on Codex Cloud (chatgpt.com/codex/cloud) and open a PR against `staging`, driven from a Claude (Cowork) session using the Chrome MCP.
 
 Use this doc when you are NOT using the local `codex-claude-handoff` protocol (Python enqueue script + on-device worker). Codex Cloud is the right channel when:

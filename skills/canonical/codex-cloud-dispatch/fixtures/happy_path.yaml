@@ -1,0 +1,80 @@
+# Structural fixture — codex-cloud-dispatch happy path.
+#
+# Freezes the canonical skill body's constraint contract: the twelve
+# invariants every dispatch must satisfy, the eight brief sections,
+# the staging-only PR target, the xfail-shim protection, the Chrome
+# MCP submission sequence, and the no-merge/no-push boundary.
+
+- name: happy_path_shape
+  description: |
+    The canonical skill must declare the invariant list, the brief
+    sections, the staging-only PR rule, the xfail-shim protection,
+    the Chrome MCP submission sequence, and the no-merge boundary.
+  input:
+    skill_file: canonical/codex-cloud-dispatch/skill.md
+    contract_file: canonical/codex-cloud-dispatch/contract.yaml
+  expected:
+    required_strings_in_skill:
+      # Invariants 1–12 from the skill body
+      - "Base branch is `staging`"
+      - "Never dispatch against `main`"
+      - "Repo chip is `ai-company-os`"
+      - "One task per dispatch"
+      - "Never delete or weaken the xfail shim"
+      - "_PREEXISTING_FAILURES"
+      - "pytest_collection_modifyitems"
+      - "Policies / schemas / canonical skills require explicit\n   approval"
+      - "documented Chrome MCP contenteditable typing\n   sequence"
+      - "Open the PR against the staging base branch"
+      - "No direct merges, no approvals, no pushes"
+      - "Preserve task-specific scope boundaries"
+      - "Human review before merge"
+      - "Final report captures the dispatched task title and the PR\n    link"
+      - "Stop if the Codex Cloud UI flow differs from the documented\n    assumptions"
+      # Brief section headings
+      - "Title line"
+      - "CONTEXT"
+      - "TASK"
+      - "FILES ALLOWED TO EDIT"
+      - "DO NOT EDIT"
+      - "HARD CONSTRAINTS"
+      - "ACCEPTANCE CRITERIA"
+      - "PR line"
+      # Boundary + reference signals
+      - "docs/codex-cloud-dispatch.md"
+      - "codex-claude-handoff"
+      - "No product source inspection"
+      - "Never merge to `main` from Codex Cloud"
+      - "mcp__Claude_in_Chrome__"
+    required_sections:
+      - "## Purpose"
+      - "## When to invoke"
+      - "## Invariants"
+      - "## Brief structure"
+      - "## Procedure"
+      - "## Boundaries and failure modes"
+    required_contract_inputs:
+      - task_description
+      - files_allowed_to_edit
+      - files_do_not_edit
+      - acceptance_criteria
+      - target_branch
+    required_contract_outputs:
+      - dispatched_task_title
+      - pr_url
+      - diff_size
+      - allowed_files_in_brief
+      - scope_check_passed
+
+- name: adversarial_staging_only
+  description: |
+    The skill must forbid dispatching against main and must include
+    the exact "Open the PR against the staging base branch"
+    instruction. Both checks live in the canonical body.
+  input:
+    skill_file: canonical/codex-cloud-dispatch/skill.md
+  expected:
+    required_strings_in_skill:
+      - "Never dispatch against `main`"
+      - "Open the PR against the staging base branch"
+      - "Never merge to `main` from Codex Cloud"
