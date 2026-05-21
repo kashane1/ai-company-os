@@ -1,5 +1,7 @@
 # ai-company-os — session handoff (work done 2026-05-17)
 
+> Superseded by `docs/handoffs/INDEX.md`. Preserved for historical context only.
+
 Read this first when resuming on a new machine.
 
 ## What this repo is

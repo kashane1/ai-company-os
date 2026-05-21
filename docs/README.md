@@ -5,6 +5,13 @@ specs, run plans, session handoffs, postmortems. The volume is the system
 documenting its own output, not hand-written prose. If you are evaluating
 the engineering, do not read top-to-bottom — use the map below.
 
+## For agents resuming work
+
+- [../REPO_MAP.md](../REPO_MAP.md) — 60-second orientation across the five zones
+- [preflight-for-agents.md](preflight-for-agents.md) — boundaries for this session
+- [handoffs/INDEX.md](handoffs/INDEX.md) — append-only dated session handoffs
+- [plans/INDEX.md](plans/INDEX.md) — per-feature implementation plans
+
 ## Read these first (the platform)
 
 - [FOR-EMPLOYERS.md](FOR-EMPLOYERS.md) — honest framing + claim→code map.

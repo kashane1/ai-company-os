@@ -1,0 +1,41 @@
+inputs:
+  - name: slug
+    type: string
+    required: true
+    validation: must_match_regex
+    regex: "^[a-z0-9][a-z0-9-]*$"
+  - name: date
+    type: string
+    required: false
+    format: "YYYY-MM-DD"
+  - name: same_day_counter
+    type: integer
+    required: false
+  - name: session_summary
+    type: object
+    required: true
+    keys:
+      - what_changed
+      - what_is_open
+      - what_is_blocked
+      - what_is_stale
+      - files_touched
+      - validation_run
+      - next_action
+      - resume_prompt
+outputs:
+  - name: handoff_path
+    type: string
+  - name: wrote_file
+    type: boolean
+required_sections_in_emitted_file:
+  - "## What changed"
+  - "## What is open"
+  - "## What is blocked"
+  - "## What is stale"
+  - "## Files touched"
+  - "## Validation run"
+  - "## Exact next action"
+  - "## Resume prompt"
+filename_pattern: "docs/handoffs/YYYY-MM-DD-<slug>.md"
+overwrite_policy: refuse

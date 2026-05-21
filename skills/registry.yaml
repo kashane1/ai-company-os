@@ -697,3 +697,85 @@ skills:
     # check is updated to accept the verdict-table fixture schema.
     fixture_status: missing
     source: internal
+
+  # ----- Anti-drift batch 2 — root-scaffolding companions -----
+  #
+  # These three skills support the root scaffolding added in Anti-drift
+  # batch 1 (REPO_MAP.md, docs/preflight-for-agents.md,
+  # docs/handoffs/INDEX.md, docs/plans/INDEX.md,
+  # scripts/ci/check_doc_paths.sh). All three are agentic and were
+  # promoted to `fixture_status: passing` in Anti-drift batch 2.1 once
+  # dedicated per-skill structural contract tests landed:
+  #   - tests/python/unit/test_agent_preflight_skill.py
+  #   - tests/python/unit/test_stale_doc_detector_skill.py
+  #   - tests/python/unit/test_handoff_write_skill.py
+  # Each test is data-driven from the skill's fixtures and mirrors the
+  # repo-onboarding structural-contract pattern.
+
+  - id: agent-preflight
+    name: Agent Preflight
+    path: canonical/agent-preflight/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/agent-preflight.md
+    project_skill: .claude/skills/agent-preflight.md
+
+  - id: stale-doc-detector
+    name: Stale Doc Detector
+    path: canonical/stale-doc-detector/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/stale-doc-detector.md
+    project_skill: .claude/skills/stale-doc-detector.md
+
+  - id: handoff-write
+    name: Handoff Write
+    path: canonical/handoff-write/skill.md
+    owner_agent: any
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/handoff-write.md
+    project_skill: .claude/skills/handoff-write.md
+
+  # ----- Anti-drift batch 3 — canonicalize codex-cloud-dispatch -----
+  #
+  # Previously, the trigger phrase "use codex cloud" routed directly to
+  # docs/codex-cloud-dispatch.md, bypassing the canonical → adapter →
+  # project-skill chain. Batch 3 closes that gap. The canonical skill
+  # encodes the invariants and the brief shape; the original doc is
+  # preserved as a detailed UI reference (pixel coordinates, MCP tool
+  # names, known quirks) with a top banner pointing back here. The
+  # structural fixture asserts the twelve invariants and the eight
+  # brief sections are documented in the canonical body. See
+  # tests/python/unit/test_codex_cloud_dispatch_skill.py.
+
+  - id: codex-cloud-dispatch
+    name: Codex Cloud Dispatch
+    path: canonical/codex-cloud-dispatch/skill.md
+    owner_agent: any
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/codex-cloud-dispatch.md
+    project_skill: .claude/skills/codex-cloud-dispatch.md

@@ -85,3 +85,19 @@ jobs:
           name: ios-test-artifacts
           path: |
             build/ios/Catchbook.xcresult
+
+  doc-path-check:
+    # Advisory only — fails are visible in logs but do not block the
+    # workflow. Promote to required once the remaining findings are
+    # addressed and we've decided on CI policy for doc-drift gating.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run check_doc_paths.sh (advisory)
+        run: |
+          echo "Advisory check: scripts/ci/check_doc_paths.sh"
+          echo "A non-zero exit will be visible in the logs but will not"
+          echo "fail this workflow until the check is promoted to required."
+          ./scripts/ci/check_doc_paths.sh

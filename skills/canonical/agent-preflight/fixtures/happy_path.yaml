@@ -1,0 +1,54 @@
+# Structural fixture — agent-preflight happy path.
+#
+# Freezes the canonical skill body's contract: every required output
+# field is documented, the forbidden-areas list is verbatim from
+# docs/preflight-for-agents.md, and the sibling-skill disambiguation
+# block names the three companion skills.
+
+- name: happy_path_shape
+  description: |
+    The canonical skill must declare every required output field,
+    name the read-first paths, distinguish default-safe from
+    explicit-approval areas, and route ambiguous calls to sibling
+    skills rather than guessing.
+  input:
+    skill_file: canonical/agent-preflight/skill.md
+    contract_file: canonical/agent-preflight/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "branch"
+      - "dirty_files"
+      - "read_first_present"
+      - "default_safe_areas"
+      - "explicit_approval_areas"
+      - "forbidden_areas"
+      - "product_in_scope"
+      - "REPO_MAP.md"
+      - "docs/preflight-for-agents.md"
+      - "docs/skills-index.md"
+      - "infra/products.json"
+      - "repo-onboarding"
+      - "handoff-write"
+      - "stale-doc-detector"
+      - "4 KB"
+      - "No product source inspection"
+      - "any file under `products/`"
+    required_sections:
+      - "## Purpose"
+      - "## When to invoke"
+      - "## Contract"
+      - "## Procedure"
+      - "## Boundaries and failure modes"
+    required_contract_inputs:
+      - task_scope
+      - include_skills_index
+    required_contract_outputs:
+      - branch
+      - dirty
+      - dirty_files
+      - read_first_present
+      - default_safe_areas
+      - explicit_approval_areas
+      - forbidden_areas
+      - product_in_scope
+      - warnings

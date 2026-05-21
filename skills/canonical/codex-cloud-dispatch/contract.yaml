@@ -1,0 +1,72 @@
+inputs:
+  - name: task_description
+    type: string
+    required: true
+  - name: files_allowed_to_edit
+    type: list
+    item_type: string
+    required: true
+    soft_cap: 4
+  - name: files_do_not_edit
+    type: list
+    item_type: string
+    required: true
+    always_includes:
+      - "tests/**"
+      - "_PREEXISTING_FAILURES"
+  - name: acceptance_criteria
+    type: list
+    item_type: string
+    required: true
+  - name: hard_constraints
+    type: list
+    item_type: string
+    required: false
+  - name: target_repo
+    type: string
+    default: "ai-company-os"
+  - name: target_branch
+    type: string
+    default: "staging"
+    constant: true
+outputs:
+  - name: dispatched_task_title
+    type: string
+  - name: pr_url
+    type: string
+  - name: diff_size
+    type: string
+  - name: allowed_files_in_brief
+    type: list
+    item_type: string
+  - name: scope_check_passed
+    type: boolean
+  - name: pytest_nodeids_flipped
+    type: list
+    item_type: string
+    required: false
+invariants:
+  - "Base branch is staging"
+  - "Repo chip is ai-company-os"
+  - "One task per dispatch unless explicitly batched"
+  - "Never delete or weaken the xfail shim"
+  - "Policies and schemas and canonical skills require explicit approval"
+  - "Use the documented Chrome MCP contenteditable typing sequence"
+  - "Open the PR against the staging base branch is the literal PR-line instruction"
+  - "No direct merges, approvals, or pushes"
+  - "Preserve task-specific scope boundaries"
+  - "Human review before merge"
+  - "Final report captures task title and PR link"
+  - "Stop if Codex Cloud UI flow differs from documented assumptions"
+brief_sections:
+  - "Title line"
+  - "CONTEXT"
+  - "TASK"
+  - "FILES ALLOWED TO EDIT"
+  - "DO NOT EDIT"
+  - "HARD CONSTRAINTS"
+  - "ACCEPTANCE CRITERIA"
+  - "PR line"
+helper:
+  reference_doc: docs/codex-cloud-dispatch.md
+  chrome_mcp_namespace: "mcp__Claude_in_Chrome__"

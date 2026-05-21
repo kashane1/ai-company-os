@@ -82,7 +82,7 @@ Run the iOS test lane with:
 ./scripts/test_ios.sh
 ```
 
-This regenerates the Xcode project from `products/fishing-logbook-ios/project.yml`, runs `xcodebuild test`, and reports target coverage with `xccov`.
+This regenerates the Xcode project from `products/catchbook-ios/project.yml`, runs `xcodebuild test`, and reports target coverage with `xccov`.
 
 ## Local State Directories
 
@@ -134,6 +134,6 @@ Coverage failures should be interpreted as a signal to add tests for determinist
 The repo also enforces a shared tests-with-code policy:
 
 - logic-bearing Python changes require created or modified tests under `tests/python/`
-- logic-bearing iOS changes require created or modified tests under `products/fishing-logbook-ios/Tests/`
+- logic-bearing iOS changes require created or modified tests under `products/catchbook-ios/Tests/`
 - valid no-test exceptions must be declared with a machine-readable `no_test_reason_code`
 - the required CI workflow always runs a `tests-with-code` guardrail job, so avoid assuming a path-filtered workflow can stand in for that check
