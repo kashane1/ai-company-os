@@ -58,10 +58,16 @@ def test_lane_for_worker_lane(worker_lane: WorkerLane) -> TestLane:
 
 def logic_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) -> list[str]:
     if lane is TestLane.PYTHON:
+        # Only actual Python source files are logic-bearing for this lane.
+        # Without the `.py` filter, docs-only changes such as
+        # `apps/**/README.md` were misclassified as logic and wrongly
+        # required matching `tests/python/` changes.
         return [
             change.path
             for change in changes
-            if change.path.startswith(("apps/", "packages/")) and not is_test_path(change.path, lane)
+            if change.path.startswith(("apps/", "packages/"))
+            and change.path.endswith(".py")
+            and not is_test_path(change.path, lane)
         ]
     if lane is TestLane.IOS:
         return [
