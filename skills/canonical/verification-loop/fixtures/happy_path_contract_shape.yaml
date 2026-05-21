@@ -43,3 +43,26 @@
       - infra_errors
     required_contract_violations:
       - VERIFICATION_LOOP_HARD_FAIL
+
+- name: deferred_subcheck_declares_stale_doc_detector
+  description: |
+    The canonical skill must declare `stale-doc-detector` as a deferred
+    sub-check (not an active one — that would trip the god-object
+    split rule). The declaration freezes the wiring intent already
+    advertised by `skills/canonical/stale-doc-detector/skill.md` and
+    keeps the MVP count at 3 active sub-checks. The "MVP — 3, not 6"
+    section heading must remain unchanged so the guardrail is honest
+    about active-vs-deferred composition.
+  input:
+    skill_file: canonical/verification-loop/skill.md
+  expected:
+    required_strings_in_skill:
+      - "Deferred sub-checks"
+      - "stale-doc-detector"
+      - "check_doc_paths.sh"
+      - "4th sub-check"
+      - "verification-loop-structural"
+      - "verification-loop-runtime"
+    required_sections:
+      - "## Sub-checks (MVP — 3, not 6)"
+      - "## Boundaries and failure modes"

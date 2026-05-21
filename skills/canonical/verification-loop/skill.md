@@ -79,6 +79,15 @@ Deferred sub-checks (not in MVP; add back when input is stable):
   check would have caught a known failure.
 - `dispatch-health` read — depends on an unshipped Hermes
   cross-cutting stream.
+- `stale-doc-detector` doc-path drift scan — wraps
+  `scripts/ci/check_doc_paths.sh` and adds product-name drift
+  classification. Declared here because
+  `skills/canonical/stale-doc-detector/skill.md` already names
+  `verification-loop` as the intended caller. Deferred from active
+  composition: it would be the 4th sub-check, which trips the
+  god-object split rule below. Activation requires the
+  `verification-loop` → `verification-loop-structural` split first
+  (the runtime half, `verification-loop-runtime`, already exists).
 
 When a deferred sub-check is not composed at runtime, the aggregator
 records its slot as `severity: skipped` in the report. `skipped`
