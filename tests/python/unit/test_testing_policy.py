@@ -247,3 +247,70 @@ def test_check_tests_with_code_script_passes_docs_only_changes(tmp_path: Path) -
 
     assert completed.returncode == 0
     assert "No logic-bearing Python or iOS source changes detected." in completed.stdout
+
+
+def test_logic_paths_for_lane_ignores_apps_readme_markdown() -> None:
+    """Regression (PR #54): docs-only README files under apps/ are not
+    Python logic-bearing changes. Before the fix, every non-test file
+    under apps/ or packages/ was misclassified as Python logic."""
+    changes = testing.parse_name_status_lines(
+        [
+            "A\tapps/api/README.md",
+            "A\tapps/worker-ios/README.md",
+        ]
+    )
+
+    assert testing.logic_paths_for_lane(changes, LaneEnum.PYTHON) == []
+
+
+def test_logic_paths_for_lane_counts_real_python_under_apps() -> None:
+    """An actual .py file under apps/ is still logic-bearing for the Python lane."""
+    changes = testing.parse_name_status_lines(["M\tapps/api/platform.py"])
+
+    assert testing.logic_paths_for_lane(changes, LaneEnum.PYTHON) == ["apps/api/platform.py"]
+
+
+def test_logic_paths_for_lane_counts_real_python_under_packages() -> None:
+    """An actual .py file under packages/ is still logic-bearing for the Python lane."""
+    changes = testing.parse_name_status_lines(["M\tpackages/policies/testing.py"])
+
+    assert testing.logic_paths_for_lane(changes, LaneEnum.PYTHON) == [
+        "packages/policies/testing.py"
+    ]
+
+
+def test_check_tests_with_code_script_passes_apps_readme_only_changes(
+    tmp_path: Path,
+) -> None:
+    """End-to-end regression (PR #54): a docs-only PR touching only
+    apps/**/README.md exits 0 instead of failing missing_tests_for_logic_change."""
+    changed_files = tmp_path / "changed.txt"
+    changed_files.write_text(
+        "\n".join(
+            [
+                "M\tapps/README.md",
+                "A\tapps/api/README.md",
+                "A\tapps/worker-ios/README.md",
+            ]
+        )
+        + "\n"
+    )
+    metadata_path = tmp_path / "metadata.md"
+    metadata_path.write_text("## Testing\n\n- docs-only worker READMEs\n")
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/ci/check_tests_with_code.py",
+            "--changed-files",
+            str(changed_files),
+            "--metadata-file",
+            str(metadata_path),
+        ],
+        cwd=Path(__file__).resolve().parents[3],
+        text=True,
+        capture_output=True,
+    )
+
+    assert completed.returncode == 0
+    assert "No logic-bearing Python or iOS source changes detected." in completed.stdout
