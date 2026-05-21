@@ -2,6 +2,12 @@ import XCTest
 @testable import Catchbook
 
 final class SpotRecallSummaryTests: XCTestCase {
+    private var utcCalendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        return calendar
+    }
+
     func testBuildAggregatesRecentTripsAndCatchInsights() {
         let waterbody = Waterbody(name: "River Bend", type: .river)
         let spot = Spot(title: "Dock", waterbody: waterbody)
@@ -58,10 +64,16 @@ final class SpotRecallSummaryTests: XCTestCase {
             ),
         ]
 
+        // Pin the calendar to UTC so the time-of-day bucketing in
+        // `SpotRecallSummary.build` is deterministic regardless of the
+        // host timezone (CI runs on UTC; developer machines do not).
+        // In UTC, the two recentTrip catches (epoch 1_711_900_100,
+        // 1_711_900_200) fall at hour 16 → "3-7 PM".
         let summary = SpotRecallSummary.build(
             for: spot,
             trips: [olderTrip, recentTrip, offSpotTrip],
-            catches: catches
+            catches: catches,
+            calendar: utcCalendar
         )
 
         XCTAssertEqual(summary.recentTrips.count, 2)
@@ -76,7 +88,7 @@ final class SpotRecallSummaryTests: XCTestCase {
         XCTAssertNil(summary.speciesInsight)
         XCTAssertNil(summary.conditionsInsight)
         XCTAssertNil(summary.lureInsight)
-        XCTAssertEqual(summary.bestTimeWindow, "6-9 AM")
+        XCTAssertEqual(summary.bestTimeWindow, "3-7 PM")
         XCTAssertEqual(summary.bestTimeWindowSupportCount, 2)
         XCTAssertEqual(summary.mostEffectiveLure, "Spinner")
         XCTAssertEqual(summary.mostEffectiveLureSupportCount, 2)
