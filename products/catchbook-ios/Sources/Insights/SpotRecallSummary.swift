@@ -225,7 +225,12 @@ struct SpotRecallSummary {
         return cards
     }
 
-    static func build(for spot: Spot, trips: [Trip], catches: [CatchRecord]) -> SpotRecallSummary {
+    static func build(
+        for spot: Spot,
+        trips: [Trip],
+        catches: [CatchRecord],
+        calendar: Calendar = .current
+    ) -> SpotRecallSummary {
         let spotTrips = trips.filter { $0.spot?.id == spot.id }
             .sorted { $0.startAt > $1.startAt }
         let tripIDs = Set(spotTrips.map(\.id))
@@ -237,7 +242,7 @@ struct SpotRecallSummary {
 
         var timeWindowCounts: [String: Int] = [:]
         for catchRecord in spotCatches {
-            let label = timeWindowLabel(for: catchRecord.caughtAt)
+            let label = timeWindowLabel(for: catchRecord.caughtAt, calendar: calendar)
             timeWindowCounts[label, default: 0] += 1
         }
 
@@ -292,7 +297,7 @@ struct SpotRecallSummary {
             completedTrips: completedTrips,
             successfulTripIDs: successfulTripIDs
         )
-        let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips)
+        let seasonalityInsight = strongestSeasonalityInsight(for: productiveTrips, calendar: calendar)
         let recentCatches = Array(spotCatches.prefix(3)).map { catchRecord in
             RecentCatchSummary(
                 id: catchRecord.id,
