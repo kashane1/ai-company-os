@@ -1,0 +1,54 @@
+# Structural fixture — handoff-write happy path.
+#
+# Freezes the canonical skill body's contract: the eight required
+# section headings, the YYYY-MM-DD-<slug>.md filename pattern, the
+# refuse-to-overwrite policy, and the do-not-touch-root-HANDOFF rule.
+
+- name: happy_path_shape
+  description: |
+    The canonical skill must declare the eight required handoff
+    sections, the dated filename pattern, the no-overwrite rule, and
+    the no-commit/no-push boundary.
+  input:
+    skill_file: canonical/handoff-write/skill.md
+    contract_file: canonical/handoff-write/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "What changed"
+      - "What is open"
+      - "What is blocked"
+      - "What is stale"
+      - "Files touched"
+      - "Validation run"
+      - "Exact next action"
+      - "Resume prompt"
+      - "YYYY-MM-DD-<slug>.md"
+      - "docs/handoffs/INDEX.md"
+      - "Never overwrites"
+      - "Never edits the root `HANDOFF.md`"
+      - "Never commits, never pushes"
+      - "same_day_counter"
+    required_sections:
+      - "## Purpose"
+      - "## When to invoke"
+      - "## Contract"
+      - "## Procedure"
+      - "## Boundaries and failure modes"
+    required_contract_inputs:
+      - slug
+      - session_summary
+    required_contract_outputs:
+      - handoff_path
+      - wrote_file
+
+- name: adversarial_overwrite_refusal
+  description: |
+    The skill must refuse to overwrite an existing handoff and
+    require the operator to bump same_day_counter or merge manually.
+  input:
+    skill_file: canonical/handoff-write/skill.md
+  expected:
+    required_strings_in_skill:
+      - "Refuse to overwrite"
+      - "wrote_file: false"
+      - "same_day_counter"

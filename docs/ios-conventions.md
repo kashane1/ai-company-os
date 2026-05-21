@@ -16,7 +16,7 @@ Use `os.Logger`. Do not use `print` in production code paths.
 ```swift
 import OSLog
 
-private let logger = Logger(subsystem: "com.ai-company-os.fishing-logbook", category: "LocationRecorder")
+private let logger = Logger(subsystem: "com.ai-company-os.catchbook", category: "LocationRecorder")
 
 // state transitions → .debug
 logger.debug("Location authorization changed: \(status.rawValue)")

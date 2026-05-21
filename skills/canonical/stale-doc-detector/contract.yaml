@@ -1,0 +1,52 @@
+inputs:
+  - name: doc_paths
+    type: list
+    item_type: string
+    required: false
+    default_source: scripts/ci/check_doc_paths.sh
+  - name: product_ids
+    type: list
+    item_type: string
+    required: false
+    default_source: infra/products.json
+  - name: legacy_slug_hints
+    type: list
+    item_type: string
+    default: ["fishing-logbook"]
+outputs:
+  - name: verdict
+    type: enum
+    values: [pass, fail]
+  - name: path_findings
+    type: list
+    item_shape:
+      - name: doc
+        type: string
+      - name: token
+        type: string
+      - name: classification
+        type: enum
+        values: [fix_now, allowlist, founder_decision, ignore]
+      - name: reason
+        type: string
+  - name: name_findings
+    type: list
+    item_shape:
+      - name: doc
+        type: string
+      - name: line
+        type: integer
+      - name: slug
+        type: string
+      - name: classification
+        type: enum
+        values: [fix_now, allowlist, founder_decision, ignore]
+      - name: reason
+        type: string
+  - name: helper_exit_code
+    type: integer
+  - name: report_path
+    type: string
+helper:
+  script: scripts/ci/check_doc_paths.sh
+  contract: emits "<doc> -> <token>" per broken reference; exits 0 clean, 1 on findings

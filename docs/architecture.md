@@ -286,7 +286,7 @@ Structured validator and task-run outputs include:
 The shared rule is:
 
 - logic-bearing Python changes under `apps/` or `packages/` require created or modified tests under `tests/python/`
-- logic-bearing iOS changes under `products/fishing-logbook-ios/Sources/` require created or modified tests under `products/fishing-logbook-ios/Tests/`
+- logic-bearing iOS changes under `products/catchbook-ios/Sources/` require created or modified tests under `products/catchbook-ios/Tests/`
 - docs-only, generated-file, visual-only non-logic, comments-only, and config-no-behavior-change cases must use explicit machine-readable exceptions when no tests are added
 - `approved_followup_test_task` is valid only when the referenced task already exists in persisted task state, remains open, and matches the same lane and affected area
 
