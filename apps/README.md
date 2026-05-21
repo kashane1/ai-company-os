@@ -37,7 +37,8 @@ The pattern: each worker app gets a short README documenting its lane
 boundary, entrypoint, task type, allowed boundaries, forbidden areas,
 and validation expectations. See
 [worker-engineering/README.md](worker-engineering/README.md) for the
-reference shape. Other workers will follow.
+reference shape. Every app directory in the lane table above now has
+one.
 
 ## When to add a new app
 
