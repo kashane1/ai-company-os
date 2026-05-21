@@ -1,0 +1,68 @@
+# Structural fixture — verification-loop-runtime contract shape.
+#
+# Freezes the canonical skill body + contract.yaml of the runtime-evidence
+# half of the verification-loop split. Mirrors the sibling
+# `verification-loop` fixture pattern: required strings, required
+# sections, contract inputs/outputs.
+#
+# Verdict correctness of the runner itself is covered by the dedicated
+# behavior tests in `tests/python/unit/test_verification_loop_runtime.py`
+# (those exercise `verification_loop_runtime_runner.run()` against
+# real PostMortemStore state). This fixture only freezes the
+# CONTRACT, not any LLM-verdict run.
+
+- name: happy_path_contract_shape
+  description: |
+    The canonical skill must declare the MVP `stale_postmortems`
+    sub-check, the 5-state severity enum, the 3-state verdict enum,
+    the H1 audit-log cross-check, the read-only boundary, and the
+    "never raises" runner contract.
+  input:
+    skill_file: canonical/verification-loop-runtime/skill.md
+    contract_file: canonical/verification-loop-runtime/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "stale_postmortems"
+      - "verification_loop_runtime_runner"
+      - "pass"
+      - "soft_fail"
+      - "hard_fail"
+      - "info"
+      - "warn"
+      - "fail"
+      - "error"
+      - "skipped"
+      - "audit log"
+      - "H1"
+      - "Read-only"
+      - "No raising"
+    required_sections:
+      - "## Purpose"
+      - "## When to invoke"
+      - "## Sub-checks (MVP — 1, room for future)"
+      - "## Severity & verdict aggregation"
+      - "## Boundaries"
+      - "## References"
+    required_contract_inputs:
+      - now_iso
+      - threshold_days
+    required_contract_outputs:
+      - schema_version
+      - verdict
+      - sub_checks
+      - infra_errors
+
+- name: adversarial_lane_owns_operator_failures
+  description: |
+    The skill must explicitly state that the failing party for runtime
+    checks is the operator (not the registry) — this is the lane-split
+    invariant that justifies the separate skill ID. Without this
+    string the lane can drift into structural-drift territory and
+    duplicate `verification-loop`.
+  input:
+    skill_file: canonical/verification-loop-runtime/skill.md
+  expected:
+    required_strings_in_skill:
+      - "operator"
+      - "registry"
+      - "Runtime-evidence"

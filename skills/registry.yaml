@@ -665,7 +665,15 @@ skills:
     target_runtimes: [claude]
     stage: active
     kind: agentic
-    fixture_status: missing
+    # Promoted from `missing` to `passing` once the structural-contract
+    # fixture landed under
+    # skills/canonical/verification-loop-runtime/fixtures/ and the
+    # dedicated structural test at
+    # tests/python/unit/test_verification_loop_runtime_skill.py
+    # exercised it. Runner verdict correctness remains covered by
+    # tests/python/unit/test_verification_loop_runtime.py (behavior).
+    # Sibling structural lane: `verification-loop`.
+    fixture_status: passing
     self_evolvable: false
     source: internal
     adapters:
