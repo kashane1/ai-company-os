@@ -314,3 +314,134 @@ def test_check_tests_with_code_script_passes_apps_readme_only_changes(
 
     assert completed.returncode == 0
     assert "No logic-bearing Python or iOS source changes detected." in completed.stdout
+
+
+def _run_check_script(
+    tmp_path: Path,
+    changed_lines: list[str],
+    metadata_text: str,
+    *,
+    event_name: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    """Invoke scripts/ci/check_tests_with_code.py the way CI does.
+
+    `event_name=None` omits the flag, exercising the script's default
+    (fail-closed `pull_request` enforcement).
+    """
+    changed_files = tmp_path / "changed.txt"
+    changed_files.write_text("\n".join(changed_lines) + "\n")
+    metadata_path = tmp_path / "metadata.md"
+    metadata_path.write_text(metadata_text)
+    cmd = [
+        sys.executable,
+        "scripts/ci/check_tests_with_code.py",
+        "--changed-files",
+        str(changed_files),
+        "--metadata-file",
+        str(metadata_path),
+    ]
+    if event_name is not None:
+        cmd += ["--event-name", event_name]
+    return subprocess.run(
+        cmd,
+        cwd=Path(__file__).resolve().parents[3],
+        text=True,
+        capture_output=True,
+    )
+
+
+def test_check_tests_with_code_push_logic_change_without_pr_body_passes(
+    tmp_path: Path,
+) -> None:
+    """Regression: a `push` event carries no PR body, so a logic change
+    must not fail solely for missing `## Testing` metadata — that gate was
+    already enforced when the change merged as a pull request."""
+    result = _run_check_script(
+        tmp_path,
+        ["M\tpackages/policies/testing.py"],
+        "",
+        event_name="push",
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "pull_request-only" in result.stdout
+
+
+def test_check_tests_with_code_push_reports_matching_tests_in_diff(
+    tmp_path: Path,
+) -> None:
+    """On a `push`, the script still reports lane-matching tests visible in
+    the pushed diff even though it cannot read a PR body."""
+    result = _run_check_script(
+        tmp_path,
+        [
+            "M\tpackages/policies/testing.py",
+            "M\ttests/python/unit/test_testing_policy.py",
+        ],
+        "",
+        event_name="push",
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "matching test file(s)" in result.stdout
+
+
+def test_check_tests_with_code_push_docs_only_passes(tmp_path: Path) -> None:
+    """A docs-only `push` has no logic-bearing changes and passes."""
+    result = _run_check_script(
+        tmp_path, ["M\tapps/api/README.md"], "", event_name="push"
+    )
+
+    assert result.returncode == 0
+    assert "No logic-bearing Python or iOS source changes detected." in result.stdout
+
+
+def test_check_tests_with_code_pull_request_logic_without_testing_section_fails(
+    tmp_path: Path,
+) -> None:
+    """PR enforcement preserved: a logic change whose PR body has no
+    `## Testing` section still fails on a `pull_request` event."""
+    result = _run_check_script(
+        tmp_path,
+        ["M\tpackages/policies/testing.py"],
+        "## Summary\n\n- no testing section here\n",
+        event_name="pull_request",
+    )
+
+    assert result.returncode == 1
+    assert "python: missing_testing_metadata" in result.stdout
+
+
+def test_check_tests_with_code_pull_request_logic_with_tests_and_section_passes(
+    tmp_path: Path,
+) -> None:
+    """PR enforcement preserved: a logic change with matching tests and a
+    `## Testing` section passes on a `pull_request` event."""
+    result = _run_check_script(
+        tmp_path,
+        [
+            "M\tpackages/policies/testing.py",
+            "M\ttests/python/unit/test_testing_policy.py",
+        ],
+        "## Testing\n\n- added policy tests\n",
+        event_name="pull_request",
+    )
+
+    assert result.returncode == 0
+    assert "python: pass" in result.stdout
+
+
+def test_check_tests_with_code_pull_request_honors_no_test_exception(
+    tmp_path: Path,
+) -> None:
+    """PR no-test exceptions still behave: a valid `no_test_reason_code` in
+    the `## Testing` section lets a logic change pass without tests."""
+    result = _run_check_script(
+        tmp_path,
+        ["M\tpackages/policies/testing.py"],
+        "## Testing\n\nno_test_reason_code=comments_only\n- comment-only edit\n",
+        event_name="pull_request",
+    )
+
+    assert result.returncode == 0
+    assert "python: pass" in result.stdout
