@@ -19,6 +19,7 @@ state/artifacts/*
 state/checkpoints/*
 state/logs/*
 state/handshake/
+state/postmortems/
 
 !state/repos/.gitkeep
 !state/worktrees/.gitkeep
