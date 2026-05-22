@@ -52,8 +52,11 @@ aggregation that combines them.
 
 **Structural — `verification-loop-structural`** (runner:
 `verification_loop_runner.py`). *"Is the registry honest about what
-exists?"* — 3 MVP sub-checks: `reconciliation`, `skill_stocktake`,
-`changed_surface`. Per-sub-check severity rules live in that skill.
+exists?"* — 4 sub-checks: `reconciliation`, `skill_stocktake`,
+`changed_surface`, `stale_doc`. The `stale_doc` sub-check wraps
+`scripts/ci/check_doc_paths.sh` — the mechanical doc-path-existence
+portion of the `stale-doc-detector` skill. Per-sub-check severity
+rules live in that skill.
 
 **Runtime — `verification-loop-runtime`** (runner:
 `verification_loop_runtime_runner.py`). *"Is the system behaving as
@@ -62,23 +65,17 @@ registry. MVP sub-check: `stale_postmortems`.
 
 ## Deferred sub-checks
 
-Not in any MVP lane; add back when input is stable:
+Not in any lane yet; add back when input is stable:
 
 - `context_budget` composition — needs thresholds.
 - Recent-task-run `post-run-validation` audit — needs evidence it
   would have caught a known failure.
 - `dispatch-health` read — depends on an unshipped Hermes stream.
-- `stale-doc-detector` doc-path drift scan — wraps
-  `scripts/ci/check_doc_paths.sh`. Belongs in the **structural lane**
-  (`verification-loop-structural`): doc-path drift is registry/repo
-  honesty, not operator hygiene. The `verification-loop` →
-  `verification-loop-structural` split this waited on is now complete;
-  the remaining activation step is to add a `stale_doc` 4th sub-check
-  to `verification_loop_runner.py` with fixture + runner test — a
-  separate, scoped change.
 
 A deferred sub-check not composed at runtime is recorded as
-`severity: skipped`. `skipped` never affects the verdict.
+`severity: skipped`. `skipped` never affects the verdict. The
+`stale-doc-detector` doc-path scan — previously deferred here — is now
+active as the structural lane's `stale_doc` sub-check.
 
 ## Severity enum (5-state per todos 009 + 010)
 
@@ -119,10 +116,11 @@ are in the wrong module. Use the runner primitive instead.
 - **God-object trigger.** The structural/runtime split this guardrail
   once mandated is **done** — `verification-loop-structural` and
   `verification-loop-runtime` are separate skills. The guardrail now
-  applies **per lane**: a lane that acquires a 4th active sub-check or
-  conditional branching beyond its verdict aggregator must split the
-  new concern into its own skill. Hard limits per skill: canonical
-  body ≤ 300 md lines, policy wrapper ≤ 400 py lines.
+  applies **per lane**: every sub-check in a lane must share that
+  lane's failing party, and conditional branching beyond the verdict
+  aggregator — or growth past the hard limits (canonical body ≤ 300 md
+  lines, policy wrapper ≤ 400 py lines) — means a new concern needs
+  its own skill rather than another sub-check bolted onto a lane.
 - **Parallelism deferred (todo 019).** Sub-checks run sequentially.
 - **Performance.** < 3 s on the live repo.
 

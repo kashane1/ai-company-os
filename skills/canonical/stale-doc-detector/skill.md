@@ -56,8 +56,9 @@ Do NOT invoke this skill for:
 
 - Open-ended exploratory search (use `Explore`).
 - Per-skill registry drift (use `skill-stocktake`).
-- Pre-PR comprehensive verification (use `verification-loop`; it
-  should call this skill as a sub-check).
+- Pre-PR comprehensive verification (use `verification-loop`; its
+  structural lane runs the `stale_doc` sub-check, which wraps this
+  skill's `check_doc_paths.sh` doc-path check).
 
 If two trigger phrases could match, ask the operator.
 

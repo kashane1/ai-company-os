@@ -1,7 +1,7 @@
 ---
 id: verification-loop-structural
 name: Verification Loop (Structural)
-purpose: Structural-drift half of the verification-loop split. Composes reconciliation + skill-stocktake + changed-surface missing-tests into a pass | soft_fail | hard_fail verdict.
+purpose: Structural-drift half of the verification-loop split. Composes reconciliation + skill-stocktake + changed-surface missing-tests + stale-doc path check into a pass | soft_fail | hard_fail verdict.
 owner_agent: supervisor
 target_runtimes: [claude]
 stage: active
@@ -54,7 +54,7 @@ Inputs (keyword-only per the Python idiom rule in todo 015):
 Outputs: `VerificationLoopReport` with `verdict`, `sub_checks`,
 `infra_errors`, `since_ref`, `lookback_task_runs`, `schema_version`.
 
-## Sub-checks (MVP — 3, not 6)
+## Sub-checks (4)
 
 1. **`reconciliation`** — `reconcile_registry()`. Drift →
    `severity: fail` (real missing-fixture drift is always
@@ -65,6 +65,14 @@ Outputs: `VerificationLoopReport` with `verdict`, `sub_checks`,
 3. **`changed_surface`** — `git diff --name-only <ref>...HEAD`
    cross-referenced against lane rules. Logic file changed without
    a matching test file changed → `severity: fail`.
+4. **`stale_doc`** — wraps `scripts/ci/check_doc_paths.sh`, the
+   mechanical doc-path-existence portion of the `stale-doc-detector`
+   skill. Broken repo-relative path references in the entry docs →
+   `severity: fail` (`doc-path-check` is a required CI gate). The
+   agentic classification (`fix_now` / `allowlist` /
+   `founder_decision` / `ignore`) stays in the operator-invoked
+   `stale-doc-detector` skill; this sub-check is the deterministic,
+   CI-runnable portion.
 
 ## Severity & verdict aggregation
 
@@ -90,11 +98,13 @@ wrapper only) when any sub-check has `severity: fail`.
 - **Lane scope.** This lane owns checks where the failing party is the
   registry or the changed surface — not the operator. Operator-hygiene
   checks belong in `verification-loop-runtime`.
-- **God-object trigger.** A 4th active sub-check OR conditional
-  branching beyond the verdict aggregator means this lane is doing too
-  much — split the new concern into its own skill rather than growing
-  this one. Hard limits: canonical body ≤ 300 md lines, policy wrapper
-  ≤ 400 py lines.
+- **God-object trigger.** The four current sub-checks are cohesive —
+  each answers "is the repo honest about what exists?". A check with a
+  different failing party (e.g. operator hygiene) goes to a different
+  lane, not here. Conditional branching beyond the verdict aggregator,
+  or growth past the hard limits (canonical body ≤ 300 md lines, policy
+  wrapper ≤ 400 py lines), means a new concern needs its own skill
+  rather than another sub-check bolted on here.
 
 ## References
 
@@ -103,4 +113,6 @@ wrapper only) when any sub-check has `severity: fail`.
 - Runner primitive: `packages/tools/primitives/verification_loop_runner.py`.
 - Policy wrapper: `packages/policies/verification_loop.py`.
 - Composed: `reconcile_registry()`, `registry_drift.check_drift()`,
-  `_changed_surface_check()` (git diff cross-reference against testing.py).
+  `_changed_surface_check()` (git diff cross-reference against
+  testing.py), `_stale_doc_check()` (wraps
+  `scripts/ci/check_doc_paths.sh`).
