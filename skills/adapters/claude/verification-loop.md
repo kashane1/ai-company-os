@@ -1,5 +1,5 @@
 ---
-description: Pre-PR / pre-release quality-gate sweep composing reconciliation + skill-stocktake + changed-surface missing-tests into a single verdict. Invoke for "run the verification loop", "pre-PR sweep", "check if this is ready to merge", "run all the quality gates".
+description: Pre-PR / pre-release quality-gate umbrella over the structural and runtime verification lanes. Invoke for "run the verification loop", "pre-PR sweep", "check if this is ready to merge", "run all the quality gates".
 canonical_source: skills/canonical/verification-loop/skill.md
 ---
 
@@ -11,13 +11,12 @@ definition.
 
 ## Quick reference
 
-Three MVP sub-checks, sequential, aggregated via 5-state severity:
+`verification-loop` is the **umbrella** over two lanes:
 
-1. `reconciliation` — fixture drift on passing skills → `fail`.
-2. `skill_stocktake` — registry/adapter/trigger-phrase drift → `warn`
-   (known drift tolerated).
-3. `changed_surface` — logic file changed vs `since_ref` without
-   matching test file changed → `fail`.
+- **Structural** — `verification-loop-structural` (3 MVP sub-checks:
+  `reconciliation`, `skill_stocktake`, `changed_surface`). See
+  `skills/adapters/claude/verification-loop-structural.md`.
+- **Runtime** — `verification-loop-runtime` (`stale_postmortems`).
 
 Aggregator: any `fail` → `hard_fail`; else any `warn` or `error` →
 `soft_fail`; else `pass`. `skipped` sub-checks are metadata only.

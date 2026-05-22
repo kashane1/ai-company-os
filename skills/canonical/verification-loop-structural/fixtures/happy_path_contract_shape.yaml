@@ -1,0 +1,66 @@
+# Structural fixture — verification-loop-structural contract shape.
+#
+# Freezes the canonical skill body + contract.yaml of the structural-
+# drift half of the verification-loop split. Mirrors the sibling
+# `verification-loop-runtime` fixture pattern: required strings,
+# required sections, contract inputs/outputs/violations.
+#
+# Verdict correctness of the runner itself is covered by the dedicated
+# behavior tests in `tests/python/unit/test_verification_loop_runner.py`
+# (those exercise `verification_loop_runner.run()`). This fixture only
+# freezes the CONTRACT, not any verdict run.
+
+- name: happy_path_contract_shape
+  description: |
+    The canonical skill must declare the 3 MVP structural sub-checks,
+    the 5-state severity enum, the runner primitive, and the
+    VERIFICATION_LOOP_HARD_FAIL violation.
+  input:
+    skill_file: canonical/verification-loop-structural/skill.md
+    contract_file: canonical/verification-loop-structural/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "reconciliation"
+      - "skill_stocktake"
+      - "changed_surface"
+      - "pass"
+      - "soft_fail"
+      - "hard_fail"
+      - "info"
+      - "warn"
+      - "fail"
+      - "error"
+      - "skipped"
+      - "VERIFICATION_LOOP_HARD_FAIL"
+      - "verification_loop_runner"
+      - "God-object trigger"
+    required_sections:
+      - "## Purpose"
+      - "## When to invoke"
+      - "## Sub-checks (MVP — 3, not 6)"
+      - "## Severity & verdict aggregation"
+      - "## Boundaries"
+      - "## References"
+    required_contract_inputs:
+      - since_ref
+      - lookback_task_runs
+    required_contract_outputs:
+      - verdict
+      - sub_checks
+      - infra_errors
+    required_contract_violations:
+      - VERIFICATION_LOOP_HARD_FAIL
+
+- name: adversarial_lane_owns_registry_failures
+  description: |
+    The skill must explicitly state that the failing party for this
+    lane is the registry or the changed surface — not the operator.
+    This is the lane-split invariant that justifies the separate skill
+    ID and keeps it from duplicating `verification-loop-runtime`.
+  input:
+    skill_file: canonical/verification-loop-structural/skill.md
+  expected:
+    required_strings_in_skill:
+      - "registry"
+      - "operator"
+      - "verification-loop-runtime"

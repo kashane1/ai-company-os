@@ -16,7 +16,7 @@ Runtimes: claude
 
 ## Purpose
 
-`verification-loop` (the original) answers: *"Is the registry honest about
+`verification-loop-structural` answers: *"Is the registry honest about
 what exists?"* — structural drift checks. This skill answers a different
 question: *"Is the system behaving as we intended over time?"* — runtime
 evidence.
@@ -24,8 +24,8 @@ evidence.
 The failing party for a runtime check is usually the **operator** (the
 founder hasn't reviewed an open postmortem; an audit-log entry is
 missing) — not the registry. Different verdict semantics. That's why the
-two lanes are split per the god-object trigger documented at
-`verification-loop/skill.md:122-127`.
+two lanes are split per the god-object guardrail in the
+`verification-loop` umbrella skill.
 
 This lane is also load-bearing for the **H1 security mitigation** of the
 PostMortem store: the `stale_postmortems` sub-check cross-checks
@@ -77,6 +77,7 @@ Same 5-state enum as `verification-loop`:
 
 - Plan: `docs/plans/2026-04-27-feat-postmortem-schema-and-adaptive-feedback-loop-plan.md`.
 - Runner primitive: `packages/tools/primitives/verification_loop_runtime_runner.py`.
-- Sibling: `skills/canonical/verification-loop/skill.md` (structural).
+- Umbrella: `skills/canonical/verification-loop/skill.md`.
+- Sibling lane: `skills/canonical/verification-loop-structural/skill.md` (structural).
 - PostMortem store: `packages/db/postmortem_store.py`.
 - Audit log: `state/logs/postmortems/audit.jsonl` (append-only).
