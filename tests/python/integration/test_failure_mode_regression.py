@@ -26,6 +26,7 @@ def test_happy_path_writes_fixture(tmp_path: Path):
             "excerpt": "token=sk-abcdefghij0123456789ABCDEF boom",
             "payload": {"secret": "ghp_" + "A" * 24, "safe": "hello"},
             "fixtures_root": str(tmp_path),
+            "postmortems_root": str(tmp_path / "postmortems"),
             "now": "2026-04-10T08:00:00+00:00",
         }
     )
@@ -52,6 +53,7 @@ def test_dedupe_within_window(tmp_path: Path):
             "excerpt": "first",
             "payload": {},
             "fixtures_root": str(tmp_path),
+            "postmortems_root": str(tmp_path / "postmortems"),
             "now": "2026-04-10T08:00:00+00:00",
         }
     )
@@ -62,6 +64,7 @@ def test_dedupe_within_window(tmp_path: Path):
             "excerpt": "second",
             "payload": {},
             "fixtures_root": str(tmp_path),
+            "postmortems_root": str(tmp_path / "postmortems"),
             "now": "2026-04-10T12:00:00+00:00",
         }
     )
@@ -78,6 +81,7 @@ def test_capture_after_window(tmp_path: Path):
             "excerpt": "first",
             "payload": {},
             "fixtures_root": str(tmp_path),
+            "postmortems_root": str(tmp_path / "postmortems"),
             "now": "2026-04-09T08:00:00+00:00",
         }
     )
@@ -88,6 +92,7 @@ def test_capture_after_window(tmp_path: Path):
             "excerpt": "second",
             "payload": {},
             "fixtures_root": str(tmp_path),
+            "postmortems_root": str(tmp_path / "postmortems"),
             "now": "2026-04-10T09:00:00+00:00",
         }
     )
@@ -275,6 +280,7 @@ def test_self_failure_does_not_recurse(tmp_path: Path):
             "excerpt": "",
             "payload": {},
             "fixtures_root": str(tmp_path),
+            "postmortems_root": str(tmp_path / "postmortems"),
             "now": "2026-04-10T08:00:00+00:00",
         }
     )
