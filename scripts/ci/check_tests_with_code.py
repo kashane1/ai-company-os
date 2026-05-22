@@ -15,8 +15,9 @@ from packages.policies.testing import (  # noqa: E402
     logic_paths_for_lane,
     parse_name_status_lines,
     parse_testing_metadata,
+    relevant_test_paths_for_lane,
 )
-from packages.schemas.testing import TestLane  # noqa: E402
+from packages.schemas.testing import TestLane, ValidationFailureCode  # noqa: E402
 
 
 def main() -> int:
@@ -27,7 +28,24 @@ def main() -> int:
         default="",
         help="Optional markdown file containing a ## Testing section, such as a PR body.",
     )
+    parser.add_argument(
+        "--event-name",
+        default="pull_request",
+        help=(
+            "GitHub event name. The PR-body `## Testing` metadata gate is "
+            "only enforced for `pull_request`; other events (e.g. `push`) "
+            "carry no PR body, so that gate is reported but not failed. "
+            "Defaults to `pull_request` so the strict path is fail-closed."
+        ),
+    )
     args = parser.parse_args()
+
+    # The `## Testing` metadata gate is a pull-request-review-time check.
+    # A `push` event (e.g. a merge landing on main) has no PR body, so the
+    # gate cannot be evaluated — and it was already enforced when the
+    # change merged as a pull request. `pull_request` keeps full
+    # enforcement; anything else only reports what the diff alone shows.
+    pr_context = args.event_name == "pull_request"
 
     changed_lines = Path(args.changed_files).read_text().splitlines()
     changes = parse_name_status_lines(changed_lines)
@@ -45,6 +63,29 @@ def main() -> int:
             continue
         checked_any_lane = True
         result = evaluate_testing_policy(lane=lane, changes=changes, testing_metadata=metadata)
+
+        if (
+            not pr_context
+            and result.failure_code is ValidationFailureCode.MISSING_TESTING_METADATA
+        ):
+            # No PR body on this event. Report what the diff alone shows
+            # (matching test files present?) and do not fail — the
+            # `## Testing` gate ran when this change merged as a PR.
+            test_paths = relevant_test_paths_for_lane(changes, lane)
+            if test_paths:
+                print(
+                    f"{lane.value}: logic change shipped with "
+                    f"{len(test_paths)} matching test file(s) in the diff; "
+                    f"PR-body metadata check is pull_request-only"
+                )
+            else:
+                print(
+                    f"{lane.value}: PR-body `## Testing` metadata check is "
+                    f"pull_request-only; not enforced on {args.event_name!r} "
+                    f"events (enforced when this change merged as a PR)"
+                )
+            continue
+
         if result.failure_code:
             failures.append(f"{lane.value}: {result.failure_code.value} ({result.details})")
         else:

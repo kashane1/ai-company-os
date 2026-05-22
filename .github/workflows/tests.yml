@@ -39,7 +39,8 @@ jobs:
         run: |
           python3 ./scripts/ci/check_tests_with_code.py \
             --changed-files build/ci/changed-files.txt \
-            --metadata-file build/ci/testing-metadata.md
+            --metadata-file build/ci/testing-metadata.md \
+            --event-name "${{ github.event_name }}"
 
   python-tests:
     runs-on: ubuntu-latest
