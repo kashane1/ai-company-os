@@ -1,7 +1,7 @@
 ---
 id: verification-loop
 name: Verification Loop
-purpose: Pre-PR / pre-release quality gate that composes reconciliation + skill-stocktake + changed-surface missing-tests into a single aggregated report with pass | soft_fail | hard_fail verdict.
+purpose: Pre-PR / pre-release quality-gate umbrella. Composes the structural and runtime verification lanes into a single pass | soft_fail | hard_fail verdict.
 owner_agent: supervisor
 target_runtimes: [claude]
 stage: active
@@ -16,82 +16,69 @@ Runtimes: claude
 
 ## Purpose
 
-`reconcile_registry()` is structural. `skill-stocktake` finds orphan
-canonical files. `context-budget` reports lane token totals.
-`post-run-validation` validates a single task run. None of these is
-the higher-level "is this PR ready to merge?" sweep.
-
-This skill is that sweep. It composes (does NOT replace) the
-existing validators into a single `VerificationLoopReport` with a
-verdict and a full sub-check trace. Operators invoke it via trigger
-phrase; CI invokes it via the policy wrapper at
-`packages/policies/verification_loop.py`.
+The higher-level "is this PR ready to merge?" sweep. `verification-loop`
+is the **umbrella** over two verification lanes — it composes (does NOT
+replace) them into one `VerificationLoopReport` with a verdict and a
+full sub-check trace.
 
 **Explicit non-goal:** `verification-loop` never writes, never
-dispatches, never mutates the registry. It reads every input and
-reports.
+dispatches, never mutates the registry. It reads every input and reports.
 
 ## When to invoke
 
-- Pre-PR: operator via trigger phrases — "run the verification
-  loop", "pre-PR sweep", "check if this is ready to merge", "run
-  all the quality gates".
+- Pre-PR: operator trigger phrases — "run the verification loop",
+  "pre-PR sweep", "check if this is ready to merge", "run all the
+  quality gates".
 - CI / merge gate: `packages.policies.verification_loop.run_verification_loop()`
-  raises `PolicyViolation(VERIFICATION_LOOP_HARD_FAIL)` on hard
-  fail. CI catches and blocks merge.
-- Advisory (non-Claude runtimes): `packages.tools.primitives.verification_loop_runner.run()`
-  returns the typed report without raising.
+  raises `PolicyViolation(VERIFICATION_LOOP_HARD_FAIL)` on hard fail.
+- Advisory: `packages.tools.primitives.verification_loop_runner.run()`
+  returns the typed structural report without raising.
 
 ## Contract
 
-Inputs (keyword-only per the Python idiom rule in todo 015):
+Inputs (keyword-only, todo 015): `since_ref: str = "main"`,
+`lookback_task_runs: int = 20`, `known_drift: tuple[str, ...]`.
 
-- `since_ref: str = "main"` — git ref the changed-surface check
-  diffs against.
-- `lookback_task_runs: int = 20` — reserved for the deferred
-  task-run audit sub-check.
-- `known_drift: tuple[str, ...]` — substrings tagged as pre-existing
-  known drift; the aggregator tolerates them.
+Outputs: `VerificationLoopReport` with `verdict`
+(`pass | soft_fail | hard_fail`), `sub_checks`
+(`{name, severity, summary, detail}`), `infra_errors`, `since_ref`,
+`lookback_task_runs`, `schema_version`.
 
-Outputs: `VerificationLoopReport` with
-- `verdict`: `"pass" | "soft_fail" | "hard_fail"`.
-- `sub_checks`: list of `{name, severity, summary, detail}`.
-- `infra_errors`: list of sub-check names that crashed (severity
-  `error` — mapped to `soft_fail`, never `hard_fail`).
-- `since_ref`, `lookback_task_runs`, `schema_version`.
+## Verification lanes
 
-## Sub-checks (MVP — 3, not 6)
+Two lanes, each its own canonical skill with its own runner primitive.
+This umbrella owns only the shared severity vocabulary and the verdict
+aggregation that combines them.
 
-1. **`reconciliation`** — `reconcile_registry()`. Drift →
-   `severity: fail` (real missing-fixture drift is always
-   hard-failing; this is the `reconcile_registry` hard gate).
-2. **`skill_stocktake`** — `registry_drift.check_drift()`. Drift →
-   `severity: warn` (soft — drift is a signal, not a merge blocker
-   by default). Known drift is tolerated.
-3. **`changed_surface`** — `git diff --name-only <ref>...HEAD`
-   cross-referenced against lane rules. Logic file changed without
-   a matching test file changed → `severity: fail`.
+**Structural — `verification-loop-structural`** (runner:
+`verification_loop_runner.py`). *"Is the registry honest about what
+exists?"* — 3 MVP sub-checks: `reconciliation`, `skill_stocktake`,
+`changed_surface`. Per-sub-check severity rules live in that skill.
 
-Deferred sub-checks (not in MVP; add back when input is stable):
+**Runtime — `verification-loop-runtime`** (runner:
+`verification_loop_runtime_runner.py`). *"Is the system behaving as
+intended over time?"* — the failing party is the operator, not the
+registry. MVP sub-check: `stale_postmortems`.
+
+## Deferred sub-checks
+
+Not in any MVP lane; add back when input is stable:
 
 - `context_budget` composition — needs thresholds.
-- Recent-task-run `post-run-validation` audit — needs evidence the
-  check would have caught a known failure.
-- `dispatch-health` read — depends on an unshipped Hermes
-  cross-cutting stream.
+- Recent-task-run `post-run-validation` audit — needs evidence it
+  would have caught a known failure.
+- `dispatch-health` read — depends on an unshipped Hermes stream.
 - `stale-doc-detector` doc-path drift scan — wraps
-  `scripts/ci/check_doc_paths.sh` and adds product-name drift
-  classification. Declared here because
-  `skills/canonical/stale-doc-detector/skill.md` already names
-  `verification-loop` as the intended caller. Deferred from active
-  composition: it would be the 4th sub-check, which trips the
-  god-object split rule below. Activation requires the
-  `verification-loop` → `verification-loop-structural` split first
-  (the runtime half, `verification-loop-runtime`, already exists).
+  `scripts/ci/check_doc_paths.sh`. Belongs in the **structural lane**
+  (`verification-loop-structural`): doc-path drift is registry/repo
+  honesty, not operator hygiene. The `verification-loop` →
+  `verification-loop-structural` split this waited on is now complete;
+  the remaining activation step is to add a `stale_doc` 4th sub-check
+  to `verification_loop_runner.py` with fixture + runner test — a
+  separate, scoped change.
 
-When a deferred sub-check is not composed at runtime, the aggregator
-records its slot as `severity: skipped` in the report. `skipped`
-never affects the verdict.
+A deferred sub-check not composed at runtime is recorded as
+`severity: skipped`. `skipped` never affects the verdict.
 
 ## Severity enum (5-state per todos 009 + 010)
 
@@ -103,9 +90,9 @@ never affects the verdict.
 | `error`  | Sub-check crashed (platform bug).                    | contributes to `soft_fail` (never `hard_fail`) |
 | `skipped`| Input absent or deferred sub-check.                   | none                |
 
-The `fail` vs `error` split is critical. A platform bug that makes
-a sub-check crash should NOT block merges — it blocks the team and
-should route to a bug fix on the skill, not a red X on a PR.
+The `fail` vs `error` split is critical. A platform bug that crashes a
+sub-check should NOT block merges — it routes to a skill bug fix, not a
+red X on a PR.
 
 ## Caller → entry-point mapping (per todo 013)
 
@@ -117,33 +104,31 @@ should route to a bug fix on the skill, not a red X on a PR.
 | Codex / ACP peer                         | `packages/tools/primitives/verification_loop_runner.py`  |
 | Hermes `worker-skill-evolution`          | `packages/tools/primitives/verification_loop_runner.py`  |
 
-**Rule:** if you catch `PolicyViolation` from the policy wrapper,
-you are in the wrong module. Use the runner primitive instead.
+**Rule:** if you catch `PolicyViolation` from the policy wrapper, you
+are in the wrong module. Use the runner primitive instead.
 
 ## Boundaries and failure modes
 
-- **Read-only.** Reads git, reads the registry, reads CLAUDE.md,
-  reads the filesystem. Writes nothing.
-- **Redaction.** Task-run records (deferred sub-check) would carry
-  error tracebacks and payloads. The aggregator redacts fields
-  matching `/secret|token|password|key/i` plus `task.payload` and
-  `error.traceback` before reporting. Test fixture
-  `boundary_redaction.yaml` asserts no `sk-fake` substring leaks.
-- **God-object trigger.** If `verification-loop` acquires a 4th
-  sub-check OR any conditional branching beyond the verdict
-  aggregator, split into `verification-loop-structural` and
-  `verification-loop-runtime`. Hard limits: canonical body ≤ 300
-  md lines, policy wrapper ≤ 400 py lines.
+- **Read-only.** Reads git, the registry, CLAUDE.md, the filesystem.
+  Writes nothing.
+- **Redaction.** Task-run records (deferred sub-check) carry error
+  tracebacks and payloads. The aggregator redacts fields matching
+  `/secret|token|password|key/i` plus `task.payload` and
+  `error.traceback` before reporting. Fixture `boundary_redaction.yaml`
+  asserts no `sk-fake` substring leaks.
+- **God-object trigger.** The structural/runtime split this guardrail
+  once mandated is **done** — `verification-loop-structural` and
+  `verification-loop-runtime` are separate skills. The guardrail now
+  applies **per lane**: a lane that acquires a 4th active sub-check or
+  conditional branching beyond its verdict aggregator must split the
+  new concern into its own skill. Hard limits per skill: canonical
+  body ≤ 300 md lines, policy wrapper ≤ 400 py lines.
 - **Parallelism deferred (todo 019).** Sub-checks run sequentially.
-  Phase 3 smoke captures per-sub-check wallclock so a future
-  parallelism decision is data-driven.
 - **Performance.** < 3 s on the live repo.
 
 ## References
 
 - Plan: `docs/plans/2026-04-15-feat-ecc-gap-recommendations-plan.md` Phase 3.
-- Runner primitive: `packages/tools/primitives/verification_loop_runner.py`.
+- Structural lane: `skills/canonical/verification-loop-structural/skill.md`.
+- Runtime lane: `skills/canonical/verification-loop-runtime/skill.md`.
 - Policy wrapper: `packages/policies/verification_loop.py`.
-- Template (NOT release_readiness.py): `packages/policies/skill_evolution.py`.
-- Composed: `reconcile_registry()`, `registry_drift.check_drift()`,
-  `_changed_surface_check()` (git diff cross-reference against testing.py).

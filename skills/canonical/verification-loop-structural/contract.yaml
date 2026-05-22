@@ -1,0 +1,31 @@
+inputs:
+  - name: since_ref
+    type: string
+    default: main
+  - name: lookback_task_runs
+    type: integer
+    default: 20
+  - name: known_drift
+    type: list
+    required: false
+outputs:
+  - name: verdict
+    type: enum
+    values: [pass, soft_fail, hard_fail]
+  - name: sub_checks
+    type: list
+    item_shape:
+      - name: name
+        type: string
+      - name: severity
+        type: enum
+        values: [info, warn, fail, error, skipped]
+      - name: summary
+        type: string
+      - name: detail
+        type: object
+  - name: infra_errors
+    type: list
+violations:
+  - code: VERIFICATION_LOOP_HARD_FAIL
+    raised_when: any sub-check has severity=fail (policy wrapper only; runner primitive never raises)
