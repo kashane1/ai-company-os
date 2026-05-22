@@ -58,6 +58,33 @@ MEDIAN_MS_BUDGET = 75.0  # generous: 10x pre-Phase-0 baseline
 P95_MS_BUDGET = 90.0
 P99_MS_BUDGET = 100.0
 
+# CI noise model: a single 50-sample benchmark batch can be contaminated
+# by one noisy slice on a shared GitHub Actions runner — observed on
+# PR #54, where p95 spiked to 139ms while the *same* dispatch code
+# measured p95 ~9ms locally (3x) and passed python-tests on PR #55 CI,
+# main's push run, and the PR #54 rerun. A genuine dispatch regression
+# slows down *every* batch, so the budget test runs the benchmark up to
+# this many times (fresh DB each time) and passes as soon as one attempt
+# is within budget. This kills single-batch flakes without hiding a real
+# regression — which would blow the budget on all attempts.
+MAX_BENCHMARK_ATTEMPTS = 3
+
+
+def _isolate_state_root(
+    base: Path, monkeypatch: pytest.MonkeyPatch, label: str
+) -> Path:
+    """Point the platform at a fresh, empty state root.
+
+    Each call gives the benchmark a brand-new SQLite DB, so a per-attempt
+    measurement never inherits a growing completed-task table from an
+    earlier attempt in the same test.
+    """
+    test_root = base / label
+    (test_root / "state" / "platform").mkdir(parents=True)
+    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(test_root))
+    ensure_runtime_directories()
+    return test_root
+
 
 @pytest.fixture
 def isolated_platform(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
@@ -69,11 +96,7 @@ def isolated_platform(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     benchmark measures steady-state claim/submit round-trip latency
     without cross-test state leakage.
     """
-    test_root = tmp_path / "isolated"
-    (test_root / "state" / "platform").mkdir(parents=True)
-    monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(test_root))
-    ensure_runtime_directories()
-    return test_root
+    return _isolate_state_root(tmp_path, monkeypatch, "isolated")
 
 
 def _round_trip_once(service: ControlPlaneService, goal_id: str, i: int) -> float:
@@ -99,7 +122,13 @@ def _round_trip_once(service: ControlPlaneService, goal_id: str, i: int) -> floa
     return time.perf_counter() - start
 
 
-def _run_benchmark(isolated_platform: Path) -> dict[str, float]:
+def _run_benchmark() -> dict[str, float]:
+    """Run one full warmup + ITERATIONS benchmark batch.
+
+    Reads the active state root from the environment, so callers must
+    isolate the platform (via the `isolated_platform` fixture or
+    `_isolate_state_root`) before invoking this.
+    """
     service = ControlPlaneService()
     goal = service.create_goal(
         title="Benchmark Goal",
@@ -128,7 +157,25 @@ def _run_benchmark(isolated_platform: Path) -> dict[str, float]:
     }
 
 
-def test_dispatch_latency_within_plan_budget(isolated_platform: Path) -> None:
+def _within_budget(results: dict[str, float]) -> bool:
+    """True when a benchmark batch is inside every latency budget."""
+    return (
+        results["median_ms"] < MEDIAN_MS_BUDGET
+        and results["p95_ms"] < P95_MS_BUDGET
+        and results["p99_ms"] < P99_MS_BUDGET
+    )
+
+
+def _format_attempt(index: int, results: dict[str, float]) -> str:
+    return (
+        f"#{index} median={results['median_ms']:.3f}ms "
+        f"p95={results['p95_ms']:.3f}ms p99={results['p99_ms']:.3f}ms"
+    )
+
+
+def test_dispatch_latency_within_plan_budget(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Assert absolute latency budgets from the plan NFR.
 
     The plan's NFR is "No phase increases autonomous-dispatch latency
@@ -142,26 +189,44 @@ def test_dispatch_latency_within_plan_budget(isolated_platform: Path) -> None:
 
     The 100ms absolute p99 budget gives every subsequent phase >90ms
     of runway for legitimate functionality additions.
+
+    Reliability: the benchmark is run up to MAX_BENCHMARK_ATTEMPTS times
+    (fresh DB per attempt) and passes as soon as one attempt is within
+    budget. A noisy shared CI runner can contaminate a single batch's
+    tail percentiles; a genuine regression slows every attempt and
+    still fails the test. Every attempt is printed so a real regression
+    is legible in the failure output.
     """
-    results = _run_benchmark(isolated_platform)
+    attempts: list[dict[str, float]] = []
+    for attempt in range(1, MAX_BENCHMARK_ATTEMPTS + 1):
+        _isolate_state_root(tmp_path, monkeypatch, f"isolated-attempt-{attempt}")
+        results = _run_benchmark()
+        attempts.append(results)
 
-    print(
-        f"\ndispatch latency:  "
-        f"median={results['median_ms']:.3f}ms  "
-        f"p95={results['p95_ms']:.3f}ms  "
-        f"p99={results['p99_ms']:.3f}ms"
-    )
+        ok = _within_budget(results)
+        print(
+            f"\ndispatch latency (attempt {attempt}/{MAX_BENCHMARK_ATTEMPTS}):  "
+            f"median={results['median_ms']:.3f}ms  "
+            f"p95={results['p95_ms']:.3f}ms  "
+            f"p99={results['p99_ms']:.3f}ms  "
+            f"-> {'within budget' if ok else 'OVER BUDGET'}"
+        )
+        if ok:
+            return
 
-    assert results["median_ms"] < MEDIAN_MS_BUDGET, (
-        f"median {results['median_ms']:.3f}ms exceeds "
-        f"{MEDIAN_MS_BUDGET}ms budget"
-    )
-    assert results["p95_ms"] < P95_MS_BUDGET, (
-        f"p95 {results['p95_ms']:.3f}ms exceeds {P95_MS_BUDGET}ms budget"
-    )
-    assert results["p99_ms"] < P99_MS_BUDGET, (
-        f"p99 {results['p99_ms']:.3f}ms exceeds {P99_MS_BUDGET}ms budget "
-        "(plan NFR: <100ms regression)"
+    # Every attempt exceeded budget. Single-batch CI noise cannot
+    # explain all MAX_BENCHMARK_ATTEMPTS runs being slow — treat this as
+    # a genuine dispatch-latency regression (plan NFR: <100ms p99).
+    best = min(attempts, key=lambda r: r["p95_ms"])
+    pytest.fail(
+        f"dispatch latency over budget on all {MAX_BENCHMARK_ATTEMPTS} "
+        f"attempts (budgets: median<{MEDIAN_MS_BUDGET}ms "
+        f"p95<{P95_MS_BUDGET}ms p99<{P99_MS_BUDGET}ms). "
+        f"Best attempt: {_format_attempt(attempts.index(best) + 1, best)}. "
+        "All attempts: "
+        + "; ".join(
+            _format_attempt(i + 1, r) for i, r in enumerate(attempts)
+        )
     )
 
 
@@ -175,7 +240,7 @@ def test_capture_baseline_on_demand(isolated_platform: Path) -> None:
     if os.environ.get("CAPTURE_BASELINE") != "1":
         pytest.skip("set CAPTURE_BASELINE=1 to capture a new baseline file")
 
-    results = _run_benchmark(isolated_platform)
+    results = _run_benchmark()
     phase_label = os.environ.get("BASELINE_PHASE", "unlabeled")
     target = BENCHMARKS_DIR / f"2026-04-14-{phase_label}.json"
     target.parent.mkdir(parents=True, exist_ok=True)
