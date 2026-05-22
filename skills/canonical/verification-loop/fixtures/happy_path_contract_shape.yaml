@@ -1,19 +1,23 @@
-# Phase 3 structural fixture — verification-loop contract shape.
+# Structural fixture — verification-loop umbrella contract shape.
 #
-# Freezes the canonical markdown + contract.yaml of verification-loop
-# against the plan invariants (severity enum, 3 MVP sub-checks, 5-state
-# severity aggregation, caller-mapping table).
+# Freezes the canonical markdown + contract.yaml of the verification-loop
+# umbrella after the structural/runtime split: it delegates structural
+# checks to `verification-loop-structural` and runtime checks to
+# `verification-loop-runtime`, and owns the shared severity enum,
+# verdict aggregation, and caller-mapping table.
 
 - name: happy_path_contract_shape
   description: |
-    The canonical skill must declare the 3 MVP sub-checks, the 5-state
-    severity enum, the caller-mapping table, and the god-object split
-    trigger.
+    The umbrella skill must name both lanes, declare the 5-state
+    severity enum, the caller-mapping table, the god-object guardrail,
+    and the structural sub-check names it delegates.
   input:
     skill_file: canonical/verification-loop/skill.md
     contract_file: canonical/verification-loop/contract.yaml
   expected:
     required_strings_in_skill:
+      - "verification-loop-structural"
+      - "verification-loop-runtime"
       - "reconciliation"
       - "skill_stocktake"
       - "changed_surface"
@@ -30,7 +34,7 @@
       - "God-object trigger"
     required_sections:
       - "## Purpose"
-      - "## Sub-checks (MVP — 3, not 6)"
+      - "## Verification lanes"
       - "## Severity enum (5-state per todos 009 + 010)"
       - "## Caller → entry-point mapping (per todo 013)"
       - "## Boundaries and failure modes"
@@ -46,13 +50,11 @@
 
 - name: deferred_subcheck_declares_stale_doc_detector
   description: |
-    The canonical skill must declare `stale-doc-detector` as a deferred
-    sub-check (not an active one — that would trip the god-object
-    split rule). The declaration freezes the wiring intent already
-    advertised by `skills/canonical/stale-doc-detector/skill.md` and
-    keeps the MVP count at 3 active sub-checks. The "MVP — 3, not 6"
-    section heading must remain unchanged so the guardrail is honest
-    about active-vs-deferred composition.
+    The umbrella must keep `stale-doc-detector` declared as a deferred
+    sub-check, route it to the structural lane, and name the remaining
+    activation step. The "## Deferred sub-checks" and "## Boundaries
+    and failure modes" sections must both be present so the deferral
+    and the per-lane god-object guardrail stay honest.
   input:
     skill_file: canonical/verification-loop/skill.md
   expected:
@@ -64,5 +66,5 @@
       - "verification-loop-structural"
       - "verification-loop-runtime"
     required_sections:
-      - "## Sub-checks (MVP — 3, not 6)"
+      - "## Deferred sub-checks"
       - "## Boundaries and failure modes"

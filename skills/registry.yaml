@@ -658,6 +658,27 @@ skills:
       claude: adapters/claude/verification-loop.md
     project_skill: .claude/skills/verification-loop.md
 
+  - id: verification-loop-structural
+    name: Verification Loop (Structural)
+    path: canonical/verification-loop-structural/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Structural-drift lane of the verification-loop split. Carved out
+    # of `verification-loop` so the umbrella stays a thin aggregator and
+    # new structural sub-checks do not trip the god-object guardrail.
+    # Runner primitive is the existing
+    # packages/tools/primitives/verification_loop_runner.py (unchanged).
+    # fixture_status: passing — structural-contract fixture under
+    # skills/canonical/verification-loop-structural/fixtures/ exercised
+    # by tests/python/unit/test_verification_loop_structural_skill.py.
+    fixture_status: passing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/verification-loop-structural.md
+
   - id: verification-loop-runtime
     name: Verification Loop (Runtime)
     path: canonical/verification-loop-runtime/skill.md
