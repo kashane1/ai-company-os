@@ -21,6 +21,7 @@
       - "reconciliation"
       - "skill_stocktake"
       - "changed_surface"
+      - "stale_doc"
       - "pass"
       - "soft_fail"
       - "hard_fail"
@@ -48,23 +49,24 @@
     required_contract_violations:
       - VERIFICATION_LOOP_HARD_FAIL
 
-- name: deferred_subcheck_declares_stale_doc_detector
+- name: stale_doc_active_in_structural_lane
   description: |
-    The umbrella must keep `stale-doc-detector` declared as a deferred
-    sub-check, route it to the structural lane, and name the remaining
-    activation step. The "## Deferred sub-checks" and "## Boundaries
-    and failure modes" sections must both be present so the deferral
-    and the per-lane god-object guardrail stay honest.
+    `stale-doc-detector`'s doc-path scan is now active as the
+    structural lane's `stale_doc` sub-check (it wraps
+    `check_doc_paths.sh`), not deferred. The umbrella must name it in
+    the structural lane and must still carry the "## Deferred
+    sub-checks" section for the genuinely-deferred checks and the
+    per-lane god-object guardrail.
   input:
     skill_file: canonical/verification-loop/skill.md
   expected:
     required_strings_in_skill:
-      - "Deferred sub-checks"
+      - "stale_doc"
       - "stale-doc-detector"
       - "check_doc_paths.sh"
-      - "4th sub-check"
       - "verification-loop-structural"
       - "verification-loop-runtime"
     required_sections:
+      - "## Verification lanes"
       - "## Deferred sub-checks"
       - "## Boundaries and failure modes"
