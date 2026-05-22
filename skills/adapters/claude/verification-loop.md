@@ -13,9 +13,9 @@ definition.
 
 `verification-loop` is the **umbrella** over two lanes:
 
-- **Structural** — `verification-loop-structural` (3 MVP sub-checks:
-  `reconciliation`, `skill_stocktake`, `changed_surface`). See
-  `skills/adapters/claude/verification-loop-structural.md`.
+- **Structural** — `verification-loop-structural` (4 sub-checks:
+  `reconciliation`, `skill_stocktake`, `changed_surface`, `stale_doc`).
+  See `skills/adapters/claude/verification-loop-structural.md`.
 - **Runtime** — `verification-loop-runtime` (`stale_postmortems`).
 
 Aggregator: any `fail` → `hard_fail`; else any `warn` or `error` →

@@ -4,7 +4,7 @@ live repo.
 Runs the full verification-loop runner against the current repo
 state and asserts the composition is correct:
 
-- The report has exactly 3 sub-checks (MVP set).
+- The report has exactly 4 structural sub-checks.
 - Each sub-check has a severity in the 5-state enum.
 - The aggregator's verdict is one of pass / soft_fail / hard_fail.
 - `reconciliation` and `skill_stocktake` are both reachable and
@@ -23,9 +23,14 @@ def test_live_verification_loop_composition() -> None:
     report = run(since_ref="main")
 
     assert report.schema_version == "1"
-    assert len(report.sub_checks) == 3
+    assert len(report.sub_checks) == 4
     names = {sc.name for sc in report.sub_checks}
-    assert names == {"reconciliation", "skill_stocktake", "changed_surface"}
+    assert names == {
+        "reconciliation",
+        "skill_stocktake",
+        "changed_surface",
+        "stale_doc",
+    }
 
     allowed_severities = {"info", "warn", "fail", "error", "skipped"}
     for sc in report.sub_checks:

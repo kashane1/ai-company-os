@@ -23,6 +23,7 @@ from packages.tools.primitives.verification_loop_runner import (
     SubCheckResult,
     _aggregate,
     _redact,
+    _stale_doc_check,
     run,
 )
 
@@ -125,9 +126,16 @@ def test_run_pass_path(monkeypatch: pytest.MonkeyPatch) -> None:
             name="changed_surface", severity="info", summary="clean"
         ),
     )
+    monkeypatch.setattr(
+        verification_loop_runner,
+        "_stale_doc_check",
+        lambda: SubCheckResult(
+            name="stale_doc", severity="info", summary="clean"
+        ),
+    )
     report = run(since_ref="main")
     assert report.verdict == "pass"
-    assert len(report.sub_checks) == 3
+    assert len(report.sub_checks) == 4
     assert report.infra_errors == ()
 
 
@@ -156,6 +164,13 @@ def test_run_hard_fail_path(monkeypatch: pytest.MonkeyPatch) -> None:
             detail={"logic_files": ["packages/x.py"]},
         ),
     )
+    monkeypatch.setattr(
+        verification_loop_runner,
+        "_stale_doc_check",
+        lambda: SubCheckResult(
+            name="stale_doc", severity="info", summary="clean"
+        ),
+    )
     report = run(since_ref="main")
     assert report.verdict == "hard_fail"
 
@@ -181,6 +196,13 @@ def test_run_error_maps_to_soft_not_hard(
         "_changed_surface_check",
         lambda _r: SubCheckResult(
             name="changed_surface", severity="info", summary="clean"
+        ),
+    )
+    monkeypatch.setattr(
+        verification_loop_runner,
+        "_stale_doc_check",
+        lambda: SubCheckResult(
+            name="stale_doc", severity="info", summary="clean"
         ),
     )
     report = run()
@@ -247,3 +269,105 @@ def test_policy_wrapper_returns_on_soft_fail(
     monkeypatch.setattr(pol, "_run", fake_run)
     report = run_verification_loop(since_ref="main")
     assert report.verdict == "soft_fail"
+
+
+def test_stale_doc_check_clean_exit_is_info(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """check_doc_paths.sh exit 0 → stale_doc sub-check is `info`."""
+    monkeypatch.setattr(
+        verification_loop_runner,
+        "_run_doc_path_script",
+        lambda: (0, "check_doc_paths: OK — all references resolve."),
+    )
+    result = _stale_doc_check()
+    assert result.name == "stale_doc"
+    assert result.severity == "info"
+    assert result.detail["exit_code"] == 0
+
+
+def test_stale_doc_check_broken_paths_is_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """check_doc_paths.sh exit 1 (broken refs) → stale_doc is `fail`."""
+    monkeypatch.setattr(
+        verification_loop_runner,
+        "_run_doc_path_script",
+        lambda: (1, "README.md -> missing/path.md"),
+    )
+    result = _stale_doc_check()
+    assert result.name == "stale_doc"
+    assert result.severity == "fail"
+    assert result.detail["exit_code"] == 1
+
+
+def test_stale_doc_check_unexpected_exit_is_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An exit code the script never documents → `error` (platform bug)."""
+    monkeypatch.setattr(
+        verification_loop_runner,
+        "_run_doc_path_script",
+        lambda: (127, "bash: check_doc_paths.sh: not found"),
+    )
+    result = _stale_doc_check()
+    assert result.name == "stale_doc"
+    assert result.severity == "error"
+    assert result.detail["exit_code"] == 127
+
+
+def _info(name: str):
+    return lambda *a, **k: SubCheckResult(
+        name=name, severity="info", summary="clean"
+    )
+
+
+def test_run_composes_stale_doc_subcheck(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """run() composes stale_doc as the 4th structural sub-check."""
+    monkeypatch.setattr(
+        verification_loop_runner, "_reconciliation_check", _info("reconciliation")
+    )
+    monkeypatch.setattr(
+        verification_loop_runner, "_stocktake_check", _info("skill_stocktake")
+    )
+    monkeypatch.setattr(
+        verification_loop_runner, "_changed_surface_check", _info("changed_surface")
+    )
+    monkeypatch.setattr(
+        verification_loop_runner, "_stale_doc_check", _info("stale_doc")
+    )
+    report = run(since_ref="main")
+    assert [sc.name for sc in report.sub_checks] == [
+        "reconciliation",
+        "skill_stocktake",
+        "changed_surface",
+        "stale_doc",
+    ]
+    assert report.verdict == "pass"
+
+
+def test_run_stale_doc_fail_drives_hard_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A stale_doc `fail` (broken doc paths) hard-fails the verdict
+    while the other three sub-checks are clean."""
+    monkeypatch.setattr(
+        verification_loop_runner, "_reconciliation_check", _info("reconciliation")
+    )
+    monkeypatch.setattr(
+        verification_loop_runner, "_stocktake_check", _info("skill_stocktake")
+    )
+    monkeypatch.setattr(
+        verification_loop_runner, "_changed_surface_check", _info("changed_surface")
+    )
+    monkeypatch.setattr(
+        verification_loop_runner,
+        "_stale_doc_check",
+        lambda: SubCheckResult(
+            name="stale_doc", severity="fail", summary="broken doc paths"
+        ),
+    )
+    report = run(since_ref="main")
+    assert report.verdict == "hard_fail"

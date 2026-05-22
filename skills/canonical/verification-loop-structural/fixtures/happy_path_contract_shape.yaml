@@ -12,9 +12,10 @@
 
 - name: happy_path_contract_shape
   description: |
-    The canonical skill must declare the 3 MVP structural sub-checks,
-    the 5-state severity enum, the runner primitive, and the
-    VERIFICATION_LOOP_HARD_FAIL violation.
+    The canonical skill must declare the 4 structural sub-checks
+    (including the active `stale_doc` check), the 5-state severity
+    enum, the runner primitive, and the VERIFICATION_LOOP_HARD_FAIL
+    violation.
   input:
     skill_file: canonical/verification-loop-structural/skill.md
     contract_file: canonical/verification-loop-structural/contract.yaml
@@ -23,6 +24,8 @@
       - "reconciliation"
       - "skill_stocktake"
       - "changed_surface"
+      - "stale_doc"
+      - "check_doc_paths.sh"
       - "pass"
       - "soft_fail"
       - "hard_fail"
@@ -37,7 +40,7 @@
     required_sections:
       - "## Purpose"
       - "## When to invoke"
-      - "## Sub-checks (MVP — 3, not 6)"
+      - "## Sub-checks (4)"
       - "## Severity & verdict aggregation"
       - "## Boundaries"
       - "## References"

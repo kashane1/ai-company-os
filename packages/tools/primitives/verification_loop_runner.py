@@ -1,6 +1,6 @@
 """Verification-loop runner primitive (ECC Gap Recommendations Phase 3).
 
-Advisory-mode runner that composes:
+Advisory-mode runner for the structural verification lane. Composes:
 
 1. `reconcile_registry()` — structural fixture reconciliation.
 2. `skill_stocktake.check_drift()` — registry / canonical / CLAUDE.md
@@ -8,11 +8,14 @@ Advisory-mode runner that composes:
 3. Changed-surface missing-tests check — `git diff --name-only
    <ref>...HEAD` cross-referenced against
    `packages/policies/testing.py` lane rules.
+4. Stale-doc check — wraps `scripts/ci/check_doc_paths.sh`, the
+   mechanical doc-path-existence portion of the `stale-doc-detector`
+   skill.
 
-MVP sub-check set is 3, not 6, per deepening finding #5. Deferred
-sub-checks (`context_budget` composition, recent-task-run audit,
-dispatch-health read) are reported as `skipped` entries in the
-aggregator when not in scope, never affecting the verdict.
+Sub-check set is 4. Deferred sub-checks (`context_budget` composition,
+recent-task-run audit, dispatch-health read) are reported as `skipped`
+entries in the aggregator when not in scope, never affecting the
+verdict.
 
 Severity enum (5-state per todos 009 + 010):
 - `info`  : metadata / informational only
@@ -286,6 +289,76 @@ def _changed_surface_check(since_ref: str) -> SubCheckResult:
     )
 
 
+def _run_doc_path_script() -> tuple[int, str]:
+    """Run `scripts/ci/check_doc_paths.sh`; return `(exit_code, stdout)`.
+
+    `subprocess` is imported lazily inside the function body because the
+    primitives convention test forbids it at module level. A genuine
+    inability to launch the script propagates as an exception — the
+    caller's `_run_sub_check` wrapper converts that into a sub-check
+    `error` (soft_fail), the same as any other platform bug.
+    """
+    import subprocess  # lazy — primitives convention
+
+    script = _repo_root() / "scripts" / "ci" / "check_doc_paths.sh"
+    result = subprocess.run(
+        ["bash", str(script)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        cwd=str(_repo_root()),
+        check=False,
+    )
+    return result.returncode, result.stdout.strip()
+
+
+def _stale_doc_check() -> SubCheckResult:
+    """Wrap `scripts/ci/check_doc_paths.sh` — the mechanical doc-path
+    existence check behind the `stale-doc-detector` skill.
+
+    Maps the script's documented exit codes to a sub-check severity:
+
+    - `0` → `info`  — every repo-relative doc path resolves.
+    - `1` → `fail`  — broken path references; `doc-path-check` is a
+      required CI gate, so doc drift blocks a merge.
+    - other → `error` — script malfunction (platform bug; soft_fail).
+
+    The agentic classification (`fix_now` / `allowlist` /
+    `founder_decision` / `ignore`) and legacy-slug heuristic of the
+    full `stale-doc-detector` skill stay operator-invoked; this
+    sub-check is the deterministic, CI-runnable portion the structural
+    runner composes.
+    """
+    exit_code, output = _run_doc_path_script()
+    summary_tail = output.splitlines()[-1] if output else ""
+    if exit_code == 0:
+        return SubCheckResult(
+            name="stale_doc",
+            severity="info",
+            summary=summary_tail or "check_doc_paths.sh: all doc paths resolve",
+            detail={"exit_code": 0},
+        )
+    if exit_code == 1:
+        return SubCheckResult(
+            name="stale_doc",
+            severity="fail",
+            summary=(
+                "check_doc_paths.sh found broken repo-relative path "
+                "references in the entry docs"
+            ),
+            detail={"exit_code": 1, "output": output},
+        )
+    return SubCheckResult(
+        name="stale_doc",
+        severity="error",
+        summary=(
+            f"check_doc_paths.sh exited {exit_code} "
+            "(unexpected — script malfunction)"
+        ),
+        detail={"exit_code": exit_code, "output": output},
+    )
+
+
 def _aggregate(
     sub_checks: tuple[SubCheckResult, ...],
 ) -> tuple[Verdict, tuple[str, ...]]:
@@ -310,7 +383,7 @@ def run(
     *,
     known_drift: tuple[str, ...] = ("post-run-validation",),
 ) -> VerificationLoopReport:
-    """Compose the 3 MVP sub-checks and return a report.
+    """Compose the 4 structural sub-checks and return a report.
 
     NEVER raises. Use `packages.policies.verification_loop.run_verification_loop`
     when you want a raising wrapper.
@@ -323,6 +396,7 @@ def run(
         _run_sub_check(
             "changed_surface", lambda: _changed_surface_check(since_ref)
         ),
+        _run_sub_check("stale_doc", _stale_doc_check),
     )
     verdict, infra_errors = _aggregate(sub_checks)
     return VerificationLoopReport(

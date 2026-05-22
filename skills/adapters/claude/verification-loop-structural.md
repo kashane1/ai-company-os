@@ -16,7 +16,7 @@ split.
 - **Umbrella:** `verification-loop` (composes both lanes).
 - **This lane owns:** checks where the failing party is the registry
   or the changed surface — `reconciliation`, `skill_stocktake`,
-  `changed_surface`.
+  `changed_surface`, `stale_doc` (wraps `scripts/ci/check_doc_paths.sh`).
 
 ## How to invoke
 
@@ -32,6 +32,7 @@ For gating (raises `PolicyViolation` on hard fail) use
 
 - **Read-only.** Reads git, the registry, CLAUDE.md, the filesystem.
   Writes nothing.
-- **3 MVP sub-checks.** A 4th active sub-check or conditional branching
-  beyond the verdict aggregator means the new concern needs its own
-  skill — do not grow this lane past the god-object limits.
+- **4 cohesive sub-checks.** Every sub-check must have the registry or
+  the changed surface as its failing party. Conditional branching
+  beyond the verdict aggregator, or growth past the god-object limits,
+  means a new concern needs its own skill — not another sub-check here.
