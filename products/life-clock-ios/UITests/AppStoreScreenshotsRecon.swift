@@ -33,7 +33,7 @@ final class AppStoreScreenshotsRecon: XCTestCase {
 
     func testCapture01SeeYourLifeClock() {
         let app = launch(initialTab: "today")
-        // Today is default; wait for headline so we know recompute settled.
+        dismissWrapUpIfPresent(app)
         let headline = app.descendants(matching: .any)
             .matching(identifier: "today.headline").firstMatch
         _ = headline.waitForExistence(timeout: 10)
@@ -43,11 +43,11 @@ final class AppStoreScreenshotsRecon: XCTestCase {
 
     func testCapture02EarnTimeWithHabits() {
         let app = launch(initialTab: "today")
+        dismissWrapUpIfPresent(app)
         let headline = app.descendants(matching: .any)
             .matching(identifier: "today.headline").firstMatch
         _ = headline.waitForExistence(timeout: 10)
         usleep(400_000)
-        // Scroll to plan + check-in chunk
         app.swipeUp()
         usleep(400_000)
         capture("02-earn-time-with-habits", app: app)
@@ -55,22 +55,24 @@ final class AppStoreScreenshotsRecon: XCTestCase {
 
     func testCapture03AppleHealthUpdates() {
         let app = launch(initialTab: "profile")
+        dismissWrapUpIfPresent(app)
         usleep(800_000)
         capture("03-apple-health-updates", app: app)
     }
 
     func testCapture04FindWhatsCostingTime() {
         let app = launch(initialTab: "history")
+        dismissWrapUpIfPresent(app)
         usleep(800_000)
         capture("04-find-whats-costing-time", app: app)
     }
 
     func testCapture05DailyLongevityQuests() {
         let app = launch(initialTab: "today")
+        dismissWrapUpIfPresent(app)
         let headline = app.descendants(matching: .any)
             .matching(identifier: "today.headline").firstMatch
         _ = headline.waitForExistence(timeout: 10)
-        // Scroll past hero into plan card
         app.swipeUp()
         usleep(200_000)
         app.swipeUp()
@@ -79,29 +81,55 @@ final class AppStoreScreenshotsRecon: XCTestCase {
     }
 
     func testCapture06TrackHealthspanTrend() {
-        let app = launch(initialTab: "future")
-        usleep(1_000_000)
+        let app = launch(initialTab: "future", extraEnvironment: [
+            "LIFECLOCK_JUMP_TO": "futureFull",
+            "LIFECLOCK_SEED_SNAPSHOTS": "30",
+        ])
+        dismissWrapUpIfPresent(app)
+        usleep(1_500_000)
         capture("06-track-healthspan-trend", app: app)
+    }
+
+    // MARK: - sheet handling
+
+    /// The `WrapUpCoordinator` auto-presents yesterday's wrap-up on every
+    /// cold launch when a streak is seeded. Dismiss it before capturing
+    /// any tab background. Idempotent — does nothing if the sheet isn't
+    /// up.
+    private func dismissWrapUpIfPresent(_ app: XCUIApplication) {
+        let cta = app.descendants(matching: .any)
+            .matching(identifier: "wrapup.dismissCTA").firstMatch
+        if cta.waitForExistence(timeout: 2) {
+            cta.tap()
+            usleep(600_000)
+        }
     }
 
     // MARK: - helpers
 
-    private func launch(initialTab: String) -> XCUIApplication {
+    private func launch(initialTab: String,
+                        extraEnvironment: [String: String] = [:]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["LIFECLOCK_UI_TEST"] = "1"
         app.launchEnvironment["LIFECLOCK_UI_TEST_SCENARIO"] = "onboarded"
         app.launchEnvironment["LIFECLOCK_USE_MOCK_HEALTH"] = "1"
         app.launchEnvironment["LIFECLOCK_HEALTH_AUTH"] = "authorized"
         app.launchEnvironment["LIFECLOCK_HEALTH_PROFILE"] = "baseline"
-        app.launchEnvironment["LIFECLOCK_SEED_STREAK"] = "7"
+        // 21 days lands in the .full14plus Future-tab state and gives
+        // History meaningful weekly cards.
+        app.launchEnvironment["LIFECLOCK_SEED_STREAK"] = "21"
         app.launchEnvironment["LIFECLOCK_SEED_QUESTS_COMPLETED"] = "1"
+        app.launchEnvironment["LIFECLOCK_SEED_DAYS_SINCE_INSTALL"] = "30"
         app.launchEnvironment["LIFECLOCK_FIXED_DATE"] = fixedDate
+        app.launchEnvironment["LIFECLOCK_INITIAL_TAB"] = initialTab
         // Default coach tone — the App Store listing should reflect the
         // tone users land in by default, not the firmDirect variant.
-        app.launchEnvironment["LIFECLOCK_INITIAL_TAB"] = initialTab
-        // The fixture surface defaults the simulator to Pro; we want Pro
-        // because that's the marketing-target audience and the History/Future
-        // tabs render their full content. (Set to "1" to flip to Free.)
+        // Simulator defaults to Pro; we want Pro because that's the
+        // marketing-target audience and the History/Future tabs render
+        // their full content.
+        for (key, value) in extraEnvironment {
+            app.launchEnvironment[key] = value
+        }
         app.launch()
         return app
     }
