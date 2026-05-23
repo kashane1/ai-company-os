@@ -1,8 +1,12 @@
 # For Employers — read this first
 
 You probably arrived here from a job application where I called this my main
-side project. You are a skeptical engineer. Good — this document is written
-for you, and everything in it is checkable from the repo in about five minutes.
+side project. You are a skeptical engineer. Good. This document is written for
+you, and everything in it is checkable from the repo in about five minutes.
+
+If you want the fastest guided pass after this page, open
+[`docs/EVALUATOR-WALKTHROUGH.md`](EVALUATOR-WALKTHROUGH.md) or run
+`./scripts/evaluator_check.sh`.
 
 ## What this is, in one sentence
 
@@ -47,9 +51,10 @@ document is trying to demonstrate about how I work.
 | Secrets never leak into artifacts | redaction tests asserting `sk-…` / `AKIA…` are scrubbed; `.env` gitignored; clean history |
 | Process maturity uncommon in a solo repo | `.github/workflows/tests.yml`, tests-ship-with-code policy, PR template, conventional commits, 95 Python test suites |
 
-## Run it yourself in 10 seconds (no setup)
+## Run it yourself in under a minute (no setup)
 
 ```bash
+./scripts/evaluator_check.sh
 make demo        # or: ./scripts/demo.sh
 ```
 
@@ -59,16 +64,20 @@ gate → audit artifact) and writes schema-faithful sample artifacts to
 [`docs/examples/`](examples/) — built from the real schema classes, so they
 cannot drift from production.
 
+`./scripts/evaluator_check.sh` wraps the demo, confirms the key files exist,
+and can optionally run a fast Python test subset when test dependencies are
+installed.
+
 ## The five-minute evaluation path
 
-1. `make demo` — watch the full loop run with zero setup.
+1. Read this file, then run `./scripts/evaluator_check.sh` or `make demo`.
 2. `git log --oneline | head` — confirm velocity and conventional commits.
 3. `packages/schemas/` — see the typed boundary the agents are constrained by.
-4. `packages/policies/approvals.py` + `apps/approval-reviewer/` — see the
-   human gate that makes unattended operation safe.
-5. `packages/db/postmortem_store.py` — see why I can always answer "what did
-   the agent actually do, and why."
-6. `products/life-clock-ios/` — see a real product the system produced.
+4. `packages/policies/approvals.py` + `apps/api/approval_endpoint.py` — see
+   the human gate that makes unattended operation safe.
+5. `products/life-clock-ios/`, `products/catchbook-ios/`, and
+   `products/after-plans-ios/` — inspect the actual product outputs.
+6. `./scripts/test_python.sh` — verify the current platform baseline.
 
 ## What I want you to take from it
 
