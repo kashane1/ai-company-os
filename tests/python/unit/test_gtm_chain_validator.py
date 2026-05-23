@@ -86,6 +86,19 @@ def test_validate_backlog_item_valid():
     assert validate_backlog_item(item) == []
 
 
+def test_validate_backlog_item_allows_text_first_platform_without_slides():
+    item = {
+        "item_number": 1,
+        "hook": "Test hook",
+        "archetype": "value_educational",
+        "platform": "threads",
+        "campaign": "zero",
+        "status": "draft",
+        "topic_id": "thread-topic",
+    }
+    assert validate_backlog_item(item) == []
+
+
 def test_validate_backlog_item_missing_fields():
     item = {"item_number": 1, "hook": "Test"}
     errors = validate_backlog_item(item)

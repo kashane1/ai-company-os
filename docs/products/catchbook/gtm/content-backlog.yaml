@@ -81,6 +81,26 @@
   composite_score: 75
   topic_id: bank-angler-underserved
   status: scheduled
+  slides:
+    - text:
+        headline: "Bank fishing is real fishing"
+        subhead: "stop gatekeeping"
+      visual_hint: "Angler casting from a grassy bank at sunrise, backpack tackle beside them, calm lake water and trees in the background, proud grounded mood, 9:16 portrait"
+    - text:
+        headline: "No boat. Still counts."
+        body: "You read shoreline cover. You work tight casting lanes. You learn the water one step at a time."
+      visual_hint: "Close-up of worn sneakers near the waterline with a spinning rod angled over ripples, practical bank fishing setup, warm morning light, 9:16 portrait"
+    - text:
+        headline: "The fish do not care"
+        body: "Good casts, good timing, good notes. That's fishing."
+      visual_hint: "Small bass being released from the bank into clear shallow water, hands low and careful, natural documentary style, 9:16 portrait"
+  caption: "bank fishing is real fishing. no boat, no fancy electronics, no gatekeeping. you still read cover, make casts, learn patterns, and earn every bite."
+  hashtags:
+    - "#fishing"
+    - "#bankfishing"
+    - "#bassfishing"
+    - "#fishtok"
+    - "#fishinglife"
 - item_number: 8
   hook: "I got skunked again — and it still counts"
   archetype: humor_relatable
