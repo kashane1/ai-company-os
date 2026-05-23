@@ -1,0 +1,19 @@
+// Per-machine code-signing configuration template.
+//
+// 1. Copy this file to LifeClock.local.xcconfig (gitignored).
+// 2. Paste your 10-character Apple Developer Team ID after DEVELOPMENT_TEAM =.
+//    Find it at: https://developer.apple.com/account → Membership Details.
+// 3. Save. Xcode picks it up at build time; no `xcodegen generate` rerun
+//    is needed unless you also edit project.yml.
+//
+// Notes:
+// - Simulator builds do NOT need a team ID; only archive/TestFlight/App
+//   Store distribution does.
+// - The real file is intentionally gitignored — every developer fills in
+//   their own team ID.
+
+DEVELOPMENT_TEAM =
+
+// Optional bundle-id override (only if forking this app for a separate
+// cert / bundle, e.g. an internal-only TestFlight track):
+// PRODUCT_BUNDLE_IDENTIFIER = io.aicompanyos.products.lifeclock
