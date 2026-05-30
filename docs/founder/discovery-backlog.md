@@ -131,22 +131,29 @@ low-friction way to show a discovered idea to customers.
   marketing/SaaS sites) before full web apps with backends, auth, or payments.
 - Hosting **spend** and secrets are gated like other high-spend/external actions.
 
-### Proposed tickets
+### Tickets — ✅ all implemented + tested (2026-05-30)
 
-| # | Item | Pri | Sketch |
-|---|------|-----|--------|
-| F1 | Web lane primitives | P1 | Add `WorkerLane.WEB`, `ProductPlatform.WEB`, `TestLane.WEB` (or reuse a NODE lane), and a web keyword branch in the supervisor's `plan_goal` ("website", "landing page", "waitlist", "web app", "marketing site", "astro", "next.js"). Today a web goal silently falls through to `ENGINEERING` with no web-aware validation. |
-| F2 | Web implementation worker | P1 | `apps/worker-web/` mirroring `worker-engineering`/`worker-ios`: Codex writes the site in an isolated worktree; web validators run build + typecheck/lint + link check + a Lighthouse/a11y budget + broken-asset check. Source lives in `products/<id>-web/`. |
-| F3 | Web product artifact chain | P2 | Add `ProductArtifactType.WEB_ARCHITECTURE` + a web MVP spec to the product-artifact-chain contract, and a `landing-page-build` / `web-app-scaffold` skill. **Framework: Astro static-first** — cheap, fast, portable, with React islands only where interactivity is needed; Next.js reserved for wedges that graduate into full apps (SSR/auth/dashboards). Both ride the same deploy adapter. |
-| F4 | Web deploy lane (separate) | P1 | `apps/worker-webdeploy/` analogous to `worker-appstore`: publishes the built artifact behind a **`DeployTarget` seam** (mirrors the connector/store seams). **First adapter: Netlify** — its free Starter plan *permits commercial use* (verified 2026), unlike Vercel's Hobby plan (personal/non-commercial only). Abstract the account/site so a later **client-handoff mode** (transfer site ownership to a client account) is possible without reworking the seam. |
-| F5 | Deploy + DNS approval gates | P1 | `packages/policies/deploy_readiness.py`: `assert_deploy_ready()` (build green + preview reviewed + approval granted) and require approval for production deploys, custom-domain/DNS changes, and hosting spend. Wires the enforcement `architecture.md` already calls for. Preview deploys ungated. Note the Netlify credit-based free tier *pauses all projects on an account when one exceeds quota* — add spend/usage monitoring once a portfolio of sites exists. |
-| F6 | Web-first validation handoff | P2 | Let the dossier/goal carry a **build target** (web vs iOS) so the supervisor routes correctly, and add a "ship a landing page as the validation experiment" path that records results into the existing experiment store — closing the validate→build loop with the cheapest possible test. |
-| F7 | Web UX audit skill | P2 | `web-ux-audit` (Lighthouse, a11y, responsive/breakpoint checks), mirroring `ios-simulator-ux-audit`, as the web lane's quality gate. |
-| F8 | Stripe monetization + paid-validation experiment | P2 | A **gated** payments capability: Stripe Checkout (hosted) + a Netlify serverless webhook (`/.netlify/functions/stripe-webhook`); keys via the keychain/secrets path. A real "buy"/pre-order button is a stronger willingness-to-pay signal than a waitlist, so wire checkout outcomes back into the **experiment store** as a paid-validation experiment. **Test mode** for validation; **live mode** is approval-gated (billing/pricing are already approval-required per `architecture.md`). Recurring/retainer billing (Stripe Billing + Customer Portal) is the hook for the later client-handoff mode. |
+| # | Item | Status | Landed in |
+|---|------|--------|-----------|
+| F1 | Web lane primitives | ✅ | `WorkerLane.WEB`/`WEBDEPLOY`, `ProductPlatform.WEB`, `TestLane.WEB`, `ProductArtifactType.WEB_ARCHITECTURE`; supervisor `plan_goal` routes web-build → WEB and deploy/publish → the gated WEBDEPLOY lane (`apps/worker-supervisor/main.py`). |
+| F2 | Web implementation worker + gate | ✅ | `apps/worker-web/` + `packages/web/validation.py` (build, internal-links, assets, **responsive viewport**, baseline a11y) and `packages/web/build.py` (npm ci/build behind an injectable runner). |
+| F3 | Astro scaffold + artifact chain + skill | ✅ | `packages/web/scaffold/astro-landing/` (polished, mobile-first, fluid `clamp()` type, `auto-fit` grids, dark-mode, reduced-motion) + `packages/web/scaffold.py`; `landing-page-build` skill registered. |
+| F4 | Web deploy lane + `DeployTarget` seam | ✅ | `packages/web/deploy.py` (`DeployTarget` + `NetlifyDeployTarget`, account abstraction for handoff) + `apps/worker-webdeploy/`. Netlify first adapter (free tier permits commercial use). |
+| F5 | Deploy + DNS approval gates | ✅ | `packages/policies/deploy_readiness.py`: preview ungated; production needs validated build + reviewed preview + approval; custom-domain/DNS + spend each gated. New `PolicyViolationCode`s. |
+| F6 | Web-first validation handoff | ✅ | `packages/discovery/web_handoff.py`: ships a landing page as the `LANDING_PAGE` validation experiment + a WEB-routed build goal — feeds the existing build gate. `BuildTarget` enum. |
+| F7 | Web UX audit skill | ✅ | `packages/web/ux_audit.py` scores responsive / a11y / performance / SEO (Lighthouse-flavored, static); `web-ux-audit` skill registered. |
+| F8 | Stripe monetization + paid validation | ✅ | `packages/web/stripe_monetization.py` (live-mode gate, FAKE_DOOR paid-validation experiment, checkout→pass/fail) + Stripe Checkout/webhook Netlify functions in the scaffold. |
 
-**Suggested order:** F1 → F2 → F4 → F5 (the minimum to build a static site and
-ship it behind a gate), then F6 + F8 (the discovery synergy: ship a page that can
-take money as the validation experiment), then F3/F7 (depth).
+**Build order used:** F1 → F2 → F3 → F4 → F5 → F6 → F7 → F8, each its own commit
+with unit tests. The discovery synergy (F6 + F8) means a single landing page is
+both the thing the WEB lane builds *and* the validation experiment the build gate
+reads — ship a page that can take money, measure intent, then commit to a fuller
+build only for wedges that convert.
+
+> Implementation note: the new platform code is Python-3.10-safe and fully
+> unit-tested (102 tests green). The worker *runtime loops* follow the existing
+> engineering/iOS worker pattern and so share their `datetime.UTC` (3.12)
+> requirement — not exercised in a 3.10 sandbox, same as the other workers.
 
 **Decided (2026-05-30):** framework = **Astro static-first** (Next.js for graduating
 wedges); host = **Netlify** as the first `DeployTarget` adapter (chosen over Vercel
