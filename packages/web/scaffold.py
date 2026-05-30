@@ -93,6 +93,8 @@ def default_context(
         "FAQ_3_A": "Join the list above and we'll send your invite as soon as a spot opens.",
         "YEAR": str(datetime.now(timezone.utc).year),
         "FOOTER_NOTE": "Made with care.",
+        # Stripe monetization (F8) — replace with the real Price ID at launch.
+        "STRIPE_PRICE_ID": "price_replace_me",
     }
 
 

@@ -104,6 +104,8 @@ class PolicyViolationCode(str, Enum):
     DEPLOY_APPROVAL_NOT_GRANTED = "deploy_approval_not_granted"
     DEPLOY_DNS_NOT_APPROVED = "deploy_dns_not_approved"
     DEPLOY_SPEND_NOT_APPROVED = "deploy_spend_not_approved"
+    # Live Stripe payments move real money — gated like billing/pricing.
+    PAYMENTS_LIVE_NOT_APPROVED = "payments_live_not_approved"
 
 
 class PolicyViolation(RuntimeError):
