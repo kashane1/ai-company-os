@@ -73,10 +73,26 @@ final class AppStoreScreenshotsRecon: XCTestCase {
         let headline = app.descendants(matching: .any)
             .matching(identifier: "today.headline").firstMatch
         _ = headline.waitForExistence(timeout: 10)
-        app.swipeUp()
-        usleep(200_000)
-        app.swipeUp()
-        usleep(400_000)
+        // Pro user is the default in the test fixture, so the Plan card's
+        // header chip reads "Edit" with the `today.planEdit` accessibility
+        // identifier (free users see a "Custom" lock chip instead). Open
+        // the Plan Editor sheet — the closest surface in v1 to the
+        // "daily longevity quests" frame from APP_STORE_ASO.md.
+        let edit = app.descendants(matching: .any)
+            .matching(identifier: "today.planEdit").firstMatch
+        if edit.waitForExistence(timeout: 5) {
+            edit.tap()
+            let sheet = app.descendants(matching: .any)
+                .matching(identifier: "planEditor.screen").firstMatch
+            _ = sheet.waitForExistence(timeout: 5)
+            usleep(600_000)
+        } else {
+            // Fallback: just scroll past the hero. Better than nothing.
+            app.swipeUp()
+            usleep(200_000)
+            app.swipeUp()
+            usleep(400_000)
+        }
         capture("05-daily-longevity-quests", app: app)
     }
 
