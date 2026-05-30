@@ -19,7 +19,7 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Protocol, runtime_checkable
 
 from packages.config.settings import load_runtime_paths
 from packages.db.json_store import JsonStore
@@ -163,6 +163,24 @@ def default_runs_root(repo_root: Path | None = None) -> Path:
     return load_runtime_paths(repo_root).platform_state_root / "discovery_runs"
 
 
+@runtime_checkable
+class DiscoveryRunRepository(Protocol):
+    """Persistence seam for run reports — file-backed by default, swappable for
+    the control-plane DB store (``packages/db/discovery_run_store.py``) when you
+    want runs queryable alongside the opportunity/experiment records (E3).
+
+    Mirrors the opportunity ``storage`` seam: the file repository is the
+    zero-config default; point the CLI at the DB store to unify the history.
+    Don't run both as canonical at once — use ``migrate_runs`` for the cutover.
+    """
+
+    def save(self, report: "DiscoveryRunReport") -> "DiscoveryRunReport":
+        ...
+
+    def latest(self) -> "DiscoveryRunReport | None":
+        ...
+
+
 class DiscoveryRunStore:
     """Persists run reports and exposes the latest one for `status`."""
 
@@ -179,6 +197,33 @@ class DiscoveryRunStore:
         if not path.exists():
             return None
         return DiscoveryRunReport.from_dict(self._store.load(CURRENT_RUN_ID))
+
+    def list(self) -> list[DiscoveryRunReport]:
+        """Every recorded run, newest first. Skips the ``current`` pointer file
+        (a duplicate of the latest run kept for fast ``latest()`` reads)."""
+        reports = [
+            DiscoveryRunReport.from_dict(self._store.load(path.stem))
+            for path in sorted(self._store.root.glob("*.json"))
+            if path.stem != CURRENT_RUN_ID
+        ]
+        reports.sort(key=lambda r: (r.started_at, r.run_id), reverse=True)
+        return reports
+
+
+def migrate_runs(source: DiscoveryRunRepository, dest: DiscoveryRunRepository) -> int:
+    """Copy run history from one repository into another (idempotent upsert).
+
+    Used once when switching the run store's backend (e.g. file → control-plane
+    DB). Returns the count copied. Only repositories that can enumerate their
+    history (``list``) can be a ``source``; the file/DB stores both can.
+    """
+    lister = getattr(source, "list", None)
+    if not callable(lister):
+        raise TypeError("source repository must expose list() to be migrated from")
+    reports = list(lister())
+    for report in reports:
+        dest.save(report)
+    return len(reports)
 
 
 class FileStopSignal:

@@ -14,6 +14,7 @@ from packages.config.settings import DATABASE_URL_ENV_VAR, load_runtime_paths
 from packages.db.connection import open_platform_db
 from packages.db.contracts import (
     APPROVALS_TABLE,
+    DISCOVERY_RUNS_TABLE,
     EVENTS_TABLE,
     EXPERIMENTS_TABLE,
     GOALS_TABLE,
@@ -200,6 +201,17 @@ class ControlPlaneDatabase:
                 record_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 completed_at TEXT
+            )
+            """,
+            f"""
+            CREATE TABLE IF NOT EXISTS {DISCOVERY_RUNS_TABLE} (
+                id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                signals_ingested INTEGER NOT NULL,
+                opportunities_touched INTEGER NOT NULL,
+                record_json TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                finished_at TEXT
             )
             """,
         ]
