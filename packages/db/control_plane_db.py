@@ -1,18 +1,26 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from contextlib import contextmanager
-from dataclasses import dataclass
 import json
 import os
 import sqlite3
+from collections.abc import Sequence
+from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 from packages.config.settings import DATABASE_URL_ENV_VAR, load_runtime_paths
 from packages.db.connection import open_platform_db
-from packages.db.contracts import APPROVALS_TABLE, EVENTS_TABLE, GOALS_TABLE, TASKS_TABLE, TASK_QUEUE_TABLE
+from packages.db.contracts import (
+    APPROVALS_TABLE,
+    EVENTS_TABLE,
+    EXPERIMENTS_TABLE,
+    GOALS_TABLE,
+    OPPORTUNITIES_TABLE,
+    TASK_QUEUE_TABLE,
+    TASKS_TABLE,
+)
 
 try:
     import psycopg
@@ -165,6 +173,33 @@ class ControlPlaneDatabase:
                 claimed_by TEXT,
                 enqueued_at TEXT NOT NULL,
                 claimed_at TEXT
+            )
+            """,
+            f"""
+            CREATE TABLE IF NOT EXISTS {OPPORTUNITIES_TABLE} (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                audience TEXT NOT NULL,
+                connector TEXT NOT NULL,
+                status TEXT NOT NULL,
+                score REAL,
+                confidence REAL,
+                record_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """,
+            f"""
+            CREATE TABLE IF NOT EXISTS {EXPERIMENTS_TABLE} (
+                id TEXT PRIMARY KEY,
+                opportunity_id TEXT NOT NULL,
+                type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                metric TEXT NOT NULL,
+                threshold REAL NOT NULL,
+                record_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                completed_at TEXT
             )
             """,
         ]
