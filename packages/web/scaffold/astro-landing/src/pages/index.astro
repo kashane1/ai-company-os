@@ -1,0 +1,165 @@
+---
+// Astro static page. Content is plain, framework-agnostic HTML so the same
+// markup powers both the Astro build and the platform's offline preview/gate
+// (packages/web/scaffold.py::render_landing_html). Tokens like {{SITE_NAME}}
+// are filled in when the scaffold is materialized for a product.
+import "../styles/global.css";
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{SITE_NAME}} — {{TAGLINE}}</title>
+  <meta name="description" content="{{META_DESCRIPTION}}" />
+  <meta property="og:title" content="{{SITE_NAME}} — {{TAGLINE}}" />
+  <meta property="og:description" content="{{META_DESCRIPTION}}" />
+  <meta property="og:type" content="website" />
+</head>
+<body>
+  <a class="btn btn-ghost" href="#main" style="position:absolute;left:-9999px;top:auto"
+     onfocus="this.style.left='1rem';this.style.top='1rem';this.style.position='fixed'">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>{{SITE_NAME}}</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-primary nav-cta" href="#get-started">{{PRIMARY_CTA}}</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">{{EYEBROW}}</span>
+          <h1>{{HERO_HEADLINE}}</h1>
+          <p class="hero-sub">{{HERO_SUBHEAD}}</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="#get-started">{{PRIMARY_CTA}}</a>
+            <a class="btn btn-ghost btn-lg" href="#how">{{SECONDARY_CTA}}</a>
+          </div>
+          <p class="hero-note">{{HERO_NOTE}}</p>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="bar w-70"></div>
+          <div class="bar w-50"></div>
+          <div class="tiles">
+            <div class="tile"></div><div class="tile"></div><div class="tile"></div>
+          </div>
+          <div class="bar w-70"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust bar -->
+    <section class="section section--subtle" style="padding-block:var(--space-lg)">
+      <div class="container">
+        <p class="center muted" style="margin-bottom:var(--space-sm)">{{TRUST_LABEL}}</p>
+        <div class="trust">
+          <span>{{TRUST_1}}</span><span>{{TRUST_2}}</span>
+          <span>{{TRUST_3}}</span><span>{{TRUST_4}}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="center stack-lg" style="margin-bottom:var(--space-lg)">
+          <span class="eyebrow">Features</span>
+          <h2>{{FEATURES_HEADLINE}}</h2>
+          <p class="muted measure">{{FEATURES_SUBHEAD}}</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <div class="icon" aria-hidden="true">⚡</div>
+            <h3>{{FEATURE_1_TITLE}}</h3>
+            <p>{{FEATURE_1_BODY}}</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">🎯</div>
+            <h3>{{FEATURE_2_TITLE}}</h3>
+            <p>{{FEATURE_2_BODY}}</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">🔒</div>
+            <h3>{{FEATURE_3_TITLE}}</h3>
+            <p>{{FEATURE_3_BODY}}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section section--subtle" id="how">
+      <div class="container">
+        <div class="center" style="margin-bottom:var(--space-lg)">
+          <span class="eyebrow">How it works</span>
+          <h2>{{HOW_HEADLINE}}</h2>
+        </div>
+        <div class="steps">
+          <div class="step"><h3>{{STEP_1_TITLE}}</h3><p class="muted">{{STEP_1_BODY}}</p></div>
+          <div class="step"><h3>{{STEP_2_TITLE}}</h3><p class="muted">{{STEP_2_BODY}}</p></div>
+          <div class="step"><h3>{{STEP_3_TITLE}}</h3><p class="muted">{{STEP_3_BODY}}</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonial -->
+    <section class="section">
+      <div class="container center">
+        <p class="quote">“{{TESTIMONIAL}}”</p>
+        <p class="muted">{{TESTIMONIAL_AUTHOR}}</p>
+      </div>
+    </section>
+
+    <!-- CTA / waitlist -->
+    <section class="section" id="get-started">
+      <div class="container">
+        <div class="cta-card stack-lg">
+          <h2>{{CTA_HEADLINE}}</h2>
+          <p style="opacity:0.92;max-width:48ch;margin-inline:auto">{{CTA_SUBHEAD}}</p>
+          <!-- Wire to a real handler (Netlify form / Stripe Checkout) in F8. -->
+          <form class="cta-form" name="waitlist" method="post" action="#">
+            <label for="email" class="visually-hidden" style="position:absolute;left:-9999px">Email address</label>
+            <input id="email" type="email" name="email" placeholder="you@work.com"
+                   autocomplete="email" required />
+            <button class="btn btn-ghost btn-lg" type="submit">{{PRIMARY_CTA}}</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section section--subtle" id="faq">
+      <div class="container">
+        <div class="center" style="margin-bottom:var(--space-lg)">
+          <span class="eyebrow">FAQ</span>
+          <h2>{{FAQ_HEADLINE}}</h2>
+        </div>
+        <div class="faq">
+          <details open><summary>{{FAQ_1_Q}}</summary><p>{{FAQ_1_A}}</p></details>
+          <details><summary>{{FAQ_2_Q}}</summary><p>{{FAQ_2_A}}</p></details>
+          <details><summary>{{FAQ_3_Q}}</summary><p>{{FAQ_3_A}}</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© {{YEAR}} {{SITE_NAME}}. All rights reserved.</span>
+      <span>{{FOOTER_NOTE}}</span>
+    </div>
+  </footer>
+</body>
+</html>

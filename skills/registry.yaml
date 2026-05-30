@@ -808,3 +808,20 @@ skills:
     adapters:
       claude: adapters/claude/codex-cloud-dispatch.md
     project_skill: .claude/skills/codex-cloud-dispatch.md
+
+  # Section F — web build/ship lane. Builds a responsive landing/marketing
+  # site from the Astro static-first scaffold; validated by the web gate
+  # (packages/web/validation.py) and shipped by the webdeploy lane.
+  - id: landing-page-build
+    name: Landing Page Build
+    path: canonical/landing-page-build/skill.md
+    owner_agent: web
+    target_runtimes: [claude, codex]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/landing-page-build.md
+    project_skill: .claude/skills/landing-page-build.md
