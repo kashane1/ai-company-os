@@ -14,5 +14,37 @@ from packages.tools.llm.client import (
     ModelError,
     OpenRouterClient,
 )
+from packages.tools.llm.nvidia import (
+    DEFAULT_CHAT_MODEL,
+    DEFAULT_EMBED_MODEL,
+    DEFAULT_REASONING_MODEL,
+    NVIDIA_MODELS,
+    ChatResult,
+    NvidiaClient,
+)
+from packages.tools.llm.registry import (
+    CHAT_MODEL_FACTORIES,
+    available_providers,
+    build_chat_model,
+    default_chat_model,
+)
 
-__all__ = ["ChatModel", "ModelError", "OpenRouterClient"]
+__all__ = [
+    # Protocol + shared error
+    "ChatModel",
+    "ModelError",
+    # Providers
+    "OpenRouterClient",
+    "NvidiaClient",
+    "ChatResult",
+    # NVIDIA model registry
+    "NVIDIA_MODELS",
+    "DEFAULT_CHAT_MODEL",
+    "DEFAULT_REASONING_MODEL",
+    "DEFAULT_EMBED_MODEL",
+    # Connector / factory seam
+    "build_chat_model",
+    "default_chat_model",
+    "available_providers",
+    "CHAT_MODEL_FACTORIES",
+]
