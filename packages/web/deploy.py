@@ -1,0 +1,205 @@
+"""Web deploy seam — publish a built site behind a pluggable target (F4).
+
+Building a site (WEB lane) and *publishing* it (WEBDEPLOY lane) are separate
+concerns, so deployment lives behind a ``DeployTarget`` seam — exactly like the
+connector/store seams elsewhere in the repo. The first adapter is **Netlify**
+(its free tier permits commercial use, unlike Vercel Hobby), but nothing above
+this interface knows that.
+
+Design choices that matter:
+
+* **Account is explicit.** Every site belongs to a :class:`DeployAccount`. That
+  abstraction is what makes the later *client-handoff* mode possible —
+  :meth:`DeployTarget.transfer_ownership` moves a site to a client's account
+  without the rest of the platform changing.
+* **Production vs preview is a parameter.** Preview deploys are cheap and
+  ungated; a production deploy is the gated action (see
+  ``packages/policies/deploy_readiness.py``). This module performs deploys; it
+  does **not** decide whether one is allowed — that's policy, enforced by the
+  WEBDEPLOY worker before it calls :meth:`deploy`.
+* **Custom domain / DNS is its own method** so the gate can require approval for
+  it specifically.
+
+The HTTP client is injectable, so the Netlify adapter is fully unit-testable
+with ``httpx.MockTransport`` — no network, no token.
+"""
+
+from __future__ import annotations
+
+import io
+import zipfile
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Protocol, runtime_checkable
+
+import httpx
+
+from packages.config.settings import NETLIFY_AUTH_TOKEN_ENV_VAR, get_api_key
+
+NETLIFY_API = "https://api.netlify.com/api/v1"
+
+
+class DeployError(RuntimeError):
+    """Raised when a deploy target call fails or is misconfigured."""
+
+
+@dataclass(frozen=True)
+class DeployAccount:
+    """An account/team that can own sites. ``id`` is the host's account slug."""
+
+    id: str
+    name: str = ""
+
+
+@dataclass(frozen=True)
+class SiteRef:
+    site_id: str
+    name: str
+    url: str = ""
+    account_id: str = ""
+
+
+@dataclass(frozen=True)
+class DeployResult:
+    site: SiteRef
+    deploy_id: str
+    url: str
+    production: bool
+    state: str = ""
+
+
+@runtime_checkable
+class DeployTarget(Protocol):
+    """Publish a built ``dist`` directory and manage its hosting."""
+
+    name: str
+
+    def ensure_site(self, name: str, *, account: DeployAccount | None = None) -> SiteRef:
+        ...
+
+    def deploy(self, site: SiteRef, dist_dir: Path, *, production: bool = False) -> DeployResult:
+        ...
+
+    def set_custom_domain(self, site: SiteRef, domain: str) -> SiteRef:
+        ...
+
+    def transfer_ownership(self, site: SiteRef, to_account: DeployAccount) -> SiteRef:
+        ...
+
+
+def zip_dist(dist_dir: Path) -> bytes:
+    """Zip a built site directory into bytes (the Netlify zip-deploy payload)."""
+    if not dist_dir.is_dir():
+        raise DeployError(f"dist directory not found: {dist_dir}")
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(dist_dir.rglob("*")):
+            if path.is_file():
+                archive.write(path, path.relative_to(dist_dir).as_posix())
+    return buffer.getvalue()
+
+
+class NetlifyDeployTarget:
+    """``DeployTarget`` backed by the Netlify API.
+
+    The token is read from ``$NETLIFY_AUTH_TOKEN`` (a gated secret) unless passed
+    explicitly. The ``httpx.Client`` is injectable for tests.
+    """
+
+    name = "netlify"
+
+    def __init__(
+        self,
+        *,
+        token: str | None = None,
+        account: DeployAccount | None = None,
+        client: httpx.Client | None = None,
+        base_url: str = NETLIFY_API,
+        timeout: float = 60.0,
+    ) -> None:
+        self._token = token if token is not None else get_api_key(NETLIFY_AUTH_TOKEN_ENV_VAR)
+        self._account = account
+        self._base_url = base_url.rstrip("/")
+        self._client = client or httpx.Client(timeout=timeout)
+
+    def _headers(self, content_type: str = "application/json") -> dict[str, str]:
+        if not self._token:
+            raise DeployError(
+                f"no Netlify token — set ${NETLIFY_AUTH_TOKEN_ENV_VAR} or pass token"
+            )
+        return {"Authorization": f"Bearer {self._token}", "Content-Type": content_type}
+
+    def _request(self, method: str, path: str, **kwargs) -> dict:
+        try:
+            resp = self._client.request(method, f"{self._base_url}{path}", **kwargs)
+        except httpx.HTTPError as exc:  # transport error
+            raise DeployError(f"netlify request failed: {exc}") from exc
+        if resp.status_code >= 300:
+            raise DeployError(f"netlify HTTP {resp.status_code}: {resp.text[:200]}")
+        try:
+            return resp.json()
+        except ValueError as exc:
+            raise DeployError(f"netlify returned non-JSON: {exc}") from exc
+
+    def ensure_site(self, name: str, *, account: DeployAccount | None = None) -> SiteRef:
+        """Find a site by name, or create it under the given/default account."""
+        acct = account or self._account
+        existing = self._request("GET", "/sites", headers=self._headers(), params={"name": name})
+        for site in existing if isinstance(existing, list) else []:
+            if site.get("name") == name:
+                return _site_ref(site)
+        body: dict[str, object] = {"name": name}
+        path = "/sites"
+        if acct is not None:
+            path = f"/{acct.id}/sites"
+        created = self._request("POST", path, headers=self._headers(), json=body)
+        return _site_ref(created)
+
+    def deploy(self, site: SiteRef, dist_dir: Path, *, production: bool = False) -> DeployResult:
+        """Zip-deploy ``dist`` to the site. ``production=False`` creates a draft
+        deploy (a preview URL not promoted to the production domain)."""
+        payload = zip_dist(dist_dir)
+        params = {} if production else {"draft": "true"}
+        result = self._request(
+            "POST",
+            f"/sites/{site.site_id}/deploys",
+            headers=self._headers("application/zip"),
+            params=params,
+            content=payload,
+        )
+        return DeployResult(
+            site=site,
+            deploy_id=str(result.get("id", "")),
+            url=str(result.get("ssl_url") or result.get("url") or site.url),
+            production=production,
+            state=str(result.get("state", "")),
+        )
+
+    def set_custom_domain(self, site: SiteRef, domain: str) -> SiteRef:
+        """Attach a custom domain (a gated action — DNS/domain change)."""
+        updated = self._request(
+            "PATCH",
+            f"/sites/{site.site_id}",
+            headers=self._headers(),
+            json={"custom_domain": domain},
+        )
+        return _site_ref(updated)
+
+    def transfer_ownership(self, site: SiteRef, to_account: DeployAccount) -> SiteRef:
+        """Move the site to another account — the hook for client handoff."""
+        updated = self._request(
+            "PATCH",
+            f"/sites/{site.site_id}",
+            headers=self._headers(),
+            json={"account_slug": to_account.id},
+        )
+        return _site_ref(updated)
+
+
+def _site_ref(payload: dict) -> SiteRef:
+    return SiteRef(
+        site_id=str(payload.get("id") or payload.get("site_id") or ""),
+        name=str(payload.get("name", "")),
+        url=str(payload.get("ssl_url") or payload.get("url") or ""),
+        account_id=str(payload.get("account_slug") or payload.get("account_id") or ""),
+    )
