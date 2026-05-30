@@ -78,6 +78,26 @@ class PolicyViolationCode(str, Enum):
     # --- ECC Gap Recommendations Phase 3 (verification-loop) ---
     VERIFICATION_LOOP_HARD_FAIL = "verification_loop_hard_fail"
 
+    # --- Discovery layer (opportunity → validate → build gates) ---
+    # Soft validate-gate reasons (surfaced in AdvancementDecision, not raised):
+    DISCOVERY_RISK_TOO_HIGH = "discovery_risk_too_high"
+    DISCOVERY_BLOCKED_COMPLIANCE_FLAG = "discovery_blocked_compliance_flag"
+    DISCOVERY_NO_DISTRIBUTION = "discovery_no_distribution"
+    DISCOVERY_SCORE_BELOW_THRESHOLD = "discovery_score_below_threshold"
+    DISCOVERY_LOW_CONFIDENCE = "discovery_low_confidence"
+    # Hard build-gate reasons (raised as PolicyViolation):
+    DISCOVERY_OPPORTUNITY_NOT_VALIDATED = "discovery_opportunity_not_validated"
+    DISCOVERY_EXPERIMENT_NOT_PASSED = "discovery_experiment_not_passed"
+    DISCOVERY_MISSING_SUCCESS_CRITERIA = "discovery_missing_success_criteria"
+    # Bulk-crawl gate (C1):
+    DISCOVERY_BULK_CRAWL_NOT_APPROVED = "discovery_bulk_crawl_not_approved"
+    DISCOVERY_BULK_CRAWL_PRECONDITION = "discovery_bulk_crawl_precondition"
+    # Outreach gate for sending experiments (C3):
+    DISCOVERY_OUTREACH_NOT_REVIEWED = "discovery_outreach_not_reviewed"
+    DISCOVERY_OUTREACH_UNSUBSCRIBE_MISSING = "discovery_outreach_unsubscribe_missing"
+    DISCOVERY_OUTREACH_SUPPRESSION_MISSING = "discovery_outreach_suppression_missing"
+    DISCOVERY_OUTREACH_SPEND_UNAPPROVED = "discovery_outreach_spend_unapproved"
+
 
 class PolicyViolation(RuntimeError):
     """Raised when a policy check refuses to authorize an action.

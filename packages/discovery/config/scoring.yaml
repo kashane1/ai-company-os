@@ -1,0 +1,42 @@
+# Opportunity scoring weights. Consumed by packages/discovery/scoring.py.
+# Spec: docs/founder/opportunity-scorecard.md.
+#
+# Retune monthly from evals (which weights actually predicted revenue?). This
+# file is a durable, learnable asset — versioned in git on purpose. Keys match
+# the OpportunitySignals field names in packages/schemas/opportunity.py.
+#
+# Score = sum(weight * signal) / sum(weight) * 10  ->  normalized 0..100.
+
+version: 1
+
+weights:
+  buyer_intent: 3.0          # best single predictor of revenue
+  willingness_to_pay: 3.0    # paying-but-unhappy is the sweet spot
+  distribution_path: 3.0     # where most projects die
+  urgency: 2.0
+  community_pain: 2.0
+  competition_weakness: 2.0
+  build_feasibility: 2.0
+  risk: 2.0                  # inverted signal (10 = low risk)
+  expected_margin: 1.5
+  repeated_workflow: 1.5
+  search_volume: 1.0
+  defensibility: 1.0
+
+# Advancement thresholds (the validate gate in docs/founder/founder-os.md).
+thresholds:
+  min_score_to_validate: 65       # below this, stays in inbox
+  min_confidence_to_validate: 0.6 # low-confidence high-score = hypothesis, not actionable
+  min_distribution_score: 1       # distribution_path == 0 => cannot advance
+
+# Hard gates that override the numeric score entirely.
+hard_gates:
+  reject_if_risk_at_or_below: 2   # risk<=2 (high real risk) -> compliance review / reject
+  block_compliance_flags:         # auto-block pending a named owner
+    - tos-risk
+    - regulated-data
+
+# Confidence model: confidence = min(1, evidence_links/target) * diversity_factor
+confidence:
+  target_evidence: 5
+  diversity_bonus: true           # multiple distinct platforms boost confidence

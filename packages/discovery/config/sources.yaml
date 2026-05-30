@@ -1,0 +1,67 @@
+# Connector registry. Each source has rate limits and a ToS/compliance note.
+# The connector runtime (packages/discovery/connectors) enforces respect_robots
+# + rate_limit. Prefer official APIs over HTML scraping. Disabled sources are
+# never crawled.
+#
+# `tos` is advisory and changes over time — re-check before relying on a source.
+# If a source forbids automated collection, set enabled:false and rely on manual
+# input. Any source whose ONLY viable access is ToS-violating scraping stays
+# disabled — that is a scorecard hard gate, not a low score.
+
+version: 1
+
+defaults:
+  respect_robots: true
+  user_agent: "ai-company-os-discovery/1.0 (+contact@yourdomain.example)"
+  rate_limit:
+    requests_per_minute: 20
+    backoff_on: [429, 503]
+
+sources:
+  - id: hackernews
+    kind: api
+    enabled: true
+    endpoint: "https://hn.algolia.com/api/v1"
+    rate_limit:
+      requests_per_minute: 60
+    tos: "Public Algolia HN Search API, generous limits. No auth required."
+    notes: "Great for 'is there a tool that...' requests and build-in-public pain."
+
+  - id: github
+    kind: api
+    enabled: true
+    auth_env: GITHUB_TOKEN
+    rate_limit:
+      requests_per_minute: 30
+    tos: "Authenticated REST Search API within quota. No scraping."
+    notes: "Good for 'awesome-x' gaps, recurring issue pain, abandoned tools."
+
+  - id: reddit
+    kind: api
+    enabled: true
+    auth_env: REDDIT_CLIENT_ID
+    endpoint: "https://oauth.reddit.com"
+    rate_limit:
+      requests_per_minute: 60
+    tos: "Use the official API within quota. Follow subreddit + self-promotion rules."
+    notes: >-
+      App-only OAuth (client-credentials). Needs REDDIT_CLIENT_ID +
+      REDDIT_CLIENT_SECRET; refuses to run without them. High-signal for pain quotes.
+
+  - id: producthunt
+    kind: api
+    enabled: false
+    tos: "Use the official API where available; respect rate limits."
+    notes: "Signal on what's launching and what comments complain about."
+
+  - id: google-trends
+    kind: api
+    enabled: false
+    tos: "Use a sanctioned data source/quota; avoid scraping the UI."
+    notes: "Search-volume direction (the search_volume signal)."
+
+  - id: app-stores
+    kind: api
+    enabled: false
+    tos: "Review listings/reviews via sanctioned means only."
+    notes: "Enable once you have a reviews-mining approach within ToS."
