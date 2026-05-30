@@ -89,3 +89,75 @@ The code is done; these just need values in `.env` (see `.env.example`):
 3. The remaining **D** platform items (Postgres cutover, Redis, dashboard,
    OpenClaw, iOS coverage) on their own timeline — these are larger product calls
    that each need a deliberate decision; pick one to take next.
+
+## F. Forward-looking: a web build + ship lane (proposed)
+
+_Added 2026-05-30 after a repo-wide capability audit. This is a proposal, not yet
+built._
+
+**Why.** Today the only build-and-ship lane that reaches a customer is **iOS**
+(`WorkerLane.IOS` → `WorkerLane.APPSTORE`; `ProductPlatform` only has `IOS`). When
+discovery finds a niche, the only way to put something in front of buyers is a
+full iOS app + App Store review. That's slow, gated by Apple, and overkill for
+validating demand. A **website / frontend lane** is the missing portable, fast,
+low-friction way to show a discovered idea to customers.
+
+**The case for it (assessment).** A web target is a strong fit, for three reasons:
+
+1. **Faster, lower-friction validation than the App Store.** No review queue, no
+   signing, instant deploys, instant iteration. You can be in front of real
+   traffic the same day an opportunity clears scoring.
+2. **It doubles as a validation experiment.** The discovery loop already has an
+   experiment store + an outreach gate (C3), and `assert_ready_to_build` requires
+   a *passed* validation experiment before any build goal is created. A landing
+   page with a waitlist/CTA is the cheapest possible demand test — so the web lane
+   isn't just another ship target, it **feeds the gate the loop already enforces**.
+   Web-first validation → then commit to an app (or a fuller web app) only for
+   wedges that convert.
+3. **The architecture already accommodates it cleanly.** Codex is
+   target-agnostic (it edits files from a markdown packet; lane-specific checks
+   live in the worker). `opportunity_to_goal` is target-agnostic too. And
+   `docs/architecture.md` already names "production deploys" and "domain or DNS
+   modifications" as approval-required — the *policy intent* for web deploys is
+   anticipated; there's just no lane or enforcement module yet.
+
+**Cautions / guardrails (baked into the tickets below).**
+
+- Deploys are public and effectively irreversible, so **production deploy + custom
+  domain/DNS are approval-gated**; per-PR preview deploys can be ungated.
+- Keep **build and deploy as separate lanes**, mirroring the deliberate iOS↔App
+  Store split.
+- **Scope discipline:** start *static-first* (landing pages, waitlists, simple
+  marketing/SaaS sites) before full web apps with backends, auth, or payments.
+- Hosting **spend** and secrets are gated like other high-spend/external actions.
+
+### Proposed tickets
+
+| # | Item | Pri | Sketch |
+|---|------|-----|--------|
+| F1 | Web lane primitives | P1 | Add `WorkerLane.WEB`, `ProductPlatform.WEB`, `TestLane.WEB` (or reuse a NODE lane), and a web keyword branch in the supervisor's `plan_goal` ("website", "landing page", "waitlist", "web app", "marketing site", "astro", "next.js"). Today a web goal silently falls through to `ENGINEERING` with no web-aware validation. |
+| F2 | Web implementation worker | P1 | `apps/worker-web/` mirroring `worker-engineering`/`worker-ios`: Codex writes the site in an isolated worktree; web validators run build + typecheck/lint + link check + a Lighthouse/a11y budget + broken-asset check. Source lives in `products/<id>-web/`. |
+| F3 | Web product artifact chain | P2 | Add `ProductArtifactType.WEB_ARCHITECTURE` + a web MVP spec to the product-artifact-chain contract, and a `landing-page-build` / `web-app-scaffold` skill. **Recommend static-first** (e.g. Astro or Next static export) so output is portable and cheap/free to host. |
+| F4 | Web deploy lane (separate) | P1 | `apps/worker-webdeploy/` analogous to `worker-appstore`: publishes the built artifact to a host behind a **`DeployTarget` seam** (mirrors the connector/store seams the repo already uses). Recommended first adapter: a free-tier static host (e.g. Cloudflare Pages / Netlify); keep it swappable. |
+| F5 | Deploy + DNS approval gates | P1 | `packages/policies/deploy_readiness.py`: `assert_deploy_ready()` (build green + preview reviewed + approval granted) and require approval for production deploys, custom-domain/DNS changes, and hosting spend. Wires the enforcement that `architecture.md` already calls for. Preview deploys ungated. |
+| F6 | Web-first validation handoff | P2 | Let the dossier/goal carry a **build target** (web vs iOS) so the supervisor routes correctly, and add a "ship a landing page as the validation experiment" path that records results into the existing experiment store — closing the validate→build loop with the cheapest possible test. |
+| F7 | Web UX audit skill | P2 | `web-ux-audit` (Lighthouse, a11y, responsive/breakpoint checks), mirroring `ios-simulator-ux-audit`, as the web lane's quality gate. |
+
+**Suggested order:** F1 → F2 → F4 → F5 (the minimum to build a static site and
+ship it behind a gate), then F6 (the discovery synergy), then F3/F7 (depth).
+
+**Open decision (not blocking):** hosting target + framework. Default recommended
+above is *static-first + a pluggable `DeployTarget` adapter, Cloudflare Pages as
+the first host*; revisit if you'd rather standardize on Vercel/Next or need
+server-side rendering from day one.
+
+## Audit note (2026-05-30)
+
+A repo-wide audit confirmed the platform can **discover → validate → build iOS →
+ship to the App Store** end to end, with shared policy gates throughout. The
+material forward-looking gaps are: (1) **no web/customer-facing ship lane** —
+addressed by section F above; (2) the already-tracked **D** platform items
+(Postgres, Redis, dashboard panels beyond `/discovery`, OpenClaw, iOS coverage
+gate); and (3) the scaffolded-but-unwired **GTM** task types (CONTENT_DRAFT,
+image-gen, social scheduling — Phase 2.2) and the paused skill-evolution worker.
+No duplicate tickets were added for (2)/(3); they remain tracked where they live.
