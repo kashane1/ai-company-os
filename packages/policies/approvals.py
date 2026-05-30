@@ -98,6 +98,13 @@ class PolicyViolationCode(str, Enum):
     DISCOVERY_OUTREACH_SUPPRESSION_MISSING = "discovery_outreach_suppression_missing"
     DISCOVERY_OUTREACH_SPEND_UNAPPROVED = "discovery_outreach_spend_unapproved"
 
+    # --- Web deploy lane (Section F): publishing a site is high blast radius ---
+    DEPLOY_BUILD_NOT_VALIDATED = "deploy_build_not_validated"
+    DEPLOY_PREVIEW_NOT_REVIEWED = "deploy_preview_not_reviewed"
+    DEPLOY_APPROVAL_NOT_GRANTED = "deploy_approval_not_granted"
+    DEPLOY_DNS_NOT_APPROVED = "deploy_dns_not_approved"
+    DEPLOY_SPEND_NOT_APPROVED = "deploy_spend_not_approved"
+
 
 class PolicyViolation(RuntimeError):
     """Raised when a policy check refuses to authorize an action.
