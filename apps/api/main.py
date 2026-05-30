@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -12,6 +12,7 @@ if str(ROOT) not in sys.path:
 
 from apps.api.approval_endpoint import router as approval_router
 from apps.api.control_plane import ControlPlaneService, as_payload
+from apps.api.discovery_endpoint import router as discovery_router
 from packages.schemas.approval import ApprovalStatus
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
 
@@ -19,6 +20,8 @@ app = FastAPI(title="ai-company-os control plane", version="0.1.0")
 # Phase 3.1 — magic-link approval endpoint, mounted under /magic/approvals to
 # avoid colliding with the existing JSON /approvals surface.
 app.include_router(approval_router, prefix="/magic")
+# D3 — operator dashboard's first panel: the read-only discovery view.
+app.include_router(discovery_router)
 
 
 class CreateGoalRequest(BaseModel):

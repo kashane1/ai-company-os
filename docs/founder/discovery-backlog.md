@@ -48,7 +48,7 @@ deliberately deferred choices the README documents.
 |---|------|-----|------|
 | D1 | Postgres for the control plane | P1 | Control plane still defaults to SQLite. The new stores already work on both backends (they go through `ControlPlaneDatabase`), so this is a config/ops cutover, not a code rewrite. |
 | D2 | Redis queue | P2 | Replace the durable queue table once worker daemons run continuously. |
-| D3 | Operator dashboard | P2 | Described architecturally, not scaffolded — deferred to avoid speculative frontend. A discovery view (inbox + run status) would be a natural first panel. |
+| D3 | Operator dashboard | 🟡 | First panel scaffolded: a read-only **discovery view** (ranked inbox + run status/history) — `packages/discovery/dashboard.py` (view builder + HTML render) served at `GET /discovery` and `/discovery/data` via `apps/api/discovery_endpoint.py`. Remaining dashboard panels (goals/tasks/approvals) still deferred. |
 | D4 | Broaden approval *persistence* | P1 | C1/C3 added the gate *logic*; wiring those decisions into the `approvals` store + approval-reviewer surface (so they're recorded/replayable like task/release approvals) is the remaining half. |
 | D5 | OpenClaw bridge | P2 | Documented as optional/future; no integration code, by design. |
 | D6 | Gate iOS coverage | P2 | iOS coverage measured but not enforced. Small CI change, but flip it deliberately. |
