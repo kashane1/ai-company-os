@@ -825,3 +825,19 @@ skills:
     adapters:
       claude: adapters/claude/landing-page-build.md
     project_skill: .claude/skills/landing-page-build.md
+
+  # Section F — quality bar for a built web product: responsive / a11y /
+  # performance / SEO scoring beyond the fail-closed F2 gate.
+  - id: web-ux-audit
+    name: Web UX Audit
+    path: canonical/web-ux-audit/skill.md
+    owner_agent: web
+    target_runtimes: [claude, codex]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/web-ux-audit.md
+    project_skill: .claude/skills/web-ux-audit.md
