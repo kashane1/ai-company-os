@@ -63,9 +63,9 @@ deliberately deferred choices the README documents.
 | E4 | Reddit connector (OAuth) | ✅ | `RedditConnector` — app-only OAuth, token caching, registered + enabled (`connectors/reddit.py`). **Needs runtime creds** (see below). |
 | E5 | Call C1/C3 gates at the point of action | ✅ | Bulk runs gated in `run_discovery` (`FetchOptions.authorized` only set after the gate passes); `start_sending_experiment` gates outreach before an experiment goes live. |
 | E7 | Analyst calibration eval | ✅ | `packages/discovery/calibration.py` + a canonical labelled dataset; 100% against the heuristic provider as a drift tripwire. |
-| E3 | Persist `DiscoveryRunReport` to the control plane | P2 | Runs persist via `JsonStore` today; move alongside the other records for queryable history. |
+| E3 | Persist `DiscoveryRunReport` to the control plane | ✅ | `DiscoveryRunRecordStore` (`packages/db/discovery_run_store.py`) + a `discovery_runs` table; `DiscoveryRunRepository` seam makes the file/DB stores interchangeable, `migrate_runs` does the cutover, and `discovery_run --store {db,file}` (db default) makes runs queryable alongside opportunity/experiment records. |
 | E6 | Backfill 3.11 compatibility note | P2 | Repo targets 3.12 (`datetime.UTC`); the new discovery code is 3.10-safe. One-line note if 3.10 support is ever wanted. |
-| E8 | `discovery_score` CLI | P2 | A thin operator command to run the scoring pass with a chosen provider, mirroring `discovery_run`. |
+| E8 | `discovery_score` CLI | ✅ | `scripts/discovery_score.py` — runs the scoring pass with a chosen `SignalProvider` (`heuristic` default / `llm`), prints a ranked markdown report. |
 
 ### Manual step: Reddit + model credentials (runtime)
 
@@ -81,9 +81,11 @@ The code is done; these just need values in `.env` (see `.env.example`):
 
 ## Suggested next three
 
-1. **E8 — `discovery_score` CLI**, so the full find→score→gate loop is operable
-   from the terminal (pair it with a real `OPENROUTER_API_KEY`).
-2. **E3 — persist run history to the control plane**, unifying it with the
-   opportunity/experiment records.
+1. ~~**E8 — `discovery_score` CLI**~~ ✅ done — `scripts/discovery_score.py`.
+   The full find→score→gate loop is now operable from the terminal (pair it with
+   a real `OPENROUTER_API_KEY` for the `llm` provider).
+2. ~~**E3 — persist run history to the control plane**~~ ✅ done — runs now live
+   alongside the opportunity/experiment records (`--store db`, queryable history).
 3. The remaining **D** platform items (Postgres cutover, Redis, dashboard,
-   OpenClaw, iOS coverage) on their own timeline — these are larger product calls.
+   OpenClaw, iOS coverage) on their own timeline — these are larger product calls
+   that each need a deliberate decision; pick one to take next.
