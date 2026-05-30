@@ -309,6 +309,30 @@ This system is successful when:
 - iOS and App Store workflows remain cleanly separated
 - OpenClaw can plug in later without taking over orchestration
 
+## Discovery layer (front of the loop)
+
+The roles above cover *building and shipping* a product. The **discovery layer**
+(`packages/discovery/`) covers the step before that — deciding *what* to build —
+and follows the same platform/worker split:
+
+- The **platform** owns the discovery primitives: source connectors behind one
+  contract (`connectors/`, with robots.txt + rate-limit compliance enforced
+  once), the deduped opportunity inbox, the 12-signal scoring math, the storage
+  seam (JSON or the control-plane DB), and the on-demand run controller.
+- **Policy** (`packages/policies/discovery_gates.py`) owns the decisions: the
+  validate gate (score/confidence/hard-gates) and the build gate
+  (`assert_ready_to_build` — no build before a passed validation experiment),
+  plus the bulk-crawl and outreach gates. Gate decisions are recorded to the
+  approvals store like every other gate.
+- The **analyst** (filling the twelve signals) is the one judgement step; it
+  sits behind a `SignalProvider` interface — a deterministic heuristic for
+  offline runs, or an `LLMSignalProvider` for the real call. Same principle as
+  Codex: the model is an engine inside the system, not the system.
+
+A validated opportunity is projected into a typed goal (`handoff.py`) and enters
+the existing build lanes — so discovery feeds the model above, it doesn't bypass
+it. Full walkthrough: [`founder/discovery-guide.md`](founder/discovery-guide.md).
+
 ## Summary
 
 The intended model is simple:
@@ -320,5 +344,6 @@ The intended model is simple:
 - policies govern
 - state persists
 - OpenClaw interfaces
+- discovery finds the wedge, gated before it reaches a build lane
 
 Future implementation should preserve those boundaries.

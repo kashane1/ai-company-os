@@ -55,7 +55,7 @@ approval gate; every run leaves a replayable audit artifact.
 | Path | What it is |
 |---|---|
 | `apps/` | Thin worker + API entrypoints (engineering, iOS, gtm, appstore, supervisor, approval-reviewer) |
-| `packages/` | Shared platform code: `schemas` (typed contracts), `policies` (approval rules), `db`, `queue`, `tools`, `config` |
+| `packages/` | Shared platform code: `schemas` (typed contracts), `policies` (approval rules), `db`, `queue`, `tools`, `config`, `discovery` (opportunity find → score → validate) |
 | `products/` | Source roots for the iOS apps the system has produced |
 | `docs/` | Platform docs **plus** the system's own run/spec output — read [`docs/README.md`](docs/README.md) first |
 | `state/` | Runtime-owned data only (worktrees, artifacts, checkpoints, logs) — never source |
@@ -132,6 +132,7 @@ The repo has moved past a paper scaffold. The current useful surface is:
 - `packages/queue`
 - `packages/schemas`
 - `packages/config`
+- `packages/discovery` (opportunity discovery → scoring → validation gate; see [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md))
 - `infra`
 - `state`
 - `docs`
@@ -295,6 +296,8 @@ See [LICENSE](LICENSE).
 
 - [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)
 - [docs/EVALUATOR-WALKTHROUGH.md](docs/EVALUATOR-WALKTHROUGH.md)
+- [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md) — the discovery layer: find → score → validate (run `python3 scripts/discovery_demo.py`)
+- [docs/example_prompts.md](docs/example_prompts.md) — a menu of prompts to run in this repo + what each one activates
 - [docs/flagship-simulator-driven-polish.md](docs/flagship-simulator-driven-polish.md) — one workflow traced end to end
 - [docs/recurring-approval-sweep.md](docs/recurring-approval-sweep.md) — recurring operator workflow traced against approval code
 - [docs/reliability-lessons.md](docs/reliability-lessons.md) — reliability decisions + the tests behind them

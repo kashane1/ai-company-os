@@ -501,6 +501,31 @@ The architecture is working when:
 - iOS and App Store work move through separate lanes
 - the system remains readable and maintainable by a human engineer
 
+## Discovery layer (front of the loop)
+
+The layers above take a founder *goal* and build/ship it. The discovery layer
+(`packages/discovery/`) is the step before the goal exists — finding and
+validating *what* to build — added as a shared platform package, not a new
+orchestrator:
+
+- **Connectors** (`connectors/`) turn sources (Hacker News, GitHub, Reddit) into
+  raw signals behind one contract, with robots.txt + per-domain rate limiting
+  enforced in one place.
+- The **opportunity inbox** dedups signals into scored `OpportunityRecord`s;
+  storage is pluggable (JSON by default, the control-plane DB when configured).
+- **Scoring** (the 12-signal scorecard) is pure math; the **validate** and
+  **build** gates live in `packages/policies/discovery_gates.py` (policy is owned
+  by policies, not tools). The build gate refuses any opportunity that hasn't
+  passed a validation experiment.
+- Discovery runs are **operator-triggered and stoppable** (`run.py` +
+  `scripts/discovery_run.py`), mirroring the runtime supervisor's start/stop
+  surface — not a background crawler.
+
+The durable assets are the schemas, the scoring weights, the playbooks, and the
+accumulated outcomes — not any one source. See
+[`founder/discovery-guide.md`](founder/discovery-guide.md) and
+[`founder/founder-os.md`](founder/founder-os.md).
+
 ## Summary
 
 This architecture is intended to produce a company OS that is:

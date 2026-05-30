@@ -42,6 +42,7 @@ Two supporting zones:
 | a postmortem | through `PostMortemStore.save` ([packages/db/postmortem_store.py](packages/db/postmortem_store.py)) |
 | a product brief / spec | `docs/products/<product-id>/` |
 | product source | `products/<product-id>/` |
+| a discovered opportunity | `state/checkpoints/platform/opportunities/` (via `OpportunityInbox`) |
 
 ## Where things must NOT go
 
@@ -116,6 +117,14 @@ make demo
 Zero-dependency end-to-end demo: goal → typed task → worker execution →
 validation → human approval gate → audit artifact. No Postgres, Redis,
 Codex, network, or Mac runtime required.
+
+For the **discovery layer** (find → score → validate, the front of the loop):
+
+```
+python3 scripts/discovery_demo.py
+```
+
+Offline by default. Start with [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md).
 
 ## End-of-session
 
