@@ -5,6 +5,10 @@ from enum import Enum
 class TestLane(str, Enum):
     PYTHON = "python"
     IOS = "ios"
+    # Section F — web lane. Validation is the JS/web toolchain: production
+    # build succeeds, lint/typecheck, link + broken-asset checks, and the
+    # responsive/a11y budget (see packages/web/validation.py).
+    WEB = "web"
     NONE = "none"
 
 

@@ -20,6 +20,22 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
     elif any(
         keyword in summary
         for keyword in (
+            "deploy",
+            "publish",
+            "go live",
+            "ship the site",
+            "netlify",
+            "production site",
+        )
+    ):
+        # Putting a site in front of the public is high-blast-radius and gated
+        # in packages/policies/deploy_readiness.py — route it to its own lane,
+        # separate from building (mirrors the IOS → APPSTORE split).
+        lane = WorkerLane.WEBDEPLOY
+        risk = RiskLevel.HIGH
+    elif any(
+        keyword in summary
+        for keyword in (
             "ios",
             "iphone",
             "xcode",
@@ -32,6 +48,25 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
         )
     ):
         lane = WorkerLane.IOS
+        risk = RiskLevel.MEDIUM
+    elif any(
+        keyword in summary
+        for keyword in (
+            "website",
+            "web app",
+            "web page",
+            "webpage",
+            "landing page",
+            "waitlist",
+            "marketing site",
+            "frontend",
+            "front-end",
+            "astro",
+            "next.js",
+            "nextjs",
+        )
+    ):
+        lane = WorkerLane.WEB
         risk = RiskLevel.MEDIUM
     else:
         lane = WorkerLane.ENGINEERING
@@ -53,11 +88,15 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
             lane=lane.value,
             base_constraints=base_constraints,
         ),
-        tests_required=lane in {WorkerLane.ENGINEERING, WorkerLane.IOS},
+        tests_required=lane in {WorkerLane.ENGINEERING, WorkerLane.IOS, WorkerLane.WEB},
         test_lane=(
             TestLane.IOS
             if lane is WorkerLane.IOS
-            else TestLane.PYTHON if lane is WorkerLane.ENGINEERING else TestLane.NONE
+            else TestLane.PYTHON
+            if lane is WorkerLane.ENGINEERING
+            else TestLane.WEB
+            if lane is WorkerLane.WEB
+            else TestLane.NONE
         ),
         allowed_no_test_reason_codes=[
             NoTestReasonCode.COMMENTS_ONLY,
@@ -65,13 +104,15 @@ def plan_goal(goal: Goal) -> list[TaskPacket]:
             NoTestReasonCode.APPROVED_FOLLOWUP_TEST_TASK,
         ]
         if lane is WorkerLane.ENGINEERING
+        # iOS and WEB are both UI lanes: visual-only, non-logic changes are a
+        # legitimate no-test reason (a copy/styling tweak needn't ship a test).
         else [
             NoTestReasonCode.COMMENTS_ONLY,
             NoTestReasonCode.VISUAL_ONLY_NON_LOGIC,
             NoTestReasonCode.CONFIG_NO_BEHAVIOR_CHANGE,
             NoTestReasonCode.APPROVED_FOLLOWUP_TEST_TASK,
         ]
-        if lane is WorkerLane.IOS
+        if lane in {WorkerLane.IOS, WorkerLane.WEB}
         else [],
     )
 

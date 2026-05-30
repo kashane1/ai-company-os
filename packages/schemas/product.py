@@ -4,6 +4,10 @@ from enum import Enum
 
 class ProductPlatform(str, Enum):
     IOS = "ios"
+    # Section F — web products (landing pages, marketing/SaaS sites). Built by
+    # the WEB lane, shipped by the WEBDEPLOY lane. Source lives in
+    # products/<product-id>-web/.
+    WEB = "web"
 
 
 class ProductStatus(str, Enum):
@@ -28,6 +32,8 @@ class ProductArtifactType(str, Enum):
     MVP_SPEC = "mvp_spec"
     BACKLOG = "backlog"
     IOS_ARCHITECTURE = "ios_architecture"
+    # Section F — web product architecture (framework, pages, deploy target).
+    WEB_ARCHITECTURE = "web_architecture"
     APPSTORE_POSITIONING = "appstore_positioning"
     INSIGHT_RULES = "insight_rules"
     INSIGHT_ACCEPTANCE_CASES = "insight_acceptance_cases"

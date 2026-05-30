@@ -15,6 +15,14 @@ class WorkerLane(str, Enum):
     # packages/policies/skill_evolution.py and a human-signed HMAC
     # approval token issued through packages/tools/primitives/approvals.py.
     SKILL_EVOLUTION = "skill_evolution"
+    # Section F — web build/ship lanes. WEB implements the site (Codex writes
+    # frontend code, web validators check it); WEBDEPLOY publishes the built
+    # artifact to a host. They are deliberately separate, mirroring the
+    # IOS ↔ APPSTORE split: building a site and putting it in front of the
+    # public are different actions with different blast radius. Production
+    # deploys / DNS / spend are gated in packages/policies/deploy_readiness.py.
+    WEB = "web"
+    WEBDEPLOY = "webdeploy"
 
 
 # Phase 2.1 — GTM task types. These are referenced by task.task_type (the
