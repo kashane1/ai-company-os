@@ -52,7 +52,34 @@ The intended runtime uses:
 - Postgres for durable memory and state
 - Redis for queueing and coordination
 
-V1 does not fully wire them yet, but future implementation should assume both are local development dependencies.
+Both are optional locally. If unset, the control plane falls back to SQLite and
+the database-backed queue. For a week-long operator run, prefer Postgres first,
+then turn on Redis once the dashboard shows healthy task/approval flow.
+
+```bash
+# Start local infra if using the provided compose file.
+docker compose -f infra/compose.yaml up -d postgres redis
+
+# Durable control-plane state.
+export AI_COMPANY_OS_DATABASE_URL=postgresql://ai_company:ai_company@localhost:5432/ai_company_os
+python3 scripts/control_plane_db.py init
+
+# Optional: copy existing SQLite control-plane records into Postgres.
+python3 scripts/control_plane_db.py migrate-sqlite
+
+# Optional Redis dispatch layer. The DB remains canonical for task records.
+export AI_COMPANY_OS_QUEUE_BACKEND=redis
+export AI_COMPANY_OS_REDIS_URL=redis://127.0.0.1:6379/0
+```
+
+The operator cockpit is served by the API:
+
+```bash
+python3 apps/api/main.py
+open http://127.0.0.1:8000/dashboard
+```
+
+`/dashboard/data` returns the same state as JSON for agents and scripts.
 
 ## Codex CLI
 

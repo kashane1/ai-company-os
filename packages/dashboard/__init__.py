@@ -1,0 +1,2 @@
+"""Operator dashboard read models."""
+

@@ -36,6 +36,16 @@ class ControlPlaneDatabaseConfig:
     backend: str
     dsn: str
 
+    @property
+    def redacted_dsn(self) -> str:
+        if self.backend != "postgres":
+            return self.dsn
+        parsed = urlparse(self.dsn)
+        if parsed.password is None:
+            return self.dsn
+        netloc = parsed.netloc.replace(f":{parsed.password}@", ":***@")
+        return parsed._replace(netloc=netloc).geturl()
+
 
 class ControlPlaneDatabase:
     def __init__(self) -> None:
@@ -218,6 +228,25 @@ class ControlPlaneDatabase:
         cursor = connection.cursor()
         for statement in statements:
             cursor.execute(statement)
+        for statement in self._index_statements():
+            cursor.execute(statement)
+
+    def _index_statements(self) -> list[str]:
+        return [
+            f"CREATE INDEX IF NOT EXISTS idx_tasks_status_lane ON {TASKS_TABLE} (status, lane)",
+            f"CREATE INDEX IF NOT EXISTS idx_tasks_updated ON {TASKS_TABLE} (updated_at DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_approvals_status_created "
+            f"ON {APPROVALS_TABLE} (status, created_at)",
+            f"CREATE INDEX IF NOT EXISTS idx_events_created ON {EVENTS_TABLE} (created_at DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_events_subject "
+            f"ON {EVENTS_TABLE} (subject_type, subject_id)",
+            "CREATE INDEX IF NOT EXISTS idx_queue_status_lane "
+            f"ON {TASK_QUEUE_TABLE} (status, lane)",
+            "CREATE INDEX IF NOT EXISTS idx_opportunities_status_score "
+            f"ON {OPPORTUNITIES_TABLE} (status, score DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_discovery_runs_started "
+            f"ON {DISCOVERY_RUNS_TABLE} (started_at DESC)",
+        ]
 
     def execute(self, query: str, params: dict[str, object]) -> None:
         with self.connection() as connection:
@@ -297,6 +326,27 @@ class ControlPlaneDatabase:
         """
         row = self.fetch_one(query, params)
         return int(row["count"]) if row else 0
+
+    def queue_counts_by_lane(self) -> dict[str, int]:
+        query = f"""
+            SELECT lane, COUNT(*) AS count
+            FROM {TASK_QUEUE_TABLE}
+            WHERE status = 'pending'
+            GROUP BY lane
+        """
+        return {
+            str(row["lane"]): int(row["count"])
+            for row in self.fetch_all(query, {})
+        }
+
+    def health_info(self) -> dict[str, object]:
+        with self.connection():
+            pass
+        return {
+            "backend": self.config.backend,
+            "dsn": self.config.redacted_dsn,
+            "schema": "ok",
+        }
 
     def dump_json(self, payload: object) -> str:
         return json.dumps(payload, sort_keys=True)

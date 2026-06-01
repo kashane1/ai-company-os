@@ -34,12 +34,15 @@ class ControlPlaneService:
 
     def health(self) -> dict[str, object]:
         paths = load_runtime_paths()
+        db_info = self.queue.db.health_info()
         return {
             "status": "ok",
             "repo_root": str(paths.repo_root),
             "state_root": str(paths.state_root),
             "control_plane_db_path": str(paths.control_plane_db_path),
+            "database": db_info,
             "queued_tasks": self.queue.size(),
+            "queued_tasks_by_lane": self.queue.counts_by_lane(),
         }
 
     def create_goal(
@@ -347,7 +350,8 @@ class ControlPlaneService:
         tasks = self.tasks.list_for_goal(goal_id)
         if not tasks:
             return
-        if any(task.status in {TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED} for task in tasks):
+        active_statuses = {TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED}
+        if any(task.status in active_statuses for task in tasks):
             self.goals.set_status(goal_id, GoalStatus.IN_PROGRESS, updated_at=now)
             return
         if any(task.status is TaskStatus.FAILED for task in tasks):

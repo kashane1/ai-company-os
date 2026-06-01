@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.db.contracts import EVENTS_TABLE
+from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.schemas.event import EventRecord
 
 
@@ -12,7 +12,8 @@ class EventStore:
     def append(self, event: EventRecord) -> str:
         query = f"""
             INSERT INTO {EVENTS_TABLE} (
-                id, event_type, subject_type, subject_id, goal_id, task_id, approval_id, payload_json, created_at
+                id, event_type, subject_type, subject_id, goal_id, task_id,
+                approval_id, payload_json, created_at
             ) VALUES (
                 {self.db.placeholder("id")},
                 {self.db.placeholder("event_type")},
@@ -34,6 +35,18 @@ class EventStore:
     def list(self) -> list[EventRecord]:
         query = f"SELECT * FROM {EVENTS_TABLE} ORDER BY created_at ASC, id ASC"
         return [self._from_row(payload) for payload in self.db.fetch_all(query, {})]
+
+    def list_recent(self, *, limit: int = 50) -> list[EventRecord]:
+        query = f"""
+            SELECT *
+            FROM {EVENTS_TABLE}
+            ORDER BY created_at DESC, id DESC
+            LIMIT {self.db.placeholder("limit")}
+        """
+        return [
+            self._from_row(payload)
+            for payload in self.db.fetch_all(query, {"limit": limit})
+        ]
 
     def list_for_subject(self, subject_type: str, subject_id: str) -> list[EventRecord]:
         query = f"""

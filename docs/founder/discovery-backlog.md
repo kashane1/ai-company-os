@@ -46,9 +46,9 @@ deliberately deferred choices the README documents.
 
 | # | Item | Pri | Note |
 |---|------|-----|------|
-| D1 | Postgres for the control plane | P1 | Control plane still defaults to SQLite. The new stores already work on both backends (they go through `ControlPlaneDatabase`), so this is a config/ops cutover, not a code rewrite. |
-| D2 | Redis queue | P2 | Replace the durable queue table once worker daemons run continuously. |
-| D3 | Operator dashboard | 🟡 | First panel scaffolded: a read-only **discovery view** (ranked inbox + run status/history) — `packages/discovery/dashboard.py` (view builder + HTML render) served at `GET /discovery` and `/discovery/data` via `apps/api/discovery_endpoint.py`. Remaining dashboard panels (goals/tasks/approvals) still deferred. |
+| D1 | Postgres for the control plane | ✅ | `ControlPlaneDatabase` now exposes backend/schema health, redacts Postgres DSNs, creates hot-path indexes, and has `scripts/control_plane_db.py` for init/status/SQLite→Postgres migration. SQLite remains the fallback. |
+| D2 | Redis queue | ✅ | `TaskQueue` now selects `database` (default) or `redis` via `AI_COMPANY_OS_QUEUE_BACKEND`. Redis Streams dispatch is opt-in; the DB remains canonical for task records. |
+| D3 | Operator dashboard | ✅ | Unified read-only cockpit at `GET /dashboard` + `/dashboard/data` covering DB/queue status, lanes, tasks, approvals, and events. The existing `/discovery` panel remains available. |
 | D4 | Broaden approval *persistence* | P1 | C1/C3 added the gate *logic*; wiring those decisions into the `approvals` store + approval-reviewer surface (so they're recorded/replayable like task/release approvals) is the remaining half. |
 | D5 | OpenClaw bridge | P2 | Documented as optional/future; no integration code, by design. |
 | D6 | Gate iOS coverage | P2 | iOS coverage measured but not enforced. Small CI change, but flip it deliberately. |

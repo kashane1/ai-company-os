@@ -1,7 +1,7 @@
 from dataclasses import replace
 
-from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.db.contracts import TASKS_TABLE
+from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.schemas.task import Task
 from packages.schemas.task_packet import TaskStatus
 
@@ -13,8 +13,9 @@ class TaskStore:
     def save(self, task: Task) -> str:
         query = f"""
             INSERT INTO {TASKS_TABLE} (
-                id, goal_id, repo_id, lane, title, summary, task_type, product_id, status, risk_level,
-                requires_approval, constraints_json, claimed_by, claimed_at, started_at, completed_at,
+                id, goal_id, repo_id, lane, title, summary, task_type, product_id,
+                status, risk_level, requires_approval, constraints_json, claimed_by,
+                claimed_at, started_at, completed_at,
                 failed_at, result_summary, error_summary, approval_id, created_at, updated_at
             ) VALUES (
                 {self.db.placeholder("id")},
@@ -91,6 +92,18 @@ class TaskStore:
         return [
             self._from_row(payload)
             for payload in self.db.fetch_all(query, {"goal_id": goal_id})
+        ]
+
+    def list_recent(self, *, limit: int = 50) -> list[Task]:
+        query = f"""
+            SELECT *
+            FROM {TASKS_TABLE}
+            ORDER BY updated_at DESC, created_at DESC, id DESC
+            LIMIT {self.db.placeholder("limit")}
+        """
+        return [
+            self._from_row(payload)
+            for payload in self.db.fetch_all(query, {"limit": limit})
         ]
 
     def count_by_status(self) -> dict[str, int]:

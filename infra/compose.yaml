@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ai_company
+      POSTGRES_PASSWORD: ai_company
+      POSTGRES_DB: ai_company_os
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_company -d ai_company_os"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ai_company_os_postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ai_company_os_redis:/data
+
+volumes:
+  ai_company_os_postgres:
+  ai_company_os_redis:

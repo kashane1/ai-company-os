@@ -1,7 +1,7 @@
 from dataclasses import replace
 
-from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.db.contracts import APPROVALS_TABLE
+from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 
 
@@ -13,7 +13,8 @@ class ApprovalStore:
         query = f"""
             INSERT INTO {APPROVALS_TABLE} (
                 id, status, summary, created_at, task_id, task_run_id, approval_type,
-                review_artifact_path, subject_type, subject_id, action, decided_by, decided_at, decision_notes
+                review_artifact_path, subject_type, subject_id, action, decided_by,
+                decided_at, decision_notes
             ) VALUES (
                 {self.db.placeholder("id")},
                 {self.db.placeholder("status")},
@@ -58,6 +59,29 @@ class ApprovalStore:
         if payload is None:
             raise FileNotFoundError(approval_id)
         return ApprovalRecord.from_dict(payload)
+
+    def list_recent(self, *, limit: int = 50) -> list[ApprovalRecord]:
+        query = f"""
+            SELECT *
+            FROM {APPROVALS_TABLE}
+            ORDER BY created_at DESC, id DESC
+            LIMIT {self.db.placeholder("limit")}
+        """
+        return [
+            ApprovalRecord.from_dict(payload)
+            for payload in self.db.fetch_all(query, {"limit": limit})
+        ]
+
+    def count_by_status(self) -> dict[str, int]:
+        query = f"""
+            SELECT status, COUNT(*) AS count
+            FROM {APPROVALS_TABLE}
+            GROUP BY status
+        """
+        return {
+            str(row["status"]): int(row["count"])
+            for row in self.db.fetch_all(query, {})
+        }
 
     def update_status(
         self,

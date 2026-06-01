@@ -9,4 +9,11 @@ Likely future contents:
 - machine bootstrap notes for a dedicated MacBook Air
 - deployment helpers for external control surfaces
 
-V1 keeps this intentionally small until the runtime is implemented.
+Local Postgres and Redis can be started with:
+
+```bash
+docker compose -f infra/compose.yaml up -d postgres redis
+```
+
+The API/dashboard still run without them; SQLite and the database queue remain
+the default fallback.

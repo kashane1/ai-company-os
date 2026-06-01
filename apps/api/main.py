@@ -10,11 +10,12 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from apps.api.approval_endpoint import router as approval_router
-from apps.api.control_plane import ControlPlaneService, as_payload
-from apps.api.discovery_endpoint import router as discovery_router
-from packages.schemas.approval import ApprovalStatus
-from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
+from apps.api.approval_endpoint import router as approval_router  # noqa: E402
+from apps.api.control_plane import ControlPlaneService, as_payload  # noqa: E402
+from apps.api.dashboard_endpoint import router as dashboard_router  # noqa: E402
+from apps.api.discovery_endpoint import router as discovery_router  # noqa: E402
+from packages.schemas.approval import ApprovalStatus  # noqa: E402
+from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane  # noqa: E402
 
 app = FastAPI(title="ai-company-os control plane", version="0.1.0")
 # Phase 3.1 — magic-link approval endpoint, mounted under /magic/approvals to
@@ -22,6 +23,7 @@ app = FastAPI(title="ai-company-os control plane", version="0.1.0")
 app.include_router(approval_router, prefix="/magic")
 # D3 — operator dashboard's first panel: the read-only discovery view.
 app.include_router(discovery_router)
+app.include_router(dashboard_router)
 
 
 class CreateGoalRequest(BaseModel):
@@ -114,7 +116,10 @@ def list_tasks(goal_id: str) -> list[dict[str, object]]:
 def claim_task(body: ClaimTaskRequest) -> dict[str, object]:
     task = get_service().claim_task(**body.model_dump())
     if task is None:
-        raise HTTPException(status_code=404, detail="No queued task available for the requested lane.")
+        raise HTTPException(
+            status_code=404,
+            detail="No queued task available for the requested lane.",
+        )
     return as_payload(task)
 
 
