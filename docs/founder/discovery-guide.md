@@ -127,28 +127,44 @@ sufficient test. Record the result. Whether it passes or fails, you've exercised
 the full gate and produced the first row of the labeled dataset that becomes
 your moat ([`discovery-evals.md`](discovery-evals.md)).
 
-## Automating discovery (where you said you're headed)
+## Operator CLI (start here for live work)
 
-The current surface is a clean, tested library plus a demo — deliberately not
-yet wired into the supervisor/queue, to keep with the repo's "expand only where
-daily use proves the need" rule. Discovery is **operator-triggered, not
-scheduled**: you start a sweep when you want one and can stop it at any time
-(like `./scripts/runtime start|status|stop`). The natural next steps, in order:
+Discovery is **operator-triggered, not scheduled**: you start a sweep when you
+want one and can stop it at any time (mirroring `./scripts/runtime
+start|status|stop`). The full command reference lives in
+[`operator-guide.md`](operator-guide.md); the essentials:
 
-1. **An on-demand discovery run you can start and stop.** A thin controller that
-   calls `build_connectors()` → `inbox.ingest_signals(...)` across your enabled
-   sources and queries, honors a stop signal mid-run, and writes a `DiscoveryRun`
-   record (status + sources hit + signals ingested) for the audit trail. The
-   inbox dedup makes runs idempotent and resumable. Start here — run one, read the
-   inbox, then decide what to add. (Scheduling is an optional later add-on, not
-   the default.)
-2. **Run the scoring pass.** ✅ *Implemented* — `packages/discovery/scoring_pass.py`.
+```bash
+# Sweep enabled sources (HN live with no creds; GitHub/Reddit need .env tokens)
+python3 scripts/discovery_run.py start --query "tool to automate <your niche>"
+python3 scripts/discovery_run.py status          # latest run report
+python3 scripts/discovery_run.py stop            # halt from another terminal
+
+# Rank what landed in the inbox
+python3 scripts/discovery_score.py                          # heuristic (offline)
+python3 scripts/discovery_score.py --provider llm --top 10  # LLM analyst
+```
+
+Run reports persist to the control plane by default (`--store db`). Pair a live
+sweep with `discovery_score` to close the find→rank loop from the terminal.
+
+**Web-first validation.** When a wedge clears the validate gate, the cheapest
+demand test is a landing page — not a full app. `packages/discovery/web_handoff.py`
+creates a `LANDING_PAGE` experiment plus a WEB-routed build goal; the existing
+build gate still requires a *passed* experiment before any fuller build. See
+[`operator-guide.md`](operator-guide.md) for the end-to-end niche workflow.
+
+Discovery is deliberately **not** wired into the supervisor/queue yet (expand
+only where daily use proves the need). What follows is implemented; later items
+are optional extensions.
+
+1. **On-demand discovery run.** ✅ *Implemented* — `packages/discovery/run.py` +
+   `scripts/discovery_run.py` (start/stop/status, run history in control plane).
+2. **Scoring pass CLI.** ✅ *Implemented* — `scripts/discovery_score.py` wraps
+   `packages/discovery/scoring_pass.py`.
    It selects unscored `inbox` records, fills the twelve signals via a
-   `SignalProvider` (your analyst agent behind an interface), scores + gates each,
-   persists the result, and returns a ranked `ScoringPassReport` you can render to
-   markdown for your Monday review. Records it can't score yet are left in the
-   inbox, not guessed. Wire a real `SignalProvider` (an LLM analyst) to automate
-   the one analytical step:
+   `SignalProvider`, scores + gates each, persists the result, and returns a
+   ranked `ScoringPassReport`. Use the CLI above, or call the library directly:
 
    ```python
    from packages.discovery.analyst import HeuristicSignalProvider, LLMSignalProvider
@@ -156,13 +172,11 @@ scheduled**: you start a sweep when you want one and can stop it at any time
    from packages.discovery.scoring_pass import ScoringPass
    from packages.tools.llm.client import OpenRouterClient
 
-   # Baseline, deterministic, offline:
-   provider = HeuristicSignalProvider()
-   # Or the real analyst (needs OPENROUTER_API_KEY):
-   provider = LLMSignalProvider(OpenRouterClient())
+   provider = HeuristicSignalProvider()  # offline baseline
+   # provider = LLMSignalProvider(OpenRouterClient())  # needs OPENROUTER_API_KEY
 
    report = ScoringPass(OpportunityInbox(), signal_provider=provider).run()
-   print(report.to_markdown())     # top wedges, ranked, with advance/hold reasons
+   print(report.to_markdown())
    ```
 
    **The LLM analyst (`LLMSignalProvider`).** It hands the model the evidence and
@@ -177,10 +191,9 @@ scheduled**: you start a sweep when you want one and can stop it at any time
    send a thin wedge back for more research instead of guessing. The model call
    sits behind a one-method `ChatModel` interface (`packages/tools/llm`), so it's
    vendor-swappable and fully unit-tested with a stub — no network in tests.
-3. **Wire the gates into the orchestrator.** Have the supervisor call
-   `assert_ready_to_build` before it ever routes a build task for a discovered
-   wedge — so the "validate before build" rule is enforced by the platform, not
-   by convention.
+3. **Wire the gates into the orchestrator.** ✅ *Partial* — `handoff.py` and
+   `web_handoff.py` enforce `assert_ready_to_build` before goal creation; the
+   supervisor does not yet auto-trigger discovery runs.
 4. **Add connectors as needed.** Each new source is one class implementing the
    `Connector` contract plus a line in `config/sources.yaml` and the registry's
    `CONNECTOR_FACTORIES`. Reddit/Product Hunt/Google Trends are already stubbed

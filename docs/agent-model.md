@@ -329,9 +329,11 @@ and follows the same platform/worker split:
   offline runs, or an `LLMSignalProvider` for the real call. Same principle as
   Codex: the model is an engine inside the system, not the system.
 
-A validated opportunity is projected into a typed goal (`handoff.py`) and enters
-the existing build lanes — so discovery feeds the model above, it doesn't bypass
-it. Full walkthrough: [`founder/discovery-guide.md`](founder/discovery-guide.md).
+A validated opportunity is projected into a typed goal (`handoff.py` for iOS/full
+builds, `web_handoff.py` for landing-page validation) and enters the existing
+build lanes — so discovery feeds the model above, it doesn't bypass it. Operator
+commands: [`founder/operator-guide.md`](founder/operator-guide.md). Deep dive:
+[`founder/discovery-guide.md`](founder/discovery-guide.md).
 
 ## Summary
 

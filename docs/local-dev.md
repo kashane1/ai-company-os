@@ -77,9 +77,34 @@ The operator cockpit is served by the API:
 ```bash
 python3 apps/api/main.py
 open http://127.0.0.1:8000/dashboard
+open http://127.0.0.1:8000/discovery
 ```
 
-`/dashboard/data` returns the same state as JSON for agents and scripts.
+| Endpoint | What it shows |
+|----------|---------------|
+| `/dashboard` | DB backend, queue backend, per-lane depth, recent tasks, pending approvals, events |
+| `/dashboard/data` | Same as JSON — use for agents and scripts |
+| `/discovery` | Ranked opportunity inbox + latest discovery run |
+| `/discovery/data` | Same as JSON |
+
+Implementation: `packages/dashboard/operator.py` (control plane),
+`packages/discovery/dashboard.py` (discovery panel). Postgres migration helpers:
+`scripts/control_plane_db.py` (`init`, `status`, `migrate-sqlite`).
+
+## Discovery operator workflow
+
+Discovery is operator-triggered (not part of `./scripts/runtime`). From a venv
+with dependencies installed:
+
+```bash
+python3 scripts/discovery_demo.py                              # offline sanity check
+python3 scripts/discovery_run.py start --query "<your niche>"  # live sweep → inbox
+python3 scripts/discovery_score.py --provider llm --top 10     # rank (needs OPENROUTER_API_KEY)
+```
+
+Hacker News works live with no credentials. GitHub and Reddit need tokens in
+`.env` (see `.env.example`). Full command reference:
+[docs/founder/operator-guide.md](docs/founder/operator-guide.md).
 
 ## Codex CLI
 

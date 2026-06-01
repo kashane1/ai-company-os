@@ -22,7 +22,8 @@ the engineering, do not read top-to-bottom — use the map below.
 - [recurring-approval-sweep.md](recurring-approval-sweep.md) — recurring approval-gated operator workflow.
 - [engineering-flow.md](engineering-flow.md) / [codex-worker.md](codex-worker.md) — how a task runs.
 - [ios-lane.md](ios-lane.md) — the iOS product lane.
-- [founder/discovery-guide.md](founder/discovery-guide.md) — the discovery layer: find → score → validate *what* to build (front of the loop).
+- [founder/operator-guide.md](founder/operator-guide.md) — **operator commands**: discovery sweeps, scoring, runtime, validation, agent prompts.
+- [founder/discovery-guide.md](founder/discovery-guide.md) — discovery layer deep dive: find → score → validate (front of the loop).
 - [example_prompts.md](example_prompts.md) — example prompts to run in this repo + what each one activates.
 - [examples/](examples/) — schema-faithful sample audit artifacts.
 

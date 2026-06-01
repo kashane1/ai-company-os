@@ -279,13 +279,17 @@ Current runtime truth:
 - `status` reads the persisted supervisor status file
 - `stop` writes a stop-request file that the running supervisor honors for clean shutdown
 - the runtime supervisor manages the existing engineering, iOS, and App Store worker loops only
+- discovery runs are separate, operator-triggered CLIs: `scripts/discovery_run.py`, `scripts/discovery_score.py`
 
-Likely next platform expansions after the current local slice:
+Operator command reference (discovery, validation, build lanes, agent prompts):
+[docs/founder/operator-guide.md](docs/founder/operator-guide.md).
 
-1. Point `AI_COMPANY_OS_DATABASE_URL` at Postgres to move the control-plane records off the default local SQLite file.
-2. Replace the current durable queue table with Redis once worker daemons are running continuously.
-3. Add a richer operator surface only after the local runtime loop proves stable in day-to-day use.
-4. Expand approval persistence and enforcement from the current narrow task/release actions to more public workflows.
+Likely next platform expansions:
+
+1. Wire discovery into the supervisor queue only if daily on-demand runs prove the need.
+2. Close the GTM content loop (Phase 2.2 task types are scaffolded, not autonomous).
+3. OpenClaw bridge when an external chat interface is wanted — optional by design.
+4. Enforce the iOS coverage gate in CI once the threshold is chosen deliberately.
 
 ## License
 
@@ -294,9 +298,10 @@ See [LICENSE](LICENSE).
 
 ## Read Next
 
+- [docs/founder/operator-guide.md](docs/founder/operator-guide.md) — **start here**: commands to run discovery, scoring, runtime, and agent work streams
 - [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)
 - [docs/EVALUATOR-WALKTHROUGH.md](docs/EVALUATOR-WALKTHROUGH.md)
-- [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md) — the discovery layer: find → score → validate (run `python3 scripts/discovery_demo.py`)
+- [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md) — the discovery layer deep dive (find → score → validate)
 - [docs/example_prompts.md](docs/example_prompts.md) — a menu of prompts to run in this repo + what each one activates
 - [docs/flagship-simulator-driven-polish.md](docs/flagship-simulator-driven-polish.md) — one workflow traced end to end
 - [docs/recurring-approval-sweep.md](docs/recurring-approval-sweep.md) — recurring operator workflow traced against approval code

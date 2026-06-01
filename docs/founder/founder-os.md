@@ -86,7 +86,8 @@ a goal.
 |------------|----------|-------|--------|
 | discover | `packages/discovery/connectors` | `config/sources.yaml` | raw signals → inbox |
 | rank | `packages/discovery/scoring` + `policies/discovery_gates` | inbox | scored opportunities |
-| validate | `schemas/experiment` + `policies/discovery_gates` | top opportunities | experiment records |
-| build | existing engineering / iOS lanes | passed experiments | repo scaffold + build log |
+| validate | `schemas/experiment` + `policies/discovery_gates` + `web_handoff` | top opportunities | experiment records + WEB build goal |
+| build (web) | WEB lane (`apps/worker-web/`) | passed landing-page experiment | Astro landing page |
+| build (app) | existing engineering / iOS lanes | passed experiments | repo scaffold + build log |
 | ship | existing appstore lane + approval gates | shipped product | release records |
 | measure | `discovery-evals.md` | billing + experiment data | outcomes → memory |

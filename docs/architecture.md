@@ -520,10 +520,18 @@ orchestrator:
 - Discovery runs are **operator-triggered and stoppable** (`run.py` +
   `scripts/discovery_run.py`), mirroring the runtime supervisor's start/stop
   surface — not a background crawler.
+- **Operator cockpit** — unified read-only dashboard at `GET /dashboard` +
+  `/dashboard/data` (`packages/dashboard/operator.py`): DB/queue backend health,
+  per-lane queue depth, recent tasks, approvals, and events. Discovery has its
+  own panel at `/discovery` (`packages/discovery/dashboard.py`).
+- **Web-first validation** (`web_handoff.py`) routes a cleared wedge to the WEB
+  lane first — a landing page is both the cheapest demand test and the experiment
+  the build gate reads. iOS/full-app builds come after conversion.
 
 The durable assets are the schemas, the scoring weights, the playbooks, and the
-accumulated outcomes — not any one source. See
-[`founder/discovery-guide.md`](founder/discovery-guide.md) and
+accumulated outcomes — not any one source. Operator commands:
+[`founder/operator-guide.md`](founder/operator-guide.md). Deep dive:
+[`founder/discovery-guide.md`](founder/discovery-guide.md),
 [`founder/founder-os.md`](founder/founder-os.md).
 
 ## Summary

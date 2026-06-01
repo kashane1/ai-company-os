@@ -12,12 +12,22 @@ These are starting points, not magic words — phrase things your own way. The
 
 ## Discovery (find → score → validate *what* to build)
 
+**Terminal commands (fastest path):**
+
+```bash
+python3 scripts/discovery_run.py start --query "[your niche query]"
+python3 scripts/discovery_score.py --provider llm --top 5
+```
+
+Full reference: [docs/founder/operator-guide.md](docs/founder/operator-guide.md).
+
 > Run a discovery sweep over Hacker News and GitHub for the queries
 > "[automate invoicing]" and "[etsy photo resize]". Pull the signals into the
-> opportunity inbox, then score the new ones with the heuristic analyst and show
+> opportunity inbox, then score the new ones with the LLM analyst and show
 > me the ranked top 5 with the advance/hold reason for each.
 
-**Activates:** `packages/discovery/run.py` + `connectors/` (HN, GitHub) → `inbox.py` → `scoring_pass.py` + `analyst.py` → `policies/discovery_gates.py`. CLI: `scripts/discovery_run.py`.
+**Activates:** `scripts/discovery_run.py` → `inbox.py` → `scripts/discovery_score.py`
+→ `scoring_pass.py` + `analyst.py` → `policies/discovery_gates.py`.
 
 > Score the opportunity "[paste a problem + audience + 2–3 evidence links]"
 > against the 12-signal scorecard, apply the validate gate, and tell me whether
@@ -39,6 +49,28 @@ These are starting points, not magic words — phrase things your own way. The
 > drift.
 
 **Activates:** `packages/discovery/calibration.py`, `scoring.py`, `policies/discovery_gates.py`.
+
+---
+
+## Web validation & deploy (fastest path to real customers)
+
+> Opportunity `[opp_id]` cleared the validate gate. Use `web_handoff` to create a
+> landing-page validation experiment and a WEB build goal. Scaffold with Astro,
+> deploy a Netlify preview, and stop at production deploy approval.
+
+**Activates:** `packages/discovery/web_handoff.py`, `apps/worker-web/`,
+`apps/worker-webdeploy/`, `packages/policies/deploy_readiness.py`. Skill:
+`landing-page-build`.
+
+> Run a web UX audit on the landing page scaffold and list responsive, a11y, and
+> SEO gaps before deploy.
+
+**Activates:** `packages/web/ux_audit.py`. Skill: `web-ux-audit`.
+
+> Wire Stripe Checkout on the validation landing page (test mode) and define paid
+> validation success criteria before launch.
+
+**Activates:** `packages/web/stripe_monetization.py`, `schemas/experiment.py`.
 
 ---
 
@@ -165,6 +197,12 @@ These are starting points, not magic words — phrase things your own way. The
 > Start the local runtime supervisor, show status, then stop it cleanly.
 
 **Activates:** `scripts/runtime`, `apps/runtime-supervisor/`.
+
+> Start the control plane API and summarize `/dashboard/data` — DB backend, queue
+> backend, lane depths, pending approvals, and recent events.
+
+**Activates:** `apps/api/main.py`, `packages/dashboard/operator.py`,
+`GET /dashboard/data`.
 
 > Run the zero-setup control-loop demo end to end and the discovery demo, and
 > tell me what each produced.

@@ -62,11 +62,12 @@ Two supporting zones:
 ## What a fresh agent should read first
 
 1. [REPO_MAP.md](REPO_MAP.md) — this file
-2. [docs/preflight-for-agents.md](docs/preflight-for-agents.md) — boundaries for this session
-3. [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md) — short pointers
-4. [docs/skills-index.md](docs/skills-index.md) — the skill catalog + trigger phrases
-5. [docs/architecture.md](docs/architecture.md) — how docs map to code
-6. [docs/approval-policy.md](docs/approval-policy.md) — what requires human approval
+2. [docs/founder/operator-guide.md](docs/founder/operator-guide.md) — commands to kick off discovery, scoring, runtime, and agent work streams
+3. [docs/preflight-for-agents.md](docs/preflight-for-agents.md) — boundaries for this session
+4. [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md) — short pointers
+5. [docs/skills-index.md](docs/skills-index.md) — the skill catalog + trigger phrases
+6. [docs/architecture.md](docs/architecture.md) — how docs map to code
+7. [docs/approval-policy.md](docs/approval-policy.md) — what requires human approval
 
 ## Architectural rules (non-negotiable)
 
@@ -103,8 +104,10 @@ If multiple trigger phrases match a user message, ASK rather than guess
 | iOS | [apps/worker-ios/](apps/worker-ios/) | [docs/ios-lane.md](docs/ios-lane.md) |
 | App Store | [apps/worker-appstore/](apps/worker-appstore/) | [docs/appstore-lane.md](docs/appstore-lane.md) |
 | GTM | [apps/worker-gtm/](apps/worker-gtm/) | (per-skill docs under `skills/canonical/`) |
+| Web build | [apps/worker-web/](apps/worker-web/) | [docs/founder/operator-guide.md](docs/founder/operator-guide.md) |
+| Web deploy | [apps/worker-webdeploy/](apps/worker-webdeploy/) | `packages/policies/deploy_readiness.py` |
 | Skill evolution | [apps/worker-skill-evolution/](apps/worker-skill-evolution/) | [docs/runbooks/skill-evolution-revert.md](docs/runbooks/skill-evolution-revert.md) |
-| API | [apps/api/](apps/api/) | [docs/architecture.md](docs/architecture.md) |
+| API | [apps/api/](apps/api/) | `GET /dashboard`, `/discovery`; [docs/founder/operator-guide.md](docs/founder/operator-guide.md) |
 | Runtime supervisor | [apps/runtime-supervisor/](apps/runtime-supervisor/) | [docs/local-dev.md](docs/local-dev.md) |
 | Approval reviewer | [apps/approval-reviewer/](apps/approval-reviewer/) | [docs/approval-flow.md](docs/approval-flow.md) |
 
@@ -120,11 +123,15 @@ Codex, network, or Mac runtime required.
 
 For the **discovery layer** (find → score → validate, the front of the loop):
 
-```
-python3 scripts/discovery_demo.py
+```bash
+python3 scripts/discovery_demo.py                              # offline demo (~10 s)
+python3 scripts/discovery_run.py start --query "<your niche>"    # live sweep
+python3 scripts/discovery_score.py --top 10                      # rank inbox
 ```
 
-Offline by default. Start with [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md).
+Start with [docs/founder/operator-guide.md](docs/founder/operator-guide.md) (commands +
+end-to-end niche workflow), then [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md)
+for the deep dive.
 
 ## End-of-session
 

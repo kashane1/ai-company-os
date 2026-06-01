@@ -32,6 +32,12 @@ doctor:
 	@echo "  make demo"
 	@echo "  make test"
 	@echo
+	@echo "Discovery (operator-triggered):"
+	@echo "  python3 scripts/discovery_demo.py"
+	@echo "  python3 scripts/discovery_run.py start --query \"<niche>\""
+	@echo "  python3 scripts/discovery_score.py --top 10"
+	@echo "  See docs/founder/operator-guide.md"
+	@echo
 	@echo "Doc-path audit:"
 	@echo "  make audit"
 

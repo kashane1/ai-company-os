@@ -1,10 +1,10 @@
 # Backlog — discovery layer + adjacent platform gaps
 
-Updated 2026-05-30. Sections A, B, C (the discovery loop and its platform wiring)
-are now **built and tested**. What remains is (D) pre-existing platform gaps that
-need product decisions, plus (E) newly discovered follow-ups surfaced while
-building A–C. Priorities: **P0** = needed before trustworthy daily use,
-**P1** = makes it genuinely automated, **P2** = scale/depth.
+Updated 2026-06-01. Sections A, B, C (the discovery loop and its platform wiring)
+and section F (web build + ship lane) are **built and tested**. What remains is
+(D) pre-existing platform gaps that need product decisions, plus (E) follow-ups.
+Priorities: **P0** = needed before trustworthy daily use, **P1** = makes it
+genuinely automated, **P2** = scale/depth.
 
 Suggested ticket form: `todos/NNN-todo-PRIORITY-<slug>.md` (see
 [todos/README.md](../../todos/README.md)).
@@ -82,25 +82,31 @@ The code is done; these just need values in `.env` (see `.env.example`):
 ## Suggested next three
 
 1. ~~**E8 — `discovery_score` CLI**~~ ✅ done — `scripts/discovery_score.py`.
-   The full find→score→gate loop is now operable from the terminal (pair it with
-   a real `OPENROUTER_API_KEY` for the `llm` provider).
-2. ~~**E3 — persist run history to the control plane**~~ ✅ done — runs now live
-   alongside the opportunity/experiment records (`--store db`, queryable history).
-3. The remaining **D** platform items (Postgres cutover, Redis, dashboard,
-   OpenClaw, iOS coverage) on their own timeline — these are larger product calls
-   that each need a deliberate decision; pick one to take next.
+2. ~~**E3 — persist run history to the control plane**~~ ✅ done.
+3. ~~**F — web build + ship lane**~~ ✅ done — Astro scaffold, Netlify deploy,
+   web-first validation handoff, Stripe paid validation.
+4. **Pick one D item deliberately** — OpenClaw bridge (D5), iOS coverage gate
+   (D6), or GTM closed loop (Phase 2.2, tracked elsewhere). Postgres (D1),
+   Redis (D2), and the operator dashboard (D3) are already shipped.
 
-## F. Forward-looking: a web build + ship lane (proposed)
+## Audit note (2026-06-01)
 
-_Added 2026-05-30 after a repo-wide capability audit. This is a proposal, not yet
-built._
+The platform can **discover → score → validate → build (web or iOS) → ship**
+end to end, with shared policy gates throughout. The web lane closes the
+fastest path from a scored wedge to a real customer-facing validation page.
+Remaining gaps: (1) discovery is operator-triggered, not queued/scheduled;
+(2) GTM task types are scaffolded but not a closed autonomous loop; (3) OpenClaw
+is optional and unwired; (4) iOS coverage is measured but not CI-gated. Operator
+entry point: [`operator-guide.md`](operator-guide.md).
 
-**Why.** Today the only build-and-ship lane that reaches a customer is **iOS**
-(`WorkerLane.IOS` → `WorkerLane.APPSTORE`; `ProductPlatform` only has `IOS`). When
-discovery finds a niche, the only way to put something in front of buyers is a
-full iOS app + App Store review. That's slow, gated by Apple, and overkill for
-validating demand. A **website / frontend lane** is the missing portable, fast,
-low-friction way to show a discovered idea to customers.
+## F. Web build + ship lane — DONE ✅
+
+_Added 2026-05-30 after a repo-wide capability audit; implemented same day._
+
+**Why.** Before section F, the only customer-facing ship lane was **iOS**
+(App Store review). That is slow and overkill for validating demand. The **WEB**
+and **WEBDEPLOY** lanes add a portable, fast path: landing pages, waitlists, and
+paid validation before committing to a full app build.
 
 **The case for it (assessment).** A web target is a strong fit, for three reasons:
 
@@ -118,8 +124,8 @@ low-friction way to show a discovered idea to customers.
    target-agnostic (it edits files from a markdown packet; lane-specific checks
    live in the worker). `opportunity_to_goal` is target-agnostic too. And
    `docs/architecture.md` already names "production deploys" and "domain or DNS
-   modifications" as approval-required — the *policy intent* for web deploys is
-   anticipated; there's just no lane or enforcement module yet.
+   modifications" as approval-required — the policy intent for web deploys is
+   now enforced via `packages/policies/deploy_readiness.py` and the WEBDEPLOY lane.
 
 **Cautions / guardrails (baked into the tickets below).**
 
@@ -161,14 +167,3 @@ because Netlify's free tier permits commercial use); monetization = **Stripe**
 (hosted Checkout + Netlify webhook). Business scope = **own products first, deploy
 lane designed so client/agency handoff is possible later** (ownership transfer +
 recurring billing). These are revisable, but they're the working defaults for F.
-
-## Audit note (2026-05-30)
-
-A repo-wide audit confirmed the platform can **discover → validate → build iOS →
-ship to the App Store** end to end, with shared policy gates throughout. The
-material forward-looking gaps are: (1) **no web/customer-facing ship lane** —
-addressed by section F above; (2) the already-tracked **D** platform items
-(Postgres, Redis, dashboard panels beyond `/discovery`, OpenClaw, iOS coverage
-gate); and (3) the scaffolded-but-unwired **GTM** task types (CONTENT_DRAFT,
-image-gen, social scheduling — Phase 2.2) and the paused skill-evolution worker.
-No duplicate tickets were added for (2)/(3); they remain tracked where they live.

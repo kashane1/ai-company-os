@@ -1,8 +1,15 @@
 # Claude Cowork — Founder's Reference
 
-*Last updated: 2026-04-10*
+*Last updated: 2026-06-01*
 
-This is the one file you need. It explains what Claude Cowork can do for `ai-company-os`, shows you the prompts that actually move the business forward, and names the goals we are steering toward. If you only ever read one doc, read this one.
+> **Operator commands first.** For terminal commands to run discovery, scoring,
+> runtime, and validation workflows, read
+> [`operator-guide.md`](operator-guide.md). This doc covers Cowork-specific
+> capabilities and example prompts.
+
+This is the one file you need for Cowork sessions. It explains what Claude Cowork
+can do for `ai-company-os`, shows you the prompts that actually move the business
+forward, and names the goals we are steering toward.
 
 ---
 
@@ -22,7 +29,16 @@ The short list of where Cowork earns its keep:
 
 **Running the orchestration layer of ai-company-os.** Cowork understands `AGENTS.md`, the worker boundaries, the policies in `packages/policies/`, and the scheduled sessions under `scripts/scheduled/`. It can open a `SupervisorSession`, enqueue engineering, iOS, and GTM tasks, request approvals, and close the session with a clean audit trail.
 
-**Building and shipping iOS apps.** From founder brief all the way to App Store submission artifacts. It can run the product-artifact chain validator, draft metadata, generate screenshot plans, and keep `docs/products/catchbook/` internally consistent.
+**Running the discovery loop.** Cowork can drive the full find→score→validate path:
+live discovery sweeps (`scripts/discovery_run.py`), LLM scoring
+(`scripts/discovery_score.py --provider llm`), validate/build gate review, web-first
+validation handoffs (`web_handoff.py`), and dossier generation. See
+[`operator-guide.md`](operator-guide.md) for commands and
+[`../example_prompts.md`](../example_prompts.md) for agent prompts.
+
+**Building and shipping iOS apps.** From founder brief all the way to App Store
+submission artifacts. It can also build **web landing pages** via the WEB lane
+(Astro + Netlify) for faster demand validation before committing to an app.
 
 **Executing the GTM lane autonomously.** Content drafts, voice guardrail checks, social post safety validation, ASO keyword refresh, creator outreach drafts, and Postiz scheduling once connected. Your preference here is already on file: agents should make the marketing decisions and surface summaries, not ask you to choose.
 
@@ -37,6 +53,13 @@ The short list of where Cowork earns its keep:
 ## 3. Example prompts you can send right now
 
 Copy any of these. They are written the way the agents expect and will usually produce something useful without clarification.
+
+### Discovery and niche research prompts
+
+- "Run `discovery_run.py start --query '<niche>'` then score with the LLM analyst and show me the top 5 wedges with advance/hold reasons."
+- "Opportunity `[opp_id]` cleared the validate gate — create a web-first validation handoff and scaffold a landing page."
+- "Research the niche '[niche]' for a new product and produce a structured brief under `docs/products/[product-id]/gtm/`."
+- "Score this wedge by hand against the 12-signal scorecard and tell me what's missing before it can advance."
 
 ### Day-to-day operating prompts
 
@@ -105,11 +128,17 @@ These are the goals I think we should be aiming at. They are ordered so that eac
 
 **Goal 3 — Failure learning loop closing itself.** Every production failure becomes a fixture, every fixture becomes a test, and the same class of failure never happens twice. Success looks like: `capture_pipeline_self_failure` stays at zero for a month, and the failure-mode fixture index grows but repeat counts stay flat.
 
-**Goal 4 — Second product in discovery.** Once catchbook runs itself, point the same platform at a second iOS product and prove the playbook is repeatable. Success looks like: `after-plans` (or whichever product you pick) moves through discovery → mvp-build → app-store-submission using the same strategic task types, with materially less founder input than catchbook needed.
+**Goal 4 — Second product via discovery.** Point the discovery loop at a new niche,
+validate with a web landing page, and only commit to a full iOS build for wedges
+that convert. Success looks like: discover → score → validate → build using the
+operator CLIs and agent prompts, with materially less founder input than catchbook
+needed.
 
 **Goal 5 — GTM agents that make decisions on their own.** The marketing lane should run as a closed loop: decide, post, measure, adjust. You should not be choosing which TikTok script to publish. Success looks like: a full week of GTM activity where you never answered a "which option do you prefer" question, and the reported metrics are still trending up.
 
-**Goal 6 — The boring goal: Phase 6.** Once Goals 1–3 have held for a week, swap the file-backed stores for Postgres and Redis so the platform can scale to multiple products in parallel. This is explicitly deferred right now and should stay deferred until the operational goals are green.
+**Goal 6 — Scale infrastructure when needed.** Postgres, Redis, and the operator
+dashboard are already available (`docs/local-dev.md`). Wire them when running
+multiple products in parallel; keep SQLite for single-product local use until then.
 
 ## 5. How to use this doc
 
