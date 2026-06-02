@@ -10,6 +10,26 @@ class ProductPlatform(str, Enum):
     WEB = "web"
 
 
+# Agency layer (Phase 2) — discriminates an owned product from a client
+# engagement. Strictly additive; ``PRODUCT`` is the default so every existing
+# record keeps its current meaning.
+class ProductType(str, Enum):
+    PRODUCT = "product"  # owned product (iOS apps, our own web products)
+    CLIENT_SITE = "client-site"  # a client we operate but do not own
+
+
+class ClientOwnership(str, Enum):
+    CLIENT_OWNED = "client-owned"  # we operate, the client owns the asset
+    AGENCY_HELD = "agency-held"  # we hold the asset on the client's behalf
+
+
+class BillingStatus(str, Enum):
+    TRIAL = "trial"
+    ACTIVE = "active"
+    PAST_DUE = "past_due"
+    CANCELLED = "cancelled"
+
+
 class ProductStatus(str, Enum):
     DISCOVERY = "discovery"
     READY_FOR_IMPLEMENTATION = "ready_for_implementation"
@@ -45,6 +65,45 @@ class ProductArtifactStatus(str, Enum):
 
 
 @dataclass(frozen=True)
+class ClientConfig:
+    """Client-engagement metadata attached to a ``client-site`` product.
+
+    ``bundle`` is a foreign key into the agency service catalog
+    (``packages/agency/catalog.yaml``); ``from_prospect`` backlinks to the
+    originating prospect record in ``state/prospects/``.
+    """
+
+    ownership: ClientOwnership = ClientOwnership.CLIENT_OWNED
+    bundle: str = ""
+    services: list[str] = field(default_factory=list)
+    from_prospect: str = ""
+    billing_status: BillingStatus = BillingStatus.TRIAL
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "ownership": self.ownership.value,
+            "bundle": self.bundle,
+            "services": list(self.services),
+            "from_prospect": self.from_prospect,
+            "billing_status": self.billing_status.value,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, object]) -> "ClientConfig":
+        return cls(
+            ownership=ClientOwnership(
+                str(payload.get("ownership", ClientOwnership.CLIENT_OWNED.value))
+            ),
+            bundle=str(payload.get("bundle", "")),
+            services=[str(x) for x in list(payload.get("services", []))],
+            from_prospect=str(payload.get("from_prospect", "")),
+            billing_status=BillingStatus(
+                str(payload.get("billing_status", BillingStatus.TRIAL.value))
+            ),
+        )
+
+
+@dataclass(frozen=True)
 class ProductConfig:
     id: str
     name: str
@@ -54,6 +113,11 @@ class ProductConfig:
     source_path: str
     docs_root: str
     phase: ProductPhase = ProductPhase.DISCOVERY
+    # Agency layer (Phase 2) — additive. ``type`` defaults to ``product`` so
+    # existing iOS/web records are unchanged; ``client`` is populated only for
+    # ``client-site`` records.
+    type: ProductType = ProductType.PRODUCT
+    client: ClientConfig | None = None
 
 
 @dataclass(frozen=True)
@@ -81,7 +145,9 @@ class ProductArtifactRecord:
             path=str(payload["path"]),
             derived_from=ProductArtifactType(str(derived_from)) if derived_from else None,
             source_origin=str(payload["source_origin"]) if payload.get("source_origin") else None,
-            status=ProductArtifactStatus(str(payload.get("status", ProductArtifactStatus.READY.value))),
+            status=ProductArtifactStatus(
+                str(payload.get("status", ProductArtifactStatus.READY.value))
+            ),
         )
 
 

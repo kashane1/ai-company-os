@@ -46,6 +46,7 @@ class HTTPChecker:
         client: httpx.Client | None = None,
         rate_limiter: RateLimiter | None = None,
         now: Callable[[], datetime] | None = None,
+        max_attempts: int = 2,
     ) -> None:
         self._config = config or HttpConfig()
         self._client = client or httpx.Client(
@@ -56,17 +57,33 @@ class HTTPChecker:
         )
         self._limiter = rate_limiter or RateLimiter(self._config.per_host_rpm)
         self._now = now or (lambda: datetime.now(timezone.utc))
+        self._max_attempts = max(1, max_attempts)
 
     def check(self, url: str) -> HttpCheck:
         if not url:
             return HttpCheck(HttpCheckClass.SKIPPED, checked_at=self._timestamp())
-        try:
-            self._limiter.acquire()
-            response = self._client.get(url)
-        except httpx.TimeoutException as exc:
-            return HttpCheck(HttpCheckClass.TIMEOUT, checked_at=self._timestamp(), error=str(exc))
-        except httpx.RequestError as exc:
-            return HttpCheck(HttpCheckClass.ERROR, checked_at=self._timestamp(), error=str(exc))
+        last_timeout: httpx.TimeoutException | None = None
+        last_error: httpx.RequestError | None = None
+        response: httpx.Response | None = None
+        for _ in range(self._max_attempts):
+            try:
+                self._limiter.acquire()
+                response = self._client.get(url)
+                break
+            except httpx.TimeoutException as exc:
+                last_timeout = exc
+            except httpx.RequestError as exc:
+                last_error = exc
+        if response is None:
+            if last_timeout is not None:
+                return HttpCheck(
+                    HttpCheckClass.TIMEOUT, checked_at=self._timestamp(), error=str(last_timeout)
+                )
+            if last_error is not None:
+                return HttpCheck(
+                    HttpCheckClass.ERROR, checked_at=self._timestamp(), error=str(last_error)
+                )
+            return HttpCheck(HttpCheckClass.ERROR, checked_at=self._timestamp(), error="no response")
         final_url = str(response.url)
         host = normalized_host(final_url)
         if response.status_code >= 400:

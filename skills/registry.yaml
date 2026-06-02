@@ -841,3 +841,48 @@ skills:
     adapters:
       claude: adapters/claude/web-ux-audit.md
     project_skill: .claude/skills/web-ux-audit.md
+
+  # --- Agency layer (Phases 4-6): local-SMB client delivery ---
+  # These skills are operator-invoked (manual mode); fixture_status is `missing`
+  # like the other web-lane agentic skills.
+  - id: client-intake
+    name: Client Intake
+    path: canonical/client-intake/skill.md
+    owner_agent: web
+    target_runtimes: [claude, codex]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/client-intake.md
+    project_skill: .claude/skills/client-intake.md
+
+  - id: launch-checklist
+    name: Launch Checklist
+    path: canonical/launch-checklist/skill.md
+    owner_agent: web
+    target_runtimes: [claude, codex]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/launch-checklist.md
+    project_skill: .claude/skills/launch-checklist.md
+
+  - id: local-seo-pages
+    name: Local SEO Pages
+    path: canonical/local-seo-pages/skill.md
+    owner_agent: web
+    target_runtimes: [claude, codex]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/local-seo-pages.md
+    project_skill: .claude/skills/local-seo-pages.md

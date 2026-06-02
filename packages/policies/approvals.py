@@ -107,6 +107,12 @@ class PolicyViolationCode(str, Enum):
     # Live Stripe payments move real money — gated like billing/pricing.
     PAYMENTS_LIVE_NOT_APPROVED = "payments_live_not_approved"
 
+    # --- Agency layer (Phase 3): client engagements are commercial commitments ---
+    # Promoting a prospect into a billing client and sending a proposal are both
+    # irreversible, externally-visible actions — gated like deploy/payments.
+    CLIENT_PROMOTION_NOT_APPROVED = "client_promotion_not_approved"
+    PROPOSAL_SEND_NOT_APPROVED = "proposal_send_not_approved"
+
 
 class PolicyViolation(RuntimeError):
     """Raised when a policy check refuses to authorize an action.

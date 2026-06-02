@@ -84,8 +84,9 @@ follow-ups" below for the source-signal mapping used.
 | [2026-05-09-feat-life-clock-quest-completion-payoff-plan.md](2026-05-09-feat-life-clock-quest-completion-payoff-plan.md) | 2026-05-09 | feat-life-clock-quest-completion-payoff | open | product-scoped (life-clock) — no frontmatter; body status: implementation-launched |
 | [2026-05-11-feat-future-tab-history-summary-plan.md](2026-05-11-feat-future-tab-history-summary-plan.md) | 2026-05-11 | feat-future-tab-history-summary | done | product-scoped — frontmatter: completed |
 | [2026-05-12-feat-premium-and-pro-value-audit-skills-plan.md](2026-05-12-feat-premium-and-pro-value-audit-skills-plan.md) | 2026-05-12 | feat-premium-and-pro-value-audit-skills | open | platform / skills |
+| [2026-06-01-feat-local-smb-agency-layer-plan.md](2026-06-01-feat-local-smb-agency-layer-plan.md) | 2026-06-01 | agency-layer-v1 | open | platform / web / prospecting — related_brainstorm: docs/brainstorms/2026-06-01-agency-layer-brainstorm.md |
 
-Totals: 38 plan files — **32 open**, **6 done**, **0 abandoned**.
+Totals: 39 plan files — **33 open**, **6 done**, **0 abandoned**.
 
 Statuses were derived from each plan's YAML frontmatter `status:` field
 (or, for plans without frontmatter, an explicit body status line). The

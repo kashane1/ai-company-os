@@ -5,11 +5,27 @@ import pytest
 
 from packages.discovery.connectors.base import CompliancePolicyError
 from packages.prospecting.config import CityConfig, GenreConfig
-from packages.prospecting.connectors.google_places import GooglePlacesConnector
+from packages.prospecting.connectors.google_places import (
+    GooglePlacesConnector,
+    classify_maps_website,
+)
+from packages.schemas.prospect import MapsWebsiteClass
 
 
 def _client(handler) -> httpx.Client:
     return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_website_classification_separates_builders_from_booking_platforms() -> None:
+    # Website builders = a real owned site (present), not marketplace.
+    assert classify_maps_website("https://theusual.squarespace.com/") is MapsWebsiteClass.PRESENT
+    assert classify_maps_website("https://shop.wixsite.com/biz") is MapsWebsiteClass.PRESENT
+    # Booking/marketplace platforms = weak presence → marketplace bucket.
+    assert classify_maps_website("https://www.vagaro.com/marigoldnails") is MapsWebsiteClass.MARKETPLACE
+    assert classify_maps_website("https://dealers.square.site/") is MapsWebsiteClass.MARKETPLACE
+    # Social and absent unchanged.
+    assert classify_maps_website("https://instagram.com/x") is MapsWebsiteClass.SOCIAL_ONLY
+    assert classify_maps_website("") is MapsWebsiteClass.ABSENT
 
 
 def test_google_places_search_and_details_use_minimal_field_masks() -> None:

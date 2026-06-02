@@ -28,5 +28,22 @@
     "source_path": "products/life-clock-ios",
     "docs_root": "docs/products/life-clock",
     "phase": "discovery"
+  },
+  {
+    "id": "joes-plumbing-site",
+    "name": "Joe's Plumbing",
+    "slug": "joes-plumbing",
+    "type": "client-site",
+    "platform": "web",
+    "source_path": "products/joes-plumbing-site",
+    "docs_root": "docs/products/joes-plumbing-site",
+    "phase": "discovery",
+    "client": {
+      "ownership": "client-owned",
+      "bundle": "package_b",
+      "services": ["website", "hosting", "gbp", "business_email", "reviews", "booking"],
+      "from_prospect": "example-prospect-id",
+      "billing_status": "trial"
+    }
   }
 ]

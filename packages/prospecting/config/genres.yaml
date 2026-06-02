@@ -72,4 +72,8 @@ genres:
   - id: garage_door
     label: garage door repair
     text_query_template: "{label} in {city_name}"
+    # Disabled: verification (2026-06-02) showed this vertical is dominated by
+    # lead-gen / service-area operations, not owner-operated local SMBs. Kept for
+    # reference; skipped by build_grid so it consumes no API budget.
+    enabled: false
 

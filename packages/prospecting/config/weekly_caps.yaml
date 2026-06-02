@@ -1,6 +1,10 @@
-text_search_requests: 100
-place_details_essentials: 6000
-http_checks: 6000
+# Set 2026-06-02 for the cities-21-40 greater-metro data-collection sweep
+# (20 new cities x 19 active genres = 380 new cells; full grid is now
+# 40 cities x 19 = 760 cells, of which 380 are already complete). These caps
+# also bound worst-case spend: the runner stops gracefully when any cap is hit,
+# so the values below are a ceiling, not a target.
+text_search_requests: 500
+place_details_essentials: 12000
+http_checks: 12000
 place_details_pro_reviews: 0
 google_search_verifications: 0
-

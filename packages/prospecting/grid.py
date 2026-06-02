@@ -33,7 +33,11 @@ class GridCursor:
 
 
 def build_grid(cities: list[CityConfig], genres: list[GenreConfig]) -> list[GridCell]:
-    return [GridCell(city=city, genre=genre) for city in cities for genre in genres]
+    # Genres flagged `enabled: false` (e.g. lead-gen/service-area spam verticals
+    # like garage_door) are kept in the catalog for reference but skipped when
+    # generating cells, so the runner never spends API budget on them.
+    active_genres = [genre for genre in genres if genre.enabled]
+    return [GridCell(city=city, genre=genre) for city in cities for genre in active_genres]
 
 
 def default_cursor_path(repo_root: Path | None = None) -> Path:

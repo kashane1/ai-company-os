@@ -47,13 +47,18 @@ SOCIAL_HOSTS = {
     "twitter.com",
 }
 
+# Booking / directory platforms: a listing here is NOT an owned website. These
+# are weak-presence signals and route to the A2_marketplace_review bucket for
+# manual review (often the best WAAS targets — a bare booking page begging for a
+# real site). NOTE: true website builders (squarespace, wix, weebly, webs,
+# godaddysites) are deliberately EXCLUDED here — a business on those has a real
+# owned site and should classify as `present` (E_has_site).
 MARKETPLACE_HOSTS = {
     "yelp.com",
     "fresha.com",
     "opentable.com",
     "toasttab.com",
     "square.site",
-    "squarespace.com",
     "vagaro.com",
     "mindbodyonline.com",
     "booksy.com",

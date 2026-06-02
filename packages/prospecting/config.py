@@ -29,6 +29,7 @@ class GenreConfig:
     label: str
     text_query_template: str
     included_types: list[str] = field(default_factory=list)
+    enabled: bool = True
 
     def query_for(self, city: CityConfig) -> str:
         return self.text_query_template.format(label=self.label, city_name=city.name)
@@ -72,6 +73,7 @@ def load_genres(path: Path | None = None) -> list[GenreConfig]:
             label=str(item["label"]),
             text_query_template=str(item.get("text_query_template", "{label} in {city_name}")),
             included_types=[str(value) for value in list(item.get("included_types", []))],
+            enabled=bool(item.get("enabled", True)),
         )
         for item in list(raw.get("genres", []))
     ]

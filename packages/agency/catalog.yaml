@@ -1,0 +1,203 @@
+# Agency service catalog — single source of truth for what the agency sells.
+#
+# Loaded + validated by packages/agency/catalog.py (mirrors the dataclass
+# from_dict/to_dict convention). Human-readable render lives at
+# docs/agency/service-catalog.md (keep the two in sync).
+#
+# Fees are USD. A `recurring` service must carry a positive monthly_fee; a
+# `one_time` service must carry a positive setup_fee. Prices are list/anchor
+# prices — the operator can override per client in the signed OFFER.md.
+
+services:
+  # --- Tier 1: easy add-ons ---
+  - service_id: website
+    name: Professional Website
+    tier: tier_1
+    bill_type: one_time
+    setup_fee: 999
+    monthly_fee: 0
+    includes:
+      - Up to 5 pages (home, services, about, contact, reviews)
+      - Mobile-responsive Astro static build
+      - Contact form
+      - Basic on-page SEO metadata
+    edit_limit: "Included copy edits during build; post-launch edits via hosting plan"
+    ownership: client-owned
+
+  - service_id: hosting
+    name: Hosting & Maintenance
+    tier: tier_1
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 99
+    includes:
+      - Hosting + SSL
+      - Backups
+      - Content updates
+      - Broken-link fixes
+      - Contact-form monitoring
+    edit_limit: "2 content updates / month"
+
+  - service_id: gbp
+    name: Google Business Profile Setup
+    tier: tier_1
+    bill_type: one_time
+    setup_fee: 350
+    monthly_fee: 0
+    includes:
+      - Claim / verify profile
+      - Fix hours, services, categories
+      - Add photos + descriptions
+      - Add booking links
+
+  - service_id: business_email
+    name: Business Email Setup
+    tier: tier_1
+    bill_type: one_time
+    setup_fee: 200
+    monthly_fee: 0
+    includes:
+      - Google Workspace setup
+      - "info@ / support@ / sales@ aliases"
+
+  - service_id: contact_forms
+    name: Contact Forms & Lead Routing
+    tier: tier_1
+    bill_type: one_time
+    setup_fee: 150
+    monthly_fee: 0
+    includes:
+      - Form to email
+      - Form to SMS
+      - Optional CRM routing
+
+  # --- Tier 2: high value ---
+  - service_id: booking
+    name: Online Booking Setup
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 500
+    monthly_fee: 0
+    includes:
+      - Provider integration (Calendly / Square / Vagaro / Acuity / Mindbody)
+      - Services mapped to bookable offerings
+      - Confirmation + reminder setup
+
+  - service_id: reviews
+    name: Review Generation System
+    tier: tier_2
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 99
+    includes:
+      - Post-service SMS review requests
+      - Google review link
+      - Cadence management
+
+  - service_id: local_seo
+    name: Local SEO
+    tier: tier_2
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 249
+    includes:
+      - City / service / location / FAQ pages
+      - Service x geo page matrix
+      - On-page optimization
+
+  - service_id: monthly_reporting
+    name: Analytics Dashboard & Monthly Report
+    tier: tier_2
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 49
+    includes:
+      - Owner-friendly monthly report (calls, form leads, bookings)
+      - Edits completed
+      - Recommended next action
+
+  # --- Tier 3: recurring-revenue goldmine ---
+  - service_id: promo_landing_page
+    name: Promotional Landing Page
+    tier: tier_3
+    bill_type: one_time
+    setup_fee: 350
+    monthly_fee: 0
+    includes:
+      - Single-purpose campaign page (e.g. summer.company.com)
+      - Conversion-oriented copy + form
+
+  - service_id: google_ads
+    name: Google Ads Management
+    tier: tier_3
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 750
+    includes:
+      - Campaign setup + management
+      - Ad copy + keyword/negative lists (spend owned by client)
+
+  - service_id: meta_ads
+    name: Meta (Facebook/Instagram) Ads Management
+    tier: tier_3
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 750
+    includes:
+      - Campaign setup + management
+      - Creative variants + audiences (spend owned by client)
+
+  - service_id: crm_setup
+    name: CRM Setup
+    tier: tier_3
+    bill_type: one_time
+    setup_fee: 500
+    monthly_fee: 0
+    includes:
+      - HubSpot / GoHighLevel / Zoho / Pipedrive setup
+      - Pipeline + fields configured from intake
+
+  - service_id: follow_up_automation
+    name: Automated Follow-Up
+    tier: tier_3
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 99
+    includes:
+      - Lead to auto text to auto email
+      - 2-day reminder sequence
+
+bundles:
+  - bundle_id: package_a
+    name: "Package A — Presence"
+    description: Look professional online. Website + the annoying tech handled.
+    service_ids:
+      - website
+      - hosting
+      - gbp
+      - business_email
+
+  - bundle_id: package_b
+    name: "Package B — Presence + Capture"
+    description: Everything in A, plus turn visitors into booked customers.
+    service_ids:
+      - website
+      - hosting
+      - gbp
+      - business_email
+      - reviews
+      - booking
+
+  - bundle_id: package_c
+    name: "Package C — Presence + Capture + Growth"
+    description: Everything in B, plus local SEO, landing pages, and monthly reporting.
+    service_ids:
+      - website
+      - hosting
+      - gbp
+      - business_email
+      - reviews
+      - booking
+      - local_seo
+      - promo_landing_page
+      - monthly_reporting

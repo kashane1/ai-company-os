@@ -8,7 +8,7 @@ repo's persisted state conventions.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 
@@ -37,11 +37,36 @@ class ReviewTier(str, Enum):
     R0 = "R0"
 
 
+class HumanVerified(str, Enum):
+    UNSET = "unset"
+    TRUE = "true"
+    FALSE = "false"
+
+
 class ProspectStatus(str, Enum):
     RAW = "raw"
     MAPS_ENRICHED = "maps_enriched"
     HTTP_ENRICHED = "http_enriched"
     ERROR = "error"
+
+
+class EngagementStatus(str, Enum):
+    """Sales/relationship track for the agency layer (Phase 3).
+
+    Separate from ``ProspectStatus`` (which is purely scan-pipeline state).
+    These states are **operator-set only** — there are no automated transitions
+    and no outreach send path is introduced by the schema. Compliance gates
+    (TCPA/CAN-SPAM consent) for any state past ``PROPOSAL_SENT`` land with the
+    Phase 8 messaging work, not here.
+    """
+
+    NONE = "none"
+    CONTACTED = "contacted"
+    REPLIED = "replied"
+    PROPOSAL_SENT = "proposal_sent"
+    WON = "won"
+    ONBOARDED = "onboarded"
+    LOST = "lost"
 
 
 @dataclass(frozen=True)
@@ -109,9 +134,14 @@ class ProspectRecord:
     # Derived.
     composite_cohort: str = ""
     priority_score: float = 0.0
+    human_verified: HumanVerified = HumanVerified.UNSET
+    human_verified_at: str = ""
+    human_verify_note: str = ""
 
     # Lifecycle.
     status: ProspectStatus = ProspectStatus.RAW
+    # Agency layer (Phase 3) — operator-set sales track; no automated transitions.
+    engagement_status: EngagementStatus = EngagementStatus.NONE
     created_at: str = ""
     updated_at: str = ""
     last_error: str = ""
@@ -140,7 +170,11 @@ class ProspectRecord:
             "review_tier": self.review_tier.value,
             "composite_cohort": self.composite_cohort,
             "priority_score": self.priority_score,
+            "human_verified": self.human_verified.value,
+            "human_verified_at": self.human_verified_at,
+            "human_verify_note": self.human_verify_note,
             "status": self.status.value,
+            "engagement_status": self.engagement_status.value,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "last_error": self.last_error,
@@ -177,7 +211,18 @@ class ProspectRecord:
             review_tier=ReviewTier(str(payload.get("review_tier", ReviewTier.R0.value))),
             composite_cohort=str(payload.get("composite_cohort", "")),
             priority_score=float(payload.get("priority_score", 0) or 0),
+            human_verified=HumanVerified(
+                str(
+                    payload.get("human_verified", HumanVerified.UNSET.value)
+                    or HumanVerified.UNSET.value
+                )
+            ),
+            human_verified_at=str(payload.get("human_verified_at", "")),
+            human_verify_note=str(payload.get("human_verify_note", "")),
             status=ProspectStatus(str(payload.get("status", ProspectStatus.RAW.value))),
+            engagement_status=EngagementStatus(
+                str(payload.get("engagement_status", EngagementStatus.NONE.value))
+            ),
             created_at=str(payload.get("created_at", "")),
             updated_at=str(payload.get("updated_at", "")),
             last_error=str(payload.get("last_error", "")),

@@ -98,6 +98,61 @@ def default_context(
     }
 
 
+def local_business_context(
+    business_name: str,
+    *,
+    service_category: str,
+    city: str,
+    services: list[str] | None = None,
+    phone: str = "",
+    tagline: str | None = None,
+    site_url: str = "https://example.com",
+) -> dict[str, str]:
+    """A scaffold context tuned for a local-SMB client site (Agency layer).
+
+    Starts from :func:`default_context` and overrides the SaaS-flavored copy with
+    local-business framing keyed off ``service_category`` and ``city`` (e.g. a
+    plumber in Seattle). The result is the same token dict ``scaffold_site``
+    consumes, so the existing template renders without forking.
+    """
+    services = services or []
+    tagline = tagline or f"Trusted {service_category} in {city}"
+    audience = f"{city} homeowners and businesses"
+    context = default_context(business_name, tagline=tagline, audience=audience, site_url=site_url)
+
+    primary = f"Call {phone}" if phone else "Get a free quote"
+    service_line = ", ".join(services[:3]) if services else service_category
+    context.update(
+        {
+            "EYEBROW": f"{service_category.title()} · {city}",
+            "HERO_HEADLINE": tagline,
+            "HERO_SUBHEAD": (
+                f"{business_name} provides reliable {service_category} for {city}. "
+                f"{service_line.capitalize()} — done right, on time."
+            ),
+            "PRIMARY_CTA": primary,
+            "SECONDARY_CTA": "See our services",
+            "HERO_NOTE": "Licensed & insured · Free estimates",
+            "TRUST_LABEL": f"Proudly serving {city}",
+            "FEATURES_HEADLINE": "Why choose us",
+            "FEATURES_SUBHEAD": f"Local, dependable {service_category} you can count on.",
+            "FEATURE_1_TITLE": "Local & reliable",
+            "FEATURE_1_BODY": f"Based in {city} — we show up on time and do the job right.",
+            "FEATURE_2_TITLE": "Upfront pricing",
+            "FEATURE_2_BODY": "Clear estimates, no surprises.",
+            "FEATURE_3_TITLE": "Satisfaction first",
+            "FEATURE_3_BODY": "We're not done until you're happy with the work.",
+            "CTA_HEADLINE": f"Need {service_category} in {city}?",
+            "CTA_SUBHEAD": "Reach out today for a fast, free estimate.",
+            "FAQ_1_Q": "What areas do you serve?",
+            "FAQ_1_A": f"{business_name} serves {city} and the surrounding area.",
+            "FAQ_2_Q": "How do I get a quote?",
+            "FAQ_2_A": primary + " or use the contact form on this page.",
+        }
+    )
+    return context
+
+
 def _substitute(text: str, context: dict[str, str]) -> str:
     return _TOKEN_RE.sub(lambda m: str(context.get(m.group(1), m.group(0))), text)
 

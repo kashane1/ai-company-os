@@ -35,6 +35,11 @@ from packages.prospecting.run import (  # noqa: E402
     run_prospecting,
 )
 from packages.prospecting.storage import ProspectRepository  # noqa: E402
+from packages.prospecting.verification import (  # noqa: E402
+    export_cohort_a_verification_csv,
+    import_verifications_csv,
+    recompute_cohorts_and_priority_scores,
+)
 
 
 def _cmd_start(args: argparse.Namespace) -> int:
@@ -131,8 +136,37 @@ def _cmd_stop(_: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_backfill_priority(_: argparse.Namespace) -> int:
+    repo = ProspectRepository()
+    result = recompute_cohorts_and_priority_scores(repo)
+    write_cohort_report(repo.list())
+    print(f"Backfilled cohorts/priority scores: updated={result.updated}")
+    return 0
+
+
+def _cmd_export_cohort_a(args: argparse.Namespace) -> int:
+    repo = ProspectRepository()
+    result = recompute_cohorts_and_priority_scores(repo)
+    path = export_cohort_a_verification_csv(repo.list(), output_dir=args.output_dir)
+    print(f"{path}")
+    print(f"Backfilled before export: updated={result.updated}")
+    return 0
+
+
+def _cmd_import_verifications(args: argparse.Namespace) -> int:
+    result = import_verifications_csv(ProspectRepository(), args.csv)
+    print(
+        f"Imported verifications: updated={result.updated}, "
+        f"skipped={result.skipped}, missing={len(result.missing or [])}"
+    )
+    if result.missing:
+        print("Missing place_ids: " + ", ".join(result.missing))
+        return 1
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Phase 1 prospect scan")
+    parser = argparse.ArgumentParser(description="Prospect scan and verification tools")
     sub = parser.add_subparsers(dest="command", required=True)
 
     start = sub.add_parser("start", help="process prospect grid cells")
@@ -149,6 +183,19 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("status", help="show latest prospecting run").set_defaults(func=_cmd_status)
     sub.add_parser("stop", help="request a running scan stop").set_defaults(func=_cmd_stop)
+    sub.add_parser(
+        "backfill-priority", help="recompute cohorts and priority scores for existing records"
+    ).set_defaults(func=_cmd_backfill_priority)
+
+    export = sub.add_parser("export-cohort-a", help="write sorted cohort-A verification CSV")
+    export.add_argument("--output-dir", type=Path, default=None)
+    export.set_defaults(func=_cmd_export_cohort_a)
+
+    import_cmd = sub.add_parser(
+        "import-verifications", help="import operator-filled verification CSV"
+    )
+    import_cmd.add_argument("csv", type=Path)
+    import_cmd.set_defaults(func=_cmd_import_verifications)
 
     args = parser.parse_args(argv)
     return int(args.func(args))

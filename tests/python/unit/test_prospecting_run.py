@@ -13,6 +13,7 @@ from packages.schemas.prospect import (
     ProspectRecord,
 )
 from scripts.prospect_scan import _selected_cells_for_start
+import scripts.prospect_scan as prospect_scan
 
 FIXED = datetime(2026, 6, 1, tzinfo=timezone.utc)
 
@@ -109,3 +110,47 @@ def test_required_seattle_smoke_command_is_pinned_to_named_cells() -> None:
         "seattle:beauty_salon",
         "seattle:auto_repair",
     ]
+
+
+def test_export_and_import_verification_commands_round_trip(
+    tmp_path: Path, monkeypatch
+) -> None:
+    repo = ProspectRepository(tmp_path / "records")
+    repo.save(
+        ProspectRecord(
+            place_id="places/abc123",
+            display_name="Tonic Salon",
+            formatted_address="Seattle, WA",
+            phone="+1 206-555-0100",
+            types=["beauty_salon"],
+            city_id="seattle",
+            genre_id="beauty_salon",
+            grid_cell_id="seattle:beauty_salon",
+            maps_website_class=MapsWebsiteClass.ABSENT,
+            user_ratings_total=50,
+            http_check_class=HttpCheckClass.SKIPPED,
+            composite_cohort="A_gold",
+            priority_score=50,
+        )
+    )
+    monkeypatch.setattr(prospect_scan, "ProspectRepository", lambda: repo)
+
+    assert (
+        prospect_scan.main(
+            ["export-cohort-a", "--output-dir", str(tmp_path / "exports")]
+        )
+        == 0
+    )
+    export_path = next((tmp_path / "exports").glob("seattle-cohortA-*.csv"))
+    export_path.write_text(
+        export_path.read_text().replace(
+            "places/abc123,Tonic Salon",
+            "places/abc123,Tonic Salon",
+        ).replace(
+            ",,\n",
+            ",true,GBP spot-check passed\n",
+        )
+    )
+
+    assert prospect_scan.main(["import-verifications", str(export_path)]) == 0
+    assert repo.get("places/abc123").human_verified.value == "true"

@@ -100,3 +100,105 @@ cities:
     lng: -71.0589
     radius_m: 14000
 
+  # --- Cities 21-40 (US population ranks, excluding the 20 above) ---
+  # Added 2026-06-02 for the cities-21-40 greater-metro prospecting sweep.
+  - id: san_antonio
+    name: San Antonio
+    lat: 29.4241
+    lng: -98.4936
+    radius_m: 16000
+  - id: san_jose
+    name: San Jose
+    lat: 37.3382
+    lng: -121.8863
+    radius_m: 14000
+  - id: jacksonville
+    name: Jacksonville
+    lat: 30.3322
+    lng: -81.6557
+    radius_m: 16000
+  - id: fort_worth
+    name: Fort Worth
+    lat: 32.7555
+    lng: -97.3308
+    radius_m: 14000
+  - id: columbus
+    name: Columbus, OH
+    lat: 39.9612
+    lng: -82.9988
+    radius_m: 14000
+  - id: indianapolis
+    name: Indianapolis
+    lat: 39.7684
+    lng: -86.1581
+    radius_m: 14000
+  - id: el_paso
+    name: El Paso
+    lat: 31.7619
+    lng: -106.4850
+    radius_m: 14000
+  - id: oklahoma_city
+    name: Oklahoma City
+    lat: 35.4676
+    lng: -97.5164
+    radius_m: 16000
+  - id: las_vegas
+    name: Las Vegas
+    lat: 36.1699
+    lng: -115.1398
+    radius_m: 16000
+  - id: detroit
+    name: Detroit
+    lat: 42.3314
+    lng: -83.0458
+    radius_m: 14000
+  - id: memphis
+    name: Memphis
+    lat: 35.1495
+    lng: -90.0490
+    radius_m: 14000
+  - id: louisville
+    name: Louisville
+    lat: 38.2527
+    lng: -85.7585
+    radius_m: 14000
+  - id: milwaukee
+    name: Milwaukee
+    lat: 43.0389
+    lng: -87.9065
+    radius_m: 12000
+  - id: baltimore
+    name: Baltimore
+    lat: 39.2904
+    lng: -76.6122
+    radius_m: 12000
+  - id: albuquerque
+    name: Albuquerque
+    lat: 35.0844
+    lng: -106.6504
+    radius_m: 14000
+  - id: tucson
+    name: Tucson
+    lat: 32.2226
+    lng: -110.9747
+    radius_m: 14000
+  - id: fresno
+    name: Fresno
+    lat: 36.7378
+    lng: -119.7871
+    radius_m: 12000
+  - id: sacramento
+    name: Sacramento
+    lat: 38.5816
+    lng: -121.4944
+    radius_m: 14000
+  - id: kansas_city
+    name: Kansas City, MO
+    lat: 39.0997
+    lng: -94.5786
+    radius_m: 16000
+  - id: mesa
+    name: Mesa
+    lat: 33.4152
+    lng: -111.8315
+    radius_m: 12000

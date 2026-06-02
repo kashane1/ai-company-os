@@ -55,3 +55,23 @@ def test_http_checker_classifies_dead_parked_and_social_redirects() -> None:
         is HttpCheckClass.REDIRECT_SOCIAL
     )
 
+
+def test_http_checker_retries_transient_timeout_before_classifying() -> None:
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise httpx.TimeoutException("transient timeout")
+        return httpx.Response(200, text="owned site", request=request)
+
+    checker = HTTPChecker(
+        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        now=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc),
+    )
+
+    check = checker.check("https://owned.example")
+
+    assert attempts == 2
+    assert check.http_check_class is HttpCheckClass.OK_OWNED

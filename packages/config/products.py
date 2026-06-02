@@ -2,7 +2,13 @@ import json
 from pathlib import Path
 
 from packages.config.settings import load_runtime_paths
-from packages.schemas.product import ProductConfig, ProductPhase, ProductPlatform
+from packages.schemas.product import (
+    ClientConfig,
+    ProductConfig,
+    ProductPhase,
+    ProductPlatform,
+    ProductType,
+)
 
 
 def load_product_configs(config_path: Path | None = None) -> dict[str, ProductConfig]:
@@ -28,15 +34,37 @@ def load_product_configs(config_path: Path | None = None) -> dict[str, ProductCo
         except ValueError:
             phase = ProductPhase.DISCOVERY
 
+        # Agency layer (Phase 2) — ``type`` is additive/optional and defaults to
+        # ``product``. Client sites carry a ``client {}`` block and may omit
+        # ``repo_id`` (they have no source repo of their own in the iOS sense),
+        # so it is read with a default rather than required.
+        try:
+            product_type = ProductType(str(item.get("type", ProductType.PRODUCT.value)))
+        except ValueError:
+            product_type = ProductType.PRODUCT
+
+        client_raw = item.get("client")
+        client = ClientConfig.from_dict(client_raw) if isinstance(client_raw, dict) else None
+
+        # ``platform`` is required for owned products; client sites default to web.
+        if "platform" in item:
+            platform = ProductPlatform(str(item["platform"]))
+        elif product_type is ProductType.CLIENT_SITE:
+            platform = ProductPlatform.WEB
+        else:
+            platform = ProductPlatform(str(item["platform"]))  # raise KeyError as before
+
         configs[item["id"]] = ProductConfig(
             id=item["id"],
             name=item["name"],
             slug=item["slug"],
-            platform=ProductPlatform(str(item["platform"])),
-            repo_id=item["repo_id"],
+            platform=platform,
+            repo_id=str(item.get("repo_id", "")),
             source_path=str(source_path),
             docs_root=str(docs_root),
             phase=phase,
+            type=product_type,
+            client=client,
         )
 
     return configs

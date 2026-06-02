@@ -93,3 +93,15 @@ def test_x1_plan_codes_all_present() -> None:
         "Either add them to the enum or update this test if the plan "
         "dropped a code."
     )
+
+
+def test_agency_layer_codes_present() -> None:
+    """Agency layer (Phase 3) gate codes must stay enumerated alongside their
+    raise sites in ``packages/policies/agency_gates.py``."""
+    required = {
+        "client_promotion_not_approved",
+        "proposal_send_not_approved",
+    }
+    actual = {member.value for member in PolicyViolationCode}
+    missing = required - actual
+    assert not missing, f"PolicyViolationCode missing agency members: {missing}"
