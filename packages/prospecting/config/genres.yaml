@@ -1,0 +1,75 @@
+# Non-exhaustive Places query catalog, not an inclusion filter.
+# The qualifying signal is no publicly available website; genres only create
+# cross-vertical search cells and are expected to expand over time.
+genres:
+  - id: beauty_salon
+    label: beauty salon
+    text_query_template: "{label} in {city_name}"
+    included_types: ["beauty_salon"]
+  - id: auto_repair
+    label: auto repair
+    text_query_template: "{label} in {city_name}"
+    included_types: ["car_repair"]
+  - id: nail_salon
+    label: nail salon
+    text_query_template: "{label} in {city_name}"
+  - id: barber_shop
+    label: barber shop
+    text_query_template: "{label} in {city_name}"
+    included_types: ["barber_shop"]
+  - id: restaurant
+    label: independent restaurant
+    text_query_template: "{label} in {city_name}"
+    included_types: ["restaurant"]
+  - id: coffee_shop
+    label: coffee shop
+    text_query_template: "{label} in {city_name}"
+    included_types: ["cafe"]
+  - id: bakery
+    label: bakery
+    text_query_template: "{label} in {city_name}"
+    included_types: ["bakery"]
+  - id: plumber
+    label: plumber
+    text_query_template: "{label} in {city_name}"
+    included_types: ["plumber"]
+  - id: electrician
+    label: electrician
+    text_query_template: "{label} in {city_name}"
+    included_types: ["electrician"]
+  - id: roofer
+    label: roofing contractor
+    text_query_template: "{label} in {city_name}"
+    included_types: ["roofing_contractor"]
+  - id: landscaper
+    label: landscaper
+    text_query_template: "{label} in {city_name}"
+  - id: house_cleaning
+    label: house cleaning service
+    text_query_template: "{label} in {city_name}"
+  - id: dog_groomer
+    label: dog groomer
+    text_query_template: "{label} in {city_name}"
+  - id: massage_therapy
+    label: massage therapist
+    text_query_template: "{label} in {city_name}"
+  - id: yoga_studio
+    label: yoga studio
+    text_query_template: "{label} in {city_name}"
+  - id: music_lessons
+    label: music lessons
+    text_query_template: "{label} in {city_name}"
+  - id: tutoring
+    label: tutoring service
+    text_query_template: "{label} in {city_name}"
+  - id: notary
+    label: notary public
+    text_query_template: "{label} in {city_name}"
+  - id: accountant
+    label: accountant
+    text_query_template: "{label} in {city_name}"
+    included_types: ["accounting"]
+  - id: garage_door
+    label: garage door repair
+    text_query_template: "{label} in {city_name}"
+

@@ -18,6 +18,7 @@ state/worktrees/*
 state/artifacts/*
 state/checkpoints/*
 state/logs/*
+state/prospects/*
 state/handshake/
 state/postmortems/
 
@@ -26,6 +27,7 @@ state/postmortems/
 !state/artifacts/.gitkeep
 !state/checkpoints/.gitkeep
 !state/logs/.gitkeep
+!state/prospects/.gitkeep
 
 # Claude Code agent worktrees — each one is its own checkout of the repo,
 # must never be committed back into the parent tree.

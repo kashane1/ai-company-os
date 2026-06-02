@@ -1,0 +1,4 @@
+timeout_seconds: 5
+max_redirects: 5
+per_host_rpm: 30
+
