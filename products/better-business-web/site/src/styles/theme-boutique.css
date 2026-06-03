@@ -1,0 +1,55 @@
+/* Direction C — "Warm Boutique": cream paper, soft amber accent, extra-rounded
+   shapes, characterful Bricolage Grotesque display. Friendly + approachable for
+   a local small-business owner. Overrides the base under body.theme-boutique. */
+
+body.theme-boutique {
+  --font-display: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  --font-body: "Hanken Grotesk Variable", system-ui, sans-serif;
+
+  --paper: #fbf5ea;
+  --paper-2: #f4ead7;
+  --surface: #fffefb;
+  --ink: #2c2620;
+  --ink-soft: #6d6256;
+  --ink-faint: #9a8e7d;
+  --line: #ecdfc8;
+  --line-strong: #e0cfb0;
+
+  --accent: #e0793c;
+  --accent-2: #c75f27;
+  --accent-tint: #fbe5d2;
+  --gold: #e0a93f;
+
+  /* Rounder, softer */
+  --radius: 18px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
+  --shadow-md: 0 3px 6px rgba(90, 60, 30, 0.06), 0 14px 30px -12px rgba(120, 75, 35, 0.22);
+  --shadow-lg: 0 6px 14px rgba(90, 60, 30, 0.07), 0 34px 64px -22px rgba(120, 75, 35, 0.3);
+}
+
+/* Friendly display weight, no serif axes */
+.theme-boutique h1, .theme-boutique h2, .theme-boutique h3 { font-variation-settings: "wght" 640; font-weight: 640; letter-spacing: -0.02em; }
+.theme-boutique .hero h1 { line-height: 1.02; }
+
+/* "previewed" gets a soft hand-drawn highlight instead of italic */
+.theme-boutique .hero h1 .accent { font-style: normal; color: var(--ink); position: relative; white-space: nowrap; }
+.theme-boutique .hero h1 .accent::after { content: ""; position: absolute; left: -0.1em; right: -0.1em; bottom: 0.06em; height: 0.42em; background: color-mix(in srgb, var(--accent) 38%, transparent); border-radius: 999px; z-index: -1; }
+.theme-boutique .signature { font-style: normal; font-family: var(--font-display); }
+
+/* Warmer mesh, softer grain */
+body.theme-boutique::before {
+  background:
+    radial-gradient(55% 45% at 88% -5%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
+    radial-gradient(48% 42% at 4% 6%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 70%),
+    radial-gradient(65% 55% at 50% 112%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 72%);
+}
+body.theme-boutique::after { opacity: 0.35; }
+
+/* Pill-rounded chips + softer pricing badge; bigger, pillowy cards */
+.theme-boutique .price-card { border-width: 1.5px; }
+.theme-boutique .price-card.is-featured { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, var(--surface)), var(--surface)) padding-box, linear-gradient(160deg, var(--accent), var(--gold)) border-box; }
+.theme-boutique .price-badge { border-radius: 999px; }
+.theme-boutique .eyebrow { letter-spacing: 0.12em; }
+.theme-boutique .pf-card { border-width: 1.5px; }
+.theme-boutique .brand-mark { border-radius: 12px; }

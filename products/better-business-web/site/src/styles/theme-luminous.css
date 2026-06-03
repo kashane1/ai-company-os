@@ -1,0 +1,55 @@
+/* Direction B — "Luminous Dark": deep charcoal, electric indigo→cyan accent,
+   glassmorphism, gradient-mesh glow, all-sans (Geist) techy SaaS feel.
+   Overrides the editorial-warm base under body.theme-luminous. */
+
+body.theme-luminous {
+  color-scheme: dark;
+  --font-display: "Geist Variable", system-ui, sans-serif;
+  --font-body: "Geist Variable", system-ui, sans-serif;
+
+  --paper: #0a0c12;
+  --paper-2: #11141d;
+  --surface: #161b27;
+  --ink: #eef1f9;
+  --ink-soft: #aab2c6;
+  --ink-faint: #76809a;
+  --line: #232a3a;
+  --line-strong: #323c52;
+
+  --accent: #7c8cff;
+  --accent-2: #9aa6ff;
+  --accent-tint: #1a2138;
+  --gold: #38d6ee;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4), 0 14px 32px -12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.5), 0 36px 70px -24px rgba(0, 0, 0, 0.85);
+  --glow: 0 30px 90px -28px color-mix(in srgb, var(--accent) 75%, transparent);
+}
+
+/* All-sans: drop serif optical axes */
+.theme-luminous h1, .theme-luminous h2, .theme-luminous h3 { font-variation-settings: normal; font-weight: 620; letter-spacing: -0.03em; }
+.theme-luminous .hero h1 .accent { font-style: normal; background: linear-gradient(100deg, var(--accent), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.theme-luminous .signature { font-style: normal; color: var(--accent-2); }
+
+/* Brighter, electric mesh on dark + screen-blend grain */
+.theme-luminous body, body.theme-luminous { background: var(--paper); }
+body.theme-luminous::before {
+  background:
+    radial-gradient(50% 40% at 85% -8%, color-mix(in srgb, var(--accent) 42%, transparent), transparent 70%),
+    radial-gradient(45% 40% at 8% 4%, color-mix(in srgb, var(--gold) 30%, transparent), transparent 70%),
+    radial-gradient(60% 50% at 50% 112%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 72%);
+}
+body.theme-luminous::after { mix-blend-mode: screen; opacity: 0.3; }
+
+/* Glassmorphism surfaces */
+.theme-luminous .site-header { background: color-mix(in srgb, var(--paper) 62%, transparent); }
+.theme-luminous .price-card { background: color-mix(in srgb, var(--surface) 70%, transparent); backdrop-filter: blur(14px); border-color: color-mix(in srgb, var(--line-strong) 80%, transparent); }
+.theme-luminous .price-card.is-featured { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, var(--surface)), color-mix(in srgb, var(--surface) 70%, transparent)) padding-box, linear-gradient(160deg, var(--accent), var(--gold)) border-box; }
+.theme-luminous .review-card, .theme-luminous .pf-card { background: color-mix(in srgb, var(--surface) 75%, transparent); backdrop-filter: blur(14px); }
+.theme-luminous .btn-ghost { background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink); border-color: var(--line-strong); }
+.theme-luminous .btn-ghost:hover { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+.theme-luminous .field input { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.theme-luminous .mock-glow { background: radial-gradient(60% 60% at 50% 40%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%); }
+.theme-luminous .browser { border-color: var(--line-strong); }
+.theme-luminous .footer-word { opacity: 0.16; background: linear-gradient(100deg, var(--accent), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }

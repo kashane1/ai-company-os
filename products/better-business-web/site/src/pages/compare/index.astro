@@ -1,0 +1,61 @@
+---
+// Side-by-side gallery of the four design directions — same content, different
+// aesthetics — each a live scaled preview. Internal tool (noindex).
+const options = [
+  { href: "/", tag: "Chosen", name: "Editorial × Warm", desc: "Ivory + terracotta, Fraunces serif. Crafted but human.", accent: "#c2410c" },
+  { href: "/compare/editorial", tag: "Option A", name: "Editorial Studio", desc: "Luxury restraint — Playfair serif, ivory + a single gold.", accent: "#9a7b4f" },
+  { href: "/compare/boutique", tag: "Option C", name: "Warm Boutique", desc: "Friendly — cream + amber, Bricolage, soft & rounded.", accent: "#e0793c" },
+  { href: "/compare/luminous", tag: "Option B", name: "Luminous Dark", desc: "Modern SaaS — charcoal, glass, electric indigo→cyan.", accent: "#7c8cff" },
+];
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BBW — Design directions, side by side</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background: #15140f; color: #f3efe6; padding: 28px 20px 60px; }
+    .head { max-width: 780px; margin: 0 auto 26px; text-align: center; }
+    .head h1 { font-size: 1.7rem; margin: 0 0 6px; letter-spacing: -0.02em; }
+    .head p { margin: 0; color: #b6b0a2; font-size: 0.95rem; }
+    .grid { display: grid; grid-template-columns: repeat(2, 360px); gap: 30px 28px; justify-content: center; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    .card { width: 360px; }
+    @media (max-width: 800px) { .card { width: 100%; } }
+    .meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .tag { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 999px; color: #15140f; }
+    .name { font-weight: 650; font-size: 1.05rem; }
+    .desc { color: #b6b0a2; font-size: 0.82rem; margin: 0 0 10px; min-height: 2.4em; }
+    .frame { position: relative; width: 360px; height: 330px; border-radius: 12px; overflow: hidden; border: 1px solid #3a382f; box-shadow: 0 20px 50px -20px rgba(0,0,0,0.7); background: #fff; }
+    .frame iframe { position: absolute; top: 0; left: 0; width: 1280px; height: 1175px; border: 0; transform: scale(0.281); transform-origin: top left; pointer-events: none; }
+    .frame a.open { position: absolute; inset: 0; z-index: 2; }
+    .view { display: inline-block; margin-top: 8px; font-size: 0.8rem; color: #d9b48a; text-decoration: none; }
+    .view:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="head">
+    <h1>Four directions, same content</h1>
+    <p>Identical copy, pricing, and structure — only the aesthetic changes. Click any preview to open it full-size.</p>
+  </div>
+  <div class="grid">
+    {options.map((o) => (
+      <div class="card">
+        <div class="meta">
+          <span class="tag" style={`background:${o.accent}`}>{o.tag}</span>
+          <span class="name">{o.name}</span>
+        </div>
+        <p class="desc">{o.desc}</p>
+        <div class="frame">
+          <a class="open" href={o.href} target="_blank" aria-label={`Open ${o.name} full size`}></a>
+          <iframe src={o.href} title={o.name} loading="lazy" tabindex="-1"></iframe>
+        </div>
+        <a class="view" href={o.href} target="_blank">Open full size →</a>
+      </div>
+    ))}
+  </div>
+</body>
+</html>
