@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bbw-site",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd products/better-business-web/site && npm run preview"],
+      "port": 4321
+    }
+  ]
+}
