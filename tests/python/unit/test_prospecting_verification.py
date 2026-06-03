@@ -52,13 +52,14 @@ def test_export_cohort_a_verification_csv_is_sorted_and_operator_blank(tmp_path:
         )
     )
 
-    path = export_cohort_a_verification_csv(
+    paths = export_cohort_a_verification_csv(
         repo.list(),
         output_dir=tmp_path / "exports",
         today=lambda: FIXED,
     )
 
-    assert path.name == "seattle-cohortA-2026-06-01.csv"
+    assert [p.name for p in paths] == ["seattle-cohortA-2026-06-01.csv"]
+    path = paths[0]
     with path.open(newline="") as handle:
         rows = list(csv.DictReader(handle))
     assert [row["place_id"] for row in rows] == ["places/high", "places/low"]
@@ -68,6 +69,40 @@ def test_export_cohort_a_verification_csv_is_sorted_and_operator_blank(tmp_path:
     # Maps URL must include the required `query` param so the link actually
     # resolves (regression: query_place_id alone does not open the place).
     assert "query=" in rows[0]["maps_url"]
+
+
+def _record_in_city(place_id: str, city_id: str, priority_score: float) -> ProspectRecord:
+    return ProspectRecord.from_dict(
+        {
+            **_record(place_id, "A_gold", priority_score).to_dict(),
+            "city_id": city_id,
+        }
+    )
+
+
+def test_export_writes_one_file_per_city(tmp_path: Path) -> None:
+    repo = ProspectRepository(tmp_path / "records")
+    repo.save(_record_in_city("places/sea1", "seattle", 90))
+    repo.save(_record_in_city("places/pdx1", "portland", 80))
+    repo.save(_record_in_city("places/pdx2", "portland", 95))
+    repo.save(_record_in_city("places/den1", "denver", 70))
+
+    paths = export_cohort_a_verification_csv(
+        repo.list(),
+        output_dir=tmp_path / "exports",
+        today=lambda: FIXED,
+    )
+
+    assert [p.name for p in paths] == [
+        "denver-cohortA-2026-06-01.csv",
+        "portland-cohortA-2026-06-01.csv",
+        "seattle-cohortA-2026-06-01.csv",
+    ]
+    # Each file holds only its own city's prospects, sorted by priority desc.
+    portland = next(p for p in paths if p.name.startswith("portland"))
+    with portland.open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert [row["place_id"] for row in rows] == ["places/pdx2", "places/pdx1"]
 
 
 def test_import_verifications_csv_sets_only_operator_filled_fields(tmp_path: Path) -> None:

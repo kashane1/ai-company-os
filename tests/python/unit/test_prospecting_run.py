@@ -154,3 +154,25 @@ def test_export_and_import_verification_commands_round_trip(
 
     assert prospect_scan.main(["import-verifications", str(export_path)]) == 0
     assert repo.get("places/abc123").human_verified.value == "true"
+
+
+def test_start_dry_run_auto_refreshes_isolated_exports(tmp_path: Path, monkeypatch) -> None:
+    # Redirect all runtime state to a throwaway repo root so the run touches
+    # no production state.
+    monkeypatch.setenv("AI_COMPANY_OS_REPO_ROOT", str(tmp_path))
+    state = tmp_path / "state" / "prospects"
+
+    assert (
+        prospect_scan.main(
+            ["start", "--dry-run", "--cells", "2", "--approved-by", "codex-phase1-smoke"]
+        )
+        == 0
+    )
+
+    # Dry-run records and exports are isolated; production paths stay untouched.
+    assert list((state / "dry_run" / "records").glob("*.json"))  # fixtures persisted here
+    assert (state / "dry_run" / "exports").is_dir()  # auto-export ran in isolation
+    # Fixtures are never emailable prospects, so no export rows leak out, and the
+    # production exports/records warehouses are never created by a dry-run.
+    assert not (state / "exports").exists()
+    assert not (state / "records").exists()

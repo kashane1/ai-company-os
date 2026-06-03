@@ -1,0 +1,86 @@
+[
+  {
+    "genre_id": "auto_repair",
+    "business": "Ironside Auto Works",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/auto_repair/dist",
+    "theme": {
+      "style_class": "industrial",
+      "layout": "split",
+      "brand": "#ce272d",
+      "brand_strong": "#9f191d",
+      "heading_font": "Oswald",
+      "body_font": "Inter"
+    },
+    "url": "https://6a1f75d09d4fec40fd1d9119--bbw-portfolio.netlify.app"
+  },
+  {
+    "genre_id": "barber_shop",
+    "business": "Kingsway Barber Co.",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/barber_shop/dist",
+    "theme": {
+      "style_class": "vintage",
+      "layout": "banner",
+      "brand": "#8c462c",
+      "brand_strong": "#602d1a",
+      "heading_font": "Bebas Neue",
+      "body_font": "Inter"
+    },
+    "url": "https://6a1f75d0ee53af48b89b5ae5--bbw-portfolio.netlify.app"
+  },
+  {
+    "genre_id": "bakery",
+    "business": "Goldenrod Bakehouse",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/bakery/dist",
+    "theme": {
+      "style_class": "warm",
+      "layout": "split",
+      "brand": "#c07f30",
+      "brand_strong": "#935f1f",
+      "heading_font": "Lora",
+      "body_font": "Nunito"
+    },
+    "url": "https://6a1f75d19d4fec424f1d90f6--bbw-portfolio.netlify.app"
+  },
+  {
+    "genre_id": "dog_groomer",
+    "business": "Wagtail Grooming Studio",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/dog_groomer/dist",
+    "theme": {
+      "style_class": "playful",
+      "layout": "banner",
+      "brand": "#3087b5",
+      "brand_strong": "#1f6489",
+      "heading_font": "Baloo 2",
+      "body_font": "Nunito"
+    },
+    "url": "https://6a1f75d1a83d4963b0824a92--bbw-portfolio.netlify.app"
+  },
+  {
+    "genre_id": "plumber",
+    "business": "TrueLine Plumbing",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/plumber/dist",
+    "theme": {
+      "style_class": "trades",
+      "layout": "banner",
+      "brand": "#277abe",
+      "brand_strong": "#185a90",
+      "heading_font": "Saira Condensed",
+      "body_font": "Inter"
+    },
+    "url": "https://6a1f75d2f117a164026e4396--bbw-portfolio.netlify.app"
+  },
+  {
+    "genre_id": "nail_salon",
+    "business": "Lumi\u00e8re Nail Lounge",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/nail_salon/dist",
+    "theme": {
+      "style_class": "elegant",
+      "layout": "centered",
+      "brand": "#bf5ec9",
+      "brand_strong": "#a935b6",
+      "heading_font": "Cormorant Garamond",
+      "body_font": "Mulish"
+    },
+    "url": "https://6a1f75d22842d24a7dca0ab3--bbw-portfolio.netlify.app"
+  }
+]

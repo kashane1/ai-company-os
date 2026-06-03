@@ -3,6 +3,8 @@
 
 Mirrors the discovery CLI shape: start/status/stop. ``--dry-run`` uses fixture
 data and mocked HTTP, so it exercises persistence/cohorts without live APIs.
+Dry-run records are written to an isolated warehouse (``prospects/dry_run/``)
+so synthetic fixtures never contaminate the production records count.
 """
 
 from __future__ import annotations
@@ -34,8 +36,12 @@ from packages.prospecting.run import (  # noqa: E402
     fixture_http_checker,
     run_prospecting,
 )
-from packages.prospecting.storage import ProspectRepository  # noqa: E402
+from packages.prospecting.storage import (  # noqa: E402
+    ProspectRepository,
+    dry_run_records_root,
+)
 from packages.prospecting.verification import (  # noqa: E402
+    dry_run_exports_root,
     export_cohort_a_verification_csv,
     import_verifications_csv,
     recompute_cohorts_and_priority_scores,
@@ -49,7 +55,10 @@ def _cmd_start(args: argparse.Namespace) -> int:
 
     stop = FileStopSignal()
     stop.clear()
-    records = ProspectRepository()
+    # Dry-run uses synthetic fixtures; isolate them in a separate warehouse so
+    # they never inflate the production records count. The storage layer also
+    # hard-rejects fixtures written to the production root as a backstop.
+    records = ProspectRepository(dry_run_records_root() if args.dry_run else None)
     store = ProspectRunStore()
     cities = load_cities()
     genres = load_genres()
@@ -91,6 +100,16 @@ def _cmd_start(args: argparse.Namespace) -> int:
 
     store.save(report)
     write_cohort_report(records.list())
+
+    # Refresh the per-city cohort-A exports so every crawled city stays in sync
+    # without a separate manual `export-cohort-a` step. Dry-run exports are
+    # isolated alongside their dry-run warehouse.
+    recompute_cohorts_and_priority_scores(records)
+    export_paths = export_cohort_a_verification_csv(
+        records.list(),
+        output_dir=dry_run_exports_root() if args.dry_run else None,
+    )
+
     print(
         f"Run {report.run_id}: {report.status} — cells={report.cells_done}, "
         f"places={report.places_seen}, created={report.records_created}, "
@@ -100,6 +119,7 @@ def _cmd_start(args: argparse.Namespace) -> int:
         print("Errors:", "; ".join(report.api_errors))
     print(f"HTTP counts: {report.http_counts}")
     print(f"Cap headroom: {report.cap_headroom}")
+    print(f"Exported cohort-A prospects: {len(export_paths)} city file(s)")
     return 0 if report.status in {"completed", "cap_hit", "stopped"} and not report.api_errors else 1
 
 
@@ -147,9 +167,10 @@ def _cmd_backfill_priority(_: argparse.Namespace) -> int:
 def _cmd_export_cohort_a(args: argparse.Namespace) -> int:
     repo = ProspectRepository()
     result = recompute_cohorts_and_priority_scores(repo)
-    path = export_cohort_a_verification_csv(repo.list(), output_dir=args.output_dir)
-    print(f"{path}")
-    print(f"Backfilled before export: updated={result.updated}")
+    paths = export_cohort_a_verification_csv(repo.list(), output_dir=args.output_dir)
+    for path in paths:
+        print(f"{path}")
+    print(f"Wrote {len(paths)} city file(s). Backfilled before export: updated={result.updated}")
     return 0
 
 

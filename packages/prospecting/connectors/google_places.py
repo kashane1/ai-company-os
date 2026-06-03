@@ -36,6 +36,28 @@ DETAILS_FIELD_MASK = ",".join(
     ]
 )
 
+# Richer mask for building a *demo site* for a single lead (on-demand, small N).
+# Deliberately omits review TEXT — the Phase-1 posture is "no review text fields"
+# (ToS + cost); rating + count is factual social proof and already stored. These
+# are factual business attributes safe to show on the business's own site.
+PROFILE_FIELD_MASK = ",".join(
+    [
+        "id",
+        "displayName",
+        "formattedAddress",
+        "nationalPhoneNumber",
+        "internationalPhoneNumber",
+        "types",
+        "primaryTypeDisplayName",
+        "rating",
+        "userRatingCount",
+        "websiteUri",
+        "googleMapsUri",
+        "regularOpeningHours",
+        "editorialSummary",
+    ]
+)
+
 SOCIAL_HOSTS = {
     "facebook.com",
     "fb.com",
@@ -127,6 +149,27 @@ class GooglePlacesConnector:
         _raise_for_status(response)
         self._limiter.reset_backoff()
         return prospect_from_place(response.json())
+
+    def fetch_profile(self, place_id: str) -> dict:
+        """Fetch the richer Place Details payload used to build a demo site.
+
+        Returns the raw Places API JSON (hours, editorial summary, primary type,
+        maps URI, …). Unlike :meth:`fetch_details` this is not a cohort record —
+        it's site content for a single lead, fetched on demand.
+        """
+        self._require_key()
+        self._limiter.acquire()
+        resource_path = place_id if place_id.startswith("places/") else f"places/{place_id}"
+        response = self._client.get(
+            f"{self._endpoint}/{resource_path}",
+            headers=self._headers(PROFILE_FIELD_MASK),
+        )
+        if response.status_code in (429, 503):
+            self._limiter.backoff()
+            _raise_for_status(response)
+        _raise_for_status(response)
+        self._limiter.reset_backoff()
+        return response.json()
 
     def _headers(self, field_mask: str) -> dict[str, str]:
         return {
