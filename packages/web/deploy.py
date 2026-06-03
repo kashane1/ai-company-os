@@ -26,6 +26,7 @@ with ``httpx.MockTransport`` — no network, no token.
 
 from __future__ import annotations
 
+import hashlib
 import io
 import zipfile
 from dataclasses import dataclass
@@ -156,24 +157,76 @@ class NetlifyDeployTarget:
         return _site_ref(created)
 
     def deploy(self, site: SiteRef, dist_dir: Path, *, production: bool = False) -> DeployResult:
-        """Zip-deploy ``dist`` to the site. ``production=False`` creates a draft
-        deploy (a preview URL not promoted to the production domain)."""
-        payload = zip_dist(dist_dir)
-        params = {} if production else {"draft": "true"}
+        """Deploy ``dist`` to the site via Netlify's **file-digest** method.
+
+        We declare each file's path + SHA1, then upload only the files Netlify
+        still needs. This is used instead of a raw zip upload on purpose: a zip
+        deploy collapses the publish dir to a single ``/`` entry served as
+        ``text/plain`` (the page renders as raw source). The digest method keeps
+        per-file paths, so Netlify assigns the correct content-type from each
+        extension (``.html`` → ``text/html``).
+
+        ``production=False`` creates a draft deploy (viewable at the
+        deploy-specific ``deploy_ssl_url``, not the site's production domain).
+        """
+        if not dist_dir.is_dir():
+            raise DeployError(f"dist directory not found: {dist_dir}")
+        files: dict[str, tuple[str, bytes]] = {}
+        for path in sorted(dist_dir.rglob("*")):
+            if path.is_file():
+                data = path.read_bytes()
+                rel = "/" + path.relative_to(dist_dir).as_posix()
+                files[rel] = (hashlib.sha1(data).hexdigest(), data)
+        if not files:
+            raise DeployError(f"no files to deploy in {dist_dir}")
+
+        body: dict[str, object] = {"files": {p: sha for p, (sha, _) in files.items()}}
+        if not production:
+            body["draft"] = True
         result = self._request(
-            "POST",
-            f"/sites/{site.site_id}/deploys",
-            headers=self._headers("application/zip"),
-            params=params,
-            content=payload,
+            "POST", f"/sites/{site.site_id}/deploys", headers=self._headers(), json=body
         )
+        deploy_id = str(result.get("id", ""))
+        required = set(result.get("required", []) or [])
+        for rel, (sha, data) in files.items():
+            if sha in required:
+                self._upload_file(deploy_id, rel, data)
+
+        # A draft deploy is NOT promoted to the site's production URL, so
+        # ``ssl_url`` 404s until a production deploy exists; its viewable
+        # permalink is ``deploy_ssl_url``. Production deploys use the site URL.
+        if production:
+            url = result.get("ssl_url") or result.get("url") or site.url
+        else:
+            url = (
+                result.get("deploy_ssl_url")
+                or result.get("deploy_url")
+                or result.get("ssl_url")
+                or site.url
+            )
         return DeployResult(
             site=site,
-            deploy_id=str(result.get("id", "")),
-            url=str(result.get("ssl_url") or result.get("url") or site.url),
+            deploy_id=deploy_id,
+            url=str(url),
             production=production,
             state=str(result.get("state", "")),
         )
+
+    def _upload_file(self, deploy_id: str, rel_path: str, data: bytes) -> None:
+        """Upload one file's bytes to an open deploy (digest method step 2)."""
+        try:
+            resp = self._client.put(
+                f"{self._base_url}/deploys/{deploy_id}/files{rel_path}",
+                headers={
+                    "Authorization": f"Bearer {self._token}",
+                    "Content-Type": "application/octet-stream",
+                },
+                content=data,
+            )
+        except httpx.HTTPError as exc:
+            raise DeployError(f"netlify file upload failed: {exc}") from exc
+        if resp.status_code >= 300:
+            raise DeployError(f"netlify upload HTTP {resp.status_code}: {resp.text[:200]}")
 
     def set_custom_domain(self, site: SiteRef, domain: str) -> SiteRef:
         """Attach a custom domain (a gated action — DNS/domain change)."""

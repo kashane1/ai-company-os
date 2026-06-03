@@ -1,4 +1,4 @@
-"""Operator verification export/import helpers for Seattle cohort-A prospects."""
+"""Operator verification export/import helpers for cohort-A prospects (per city)."""
 
 from __future__ import annotations
 
@@ -45,30 +45,46 @@ def default_exports_root(repo_root: Path | None = None) -> Path:
     return load_runtime_paths(repo_root).state_root / "prospects" / "exports"
 
 
+def dry_run_exports_root(repo_root: Path | None = None) -> Path:
+    """Isolated exports folder for ``--dry-run`` so fixtures never mix with prod."""
+    return load_runtime_paths(repo_root).state_root / "prospects" / "dry_run" / "exports"
+
+
 def export_cohort_a_verification_csv(
     records: list[ProspectRecord],
     *,
     output_dir: Path | None = None,
     today: Callable[[], datetime] | None = None,
-) -> Path:
+) -> list[Path]:
+    """Write one ``<city>-cohortA-<date>.csv`` per city into the exports folder.
+
+    Cohort-A prospects are grouped by ``city_id`` so every crawled city lands as
+    its own operator file. Returns the written paths sorted by city.
+    """
     clock = today or (lambda: datetime.now(timezone.utc))
     target_dir = output_dir or default_exports_root()
     target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / f"seattle-cohortA-{clock().date().isoformat()}.csv"
-    rows = sorted(
-        [
-            record
-            for record in records
-            if record.composite_cohort == "A_gold" and _is_operator_exportable(record)
-        ],
-        key=lambda record: (-record.priority_score, record.display_name.lower()),
-    )
-    with target.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=EXPORT_COLUMNS)
-        writer.writeheader()
-        for record in rows:
-            writer.writerow(_export_row(record))
-    return target
+
+    by_city: dict[str, list[ProspectRecord]] = {}
+    for record in records:
+        if record.composite_cohort != "A_gold" or not _is_operator_exportable(record):
+            continue
+        by_city.setdefault(record.city_id or "unknown", []).append(record)
+
+    written: list[Path] = []
+    for city_id in sorted(by_city):
+        rows = sorted(
+            by_city[city_id],
+            key=lambda record: (-record.priority_score, record.display_name.lower()),
+        )
+        target = target_dir / f"{city_id}-cohortA-{clock().date().isoformat()}.csv"
+        with target.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=EXPORT_COLUMNS)
+            writer.writeheader()
+            for record in rows:
+                writer.writerow(_export_row(record))
+        written.append(target)
+    return written
 
 
 def import_verifications_csv(

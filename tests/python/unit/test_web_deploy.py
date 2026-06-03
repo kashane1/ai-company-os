@@ -7,6 +7,7 @@ ownership-transfer (the handoff hook) without network or a token.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import zipfile
 from io import BytesIO
@@ -84,25 +85,26 @@ def test_ensure_site_creates_when_absent_under_account() -> None:
     assert seen["body"] == {"name": "acme"}
 
 
-def test_preview_deploy_sends_draft(tmp_path: Path) -> None:
+def test_preview_deploy_marks_draft_in_digest(tmp_path: Path) -> None:
     dist = tmp_path / "dist"
     dist.mkdir()
     (dist / "index.html").write_text("<h1>hi</h1>", encoding="utf-8")
     captured = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
-        captured["query"] = dict(request.url.params)
-        captured["ctype"] = request.headers.get("content-type")
+        captured["body"] = json.loads(request.content)
+        # required empty => no file upload round-trip needed
         return httpx.Response(
             200,
-            json={"id": "d1", "ssl_url": "https://draft--acme.netlify.app", "state": "ready"},
+            json={"id": "d1", "deploy_ssl_url": "https://d1--acme.netlify.app",
+                  "state": "ready", "required": []},
         )
 
     result = _make_target(handler).deploy(SiteRef("s1", "acme"), dist, production=False)
     assert result.production is False
-    assert captured["query"].get("draft") == "true"   # preview = draft
-    assert captured["ctype"] == "application/zip"
-    assert result.url.startswith("https://")
+    assert captured["body"].get("draft") is True       # preview = draft (in body, not query)
+    assert "/index.html" in captured["body"]["files"]   # digest method declares paths
+    assert result.url == "https://d1--acme.netlify.app"  # draft → deploy-specific URL
 
 
 def test_production_deploy_has_no_draft_flag(tmp_path: Path) -> None:
@@ -112,14 +114,37 @@ def test_production_deploy_has_no_draft_flag(tmp_path: Path) -> None:
     captured = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
-        captured["query"] = dict(request.url.params)
+        captured["body"] = json.loads(request.content)
         return httpx.Response(
-            200, json={"id": "d2", "ssl_url": "https://acme.netlify.app", "state": "ready"}
+            200, json={"id": "d2", "ssl_url": "https://acme.netlify.app",
+                       "state": "ready", "required": []}
         )
 
     result = _make_target(handler).deploy(SiteRef("s1", "acme"), dist, production=True)
     assert result.production is True
-    assert "draft" not in captured["query"]
+    assert "draft" not in captured["body"]
+    assert result.url == "https://acme.netlify.app"     # production → site URL
+
+
+def test_deploy_uploads_only_required_files(tmp_path: Path) -> None:
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "index.html").write_text("<h1>hi</h1>", encoding="utf-8")
+    sha = hashlib.sha1(b"<h1>hi</h1>").hexdigest()
+    uploaded = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "POST" and request.url.path.endswith("/deploys"):
+            return httpx.Response(200, json={"id": "d3", "ssl_url": "https://acme.netlify.app",
+                                             "state": "uploading", "required": [sha]})
+        if request.method == "PUT":
+            uploaded.append(request.url.path)
+            assert request.headers.get("content-type") == "application/octet-stream"
+            return httpx.Response(200, json={"id": "f1"})
+        return httpx.Response(404)
+
+    _make_target(handler).deploy(SiteRef("s1", "acme"), dist, production=True)
+    assert uploaded == ["/api/v1/deploys/d3/files/index.html"]
 
 
 def test_set_custom_domain_patches_site() -> None:
