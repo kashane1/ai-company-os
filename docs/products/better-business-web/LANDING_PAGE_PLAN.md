@@ -164,6 +164,15 @@ Reuse the existing design-system CSS vars; add focus states + contrast checks on
 themed cards (finding 7, a11y). Because Astro builds the site, the web gate
 validates the *built* `dist/` rather than a Python partial.
 
+**Art direction (decided 2026-06-02): "Editorial × warm."** The site is the
+studio's portfolio, so it's built to look hand-crafted, not templated: warm ivory
+canvas, Fraunces serif display + Hanken Grotesk body (self-hosted via Fontsource),
+a single terracotta accent, grain texture + layered warm light, and a
+rich-but-tasteful motion layer (orchestrated load reveals, scroll-triggered fades,
+price count-up, magnetic CTAs, hover tilt, parallax glow — all `prefers-reduced-motion`
+safe). Signature hero feature: a **live browser-frame device mockup** that
+auto-cycles through genre mini-sites, proving "a real preview before you pay."
+
 ## 6. Portfolio integration — first-party `/work/<slug>` pages (review finding 5)
 
 Drop the separate `bbw-portfolio` draft site and the screenshot approach. Instead
