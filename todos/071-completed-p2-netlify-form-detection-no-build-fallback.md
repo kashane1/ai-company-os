@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 priority: p2
 issue_id: "071"
 tags: [code-review, reliability, netlify-forms, better-business-web, agency]
@@ -75,6 +75,18 @@ Operator chose to let Astro build the BBW site (plan §4 decision update), so
 native Netlify form detection is the supported happy path — the no-build↔detection
 tension is gone. Still verify on a real deploy before launch (keep open until the
 first deploy confirms the form is detected).
+
+### 2026-06-02 - RESOLVED via Netlify Function (operator chose: no git-link)
+Replaced native Netlify Forms with a Netlify Function
+(`products/better-business-web/site/netlify/functions/website-review.mjs`): form
+POSTs to `/.netlify/functions/website-review`, the function honeypot-checks and
+writes the submission to a Netlify Blobs store (`inbound-reviews`). Deployed
+static + function via `netlify-cli deploy --prod` (no git-link needed). Verified
+live: happy path → 303 `/thanks/`; honeypot → 303 + not stored; missing required
+→ 400. A local poller `scripts/web/pull-inbound.mjs` drains the store into typed
+`WebsiteReviewRequest` records under `state/prospects/inbound/` (verified
+round-trip). Remaining (separate todos): operator notification on new lead;
+auto-run the poller (cron/launchd); fulfilment (069/§10).
 
 ### 2026-06-02 - CONFIRMED on first deploy: form NOT detected
 Deployed the site to production via `NetlifyDeployTarget` (file-digest API deploy,

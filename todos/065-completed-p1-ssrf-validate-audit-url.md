@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 priority: p1
 issue_id: "065"
 tags: [code-review, security, ssrf, better-business-web, agency]
@@ -81,3 +81,12 @@ allowlist, reject loopback/link-local/RFC-1918, re-validate after redirects,
 size/timeout caps — before any fetch. **Runtime hardening still pending**: add
 the guard at the fetch boundary (`verification_loop_runner.py` + prospect-site
 build). Keep open until the code guard + a unit test land.
+
+### 2026-06-02 - DONE: guard implemented + wired
+Added packages/policies/url_guard.py (assert/is_safe_public_url): rejects non-http(s)
+schemes, credentialed URLs, literal/loopback/link-local(169.254)/RFC-1918, and hosts
+resolving to those. Wired into HTTPChecker (the fetch chokepoint) behind
+enforce_public_url=True with pre-fetch + post-redirect checks; verified a metadata URL
+is blocked before any request. Tests in test_url_guard.py + test_prospecting_http_check.py.
+Minor follow-up: explicit response-size cap (timeout already enforced via HttpConfig);
+DNS-rebind pinning noted as a known limitation in the module docstring.

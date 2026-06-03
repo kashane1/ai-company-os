@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 priority: p1
 issue_id: "068"
 tags: [code-review, architecture, agent-native, better-business-web, agency]
@@ -83,3 +83,10 @@ email/Slack notification secondary. §10 names the two consumers (preview + audi
 **Pending build step:** define the dataclass + webhook handler + the trigger
 contract into `verification_loop_runner` / prospect-site. Keep open until the
 typed capture lands in code.
+
+### 2026-06-02 - DONE: typed capture pipeline live
+Added `WebsiteReviewRequest` + `InboundReviewRepository` (packages/agency/inbound.py)
+persisting to state/prospects/inbound/ via JsonStore. Netlify Function captures the
+submission (todo 071) → Blobs → `scripts/web/pull-inbound.mjs` writes typed records
+the platform reads. Verified end-to-end. Record carries `website` (the field the
+preview/audit consumes). Remaining: notification + auto-poll + fulfilment trigger.
