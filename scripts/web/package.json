@@ -1,0 +1,9 @@
+{
+  "name": "web-shoot",
+  "private": true,
+  "type": "module",
+  "description": "Reusable headless screenshot tool for built static sites (demo/prospect/landing). See shoot.mjs.",
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}
