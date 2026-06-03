@@ -164,14 +164,28 @@ Reuse the existing design-system CSS vars; add focus states + contrast checks on
 themed cards (finding 7, a11y). Because Astro builds the site, the web gate
 validates the *built* `dist/` rather than a Python partial.
 
-**Art direction (decided 2026-06-02): "Editorial × warm."** The site is the
-studio's portfolio, so it's built to look hand-crafted, not templated: warm ivory
-canvas, Fraunces serif display + Hanken Grotesk body (self-hosted via Fontsource),
-a single terracotta accent, grain texture + layered warm light, and a
-rich-but-tasteful motion layer (orchestrated load reveals, scroll-triggered fades,
-price count-up, magnetic CTAs, hover tilt, parallax glow — all `prefers-reduced-motion`
-safe). Signature hero feature: a **live browser-frame device mockup** that
-auto-cycles through genre mini-sites, proving "a real preview before you pay."
+**Art direction (final, 2026-06-02): "Luminous Dark."** Four directions were
+designed and compared side by side (screenshots in
+[`docs/products/better-business-web/screenshots/`](../../products/better-business-web/screenshots);
+gallery component at `site/src/pages/compare/`). The operator chose **Luminous
+Dark**: deep charcoal canvas, electric indigo→cyan accent (the gradient
+"previewed"), glassmorphism, Geist type, layered glow. The other three (Editorial
+× Warm, Editorial Studio, Warm Boutique) are archived under `/compare`. All share
+one `LandingBody` component (identical content; theme = swappable CSS + fonts) and
+a rich-but-tasteful, reduced-motion-safe motion layer (orchestrated load reveals,
+scroll fades, price count-up, magnetic CTAs, hover tilt, parallax glow). Signature
+hero feature: a **live browser-frame device mockup** that auto-cycles through
+genre mini-sites, proving "a real preview before you pay."
+
+**Deploy status (2026-06-02):** live (production) at
+**https://better-business-web.netlify.app** via the file-digest target
+(`NetlifyDeployTarget`, `production=True`, operator-approved). Launch checklist is
+green except a non-blocking SEO sub-score (62 — add canonical/h1/structured meta)
+and the contact form: **Netlify did not detect the form** because the file-digest
+API deploy skips Netlify's form-detection step. Resolve by git-linking the site so
+Netlify *builds* it (honors §4 — turns on native form detection) or adding a
+Netlify Function form handler. Until then the form posts to `/thanks/` but
+submissions are not captured (todo 071 / 068).
 
 ## 6. Portfolio integration — first-party `/work/<slug>` pages (review finding 5)
 

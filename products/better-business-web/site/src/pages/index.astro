@@ -1,10 +1,10 @@
 ---
 // Better Business Web — the agency's own funnel/landing page.
-// DESIGN: "Editorial × Warm" (the chosen direction). Other directions live under
-// /compare for side-by-side evaluation; this is the canonical site.
-import "@fontsource-variable/fraunces";
-import "@fontsource-variable/hanken-grotesk";
+// DESIGN: "Luminous Dark" (the chosen direction). Other directions are archived
+// under /compare for reference.
+import "@fontsource-variable/geist";
 import "../styles/global.css";
+import "../styles/theme-luminous.css";
 import LandingBody from "../components/LandingBody.astro";
 ---
 <!doctype html>
@@ -18,7 +18,7 @@ import LandingBody from "../components/LandingBody.astro";
   <meta property="og:description" content="Clean, modern websites for small businesses. See a real preview of your new site before you pay." />
   <meta property="og:type" content="website" />
 </head>
-<body>
+<body class="theme-luminous">
   <LandingBody />
 </body>
 </html>

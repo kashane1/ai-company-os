@@ -75,3 +75,15 @@ Operator chose to let Astro build the BBW site (plan §4 decision update), so
 native Netlify form detection is the supported happy path — the no-build↔detection
 tension is gone. Still verify on a real deploy before launch (keep open until the
 first deploy confirms the form is detected).
+
+### 2026-06-02 - CONFIRMED on first deploy: form NOT detected
+Deployed the site to production via `NetlifyDeployTarget` (file-digest API deploy,
+not a Netlify build). `GET /sites/{id}/forms` returns `[]` — Netlify's
+form-detection postprocessing does not run for file-digest API deploys, even with
+the static `form-name` hidden input present. The site is live and the form posts
+to `/thanks/`, but submissions are not captured. **Fix:** git-link the repo to
+Netlify so it runs `astro build` (base dir `products/better-business-web/site`) —
+that triggers native detection — OR add a Netlify Function POST handler. The
+`deploy_bbw.py` file-digest path is fine for the static pages but cannot enable
+Forms. Still open; P2 → effectively P1 for launch since the form is the funnel's
+only conversion point.
