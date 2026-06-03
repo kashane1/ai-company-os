@@ -67,3 +67,13 @@ native form detection the happy path.
 
 ### 2026-06-02 - Initial review capture
 Surfaced by code-simplicity-reviewer during `/review`.
+
+### 2026-06-02 - Partially resolved
+- §5 render path: **resolved** — operator chose "let Astro build this one site"
+  (plan §4/§5 updated); no Python render-partial twin will be built.
+- §8 flag vs separate checklist: **resolved** — implemented as the `first_party`
+  flag (todo 066, done).
+- §2 mirror: kept the generator + drift test (built in plan step 1) rather than the
+  hand-edit — small and permanently guards the SoT doc.
+- §6 routes-into-v1: **still open** — decide grid-only vs the six `/work/<slug>`
+  routes when §6 is built (todo 072).

@@ -69,3 +69,9 @@ detection + a live test submission a hard launch-gate item.
 
 ### 2026-06-02 - Initial review capture
 Surfaced by audit + spec-flow-analyzer + security-sentinel during `/review`.
+
+### 2026-06-02 - Resolved by build decision (Option 2)
+Operator chose to let Astro build the BBW site (plan §4 decision update), so
+native Netlify form detection is the supported happy path — the no-build↔detection
+tension is gone. Still verify on a real deploy before launch (keep open until the
+first deploy confirms the form is detected).

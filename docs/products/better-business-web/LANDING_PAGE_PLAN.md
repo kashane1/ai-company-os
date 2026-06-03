@@ -122,39 +122,47 @@ One page (`/`) plus the portfolio sub-pages, these sections only:
 scheduling / Stripe / CRM embeds. (Per-demo `/work/[slug]` pages are pulled
 **into** v1 — see §6.)
 
-## 4. Build mechanism — pre-render, no Node build (credit-safe)
+## 4. Build mechanism — Astro build, scoped exception (decided 2026-06-02)
 
-**Decision (review finding 2):** do **not** let Netlify run `astro build` — a
-Node build consumes build minutes/credits, the exact lever we just clamped on the
-prospect previews. Instead mirror the preview lane: render `dist/` locally with
-the no-Node path (`packages/web/scaffold.render_landing_html` + the new section
-renderers) and publish via the **file-digest upload**
-(`packages/web/deploy.NetlifyDeployTarget.deploy`). Zero Netlify build minutes.
+> **Decision update (supersedes the original no-build stance; resolves todos
+> 076 + 071).** This **first-party** site is built with `astro build`, *not* the
+> Python no-Node render path. Rationale: this is one rarely-changed marketing
+> site, so the build-minute cost is negligible — unlike the per-prospect,
+> high-frequency preview lane where the no-build clamp earns its keep. Letting
+> Astro build (a) removes the duplicate render path (one Astro source-of-record,
+> no Python `render_*_section` twin to keep in sync — todo 076), and (b) makes
+> native **Netlify Forms detection** the supported happy path instead of a thing
+> to verify against a file-digest upload (todo 071).
 
-Implication: the Packages and Portfolio sections are rendered **Python-side**
-(token/partial injection into the inlined HTML), not as Astro components that
-require a build. The Astro project stays the editable source-of-record for the
-markup; the platform renders the same markup offline (the existing scaffold
-contract).
+**The prospect-preview lane is unchanged** — it stays on the no-Node /
+file-digest path. The clamp applies where builds are frequent; this one site is
+the scoped exception.
+
+**This site is its own Astro project**, not the shared `astro-landing` scaffold:
+that scaffold is a tokenized template copied for every prospect preview and by
+`render_landing_html`, so agency-specific Packages/Portfolio sections must not
+live in it. BBW gets a dedicated workspace (e.g. `products/better-business-web/site/`).
 
 ## 5. New template sections (review finding 1)
 
-The scaffold template has hero / trust / features / how / testimonial / CTA / FAQ
-— it has **no packages or portfolio sections**. "Reuse the scaffold" therefore
-means *authoring two new section types*, the bulk of the build:
+Two new sections, authored as **Astro components** in the dedicated BBW site
+(per the §4 decision), not Python partials:
 
 - **Packages pricing table** — three bundle cards (A/B/C) with name, blurb,
-  included services, and the `quote_bundle` "from $X setup + $Y/mo" anchor.
-  Built as a testable partial `render_packages_section(catalog) -> str` with a
-  render guard (no unfilled tokens) and a unit test.
+  included services, and the "from $X setup + $Y/mo" anchor. **Pricing is fed
+  from the catalog (SoT), never hand-typed in Astro:** a generator
+  (`render_catalog_json(catalog) -> dict`, peer of `render_service_catalog`, +
+  `scripts/agency/render_catalog_json.py`) emits the bundle quotes to the Astro
+  project's `src/data/packages.json`, regenerated whenever the catalog changes
+  (same drift discipline as the markdown mirror). The Astro component reads that
+  JSON at build.
 - **Portfolio grid** — one card per genre (thumbnail + business type + "concept
-  demo" label) linking to its `/work/<slug>` page. Partial
-  `render_portfolio_section(manifest) -> str` fed by the portfolio manifest.
+  demo" label) linking to its `/work/<slug>` page, fed by the portfolio manifest
+  (§6).
 
-Both partials follow the `render_landing_html` pattern (string-in/string-out,
-offline, guarded) so the web gate can validate them with no Node. Reuse the
-existing design-system CSS vars; add focus states + contrast checks on themed
-cards (finding 7, a11y).
+Reuse the existing design-system CSS vars; add focus states + contrast checks on
+themed cards (finding 7, a11y). Because Astro builds the site, the web gate
+validates the *built* `dist/` rather than a Python partial.
 
 ## 6. Portfolio integration — first-party `/work/<slug>` pages (review finding 5)
 
