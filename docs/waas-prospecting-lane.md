@@ -89,6 +89,11 @@ contact channel per lead. Until built:
 - The with-mockup **email** play requires a found email address; if none, either
   enrich manually or switch channel.
 
+> **Deep procedure:** the per-business build that meets the "genuine, not
+> cookie-cutter" bar is documented in **`docs/demo-site-build-playbook.md`**
+> (data sources, evidence-grounded copy, photo curation, verify checklist). The
+> token-fill flow below is the fast/bulk path; the playbook is the quality path.
+
 ### Stage 5 — Preview site build  ✅ **built**
 The glue lives in `packages/agency/prospect_site.py` and the CLI
 `scripts/agency/build_prospect_site.py`. It composes the existing lane rather
