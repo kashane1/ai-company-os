@@ -46,6 +46,7 @@ def test_http_checker_classifies_dead_parked_and_social_redirects() -> None:
     checker = HTTPChecker(
         client=httpx.Client(transport=httpx.MockTransport(handler)),
         now=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc),
+        enforce_public_url=False,  # reserved .example hosts don't resolve
     )
 
     assert checker.check("https://dead.example").http_check_class is HttpCheckClass.DEAD
@@ -69,9 +70,30 @@ def test_http_checker_retries_transient_timeout_before_classifying() -> None:
     checker = HTTPChecker(
         client=httpx.Client(transport=httpx.MockTransport(handler)),
         now=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc),
+        enforce_public_url=False,
     )
 
     check = checker.check("https://owned.example")
 
     assert attempts == 2
     assert check.http_check_class is HttpCheckClass.OK_OWNED
+
+
+def test_http_checker_blocks_non_public_url_ssrf() -> None:
+    # The guard must reject a metadata/loopback target before any fetch happens.
+    fetched = False
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal fetched
+        fetched = True
+        return httpx.Response(200, text="should not be reached")
+
+    checker = HTTPChecker(
+        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        now=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc),
+    )
+
+    result = checker.check("http://169.254.169.254/latest/meta-data/")
+    assert result.http_check_class is HttpCheckClass.ERROR
+    assert "non-public" in (result.error or "")
+    assert fetched is False  # never hit the network

@@ -53,9 +53,18 @@ def run_launch_checklist(
     analytics_id: str = "",
     deploy_approved: bool = False,
     dns_approved: bool = False,
+    first_party: bool = False,
     pass_threshold: int = 70,
 ) -> LaunchChecklistReport:
-    """Evaluate a built ``dist/`` for launch readiness. Never raises."""
+    """Evaluate a built ``dist/`` for launch readiness. Never raises.
+
+    ``first_party=True`` relaxes the three client-only items — ``gbp_link``,
+    ``analytics`` and ``dns_approved`` — for the agency's *own* site, which has
+    no Google Business Profile and launches on the Netlify subdomain (no custom
+    domain). The relaxation is *recorded* in the report (passed with a "relaxed"
+    reason), never silently dropped. All other items — ``ux_audit``,
+    ``contact_form``, ``seo_title`` and ``deploy_approved`` — stay hard.
+    """
     html = _concat_html(dist_dir)
     items: list[ChecklistItem] = []
 
@@ -74,20 +83,24 @@ def run_launch_checklist(
         ChecklistItem("contact_form", "<form" in html.lower(), "a contact form is present")
     )
     items.append(ChecklistItem("seo_title", "<title" in html.lower(), "page has a <title>"))
-    items.append(
-        ChecklistItem(
-            "gbp_link",
-            bool(gbp_url) and gbp_url in html,
-            "Google Business Profile link present" if gbp_url else "no gbp_url supplied",
+    if first_party:
+        items.append(ChecklistItem("gbp_link", True, "relaxed: first-party site (no GBP)"))
+        items.append(ChecklistItem("analytics", True, "relaxed: first-party site"))
+    else:
+        items.append(
+            ChecklistItem(
+                "gbp_link",
+                bool(gbp_url) and gbp_url in html,
+                "Google Business Profile link present" if gbp_url else "no gbp_url supplied",
+            )
         )
-    )
-    items.append(
-        ChecklistItem(
-            "analytics",
-            bool(analytics_id) and analytics_id in html,
-            "analytics tag present" if analytics_id else "no analytics_id supplied",
+        items.append(
+            ChecklistItem(
+                "analytics",
+                bool(analytics_id) and analytics_id in html,
+                "analytics tag present" if analytics_id else "no analytics_id supplied",
+            )
         )
-    )
 
     # Deploy approvals — compose the deploy-readiness policy gates.
     items.append(_gate_item("deploy_approved", lambda: assert_deploy_ready(
@@ -96,9 +109,15 @@ def run_launch_checklist(
         preview_reviewed=True,
         approval_granted=deploy_approved,
     )))
-    items.append(_gate_item("dns_approved", lambda: assert_custom_domain_allowed(
-        approval_granted=dns_approved,
-    )))
+    if first_party:
+        # A subdomain launch attaches no custom domain, so the DNS gate is N/A.
+        items.append(
+            ChecklistItem("dns_approved", True, "relaxed: first-party subdomain (no custom domain)")
+        )
+    else:
+        items.append(_gate_item("dns_approved", lambda: assert_custom_domain_allowed(
+            approval_granted=dns_approved,
+        )))
 
     return LaunchChecklistReport(items=items)
 

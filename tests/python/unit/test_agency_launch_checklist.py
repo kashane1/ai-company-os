@@ -66,6 +66,31 @@ def test_missing_gbp_and_analytics_fail_closed(tmp_path: Path) -> None:
     assert "analytics" in failed
 
 
+def test_first_party_relaxes_gbp_analytics_dns(tmp_path: Path) -> None:
+    # The agency's own site: no GBP, no analytics, no custom domain (subdomain).
+    dist = _build_dist(tmp_path, gbp="", analytics="")
+    report = run_launch_checklist(
+        dist,
+        gbp_url="",
+        analytics_id="",
+        deploy_approved=True,
+        dns_approved=False,
+        first_party=True,
+    )
+    assert report.ready, report.to_dict()
+    relaxed = {i.name: i.detail for i in report.items if "relaxed" in i.detail}
+    assert {"gbp_link", "analytics", "dns_approved"} <= set(relaxed)
+
+
+def test_first_party_still_requires_deploy_approval(tmp_path: Path) -> None:
+    dist = _build_dist(tmp_path, gbp="", analytics="")
+    report = run_launch_checklist(
+        dist, gbp_url="", analytics_id="", deploy_approved=False, first_party=True
+    )
+    assert not report.ready
+    assert "deploy_approved" in {i.name for i in report.failures()}
+
+
 def test_empty_dist_fails_ux(tmp_path: Path) -> None:
     dist = tmp_path / "dist"
     dist.mkdir()

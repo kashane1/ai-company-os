@@ -1,0 +1,291 @@
+---
+// Shared landing-page content (theme-agnostic). The four design directions all
+// render this same markup; only the stylesheet + fonts differ, so comparisons
+// are apples-to-apples. Pricing comes from the catalog SoT via packages.json.
+import packages from "../data/packages.json";
+import portfolio from "../data/portfolio.json";
+
+const year = new Date().getFullYear();
+const featuredId = "package_b";
+const fmt = (n) => n.toLocaleString("en-US");
+
+const mockups = [
+  { name: "Kingsway Barber Co.", url: "kingswaybarber.com", accent: "#1f6f6b", ink: "#16201f", hero: "Sharp cuts, classic service.", tag: "Walk-ins welcome · Downtown", chips: ["Fades", "Hot towel", "Beard trim"] },
+  { name: "TrueLine Plumbing", url: "truelineplumbing.com", accent: "#2563a8", ink: "#16243a", hero: "Fast, honest plumbing.", tag: "24/7 emergency service", chips: ["Drains", "Water heaters", "Leaks"] },
+  { name: "Goldenrod Bakehouse", url: "goldenrodbakehouse.com", accent: "#b5701f", ink: "#3a2912", hero: "Fresh from the oven daily.", tag: "Order ahead for pickup", chips: ["Sourdough", "Cakes", "Pastries"] },
+  { name: "Lumière Nail Lounge", url: "lumierenails.com", accent: "#b03d73", ink: "#33101f", hero: "Where your nails shine.", tag: "Book online in seconds", chips: ["Gel sets", "Spa pedi", "Nail art"] },
+  { name: "Ironside Auto Works", url: "ironsideauto.com", accent: "#9a3412", ink: "#2a140c", hero: "Repairs you can trust.", tag: "Free estimates, same week", chips: ["Brakes", "Diagnostics", "Tires"] },
+];
+
+const pfThemes = [
+  "linear-gradient(150deg,#1f6f6b,#0f3d3a)",
+  "linear-gradient(150deg,#2563a8,#15315a)",
+  "linear-gradient(150deg,#b5701f,#6e3f0e)",
+  "linear-gradient(150deg,#5b6b3a,#33401f)",
+  "linear-gradient(150deg,#7a4a86,#3c2348)",
+  "linear-gradient(150deg,#b03d73,#5e1c3b)",
+];
+---
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+<a class="btn btn-ghost" href="#main" style="position:absolute;left:-9999px;top:auto"
+   onfocus="this.style.left='1rem';this.style.top='1rem';this.style.position='fixed';this.style.zIndex='60'">Skip to content</a>
+
+<header class="site-header" id="site-header">
+  <div class="container nav">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">b</span>
+      <span>Better Business Web</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#packages">Packages</a>
+      <a href="#portfolio">Demos</a>
+      <a href="#about">About</a>
+    </nav>
+    <a class="btn btn-accent nav-cta" href="#get-started" data-magnetic>Get a free review</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow" data-reveal>Web design for small businesses</span>
+        <h1 data-reveal style="--reveal-delay:0.05s">A better website for your business — <span class="accent">previewed</span> before you pay.</h1>
+        <p class="hero-sub" data-reveal style="--reveal-delay:0.12s">I build clean, modern websites for small businesses. You'll get a real preview link first — see exactly how your new site looks before paying a cent.</p>
+        <div class="hero-actions" data-reveal style="--reveal-delay:0.18s">
+          <a class="btn btn-accent btn-lg" href="#get-started" data-magnetic>Get a free website review <span class="arrow">→</span></a>
+          <a class="btn btn-ghost btn-lg" href="#portfolio">See demo sites</a>
+        </div>
+        <p class="hero-note" data-reveal style="--reveal-delay:0.24s"><span class="dot"></span> No commitment. You see the preview first.</p>
+        <div class="stats" data-reveal style="--reveal-delay:0.3s">
+          <div class="stat"><div class="n"><span data-countup="48">48</span>h</div><div class="l">Typical preview turnaround</div></div>
+          <div class="stat"><div class="n">$<span data-countup="0">0</span></div><div class="l">Upfront, until you approve</div></div>
+          <div class="stat"><div class="n"><span data-countup="6">6</span>+</div><div class="l">Industries designed for</div></div>
+        </div>
+      </div>
+      <div class="mock" data-reveal style="--reveal-delay:0.15s">
+        <div class="mock-glow" data-parallax data-speed="0.06" aria-hidden="true"></div>
+        <div class="browser" id="browser" data-tilt aria-label="Live preview of an example small-business website">
+          <div class="browser-bar">
+            <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="url" id="mock-url"><b>https://</b><span id="mock-host">kingswaybarber.com</span></div>
+          </div>
+          <div class="screen" id="mock-screen">
+            {mockups.map((m, i) => (
+              <div class={`slide${i === 0 ? " active" : ""}`} data-slide={i}
+                   style={`--mock-accent:${m.accent};--mock-ink:${m.ink};--mock-bg:color-mix(in srgb, ${m.accent} 5%, #ffffff)`}>
+                <div class="m-top">
+                  <span class="m-logo">{m.name}</span>
+                  <span class="m-nav" aria-hidden="true"><i></i><i></i><i></i></span>
+                </div>
+                <div class="m-hero">{m.hero}</div>
+                <div class="m-tag">{m.tag}</div>
+                <div class="m-chips">{m.chips.map((c) => <span>{c}</span>)}</div>
+                <div class="m-cta">Book now</div>
+                <div class="m-cards" aria-hidden="true"><div class="m-card"></div><div class="m-card"></div><div class="m-card"></div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <span class="mock-caption"><span class="pulse" aria-hidden="true"></span> Live preview</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--panel">
+    <div class="container center">
+      <span class="eyebrow" data-reveal>The problem</span>
+      <p class="lead" data-reveal style="--reveal-delay:0.08s">Customers look you up before they call. No website, an outdated one, or only a social page — and they quietly <em>move on to the next business.</em></p>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">How it works</span>
+        <h2>Simple — and you see it before you pay.</h2>
+      </div>
+      <div class="steps">
+        <div class="step" data-reveal><span class="num" aria-hidden="true"></span><h3>Tell me about your business</h3><p>A few quick details — what you do, where, and your current site if you have one.</p></div>
+        <div class="step" data-reveal><span class="num" aria-hidden="true"></span><h3>I build a real preview</h3><p>I design a clean, modern site for your business and send a live preview link.</p></div>
+        <div class="step" data-reveal><span class="num" aria-hidden="true"></span><h3>You review it</h3><p>See exactly how it looks and works. Ask for changes — no pressure, no payment yet.</p></div>
+        <div class="step" data-reveal><span class="num" aria-hidden="true"></span><h3>Pay only if you love it</h3><p>Happy with the preview? We go live. That's the whole point: previewed before you pay.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--panel" id="packages">
+    <div class="container">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Packages</span>
+        <h2>Straightforward pricing.</h2>
+        <p class="muted measure">Start simple and add as you grow. Every package begins with a real preview — you only pay once you're happy.</p>
+      </div>
+      <div class="price-grid">
+        {packages.bundles.map((b, i) => (
+          <article class={b.id === featuredId ? "price-card is-featured" : "price-card"} data-reveal style={`--reveal-delay:${0.06 * i}s`}>
+            {b.id === featuredId && <span class="price-badge">Most popular</span>}
+            <h3>{b.name}</h3>
+            <p class="blurb">{b.description}</p>
+            <div class="price">
+              <span class="amount" data-countup={b.setup} data-prefix="$">${fmt(b.setup)}</span>
+              <span class="per">setup + ${fmt(b.monthly)}/mo</span>
+            </div>
+            <ul>{b.services.map((s) => <li>{s}</li>)}</ul>
+            <a class={b.id === featuredId ? "btn btn-accent" : "btn btn-primary"} href="#get-started" data-magnetic>Get a free review</a>
+          </article>
+        ))}
+      </div>
+      <p class="center muted" style="margin-top:var(--space-md)" data-reveal>Need just one thing? Individual services are available too — ask in your review request.</p>
+    </div>
+  </section>
+
+  <section class="section" id="portfolio">
+    <div class="container">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Demo sites</span>
+        <h2>Concept demos by business type.</h2>
+        <p class="muted measure">Sample designs for common local businesses, so you can picture your own. These are concept demos — not real clients.</p>
+      </div>
+      <div class="portfolio-grid">
+        {portfolio.demos.map((d, i) => (
+          <article class="pf-card" data-reveal style={`--reveal-delay:${0.05 * i}s`}>
+            <div class="pf-top">
+              <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+              <span class="pf-url">{d.genre}.example.com</span>
+            </div>
+            <div class="pf-thumb" style={`background:${pfThemes[i % pfThemes.length]}`}>
+              <span class="pf-name">{d.name}</span>
+              <span class="pf-kind">{d.type}</span>
+            </div>
+            <div class="pf-body"><p class="type">{d.type}</p><span class="badge">Concept demo</span></div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--panel" id="about">
+    <div class="container">
+      <div class="about-card" data-reveal>
+        <span class="eyebrow">About</span>
+        <h2>A small web studio with one set of hands.</h2>
+        <p class="muted measure">Better Business Web is run by Kashane Sakhakorn. You work directly with the person designing and building your site — no account managers, no call centers. Just clean, modern websites for small businesses.</p>
+        <p class="signature">— Kashane</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="get-started">
+    <div class="container">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Get started</span>
+        <h2>Request your free website review.</h2>
+        <p class="muted measure">Tell me a little about your business and I'll put together a preview. No payment, no commitment.</p>
+      </div>
+      <div class="review-card" data-reveal style="--reveal-delay:0.08s">
+        <form name="website-review" method="POST" action="/.netlify/functions/website-review" class="review-form">
+          <p hidden><label>Don't fill this out if you're human: <input name="bot-field" /></label></p>
+          <div class="field"><label for="name">Your name</label><input id="name" name="name" type="text" autocomplete="name" required /></div>
+          <div class="field"><label for="business">Business name</label><input id="business" name="business" type="text" autocomplete="organization" /></div>
+          <div class="field"><label for="website">Current website (or "none")</label><input id="website" name="website" type="text" inputmode="url" placeholder="example.com or none" /></div>
+          <div class="field"><label for="contact">Email or phone</label><input id="contact" name="contact" type="text" autocomplete="email" required /></div>
+          <button class="btn btn-accent btn-lg" type="submit" data-magnetic>Request my free website review <span class="arrow">→</span></button>
+          <p class="form-note">I'll only use these details to prepare your review and get back to you. No spam, no resale.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-word" aria-hidden="true">Better Business Web</div>
+    <div class="footer-row">
+      <span>© {year} Better Business Web. A small web studio run by Kashane Sakhakorn.</span>
+      <span>Previewed before you pay.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fmt = (n) => n.toLocaleString("en-US");
+  function countUp(el) {
+    const target = parseFloat(el.dataset.countup || "0");
+    const prefix = el.dataset.prefix || "";
+    if (reduce || target === 0) { el.textContent = prefix + fmt(target); return; }
+    const dur = 1100; const start = performance.now();
+    function tick(now) {
+      const p = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = prefix + fmt(Math.round(target * eased));
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        e.target.classList.add("is-visible");
+        e.target.querySelectorAll?.("[data-countup]").forEach(countUp);
+        if (e.target.matches?.("[data-countup]")) countUp(e.target);
+        io.unobserve(e.target);
+      }
+    }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+  } else {
+    document.querySelectorAll("[data-reveal]").forEach((el) => el.classList.add("is-visible"));
+    document.querySelectorAll("[data-countup]").forEach(countUp);
+  }
+  const header = document.getElementById("site-header");
+  const bar = document.getElementById("scroll-progress");
+  function onScroll() {
+    const y = window.scrollY;
+    header?.classList.toggle("is-stuck", y > 8);
+    if (bar) { const h = document.documentElement.scrollHeight - window.innerHeight; bar.style.width = (h > 0 ? (y / h) * 100 : 0) + "%"; }
+  }
+  document.addEventListener("scroll", () => requestAnimationFrame(onScroll), { passive: true });
+  onScroll();
+  if (!reduce) {
+    const parallax = [...document.querySelectorAll("[data-parallax]")];
+    if (parallax.length) {
+      document.addEventListener("scroll", () => requestAnimationFrame(() => {
+        const y = window.scrollY;
+        for (const el of parallax) el.style.transform = `translateY(${y * parseFloat(el.dataset.speed || "0.1")}px)`;
+      }), { passive: true });
+    }
+    document.querySelectorAll("[data-magnetic]").forEach((el) => {
+      el.addEventListener("pointermove", (ev) => {
+        const r = el.getBoundingClientRect();
+        el.style.transform = `translate(${(ev.clientX - r.left - r.width / 2) * 0.25}px, ${(ev.clientY - r.top - r.height / 2) * 0.35}px)`;
+      });
+      el.addEventListener("pointerleave", () => { el.style.transform = ""; });
+    });
+    const browser = document.getElementById("browser");
+    if (browser) {
+      const wrap = browser.parentElement;
+      wrap.addEventListener("pointermove", (ev) => {
+        const r = wrap.getBoundingClientRect();
+        const rx = ((ev.clientY - r.top) / r.height - 0.5) * -6;
+        const ry = ((ev.clientX - r.left) / r.width - 0.5) * 8;
+        browser.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+      });
+      wrap.addEventListener("pointerleave", () => { browser.style.transform = ""; });
+    }
+  }
+  const slides = [...document.querySelectorAll("#mock-screen .slide")];
+  const host = document.getElementById("mock-host");
+  if (slides.length > 1 && !reduce) {
+    let idx = 0;
+    const urls = ["kingswaybarber.com", "truelineplumbing.com", "goldenrodbakehouse.com", "lumierenails.com", "ironsideauto.com"];
+    setInterval(() => {
+      slides[idx].classList.remove("active");
+      idx = (idx + 1) % slides.length;
+      slides[idx].classList.add("active");
+      if (host && urls[idx]) host.textContent = urls[idx];
+    }, 3200);
+  }
+</script>

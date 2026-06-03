@@ -1,0 +1,10 @@
+{
+  "demos": [
+    { "name": "Ironside Auto Works", "type": "Auto repair", "genre": "auto-repair" },
+    { "name": "Kingsway Barber Co.", "type": "Barbershop", "genre": "barbering" },
+    { "name": "Goldenrod Bakehouse", "type": "Bakery", "genre": "baked-goods" },
+    { "name": "Wagtail Grooming Studio", "type": "Dog grooming", "genre": "dog-grooming" },
+    { "name": "TrueLine Plumbing", "type": "Plumbing", "genre": "plumbing" },
+    { "name": "Lumière Nail Lounge", "type": "Nail salon", "genre": "nails" }
+  ]
+}

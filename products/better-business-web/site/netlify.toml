@@ -1,0 +1,9 @@
+# This site is deployed manually (built locally, pushed via CLI/file-digest), so
+# the contact form is handled by a Netlify Function rather than native Forms.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
