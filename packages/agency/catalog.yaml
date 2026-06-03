@@ -14,7 +14,7 @@ services:
     name: Professional Website
     tier: tier_1
     bill_type: one_time
-    setup_fee: 999
+    setup_fee: 499
     monthly_fee: 0
     includes:
       - Up to 5 pages (home, services, about, contact, reviews)
@@ -29,7 +29,7 @@ services:
     tier: tier_1
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 99
+    monthly_fee: 49
     includes:
       - Hosting + SSL
       - Backups
@@ -42,7 +42,7 @@ services:
     name: Google Business Profile Setup
     tier: tier_1
     bill_type: one_time
-    setup_fee: 350
+    setup_fee: 125
     monthly_fee: 0
     includes:
       - Claim / verify profile
@@ -54,7 +54,7 @@ services:
     name: Business Email Setup
     tier: tier_1
     bill_type: one_time
-    setup_fee: 200
+    setup_fee: 75
     monthly_fee: 0
     includes:
       - Google Workspace setup
@@ -64,7 +64,7 @@ services:
     name: Contact Forms & Lead Routing
     tier: tier_1
     bill_type: one_time
-    setup_fee: 150
+    setup_fee: 75
     monthly_fee: 0
     includes:
       - Form to email
@@ -76,7 +76,7 @@ services:
     name: Online Booking Setup
     tier: tier_2
     bill_type: one_time
-    setup_fee: 500
+    setup_fee: 300
     monthly_fee: 0
     includes:
       - Provider integration (Calendly / Square / Vagaro / Acuity / Mindbody)
@@ -88,7 +88,7 @@ services:
     tier: tier_2
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 99
+    monthly_fee: 50
     includes:
       - Post-service SMS review requests
       - Google review link
@@ -99,7 +99,7 @@ services:
     tier: tier_2
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 249
+    monthly_fee: 125
     includes:
       - City / service / location / FAQ pages
       - Service x geo page matrix
@@ -110,7 +110,7 @@ services:
     tier: tier_2
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 49
+    monthly_fee: 25
     includes:
       - Owner-friendly monthly report (calls, form leads, bookings)
       - Edits completed
@@ -121,7 +121,7 @@ services:
     name: Promotional Landing Page
     tier: tier_3
     bill_type: one_time
-    setup_fee: 350
+    setup_fee: 400
     monthly_fee: 0
     includes:
       - Single-purpose campaign page (e.g. summer.company.com)
@@ -132,7 +132,7 @@ services:
     tier: tier_3
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 750
+    monthly_fee: 375
     includes:
       - Campaign setup + management
       - Ad copy + keyword/negative lists (spend owned by client)
@@ -142,7 +142,7 @@ services:
     tier: tier_3
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 750
+    monthly_fee: 375
     includes:
       - Campaign setup + management
       - Creative variants + audiences (spend owned by client)
@@ -151,7 +151,7 @@ services:
     name: CRM Setup
     tier: tier_3
     bill_type: one_time
-    setup_fee: 500
+    setup_fee: 250
     monthly_fee: 0
     includes:
       - HubSpot / GoHighLevel / Zoho / Pipedrive setup
@@ -162,7 +162,7 @@ services:
     tier: tier_3
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 99
+    monthly_fee: 50
     includes:
       - Lead to auto text to auto email
       - 2-day reminder sequence

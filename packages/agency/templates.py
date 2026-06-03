@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from packages.schemas.offer import ServiceCatalog
+from packages.schemas.offer import BillType, ServiceCatalog, ServiceTier
 
 # Files seeded for every client workspace. Phase 4 expands these.
 WORKSPACE_FILES = (
@@ -59,6 +59,63 @@ def render_offer(catalog: ServiceCatalog, bundle_id: str, *, client_name: str) -
         monthly = f"{_money(service.monthly_fee)}/mo" if service.monthly_fee else "—"
         lines.append(f"| {service.name} | {setup} | {monthly} |")
     lines += ["", "## Per-client overrides", "", "_None._", ""]
+    return "\n".join(lines) + "\n"
+
+
+TIER_LABELS = {
+    ServiceTier.TIER_1: "Tier 1 — Easy add-ons",
+    ServiceTier.TIER_2: "Tier 2 — High value",
+    ServiceTier.TIER_3: "Tier 3 — Recurring-revenue goldmine",
+    ServiceTier.TIER_4: "Tier 4 — Fractional-CTO bespoke",
+}
+
+
+def render_service_catalog(catalog: ServiceCatalog) -> str:
+    """Render the human-readable catalog mirror (``docs/agency/service-catalog.md``).
+
+    Peer of :func:`render_offer` — string-in/string-out, offline. The committed
+    mirror must equal this output (drift guard in the test suite), so repricing the
+    YAML regenerates the doc instead of silently desyncing it. Run
+    ``scripts/agency/render_catalog_md.py`` after editing the catalog.
+    """
+    lines = [
+        "# Agency Service Catalog",
+        "",
+        "> Generated render of `packages/agency/catalog.yaml` (the typed source of",
+        "> truth, validated by `packages/agency/catalog.py`). Do not edit prices here —",
+        "> edit the YAML and regenerate. Client `OFFER.md` files render from the same data.",
+        "",
+        "## Services",
+    ]
+    for tier in ServiceTier:
+        tier_services = [s for s in catalog.services.values() if s.tier is tier]
+        if not tier_services:
+            continue
+        lines += [
+            "",
+            f"### {TIER_LABELS[tier]}",
+            "",
+            "| Service | Bill | Setup | Monthly |",
+            "|---|---|---|---|",
+        ]
+        for s in tier_services:
+            bill = "one-time" if s.bill_type is BillType.ONE_TIME else "recurring"
+            setup = _money(s.setup_fee) if s.setup_fee else "—"
+            monthly = f"{_money(s.monthly_fee)}/mo" if s.monthly_fee else "—"
+            lines.append(f"| {s.name} (`{s.service_id}`) | {bill} | {setup} | {monthly} |")
+    lines += ["", "## Bundles"]
+    for bundle in catalog.bundles.values():
+        quote = catalog.quote_bundle(bundle.bundle_id)
+        included = ", ".join(s.name for s in quote.services)
+        lines += [
+            "",
+            f"### {bundle.name}",
+            "",
+            bundle.description,
+            "",
+            f"**{_money(quote.setup_total)} setup + {_money(quote.monthly_total)}/mo.** "
+            f"Includes: {included}.",
+        ]
     return "\n".join(lines) + "\n"
 
 
