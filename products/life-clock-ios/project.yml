@@ -7,7 +7,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: 5.0
-    CURRENT_PROJECT_VERSION: 1
+    CURRENT_PROJECT_VERSION: 2
     MARKETING_VERSION: 1.0
 # Per-machine signing settings (DEVELOPMENT_TEAM) live in
 # LifeClock.local.xcconfig (gitignored). Xcode re-reads the xcconfig at
@@ -38,6 +38,25 @@ targets:
         UIApplicationSupportsIndirectInputEvents: YES
         NSHealthShareUsageDescription: "Life Clock reads your activity, sleep, and body-metric data from Apple Health (steps, exercise minutes, active energy, resting heart rate, sleep analysis, and body mass) to estimate how today's habits move your time trajectory. Your data stays on your device."
         NSHealthUpdateUsageDescription: "Life Clock may save optional wellness entries to Apple Health if you choose to enable this later."
+        # iPhone: portrait-only is fine for an iPhone-first app
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        # iPad: all four orientations required by App Store validation
+        # (error 90474) for iPad multitasking compliance, because
+        # TARGETED_DEVICE_FAMILY = "1,2" includes iPad.
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        # Pre-declare export-compliance: the app does not implement or
+        # call any custom encryption. URLSession's built-in HTTPS is
+        # iOS-system encryption (Apple's), which is exempt under
+        # Category 5, Part 2 of the U.S. Export Administration Regulations.
+        # Setting this to false tells ASC the answer to the encryption
+        # prompt up-front, so the "Missing Compliance" warning never
+        # appears on future TestFlight builds.
+        ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: LifeClock.entitlements
       properties:
