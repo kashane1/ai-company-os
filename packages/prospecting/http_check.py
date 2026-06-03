@@ -23,6 +23,7 @@ from typing import Callable
 import httpx
 
 from packages.discovery.connectors.rate_limiter import RateLimiter
+from packages.policies.url_guard import Resolver, is_safe_public_url
 from packages.prospecting.config import HttpConfig
 from packages.prospecting.connectors.google_places import MARKETPLACE_HOSTS, SOCIAL_HOSTS, normalized_host
 from packages.schemas.prospect import HttpCheck, HttpCheckClass, MapsWebsiteClass, ProspectRecord
@@ -47,6 +48,8 @@ class HTTPChecker:
         rate_limiter: RateLimiter | None = None,
         now: Callable[[], datetime] | None = None,
         max_attempts: int = 2,
+        enforce_public_url: bool = True,
+        url_resolver: Resolver | None = None,
     ) -> None:
         self._config = config or HttpConfig()
         self._client = client or httpx.Client(
@@ -58,10 +61,24 @@ class HTTPChecker:
         self._limiter = rate_limiter or RateLimiter(self._config.per_host_rpm)
         self._now = now or (lambda: datetime.now(timezone.utc))
         self._max_attempts = max(1, max_attempts)
+        self._enforce_public_url = enforce_public_url
+        self._url_resolver = url_resolver
+
+    def _url_safe(self, url: str) -> bool:
+        if not self._enforce_public_url:
+            return True
+        if self._url_resolver is not None:
+            return is_safe_public_url(url, resolver=self._url_resolver)
+        return is_safe_public_url(url)
 
     def check(self, url: str) -> HttpCheck:
         if not url:
             return HttpCheck(HttpCheckClass.SKIPPED, checked_at=self._timestamp())
+        # SSRF guard: never fetch a URL pointing at a non-public host (todo 065).
+        if not self._url_safe(url):
+            return HttpCheck(
+                HttpCheckClass.ERROR, checked_at=self._timestamp(), error="blocked: non-public URL"
+            )
         last_timeout: httpx.TimeoutException | None = None
         last_error: httpx.RequestError | None = None
         response: httpx.Response | None = None
@@ -85,6 +102,13 @@ class HTTPChecker:
                 )
             return HttpCheck(HttpCheckClass.ERROR, checked_at=self._timestamp(), error="no response")
         final_url = str(response.url)
+        # Defense-in-depth: a public URL can redirect to an internal host.
+        if not self._url_safe(final_url):
+            return HttpCheck(
+                HttpCheckClass.ERROR,
+                checked_at=self._timestamp(),
+                error="blocked: redirect to non-public host",
+            )
         host = normalized_host(final_url)
         if response.status_code >= 400:
             cls = HttpCheckClass.DEAD
