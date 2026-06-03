@@ -1,0 +1,5 @@
+# Netlify builds this one first-party site (plan §4 scoped exception). The build
+# is what lets Netlify detect the contact form from the produced HTML.
+[build]
+  command = "npm run build"
+  publish = "dist"

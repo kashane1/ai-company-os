@@ -1,0 +1,33 @@
+---
+// Post-submit success page (form action="/thanks/"). Closes the conversion
+// moment instead of dumping to Netlify's generic page (plan todo 078).
+import "../styles/global.css";
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thanks — Better Business Web</title>
+  <meta name="robots" content="noindex" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span>Better Business Web</span></a>
+    </div>
+  </header>
+  <main id="main">
+    <section class="section">
+      <div class="container center stack-lg">
+        <span class="eyebrow">Request received</span>
+        <h1>Thanks — your review is on the way.</h1>
+        <p class="muted measure">I've got your details and I'll start putting together a preview of
+          your site. You'll hear back within 2 business days with a link to review — no payment
+          until you're happy with it.</p>
+        <p><a class="btn btn-primary btn-lg" href="/">Back to home</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,223 @@
+---
+// Better Business Web — the agency's own funnel/landing page.
+// Pricing comes from src/data/packages.json, generated from the catalog SoT by
+// scripts/agency/render_catalog_json.py (never hand-typed here).
+import "../styles/global.css";
+import packages from "../data/packages.json";
+import portfolio from "../data/portfolio.json";
+
+const year = new Date().getFullYear();
+const featuredId = "package_b"; // "Most popular" — the middle ladder rung.
+const thumbThemes = [
+  "linear-gradient(135deg,#2563eb,#06b6d4)",
+  "linear-gradient(135deg,#7c3aed,#ec4899)",
+  "linear-gradient(135deg,#f59e0b,#ef4444)",
+  "linear-gradient(135deg,#0ea5a4,#22c55e)",
+  "linear-gradient(135deg,#0f172a,#475569)",
+  "linear-gradient(135deg,#db2777,#8b5cf6)",
+];
+const fmt = (n) => n.toLocaleString("en-US");
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Better Business Web — Web design for small businesses, previewed before you pay</title>
+  <meta name="description" content="I build clean, modern websites for small businesses. You get a real preview link first, so you can see exactly what your new site looks like before paying." />
+  <meta property="og:title" content="Better Business Web — previewed before you pay" />
+  <meta property="og:description" content="Clean, modern websites for small businesses. See a real preview of your new site before you pay." />
+  <meta property="og:type" content="website" />
+</head>
+<body>
+  <a class="btn btn-ghost" href="#main" style="position:absolute;left:-9999px;top:auto"
+     onfocus="this.style.left='1rem';this.style.top='1rem';this.style.position='fixed'">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Better Business Web</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#packages">Packages</a>
+        <a href="#portfolio">Demos</a>
+      </nav>
+      <a class="btn btn-primary nav-cta" href="#get-started">Get a free website review</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Web design for small businesses</span>
+          <h1>A better website for your business — previewed before you pay.</h1>
+          <p class="hero-sub">I build clean, modern websites for small businesses. You'll get a
+            real preview link first, so you can see exactly what your new site looks like before
+            paying.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="#get-started">Get a free website review</a>
+            <a class="btn btn-ghost btn-lg" href="#portfolio">See demo sites</a>
+          </div>
+          <p class="hero-note">No commitment. You see the preview first.</p>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="bar w-70"></div>
+          <div class="bar w-50"></div>
+          <div class="tiles"><div class="tile"></div><div class="tile"></div><div class="tile"></div></div>
+          <div class="bar w-70"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="section section--subtle">
+      <div class="container center stack-lg">
+        <span class="eyebrow">The problem</span>
+        <h2>Customers look you up before they call.</h2>
+        <p class="muted measure">If there's no website, an outdated one, or only a social page,
+          people can't quickly see what you do, check your hours, or get in touch — so they move on
+          to the next business. A clean, modern site fixes that.</p>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section" id="how">
+      <div class="container">
+        <div class="center" style="margin-bottom:var(--space-lg)">
+          <span class="eyebrow">How it works</span>
+          <h2>Simple, and you see it before you pay.</h2>
+        </div>
+        <div class="steps">
+          <div class="step"><h3>Tell me about your business</h3><p class="muted">A few quick details — what you do, where, and your current site if you have one.</p></div>
+          <div class="step"><h3>I build a real preview</h3><p class="muted">I design a clean, modern site for your business and send you a live preview link.</p></div>
+          <div class="step"><h3>You review it</h3><p class="muted">See exactly how it looks and works. Ask for changes — no pressure, no payment yet.</p></div>
+          <div class="step"><h3>Pay only if you love it</h3><p class="muted">Happy with the preview? We go live. That's the whole point: previewed before you pay.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Packages -->
+    <section class="section section--subtle" id="packages">
+      <div class="container">
+        <div class="center" style="margin-bottom:var(--space-lg)">
+          <span class="eyebrow">Packages</span>
+          <h2>Straightforward pricing.</h2>
+          <p class="muted measure">Start simple and add as you grow. Every package starts with a real
+            preview — you only pay once you're happy.</p>
+        </div>
+        <div class="price-grid">
+          {packages.bundles.map((b) => (
+            <article class={b.id === featuredId ? "price-card is-featured" : "price-card"}>
+              {b.id === featuredId && <span class="price-badge">Most popular</span>}
+              <h3>{b.name}</h3>
+              <p class="blurb">{b.description}</p>
+              <div class="price">
+                <span class="amount">${fmt(b.setup)}</span>
+                <span class="per">setup + ${fmt(b.monthly)}/mo</span>
+              </div>
+              <ul>
+                {b.services.map((s) => <li>{s}</li>)}
+              </ul>
+              <a class="btn btn-primary" href="#get-started">Get a free review</a>
+            </article>
+          ))}
+        </div>
+        <p class="center muted" style="margin-top:var(--space-md)">Need just one thing? Individual
+          services are available too — ask in your review request.</p>
+      </div>
+    </section>
+
+    <!-- Portfolio -->
+    <section class="section" id="portfolio">
+      <div class="container">
+        <div class="center" style="margin-bottom:var(--space-lg)">
+          <span class="eyebrow">Demo sites</span>
+          <h2>Concept demos by business type.</h2>
+          <p class="muted measure">Sample designs for common local businesses, so you can picture
+            your own. These are concept demos — not real clients.</p>
+        </div>
+        <div class="portfolio-grid">
+          {portfolio.demos.map((d, i) => (
+            <article class="portfolio-card">
+              <div class="portfolio-thumb" style={`background:${thumbThemes[i % thumbThemes.length]}`}>{d.name}</div>
+              <div class="portfolio-body">
+                <p class="type">{d.type}</p>
+                <span class="badge">Concept demo</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="section section--subtle">
+      <div class="container center stack-lg">
+        <span class="eyebrow">About</span>
+        <h2>A small web studio.</h2>
+        <p class="muted measure">Better Business Web is a small web studio run by Kashane Sakhakorn.
+          You work directly with the person building your site — no account managers, no call
+          centers. Just clean, modern websites for small businesses.</p>
+      </div>
+    </section>
+
+    <!-- Contact / CTA -->
+    <section class="section" id="get-started">
+      <div class="container">
+        <div class="center" style="margin-bottom:var(--space-lg)">
+          <span class="eyebrow">Get started</span>
+          <h2>Request your free website review.</h2>
+          <p class="muted measure">Tell me a little about your business and I'll put together a
+            preview. No payment, no commitment.</p>
+        </div>
+        <div class="review-card">
+          <!--
+            Netlify Form. The hidden form-name input + data-netlify let Netlify
+            detect and capture submissions from the built static HTML. The
+            "website" field is the prospect's current site (or "none") and is
+            treated as untrusted input downstream before any automated audit/preview
+            (see plan §7 / todo 065).
+          -->
+          <form name="website-review" method="POST" data-netlify="true"
+                netlify-honeypot="bot-field" action="/thanks/" class="review-form">
+            <input type="hidden" name="form-name" value="website-review" />
+            <p hidden>
+              <label>Don't fill this out if you're human: <input name="bot-field" /></label>
+            </p>
+            <div class="field">
+              <label for="name">Your name</label>
+              <input id="name" name="name" type="text" autocomplete="name" required />
+            </div>
+            <div class="field">
+              <label for="business">Business name</label>
+              <input id="business" name="business" type="text" autocomplete="organization" />
+            </div>
+            <div class="field">
+              <label for="website">Current website (or "none")</label>
+              <input id="website" name="website" type="text" inputmode="url" placeholder="example.com or none" />
+            </div>
+            <div class="field">
+              <label for="contact">Email or phone</label>
+              <input id="contact" name="contact" type="text" autocomplete="email" required />
+            </div>
+            <button class="btn btn-primary btn-lg" type="submit">Request my free website review</button>
+            <p class="form-note">I'll only use these details to prepare your review and get back to
+              you. No spam, no resale.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© {year} Better Business Web. A small web studio run by Kashane Sakhakorn.</span>
+      <span>Previewed before you pay.</span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "bundles": [
+    {
+      "id": "package_a",
+      "name": "Package A \u2014 Presence",
+      "description": "Look professional online. Website + the annoying tech handled.",
+      "setup": 699,
+      "monthly": 49,
+      "services": [
+        "Professional Website",
+        "Hosting & Maintenance",
+        "Google Business Profile Setup",
+        "Business Email Setup"
+      ]
+    },
+    {
+      "id": "package_b",
+      "name": "Package B \u2014 Presence + Capture",
+      "description": "Everything in A, plus turn visitors into booked customers.",
+      "setup": 999,
+      "monthly": 99,
+      "services": [
+        "Professional Website",
+        "Hosting & Maintenance",
+        "Google Business Profile Setup",
+        "Business Email Setup",
+        "Review Generation System",
+        "Online Booking Setup"
+      ]
+    },
+    {
+      "id": "package_c",
+      "name": "Package C \u2014 Presence + Capture + Growth",
+      "description": "Everything in B, plus local SEO, landing pages, and monthly reporting.",
+      "setup": 1399,
+      "monthly": 249,
+      "services": [
+        "Professional Website",
+        "Hosting & Maintenance",
+        "Google Business Profile Setup",
+        "Business Email Setup",
+        "Review Generation System",
+        "Online Booking Setup",
+        "Local SEO",
+        "Promotional Landing Page",
+        "Analytics Dashboard & Monthly Report"
+      ]
+    }
+  ]
+}
