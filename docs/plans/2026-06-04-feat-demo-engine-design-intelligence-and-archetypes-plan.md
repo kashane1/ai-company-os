@@ -9,6 +9,37 @@ supersedes: "(prior draft of this file, which targeted the deprecated demo_theme
 
 # ✨ Design intelligence for the two LIVE web paths
 
+## Implementation status — 2026-06-04 (branch `feat/web-design-intelligence`)
+
+**Done (all unit tests green: 1070 passed).**
+
+- [x] **Shared foundation** — `packages/web/design_reference/` vendored: `palettes.md`,
+  `font_pairings.md`, `ux_rules.md`, `LICENSE` (MIT verbatim), `ATTRIBUTION.md`
+  (source commit `b7e3af8`). Commit `0cc7439`.
+- [x] **Lane C (code)** — `packages/web/palette.py` (WCAG primitives + 20-genre
+  contrast-validated palette table + HSL synthesizer); `check_contrast` added to the
+  web gate (sound-not-complete, skips unresolvable); `--secondary/--accent/--on-accent`
+  tokens in the Astro scaffold (light+dark) wired into eyebrow + link underline.
+  117 new tests (`test_web_palette.py`, `test_web_contrast.py`). Commits `0cc7439`, `92cdfeb`.
+- [x] **Lane B (checklists)** — `03-design-direction.md` (font-pairing picker +
+  accent-harmony fallback + structural-archetype menu), `04-qa-checklist.md`
+  (high-severity UX/a11y gate), `05-craft-pass.md` (font-pairing pointer), and the
+  playbook (`docs/demo-site-build-playbook.md`, committed `d2ae3f1`). The `_scaffold/`
+  files are live under gitignored `state/` (runtime convention) — edits active, not tracked.
+
+**Scoping corrections during build (vs. plan as written):**
+- Dropped the font-weight URL-validation code task: it targeted the *deprecated*
+  `demo_theme._font_import_url`; the live scaffold self-hosts via `@fontsource`. Font
+  pairings ship as **reference data** (`font_pairings.md`) with weights verified against
+  the MIT `google-fonts.csv` `Styles`/`Variable Axes` columns instead.
+- No new `{{TOKEN}}` placeholders were added, so the context-producer threading the plan
+  flagged was unnecessary — palette flows via CSS custom properties, not template tokens.
+- Curated accents are validated at the **3:1** (large/UI) bar, not 4.5:1 — matches WCAG
+  and the source data's own "adjusted for WCAG 3:1" notes; body `fg`/`bg` held to 4.5:1.
+
+**Not done (deferred):** live Astro build + Playwright screenshots of the scaffold change
+(minor visual delta; needs Node); opening a PR (awaiting your go-ahead).
+
 ## Enhancement Summary
 
 **Deepened on:** 2026-06-04
