@@ -139,6 +139,21 @@ Branch `feat/agency-g8-ads`. **944 unit tests pass** (+6); ruff clean. `google_a
 
 Remaining Tier-2: `business_email` (G5), `booking` (G6), `reviews`-SMS (G9), `monthly_reporting` data (G10).
 
+## ✅ Slice 8 (G10 Plausible reporting) — implemented 2026-06-04
+
+Branch `feat/agency-g10-plausible`. **950 unit tests pass** (+6); ruff clean. `monthly_reporting` moved 🟡 draft → 🟢 **real data**.
+
+| Item | Status | Where |
+|---|---|---|
+| `StatsClient` seam + `PlausibleStatsClient` (v2 `/api/v2/query`, Bearer, configurable base URL for cloud/self-host) | ✅ | `packages/agency/plausible.py` |
+| `fetch_monthly_stats` → visits + pageviews + Form-Lead conversions; `month_to_date_range` (deterministic, no clock) | ✅ | `packages/agency/plausible.py` |
+| `[D5]` `GoalNotConfigured` — fail loud if the `Form Lead` goal is absent (never report 0 as real); a present-but-zero goal is a legitimate 0 | ✅ | `packages/agency/plausible.py` |
+| `run_monthly_report.py --site-id` pulls real numbers (exit 2 on missing goal) | ✅ | `scripts/agency/run_monthly_report.py` |
+| `PLAUSIBLE_API_KEY`/`PLAUSIBLE_BASE_URL` env + `.env.example` | ✅ | `packages/config/settings.py`, `.env.example` |
+| Client site fires `plausible('Form Lead')` on submit (site-build dependency) | ⏳ note | the goal must exist for lead counts; surfaced as the loud action item |
+
+**Tier-2 status: 8 of 10 Package C services now have executors** (website, hosting, local_seo, promo_landing_page automated; gbp, google_ads runbook-generators; monthly_reporting real data; reviews gated). Remaining: `business_email` (G5), `booking` (G6), `reviews`-SMS sender (G9).
+
 ## Overview
 
 The Better Business Web agency landing page is **live** and its core engine — build → host → launch a small-business website, plus automated Local SEO — is real and gated. But the **business cannot transact**: it can't reliably *notice* a lead, it can't *get paid* through any wired capability, and **6 of Package C's 10 services have no executor**. This plan closes those gaps in priority order so the agency becomes a self-sustaining operation rather than a high-craft demo.

@@ -36,6 +36,10 @@ STRIPE_PRICE_MAP_ENV_VAR = "STRIPE_PRICE_MAP"
 # Shared secret the Netlify webhook forwarder sends as x-agency-forward-secret;
 # the local receiver (apps/api /stripe/forward) verifies it before reconciling.
 AGENCY_STRIPE_EVENT_FORWARD_SECRET_ENV_VAR = "AGENCY_STRIPE_EVENT_FORWARD_SECRET"
+# Plausible Stats API — real visit/lead numbers for the monthly report (G10).
+# Base URL is config so a self-hosted instance just swaps the host.
+PLAUSIBLE_API_KEY_ENV_VAR = "PLAUSIBLE_API_KEY"
+PLAUSIBLE_BASE_URL_ENV_VAR = "PLAUSIBLE_BASE_URL"
 # Section G — agency transaction loop: inbound lead notification (Resend).
 # Server-side only (set in Netlify env / .env). NEVER a PUBLIC_/VITE_ prefix and
 # never shipped in dist/ — see packages/web/deploy.assert_no_secret_leak.
