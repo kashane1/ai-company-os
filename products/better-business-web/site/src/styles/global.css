@@ -57,7 +57,7 @@
 }
 
 * , *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; overflow-x: clip; }
 
 body {
   margin: 0;
@@ -151,11 +151,13 @@ p { margin: 0 0 var(--space-sm); }
 .btn:active { transform: translateY(0) scale(0.985); transition-duration: 0.06s; }
 .btn:focus-visible { outline: none; box-shadow: var(--ring); }
 /* keep label + arrow above the sheen layer */
-.btn > * { position: relative; z-index: 2; }
+.btn > * { position: relative; z-index: 1; }
 
-/* Moving specular shine — a light glint sweeps across filled buttons on hover */
+/* Moving specular shine — a light glint sweeps across filled buttons on hover.
+   z-index:-1 keeps it BEHIND the (often unwrapped) text label so the glint
+   never washes the white text out on hover — it sweeps behind the letters. */
 .btn-accent::after, .btn-primary::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 1; pointer-events: none;
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none;
   background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.5) 47%, rgba(255,255,255,0.08) 55%, transparent 68%);
   transform: translateX(-130%); transition: transform 0.7s cubic-bezier(0.32, 0.72, 0.22, 1);
 }
@@ -278,6 +280,57 @@ p { margin: 0 0 var(--space-sm); }
 .slide-fallback span { font-family: var(--font-display); font-weight: 640; font-size: var(--step-1); color: var(--ink); }
 .mock-caption { position: absolute; z-index: 2; right: -0.4rem; bottom: -0.9rem; background: var(--ink); color: var(--paper); font-size: 0.72rem; font-weight: 600; padding: 0.5rem 0.85rem; border-radius: 999px; box-shadow: var(--shadow-md); display: inline-flex; align-items: center; gap: 0.45rem; }
 .mock-caption .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+/* 3D hero carousel of demo previews ---------------------------------- */
+.hero-carousel { position: relative; z-index: 1; width: 100%; height: clamp(300px, 24vw, 360px); perspective: 1500px; display: grid; place-items: center; }
+.carousel-3d {
+  --cc-w: 210px; --cc-h: 188px; --cc-step: 45deg; --cc-r: 254px;
+  position: relative; width: var(--cc-w); height: var(--cc-h);
+  transform-style: preserve-3d; will-change: transform;
+}
+.carousel-card {
+  position: absolute; inset: 0; display: block; overflow: hidden; text-decoration: none; color: var(--ink);
+  border-radius: 14px; background: var(--surface); border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-lg);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transform: rotateY(calc(var(--i) * var(--cc-step))) translateZ(var(--cc-r));
+  transition: border-color 0.2s ease;
+}
+.carousel-card:hover { border-color: var(--accent); }
+.carousel-card .cc-bar { display: flex; align-items: center; gap: 0.45rem; padding: 0.4rem 0.55rem; background: var(--paper-2); border-bottom: 1px solid var(--line); }
+.cc-dots { display: inline-flex; gap: 4px; flex: none; }
+.cc-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); }
+.cc-url { font-size: 0.58rem; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.01em; }
+.carousel-card .cc-shot { width: 100%; height: calc(100% - 25px); object-fit: cover; object-position: top center; display: block; }
+.carousel-card .cc-fallback { display: grid; place-content: center; height: calc(100% - 25px); padding: 0.6rem; text-align: center; font-family: var(--font-display); font-weight: 640; font-size: var(--step-0); background: linear-gradient(150deg, color-mix(in srgb, var(--accent) 18%, var(--surface)), var(--surface)); }
+/* glassy specular highlight on each card */
+.carousel-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent 42%); }
+
+.carousel-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border-radius: 50%; cursor: pointer; padding: 0;
+  background: color-mix(in srgb, var(--surface) 82%, transparent); color: var(--ink);
+  border: 1px solid var(--line-strong); backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-md);
+  opacity: 0; transition: opacity 0.25s ease, background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+}
+.carousel-prev { left: 1%; }
+.carousel-next { right: 1%; }
+.carousel-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.carousel-arrow:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.carousel-prev:hover { transform: translateY(-50%) translateX(-2px); }
+.carousel-next:hover { transform: translateY(-50%) translateX(2px); }
+.hero-carousel:hover .carousel-arrow, .hero-carousel:focus-within .carousel-arrow { opacity: 1; }
+@media (hover: none) { .carousel-arrow { opacity: 0.92; } }
+@media (prefers-reduced-motion: reduce) { .carousel-3d { transition: none !important; } }
+/* Phones: smaller ring so the front card reads well; neighbours peek in from
+   the edges (clipped by html overflow-x: clip — no horizontal scroll). */
+@media (max-width: 600px) {
+  .hero-carousel { height: clamp(250px, 62vw, 300px); perspective: 1150px; }
+  .carousel-3d { --cc-w: 168px; --cc-h: 150px; }
+  .carousel-arrow { width: 38px; height: 38px; }
+}
 
 /* Stat row ----------------------------------------------------------- */
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); border-top: 1px solid var(--line); padding-top: var(--space-md); margin-top: var(--space-lg); }
