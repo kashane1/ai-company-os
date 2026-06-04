@@ -43,7 +43,14 @@ def slugify(name: str) -> str:
     return slug or "client"
 
 
-def render_offer(catalog: ServiceCatalog, bundle_id: str, *, client_name: str) -> str:
+def render_offer(
+    catalog: ServiceCatalog,
+    bundle_id: str,
+    *,
+    client_name: str,
+    payment_link: str = "",
+    payment_expires_at: str = "",
+) -> str:
     quote = catalog.quote_bundle(bundle_id)
     bundle = catalog.bundles[bundle_id]
     lines = [
@@ -65,6 +72,16 @@ def render_offer(catalog: ServiceCatalog, bundle_id: str, *, client_name: str) -
         setup = _money(service.setup_fee) if service.setup_fee else "—"
         monthly = f"{_money(service.monthly_fee)}/mo" if service.monthly_fee else "—"
         lines.append(f"| {service.name} | {setup} | {monthly} |")
+    if payment_link:
+        # Paying the link = accepting the offer (G3). Stripe Checkout links
+        # expire (≤24h), so the expiry is stamped — regenerate when stale.
+        expiry = f" _(link expires {payment_expires_at})_" if payment_expires_at else ""
+        lines += [
+            "",
+            "## Pay & start",
+            "",
+            f"[Pay setup + first month →]({payment_link}){expiry}",
+        ]
     lines += ["", "## Per-client overrides", "", "_None._", ""]
     return "\n".join(lines) + "\n"
 

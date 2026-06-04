@@ -26,6 +26,7 @@ export async function handler(event) {
   }
 
   if (process.env.AGENCY_STRIPE_EVENT_FORWARD_URL) {
+    const o = evt.data.object || {};
     const payload = {
       id: evt.id,
       type: evt.type,
@@ -33,23 +34,44 @@ export async function handler(event) {
       livemode: evt.livemode,
       data: {
         object: {
-          id: evt.data.object.id,
-          customer: evt.data.object.customer || "",
-          subscription: evt.data.object.subscription || "",
-          latest_invoice: evt.data.object.latest_invoice || "",
-          status: evt.data.object.status || "",
-          metadata: evt.data.object.metadata || {},
+          id: o.id,
+          customer: o.customer || "",
+          subscription: o.subscription || "",
+          latest_invoice: o.latest_invoice || "",
+          status: o.status || "",
+          // dispute/refund reconciliation needs these (charge.refunded.refunded,
+          // charge link). The receiver still re-verifies + may enrich.
+          refunded: o.refunded ?? null,
+          charge: o.charge || "",
+          metadata: o.metadata || {},
         },
       },
     };
-    await fetch(process.env.AGENCY_STRIPE_EVENT_FORWARD_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-agency-forward-secret": process.env.AGENCY_STRIPE_EVENT_FORWARD_SECRET || "",
-      },
-      body: JSON.stringify(payload),
-    });
+    // [B4] The forward must NOT be fire-and-forget: if the platform endpoint is
+    // down or slow, return a non-2xx so Stripe RETRIES (its retry schedule is our
+    // durable async queue). A swallowed forward = a permanently lost payment.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    try {
+      const res = await fetch(process.env.AGENCY_STRIPE_EVENT_FORWARD_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-agency-forward-secret": process.env.AGENCY_STRIPE_EVENT_FORWARD_SECRET || "",
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        console.error("forward failed", res.status);
+        return { statusCode: 502, body: "forward failed" };
+      }
+    } catch (err) {
+      console.error("forward threw", err?.name || err);
+      return { statusCode: 502, body: "forward error" };
+    } finally {
+      clearTimeout(timer);
+    }
   } else if (evt.type === "checkout.session.completed") {
     // Integration point: record one paid conversion for {{SITE_NAME}}.
     console.log("paid conversion", evt.data.object.id);

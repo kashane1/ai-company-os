@@ -74,6 +74,21 @@ Same branch. **908 unit tests pass** (+19); ruff clean. The reconciler that prot
 | HTTP webhook receiver + `[B4]`/`[B5]` forwarder hardening | ⏳ deferred | deploy-gated; next slice. Dead-letter raises `BillingDeadLetterError` ready for it to catch → 200 |
 | Real dispute-object enrichment (charge→customer expansion) | ⏳ note | the receiver must enrich dispute events; the customer-id fallback is in place |
 
+## ✅ Slice 3 (G1 Checkout initiation) — implemented 2026-06-04
+
+Branch `feat/agency-g1-checkout`. **917 unit tests pass** (+9); ruff clean; forwarder `node --check` OK. No live call.
+
+| Item | Status | Where |
+|---|---|---|
+| Subscription Checkout (setup + monthly line items, dual metadata, idempotency key, clamped `expires_at`) behind a `CheckoutProvider` seam | ✅ | `packages/agency/payments.py` |
+| Live mode approval-gated (`stripe_live_subscription`); test mode ungated | ✅ | `packages/agency/payments.py` |
+| `STRIPE_PRICE_MAP` config (mode-scoped, not catalog) + `.env.example` | ✅ | `packages/config/settings.py`, `.env.example` |
+| OFFER.md `## Pay & start` injection with link + expiry ([G3] paying = accepting) | ✅ | `packages/agency/templates.py` |
+| Thin `create_checkout.py` CLI (mode + live-gate + clean exits) | ✅ | `scripts/agency/create_checkout.py` |
+| `[B4]` forwarder: non-2xx on forward failure (Stripe retries) + 4 s `AbortController` timeout; forwards `refunded`/`charge`/`status` for dispute/refund | ✅ | `packages/web/scaffold/.../stripe-webhook.mjs` |
+| HTTP **receiver** endpoint (verify `stripe-signature` + forward-secret → `reconcile_stripe_event`) | ⏳ deferred | deploy-gated; the `BillingDeadLetterError` path is ready for it |
+| Real `StripeCheckoutProvider` live exercise + test→live price recreation | ⏳ pending | operator: set `STRIPE_PRICE_MAP` live block + `sk_live_` key + grant approval |
+
 ## Overview
 
 The Better Business Web agency landing page is **live** and its core engine — build → host → launch a small-business website, plus automated Local SEO — is real and gated. But the **business cannot transact**: it can't reliably *notice* a lead, it can't *get paid* through any wired capability, and **6 of Package C's 10 services have no executor**. This plan closes those gaps in priority order so the agency becomes a self-sustaining operation rather than a high-craft demo.
