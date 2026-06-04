@@ -114,6 +114,19 @@ Branch `feat/agency-g4-promo`. **929 unit tests pass** (+5); ruff clean. First T
 
 Package C scorecard update: `promo_landing_page` is now automated. Remaining Tier-2: `business_email` (G5), `booking` (G6), `gbp` (G7), `google_ads` (G8), `reviews`-SMS (G9), `monthly_reporting` data (G10).
 
+## ✅ Slice 6 (G7 GBP changeset draft) — implemented 2026-06-04
+
+Branch `feat/agency-g7-gbp`. **938 unit tests pass** (+9); ruff clean. `gbp` moved 🟡 planner-label → 🟢 **runbook-with-generator**.
+
+| Item | Status | Where |
+|---|---|---|
+| `draft_gbp_changeset(intake)` → `GbpChangeset` → `GBP_CHANGESET.md` (category suggestion, services, hours, ≤750-char description, contact/booking, photo checklist) | ✅ | `packages/agency/gbp.py` |
+| `suggest_primary_category` (free-text service → GBP category, with fallback) | ✅ | `packages/agency/gbp.py` |
+| `draft_gbp_changeset.py` CLI (emit to workspace or `--print`) | ✅ | `scripts/agency/draft_gbp_changeset.py` |
+| `[D6]` advisory note baked into the doc; live-state drift-diff before apply | 🟡 noted | full API drift-diff is later automation |
+
+Remaining Tier-2: `business_email` (G5), `booking` (G6), `google_ads` (G8), `reviews`-SMS (G9), `monthly_reporting` data (G10).
+
 ## Overview
 
 The Better Business Web agency landing page is **live** and its core engine — build → host → launch a small-business website, plus automated Local SEO — is real and gated. But the **business cannot transact**: it can't reliably *notice* a lead, it can't *get paid* through any wired capability, and **6 of Package C's 10 services have no executor**. This plan closes those gaps in priority order so the agency becomes a self-sustaining operation rather than a high-craft demo.
