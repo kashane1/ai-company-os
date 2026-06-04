@@ -33,6 +33,9 @@ STRIPE_WEBHOOK_SECRET_ENV_VAR = "STRIPE_WEBHOOK_SECRET"
 # scoped (test vs live), so they live in config/env, NOT in catalog.yaml. Shape:
 #   {"package_c": {"test": {"setup": "price_…", "monthly": "price_…"}, "live": {…}}}
 STRIPE_PRICE_MAP_ENV_VAR = "STRIPE_PRICE_MAP"
+# Shared secret the Netlify webhook forwarder sends as x-agency-forward-secret;
+# the local receiver (apps/api /stripe/forward) verifies it before reconciling.
+AGENCY_STRIPE_EVENT_FORWARD_SECRET_ENV_VAR = "AGENCY_STRIPE_EVENT_FORWARD_SECRET"
 # Section G — agency transaction loop: inbound lead notification (Resend).
 # Server-side only (set in Netlify env / .env). NEVER a PUBLIC_/VITE_ prefix and
 # never shipped in dist/ — see packages/web/deploy.assert_no_secret_leak.

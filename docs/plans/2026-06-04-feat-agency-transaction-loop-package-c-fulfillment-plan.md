@@ -86,8 +86,22 @@ Branch `feat/agency-g1-checkout`. **917 unit tests pass** (+9); ruff clean; forw
 | OFFER.md `## Pay & start` injection with link + expiry ([G3] paying = accepting) | ✅ | `packages/agency/templates.py` |
 | Thin `create_checkout.py` CLI (mode + live-gate + clean exits) | ✅ | `scripts/agency/create_checkout.py` |
 | `[B4]` forwarder: non-2xx on forward failure (Stripe retries) + 4 s `AbortController` timeout; forwards `refunded`/`charge`/`status` for dispute/refund | ✅ | `packages/web/scaffold/.../stripe-webhook.mjs` |
-| HTTP **receiver** endpoint (verify `stripe-signature` + forward-secret → `reconcile_stripe_event`) | ⏳ deferred | deploy-gated; the `BillingDeadLetterError` path is ready for it |
+| HTTP **receiver** endpoint (forward-secret → `reconcile_stripe_event`) | ✅ Slice 4 | `packages/agency/stripe_receiver.py`, `apps/api/stripe_endpoint.py` |
 | Real `StripeCheckoutProvider` live exercise + test→live price recreation | ⏳ pending | operator: set `STRIPE_PRICE_MAP` live block + `sk_live_` key + grant approval |
+
+## ✅ Slice 4 (Stripe receiver) — implemented 2026-06-04
+
+Branch `feat/agency-stripe-receiver`. **924 unit tests pass** (+7); ruff clean; the FastAPI app mounts `/stripe/forward`. **The reconciliation path is now closed in code** (forwarder → receiver → ledger).
+
+| Item | Status | Where |
+|---|---|---|
+| Pure receiver handler — constant-time shared-secret verify → `reconcile_stripe_event` → status mapping (200 reconciled / 200 dead-lettered / 422 malformed / 500 transient / 401 / 503) | ✅ | `packages/agency/stripe_receiver.py` |
+| FastAPI route `POST /stripe/forward` (127.0.0.1) mounted in the control-plane API | ✅ | `apps/api/stripe_endpoint.py`, `apps/api/main.py` |
+| `AGENCY_STRIPE_EVENT_FORWARD_SECRET` env constant | ✅ | `packages/config/settings.py` |
+| `[B5]` independent Stripe-signature re-verification at the receiver | ⏳ note | the forwarder verifies + reshapes (no raw body forwarded); the shared secret authenticates "from our forwarder." Re-verifying the raw signature needs the forwarder to send the raw body — a deliberate follow-up |
+| Live run (start the API, wire Netlify forward URL/secret, complete a test checkout) | ⏳ pending | operator/deploy |
+
+**The transaction loop is code-complete:** notice a lead (G2) → quote with a pay link (G1 write) → forwarder → receiver → reconcile + activate + stamp acceptance (G1 read) → `assert_billing_active` guards paid work. What remains is operator/deploy setup (Stripe live prices/keys, Resend domain, start the API, wire Netlify env) and the Tier-2 service executors (G4–G10).
 
 ## Overview
 
