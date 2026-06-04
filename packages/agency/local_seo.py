@@ -12,8 +12,11 @@ than forking a new templating system.
 
 from __future__ import annotations
 
+import html
+import json
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 # A page whose body has fewer than this many words is "thin" and rejected.
 MIN_BODY_WORDS = 60
@@ -21,6 +24,18 @@ MIN_BODY_WORDS = 60
 
 class ThinContentError(ValueError):
     """Raised when a generated page would be thin / near-duplicate."""
+
+
+class LocalSeoMatrixError(ValueError):
+    """Raised when ``LOCAL_SEO.md`` is missing approved generation inputs."""
+
+
+@dataclass(frozen=True)
+class LocalSeoMatrix:
+    primary_city: str
+    services: list[str]
+    service_area_cities: list[str]
+    matrix_approved: bool = False
 
 
 @dataclass(frozen=True)
@@ -123,3 +138,156 @@ def generate_matrix(
             seen_titles.add(page.title)
             pages.append(page)
     return pages
+
+
+def parse_local_seo_matrix(path_or_text: Path | str) -> LocalSeoMatrix:
+    """Parse approved service-area inputs from ``LOCAL_SEO.md`` text or path.
+
+    YAML fenced blocks are preferred. A markdown table is accepted for services
+    and cities, but approval still must be present as ``matrix_approved: true``.
+    """
+    text = (
+        path_or_text.read_text(encoding="utf-8")
+        if isinstance(path_or_text, Path)
+        else path_or_text
+    )
+    yaml_block = _fenced_yaml(text)
+    primary_city = _yaml_scalar(yaml_block, "primary_city")
+    services = _yaml_list(yaml_block, "services")
+    cities = _yaml_list(yaml_block, "service_area_cities")
+    matrix_approved = _yaml_bool(yaml_block, "matrix_approved")
+    if not services or not cities:
+        table_services, table_cities = _table_matrix(text)
+        services = services or table_services
+        cities = cities or table_cities
+    if not primary_city:
+        primary_city = cities[0] if cities else ""
+    if not primary_city or not services or not cities:
+        raise LocalSeoMatrixError("LOCAL_SEO.md must include primary city, services, and service-area cities")
+    if _has_tbd(primary_city, services, cities):
+        raise LocalSeoMatrixError("LOCAL_SEO.md still contains TBD matrix values")
+    if not matrix_approved:
+        raise LocalSeoMatrixError("LOCAL_SEO.md matrix_approved must be true before generation")
+    return LocalSeoMatrix(
+        primary_city=primary_city,
+        services=services,
+        service_area_cities=cities,
+        matrix_approved=matrix_approved,
+    )
+
+
+def emit_seo_pages_to_site(
+    site_root: Path,
+    pages: list[SeoPage],
+    *,
+    site_url: str = "https://example.com",
+) -> list[Path]:
+    """Write SEO pages into an Astro site and emit a local sitemap."""
+    pages_dir = site_root / "src" / "pages"
+    if not pages_dir.is_dir():
+        raise FileNotFoundError(f"Astro pages directory not found: {pages_dir}")
+    written: list[Path] = []
+    for page in pages:
+        path = pages_dir / f"{page.slug}.astro"
+        path.write_text(_astro_page(page), encoding="utf-8")
+        written.append(path)
+    public_dir = site_root / "public"
+    public_dir.mkdir(exist_ok=True)
+    sitemap = public_dir / "sitemap-local-seo.xml"
+    sitemap.write_text(_sitemap(pages, site_url=site_url), encoding="utf-8")
+    written.append(sitemap)
+    return written
+
+
+def _fenced_yaml(text: str) -> str:
+    match = re.search(r"```ya?ml\s*(.*?)```", text, flags=re.DOTALL | re.IGNORECASE)
+    return match.group(1) if match else ""
+
+
+def _yaml_scalar(text: str, key: str) -> str:
+    match = re.search(rf"^{re.escape(key)}:\s*(.*?)\s*$", text, flags=re.MULTILINE)
+    if not match:
+        return ""
+    return match.group(1).strip().strip('"').strip("'")
+
+
+def _yaml_bool(text: str, key: str) -> bool:
+    return _yaml_scalar(text, key).lower() == "true"
+
+
+def _yaml_list(text: str, key: str) -> list[str]:
+    match = re.search(rf"^{re.escape(key)}:\s*(\[.*?\])\s*$", text, flags=re.MULTILINE)
+    if not match:
+        return []
+    raw = match.group(1)
+    try:
+        values = json.loads(raw)
+    except json.JSONDecodeError:
+        values = [part.strip().strip('"').strip("'") for part in raw.strip("[]").split(",")]
+    return [str(value).strip() for value in values if str(value).strip()]
+
+
+def _table_matrix(text: str) -> tuple[list[str], list[str]]:
+    services: set[str] = set()
+    cities: set[str] = set()
+    for line in text.splitlines():
+        if not line.startswith("|") or "---" in line or "Service" in line:
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+        service, city = cells[0], cells[1]
+        if service and city:
+            services.add(service)
+            cities.add(city)
+    return sorted(services), sorted(cities)
+
+
+def _has_tbd(primary_city: str, services: list[str], cities: list[str]) -> bool:
+    values = [primary_city, *services, *cities]
+    return any(value.strip().lower() in {"_tbd_", "tbd", ""} for value in values)
+
+
+def _astro_page(page: SeoPage) -> str:
+    return "\n".join(
+        [
+            "---",
+            'import "../styles/global.css";',
+            "---",
+            "<!doctype html>",
+            '<html lang="en">',
+            "<head>",
+            '  <meta charset="utf-8" />',
+            '  <meta name="viewport" content="width=device-width, initial-scale=1" />',
+            f"  <title>{html.escape(page.title)}</title>",
+            f'  <meta name="description" content="{html.escape(page.meta_description)}" />',
+            "</head>",
+            "<body>",
+            '  <main class="section">',
+            '    <div class="container stack-lg">',
+            f"      <h1>{html.escape(page.h1)}</h1>",
+            f"      <p>{html.escape(page.body)}</p>",
+            '      <p><a href="/">Back home</a></p>',
+            "    </div>",
+            "  </main>",
+            "</body>",
+            "</html>",
+            "",
+        ]
+    )
+
+
+def _sitemap(pages: list[SeoPage], *, site_url: str) -> str:
+    base = site_url.rstrip("/")
+    urls = "\n".join(
+        f"  <url><loc>{html.escape(base)}/{page.slug}</loc></url>" for page in pages
+    )
+    return "\n".join(
+        [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+            urls,
+            "</urlset>",
+            "",
+        ]
+    )

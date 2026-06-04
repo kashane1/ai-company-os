@@ -22,6 +22,9 @@ def _intake() -> ClientIntake:
         hours="Mon-Fri 8-6",
         ideal_customer="Homeowners with urgent repairs",
         competitors=["Acme Plumbing"],
+        service_area_cities=["Seattle", "Shoreline"],
+        travel_radius_miles=15,
+        service_area_notes="No jobs east of Bellevue.",
     )
 
 
@@ -35,6 +38,8 @@ def test_brief_renders_intake_fields() -> None:
     assert "Joe's Plumbing" in brief
     assert "Drain cleaning" in brief
     assert "Seattle" in brief
+    assert "15 miles" in brief
+    assert "Shoreline" in brief
 
 
 def test_site_context_is_localized() -> None:
@@ -63,3 +68,13 @@ def test_offer_renders_from_bundle() -> None:
 def test_intake_round_trips() -> None:
     intake = _intake()
     assert ClientIntake.from_dict(intake.to_dict()).to_dict() == intake.to_dict()
+
+
+def test_intake_rejects_negative_radius() -> None:
+    with pytest.raises(ValueError):
+        ClientIntake(
+            business_name="Joe's Plumbing",
+            service_category="plumbing",
+            city="Seattle",
+            travel_radius_miles=-1,
+        ).validate()

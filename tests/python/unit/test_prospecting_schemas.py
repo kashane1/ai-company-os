@@ -81,6 +81,23 @@ def test_cohort_logic_uses_website_signal_not_genre() -> None:
     low_signal = ProspectRecord.from_dict({**base.to_dict(), "user_ratings_total": 4})
     assert derive_composite_cohort(low_signal) == "D_low_signal"
 
+    # Review-count gates split the sub-25 range: 9-or-fewer is low signal,
+    # 10..24 is the plausible-client "potential signal" bucket, and the
+    # bucket is gated before web-signal classification (so a no-site shop
+    # with 12 reviews still lands here, not in A_gold).
+    assert derive_composite_cohort(
+        ProspectRecord.from_dict({**base.to_dict(), "user_ratings_total": 9})
+    ) == "D_low_signal"
+    assert derive_composite_cohort(
+        ProspectRecord.from_dict({**base.to_dict(), "user_ratings_total": 10})
+    ) == "C_potential_signal"
+    assert derive_composite_cohort(
+        ProspectRecord.from_dict({**base.to_dict(), "user_ratings_total": 24})
+    ) == "C_potential_signal"
+    assert derive_composite_cohort(
+        ProspectRecord.from_dict({**base.to_dict(), "user_ratings_total": 25})
+    ) == "A_gold"
+
     has_site = ProspectRecord.from_dict(
         {
             **base.to_dict(),
@@ -124,6 +141,8 @@ def test_priority_score_uses_documented_cohort_weight_times_demand_factor() -> N
 
     assert priority_score(record, "A_gold") == 50.0
     assert priority_score(record, "Z_needs_review") == 20.0
+    # Potential-signal bucket (weight 25) sits above low signal, below review.
+    assert priority_score(record, "C_potential_signal") == 12.5
     # New secondary bucket weight (85) sits just below A_gold, above B_stale_maps.
     assert priority_score(record, "A2_marketplace_review") == 42.5
 

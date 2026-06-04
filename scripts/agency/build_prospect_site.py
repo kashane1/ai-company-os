@@ -1,32 +1,35 @@
 #!/usr/bin/env python3
-"""Build (and optionally deploy) preview websites for prospect leads.
+"""Deploy bespoke prospect preview sites (dist-v2) to Netlify.
 
-Turns verified prospect records into one-page preview sites — the private
-``{mockup_url}`` the ``email/with-mockup.md`` outreach template references.
+Customer-facing mockups are built with ``docs/demo-site-build-playbook.md``
+(``state/prospects/sites/<place_id>/dist-v2/index.html``). This script only
+packages and (optionally) draft-deploys that output — it does **not** generate
+token-fill pages unless you pass ``--legacy-build`` (deprecated bulk path).
 
 USAGE
 -----
-Local build only (safe default — no network, no token needed):
+Deploy after a playbook build (needs ``dist-v2/index.html``):
 
     python scripts/agency/build_prospect_site.py --place-id ChIJ...
-    python scripts/agency/build_prospect_site.py --confirmed          # the none_found leads
-    python scripts/agency/build_prospect_site.py --verdict marketplace_only --limit 10
+    python scripts/agency/build_prospect_site.py --confirmed --limit 5
 
-Deploy a *draft* (preview) to YOUR Netlify account (needs $NETLIFY_AUTH_TOKEN):
+Draft-deploy to YOUR Netlify account (needs ``$NETLIFY_AUTH_TOKEN``):
 
     NETLIFY_AUTH_TOKEN=... python scripts/agency/build_prospect_site.py \
-        --confirmed --deploy --account <your-netlify-team-slug>
+        --place-id ChIJ... --deploy --account <your-netlify-team-slug>
 
-Outputs per lead go to ``state/prospects/sites/<place_id>/``:
-  - dist/index.html            the built preview page
-  - preview.json               build/deploy metadata
-  - outreach-with-mockup.md    a personalized draft (draft only — never sent)
+Legacy token-fill build (deprecated — bulk/internal only):
 
-On a successful deploy the record in ``state/prospects/records/<place_id>.json``
-gets ``mockup_url``, ``mockup_site_id``, ``mockup_deploy_id``, ``mockup_built_at``.
+    python scripts/agency/build_prospect_site.py --place-id ChIJ... --legacy-build
 
-Preview/draft deploys are ungated by ``deploy_readiness`` policy; this script
-NEVER does a production deploy.
+Outputs per lead under ``state/prospects/sites/<place_id>/``:
+  - dist-v2/index.html         bespoke build (from the playbook)
+  - preview.json               deploy metadata
+  - outreach-with-mockup.md    personalized draft (never auto-sent)
+
+On deploy, the warehouse record gains ``mockup_url``, ``mockup_site_id``, etc.
+
+Preview/draft deploys are ungated; this script NEVER does a production deploy.
 """
 
 from __future__ import annotations
@@ -35,25 +38,29 @@ import argparse
 import json
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
-from packages.agency.demo_theme import theme_for_record  # noqa: E402
 from packages.agency.prospect_site import (  # noqa: E402
     GENRE_PROFILES,
+    PREVIEW_SITE_NAME,
+    PreviewResult,
+    ProspectBuildError,
     build_preview_for_record,
     city_label,
+    deploy_preview_dist,
     intake_from_record,
     profile_fields_used,
+    resolve_prospect_dist_dir,
 )
 
 RECORDS_DIR = REPO / "state" / "prospects" / "records"
 SITES_DIR = REPO / "state" / "prospects" / "sites"
 OUTREACH_TEMPLATE = REPO / "state" / "prospects" / "outreach" / "email" / "with-mockup.md"
 
-# Fixtures that must never be treated as real leads.
 _FIXTURE_PREFIX = "Fixture Local"
 
 
@@ -102,7 +109,6 @@ def select_records(args: argparse.Namespace) -> list[dict]:
 
 
 def render_outreach_draft(record: dict, mockup_url: str) -> str:
-    """Fill the with-mockup email template with what we know (draft only)."""
     if not OUTREACH_TEMPLATE.exists():
         return ""
     profile = GENRE_PROFILES.get(str(record.get("genre_id", "")))
@@ -134,7 +140,7 @@ def write_record_mockup_fields(place_id: str, result) -> None:
     rec["mockup_url"] = result.mockup_url
     rec["mockup_site_id"] = result.site_id
     rec["mockup_deploy_id"] = result.deploy_id
-    rec["mockup_built_at"] = "2026-06-02T00:00:00+00:00"
+    rec["mockup_built_at"] = datetime.now(timezone.utc).isoformat()
     path.write_text(json.dumps(rec, indent=2))
 
 
@@ -146,11 +152,6 @@ def make_target(account_slug: str | None):
 
 
 def get_profile(record: dict, connector, *, refresh: bool = False) -> dict | None:
-    """Fetch (and cache) the Places profile for a record. Returns None on failure.
-
-    Cached at ``state/prospects/sites/<place_id>/places-profile.json`` so re-runs
-    never re-bill the Places API.
-    """
     place_id = str(record.get("place_id", ""))
     cache = SITES_DIR / place_id / "places-profile.json"
     if cache.exists() and not refresh:
@@ -162,7 +163,7 @@ def get_profile(record: dict, connector, *, refresh: bool = False) -> dict | Non
         return None
     try:
         profile = connector.fetch_profile(place_id)
-    except Exception as exc:  # noqa: BLE001 — enrichment is best-effort
+    except Exception as exc:  # noqa: BLE001
         print(f"    (enrich failed for {record.get('display_name')}: {exc})")
         return None
     cache.parent.mkdir(parents=True, exist_ok=True)
@@ -171,7 +172,6 @@ def get_profile(record: dict, connector, *, refresh: bool = False) -> dict | Non
 
 
 def make_connector():
-    """Build a Places connector if the API key is available, else None."""
     from packages.config.settings import get_api_key
     from packages.prospecting.connectors.google_places import (
         GOOGLE_PLACES_API_KEY_ENV_VAR,
@@ -179,17 +179,47 @@ def make_connector():
     )
 
     if not get_api_key(GOOGLE_PLACES_API_KEY_ENV_VAR):
-        print("  (no $GOOGLE_PLACES_API_KEY — building with genre-default copy)")
         return None
     return GooglePlacesConnector()
+
+
+def _legacy_build(record: dict, out_dir: Path, target, account, profile) -> tuple[object, str, list[str], dict | None]:
+    from packages.agency.demo_theme import theme_for_record
+
+    theme = theme_for_record(record)
+    used = profile_fields_used(profile) if profile else []
+    result = build_preview_for_record(
+        record, out_dir, target=target, account=account, profile=profile
+    )
+    return result, "legacy-token-fill", used, theme.to_dict()
+
+
+def _bespoke_deploy(record: dict, out_dir: Path, target, account) -> tuple[PreviewResult, str, list[str], None]:
+    dist_dir = resolve_prospect_dist_dir(out_dir)
+    intake_from_record(record)  # validate early
+    place_id = str(record.get("place_id", ""))
+    if target is None:
+        return (
+            PreviewResult(
+                place_id=place_id,
+                site_name=PREVIEW_SITE_NAME,
+                dist_dir=dist_dir,
+                deployed=False,
+            ),
+            "bespoke",
+            [],
+            None,
+        )
+    result = deploy_preview_dist(record, dist_dir, target=target, account=account)
+    return result, "bespoke", [], None
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sel = ap.add_argument_group("selection")
-    sel.add_argument("--place-id", help="build for one specific record")
-    sel.add_argument("--confirmed", action="store_true", help="build for all none_found leads")
-    sel.add_argument("--verdict", help="build for all leads with this web_verify_verdict")
+    sel.add_argument("--place-id", help="deploy for one specific record")
+    sel.add_argument("--confirmed", action="store_true", help="all none_found leads")
+    sel.add_argument("--verdict", help="all leads with this web_verify_verdict")
     sel.add_argument("--city", help="restrict to one city_id")
     sel.add_argument("--limit", type=int, default=0, help="cap the number of sites")
     sel.add_argument(
@@ -207,12 +237,17 @@ def main() -> None:
         default=0.0,
         help="seconds to wait between deploys (Netlify rate-limits ~3/min; use 30 for big batches)",
     )
-    enr = ap.add_argument_group("enrichment")
+    leg = ap.add_argument_group("legacy (deprecated)")
+    leg.add_argument(
+        "--legacy-build",
+        action="store_true",
+        help="generate token-fill dist/ via render_landing_html (bulk only — not for client-facing mockups)",
+    )
+    enr = ap.add_argument_group("enrichment (legacy-build only)")
     enr.add_argument(
         "--no-enrich",
         action="store_true",
-        help="skip the Google Places Details call (use genre-default copy only). "
-        "By default real Places data (hours, summary, location, rating) is used.",
+        help="skip Google Places Details when using --legacy-build",
     )
     args = ap.parse_args()
 
@@ -226,62 +261,78 @@ def main() -> None:
         target, account = make_target(args.account)
     connector = None if args.no_enrich else make_connector()
 
-    print(f"{'DEPLOY' if args.deploy else 'BUILD'} — {len(records)} preview site(s)\n")
+    mode = "LEGACY BUILD" if args.legacy_build else "DEPLOY"
+    print(f"{mode}{' + NETLIFY' if args.deploy else ''} — {len(records)} prospect site(s)\n")
+    if not args.legacy_build:
+        print("Requires dist-v2/ from docs/demo-site-build-playbook.md\n")
+
     summary = []
     for i, rec in enumerate(records):
         place_id = str(rec.get("place_id", ""))
         name = rec.get("display_name", "?")
         out_dir = SITES_DIR / place_id
         try:
-            intake = intake_from_record(rec)  # validates early
-            theme = theme_for_record(rec)
-            profile = None if args.no_enrich else get_profile(rec, connector)
-            used = profile_fields_used(profile) if profile else []
-            result = build_preview_for_record(
-                rec, out_dir, target=target, account=account, profile=profile
-            )
-        except Exception as exc:  # noqa: BLE001 — report per-lead, keep going
+            if args.legacy_build:
+                profile = None if args.no_enrich else get_profile(rec, connector)
+                result, build_kind, used, theme_dict = _legacy_build(
+                    rec, out_dir, target, account, profile
+                )
+            else:
+                result, build_kind, used, theme_dict = _bespoke_deploy(rec, out_dir, target, account)
+        except (ProspectBuildError, ValueError) as exc:
+            print(f"  ✗ {name}: {exc}")
+            summary.append((name, "error", str(exc)))
+            continue
+        except Exception as exc:  # noqa: BLE001
             print(f"  ✗ {name}: {exc}")
             summary.append((name, "error", str(exc)))
             continue
 
-        draft = render_outreach_draft(rec, result.mockup_url)
+        mockup_url = getattr(result, "mockup_url", "") or ""
+        draft = render_outreach_draft(rec, mockup_url)
         if draft:
             (out_dir / "outreach-with-mockup.md").write_text(draft)
-        (out_dir / "preview.json").write_text(
-            json.dumps(
-                {
-                    "place_id": place_id,
-                    "business": name,
-                    "city": intake.city,
-                    "category": intake.service_category,
-                    "site_name": result.site_name,
-                    "deployed": result.deployed,
-                    "mockup_url": result.mockup_url,
-                    "dist": str(result.dist_dir),
-                    "enriched": bool(used),
-                    "places_fields_used": used,
-                    "theme": theme.to_dict(),
-                },
-                indent=2,
-            )
-        )
-        tag = f"  [real: {', '.join(used)}]" if used else "  [genre-default copy]"
+
+        preview_payload: dict = {
+            "place_id": place_id,
+            "business": name,
+            "build_kind": build_kind,
+            "deployed": result.deployed,
+            "mockup_url": mockup_url,
+            "dist": str(result.dist_dir),
+            "enriched": bool(used),
+            "places_fields_used": used,
+        }
+        if theme_dict:
+            preview_payload["theme"] = theme_dict
+        if build_kind == "bespoke":
+            try:
+                intake = intake_from_record(rec)
+                preview_payload["city"] = intake.city
+                preview_payload["category"] = intake.service_category
+            except ValueError:
+                pass
+        (out_dir / "preview.json").write_text(json.dumps(preview_payload, indent=2))
+
+        tag = f"  [{build_kind}]"
+        if used:
+            tag += f"  [places: {', '.join(used)}]"
         if result.deployed:
             write_record_mockup_fields(place_id, result)
-            print(f"  ✓ {name}  →  {result.mockup_url}{tag}")
-            summary.append((name, "deployed", result.mockup_url))
+            print(f"  ✓ {name}  →  {mockup_url}{tag}")
+            summary.append((name, "deployed", mockup_url))
         else:
-            print(f"  ✓ {name}  →  {result.dist_dir / 'index.html'}{tag}")
-            summary.append((name, "built", str(result.dist_dir / "index.html")))
+            index = result.dist_dir / "index.html"
+            print(f"  ✓ {name}  →  {index}{tag}")
+            summary.append((name, "ready", str(index)))
 
-        # Space out deploys so we don't trip Netlify's ~3/min deploy rate limit.
         if result.deployed and args.deploy_delay and i < len(records) - 1:
             time.sleep(args.deploy_delay)
 
-    print(f"\nDone. {sum(1 for _, s, _ in summary if s in ('built', 'deployed'))}/{len(records)} ok.")
-    if not args.deploy:
-        print("Tip: open a dist/index.html in a browser to review, then re-run with --deploy.")
+    ok = sum(1 for _, s, _ in summary if s in ("ready", "deployed"))
+    print(f"\nDone. {ok}/{len(records)} ok.")
+    if not args.deploy and ok:
+        print("Tip: review on localhost (preview_site.py), then re-run with --deploy.")
 
 
 if __name__ == "__main__":

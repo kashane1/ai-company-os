@@ -71,6 +71,11 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(f"Promoted {record.display_name} -> {result['id']} (bundle {args.bundle})")
+    print(f"  docs:  docs/products/{result['id']}/")
+    print(f"  code:  products/{result['id']}/  (run client_intake to scaffold)")
+    print("  next:")
+    print(f"    python scripts/agency/client_intake.py --product-id {result['id']} "
+          f"--from-prospect {args.place_id}")
     return 0
 
 

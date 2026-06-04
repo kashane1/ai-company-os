@@ -27,4 +27,4 @@ def test_packages_json_hits_bundle_targets() -> None:
     by_id = {b["id"]: b for b in data["bundles"]}
     assert (by_id["package_a"]["setup"], by_id["package_a"]["monthly"]) == (699, 49)
     assert (by_id["package_b"]["setup"], by_id["package_b"]["monthly"]) == (999, 99)
-    assert (by_id["package_c"]["setup"], by_id["package_c"]["monthly"]) == (1399, 249)
+    assert (by_id["package_c"]["setup"], by_id["package_c"]["monthly"]) == (1399, 624)

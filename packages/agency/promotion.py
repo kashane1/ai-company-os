@@ -20,13 +20,15 @@ record without duplicating it.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from packages.agency.catalog import ServiceCatalog, default_catalog
+from packages.agency.client_lifecycle import mark_prospect_onboarded
+from packages.agency.registry import load_registry, write_registry
 from packages.agency.templates import scaffold_client_workspace, slugify
 from packages.config.settings import load_runtime_paths
 from packages.policies.agency_gates import assert_promotion_allowed
+from packages.prospecting.storage import ProspectRepository
 from packages.schemas.offer import CatalogError
 from packages.schemas.prospect import HumanVerified, ProspectRecord
 
@@ -44,6 +46,8 @@ def promote_prospect_to_client(
     registry_path: Path | None = None,
     docs_root_parent: Path | None = None,
     repo_root: Path | None = None,
+    prospect_repo: ProspectRepository | None = None,
+    mark_onboarded: bool = True,
 ) -> dict[str, object]:
     """Promote ``prospect`` into a ``client-site`` registry record.
 
@@ -69,7 +73,7 @@ def promote_prospect_to_client(
     slug = slugify(prospect.display_name)
     product_id = f"{slug}-site"
 
-    registry = _load_registry(registry_path)
+    registry = load_registry(registry_path)
     existing = next((r for r in registry if r.get("id") == product_id), None)
     if existing is not None:
         # Already promoted. Re-running with a *different* bundle would silently
@@ -88,6 +92,8 @@ def promote_prospect_to_client(
             catalog=catalog,
             from_prospect=prospect.place_id,
         )
+        if mark_onboarded:
+            mark_prospect_onboarded(prospect, repo=prospect_repo)
         return existing
 
     record = {
@@ -109,7 +115,7 @@ def promote_prospect_to_client(
     }
 
     registry.append(record)
-    _write_registry(registry_path, registry)
+    write_registry(registry_path, registry)
 
     scaffold_client_workspace(
         docs_root_parent / product_id,
@@ -118,14 +124,6 @@ def promote_prospect_to_client(
         catalog=catalog,
         from_prospect=prospect.place_id,
     )
+    if mark_onboarded:
+        mark_prospect_onboarded(prospect, repo=prospect_repo)
     return record
-
-
-def _load_registry(path: Path) -> list[dict[str, object]]:
-    if not path.exists():
-        return []
-    return list(json.loads(path.read_text()))
-
-
-def _write_registry(path: Path, registry: list[dict[str, object]]) -> None:
-    path.write_text(json.dumps(registry, indent=2) + "\n")

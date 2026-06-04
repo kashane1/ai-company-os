@@ -28,6 +28,27 @@ class BillingStatus(str, Enum):
     ACTIVE = "active"
     PAST_DUE = "past_due"
     CANCELLED = "cancelled"
+    # Additive (G1). A dispute/refund is a work-stopping, money-out state.
+    DISPUTED = "disputed"
+    REFUNDED = "refunded"
+
+    @classmethod
+    def coerce(cls, value: object) -> "BillingStatus":
+        """Decode a persisted status, falling back to a WORK-STOPPING state.
+
+        [MIG-P0] The strict registry loader routes every ``client`` block through
+        ``ClientConfig.from_dict``. A value an older reader can't parse (e.g. a
+        future status) must NOT abort the whole registry load, and must NOT fall
+        back to an *entitled* state (``active``/``trial``) — that would let a
+        disputed/refunded client keep receiving paid work. Fall back to
+        ``CANCELLED`` (stops work) instead, loudly-safe rather than silently-wrong.
+        """
+        if isinstance(value, cls):
+            return value
+        try:
+            return cls(str(value))
+        except ValueError:
+            return cls.CANCELLED
 
 
 class ProductStatus(str, Enum):
@@ -78,6 +99,11 @@ class ClientConfig:
     services: list[str] = field(default_factory=list)
     from_prospect: str = ""
     billing_status: BillingStatus = BillingStatus.TRIAL
+    # Acceptance audit (G3) — stamped once on the first paid invoice. Immutable
+    # audit facts, independent of entitlement (a later dispute changes
+    # ``billing_status`` but never these). Defaulted so legacy records load.
+    accepted_by: str = ""
+    accepted_at: str = ""
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -86,6 +112,8 @@ class ClientConfig:
             "services": list(self.services),
             "from_prospect": self.from_prospect,
             "billing_status": self.billing_status.value,
+            "accepted_by": self.accepted_by,
+            "accepted_at": self.accepted_at,
         }
 
     @classmethod
@@ -97,9 +125,13 @@ class ClientConfig:
             bundle=str(payload.get("bundle", "")),
             services=[str(x) for x in list(payload.get("services", []))],
             from_prospect=str(payload.get("from_prospect", "")),
-            billing_status=BillingStatus(
-                str(payload.get("billing_status", BillingStatus.TRIAL.value))
+            # [MIG-P0] guarded decode — an unknown status loads as CANCELLED
+            # (work-stopping), never aborts the registry load.
+            billing_status=BillingStatus.coerce(
+                payload.get("billing_status", BillingStatus.TRIAL.value)
             ),
+            accepted_by=str(payload.get("accepted_by", "")),
+            accepted_at=str(payload.get("accepted_at", "")),
         )
 
 

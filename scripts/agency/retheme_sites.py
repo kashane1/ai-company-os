@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Re-render already-built prospect demo sites with the current demo theme.
+"""Re-generate legacy token-fill ``dist/`` previews (deprecated).
+
+Customer-facing mockups use ``dist-v2/`` per ``docs/demo-site-build-playbook.md``.
+This script only updates old ``dist/`` builds for bulk experiments.
+
+Re-render already-built prospect demo sites with the current demo theme.
 
 Offline + free: for every site under ``state/prospects/sites/<place_id>/`` that
 already has a ``preview.json``, this reloads the warehouse record and the

@@ -1,10 +1,17 @@
-"""Deterministic, offline theming for prospect preview demo sites.
+"""Deterministic, offline theming (legacy token-fill + portfolio tooling).
 
-Every preview demo used to be the *same* template with only copy + a single
-brand color swapped, so 244 sites looked identical. This module gives each demo
-a distinct, genre-appropriate identity — **palette**, **font pairing**, and
-**layout variant** — derived only from data already in the warehouse record
-(``genre_id`` + ``place_id``).
+**Not** used for customer-facing prospect mockups — those follow
+``docs/demo-site-build-playbook.md`` (palette from real photos, ``dist-v2/``).
+This module remains for:
+
+* ``--legacy-build`` token-fill previews (deprecated bulk path)
+* portfolio anonymization (``scripts/agency/build_portfolio_demos.py``)
+* unit tests
+
+Historically, every preview was the *same* template with only copy + a single
+brand color swapped. This module gives each *generated* demo a distinct,
+genre-appropriate identity — **palette**, **font pairing**, and **layout variant**
+— derived only from warehouse data (``genre_id`` + ``place_id``).
 
 By design (operator decision, see ``docs/agency/smarter-demos-plan.md``):
 

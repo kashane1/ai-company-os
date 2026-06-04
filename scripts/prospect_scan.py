@@ -43,6 +43,7 @@ from packages.prospecting.storage import (  # noqa: E402
 from packages.prospecting.verification import (  # noqa: E402
     dry_run_exports_root,
     export_cohort_a_verification_csv,
+    export_cohort_verification_csv,
     import_verifications_csv,
     recompute_cohorts_and_priority_scores,
 )
@@ -164,13 +165,19 @@ def _cmd_backfill_priority(_: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_export_cohort_a(args: argparse.Namespace) -> int:
+def _cmd_export_cohort(args: argparse.Namespace) -> int:
     repo = ProspectRepository()
     result = recompute_cohorts_and_priority_scores(repo)
-    paths = export_cohort_a_verification_csv(repo.list(), output_dir=args.output_dir)
+    cohort = getattr(args, "cohort", "A_gold") or "A_gold"
+    paths = export_cohort_verification_csv(
+        repo.list(), cohort=cohort, output_dir=args.output_dir
+    )
     for path in paths:
         print(f"{path}")
-    print(f"Wrote {len(paths)} city file(s). Backfilled before export: updated={result.updated}")
+    print(
+        f"Wrote {len(paths)} city file(s) for {cohort}. "
+        f"Backfilled before export: updated={result.updated}"
+    )
     return 0
 
 
@@ -208,9 +215,21 @@ def main(argv: list[str] | None = None) -> int:
         "backfill-priority", help="recompute cohorts and priority scores for existing records"
     ).set_defaults(func=_cmd_backfill_priority)
 
-    export = sub.add_parser("export-cohort-a", help="write sorted cohort-A verification CSV")
+    export = sub.add_parser(
+        "export-cohort", help="write sorted per-city verification CSVs for a cohort"
+    )
+    export.add_argument(
+        "--cohort",
+        default="A_gold",
+        help="cohort to export (e.g. A_gold, B_stale_maps, C_potential_signal)",
+    )
     export.add_argument("--output-dir", type=Path, default=None)
-    export.set_defaults(func=_cmd_export_cohort_a)
+    export.set_defaults(func=_cmd_export_cohort)
+
+    # Backward-compatible alias for the original A_gold-only command.
+    export_a = sub.add_parser("export-cohort-a", help="alias: export the A_gold cohort")
+    export_a.add_argument("--output-dir", type=Path, default=None)
+    export_a.set_defaults(func=_cmd_export_cohort, cohort="A_gold")
 
     import_cmd = sub.add_parser(
         "import-verifications", help="import operator-filled verification CSV"

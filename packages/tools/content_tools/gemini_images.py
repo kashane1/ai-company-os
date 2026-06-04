@@ -14,6 +14,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import ssl
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -22,6 +23,20 @@ from urllib.error import HTTPError
 from packages.config.settings import GEMINI_API_KEY_ENV_VAR, get_api_key
 
 logger = logging.getLogger(__name__)
+
+
+def _ssl_context() -> ssl.SSLContext:
+    """Verified TLS context, preferring certifi's CA bundle.
+
+    Some interpreters (e.g. python.org macOS builds) ship without OS trust
+    roots wired in, so a bare urlopen fails CERTIFICATE_VERIFY_FAILED. Fall
+    back to the system default if certifi isn't installed.
+    """
+    try:
+        import certifi  # noqa: PLC0415 — optional dependency
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
 
 GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
@@ -104,7 +119,7 @@ def generate_image(
     )
 
     try:
-        with urlopen(request, timeout=120) as response:
+        with urlopen(request, timeout=120, context=_ssl_context()) as response:
             result = json.loads(response.read())
     except HTTPError as e:
         body = e.read().decode() if e.fp else ""

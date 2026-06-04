@@ -14,7 +14,12 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from packages.config.settings import load_runtime_paths
 from packages.schemas.offer import BillType, ServiceCatalog, ServiceTier
+
+_COMPLIANCE_TEMPLATES = (
+    load_runtime_paths().repo_root / "docs" / "agency" / "compliance"
+)
 
 # Files seeded for every client workspace. Phase 4 expands these.
 WORKSPACE_FILES = (
@@ -23,6 +28,8 @@ WORKSPACE_FILES = (
     "SITE_MAP.md",
     "COPY.md",
     "LOCAL_SEO.md",
+    "BOOKING.md",
+    "REVIEWS.md",
     "MAINTENANCE_PLAN.md",
     "LAUNCH_CHECKLIST.md",
 )
@@ -166,9 +173,13 @@ def scaffold_client_workspace(
         "OFFER.md": render_offer(catalog, bundle_id, client_name=client_name),
         "SITE_MAP.md": _stub("Site Map", client_name, "Pages and structure."),
         "COPY.md": _stub("Copy", client_name, "Page copy."),
-        "LOCAL_SEO.md": _stub(
-            "Local SEO", client_name, "GBP, citations, target keywords, service x geo matrix."
+        "LOCAL_SEO.md": _local_seo_stub(client_name),
+        "BOOKING.md": _stub(
+            "Booking",
+            client_name,
+            "Owner-managed booking URL (Fresha/Booksy/Square/etc.), embed plan, CTA copy.",
         ),
+        "REVIEWS.md": _reviews_stub(client_name),
         "MAINTENANCE_PLAN.md": _stub(
             "Maintenance Plan", client_name, "What the retainer covers, edit limits, SLA."
         ),
@@ -182,7 +193,78 @@ def scaffold_client_workspace(
         path = docs_root / name
         path.write_text(contents[name])
         written.append(path)
+    written.extend(_scaffold_compliance(docs_root, client_name))
     return written
+
+
+def _scaffold_compliance(docs_root: Path, client_name: str) -> list[Path]:
+    """Copy agency compliance templates into the client workspace."""
+    written: list[Path] = []
+    comp_dir = docs_root / "compliance"
+    comp_dir.mkdir(exist_ok=True)
+    mapping = {
+        "COMPLIANCE.md": "COMPLIANCE-template.md",
+        "compliance/review-sms-consent-addendum.md": "review-sms-consent-addendum.md",
+    }
+    for dest_rel, src_name in mapping.items():
+        src = _COMPLIANCE_TEMPLATES / src_name
+        if not src.is_file():
+            continue
+        text = src.read_text(encoding="utf-8").replace("{{CLIENT_NAME}}", client_name)
+        dest = docs_root / dest_rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(text, encoding="utf-8")
+        written.append(dest)
+    return written
+
+
+def _local_seo_stub(client_name: str) -> str:
+    return "\n".join(
+        [
+            f"# Local SEO — {client_name}",
+            "",
+            "> Service × geography matrix for landing pages. Not limited to one metro —",
+            "> use the business’s real service area.",
+            "",
+            "## Primary market",
+            "",
+            "- **Primary city:** _TBD_ (from intake)",
+            "- **State/region:** _TBD_",
+            "",
+            "## Service area (SEO pages)",
+            "",
+            "List cities/neighborhoods to generate pages for (one row per cell):",
+            "",
+            "| Service | City / area | Notes |",
+            "|---|---|---|",
+            "| _e.g. Drain cleaning_ | _e.g. Tacoma_ | |",
+            "",
+            "## Matrix YAML (optional, for automation)",
+            "",
+            "```yaml",
+            "primary_city: \"\"",
+            "service_area_cities: []  # e.g. [Tacoma, Federal Way, Kent]",
+            "services: []",
+            "```",
+            "",
+        ]
+    )
+
+
+def _reviews_stub(client_name: str) -> str:
+    return "\n".join(
+        [
+            f"# Reviews — {client_name}",
+            "",
+            "> Review requests are **blocked** until `COMPLIANCE.md` is satisfied and",
+            "> `compliance/review-sms-consent-addendum.md` is signed.",
+            "",
+            "- **GBP review link:** _TBD_",
+            "- **SMS template (draft):** _TBD — operator approves before send_",
+            "- **Cadence:** max 1 per customer / 90 days (default)",
+            "",
+        ]
+    )
 
 
 def _brief_stub(client_name: str, from_prospect: str) -> str:

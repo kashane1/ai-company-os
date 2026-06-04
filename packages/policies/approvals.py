@@ -112,6 +112,14 @@ class PolicyViolationCode(str, Enum):
     # irreversible, externally-visible actions — gated like deploy/payments.
     CLIENT_PROMOTION_NOT_APPROVED = "client_promotion_not_approved"
     PROPOSAL_SEND_NOT_APPROVED = "proposal_send_not_approved"
+    RETAINER_APPROVAL_NOT_GRANTED = "retainer_approval_not_granted"
+    RETAINER_APPROVAL_ARTIFACT_MISSING = "retainer_approval_artifact_missing"
+    REVIEW_SMS_COMPLIANCE_MISSING = "review_sms_compliance_missing"
+    REVIEW_SMS_TEMPLATE_NOT_APPROVED = "review_sms_template_not_approved"
+    REVIEW_SMS_CADENCE_INVALID = "review_sms_cadence_invalid"
+    # Paid client work (retainer fulfilment) is refused unless the client is
+    # actively billed — closes the dispute/refund → keeps-working loop (G1+E2).
+    RETAINER_CLIENT_NOT_ACTIVE = "retainer_client_not_active"
 
 
 class PolicyViolation(RuntimeError):

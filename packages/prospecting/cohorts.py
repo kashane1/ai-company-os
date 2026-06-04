@@ -11,12 +11,21 @@ Cohorts:
 - ``B_stale_maps``: has a site on Maps but it's dead/parked/redirecting.
 - ``E_has_site``: real working owned site (includes website builders like
   Squarespace/Wix). Deprioritized.
-- ``D_low_signal``: too few reviews to act on. ``Z_needs_review``: ambiguous.
+- ``C_potential_signal``: 10–24 reviews — too few to clear the active-signal
+  floor, but enough demand to still be a plausible client. A review-count
+  bucket, gated before web-signal classification just like ``D_low_signal``.
+- ``D_low_signal``: 9 or fewer reviews — too little signal to act on.
+  ``Z_needs_review``: ambiguous.
+
+Review-count gates: ``user_ratings_total >= 25`` flows through web-signal
+classification; ``10..24`` lands in ``C_potential_signal``; ``< 10`` lands in
+``D_low_signal``.
 
 Priority score formula: ``cohort_weight * demand_factor``. ``cohort_weight``
 ranks no-site/stale signals ahead of ambiguous or has-site rows:
 ``A_gold=100``, ``A2_marketplace_review=85``, ``B_stale_maps=80``,
-``Z_needs_review=40``, ``D_low_signal=15``, and ``E_has_site=5``.
+``Z_needs_review=40``, ``C_potential_signal=25``, ``D_low_signal=15``, and
+``E_has_site=5``.
 ``demand_factor`` is ``min(user_ratings_total / 100, 1.0)``. The score is rounded
 to two decimals and is deterministic/idempotent for warehouse backfills.
 """
@@ -25,12 +34,20 @@ from __future__ import annotations
 
 from packages.schemas.prospect import HttpCheckClass, MapsWebsiteClass, ProspectRecord
 
+# Reviews at/above this clear the active-signal floor and flow through
+# web-signal classification (A_gold, marketplace, stale, has-site, …).
 MIN_REVIEW_COUNT = 25
+# Reviews at/above this but below MIN_REVIEW_COUNT are a plausible-client
+# "potential signal" bucket; below it is low signal.
+POTENTIAL_SIGNAL_MIN_REVIEWS = 10
 
 
 def derive_composite_cohort(record: ProspectRecord) -> str:
-    if record.user_ratings_total < MIN_REVIEW_COUNT:
+    if record.user_ratings_total < POTENTIAL_SIGNAL_MIN_REVIEWS:
         return "D_low_signal"
+
+    if record.user_ratings_total < MIN_REVIEW_COUNT:
+        return "C_potential_signal"
 
     # Marketplace/booking-only presence is a SECONDARY manual-review bucket, not a
     # prime lead and not a drop. No owned website — just a third-party page — and
@@ -83,6 +100,7 @@ def priority_score(record: ProspectRecord, cohort: str | None = None) -> float:
         "A2_marketplace_review": 85,
         "B_stale_maps": 80,
         "Z_needs_review": 40,
+        "C_potential_signal": 25,
         "D_low_signal": 15,
         "E_has_site": 5,
     }.get(resolved, 0)

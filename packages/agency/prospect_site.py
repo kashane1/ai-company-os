@@ -1,26 +1,21 @@
-"""Prospect → preview-site glue (Agency layer).
+"""Prospect preview deploy glue (Agency layer).
 
-Turns a verified prospect warehouse record (``state/prospects/records/*.json``)
-into a one-page **preview** site and (optionally) deploys it to Netlify as a
-*draft* deploy — the private ``{mockup_url}`` the outreach library's
-``email/with-mockup.md`` template references.
+**Customer-facing mockups** are built with ``docs/demo-site-build-playbook.md``
+(``state/prospects/sites/<place_id>/dist-v2/``). This module **deploys** that
+bespoke output to Netlify — it does not replace the playbook.
 
-This is deliberately thin: it composes pieces that already exist rather than
-forking a new "site factory".
+The **legacy token-fill** path (``render_landing_html`` + ``demo_theme`` →
+``dist/``) is deprecated for prospects. It remains only for ``--legacy-build``
+bulk regeneration. Paid **client sites** use ``packages/web/scaffold.py`` (Astro
+under ``products/<slug>-site/``), not this module.
 
-    record  ->  ClientIntake            (this module: intake_from_record)
-            ->  scaffold token context  (packages.agency.intake.to_site_context)
-            ->  index.html              (packages.web.scaffold.render_landing_html, no Node)
-            ->  Netlify draft deploy     (packages.web.deploy.NetlifyDeployTarget, production=False)
-            ->  mockup_url written back to the record
+    playbook build  ->  dist-v2/index.html
+            ->  deploy_preview_dist (Netlify draft, shared preview site)
+            ->  mockup_url on the warehouse record
 
 Preview (draft) deploys are intentionally **ungated** per
 ``packages/policies/deploy_readiness.py`` — only production deploys, custom
-domains, and hosting spend require approval. So a preview mockup never needs an
-approval gate; promoting one to production later does.
-
-No Node is required for the preview: ``render_landing_html`` emits the same
-markup Astro would, with CSS inlined, as a single self-contained HTML file.
+domains, and hosting spend require approval.
 """
 
 from __future__ import annotations
@@ -117,8 +112,10 @@ def intake_from_record(record: dict) -> ClientIntake:
         business_name=str(record.get("display_name", "")).strip() or "Local Business",
         service_category=profile.category,
         city=where,
+        region=state,
         services=list(profile.services),
         phone=str(record.get("phone", "")).strip(),
+        service_area_cities=[city] if city else [],
         reviews_note=(
             f"{record.get('rating')}★ from {record.get('user_ratings_total')} Google reviews"
             if record.get("user_ratings_total")
@@ -207,17 +204,6 @@ def render_preview_html(
     return html
 
 
-def write_preview_dist(record: dict, out_dir: Path, profile: dict | None = None) -> Path:
-    """Write a single-file ``dist/index.html`` preview under ``out_dir``.
-
-    Returns the ``dist`` directory (ready for zip-deploy or local opening).
-    """
-    dist = out_dir / "dist"
-    dist.mkdir(parents=True, exist_ok=True)
-    (dist / "index.html").write_text(render_preview_html(record, profile), encoding="utf-8")
-    return dist
-
-
 # One shared Netlify site holds ALL prospect previews. Each preview is a
 # *draft* deploy to it, so every prospect gets a unique, private permalink
 # (``<deploy_id>--<PREVIEW_SITE_NAME>.netlify.app``) without creating a new site
@@ -225,6 +211,79 @@ def write_preview_dist(record: dict, out_dir: Path, profile: dict | None = None)
 # deploy-id prefix + "--" + this name must stay within the 63-char DNS label
 # limit (24 + 2 + 12 = 38 here, comfortably under).
 PREVIEW_SITE_NAME = "bbw-previews"
+
+
+PLAYBOOK_FIRST_MSG = (
+    "no bespoke build at {path} — run docs/demo-site-build-playbook.md first "
+    "(expect state/prospects/sites/<place_id>/dist-v2/index.html)"
+)
+
+
+class ProspectBuildError(FileNotFoundError):
+    """No customer-facing prospect build at the required path."""
+
+
+@dataclass(frozen=True)
+class PreviewResult:
+    place_id: str
+    site_name: str
+    dist_dir: Path
+    deployed: bool
+    mockup_url: str = ""
+    site_id: str = ""
+    deploy_id: str = ""
+
+
+def resolve_prospect_dist_dir(site_dir: Path) -> Path:
+    """Return ``dist-v2`` for deploy/preview; never fall back to token-fill ``dist/``."""
+    v2_index = site_dir / "dist-v2" / "index.html"
+    if v2_index.is_file():
+        return site_dir / "dist-v2"
+    legacy_index = site_dir / "dist" / "index.html"
+    hint = PLAYBOOK_FIRST_MSG.format(path=site_dir / "dist-v2")
+    if legacy_index.is_file():
+        raise ProspectBuildError(
+            f"{hint} (found legacy dist/index.html — token-fill is deprecated; "
+            "rebuild as dist-v2 or pass --legacy-build only for bulk regeneration)"
+        )
+    raise ProspectBuildError(hint)
+
+
+def deploy_preview_dist(
+    record: dict,
+    dist_dir: Path,
+    *,
+    target: DeployTarget,
+    account: DeployAccount | None = None,
+    site_name: str = PREVIEW_SITE_NAME,
+) -> PreviewResult:
+    """Publish an existing ``dist`` directory as a Netlify draft preview."""
+    if not (dist_dir / "index.html").is_file():
+        raise ProspectBuildError(f"missing index.html under {dist_dir}")
+    place_id = str(record.get("place_id", ""))
+    site = target.ensure_site(site_name, account=account)
+    result: DeployResult = target.deploy(site, dist_dir, production=False)
+    return PreviewResult(
+        place_id=place_id,
+        site_name=site_name,
+        dist_dir=dist_dir,
+        deployed=True,
+        mockup_url=result.url,
+        site_id=site.site_id,
+        deploy_id=result.deploy_id,
+    )
+
+
+def write_preview_dist(record: dict, out_dir: Path, profile: dict | None = None) -> Path:
+    """Write a legacy token-fill ``dist/index.html`` preview under ``out_dir``.
+
+    Deprecated for customer-facing mockups — use the demo-site playbook
+    (``dist-v2/``) instead. Kept for ``--legacy-build`` and unit tests.
+    """
+    dist = out_dir / "dist"
+    dist.mkdir(parents=True, exist_ok=True)
+    (dist / "index.html").write_text(render_preview_html(record, profile), encoding="utf-8")
+    return dist
 
 
 def preview_site_name(record: dict) -> str:
@@ -241,17 +300,6 @@ def preview_site_name(record: dict) -> str:
     return f"preview-{slug}-{city}"[:63].strip("-")
 
 
-@dataclass(frozen=True)
-class PreviewResult:
-    place_id: str
-    site_name: str
-    dist_dir: Path
-    deployed: bool
-    mockup_url: str = ""
-    site_id: str = ""
-    deploy_id: str = ""
-
-
 def build_preview_for_record(
     record: dict,
     out_dir: Path,
@@ -261,9 +309,12 @@ def build_preview_for_record(
     profile: dict | None = None,
     site_name: str = PREVIEW_SITE_NAME,
 ) -> PreviewResult:
-    """Build the preview; if ``target`` is given, publish it to Netlify.
+    """Legacy token-fill build; if ``target`` is given, publish ``dist/`` to Netlify.
 
-    With no ``target`` this is a pure local build (the safe default).
+    Deprecated for customer-facing mockups — prefer ``resolve_prospect_dist_dir``
+    + :func:`deploy_preview_dist` after a playbook ``dist-v2`` build.
+
+    With no ``target`` this is a pure local legacy build.
 
     With a ``target`` the mockup is published as a **draft deploy** to a single
     **shared** preview site (``site_name``, default :data:`PREVIEW_SITE_NAME`).

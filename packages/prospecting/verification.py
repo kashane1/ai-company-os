@@ -17,9 +17,13 @@ from packages.schemas.prospect import HumanVerified, ProspectRecord, replace_rec
 EXPORT_COLUMNS = [
     "place_id",
     "display_name",
+    "city_id",
+    "genre_id",
+    "composite_cohort",
     "formatted_address",
     "phone",
     "maps_website_class",
+    "maps_website_uri",
     "http_check_class",
     "user_ratings_total",
     "priority_score",
@@ -27,6 +31,18 @@ EXPORT_COLUMNS = [
     "human_verified",
     "human_verify_note",
 ]
+
+# Default per-cohort export labels used in the output filename
+# (``<city>-<label>-<date>.csv``).
+COHORT_EXPORT_LABELS = {
+    "A_gold": "cohortA",
+    "A2_marketplace_review": "cohortA2",
+    "B_stale_maps": "cohortB",
+    "C_potential_signal": "cohortC",
+    "D_low_signal": "cohortD",
+    "E_has_site": "cohortE",
+    "Z_needs_review": "cohortZ",
+}
 
 
 @dataclass(frozen=True)
@@ -50,24 +66,29 @@ def dry_run_exports_root(repo_root: Path | None = None) -> Path:
     return load_runtime_paths(repo_root).state_root / "prospects" / "dry_run" / "exports"
 
 
-def export_cohort_a_verification_csv(
+def export_cohort_verification_csv(
     records: list[ProspectRecord],
     *,
+    cohort: str,
+    label: str | None = None,
     output_dir: Path | None = None,
     today: Callable[[], datetime] | None = None,
 ) -> list[Path]:
-    """Write one ``<city>-cohortA-<date>.csv`` per city into the exports folder.
+    """Write one ``<city>-<label>-<date>.csv`` per city for the given cohort.
 
-    Cohort-A prospects are grouped by ``city_id`` so every crawled city lands as
-    its own operator file. Returns the written paths sorted by city.
+    Prospects are grouped by ``city_id`` so every crawled city lands as its own
+    operator file. ``label`` defaults to the cohort's entry in
+    ``COHORT_EXPORT_LABELS`` (falling back to the raw cohort name). Returns the
+    written paths sorted by city.
     """
     clock = today or (lambda: datetime.now(timezone.utc))
     target_dir = output_dir or default_exports_root()
     target_dir.mkdir(parents=True, exist_ok=True)
+    file_label = label or COHORT_EXPORT_LABELS.get(cohort, cohort)
 
     by_city: dict[str, list[ProspectRecord]] = {}
     for record in records:
-        if record.composite_cohort != "A_gold" or not _is_operator_exportable(record):
+        if record.composite_cohort != cohort or not _is_operator_exportable(record):
             continue
         by_city.setdefault(record.city_id or "unknown", []).append(record)
 
@@ -77,7 +98,7 @@ def export_cohort_a_verification_csv(
             by_city[city_id],
             key=lambda record: (-record.priority_score, record.display_name.lower()),
         )
-        target = target_dir / f"{city_id}-cohortA-{clock().date().isoformat()}.csv"
+        target = target_dir / f"{city_id}-{file_label}-{clock().date().isoformat()}.csv"
         with target.open("w", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=EXPORT_COLUMNS)
             writer.writeheader()
@@ -85,6 +106,18 @@ def export_cohort_a_verification_csv(
                 writer.writerow(_export_row(record))
         written.append(target)
     return written
+
+
+def export_cohort_a_verification_csv(
+    records: list[ProspectRecord],
+    *,
+    output_dir: Path | None = None,
+    today: Callable[[], datetime] | None = None,
+) -> list[Path]:
+    """Backward-compatible wrapper: export the ``A_gold`` cohort per city."""
+    return export_cohort_verification_csv(
+        records, cohort="A_gold", output_dir=output_dir, today=today
+    )
 
 
 def import_verifications_csv(
@@ -162,9 +195,13 @@ def _export_row(record: ProspectRecord) -> dict[str, object]:
     return {
         "place_id": record.place_id,
         "display_name": record.display_name,
+        "city_id": record.city_id,
+        "genre_id": record.genre_id,
+        "composite_cohort": record.composite_cohort,
         "formatted_address": record.formatted_address,
         "phone": record.phone,
         "maps_website_class": record.maps_website_class.value,
+        "maps_website_uri": record.maps_website_uri,
         "http_check_class": record.http_check_class.value,
         "user_ratings_total": record.user_ratings_total,
         "priority_score": f"{record.priority_score:.2f}",

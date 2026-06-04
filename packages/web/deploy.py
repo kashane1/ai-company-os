@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import re
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -42,6 +43,73 @@ NETLIFY_API = "https://api.netlify.com/api/v1"
 
 class DeployError(RuntimeError):
     """Raised when a deploy target call fails or is misconfigured."""
+
+
+class SecretLeakError(DeployError):
+    """Raised when a build artifact would ship a credential to the public web."""
+
+
+# Credential-shaped patterns that must never reach a published ``dist/`` (todo
+# 075). The file-digest deploy uploads everything under ``dist/`` wholesale, so a
+# secret inlined into a built page/function/JSON ships publicly. We scan first
+# and fail closed. Patterns are deliberately specific (length/word-boundaries) to
+# avoid blocking a legitimate deploy on a coincidental match. NOTE: Google API
+# keys (``AIza…``) are intentionally NOT listed — the demo Maps key is meant to
+# be HTTP-referrer-restricted and embedded in client markup (see demo_maps.py).
+_SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("stripe_secret_key", re.compile(r"\b[sr]k_(?:live|test)_[0-9A-Za-z]{8,}")),
+    ("stripe_webhook_secret", re.compile(r"\bwhsec_[0-9A-Za-z]{8,}")),
+    ("resend_api_key", re.compile(r"\bre_[0-9A-Za-z]{16,}")),
+    ("twilio_sid_or_key", re.compile(r"\b(?:AC|SK)[0-9a-f]{32}\b")),
+    ("slack_webhook", re.compile(r"hooks\.slack\.com/services/")),
+    ("slack_token", re.compile(r"\bxox[baprs]-[0-9A-Za-z-]{10,}")),
+    ("aws_access_key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("github_token", re.compile(r"\bgh[pousr]_[0-9A-Za-z]{20,}")),
+    ("forward_secret_literal", re.compile(r"FORWARD_SECRET[\"'\s]*[:=][\"'\s]*\S{8,}")),
+)
+
+# Binary asset suffixes that can't carry a text secret — skip to keep the scan
+# fast and avoid spurious matches on packed bytes.
+_BINARY_SUFFIXES = frozenset(
+    {
+        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".ico", ".bmp",
+        ".woff", ".woff2", ".ttf", ".otf", ".eot",
+        ".mp4", ".webm", ".mov", ".mp3", ".wav", ".pdf", ".zip", ".gz", ".br",
+    }
+)
+
+# Cap per-file read so a giant artifact can't stall the scan.
+_SCAN_MAX_BYTES = 5_000_000
+
+
+def scan_dist_for_secrets(dist_dir: Path) -> list[str]:
+    """Return human-readable findings for any credential-shaped string in ``dist``.
+
+    Recursive over every text-readable file. Empty list == clean.
+    """
+    findings: list[str] = []
+    for path in sorted(dist_dir.rglob("*")):
+        if not path.is_file() or path.suffix.lower() in _BINARY_SUFFIXES:
+            continue
+        try:
+            text = path.read_bytes()[:_SCAN_MAX_BYTES].decode("utf-8", "ignore")
+        except OSError:
+            continue
+        rel = path.relative_to(dist_dir).as_posix()
+        for label, pattern in _SECRET_PATTERNS:
+            if pattern.search(text):
+                findings.append(f"{rel}: looks like a {label}")
+    return findings
+
+
+def assert_no_secret_leak(dist_dir: Path) -> None:
+    """Fail closed if ``dist`` contains a credential-shaped string (todo 075)."""
+    findings = scan_dist_for_secrets(dist_dir)
+    if findings:
+        raise SecretLeakError(
+            "refusing to deploy — build artifacts may leak secrets:\n  "
+            + "\n  ".join(findings)
+        )
 
 
 @dataclass(frozen=True)
@@ -171,6 +239,9 @@ class NetlifyDeployTarget:
         """
         if not dist_dir.is_dir():
             raise DeployError(f"dist directory not found: {dist_dir}")
+        # Fail closed before uploading if a credential-shaped string is in dist/
+        # (the digest deploy ships every file wholesale — todo 075).
+        assert_no_secret_leak(dist_dir)
         files: dict[str, tuple[str, bytes]] = {}
         for path in sorted(dist_dir.rglob("*")):
             if path.is_file():

@@ -17,12 +17,27 @@ REVENUECAT_API_KEY_ENV_VAR = "REVENUECAT_API_KEY"
 OPENROUTER_API_KEY_ENV_VAR = "OPENROUTER_API_KEY"
 NVIDIA_API_KEY_ENV_VAR = "NVIDIA_API_KEY"
 GITHUB_TOKEN_ENV_VAR = "GITHUB_TOKEN"
+# Server-side Places API (New) key — prospecting/enrichment, never in a browser.
+GOOGLE_PLACES_API_KEY_ENV_VAR = "GOOGLE_PLACES_API_KEY"
+# Browser-side Maps key for embedding maps on demo/prospect sites we ship. Kept
+# separate from the Places key so it can be HTTP-referrer-restricted and exposed
+# in client-side markup without leaking the server key. See packages/agency/demo_maps.py.
+GOOGLE_MAPS_DEMO_API_KEY_ENV_VAR = "GOOGLE_MAPS_DEMO_API_KEY"
 REDDIT_CLIENT_ID_ENV_VAR = "REDDIT_CLIENT_ID"
 REDDIT_CLIENT_SECRET_ENV_VAR = "REDDIT_CLIENT_SECRET"
 # Section F — web deploy lane (Netlify) + Stripe monetization.
 NETLIFY_AUTH_TOKEN_ENV_VAR = "NETLIFY_AUTH_TOKEN"
 STRIPE_SECRET_KEY_ENV_VAR = "STRIPE_SECRET_KEY"
 STRIPE_WEBHOOK_SECRET_ENV_VAR = "STRIPE_WEBHOOK_SECRET"
+# Section G — agency transaction loop: inbound lead notification (Resend).
+# Server-side only (set in Netlify env / .env). NEVER a PUBLIC_/VITE_ prefix and
+# never shipped in dist/ — see packages/web/deploy.assert_no_secret_leak.
+RESEND_API_KEY_ENV_VAR = "RESEND_API_KEY"
+# Where new-lead notifications are sent. Swappable to a business inbox later
+# without a source redeploy — it's a single Netlify env var.
+LEAD_NOTIFY_EMAIL_ENV_VAR = "LEAD_NOTIFY_EMAIL"
+# Verified Resend sending address (defaults applied in the function if unset).
+LEAD_FROM_EMAIL_ENV_VAR = "LEAD_FROM_EMAIL"
 
 
 def load_dotenv() -> None:

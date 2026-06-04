@@ -5,6 +5,12 @@ The WEB lane seeds a new web product from a template under
 then edits the result; the web gate (``packages/web/validation.py``) checks the
 build output.
 
+**Scope:** paid **client sites** (``products/<slug>-site/``, agency Phase 4) and
+product validation experiments — **not** customer-facing prospect mockups. Those
+use ``docs/demo-site-build-playbook.md`` (``dist-v2/``). The offline
+:func:`render_landing_html` path is legacy token-fill for ``--legacy-build`` /
+tests only.
+
 Two entry points:
 
 * :func:`scaffold_site` writes the full project into a target directory, with

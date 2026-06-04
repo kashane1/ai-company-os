@@ -84,15 +84,16 @@ services:
       - Confirmation + reminder setup
 
   - service_id: reviews
-    name: Review Generation System
+    name: Review Readiness System
     tier: tier_2
     bill_type: recurring
     setup_fee: 0
     monthly_fee: 50
     includes:
-      - Post-service SMS review requests
       - Google review link
-      - Cadence management
+      - Review request template draft
+      - Cadence management and compliance checklist
+      - Live SMS activation only after signed addendum
 
   - service_id: local_seo
     name: Local SEO
@@ -190,7 +191,7 @@ bundles:
 
   - bundle_id: package_c
     name: "Package C — Presence + Capture + Growth"
-    description: Everything in B, plus local SEO, landing pages, and monthly reporting.
+    description: Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.
     service_ids:
       - website
       - hosting
@@ -201,3 +202,4 @@ bundles:
       - local_seo
       - promo_landing_page
       - monthly_reporting
+      - google_ads

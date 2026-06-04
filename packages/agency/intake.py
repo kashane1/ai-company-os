@@ -31,6 +31,12 @@ class ClientIntake:
     competitors: list[str] = field(default_factory=list)
     tagline: str = ""
     site_url: str = "https://example.com"
+    service_area_cities: list[str] = field(default_factory=list)
+    travel_radius_miles: int | None = None
+    service_area_notes: str = ""
+    matrix_approved: bool = False
+    matrix_approved_by: str = ""
+    matrix_approved_at: str = ""
 
     def validate(self) -> None:
         if not self.business_name.strip():
@@ -39,6 +45,8 @@ class ClientIntake:
             raise ValueError("intake: service_category is required")
         if not self.city.strip():
             raise ValueError("intake: city is required")
+        if self.travel_radius_miles is not None and self.travel_radius_miles < 0:
+            raise ValueError("intake: travel_radius_miles must be non-negative")
 
     def to_site_context(self) -> dict[str, str]:
         return local_business_context(
@@ -66,6 +74,12 @@ class ClientIntake:
             "competitors": list(self.competitors),
             "tagline": self.tagline,
             "site_url": self.site_url,
+            "service_area_cities": list(self.service_area_cities),
+            "travel_radius_miles": self.travel_radius_miles,
+            "service_area_notes": self.service_area_notes,
+            "matrix_approved": self.matrix_approved,
+            "matrix_approved_by": self.matrix_approved_by,
+            "matrix_approved_at": self.matrix_approved_at,
         }
 
     @classmethod
@@ -84,6 +98,18 @@ class ClientIntake:
             competitors=[str(x) for x in list(payload.get("competitors", []))],
             tagline=str(payload.get("tagline", "")),
             site_url=str(payload.get("site_url", "https://example.com")),
+            service_area_cities=[
+                str(x) for x in list(payload.get("service_area_cities", []))
+            ],
+            travel_radius_miles=(
+                int(payload["travel_radius_miles"])
+                if payload.get("travel_radius_miles") is not None
+                else None
+            ),
+            service_area_notes=str(payload.get("service_area_notes", "")),
+            matrix_approved=bool(payload.get("matrix_approved", False)),
+            matrix_approved_by=str(payload.get("matrix_approved_by", "")),
+            matrix_approved_at=str(payload.get("matrix_approved_at", "")),
         )
 
 
@@ -99,6 +125,8 @@ def render_brief(intake: ClientIntake) -> str:
             "",
             f"- **Business type:** {intake.service_category}",
             f"- **Location:** {intake.city}{(', ' + intake.region) if intake.region else ''}",
+            f"- **Travel radius:** {_radius(intake)}",
+            f"- **Service area:** {_service_area(intake)}",
             f"- **Phone:** {intake.phone or '_TBD_'}",
             f"- **Hours:** {intake.hours or '_TBD_'}",
             f"- **Ideal customer:** {intake.ideal_customer or '_TBD_'}",
@@ -117,3 +145,15 @@ def render_brief(intake: ClientIntake) -> str:
             "",
         ]
     )
+
+
+def _radius(intake: ClientIntake) -> str:
+    if intake.travel_radius_miles is None:
+        return "_TBD_"
+    return f"{intake.travel_radius_miles} miles"
+
+
+def _service_area(intake: ClientIntake) -> str:
+    cities = intake.service_area_cities or [intake.city]
+    notes = f" — {intake.service_area_notes}" if intake.service_area_notes else ""
+    return f"{', '.join(cities)}{notes}"
