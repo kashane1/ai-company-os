@@ -78,6 +78,9 @@ services) → IG/FB (photos & voice) → BBB/press (story & credibility) → own
 - **Palette from visual cues first** — derive it from the business's storefront /
   signage / logo / photos (dominant canvas + one sharp accent), not an invented
   scheme. (King: hand-painted red storefront → red/white/minimal-blue.)
+  When cues are weak, fall back to a genre-matched triad + a vibe-fit font pairing
+  from `packages/web/design_reference/` (palettes / font_pairings / ux_rules,
+  curated from UI UX Pro Max, MIT) — fallback, never an override.
 - Genre-appropriate design (type system, palette, layout). Self-contained HTML +
   inlined CSS + the real photos. Real CTAs (`tel:` / verified booking), real hours
   table, live map embed.
