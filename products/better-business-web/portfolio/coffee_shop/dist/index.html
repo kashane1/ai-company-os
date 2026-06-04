@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Northside Coffee Co. — Latin-American Coffee House on KC's Westside</title>
+<meta name="description" content="Northside Coffee Co. on Main St, Riverside. Northside Coffee Co. de olla slow-brewed with spices and piloncillo, coffee flights, horchata, and a folk-art room. 4.9★ from 281 Google reviews. Walk in or call ahead." />
+<meta property="og:title" content="Northside Coffee Co. — Latin-American Coffee House, KC Westside" />
+<meta property="og:description" content="Northside Coffee Co. de olla the way it's meant to be made — slow-brewed with spices & piloncillo. Coffee flights, horchata, folk art, family-run. Main St, Riverside." />
+<meta property="og:type" content="business.business" />
+<meta property="og:image" content="assets/hero-storefront.jpg" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233b434b'/%3E%3Cg fill='none' stroke='%23e0992a' stroke-width='2.1'%3E%3Cpolygon points='9,21 12.5,13 16,21'/%3E%3Ccircle cx='21.5' cy='17' r='3.4'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --masa:#f5ead9; --paper:#fbf6ee; --ink:#2a1e16; --muted:#7c6a5a;
+    --gold:#e0992a; --gold-deep:#bd7c16; --gold-soft:#f6dcab;
+    --slate:#3b434b; --slate-deep:#2b3138; --clay:#b5613c; --cobalt:#1f5fa6;
+    --line:#ece0cf; --r:18px;
+    --sh:0 1px 2px rgba(58,40,24,.06), 0 12px 24px -12px rgba(58,40,24,.20), 0 30px 60px -30px rgba(58,40,24,.34);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Hanken Grotesk",system-ui,sans-serif;color:var(--ink);background:var(--masa);line-height:1.65;-webkit-font-smoothing:antialiased}
+  img{display:block;max-width:100%}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:500;line-height:1.08;letter-spacing:-.01em}
+  .num,.stars b,.tnum,.price,.hours span{font-variant-numeric:tabular-nums lining-nums}
+  .wrap{width:100%;max-width:1160px;margin-inline:auto;padding-inline:clamp(1.2rem,4vw,2.4rem)}
+  .eyebrow{font-size:.76rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  .btn{position:relative;display:inline-flex;align-items:center;gap:.5rem;font-weight:600;font-size:1rem;padding:.85rem 1.5rem;border-radius:999px;transition:transform .2s,background .2s,color .2s;border:1px solid transparent;cursor:pointer;overflow:hidden}
+  .btn-primary{background:var(--gold);color:#fff;box-shadow:0 10px 26px -12px rgba(224,153,42,.85)}
+  .btn-primary:hover{background:var(--gold-deep);transform:translateY(-2px)}
+  .btn-primary::after{content:"";position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);transition:left .6s}
+  .btn-primary:hover::after{left:150%}
+  .btn-ghost{border-color:var(--slate);color:var(--slate)}
+  .btn-ghost:hover{background:var(--slate);color:#fff}
+
+  /* grain */
+  body::after{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  /* progress */
+  .progress{position:fixed;top:0;left:0;height:3px;width:100%;z-index:60;transform-origin:left;transform:scaleX(0);background:linear-gradient(90deg,var(--gold),var(--clay))}
+  @media (prefers-reduced-motion: no-preference){.progress{animation:grow linear;animation-timeline:scroll(root)}@keyframes grow{to{transform:scaleX(1)}}}
+
+  /* Talavera tile band — CSS folk motif divider */
+  .tile-band{height:14px;
+    background:
+      repeating-linear-gradient(135deg, var(--cobalt) 0 10px, transparent 10px 20px),
+      repeating-linear-gradient(45deg, var(--clay) 0 10px, transparent 10px 20px),
+      repeating-linear-gradient(90deg, var(--gold) 0 20px, var(--gold-deep) 20px 40px);
+    background-blend-mode:multiply,multiply,normal;opacity:.92}
+
+  /* Header */
+  header{position:sticky;top:0;z-index:50;background:rgba(245,234,217,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}
+  .nav{display:flex;align-items:center;justify-content:space-between;padding-block:.9rem}
+  .brand{display:inline-flex;align-items:center;gap:.7rem}
+  .brand .glyph{width:34px;height:34px;flex:none}
+  .brand .bt{font-family:"Fraunces",serif;font-size:1.4rem;font-weight:600;letter-spacing:-.01em;line-height:1}
+  .brand .bt small{display:block;font-family:"Hanken Grotesk";font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;margin-top:2px}
+  .nav-links{display:flex;gap:2rem;align-items:center}
+  .nav-links a{font-size:.95rem;color:var(--muted);position:relative}
+  .nav-links a::after{content:"";position:absolute;left:0;bottom:-5px;width:100%;height:2px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+  .nav-links a:hover{color:var(--ink)}.nav-links a:hover::after{transform:scaleX(1)}
+  .nav-cta{display:flex;gap:.6rem;align-items:center}
+  @media(max-width:860px){.nav-links{display:none}.nav-cta .btn-ghost{display:none}}
+
+  /* Hero */
+  .hero{position:relative;padding-block:clamp(3rem,7vw,5.5rem);overflow:hidden}
+  .hero-mesh{position:absolute;inset:0;pointer-events:none;z-index:0;background:
+    radial-gradient(48% 52% at 86% 14%, rgba(224,153,42,.30), transparent 70%),
+    radial-gradient(42% 48% at 4% 94%, rgba(181,97,60,.20), transparent 72%)}
+  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(2rem,5vw,4rem);align-items:center}
+  .hero h1{font-size:clamp(2.6rem,6vw,4.4rem);margin:.6rem 0 1.1rem}
+  .hero h1 em{font-style:italic;color:var(--gold-deep)}
+  .hero p.lede{font-size:1.18rem;color:var(--muted);max-width:40ch}
+  .hero-actions{display:flex;gap:.8rem;margin-top:1.8rem;flex-wrap:wrap}
+  .stars{display:flex;align-items:center;gap:.6rem;margin-top:1.6rem;font-size:.95rem;color:var(--muted)}
+  .stars b{color:var(--ink);font-weight:700}
+  .star-row{color:var(--gold);letter-spacing:2px;font-size:1.05rem}
+  .hero-figure{position:relative}
+  .hero-figure img{width:100%;aspect-ratio:4/4.5;object-fit:cover;border-radius:calc(var(--r) + 8px);box-shadow:var(--sh)}
+  .hero-figure .chip{position:absolute;left:-14px;bottom:26px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:.7rem 1rem;box-shadow:var(--sh);font-size:.9rem;max-width:215px}
+  .hero-figure .chip b{font-family:"Fraunces",serif}
+  @media(max-width:860px){.hero-grid{grid-template-columns:1fr}.hero-figure{order:-1}}
+  @media (prefers-reduced-motion: no-preference){
+    .hero-grid>div>*{animation:rise .7s both}
+    .hero-grid .eyebrow{animation-delay:.05s}.hero-grid h1{animation-delay:.15s}
+    .hero-grid .lede{animation-delay:.28s}.hero-grid .hero-actions{animation-delay:.4s}.hero-grid .stars{animation-delay:.5s}
+    .hero-figure{animation:rise .8s .25s both}
+    @keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+    .reveal{animation:reveal linear both;animation-timeline:view();animation-range:entry 0% cover 26%}
+    @keyframes reveal{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+  }
+
+  /* Stats */
+  .statband{background:var(--slate);color:#eef1f3;position:relative;overflow:hidden}
+  .statband::before{content:"";position:absolute;inset:0;background:radial-gradient(42% 80% at 84% 10%,rgba(224,153,42,.22),transparent 70%)}
+  .statrow{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;padding-block:2.1rem;text-align:center}
+  .statrow .num{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(2rem,4.6vw,2.9rem);color:#fff;display:block;line-height:1}
+  .statrow small{color:var(--gold-soft);font-size:.82rem;letter-spacing:.03em}
+  .statrow .div{position:absolute;top:24%;bottom:24%;width:1px;background:rgba(255,255,255,.14)}
+  @media(max-width:620px){.statrow{grid-template-columns:1fr 1fr;gap:1.6rem 1rem}.statrow .div{display:none}}
+
+  /* Trust */
+  .trust{border-block:1px solid var(--line);background:var(--paper)}
+  .trust-row{display:flex;flex-wrap:wrap;gap:1rem 2.4rem;justify-content:center;padding-block:1.1rem;font-size:.92rem;color:var(--muted)}
+  .trust-row span{display:inline-flex;align-items:center;gap:.5rem}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--gold)}
+
+  section{padding-block:clamp(3.2rem,7vw,5.5rem)}
+  .sec-head{max-width:62ch}
+  .sec-head h2{font-size:clamp(1.9rem,4vw,2.8rem);margin:.5rem 0}
+  .sec-head h2 em{font-style:italic;color:var(--gold-deep)}
+  .sec-head p{color:var(--muted);font-size:1.08rem}
+
+  /* Ritual / story */
+  .ritual-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(1.6rem,4vw,3.4rem);align-items:center;margin-top:2.2rem}
+  .ritual-copy p{color:var(--muted);font-size:1.06rem;margin-bottom:1rem}
+  .ritual-copy p strong{color:var(--ink);font-weight:600}
+  .ritual-figure{position:relative}
+  .ritual-figure img{width:100%;aspect-ratio:4/3.4;object-fit:cover;border-radius:var(--r);box-shadow:var(--sh)}
+  .ritual-figure .tag{position:absolute;right:-10px;top:-10px;background:var(--clay);color:#fff;font-size:.82rem;font-weight:600;padding:.5rem .85rem;border-radius:12px;box-shadow:var(--sh);font-family:"Fraunces",serif;font-style:italic}
+  @media(max-width:860px){.ritual-grid{grid-template-columns:1fr}}
+
+  /* Menu */
+  .menu-wrap{background:var(--paper);border-block:1px solid var(--line)}
+  .menu{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;margin-top:2.4rem}
+  .item{position:relative;background:var(--masa);border-radius:var(--r);padding:1.4rem 1.5rem;box-shadow:var(--sh);transition:transform .2s,box-shadow .2s}
+  .item::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:1px;z-index:0;
+    background:linear-gradient(150deg,rgba(224,153,42,.6),rgba(181,97,60,.4) 60%,rgba(236,224,207,.7));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  .item>*{position:relative}
+  .item:hover{transform:translateY(-4px);box-shadow:0 1px 2px rgba(58,40,24,.06),0 22px 44px -18px rgba(181,97,60,.4)}
+  .item .top{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem}
+  .item h3{font-size:1.22rem}
+  .item .price{color:var(--gold-deep);font-weight:700;font-size:1.05rem;white-space:nowrap}
+  .item p{color:var(--muted);font-size:.94rem;margin-top:.35rem}
+  .item.feature{background:linear-gradient(150deg,#fff,var(--masa));grid-column:span 1}
+  .item .badge{display:inline-block;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#fff;background:var(--clay);padding:.18rem .5rem;border-radius:7px;margin-bottom:.5rem}
+  @media(max-width:860px){.menu{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.menu{grid-template-columns:1fr}}
+  .flights{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(1.4rem,4vw,2.6rem);align-items:center;margin-top:1.6rem;
+    background:var(--slate);color:#eef1f3;border-radius:calc(var(--r) + 4px);overflow:hidden;box-shadow:var(--sh)}
+  .flights .ftxt{padding:clamp(1.6rem,4vw,2.6rem)}
+  .flights .ftxt h3{color:#fff;font-size:clamp(1.5rem,3vw,2.1rem);margin-bottom:.5rem}
+  .flights .ftxt p{color:var(--gold-soft);font-size:1.02rem}
+  .flights .ftxt .eyebrow{color:var(--gold)}
+  .flights img{width:100%;height:100%;min-height:230px;object-fit:cover}
+  @media(max-width:680px){.flights{grid-template-columns:1fr}.flights img{order:-1;min-height:200px}}
+  .menu-note{margin-top:1.3rem;font-size:.86rem;color:var(--muted)}
+
+  /* Gallery */
+  .gallery{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:168px;gap:.9rem;margin-top:2.4rem;grid-auto-flow:dense}
+  .gallery figure{margin:0;overflow:hidden;border-radius:14px;box-shadow:var(--sh);position:relative}
+  .gallery img{width:100%;height:100%;object-fit:cover;transition:transform .5s;filter:saturate(1.03)}
+  .gallery figure:hover img{transform:scale(1.07)}
+  .gallery figcaption{position:absolute;left:10px;bottom:9px;font-size:.76rem;color:#fff;background:rgba(43,49,56,.62);backdrop-filter:blur(3px);padding:.22rem .55rem;border-radius:8px;opacity:0;transition:opacity .25s}
+  .gallery figure:hover figcaption{opacity:1}
+  .gallery .big{grid-column:span 2;grid-row:span 2}
+  .gallery .wide{grid-column:span 2}
+  @media(max-width:760px){.gallery{grid-template-columns:1fr 1fr;grid-auto-rows:150px}.gallery .big{grid-row:span 2}.gallery .wide{grid-column:span 2}}
+
+  /* Loved */
+  .loved{background:var(--slate-deep);color:#eef1f3;position:relative;overflow:hidden}
+  .loved::before{content:"";position:absolute;inset:0;background:radial-gradient(40% 60% at 86% 10%,rgba(224,153,42,.26),transparent 70%)}
+  .loved .wrap{position:relative}
+  .loved .eyebrow{color:var(--gold)}
+  .loved h2{color:#fff}
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:2.4rem}
+  .q{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.13);border-radius:var(--r);padding:1.6rem}
+  .q .mark{font-family:"Fraunces",serif;font-size:2.4rem;line-height:1;color:var(--gold)}
+  .q p{font-size:1.02rem;margin:.3rem 0 1rem}
+  .q .who{font-size:.84rem;color:var(--gold-soft);letter-spacing:.03em}
+  @media(max-width:860px){.quotes{grid-template-columns:1fr}}
+
+  /* FAQ */
+  .faq{max-width:760px;margin-top:2.2rem}
+  .faq details{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:0 1.3rem;margin-bottom:.7rem;box-shadow:0 1px 2px rgba(58,40,24,.05)}
+  .faq summary{list-style:none;cursor:pointer;padding:1.05rem 0;font-weight:600;font-size:1.04rem;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary .pl{flex:none;width:22px;height:22px;position:relative;transition:transform .3s}
+  .faq summary .pl::before,.faq summary .pl::after{content:"";position:absolute;background:var(--gold-deep);border-radius:2px}
+  .faq summary .pl::before{top:10px;left:2px;right:2px;height:2px}
+  .faq summary .pl::after{left:10px;top:2px;bottom:2px;width:2px;transition:transform .3s}
+  .faq details[open] summary .pl::after{transform:scaleY(0)}
+  .faq .ans{overflow:hidden;color:var(--muted);font-size:.98rem;padding-bottom:1.1rem;max-width:64ch}
+
+  /* Visit */
+  .visit-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(1.5rem,4vw,3rem);margin-top:2.4rem;align-items:start}
+  .hours{list-style:none;border-radius:var(--r);overflow:hidden;background:var(--paper);box-shadow:var(--sh)}
+  .hours li{display:flex;justify-content:space-between;padding:.7rem 1.2rem;border-bottom:1px solid var(--line);font-size:.97rem}
+  .hours li:last-child{border-bottom:0}
+  .hours li.today{background:rgba(224,153,42,.12);font-weight:600}
+  .hours .d{color:var(--muted)}.hours li.today .d{color:var(--ink)}
+  .info p{margin-bottom:.4rem;color:var(--muted)}
+  .info b{color:var(--ink)}
+  .info .ico{color:var(--gold-deep);font-weight:700}
+  .map{margin-top:1.2rem;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);box-shadow:var(--sh)}
+  .map iframe{width:100%;height:250px;border:0;display:block}
+  .secondary-cta{display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:1rem;font-size:.95rem}
+  .secondary-cta a{color:var(--slate);font-weight:600;border-bottom:2px solid var(--gold);padding-bottom:1px}
+  .secondary-cta a:hover{color:var(--gold-deep)}
+  @media(max-width:860px){.visit-grid{grid-template-columns:1fr}}
+
+  /* Footer */
+  footer{background:var(--ink);color:#d9cabb;padding-block:2.6rem;font-size:.92rem;position:relative;overflow:hidden}
+  .foot-mark{position:absolute;right:-1%;bottom:-44%;font-family:"Fraunces",serif;font-style:italic;font-weight:600;font-size:clamp(5rem,17vw,13rem);line-height:1;color:rgba(224,153,42,.10);pointer-events:none}
+  .foot{display:flex;flex-wrap:wrap;gap:1.4rem 3rem;justify-content:space-between;align-items:center;position:relative}
+  footer .brand .bt{color:#fff}
+  footer a:hover{color:#fff}
+  .foot-note{width:100%;border-top:1px solid rgba(255,255,255,.1);margin-top:1.6rem;padding-top:1.2rem;color:#8a7c6e;font-size:.82rem;position:relative;max-width:74ch}
+</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Northside Coffee Co. home">
+      <svg class="glyph" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#3b434b"/><g fill="none" stroke="#e0992a" stroke-width="2.1"><polygon points="9,21 12.5,13 16,21"/><circle cx="21.5" cy="17" r="3.4"/></g></svg>
+      <span class="bt">Northside Coffee Co.<small>Westside · Riverside</small></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#ritual">The Ritual</a>
+      <a href="#menu">Menu</a>
+      <a href="#space">The Space</a>
+      <a href="#visit">Visit</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=412+Main+St,+Riverside,+WA+99001" target="_blank" rel="noopener">Directions</a>
+      <a class="btn btn-primary" href="tel:+15095550120">Call (509) 555-0120</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-mesh"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">Latin-American coffee house · Main St</span>
+        <h1>Northside Coffee Co. de olla,<br><em>the way it's meant to be made.</em></h1>
+        <p class="lede">Slow-brewed with cinnamon, spice and piloncillo — poured in a folk-art room full of marigolds and local art. Order a flight and taste your way through la cultura. Family-run on KC's Westside.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="tel:+15095550120">Call (509) 555-0120</a>
+          <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=412+Main+St,+Riverside,+WA+99001" target="_blank" rel="noopener">Get directions</a>
+        </div>
+        <div class="stars">
+          <span class="star-row">★★★★★</span>
+          <span><b>4.9</b> from <b>281</b> Google reviews</span>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <img src="assets/hero-storefront.jpg" alt="Northside Coffee Co.'s brick storefront on Main St with its charcoal OLLAMA sign, terracotta umbrella and powder-blue bistro sets" />
+        <div class="chip"><b>Coffee flights</b><br>Pick two — taste the menu before you commit</div>
+      </figure>
+    </div>
+  </section>
+
+  <div class="tile-band" aria-hidden="true"></div>
+
+  <!-- STATS -->
+  <div class="statband">
+    <div class="wrap statrow reveal">
+      <div><span class="num" data-to="4.9" data-dec="1">4.9</span><small>Google rating</small></div>
+      <div style="position:relative"><span class="div" style="left:0"></span><span class="num" data-to="281" data-suffix="">281</span><small>Google reviews</small></div>
+      <div style="position:relative"><span class="div" style="left:0"></span><span class="num"><span class="tnum">$</span><span data-to="4.75" data-dec="2">4.75</span></span><small>café de olla, house specialty</small></div>
+      <div style="position:relative"><span class="div" style="left:0"></span><span class="num" data-to="7" data-suffix="">7</span><small>days a week, open early</small></div>
+    </div>
+  </div>
+
+  <!-- TRUST -->
+  <div class="trust">
+    <div class="wrap trust-row">
+      <span><span class="dot"></span> 4.9★ · 281 Google reviews</span>
+      <span><span class="dot"></span> Open 7 days, from 6:45 AM</span>
+      <span><span class="dot"></span> Patio &amp; outdoor seating</span>
+      <span><span class="dot"></span> Cards &amp; contactless</span>
+      <span><span class="dot"></span> Family-run</span>
+    </div>
+  </div>
+
+  <!-- RITUAL / STORY -->
+  <section id="ritual">
+    <div class="wrap">
+      <div class="ritual-grid">
+        <div class="ritual-copy reveal">
+          <span class="eyebrow">The ritual</span>
+          <h2 style="font-size:clamp(1.9rem,4vw,2.8rem);margin:.4rem 0 1rem">Coffee that tastes like <em>home</em>.</h2>
+          <p>Northside Coffee Co. is a Latin-American coffee shop with character to spare — soaring oak walls, brass light, a Talavera-tile counter, and a wall that rotates through the work of local artists.</p>
+          <p>The house specialty is <strong>café de olla</strong>: coffee brewed slowly with cinnamon, spice and <strong>piloncillo</strong>, the way it's made at home in Mexico. From there the menu runs deep — <strong>horchata</strong> with churros, <strong>Tía Rosa</strong> with mazapán and oat milk, an Abuelita chocoflan, beans roasted in Veracruz.</p>
+          <p>It's made to order and worth the minute it takes. Come for a drink and stay a while — for a Día de Muertos ofrenda, a still-life workshop, or just a quiet corner with the big picture window onto the Westside.</p>
+        </div>
+        <figure class="ritual-figure reveal">
+          <img src="assets/counter-talavera.jpg" alt="The hand-tiled Talavera counter at Northside Coffee Co., set under warm oak paneling with a chalk drink menu" />
+          <span class="tag">Hecho en casa</span>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section id="menu" class="menu-wrap">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">A taste of the menu</span>
+        <h2>Drinks you won't find at a <em>chain</em>.</h2>
+        <p>A few of the regulars below — plus rotating barista specials each month. Everything's made to order; ask the staff what's new.</p>
+      </div>
+      <div class="menu reveal">
+        <article class="item feature">
+          <span class="badge">House specialty</span>
+          <div class="top"><h3>Northside Coffee Co. de Olla</h3><span class="price">$4.75</span></div>
+          <p>Slowly brewed coffee with spices and piloncillo. Also poured as a spiced cold brew with optional salted sweet foam.</p>
+        </article>
+        <article class="item">
+          <div class="top"><h3>Tía Rosa</h3><span class="price">$5.75</span></div>
+          <p>Espresso with mazapán — the peanut candy — and oat milk. A regulars' favorite.</p>
+        </article>
+        <article class="item">
+          <div class="top"><h3>Chatita</h3><span class="price">$6.00</span></div>
+          <p>Agua de horchata with two shots of espresso, iced, topped with whipped cream and churros.</p>
+        </article>
+        <article class="item">
+          <div class="top"><h3>Horchata</h3><span class="price">$5.80</span></div>
+          <p>Cinnamon-and-vanilla rice water, lightly sweetened, served with whipped cream and churros.</p>
+        </article>
+        <article class="item">
+          <div class="top"><h3>Abuelita Lupe</h3><span class="price">$5.20</span></div>
+          <p>Chocolate Abuelita frothed with milk. Add a shot of espresso to make it dirty.</p>
+        </article>
+        <article class="item">
+          <div class="top"><h3>Chocoflan</h3><span class="price">$6.65</span></div>
+          <p>Abuelita chocolate syrup, condensed milk and vanilla mixed with espresso.</p>
+        </article>
+        <article class="item">
+          <div class="top"><h3>Mami Gloria</h3><span class="price">$7.25</span></div>
+          <p>Two shots of espresso with Mexican Coca-Cola, served iced.</p>
+        </article>
+        <article class="item">
+          <div class="top"><h3>CDMX Smog</h3><span class="price">$7.00</span></div>
+          <p>Té de manzanilla, café de olla and citrus, topped with foam.</p>
+        </article>
+        <article class="item">
+          <div class="top"><h3>Drip Coffee</h3><span class="price">$5.00</span></div>
+          <p>Our Veracruz, Mexico dark roast. Bagged beans and bottled cold brew to go, too.</p>
+        </article>
+      </div>
+
+      <div class="flights reveal">
+        <div class="ftxt">
+          <span class="eyebrow">Can't choose?</span>
+          <h3>Order a flight.</h3>
+          <p>Pick any two drinks and we'll serve them side by side on a branded paddle — the easiest way to find your café-de-olla flavor. "Each cup was 10/10," as one regular put it.</p>
+        </div>
+        <img src="assets/coffee-flight.jpg" alt="A coffee flight on a branded OLLAMA wood paddle by the picture window" loading="lazy">
+      </div>
+      <p class="menu-note">Prices and items as listed publicly and may change — call (509) 555-0120 for today's full menu and seasonal specials.</p>
+    </div>
+  </section>
+
+  <!-- SPACE / GALLERY -->
+  <section id="space">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">The space</span>
+        <h2>Folk art, marigolds, and a <em>whole lot</em> of character.</h2>
+        <p>Oak paneling, Mexican folk paintings, a Día de Muertos ofrenda, and a rotating wall of local artists. Small inside, with a patio out front when the weather's right.</p>
+      </div>
+      <div class="gallery reveal">
+        <figure class="big"><img src="assets/room-folkart.jpg" alt="Northside Coffee Co.'s main room with oak paneling, folk-art paintings, plants and the tiled counter" loading="lazy"><figcaption>The main room</figcaption></figure>
+        <figure><img src="assets/coffee-flight.jpg" alt="A coffee flight on a branded paddle" loading="lazy"><figcaption>A flight of four</figcaption></figure>
+        <figure><img src="assets/ofrenda.jpg" alt="A Día de Muertos ofrenda with marigolds, candles and a catrina figure in the window" loading="lazy"><figcaption>Día de Muertos ofrenda</figcaption></figure>
+        <figure class="wide"><img src="assets/counter-angle.jpg" alt="The multicolor Talavera-tile service counter" loading="lazy"><figcaption>The Talavera counter</figcaption></figure>
+        <figure><img src="assets/artist-wall.jpg" alt="The rotating local-artist wall with original paintings" loading="lazy"><figcaption>Local-artist wall</figcaption></figure>
+        <figure><img src="assets/lounge.jpg" alt="A cozy lounge corner with vintage velvet settees and a big window" loading="lazy"><figcaption>The lounge corner</figcaption></figure>
+        <figure><img src="assets/iced-drink.jpg" alt="An iced Latin-American coffee drink on a vintage iron-bound wood table" loading="lazy"><figcaption>Iced &amp; made to order</figcaption></figure>
+        <figure><img src="assets/interior-wide.jpg" alt="A wide view of the interior with hand-painted tile-top tables" loading="lazy"><figcaption>Hand-painted tables</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOVED -->
+  <section class="loved">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Why regulars come back</span>
+        <h2>A little piece of home in KC.</h2>
+      </div>
+      <div class="quotes reveal">
+        <div class="q"><div class="mark">&ldquo;</div><p>The café de olla might be the best brewed coffee I've had — and we did a flight where every cup was a 10/10.</p><div class="who">— Daris, Google review</div></div>
+        <div class="q"><div class="mark">&ldquo;</div><p>A cute, authentic spot with so much character. The staff was friendly and took the time to explain the drinks.</p><div class="who">— Irina, Google review</div></div>
+        <div class="q"><div class="mark">&ldquo;</div><p>Family-operated and genuinely committed to the community — and the café de olla is always great.</p><div class="who">— Tom, Yelp review</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISIT -->
+  <section id="visit">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Visit us</span>
+        <h2>On Main St, in the <em>Westside</em>.</h2>
+        <p>A walkable Westside corner — walk in, or call ahead. Here's everything you need to find us.</p>
+      </div>
+      <div class="visit-grid reveal">
+        <ul class="hours" id="hours">
+          <li data-day="1"><span class="d">Monday</span><span>6:45 AM – 3:00 PM</span></li>
+          <li data-day="2"><span class="d">Tuesday</span><span>6:45 AM – 3:00 PM</span></li>
+          <li data-day="3"><span class="d">Wednesday</span><span>6:45 AM – 3:00 PM</span></li>
+          <li data-day="4"><span class="d">Thursday</span><span>6:45 AM – 3:00 PM</span></li>
+          <li data-day="5"><span class="d">Friday</span><span>6:45 AM – 3:00 PM</span></li>
+          <li data-day="6"><span class="d">Saturday</span><span>8:00 AM – 6:00 PM</span></li>
+          <li data-day="0"><span class="d">Sunday</span><span>8:00 AM – 3:00 PM</span></li>
+        </ul>
+        <div class="info">
+          <p><b>Address</b><br>412 Main St, Riverside, WA 99001</p>
+          <p style="margin-top:.7rem"><b>Phone</b><br><a href="tel:+15095550120" style="color:var(--gold-deep);font-weight:600">(509) 555-0120</a></p>
+          <p style="margin-top:.7rem"><b>Getting here</b><br>Free street parking on Main St — easy to pair with a walk around the Westside.</p>
+          <p style="margin-top:.7rem"><b>Good to know</b><br><span class="ico">✓</span> Patio &amp; outdoor seating&nbsp; <span class="ico">✓</span> Wheelchair accessible&nbsp; <span class="ico">✓</span> Cards &amp; contactless&nbsp; <span class="ico">✓</span> Takeout &amp; pickup</p>
+          <div class="hero-actions" style="margin-top:1.1rem">
+            <a class="btn btn-primary" href="tel:+15095550120">Call (509) 555-0120</a>
+            <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=412+Main+St,+Riverside,+WA+99001" target="_blank" rel="noopener">Get directions</a>
+          </div>
+          <div class="secondary-cta">
+            <a href="https://cafe-ollama.square.site" target="_blank" rel="noopener">Shop beans &amp; bottles ↗</a>
+            <a href="https://www.instagram.com/ollamakc/" target="_blank" rel="noopener">Follow @ollamakc ↗</a>
+          </div>
+          <div class="map">
+            <iframe title="Map to Northside Coffee Co." loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+              src="https://maps.google.com/maps?q=412+Main+St,+Riverside,+WA+99001&output=embed"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="faq reveal">
+        <details><summary>Do you take reservations? <span class="pl" aria-hidden="true"></span></summary><div class="ans">No reservations needed — Ollama is walk-in. Drop by, order at the counter, and grab a seat inside or out on the patio.</div></details>
+        <details><summary>What's a coffee flight? <span class="pl" aria-hidden="true"></span></summary><div class="ans">Pick any two drinks from the menu and we serve them side by side on a branded paddle — the easiest way to taste a few before you find your favorite.</div></details>
+        <details><summary>Where do I park? <span class="pl" aria-hidden="true"></span></summary><div class="ans">Free street parking runs along Main St. It can fill up at peak times, so it's an easy one to pair with a walk around the Westside.</div></details>
+        <details><summary>Are the drinks made to order? <span class="pl" aria-hidden="true"></span></summary><div class="ans">Every drink is made by hand, so it can take a few minutes when we're busy — there's room to wait, and it's worth it.</div></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="foot-mark" aria-hidden="true">Ollama</div>
+  <div class="wrap">
+    <div class="foot">
+      <a class="brand" href="#top"><span class="bt">Northside Coffee Co.</span></a>
+      <div>412 Main St, Riverside, WA 99001 · <a href="tel:+15095550120">(509) 555-0120</a></div>
+      <a class="btn btn-primary" href="tel:+15095550120">Call (509) 555-0120</a>
+    </div>
+    <div class="foot-note">Latin-American coffee house on KC's Westside · Open 7 days · Walk-ins welcome · Patio seating · Cards &amp; contactless. Hours can vary on holidays — call ahead to confirm. © Northside Coffee Co..</div>
+  </div>
+<p class="concept-demo-note" style="margin-top:1rem;font-size:.85rem;opacity:.75">Concept demo — illustrative sample design by Better Business Web. Business details are fictional; layout and craft reflect real builds.</p>
+</footer>
+
+<script>
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // highlight today's hours
+  (function(){var d=new Date().getDay();var li=document.querySelector('#hours li[data-day="'+d+'"]');if(li)li.classList.add('today');})();
+  function countUp(el){
+    const to=parseFloat(el.dataset.to), dec=+(el.dataset.dec||0), suf=el.dataset.suffix||'';
+    if(RM) return;
+    const fmt=(v)=>(dec?v.toFixed(dec):Math.round(v).toLocaleString())+suf;
+    const dur=1100, t0=performance.now();
+    (function tick(t){let p=Math.min(1,(t-t0)/dur);p=1-Math.pow(1-p,3);
+      el.textContent=fmt(to*p); if(p<1) requestAnimationFrame(tick);})(t0);
+  }
+  const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){countUp(e.target);io.unobserve(e.target);}}),{threshold:.6});
+  document.querySelectorAll('.num [data-to], .num[data-to]').forEach(n=>io.observe(n));
+</script>
+</body>
+</html>

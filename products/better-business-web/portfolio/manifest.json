@@ -1,86 +1,98 @@
 [
   {
     "genre_id": "auto_repair",
-    "business": "Ironside Auto Works",
+    "slug": "auto-repair",
+    "name": "Ironside Auto Works",
+    "type": "Auto repair",
+    "genre": "auto-repair",
+    "place_id": "ChIJkzln3pcSaYgRRG8wMmRsGuI",
+    "source_business": "AA Tire Auto Repair & Alignment",
     "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/auto_repair/dist",
-    "theme": {
-      "style_class": "industrial",
-      "layout": "split",
-      "brand": "#ce272d",
-      "brand_strong": "#9f191d",
-      "heading_font": "Oswald",
-      "body_font": "Inter"
-    },
-    "url": "https://6a1f75d09d4fec40fd1d9119--bbw-portfolio.netlify.app"
+    "url": "/work/auto-repair/",
+    "thumbnail": "/portfolio/auto-repair.webp"
   },
   {
     "genre_id": "barber_shop",
-    "business": "Kingsway Barber Co.",
+    "slug": "barbering",
+    "name": "Kingsway Barber Co.",
+    "type": "Barbershop",
+    "genre": "barbering",
+    "place_id": "ChIJPeXznSlclIARPWsj23OiX1k",
+    "source_business": "BarberStarz Barbershop",
     "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/barber_shop/dist",
-    "theme": {
-      "style_class": "vintage",
-      "layout": "banner",
-      "brand": "#8c462c",
-      "brand_strong": "#602d1a",
-      "heading_font": "Bebas Neue",
-      "body_font": "Inter"
-    },
-    "url": "https://6a1f75d0ee53af48b89b5ae5--bbw-portfolio.netlify.app"
+    "url": "/work/barbering/",
+    "thumbnail": "/portfolio/barbering.webp"
   },
   {
     "genre_id": "bakery",
-    "business": "Goldenrod Bakehouse",
+    "slug": "baked-goods",
+    "name": "Goldenrod Bakehouse",
+    "type": "Bakery",
+    "genre": "baked-goods",
+    "place_id": "ChIJyy_0pjnGwoARSGcLxvk8DW4",
+    "source_business": "Bliss Bakery",
     "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/bakery/dist",
-    "theme": {
-      "style_class": "warm",
-      "layout": "split",
-      "brand": "#c07f30",
-      "brand_strong": "#935f1f",
-      "heading_font": "Lora",
-      "body_font": "Nunito"
-    },
-    "url": "https://6a1f75d19d4fec424f1d90f6--bbw-portfolio.netlify.app"
+    "url": "/work/baked-goods/",
+    "thumbnail": "/portfolio/baked-goods.webp"
   },
   {
     "genre_id": "dog_groomer",
-    "business": "Wagtail Grooming Studio",
+    "slug": "dog-grooming",
+    "name": "Wagtail Grooming Studio",
+    "type": "Dog grooming",
+    "genre": "dog-grooming",
+    "place_id": "ChIJ7cP38p4EsocRRLrwf1Xxlm4",
+    "source_business": "Diamond Dog Pet Salon & Spa",
     "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/dog_groomer/dist",
-    "theme": {
-      "style_class": "playful",
-      "layout": "banner",
-      "brand": "#3087b5",
-      "brand_strong": "#1f6489",
-      "heading_font": "Baloo 2",
-      "body_font": "Nunito"
-    },
-    "url": "https://6a1f75d1a83d4963b0824a92--bbw-portfolio.netlify.app"
+    "url": "/work/dog-grooming/",
+    "thumbnail": "/portfolio/dog-grooming.webp"
   },
   {
     "genre_id": "plumber",
-    "business": "TrueLine Plumbing",
+    "slug": "plumbing",
+    "name": "TrueLine Plumbing",
+    "type": "Plumbing",
+    "genre": "plumbing",
+    "place_id": "ChIJ32zEmk1Z54YRbjd_CmtQN7I",
+    "source_business": "Theodore & Sons Plumbing",
     "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/plumber/dist",
-    "theme": {
-      "style_class": "trades",
-      "layout": "banner",
-      "brand": "#277abe",
-      "brand_strong": "#185a90",
-      "heading_font": "Saira Condensed",
-      "body_font": "Inter"
-    },
-    "url": "https://6a1f75d2f117a164026e4396--bbw-portfolio.netlify.app"
+    "url": "/work/plumbing/",
+    "thumbnail": "/portfolio/plumbing.webp"
   },
   {
     "genre_id": "nail_salon",
-    "business": "Lumi\u00e8re Nail Lounge",
+    "slug": "nails",
+    "name": "Lumi\u00e8re Nail Lounge",
+    "type": "Nail salon",
+    "genre": "nails",
+    "place_id": "ChIJIYKyBuFzToYRpKQSc6Yf9ks",
+    "source_business": "Skyline Nails & Spa",
     "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/nail_salon/dist",
-    "theme": {
-      "style_class": "elegant",
-      "layout": "centered",
-      "brand": "#bf5ec9",
-      "brand_strong": "#a935b6",
-      "heading_font": "Cormorant Garamond",
-      "body_font": "Mulish"
-    },
-    "url": "https://6a1f75d22842d24a7dca0ab3--bbw-portfolio.netlify.app"
+    "url": "/work/nails/",
+    "thumbnail": "/portfolio/nails.webp"
+  },
+  {
+    "genre_id": "coffee_shop",
+    "slug": "coffee",
+    "name": "Northside Coffee Co.",
+    "type": "Coffee shop",
+    "genre": "coffee",
+    "place_id": "ChIJE-YLqjPxwIcRBZnvjsRRrew",
+    "source_business": "Caf\u00e9 Ollama",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/coffee_shop/dist",
+    "url": "/work/coffee/",
+    "thumbnail": "/portfolio/coffee.webp"
+  },
+  {
+    "genre_id": "gun_store",
+    "slug": "gun-store",
+    "name": "Blue Ridge Gun & Ammo",
+    "type": "Gun store",
+    "genre": "gun-store",
+    "place_id": "",
+    "source_business": "Blue Ridge Gun & Ammo",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/gun_store/dist",
+    "url": "/work/gun-store/",
+    "thumbnail": "/portfolio/gun-store.webp"
   }
 ]

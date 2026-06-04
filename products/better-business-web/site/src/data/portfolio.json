@@ -1,10 +1,68 @@
 {
   "demos": [
-    { "name": "Ironside Auto Works", "type": "Auto repair", "genre": "auto-repair" },
-    { "name": "Kingsway Barber Co.", "type": "Barbershop", "genre": "barbering" },
-    { "name": "Goldenrod Bakehouse", "type": "Bakery", "genre": "baked-goods" },
-    { "name": "Wagtail Grooming Studio", "type": "Dog grooming", "genre": "dog-grooming" },
-    { "name": "TrueLine Plumbing", "type": "Plumbing", "genre": "plumbing" },
-    { "name": "Lumière Nail Lounge", "type": "Nail salon", "genre": "nails" }
+    {
+      "name": "Ironside Auto Works",
+      "type": "Auto repair",
+      "genre": "auto-repair",
+      "slug": "auto-repair",
+      "url": "/work/auto-repair/",
+      "thumbnail": "/portfolio/auto-repair.webp"
+    },
+    {
+      "name": "Kingsway Barber Co.",
+      "type": "Barbershop",
+      "genre": "barbering",
+      "slug": "barbering",
+      "url": "/work/barbering/",
+      "thumbnail": "/portfolio/barbering.webp"
+    },
+    {
+      "name": "Goldenrod Bakehouse",
+      "type": "Bakery",
+      "genre": "baked-goods",
+      "slug": "baked-goods",
+      "url": "/work/baked-goods/",
+      "thumbnail": "/portfolio/baked-goods.webp"
+    },
+    {
+      "name": "Wagtail Grooming Studio",
+      "type": "Dog grooming",
+      "genre": "dog-grooming",
+      "slug": "dog-grooming",
+      "url": "/work/dog-grooming/",
+      "thumbnail": "/portfolio/dog-grooming.webp"
+    },
+    {
+      "name": "TrueLine Plumbing",
+      "type": "Plumbing",
+      "genre": "plumbing",
+      "slug": "plumbing",
+      "url": "/work/plumbing/",
+      "thumbnail": "/portfolio/plumbing.webp"
+    },
+    {
+      "name": "Lumi\u00e8re Nail Lounge",
+      "type": "Nail salon",
+      "genre": "nails",
+      "slug": "nails",
+      "url": "/work/nails/",
+      "thumbnail": "/portfolio/nails.webp"
+    },
+    {
+      "name": "Northside Coffee Co.",
+      "type": "Coffee shop",
+      "genre": "coffee",
+      "slug": "coffee",
+      "url": "/work/coffee/",
+      "thumbnail": "/portfolio/coffee.webp"
+    },
+    {
+      "name": "Blue Ridge Gun & Ammo",
+      "type": "Gun store",
+      "genre": "gun-store",
+      "slug": "gun-store",
+      "url": "/work/gun-store/",
+      "thumbnail": "/portfolio/gun-store.webp"
+    }
   ]
 }

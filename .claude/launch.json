@@ -2,6 +2,18 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "robot-monster",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8031", "--directory", "state/prospects/sites/ChIJ7QI8xGFfXIYR2LLRk8PAAuA/dist-v2"],
+      "port": 8031
+    },
+    {
+      "name": "jm-roofing",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8032", "--directory", "state/prospects/sites/ChIJ52ScAq3JwoAR4Y6YecZSTrw/dist-v2"],
+      "port": 8032
+    },
+    {
       "name": "bbw-site",
       "runtimeExecutable": "sh",
       "runtimeArgs": ["-c", "cd products/better-business-web/site && npm run preview"],

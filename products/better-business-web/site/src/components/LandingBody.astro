@@ -9,21 +9,21 @@ const year = new Date().getFullYear();
 const featuredId = "package_b";
 const fmt = (n) => n.toLocaleString("en-US");
 
-const mockups = [
-  { name: "Kingsway Barber Co.", url: "kingswaybarber.com", accent: "#1f6f6b", ink: "#16201f", hero: "Sharp cuts, classic service.", tag: "Walk-ins welcome · Downtown", chips: ["Fades", "Hot towel", "Beard trim"] },
-  { name: "TrueLine Plumbing", url: "truelineplumbing.com", accent: "#2563a8", ink: "#16243a", hero: "Fast, honest plumbing.", tag: "24/7 emergency service", chips: ["Drains", "Water heaters", "Leaks"] },
-  { name: "Goldenrod Bakehouse", url: "goldenrodbakehouse.com", accent: "#b5701f", ink: "#3a2912", hero: "Fresh from the oven daily.", tag: "Order ahead for pickup", chips: ["Sourdough", "Cakes", "Pastries"] },
-  { name: "Lumière Nail Lounge", url: "lumierenails.com", accent: "#b03d73", ink: "#33101f", hero: "Where your nails shine.", tag: "Book online in seconds", chips: ["Gel sets", "Spa pedi", "Nail art"] },
-  { name: "Ironside Auto Works", url: "ironsideauto.com", accent: "#9a3412", ink: "#2a140c", hero: "Repairs you can trust.", tag: "Free estimates, same week", chips: ["Brakes", "Diagnostics", "Tires"] },
-];
+const mockups = portfolio.demos.map((d) => ({
+  name: d.name,
+  url: `${d.slug}.example.com`,
+  thumbnail: d.thumbnail,
+  href: d.url,
+}));
 
 const pfThemes = [
+  "linear-gradient(150deg,#9a3412,#5c1a0a)",
   "linear-gradient(150deg,#1f6f6b,#0f3d3a)",
-  "linear-gradient(150deg,#2563a8,#15315a)",
   "linear-gradient(150deg,#b5701f,#6e3f0e)",
+  "linear-gradient(150deg,#2563a8,#15315a)",
   "linear-gradient(150deg,#5b6b3a,#33401f)",
-  "linear-gradient(150deg,#7a4a86,#3c2348)",
   "linear-gradient(150deg,#b03d73,#5e1c3b)",
+  "linear-gradient(150deg,#7c4a2d,#3d2517)",
 ];
 ---
 <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
@@ -61,7 +61,7 @@ const pfThemes = [
         <div class="stats" data-reveal style="--reveal-delay:0.3s">
           <div class="stat"><div class="n"><span data-countup="48">48</span>h</div><div class="l">Typical preview turnaround</div></div>
           <div class="stat"><div class="n">$<span data-countup="0">0</span></div><div class="l">Upfront, until you approve</div></div>
-          <div class="stat"><div class="n"><span data-countup="6">6</span>+</div><div class="l">Industries designed for</div></div>
+          <div class="stat"><div class="n"><span data-countup={portfolio.demos.length}>{portfolio.demos.length}</span>+</div><div class="l">Industries designed for</div></div>
         </div>
       </div>
       <div class="mock" data-reveal style="--reveal-delay:0.15s">
@@ -69,21 +69,16 @@ const pfThemes = [
         <div class="browser" id="browser" data-tilt aria-label="Live preview of an example small-business website">
           <div class="browser-bar">
             <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
-            <div class="url" id="mock-url"><b>https://</b><span id="mock-host">kingswaybarber.com</span></div>
+            <div class="url" id="mock-url"><b>https://</b><span id="mock-host">{mockups[0]?.url ?? "demo.example.com"}</span></div>
           </div>
           <div class="screen" id="mock-screen">
             {mockups.map((m, i) => (
-              <div class={`slide${i === 0 ? " active" : ""}`} data-slide={i}
-                   style={`--mock-accent:${m.accent};--mock-ink:${m.ink};--mock-bg:color-mix(in srgb, ${m.accent} 5%, #ffffff)`}>
-                <div class="m-top">
-                  <span class="m-logo">{m.name}</span>
-                  <span class="m-nav" aria-hidden="true"><i></i><i></i><i></i></span>
-                </div>
-                <div class="m-hero">{m.hero}</div>
-                <div class="m-tag">{m.tag}</div>
-                <div class="m-chips">{m.chips.map((c) => <span>{c}</span>)}</div>
-                <div class="m-cta">Book now</div>
-                <div class="m-cards" aria-hidden="true"><div class="m-card"></div><div class="m-card"></div><div class="m-card"></div></div>
+              <div class={`slide slide-shot${i === 0 ? " active" : ""}`} data-slide={i}>
+                {m.thumbnail ? (
+                  <img src={m.thumbnail} alt={`${m.name} website preview`} loading={i === 0 ? "eager" : "lazy"} decoding="async" />
+                ) : (
+                  <div class="slide-fallback"><span>{m.name}</span></div>
+                )}
               </div>
             ))}
           </div>
@@ -145,22 +140,31 @@ const pfThemes = [
     <div class="container">
       <div class="section-head center" data-reveal>
         <span class="eyebrow">Demo sites</span>
-        <h2>Concept demos by business type.</h2>
-        <p class="muted measure">Sample designs for common local businesses, so you can picture your own. These are concept demos — not real clients.</p>
+        <h2>Live demos by business type.</h2>
+        <p class="muted measure">Real sample designs built for common local businesses — click through to explore. Business details are fictional; the craft is not.</p>
       </div>
       <div class="portfolio-grid">
         {portfolio.demos.map((d, i) => (
-          <article class="pf-card" data-reveal style={`--reveal-delay:${0.05 * i}s`}>
+          <a class="pf-card pf-card-link" href={d.url} data-reveal style={`--reveal-delay:${0.05 * i}s`} target="_blank" rel="noopener">
             <div class="pf-top">
               <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
-              <span class="pf-url">{d.genre}.example.com</span>
+              <span class="pf-url">{d.slug}.example.com</span>
             </div>
-            <div class="pf-thumb" style={`background:${pfThemes[i % pfThemes.length]}`}>
-              <span class="pf-name">{d.name}</span>
-              <span class="pf-kind">{d.type}</span>
+            <div class="pf-thumb">
+              {d.thumbnail ? (
+                <Fragment>
+                  <span class="pf-loader" aria-hidden="true"></span>
+                  <img src={d.thumbnail} alt={`${d.name} demo site screenshot`} loading="lazy" decoding="async" />
+                </Fragment>
+              ) : (
+                <div class="pf-thumb-fallback" style={`background:${pfThemes[i % pfThemes.length]}`}>
+                  <span class="pf-name">{d.name}</span>
+                  <span class="pf-kind">{d.type}</span>
+                </div>
+              )}
             </div>
-            <div class="pf-body"><p class="type">{d.type}</p><span class="badge">Concept demo</span></div>
-          </article>
+            <div class="pf-body"><p class="type">{d.type}</p><span class="badge">Live demo</span></div>
+          </a>
         ))}
       </div>
     </div>
@@ -209,7 +213,7 @@ const pfThemes = [
   </div>
 </footer>
 
-<script>
+<script define:vars={{ mockupUrls: mockups.map((m) => m.url) }}>
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const fmt = (n) => n.toLocaleString("en-US");
   function countUp(el) {
@@ -276,11 +280,24 @@ const pfThemes = [
       wrap.addEventListener("pointerleave", () => { browser.style.transform = ""; });
     }
   }
+  // Reveal each demo thumbnail once its image decodes; the .pf-loader skeleton
+  // + spinner shows until then (and on error, so it never spins forever).
+  document.querySelectorAll(".pf-thumb img").forEach((img) => {
+    const thumb = img.closest(".pf-thumb");
+    if (!thumb) return;
+    const reveal = () => thumb.classList.add("is-loaded");
+    if (img.complete && img.naturalWidth > 0) reveal();
+    else {
+      img.addEventListener("load", reveal, { once: true });
+      img.addEventListener("error", reveal, { once: true });
+    }
+  });
+
   const slides = [...document.querySelectorAll("#mock-screen .slide")];
   const host = document.getElementById("mock-host");
   if (slides.length > 1 && !reduce) {
     let idx = 0;
-    const urls = ["kingswaybarber.com", "truelineplumbing.com", "goldenrodbakehouse.com", "lumierenails.com", "ironsideauto.com"];
+    const urls = mockupUrls;
     setInterval(() => {
       slides[idx].classList.remove("active");
       idx = (idx + 1) % slides.length;

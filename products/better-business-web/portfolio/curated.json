@@ -1,0 +1,89 @@
+{
+  "demos": [
+    {
+      "genre_id": "auto_repair",
+      "slug": "auto-repair",
+      "type": "Auto repair",
+      "place_id": "ChIJkzln3pcSaYgRRG8wMmRsGuI",
+      "portfolio_name": "Ironside Auto Works",
+      "portfolio_address": "1200 Birch Ave, Maplewood, OR 97000",
+      "portfolio_phone": "(503) 555-0142",
+      "portfolio_area": "Maplewood"
+    },
+    {
+      "genre_id": "barber_shop",
+      "slug": "barbering",
+      "type": "Barbershop",
+      "place_id": "ChIJPeXznSlclIARPWsj23OiX1k",
+      "portfolio_name": "Kingsway Barber Co.",
+      "portfolio_address": "88 Harbor St, Brighton, MA 02135",
+      "portfolio_phone": "(617) 555-0188",
+      "portfolio_area": "Downtown Brighton"
+    },
+    {
+      "genre_id": "bakery",
+      "slug": "baked-goods",
+      "type": "Bakery",
+      "place_id": "ChIJyy_0pjnGwoARSGcLxvk8DW4",
+      "portfolio_name": "Goldenrod Bakehouse",
+      "portfolio_address": "5 Mill Lane, Sutton, VT 05867",
+      "portfolio_phone": "(802) 555-0119",
+      "portfolio_area": "Sutton village"
+    },
+    {
+      "genre_id": "dog_groomer",
+      "slug": "dog-grooming",
+      "type": "Dog grooming",
+      "place_id": "ChIJ7cP38p4EsocRRLrwf1Xxlm4",
+      "portfolio_name": "Wagtail Grooming Studio",
+      "portfolio_address": "210 Cedar Rd, Cedar Falls, IA 50613",
+      "portfolio_phone": "(319) 555-0173",
+      "portfolio_area": "Cedar Falls"
+    },
+    {
+      "genre_id": "plumber",
+      "slug": "plumbing",
+      "type": "Plumbing",
+      "place_id": "ChIJ32zEmk1Z54YRbjd_CmtQN7I",
+      "portfolio_name": "TrueLine Plumbing",
+      "portfolio_address": "47 Forest Ave, Westbrook, ME 04092",
+      "portfolio_phone": "(207) 555-0151",
+      "portfolio_area": "Westbrook"
+    },
+    {
+      "genre_id": "nail_salon",
+      "slug": "nails",
+      "type": "Nail salon",
+      "place_id": "ChIJIYKyBuFzToYRpKQSc6Yf9ks",
+      "portfolio_name": "Lumière Nail Lounge",
+      "portfolio_short": "Lumière",
+      "portfolio_address": "1330 Aspen Way, Park Hill, CO 80220",
+      "portfolio_phone": "(720) 555-0166",
+      "portfolio_area": "Park Hill",
+      "extra_replacements": [
+        { "from": "near West 7th", "to": "in Park Hill" },
+        { "from": "Just moved to Fort Worth and found my go-to", "to": "Just moved to the neighborhood and found my go-to" }
+      ]
+    },
+    {
+      "genre_id": "coffee_shop",
+      "slug": "coffee",
+      "type": "Coffee shop",
+      "place_id": "ChIJE-YLqjPxwIcRBZnvjsRRrew",
+      "portfolio_name": "Northside Coffee Co.",
+      "portfolio_address": "412 Main St, Riverside, WA 99001",
+      "portfolio_phone": "(509) 555-0120",
+      "portfolio_area": "Riverside"
+    },
+    {
+      "genre_id": "gun_store",
+      "slug": "gun-store",
+      "type": "Gun store",
+      "synthetic": true,
+      "portfolio_name": "Blue Ridge Gun & Ammo",
+      "portfolio_address": "388 Morrison Moore Pkwy E, Dahlonega, GA 30533",
+      "portfolio_phone": "(706) 555-0173",
+      "portfolio_area": "Dahlonega"
+    }
+  ]
+}

@@ -24,26 +24,27 @@
         "Hosting & Maintenance",
         "Google Business Profile Setup",
         "Business Email Setup",
-        "Review Generation System",
+        "Review Readiness System",
         "Online Booking Setup"
       ]
     },
     {
       "id": "package_c",
       "name": "Package C \u2014 Presence + Capture + Growth",
-      "description": "Everything in B, plus local SEO, landing pages, and monthly reporting.",
+      "description": "Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.",
       "setup": 1399,
-      "monthly": 249,
+      "monthly": 624,
       "services": [
         "Professional Website",
         "Hosting & Maintenance",
         "Google Business Profile Setup",
         "Business Email Setup",
-        "Review Generation System",
+        "Review Readiness System",
         "Online Booking Setup",
         "Local SEO",
         "Promotional Landing Page",
-        "Analytics Dashboard & Monthly Report"
+        "Analytics Dashboard & Monthly Report",
+        "Google Ads Management"
       ]
     }
   ]
