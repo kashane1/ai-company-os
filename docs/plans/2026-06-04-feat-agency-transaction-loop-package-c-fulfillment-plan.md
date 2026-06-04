@@ -103,6 +103,17 @@ Branch `feat/agency-stripe-receiver`. **924 unit tests pass** (+7); ruff clean; 
 
 **The transaction loop is code-complete:** notice a lead (G2) → quote with a pay link (G1 write) → forwarder → receiver → reconcile + activate + stamp acceptance (G1 read) → `assert_billing_active` guards paid work. What remains is operator/deploy setup (Stripe live prices/keys, Resend domain, start the API, wire Netlify env) and the Tier-2 service executors (G4–G10).
 
+## ✅ Slice 5 (G4 promo landing page) — implemented 2026-06-04
+
+Branch `feat/agency-g4-promo`. **929 unit tests pass** (+5); ruff clean. First Tier-2 Package C service, moved from 🔴 catalog-only → 🟢 **automated**.
+
+| Item | Status | Where |
+|---|---|---|
+| `PromoCampaign` + `render_promo_html`/`emit_promo_page` — single-offer campaign page reusing the existing scaffold token-template (design system + form), render-guarded, offline/no-Node | ✅ | `packages/agency/promo_page.py` |
+| `build_promo_page.py` CLI (renders a real ~17 KB `dist/index.html`) | ✅ | `scripts/agency/build_promo_page.py` |
+
+Package C scorecard update: `promo_landing_page` is now automated. Remaining Tier-2: `business_email` (G5), `booking` (G6), `gbp` (G7), `google_ads` (G8), `reviews`-SMS (G9), `monthly_reporting` data (G10).
+
 ## Overview
 
 The Better Business Web agency landing page is **live** and its core engine — build → host → launch a small-business website, plus automated Local SEO — is real and gated. But the **business cannot transact**: it can't reliably *notice* a lead, it can't *get paid* through any wired capability, and **6 of Package C's 10 services have no executor**. This plan closes those gaps in priority order so the agency becomes a self-sustaining operation rather than a high-craft demo.
