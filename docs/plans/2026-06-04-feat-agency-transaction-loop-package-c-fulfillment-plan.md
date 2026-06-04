@@ -154,6 +154,17 @@ Branch `feat/agency-g10-plausible`. **950 unit tests pass** (+6); ruff clean. `m
 
 **Tier-2 status: 8 of 10 Package C services now have executors** (website, hosting, local_seo, promo_landing_page automated; gbp, google_ads runbook-generators; monthly_reporting real data; reviews gated). Remaining: `business_email` (G5), `booking` (G6), `reviews`-SMS sender (G9).
 
+## ✅ Slice 9 (G5 business email + G6 booking) — implemented 2026-06-04
+
+Branch `feat/agency-g5-g6`. **968 unit tests pass** (+18); ruff clean. Two services moved 🔴 catalog-only → executor.
+
+| Item | Status | Where |
+|---|---|---|
+| **G5** runbook generator (`BUSINESS_EMAIL.md`: provider signup, domain verify, MX, `info@/support@/sales@` aliases) + `derive_domain` + typed `BusinessEmailSetup` completion record (atomic JsonStore under `state/clients/<id>/services/`) | ✅ | `packages/agency/business_email.py`, `scripts/agency/setup_business_email.py` |
+| **G6** booking embed injector — 7 supported providers, URL scheme-checked (no `javascript:`), **idempotent** sentinel-wrapped injection (`[D8]` re-run replaces, never appends; validates a target exists) + `BookingSetup` record | ✅ | `packages/agency/booking.py`, `scripts/agency/inject_booking.py` |
+
+**Tier-2 status: 9 of 10 Package C services now have executors.** The only remaining one is the compliance-heavy **G9 review-SMS sender** (deliberately deferred — ships templates-only behind the existing `assert_review_sms_allowed` gate until per-recipient consent/STOP/quiet-hours send-time checks are built).
+
 ## Overview
 
 The Better Business Web agency landing page is **live** and its core engine — build → host → launch a small-business website, plus automated Local SEO — is real and gated. But the **business cannot transact**: it can't reliably *notice* a lead, it can't *get paid* through any wired capability, and **6 of Package C's 10 services have no executor**. This plan closes those gaps in priority order so the agency becomes a self-sustaining operation rather than a high-craft demo.
