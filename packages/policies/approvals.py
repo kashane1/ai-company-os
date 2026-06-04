@@ -120,6 +120,8 @@ class PolicyViolationCode(str, Enum):
     # Paid client work (retainer fulfilment) is refused unless the client is
     # actively billed — closes the dispute/refund → keeps-working loop (G1+E2).
     RETAINER_CLIENT_NOT_ACTIVE = "retainer_client_not_active"
+    # Live Google Ads is a denial-of-wallet vector — go-live needs a budget cap.
+    AD_BUDGET_CAP_MISSING = "ad_budget_cap_missing"
 
 
 class PolicyViolation(RuntimeError):

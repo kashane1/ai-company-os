@@ -118,6 +118,33 @@ def assert_retainer_approval_granted(
             )
 
 
+def assert_ad_campaign_go_live(
+    approval_id: str,
+    *,
+    product_id: str,
+    daily_budget: float | None,
+    monthly_budget: float | None,
+    store: ApprovalStore | None = None,
+) -> None:
+    """Authorize taking a Google Ads campaign live.
+
+    Live ads spend the client's money continuously, so [D7] requires a positive
+    daily AND monthly budget cap (a denial-of-wallet guard) on top of the granted
+    ``ad_campaign_go_live`` approval. Spend ownership stays with the client.
+    """
+    if not (daily_budget and daily_budget > 0) or not (monthly_budget and monthly_budget > 0):
+        raise PolicyViolation(
+            PolicyViolationCode.AD_BUDGET_CAP_MISSING,
+            "ad campaign go-live requires positive daily AND monthly budget caps",
+        )
+    assert_retainer_approval_granted(
+        approval_id,
+        product_id=product_id,
+        approval_type="ad_campaign_go_live",
+        store=store,
+    )
+
+
 def assert_review_sms_allowed(
     *,
     docs_root: Path,

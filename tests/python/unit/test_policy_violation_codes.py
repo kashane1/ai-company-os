@@ -107,6 +107,7 @@ def test_agency_layer_codes_present() -> None:
         "review_sms_template_not_approved",
         "review_sms_cadence_invalid",
         "retainer_client_not_active",
+        "ad_budget_cap_missing",
     }
     actual = {member.value for member in PolicyViolationCode}
     missing = required - actual

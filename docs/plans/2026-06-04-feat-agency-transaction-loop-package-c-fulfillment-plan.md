@@ -127,6 +127,18 @@ Branch `feat/agency-g7-gbp`. **938 unit tests pass** (+9); ruff clean. `gbp` mov
 
 Remaining Tier-2: `business_email` (G5), `booking` (G6), `google_ads` (G8), `reviews`-SMS (G9), `monthly_reporting` data (G10).
 
+## ✅ Slice 7 (G8 Google Ads draft) — implemented 2026-06-04
+
+Branch `feat/agency-g8-ads`. **944 unit tests pass** (+6); ruff clean. `google_ads` moved 🟡 planner-label → 🟢 **runbook-generator + gated go-live**.
+
+| Item | Status | Where |
+|---|---|---|
+| `draft_google_ads(intake)` → `ADS.md` (campaign + ad-group structure, service×geo keywords, negative list, RSA headlines/descriptions within char limits, geo targeting) | ✅ | `packages/agency/google_ads.py` |
+| `[D7]` `assert_ad_campaign_go_live` — refuses go-live without a **positive daily AND monthly budget cap** + the granted `ad_campaign_go_live` approval; new `AD_BUDGET_CAP_MISSING` code | ✅ | `packages/policies/agency_gates.py`, `approvals.py` |
+| `draft_google_ads.py` CLI; spend stays client-owned (noted in `ADS.md`) | ✅ | `scripts/agency/draft_google_ads.py` |
+
+Remaining Tier-2: `business_email` (G5), `booking` (G6), `reviews`-SMS (G9), `monthly_reporting` data (G10).
+
 ## Overview
 
 The Better Business Web agency landing page is **live** and its core engine — build → host → launch a small-business website, plus automated Local SEO — is real and gated. But the **business cannot transact**: it can't reliably *notice* a lead, it can't *get paid* through any wired capability, and **6 of Package C's 10 services have no executor**. This plan closes those gaps in priority order so the agency becomes a self-sustaining operation rather than a high-craft demo.
