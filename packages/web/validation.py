@@ -18,6 +18,11 @@ review/approval surface the engineering and iOS lanes use):
 * **accessibility** — baseline a11y: ``<html lang>``, a ``<title>``, exactly one
   ``<h1>``, images carry ``alt``, and interactive elements have an accessible
   name.
+* **contrast** — WCAG AA color contrast on declared light-mode ``:root``
+  foreground/background pairs (body text 4.5:1; on-color labels 3:1).
+  Deliberately sound-not-complete: unresolvable values (``var()``,
+  ``color-mix()``, alpha<1, dark-mode ``@media`` overrides) are skipped, not
+  guessed.
 
 ``validate_web_dist`` aggregates them into a :class:`WebValidationReport`.
 """
@@ -27,9 +32,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
+import re
 from urllib.parse import urldefrag, urlparse
 
 from packages.schemas.task_run import ValidationCheck
+from packages.web.palette import AA_LARGE, AA_NORMAL, Unresolvable, contrast_ratio
 
 # Tag/attribute pairs that reference a URL or asset.
 _URL_ATTRS = {
@@ -265,6 +272,103 @@ def check_accessibility(dist_dir: Path) -> ValidationCheck:
     )
 
 
+# --- contrast (color a11y) -------------------------------------------------
+#
+# Sound, not complete: resolve only literal light-mode top-level :root custom
+# properties, check a fixed set of foreground/background pairs, and SKIP (never
+# guess) any value we can't resolve to an opaque literal — var(), color-mix(),
+# alpha<1, or anything declared inside an @media/@supports/@container block
+# (so a dark-mode :root override is deliberately out of scope).
+
+_STYLE_RE = re.compile(r"<style[^>]*>(.*?)</style>", re.DOTALL | re.IGNORECASE)
+_ROOT_RE = re.compile(r":root\s*\{([^}]*)\}")
+_DECL_RE = re.compile(r"(--[\w-]+)\s*:\s*([^;]+)")
+_AT_RULE_RE = re.compile(r"@(?:media|supports|container)\b", re.IGNORECASE)
+
+# Pairs to check: (foreground var, background var, is_large_text). On-color
+# labels (CTA text on accent, text on brand) sit on buttons/headers — large/UI,
+# so the WCAG bar is 3:1; body text on the page background is normal, 4.5:1.
+_CONTRAST_PAIRS = [
+    ("--text", "--bg", False),
+    ("--brand-contrast", "--brand", True),
+    ("--on-accent", "--accent", True),
+]
+
+
+def _strip_at_blocks(css: str) -> str:
+    """Remove ``@media``/``@supports``/``@container`` blocks (and their nested
+    braces) so only top-level, light-mode rules remain."""
+    out: list[str] = []
+    i = 0
+    for m in _AT_RULE_RE.finditer(css):
+        out.append(css[i : m.start()])
+        # Walk to the block's opening brace, then to its matching close.
+        j = css.find("{", m.end())
+        if j == -1:
+            i = m.end()
+            break
+        depth = 1
+        k = j + 1
+        while k < len(css) and depth:
+            if css[k] == "{":
+                depth += 1
+            elif css[k] == "}":
+                depth -= 1
+            k += 1
+        i = k
+    out.append(css[i:])
+    return "".join(out)
+
+
+def _root_vars(html: str) -> dict[str, str]:
+    """Resolve top-level light-mode ``:root`` custom properties from inlined
+    ``<style>`` blocks, applying last-wins across declarations."""
+    css = "\n".join(_STYLE_RE.findall(html))
+    css = _strip_at_blocks(css)
+    resolved: dict[str, str] = {}
+    for block in _ROOT_RE.findall(css):
+        for name, value in _DECL_RE.findall(block):
+            resolved[name] = value.strip()
+    return resolved
+
+
+def check_contrast(dist_dir: Path) -> ValidationCheck:
+    """WCAG AA color-contrast on declared ``:root`` foreground/background pairs.
+
+    Resolves only literal light-mode values; pairs whose colors can't be
+    resolved to opaque literals are skipped (reported in details), not failed —
+    a guessed pass would be worse than an honest skip.
+    """
+    problems: list[str] = []
+    skipped: list[str] = []
+    for html_file in _html_files(dist_dir):
+        name = html_file.name
+        vars_ = _root_vars(html_file.read_text(encoding="utf-8", errors="ignore"))
+        for fg, bg, large in _CONTRAST_PAIRS:
+            if fg not in vars_ or bg not in vars_:
+                continue  # pair not defined on this page
+            try:
+                ratio = contrast_ratio(vars_[fg], vars_[bg])
+            except Unresolvable as exc:
+                skipped.append(f"{name}: {fg}/{bg} ({exc})")
+                continue
+            floor = AA_LARGE if large else AA_NORMAL
+            if ratio < floor:
+                problems.append(f"{name}: {fg} on {bg} = {ratio:.2f}:1 (need {floor})")
+    passed = not problems
+    detail = "contrast pairs meet WCAG AA" if passed else (
+        f"{len(problems)} low-contrast pair(s): " + "; ".join(problems[:6])
+    )
+    if skipped:
+        detail += f" [{len(skipped)} skipped: " + "; ".join(skipped[:3]) + "]"
+    return ValidationCheck(
+        name="web-contrast",
+        passed=passed,
+        details=detail,
+        code=None if passed else "web_contrast",
+    )
+
+
 def _resolve(dist_dir: Path, html_file: Path, target: str) -> Path | None:
     """Resolve a link target (root-relative or document-relative) to a path in
     ``dist``. Directory links map to their ``index.html``. Returns None if the
@@ -320,4 +424,5 @@ def validate_web_dist(
     checks.append(check_assets(dist_dir))
     checks.append(check_responsive(dist_dir))
     checks.append(check_accessibility(dist_dir))
+    checks.append(check_contrast(dist_dir))
     return WebValidationReport(checks=checks)

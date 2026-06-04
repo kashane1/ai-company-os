@@ -11,6 +11,13 @@
   --brand: #4f46e5;
   --brand-strong: #4338ca;
   --brand-contrast: #ffffff;
+  /* Supporting + CTA accent (structured palette). Override per product/brand;
+     see packages/web/palette.py for genre-matched values. Accent carries the
+     CTA / highlight at ~10% of the surface (60/30/10). --on-accent is the
+     WCAG-checked label color for large/bold text on the accent. */
+  --secondary: #6366f1;
+  --accent: #ea580c;
+  --on-accent: #ffffff;
   --bg: #ffffff;
   --bg-subtle: #f6f7fb;
   --surface: #ffffff;
@@ -44,6 +51,11 @@
     --brand: #8b8cf9;
     --brand-strong: #a5a6ff;
     --brand-contrast: #0b0c18;
+    /* Lighten + slightly desaturate the accent for dark surfaces so it doesn't
+       glow; dark text stays legible on it. */
+    --secondary: #a5b4fc;
+    --accent: #fb923c;
+    --on-accent: #0b0c18;
     --bg: #0b0c18;
     --bg-subtle: #11132440;
     --surface: #15172b;
@@ -72,7 +84,7 @@ body {
 img { max-width: 100%; height: auto; display: block; }
 
 a { color: var(--brand-strong); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
 
 :focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
 
@@ -93,13 +105,23 @@ p { margin: 0 0 var(--space-sm); }
 .section--subtle { background: var(--bg-subtle); }
 
 .eyebrow {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
   font-size: var(--step--1);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--brand-strong);
   margin-bottom: var(--space-xs);
+}
+/* Decorative accent rule — non-text, so the 3:1 surface bar applies. */
+.eyebrow::before {
+  content: "";
+  width: 1.75em;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
 }
 .muted { color: var(--text-muted); }
 .center { text-align: center; }
