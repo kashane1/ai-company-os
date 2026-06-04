@@ -89,61 +89,51 @@ contact channel per lead. Until built:
 - The with-mockup **email** play requires a found email address; if none, either
   enrich manually or switch channel.
 
-> **Deep procedure:** the per-business build that meets the "genuine, not
-> cookie-cutter" bar is documented in **`docs/demo-site-build-playbook.md`**
-> (data sources, evidence-grounded copy, photo curation, verify checklist). The
-> token-fill flow below is the fast/bulk path; the playbook is the quality path.
+> **Default path (customer-facing):** **`docs/demo-site-build-playbook.md`** —
+> evidence-grounded bespoke HTML at
+> `state/prospects/sites/<place_id>/dist-v2/index.html`, Craft Pass, localhost
+> review, gated deploy. **Do not** show owners token-fill pages.
 
-### Stage 5 — Preview site build  ✅ **built**
-The glue lives in `packages/agency/prospect_site.py` and the CLI
-`scripts/agency/build_prospect_site.py`. It composes the existing lane rather
-than forking a site factory:
+### Stage 5 — Preview site build  ✅ **built** (quality default + deploy glue)
 
-    record → ClientIntake (intake_from_record) → scaffold context
-           → index.html (render_landing_html, no Node) → Netlify **draft** deploy
-           → mockup_url written back to the record
+**Build** (human/agent, playbook): gather → brief → `dist-v2/` → screenshot QA.
 
-Usage:
+**Deploy** (platform): `packages/agency/prospect_site.py` +
+`scripts/agency/build_prospect_site.py` publish **only** `dist-v2/` — if it is
+missing, the CLI fails with *run playbook first* (no silent fallback to `dist/`).
 
 ```bash
-# Local build only (no token, no network) — review the HTML first:
-python scripts/agency/build_prospect_site.py --confirmed
-python scripts/agency/build_prospect_site.py --verdict marketplace_only --limit 10
-
-# Draft-deploy previews to the operator's Netlify account:
+# After dist-v2 exists — package metadata / draft-deploy:
+python scripts/agency/build_prospect_site.py --place-id <PID>
 NETLIFY_AUTH_TOKEN=… python scripts/agency/build_prospect_site.py \
-    --confirmed --deploy --account <netlify-team-slug>
+    --place-id <PID> --deploy --account <netlify-team-slug>
 ```
 
-Outputs per lead: `state/prospects/sites/<place_id>/{dist/index.html,
+Outputs per lead: `state/prospects/sites/<place_id>/{dist-v2/index.html,
 preview.json, outreach-with-mockup.md}`. On deploy, the record gains
 `mockup_url`, `mockup_site_id`, `mockup_deploy_id`, `mockup_built_at`.
 
 Each mockup is a **draft deploy to one shared preview site**
 (`PREVIEW_SITE_NAME`, default `bbw-previews`), so every prospect gets a private
-permalink `<deploy_id>--bbw-previews.netlify.app` for review **without** creating
-a new Netlify site or a production deploy per prospect. This is the
-"deploy-preview for client review, production only on approval" model — and the
-**Netlify credit/site-count saver**: hundreds of previews cost one site + cheap
-draft deploys instead of hundreds of production sites. A short shared site name
-keeps the draft permalink within the 63-char DNS-label limit (the old
-per-prospect `preview-<business>-<city>` names were what pushed drafts over it,
-hence the earlier production-per-site workaround this replaces). The genuinely
-gated actions are unchanged: promoting a preview to **production** (a client's or
-the agency's real site, via `packages/agency/launch.py`) and any **custom domain
-/ DNS** still require approval. Genre→copy
-mapping is in `GENRE_PROFILES`; the phone becomes the hero "Call …" CTA, which
-suits the phone-only confirmed leads. Tests: `tests/python/unit/test_prospect_site.py`.
+permalink `<deploy_id>--bbw-previews.netlify.app` without a new Netlify site per
+prospect. Promoting to **production** (`packages/agency/launch.py`) and **custom
+domain / DNS** remain approval-gated. Tests:
+`tests/python/unit/test_prospect_site.py`.
 
-**Real Places data is used by default.** The builder calls Place Details
-(`GooglePlacesConnector.fetch_profile`, a richer field mask than the bulk sweep)
-and overlays real **opening hours, editorial summary, precise service type, and
-rating** onto the page via `apply_profile`. Profiles are cached at
-`state/prospects/sites/<place_id>/places-profile.json` so re-runs don't re-bill;
-`--no-enrich` falls back to genre-default copy. Review *text* is intentionally
-not fetched (keeps the connector's "no review text" posture; rating + count is
-factual social proof). **Still a follow-up:** photos (needs the Places Photo
-API) and richer per-service content.
+#### Legacy token-fill path (deprecated — bulk/internal only)
+
+`render_landing_html` + `demo_theme` → `dist/` is **not** the customer-facing
+default. Use only with `--legacy-build` for bulk regeneration or internal
+experiments. Paid **client sites** use `packages/web/scaffold.py` (Astro under
+`products/<slug>-site/`), not prospect token-fill.
+
+```bash
+# Deprecated — do not use for mockups you will show a business owner:
+python scripts/agency/build_prospect_site.py --place-id <PID> --legacy-build
+```
+
+`demo_theme.py` remains for portfolio anonymization (`build_portfolio_demos.py`)
+and tests, not for bespoke prospect mockups.
 
 ### Stage 6 — Outreach draft
 Use `state/prospects/outreach/`: pick the channel from the manifest's
@@ -161,9 +151,8 @@ Record outcome on the lead (`engagement_status`). Follow-up cadence is manual.
 
 1. **Contact-channel resolution (Stage 4)** — without it, only phone-first
    outreach is possible for the cleanest leads. **Now the top gap.**
-2. ~~Prospect → preview-site glue (Stage 5)~~ — ✅ **built** (`packages/agency/prospect_site.py`),
-   now with real Places enrichment by default. Remaining follow-up: **photos**
-   (Places Photo API) and richer per-service content.
+2. ~~Prospect → preview-site glue (Stage 5)~~ — ✅ **built** (playbook `dist-v2` +
+   deploy glue). Remaining: automate more playbook steps; **photos** in gather.
 3. **Verification as a first-class pipeline step** — Stage 2 ran as an ad-hoc
    workflow; fold it into the sweep so `A_gold` is never emitted unverified, and
    add a branded-booking-page (Fresha/Booksy/Square/Toast) detector to the
@@ -173,9 +162,16 @@ Record outcome on the lead (`engagement_status`). Follow-up cadence is manual.
 5. **Outreach tracking** — formalize status transitions and follow-up beyond a
    single field.
 
+## Client delivery (after they say yes)
+
+Phases 3–5 (promote → intake → launch) are documented in
+**`docs/agency/client-lifecycle.md`**. Operator CLIs: `scripts/promote_prospect.py`,
+`scripts/agency/client_intake.py`, `scripts/agency/launch_client.py`.
+
 ## Where things live (quick reference)
 
 - Strategy: `state/artifacts/discovery/waas-local-smb-wedge-brief.md`
+- Client lifecycle: `docs/agency/client-lifecycle.md`
 - Warehouse: `state/prospects/records/*.json` · cohorts `packages/prospecting/cohorts.py`
 - Verification reports: `state/artifacts/prospecting/*-verification.md`
 - Outreach templates: `state/prospects/outreach/` (README, manifest, genre-snippets, channel dirs)

@@ -1,6 +1,6 @@
 # Better Business Web — Landing Page Plan (v2)
 
-**Status:** plan — approved direction; technical review incorporated. Not built.
+**Status:** partially built — live at https://better-business-web.netlify.app (see §5 deploy notes). Plan sections below track remaining gaps.
 **Product id:** `better-business-web`
 **Related:** [todos/064](../../../todos/064-pending-p3-netlify-funnel-page-for-agency.md) · [WaaS prospecting lane](../../waas-prospecting-lane.md) · [agency catalog](../../../packages/agency/catalog.yaml) · [smarter-demos-plan](../../agency/smarter-demos-plan.md)
 

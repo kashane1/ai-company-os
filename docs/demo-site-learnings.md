@@ -104,6 +104,87 @@ Companion to `docs/demo-site-build-playbook.md`. Each rule tagged:
 
 ---
 
+## Batch build — 2026-06 (34 sites, 15 genres, local-only)
+
+Ran the playbook at scale: one bespoke local demo per business across bakery,
+barber, beauty/hair, dog groomer, massage, notary, restaurant, roofer, tutoring,
+music, house-cleaning, electrician, plumber, accountant, landscaper (+ the earlier
+nail/auto/coffee). All local builds + local screenshots, **no deploy**.
+
+- `[PROCESS]` **Google rich-gather alone is enough to build a grounded bespoke page**
+  at volume. New committed script `scripts/agency/gather_place.py` pulls an extended
+  Place Details mask (5 review texts + up to 10 photos + attributes/payments/hours)
+  and downloads photos — mirrors the Skyline layout. Yelp/IG/FB add depth but are
+  **not required per-business at scale, and unsafe to parallelize** across one
+  account. Reserve the browser pass for flagships.
+- `[PROCESS]` **Per-business subagents don't converge on a template** when each is
+  told to *derive the palette + fonts from THAT business's own photos* and is shown
+  ≥2 differently-styled exemplars as "match the craft, not the look." Spec lives in
+  `state/prospects/batch/SUBAGENT-BUILD-SPEC.md`. Proof: three barbershops (bold
+  black/red, late-night crimson, parchment/navy/gold), two roofers (terracotta vs
+  sky-blue), two landscapers (KY lush-green vs AZ travertine), two accountants
+  (cream/star-red vs hunter-green) all read as different businesses.
+- `[DESIGN]` **(graduate to craft-pass) Masked gradient borders + lifted children.**
+  A 1px gradient-border `::before` overlay MUST use
+  `-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude` **and** card children must be
+  `position:relative;z-index:1`. Without both, the overlay's solid fill paints over
+  the card content → **blank white cards** (bit us once on a massage build; the
+  Skyline/Ollama exemplars already do this — make it explicit in the spec).
+- `[PROCESS]` **Service-area trades need their own structure** (roofer, plumber,
+  electrician, cleaning, landscaper): NO "come visit"/map-as-destination; hero +
+  services + why-us/trust + reviews + **named service area (the metro)** + process +
+  FAQ; CTA = **Call + Request a quote**. Distinct from storefront/visit genres.
+- `[PROCESS]` **Headless map artifact:** the Google Maps `output=embed` iframe renders
+  **blank** in Playwright/Chromium full-page capture; it paints in a real browser.
+  Don't treat a blank map tile in the screenshot as a defect.
+- `[PROCESS]` **Contact-sheet QA:** montage the top region of every
+  `review-gallery/*.png` into one grid image to eyeball a whole batch for blank/
+  broken/converged pages in a single look (`state/prospects/batch/contact-sheet.png`).
+- `[PROCESS]` IG and `localhost` both need a **per-domain permission grant** in the
+  connected Chrome — can't be done autonomously while the operator is away.
+
+## Genre notes (from the batch)
+- **Bakery/cafe:** lead with the case/signature items + the room's character; mine
+  signage/packaging photos for real menu words (Bliss: sausage bread, "fire" bread,
+  macarons, vinyl/Hi-Fi interior, the "All I ever wanted was everything" neon).
+- **Barber:** the differentiator is hours/walk-in/era — derive palette from the
+  chair capes + sign; avoid invented prices unless a board is legible.
+- **Trades (roof/plumb/electric/lawn/clean):** photos are work-shots, not storefronts
+  → lean editorial/typographic, use the 1–2 best result shots big; lead on the real
+  trust driver (family/generations, responsiveness, on-time) only if reviews say so.
+- **Professional services (notary/accountant):** credential-forward but only *real*
+  credentials; appointment framing, not retail; no fake CPA/award claims.
+
+## Scale notes — 2026-06 (grew to 152 demos, 20 genres)
+
+- `[FACTUAL]` **Generic Google display name → derive the real brand from reviews/photos.**
+  Several listings are named "landscaping service" / "Notary Public" etc.; the true
+  brand (e.g. "Arturo & Yessi Landscaping", owner names) lives in the review text and
+  photo attribution. Use it, and flag the mismatch for the operator.
+- `[FACTUAL]` **Watermarked work photos = independent booth renters, not the owner's
+  work.** In salons/nail/lash especially, gallery photos carry other artists' IG
+  handles. Use them as ambient visual proof but don't attribute them to the named
+  owner; only name staff the reviews actually name.
+- `[FACTUAL]` **Mine in-photo service boards for real services + prices** (Adobe
+  Accounting: notary $10, translations from $35, passport photos $15; Detroit auto:
+  full posted service list + 10% senior discount). Strongest grounding there is.
+- `[FACTUAL]` **DBA / cross-listed names are common** (Brothers Leon ↔ "Lindsay
+  Roofing"; Memphis ↔ Anchor). Keep copy attribution-safe and flag for outreach.
+- `[PROCESS]` **Sub-genre routing matters:** mobile mechanic / mobile notary = "we
+  come to you" (service-area), not a shop-visit; "& Sons"/"Brothers" ≠ a confirmed
+  family story unless reviews say so; "Spa" in a salon name ≠ spa services without
+  evidence; multiservice/notary often = Latino community one-stop (taxes+translation
+  +notary). Each got its own structure/CTA.
+- `[PROCESS]` **Throughput:** Google-only rich gather + one sonnet build-subagent per
+  business held the bar across 152 sites. Issue the whole wave's `Agent` calls in a
+  SINGLE message (they run concurrently); verify against disk
+  (`ls sites/*/dist-v2/index.html | wc -l`), not narration. ~4% of businesses came
+  back with <6 photos or 0 photos — swap 0-photo picks, build <6 editorially.
+
 ## Graduation log (rule → automation)
 When a rule is reliable across ≥3 builds, note here what it became:
+- "rich Place Details + photo download" → **`scripts/agency/gather_place.py`** (Checkpoint A).
+- "per-business bespoke build" → **`state/prospects/batch/SUBAGENT-BUILD-SPEC.md`** (fan-out spec).
+- "masked gradient border + lifted children" → make a hard line in `05-craft-pass.md`.
 - _e.g. "negative-review price check" → automated guardrail in the brief step_

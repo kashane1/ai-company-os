@@ -106,11 +106,12 @@ services) → IG/FB (photos & voice) → BBB/press (story & credibility) → own
 - **Last action before deploy: capture the final full-page screenshot** (step 5
   command) so the review gallery reflects exactly what ships. Operator reviews the
   gallery PNG; deploy only after that.
-- Only when the operator says "ship it." Publish to a clean Netlify subdomain via
-  the **file-digest** method (not zip — see `packages/web/deploy.py`); confirm the
-  page serves `text/html` and photos `image/jpeg`.
-- Then write the URL back to the record (`mockup_url`) and generate outreach
-  (`scripts/agency/build_outreach.py`).
+- Only when the operator says "ship it." Run
+  `python scripts/agency/build_prospect_site.py --place-id <PID> --deploy`
+  (requires `dist-v2/` — the script refuses legacy `dist/`). Uses Netlify draft
+  deploy to the shared preview site; confirm the page serves `text/html` and
+  photos `image/jpeg`.
+- The script writes `mockup_url` on the record and `outreach-with-mockup.md`.
 
 ## Artifact layout (per business)
 

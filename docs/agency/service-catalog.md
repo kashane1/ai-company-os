@@ -21,7 +21,7 @@
 | Service | Bill | Setup | Monthly |
 |---|---|---|---|
 | Online Booking Setup (`booking`) | one-time | $300 | — |
-| Review Generation System (`reviews`) | recurring | — | $50/mo |
+| Review Readiness System (`reviews`) | recurring | — | $50/mo |
 | Local SEO (`local_seo`) | recurring | — | $125/mo |
 | Analytics Dashboard & Monthly Report (`monthly_reporting`) | recurring | — | $25/mo |
 
@@ -47,10 +47,10 @@ Look professional online. Website + the annoying tech handled.
 
 Everything in A, plus turn visitors into booked customers.
 
-**$999 setup + $99/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Generation System, Online Booking Setup.
+**$999 setup + $99/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Readiness System, Online Booking Setup.
 
 ### Package C — Presence + Capture + Growth
 
-Everything in B, plus local SEO, landing pages, and monthly reporting.
+Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.
 
-**$1,399 setup + $249/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Generation System, Online Booking Setup, Local SEO, Promotional Landing Page, Analytics Dashboard & Monthly Report.
+**$1,399 setup + $624/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Readiness System, Online Booking Setup, Local SEO, Promotional Landing Page, Analytics Dashboard & Monthly Report, Google Ads Management.
