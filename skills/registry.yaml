@@ -533,9 +533,7 @@ skills:
     source: internal
     adapters:
       claude: adapters/claude/copy-review.md
-    # project_skill intentionally omitted until the operator creates
-    # .claude/skills/copy-review.md; adding it before the pointer file exists
-    # would trip registry_drift's dangling_project_skill check (plan D8).
+    project_skill: .claude/skills/copy-review.md
 
   # ----- Phase 5 content pipeline skills -----
 
