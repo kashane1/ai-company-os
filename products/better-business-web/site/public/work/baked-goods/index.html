@@ -1,395 +1,596 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Goldenrod Bakehouse — Little Tokyo's Bakery for Everything Sweet & Savory</title>
-<meta name="description" content="Goldenrod Bakehouse in Little Tokyo Marketplace, Downtown LA. Sausage bread, pineapple sponge cake, gourmet macarons, whole cakes, matcha & taro drinks — soft, pillowy, made fresh. 4.9★ from 651 Google reviews. Open 7 days." />
-<meta property="og:title" content="Goldenrod Bakehouse — Little Tokyo, Downtown LA" />
-<meta property="og:description" content="Soft, pillowy breads, gourmet macarons and showpiece cakes in Little Tokyo Marketplace. Vinyl on the turntable, neon on the wall. 4.9★ · 651 reviews. Open 7 days." />
-<meta property="og:type" content="business.business" />
-<meta property="og:image" content="assets/hero-storefront.jpg" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23f4ece0'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='18' font-weight='700' fill='%232f6fd0' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Goldenrod Bakehouse — Small-batch bread, cakes &amp; pastries · Sutton, VT</title>
+<meta name="description" content="Goldenrod Bakehouse in Sutton village, Vermont. Sourdough, custom cakes, and pastries baked fresh daily with locally milled flour. Open Tue–Sun." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,600&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --cream:#f6efe4; --paper:#fffdf8; --teak:#7a4f2c; --ink:#241c14; --muted:#776a5b;
-    --blue:#2f6fd0; --blue-deep:#1f56ad; --blue-soft:#cfe0f7;
-    --clay:#c0613c; --rose:#e6a6b4; --taro:#b9a6d8; --line:#ece0cf; --r:18px;
-    --sh:0 1px 2px rgba(36,28,20,.06), 0 12px 24px -12px rgba(36,28,20,.20), 0 30px 60px -30px rgba(36,28,20,.34);
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{font-family:"Hanken Grotesk",system-ui,sans-serif;color:var(--ink);background:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
-  img{display:block;max-width:100%}
-  a{color:inherit;text-decoration:none}
-  h1,h2,h3{font-family:"Bricolage Grotesque",Georgia,serif;font-weight:700;line-height:1.04;letter-spacing:-.015em}
-  .num,.stars b,.tnum,.hours span{font-variant-numeric:tabular-nums lining-nums}
-  .wrap{width:100%;max-width:1160px;margin-inline:auto;padding-inline:clamp(1.2rem,4vw,2.4rem)}
-  .eyebrow{font-size:.76rem;letter-spacing:.24em;text-transform:uppercase;color:var(--blue-deep);font-weight:600}
-  .btn{position:relative;display:inline-flex;align-items:center;gap:.5rem;font-weight:600;font-size:1rem;padding:.85rem 1.5rem;border-radius:999px;transition:transform .2s,background .2s,color .2s;border:1px solid transparent;cursor:pointer;overflow:hidden}
-  .btn-primary{background:var(--blue);color:#fff;box-shadow:0 10px 26px -12px rgba(47,111,208,.85)}
-  .btn-primary:hover{background:var(--blue-deep);transform:translateY(-2px)}
-  .btn-primary::after{content:"";position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-18deg);transition:left .6s}
-  .btn-primary:hover::after{left:150%}
-  .btn-ghost{border-color:var(--teak);color:var(--teak)}
-  .btn-ghost:hover{background:var(--teak);color:#fff}
-
-  body::after{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.04;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-
-  .progress{position:fixed;top:0;left:0;height:3px;width:100%;z-index:60;transform-origin:left;transform:scaleX(0);background:linear-gradient(90deg,var(--blue),var(--rose))}
-  @media (prefers-reduced-motion: no-preference){.progress{animation:grow linear;animation-timeline:scroll(root)}@keyframes grow{to{transform:scaleX(1)}}}
-
-  header{position:sticky;top:0;z-index:50;background:rgba(246,239,228,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
-  .nav{display:flex;align-items:center;justify-content:space-between;padding-block:.9rem}
-  .brand{display:inline-flex;align-items:center;gap:.6rem}
-  .brand .bt{font-family:"Bricolage Grotesque",serif;font-size:1.45rem;font-weight:800;letter-spacing:-.02em;line-height:1}
-  .brand .bt small{display:block;font-family:"Hanken Grotesk";font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:var(--blue-deep);font-weight:600;margin-top:2px}
-  .nav-links{display:flex;gap:2rem;align-items:center}
-  .nav-links a{font-size:.95rem;color:var(--muted);position:relative}
-  .nav-links a::after{content:"";position:absolute;left:0;bottom:-5px;width:100%;height:2px;background:var(--blue);transform:scaleX(0);transform-origin:left;transition:transform .25s}
-  .nav-links a:hover{color:var(--ink)}.nav-links a:hover::after{transform:scaleX(1)}
-  .nav-cta{display:flex;gap:.6rem;align-items:center}
-  @media(max-width:860px){.nav-links{display:none}.nav-cta .btn-ghost{display:none}}
-
-  .hero{position:relative;padding-block:clamp(3rem,7vw,5.5rem);overflow:hidden}
-  .hero-mesh{position:absolute;inset:0;pointer-events:none;z-index:0;background:
-    radial-gradient(46% 52% at 84% 12%, rgba(47,111,208,.22), transparent 70%),
-    radial-gradient(42% 48% at 6% 92%, rgba(192,97,60,.18), transparent 72%)}
-  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(2rem,5vw,4rem);align-items:center}
-  .hero h1{font-size:clamp(2.6rem,6vw,4.5rem);margin:.6rem 0 1.1rem}
-  .hero h1 em{font-style:normal;color:var(--blue-deep)}
-  .hero p.lede{font-size:1.18rem;color:var(--muted);max-width:40ch}
-  .hero-actions{display:flex;gap:.8rem;margin-top:1.8rem;flex-wrap:wrap}
-  .stars{display:flex;align-items:center;gap:.6rem;margin-top:1.6rem;font-size:.95rem;color:var(--muted)}
-  .stars b{color:var(--ink);font-weight:700}
-  .star-row{color:var(--clay);letter-spacing:2px;font-size:1.05rem}
-  .hero-figure{position:relative}
-  .hero-figure img{width:100%;aspect-ratio:4/4.4;object-fit:cover;border-radius:calc(var(--r) + 8px);box-shadow:var(--sh)}
-  .hero-figure .chip{position:absolute;left:-14px;bottom:24px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:.7rem 1rem;box-shadow:var(--sh);font-size:.9rem;max-width:230px}
-  .hero-figure .chip b{font-family:"Bricolage Grotesque",serif}
-  @media(max-width:860px){.hero-grid{grid-template-columns:1fr}.hero-figure{order:-1}}
-  @media (prefers-reduced-motion: no-preference){
-    .hero-grid>div>*{animation:rise .7s both}
-    .hero-grid .eyebrow{animation-delay:.05s}.hero-grid h1{animation-delay:.15s}
-    .hero-grid .lede{animation-delay:.28s}.hero-grid .hero-actions{animation-delay:.4s}.hero-grid .stars{animation-delay:.5s}
-    .hero-figure{animation:rise .8s .25s both}
-    @keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-    .reveal{animation:reveal linear both;animation-timeline:view();animation-range:entry 0% cover 26%}
-    @keyframes reveal{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+    /* Warm Bento palette */
+    --cream:#fbf3e4;
+    --butter:#f6e6c4;
+    --honey:#e8a13a;
+    --honey-deep:#c87d1e;
+    --crust:#7a4a22;
+    --cocoa:#3a2515;
+    --ink:#2a1a0e;
+    --jam:#9b2247;       /* berry / jam accent */
+    --jam-bright:#c43160;
+    --paper:#fdf8ee;
+    --line:rgba(122,74,34,.16);
+    --shadow-sm:0 1px 2px rgba(58,37,21,.08), 0 2px 6px rgba(58,37,21,.06);
+    --shadow-md:0 6px 14px rgba(58,37,21,.10), 0 14px 34px rgba(58,37,21,.12);
+    --shadow-lg:0 10px 24px rgba(58,37,21,.14), 0 28px 60px rgba(58,37,21,.18);
+    --r-lg:30px;
+    --r-md:22px;
+    --r-sm:14px;
+    --maxw:1180px;
+    --ease:cubic-bezier(.22,.61,.36,1);
   }
 
-  .statband{background:var(--teak);color:#f6ece0;position:relative;overflow:hidden}
-  .statband::before{content:"";position:absolute;inset:0;background:radial-gradient(42% 80% at 84% 10%,rgba(47,111,208,.28),transparent 70%)}
-  .statrow{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;padding-block:2.1rem;text-align:center}
-  .statrow .num{font-family:"Bricolage Grotesque",serif;font-weight:800;font-size:clamp(2rem,4.6vw,2.9rem);color:#fff;display:block;line-height:1}
-  .statrow small{color:var(--blue-soft);font-size:.82rem;letter-spacing:.03em}
-  @media(max-width:620px){.statrow{grid-template-columns:1fr 1fr;gap:1.6rem 1rem}}
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
 
-  .trust{border-block:1px solid var(--line);background:var(--paper)}
-  .trust-row{display:flex;flex-wrap:wrap;gap:1rem 2.4rem;justify-content:center;padding-block:1.1rem;font-size:.92rem;color:var(--muted)}
-  .trust-row span{display:inline-flex;align-items:center;gap:.5rem}
-  .dot{width:5px;height:5px;border-radius:50%;background:var(--blue)}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:"Nunito",system-ui,sans-serif;
+    font-size:clamp(16px,1.05vw + 13px,18px);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    /* subtle paper-grain texture */
+    background-image:
+      radial-gradient(rgba(122,74,34,.035) 1px, transparent 1px),
+      radial-gradient(rgba(122,74,34,.025) 1px, transparent 1px);
+    background-size:7px 7px, 11px 11px;
+    background-position:0 0, 4px 6px;
+  }
 
-  section{padding-block:clamp(3.2rem,7vw,5.5rem)}
-  .sec-head{max-width:62ch}
-  .sec-head h2{font-size:clamp(1.9rem,4vw,2.8rem);margin:.5rem 0}
-  .sec-head h2 em{font-style:normal;color:var(--blue-deep)}
-  .sec-head p{color:var(--muted);font-size:1.08rem}
+  h1,h2,h3,h4{
+    font-family:"Fraunces",Georgia,serif;
+    line-height:1.04;
+    letter-spacing:-.01em;
+    margin:0;
+    color:var(--cocoa);
+    font-weight:600;
+  }
+  p{margin:0;}
+  a{color:inherit;}
+  img{display:block;max-width:100%;}
 
-  /* Menu / case */
-  .menu-wrap{background:var(--paper);border-block:1px solid var(--line)}
-  .menu{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;margin-top:2.4rem}
-  .item{position:relative;background:var(--cream);border-radius:var(--r);padding:1.4rem 1.5rem;box-shadow:var(--sh);transition:transform .2s,box-shadow .2s}
-  .item::before{content:"";position:absolute;inset:0;z-index:0;border-radius:var(--r);padding:1px;
-    background:linear-gradient(150deg,rgba(47,111,208,.5),rgba(192,97,60,.35) 60%,rgba(236,224,207,.7));
-    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-  .item>*{position:relative;z-index:1}
-  .item:hover{transform:translateY(-4px);box-shadow:0 1px 2px rgba(36,28,20,.06),0 22px 44px -18px rgba(192,97,60,.4)}
-  .item .k{font-family:"Bricolage Grotesque",serif;font-weight:800;color:var(--blue-deep);font-size:.85rem}
-  .item h3{font-size:1.2rem;margin:.25rem 0 .4rem}
-  .item p{color:var(--muted);font-size:.94rem}
-  .item .badge{display:inline-block;font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#fff;background:var(--clay);padding:.18rem .5rem;border-radius:7px;margin-bottom:.5rem}
-  @media(max-width:860px){.menu{grid-template-columns:1fr 1fr}}
-  @media(max-width:560px){.menu{grid-template-columns:1fr}}
-  .menu-note{margin-top:1.3rem;font-size:.86rem;color:var(--muted)}
+  .wrap{width:100%;max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(18px,4vw,40px);}
 
-  /* Gallery */
-  .gallery{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:168px;gap:.9rem;margin-top:2.4rem;grid-auto-flow:dense}
-  .gallery figure{margin:0;overflow:hidden;border-radius:14px;box-shadow:var(--sh);position:relative}
-  .gallery img{width:100%;height:100%;object-fit:cover;transition:transform .5s;filter:saturate(1.04)}
-  .gallery figure:hover img{transform:scale(1.07)}
-  .gallery figcaption{position:absolute;left:10px;bottom:9px;font-size:.76rem;color:#fff;background:rgba(36,28,20,.62);backdrop-filter:blur(3px);padding:.22rem .55rem;border-radius:8px;opacity:0;transition:opacity .25s}
-  .gallery figure:hover figcaption{opacity:1}
-  .gallery .big{grid-column:span 2;grid-row:span 2}
-  .gallery .wide{grid-column:span 2}
-  @media(max-width:760px){.gallery{grid-template-columns:1fr 1fr;grid-auto-rows:150px}.gallery .big{grid-row:span 2}}
+  /* ---------- Focus + skip ---------- */
+  a:focus-visible, button:focus-visible{
+    outline:3px solid var(--jam);
+    outline-offset:3px;
+    border-radius:6px;
+  }
+  .skip{
+    position:absolute;left:-9999px;top:8px;z-index:200;
+    background:var(--cocoa);color:var(--paper);
+    padding:.7rem 1.1rem;border-radius:10px;font-weight:700;
+  }
+  .skip:focus{left:16px;}
 
-  /* Loved */
-  .loved{background:#241c14;color:#efe6da;position:relative;overflow:hidden}
-  .loved::before{content:"";position:absolute;inset:0;background:radial-gradient(40% 60% at 86% 10%,rgba(47,111,208,.3),transparent 70%)}
-  .loved .wrap{position:relative}
-  .loved .eyebrow{color:var(--blue-soft)}
-  .loved h2{color:#fff}
-  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:2.4rem}
-  .q{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.13);border-radius:var(--r);padding:1.6rem}
-  .q .mark{font-family:"Bricolage Grotesque",serif;font-size:2.4rem;line-height:1;color:var(--blue-soft)}
-  .q p{font-size:1.02rem;margin:.3rem 0 1rem}
-  .q .who{font-size:.84rem;color:var(--blue-soft);letter-spacing:.03em}
-  @media(max-width:860px){.quotes{grid-template-columns:1fr}}
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:.55rem;
+    font-family:"Nunito",sans-serif;font-weight:800;
+    font-size:1rem;text-decoration:none;cursor:pointer;
+    padding:.85rem 1.4rem;border-radius:999px;border:2px solid transparent;
+    transition:transform .25s var(--ease), box-shadow .25s var(--ease), background .25s var(--ease);
+    line-height:1;
+  }
+  .btn svg{width:1.15em;height:1.15em;flex:none;}
+  .btn-primary{background:var(--jam);color:#fff;box-shadow:var(--shadow-md);}
+  .btn-primary:hover{background:var(--jam-bright);transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+  .btn-ghost{background:var(--paper);color:var(--cocoa);border-color:var(--line);box-shadow:var(--shadow-sm);}
+  .btn-ghost:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--honey);}
+  @media (prefers-reduced-motion: reduce){
+    .btn:hover{transform:none;}
+  }
 
-  /* FAQ */
-  .faq{max-width:760px;margin-top:2.2rem}
-  .faq details{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:0 1.3rem;margin-bottom:.7rem;box-shadow:0 1px 2px rgba(36,28,20,.05)}
-  .faq summary{list-style:none;cursor:pointer;padding:1.05rem 0;font-weight:600;font-size:1.04rem;display:flex;justify-content:space-between;align-items:center;gap:1rem}
-  .faq summary::-webkit-details-marker{display:none}
-  .faq summary .pl{flex:none;width:22px;height:22px;position:relative}
-  .faq summary .pl::before,.faq summary .pl::after{content:"";position:absolute;background:var(--blue-deep);border-radius:2px}
-  .faq summary .pl::before{top:10px;left:2px;right:2px;height:2px}
-  .faq summary .pl::after{left:10px;top:2px;bottom:2px;width:2px;transition:transform .3s}
-  .faq details[open] summary .pl::after{transform:scaleY(0)}
-  .faq .ans{color:var(--muted);font-size:.98rem;padding-bottom:1.1rem;max-width:64ch}
+  .eyebrow{
+    font-family:"Nunito",sans-serif;font-weight:800;
+    text-transform:uppercase;letter-spacing:.18em;
+    font-size:.74rem;color:var(--honey-deep);
+    display:inline-flex;align-items:center;gap:.5rem;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--honey);border-radius:2px;}
 
-  /* Visit */
-  .visit-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(1.5rem,4vw,3rem);margin-top:2.4rem;align-items:start}
-  .hours{list-style:none;border-radius:var(--r);overflow:hidden;background:var(--paper);box-shadow:var(--sh)}
-  .hours li{display:flex;justify-content:space-between;padding:.7rem 1.2rem;border-bottom:1px solid var(--line);font-size:.97rem}
-  .hours li:last-child{border-bottom:0}
-  .hours li.today{background:rgba(47,111,208,.12);font-weight:600}
-  .hours .d{color:var(--muted)}.hours li.today .d{color:var(--ink)}
-  .info p{margin-bottom:.4rem;color:var(--muted)}
-  .info b{color:var(--ink)}.info .ico{color:var(--blue-deep);font-weight:700}
-  .map{margin-top:1.2rem;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);box-shadow:var(--sh)}
-  .map iframe{width:100%;height:250px;border:0;display:block}
-  @media(max-width:860px){.visit-grid{grid-template-columns:1fr}}
+  /* ---------- Top bar ---------- */
+  header.topbar{
+    position:sticky;top:0;z-index:100;
+    background:rgba(251,243,228,.82);
+    backdrop-filter:saturate(1.4) blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-block:.7rem;}
+  .brand{display:flex;align-items:center;gap:.6rem;text-decoration:none;}
+  .brand .mark{flex:none;}
+  .brand b{font-family:"Fraunces",serif;font-weight:700;font-size:1.18rem;color:var(--cocoa);letter-spacing:-.01em;}
+  .brand small{display:block;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--honey-deep);font-weight:800;}
+  .topnav{display:none;gap:1.6rem;align-items:center;}
+  .topnav a{text-decoration:none;font-weight:700;font-size:.96rem;color:var(--crust);transition:color .2s;}
+  .topnav a:hover{color:var(--jam);}
+  .topbar .btn{padding:.6rem 1.1rem;font-size:.92rem;}
+  @media(min-width:880px){ .topnav{display:flex;} }
 
-  footer{background:#1c150e;color:#d8cab8;padding-block:2.6rem;font-size:.92rem;position:relative;overflow:hidden}
-  .foot-mark{position:absolute;right:-1%;bottom:-44%;font-family:"Bricolage Grotesque",serif;font-weight:800;font-size:clamp(5rem,17vw,13rem);line-height:1;color:rgba(47,111,208,.12);pointer-events:none}
-  .foot{display:flex;flex-wrap:wrap;gap:1.4rem 3rem;justify-content:space-between;align-items:center;position:relative}
-  footer .brand .bt{color:#fff}
-  footer a:hover{color:#fff}
-  .foot-note{width:100%;border-top:1px solid rgba(255,255,255,.1);margin-top:1.6rem;padding-top:1.2rem;color:#897c6c;font-size:.82rem;position:relative;max-width:74ch}
+  /* ---------- HERO ---------- */
+  .hero{position:relative;padding-top:clamp(28px,5vw,60px);padding-bottom:clamp(40px,6vw,80px);}
+  .hero-grid{
+    display:grid;gap:clamp(16px,2.4vw,26px);
+    grid-template-columns:1fr;
+    align-items:stretch;
+  }
+  @media(min-width:900px){
+    .hero-grid{grid-template-columns:1.05fr .95fr;}
+  }
+  .hero-copy{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--r-lg);
+    padding:clamp(26px,3.4vw,48px);
+    box-shadow:var(--shadow-md);
+    display:flex;flex-direction:column;justify-content:center;
+    position:relative;overflow:hidden;
+  }
+  .hero-copy::after{
+    content:"";position:absolute;right:-70px;top:-70px;width:200px;height:200px;
+    background:radial-gradient(circle, rgba(232,161,58,.22), transparent 70%);
+    pointer-events:none;
+  }
+  .hero h1{
+    font-size:clamp(2.5rem,6.4vw,4.6rem);
+    font-weight:600;
+    margin:.55rem 0 .2rem;
+    letter-spacing:-.02em;
+  }
+  .hero h1 em{font-style:italic;color:var(--jam);font-weight:600;}
+  .hero h1 .swash{font-weight:900;color:var(--honey-deep);}
+  .hero-lede{font-size:clamp(1.05rem,1.5vw,1.2rem);color:var(--crust);max-width:46ch;margin-top:.9rem;}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.6rem;}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;margin-top:1.7rem;padding-top:1.3rem;border-top:1px dashed var(--line);font-size:.92rem;font-weight:700;color:var(--crust);}
+  .hero-meta span{display:inline-flex;align-items:center;gap:.45rem;}
+  .stars{color:var(--honey);letter-spacing:.06em;}
+
+  /* hero photo stack */
+  .hero-media{position:relative;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-lg);min-height:340px;}
+  .hero-media img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+  .hero-media{background:var(--butter);}
+  /* floating stamp badge */
+  .stamp{
+    position:absolute;z-index:5;right:clamp(12px,2vw,22px);bottom:clamp(12px,2vw,22px);
+    width:clamp(96px,13vw,140px);height:clamp(96px,13vw,140px);
+    filter:drop-shadow(0 10px 18px rgba(58,37,21,.3));
+  }
+  .stamp .rot{transform-origin:center;animation:spin 38s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .stamp .rot{animation:none;} }
+
+  .float{animation:floaty 7s ease-in-out infinite;}
+  .float.b{animation-delay:-3.2s;animation-duration:8.5s;}
+  @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+  @media (prefers-reduced-motion: reduce){ .float{animation:none;} }
+
+  /* ---------- Section heading ---------- */
+  .sec{padding-block:clamp(46px,7vw,92px);}
+  .sec-head{max-width:60ch;margin-bottom:clamp(22px,3vw,38px);}
+  .sec-head h2{font-size:clamp(2rem,4.4vw,3.2rem);margin-top:.5rem;}
+  .sec-head p{margin-top:.8rem;color:var(--crust);font-size:1.08rem;}
+
+  /* ---------- BENTO GALLERY ---------- */
+  .bento{
+    display:grid;
+    gap:clamp(12px,1.6vw,20px);
+    grid-template-columns:repeat(2,1fr);
+    grid-auto-rows:150px;
+  }
+  @media(min-width:680px){ .bento{grid-template-columns:repeat(4,1fr);grid-auto-rows:165px;} }
+  @media(min-width:980px){ .bento{grid-template-columns:repeat(6,1fr);grid-auto-rows:128px;} }
+
+  .tile{
+    position:relative;overflow:hidden;border-radius:var(--r-md);
+    box-shadow:var(--shadow-md);border:1px solid rgba(255,255,255,.5);
+    grid-column:span 2;grid-row:span 1;background:var(--butter);
+  }
+  .tile img{
+    width:100%;height:100%;object-fit:cover;
+    transition:transform .9s var(--ease), filter .6s var(--ease);
+  }
+  .tile:hover img,.tile:focus-within img{transform:scale(1.07);}
+  @media (prefers-reduced-motion: reduce){ .tile:hover img,.tile:focus-within img{transform:none;} }
+  .tile figcaption{
+    position:absolute;left:0;right:0;bottom:0;
+    padding:1.4rem 1rem .85rem;
+    font-family:"Fraunces",serif;font-weight:600;font-size:1.02rem;color:#fff;
+    background:linear-gradient(to top, rgba(42,26,14,.78), rgba(42,26,14,.12) 70%, transparent);
+    letter-spacing:-.01em;
+  }
+  .tile figcaption small{display:block;font-family:"Nunito",sans-serif;font-weight:700;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--butter);opacity:.95;}
+
+  /* bento size variants on wide grids */
+  @media(min-width:980px){
+    .t-tall{grid-row:span 2;}
+    .t-wide{grid-column:span 3;}
+    .t-big{grid-column:span 3;grid-row:span 2;}
+    .t-sm{grid-column:span 2;grid-row:span 1;}
+  }
+  @media(min-width:680px) and (max-width:979px){
+    .t-big{grid-column:span 4;grid-row:span 2;}
+    .t-wide{grid-column:span 2;}
+  }
+
+  /* ---------- Services ---------- */
+  .svc-grid{display:grid;gap:clamp(14px,2vw,22px);grid-template-columns:1fr;}
+  @media(min-width:720px){ .svc-grid{grid-template-columns:repeat(3,1fr);} }
+  .svc{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);
+    padding:clamp(22px,2.6vw,34px);box-shadow:var(--shadow-sm);
+    transition:transform .3s var(--ease),box-shadow .3s var(--ease);
+    display:flex;flex-direction:column;gap:.6rem;
+  }
+  .svc:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);}
+  @media (prefers-reduced-motion: reduce){ .svc:hover{transform:none;} }
+  .svc .ico{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:var(--butter);color:var(--crust);margin-bottom:.4rem;box-shadow:inset 0 0 0 1px rgba(122,74,34,.1);}
+  .svc .ico svg{width:28px;height:28px;}
+  .svc h3{font-size:1.45rem;}
+  .svc p{color:var(--crust);font-size:1rem;}
+  .svc ul{list-style:none;padding:0;margin:.5rem 0 0;display:flex;flex-wrap:wrap;gap:.4rem;}
+  .svc li{font-size:.82rem;font-weight:700;color:var(--honey-deep);background:var(--butter);padding:.25rem .7rem;border-radius:999px;}
+
+  /* ---------- Story / split ---------- */
+  .split{
+    display:grid;gap:clamp(20px,3vw,44px);align-items:center;grid-template-columns:1fr;
+  }
+  @media(min-width:860px){ .split{grid-template-columns:1fr 1fr;} }
+  .split.flip .media{order:-1;}
+  @media(min-width:860px){ .split.flip .media{order:0;} }
+  .split .media{border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-lg);aspect-ratio:4/3;}
+  .split .media img{width:100%;height:100%;object-fit:cover;}
+  .split h2{font-size:clamp(2rem,4vw,3rem);}
+  .split p{margin-top:1rem;color:var(--crust);font-size:1.08rem;}
+  .pull{font-family:"Fraunces",serif;font-style:italic;font-size:clamp(1.3rem,2.4vw,1.7rem);color:var(--jam);line-height:1.25;margin-top:1.2rem;border-left:3px solid var(--honey);padding-left:1rem;}
+
+  /* ---------- Review ---------- */
+  .review{
+    text-align:center;max-width:780px;margin-inline:auto;
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:clamp(32px,5vw,60px);box-shadow:var(--shadow-md);position:relative;
+  }
+  .review .q{font-family:"Fraunces",serif;font-size:clamp(1.5rem,3.2vw,2.3rem);line-height:1.3;color:var(--cocoa);font-weight:500;}
+  .review .stars{font-size:1.4rem;margin-bottom:1.2rem;display:block;}
+  .review cite{display:block;margin-top:1.4rem;font-style:normal;font-weight:800;color:var(--crust);}
+  .review cite small{display:block;font-weight:600;color:var(--honey-deep);font-size:.85rem;letter-spacing:.04em;}
+
+  /* ---------- Visit / CTA footer ---------- */
+  .visit{
+    background:
+      linear-gradient(180deg, rgba(42,26,14,.0), rgba(42,26,14,.0)),
+      linear-gradient(145deg,#3a2515,#5a3318);
+    color:var(--butter);border-radius:var(--r-lg);overflow:hidden;
+    box-shadow:var(--shadow-lg);position:relative;
+  }
+  .visit-grid{display:grid;grid-template-columns:1fr;}
+  @media(min-width:820px){ .visit-grid{grid-template-columns:1.1fr .9fr;} }
+  .visit-copy{padding:clamp(30px,4vw,56px);}
+  .visit-copy h2{color:#fff;font-size:clamp(2rem,4vw,3rem);}
+  .visit-copy .lede{margin-top:.9rem;color:rgba(246,230,196,.85);font-size:1.08rem;}
+  .visit-info{margin-top:1.8rem;display:grid;gap:1.1rem;}
+  .visit-info .row{display:flex;gap:.85rem;align-items:flex-start;}
+  .visit-info .row svg{width:22px;height:22px;flex:none;color:var(--honey);margin-top:.15rem;}
+  .visit-info b{display:block;color:#fff;font-size:1.02rem;}
+  .visit-info span{color:rgba(246,230,196,.8);font-size:.95rem;}
+  .visit-cta{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.9rem;}
+  .visit-cta .btn-ghost{background:rgba(255,255,255,.95);}
+  .visit-media{position:relative;min-height:280px;background:var(--crust);}
+  .visit-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+
+  /* hours table */
+  .hours{margin-top:1.6rem;border-top:1px solid rgba(246,230,196,.2);padding-top:1.1rem;font-size:.95rem;}
+  .hours dl{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1.2rem;margin:0;}
+  .hours dt{font-weight:800;color:#fff;}
+  .hours dd{margin:0;color:rgba(246,230,196,.82);text-align:right;}
+
+  footer.site{padding:clamp(34px,5vw,56px) 0 2.4rem;text-align:center;color:var(--crust);}
+  footer.site .brand{justify-content:center;margin-bottom:1rem;}
+  footer.site p{font-size:.9rem;}
+  footer.site .small{font-size:.78rem;color:rgba(122,74,34,.6);margin-top:.8rem;}
+
+  /* reveal on scroll (gated) */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease),transform .7s var(--ease);}
+  .reveal.in{opacity:1;transform:none;}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1 !important;transform:none !important;transition:none;}
+  }
 </style>
 </head>
 <body>
-<div class="progress" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
 
-<header>
-  <div class="wrap nav">
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="wrap">
     <a class="brand" href="#top" aria-label="Goldenrod Bakehouse home">
-      <span class="bt">Goldenrod Bakehouse<small>Little Tokyo · Downtown LA</small></span>
+      <svg class="mark" width="38" height="38" viewBox="0 0 38 38" role="img" aria-hidden="true">
+        <circle cx="19" cy="19" r="18" fill="#9b2247"/>
+        <path d="M19 8c2.4 2 2.4 4.6 0 6.6-2.4-2-2.4-4.6 0-6.6Z" fill="#f6e6c4"/>
+        <path d="M11 16c2.9.6 4.2 2.9 3.3 5.9-2.9-.6-4.2-2.9-3.3-5.9ZM27 16c.9 3-.4 5.3-3.3 5.9-.9-3 .4-5.3 3.3-5.9Z" fill="#e8a13a"/>
+        <circle cx="19" cy="24" r="5.5" fill="#f6e6c4"/>
+        <circle cx="19" cy="24" r="2.2" fill="#c87d1e"/>
+      </svg>
+      <span>
+        <b>Goldenrod</b>
+        <small>Bakehouse · Sutton VT</small>
+      </span>
     </a>
-    <nav class="nav-links">
-      <a href="#case">The Case</a>
-      <a href="#space">The Space</a>
-      <a href="#loved">Reviews</a>
+    <nav class="topnav" aria-label="Primary">
+      <a href="#gallery">From the oven</a>
+      <a href="#menu">What we bake</a>
+      <a href="#story">Our story</a>
       <a href="#visit">Visit</a>
     </nav>
-    <div class="nav-cta">
-      <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=5+Mill+Lane,+Sutton,+VT+05867" target="_blank" rel="noopener">Directions</a>
-      <a class="btn btn-primary" href="tel:+18025550119">Call (802) 555-0119</a>
-    </div>
+    <a class="btn btn-primary" href="tel:+18025550119">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.5.6.6 0 1 .5 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.5-1 1-1h3.4c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.4 0 .8-.2 1l-2.2 2.3Z" fill="currentColor"/></svg>
+      <span>Call</span>
+    </a>
   </div>
 </header>
 
-<main id="top">
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-mesh"></div>
-    <div class="wrap hero-grid">
-      <div>
-        <span class="eyebrow">Bakery · Little Tokyo Marketplace</span>
-        <h1>All I ever wanted<br>was <em>everything.</em></h1>
-        <p class="lede">So that's what's in the case. Soft, pillowy sausage bread, gourmet macarons, showpiece cakes and matcha-and-taro drinks — baked fresh in Little Tokyo, with vinyl on the turntable and the neon on.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="tel:+18025550119">Call (802) 555-0119</a>
-          <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=5+Mill+Lane,+Sutton,+VT+05867" target="_blank" rel="noopener">Get directions</a>
-        </div>
-        <div class="stars">
-          <span class="star-row">★★★★★</span>
-          <span><b>4.9</b> from <b>651</b> Google reviews</span>
-        </div>
-      </div>
-      <figure class="hero-figure">
-        <img src="assets/hero-storefront.jpg" alt="Goldenrod Bakehouse's counter in Little Tokyo Marketplace, with its blue BLISS neon and an 'All I ever wanted was everything' neon on the wall above the pastry case" />
-        <div class="chip"><b>Open 7 days</b><br>7:00 AM – 8:30 PM · walk up to the case</div>
-      </figure>
-    </div>
-  </section>
+<main id="main">
+<span id="top"></span>
 
-  <!-- STATS -->
-  <div class="statband">
-    <div class="wrap statrow reveal">
-      <div><span class="num" data-to="4.9" data-dec="1">4.9</span><small>Google rating</small></div>
-      <div><span class="num" data-to="651" data-suffix="">651</span><small>Google reviews</small></div>
-      <div><span class="num" data-to="7" data-suffix="">7</span><small>days a week</small></div>
-      <div><span class="num">7–8:30</span><small>open AM to PM</small></div>
+<!-- HERO -->
+<section class="hero wrap" aria-labelledby="hero-title">
+  <div class="hero-grid">
+    <div class="hero-copy float">
+      <span class="eyebrow">Baked fresh · Sutton village, Vermont</span>
+      <h1 id="hero-title">The good stuff,<br><span class="swash">made by hand</span> <em>every morning.</em></h1>
+      <p class="hero-lede">A tiny village bakehouse turning locally milled flour into sourdough, custom cakes, and pastries worth the drive. Small batches, sold the same day.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="tel:+18025550119">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.5.6.6 0 1 .5 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.5-1 1-1h3.4c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.4 0 .8-.2 1l-2.2 2.3Z" fill="currentColor"/></svg>
+          (802) 555-0119
+        </a>
+        <a class="btn btn-ghost" href="https://maps.google.com/?q=Goldenrod+Bakehouse+5+Mill+Lane+Sutton+VT" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="2"/></svg>
+          Get directions
+        </a>
+      </div>
+      <div class="hero-meta">
+        <span><span class="stars" aria-hidden="true">★★★★★</span> 4.9 average</span>
+        <span aria-hidden="true">•</span>
+        <span>Open Tue–Sun</span>
+        <span aria-hidden="true">•</span>
+        <span>Locally milled flour</span>
+      </div>
+    </div>
+
+    <div class="hero-media">
+      <img src="assets/pastry-case.jpg" alt="A glass bakery case filled with rows of golden croissants, pastries, and morning buns at Goldenrod Bakehouse." />
+      <!-- circular hand-drawn stamp -->
+      <svg class="stamp" viewBox="0 0 140 140" role="img" aria-label="Baked fresh daily">
+        <circle cx="70" cy="70" r="68" fill="#fbf3e4"/>
+        <circle cx="70" cy="70" r="68" fill="none" stroke="#9b2247" stroke-width="3"/>
+        <circle cx="70" cy="70" r="52" fill="none" stroke="#e8a13a" stroke-width="1.5" stroke-dasharray="2 4"/>
+        <g class="rot">
+          <defs><path id="cpath" d="M70,70 m-58,0 a58,58 0 1,1 116,0 a58,58 0 1,1 -116,0"/></defs>
+          <text fill="#7a4a22" font-family="Fraunces, serif" font-size="12.5" font-weight="600" letter-spacing="3">
+            <textPath href="#cpath" startOffset="0%">· BAKED FRESH DAILY · SMALL BATCH · SUTTON VT </textPath>
+          </text>
+        </g>
+        <g transform="translate(70 70)">
+          <path d="M-16 6c0-9 7-16 16-16s16 7 16 16Z" fill="#e8a13a"/>
+          <path d="M-16 6h32v3a3 3 0 0 1-3 3h-26a3 3 0 0 1-3-3Z" fill="#c87d1e"/>
+          <path d="M-9 -6c0-3 2-5 4-5M0 -8c0-3 2-5 4-5M9 -6c0-3 2-5 4-5" stroke="#fbf3e4" stroke-width="2" stroke-linecap="round" fill="none"/>
+        </g>
+      </svg>
     </div>
   </div>
+</section>
 
-  <!-- TRUST -->
-  <div class="trust">
-    <div class="wrap trust-row">
-      <span><span class="dot"></span> 4.9★ · 651 Google reviews</span>
-      <span><span class="dot"></span> Open 7 days, 7 AM–8:30 PM</span>
-      <span><span class="dot"></span> Inside Little Tokyo Marketplace</span>
-      <span><span class="dot"></span> Sweet &amp; savory · cakes to order</span>
-    </div>
+<!-- BENTO GALLERY -->
+<section class="sec wrap" id="gallery" aria-labelledby="gallery-title">
+  <div class="sec-head reveal">
+    <span class="eyebrow">From the oven</span>
+    <h2 id="gallery-title">A case full of reasons to stop by.</h2>
+    <p>Everything you see is baked on-site that morning. When it sells out, it sells out — that's the small-batch promise.</p>
   </div>
 
-  <!-- THE VTSE / MENU -->
-  <section id="case" class="menu-wrap">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">What's in the case</span>
-        <h2>Sweet, savory, and <em>seriously</em> soft.</h2>
-        <p>A rotating case of breads, pastries, macarons and cakes — pillowy, fresh, and a little addictive. A few of the regulars below; the full case changes through the day.</p>
-      </div>
-      <div class="menu reveal">
-        <article class="item">
-          <span class="badge">Fan favorite</span>
-          <div class="k">Savory</div>
-          <h3>Sausage Bread</h3>
-          <p>Soft, pillowy bread wrapped around a juicy, flavorful sausage — a regular family's all-time favorite breakfast.</p>
-        </article>
-        <article class="item">
-          <div class="k">Savory</div>
-          <h3>The "Fire" Bread</h3>
-          <p>The savory stuffed bread people come back for — pesto, sun-dried tomato and cheese baked into a golden, crackly crust.</p>
-        </article>
-        <article class="item">
-          <div class="k">Cakes</div>
-          <h3>Pineapple Sponge &amp; Chocolate Puff</h3>
-          <p>Light pineapple sponge cake, and a chocolate cake with puff pastry layered inside. Showpiece whole cakes, too — fruit-topped, character and celebration cakes.</p>
-        </article>
-        <article class="item">
-          <div class="k">Sweet</div>
-          <h3>Gourmet Macarons</h3>
-          <p>Trays of them, in rotating flavors — rose, taro, coffee, blueberry-lavender and more. Boxed up to go in the botanical-print box.</p>
-        </article>
-        <article class="item">
-          <div class="k">Sweet</div>
-          <h3>Breads, Buns &amp; Mochi</h3>
-          <p>Red bean, sweet potato, matcha, pumpkin and corn breads, plus mochi, danishes and muffins — soft and pillowy, with cream and fruit fillings.</p>
-        </article>
-        <article class="item">
-          <div class="k">Drinks</div>
-          <h3>Matcha, Taro &amp; Fruit Drinks</h3>
-          <p>Cream-top drinks and fruit juices to go with it — the matcha and taro smoothies are a reliable pairing for anything from the case.</p>
-        </article>
-      </div>
-      <p class="menu-note">Items rotate and sell out — call (802) 555-0119 to check the case or order a whole cake ahead.</p>
-    </div>
-  </section>
+  <div class="bento reveal">
+    <figure class="tile t-big">
+      <img src="assets/cake-case.jpg" alt="A display case of layered custom cakes finished with swirled buttercream and fresh berries." />
+      <figcaption><small>Custom cakes</small>Layered, frosted, and made to order</figcaption>
+    </figure>
+    <figure class="tile t-tall">
+      <img src="assets/macarons.jpg" alt="Rows of pastel French macarons in raspberry, pistachio, and vanilla." />
+      <figcaption><small>Pastries</small>French macarons</figcaption>
+    </figure>
+    <figure class="tile t-sm">
+      <img src="assets/muffins.jpg" alt="A tray of golden-topped muffins fresh from the oven." />
+      <figcaption><small>Morning</small>Muffins, daily</figcaption>
+    </figure>
+    <figure class="tile t-wide">
+      <img src="assets/savory-bread.jpg" alt="Crusty seeded loaves and rustic savory breads cooling on a rack." />
+      <figcaption><small>Fresh bread</small>Sourdough &amp; seeded loaves</figcaption>
+    </figure>
+    <figure class="tile t-sm">
+      <img src="assets/macaron-box.jpg" alt="An assorted box of macarons tied with twine, ready to gift." />
+      <figcaption><small>To go</small>Gift boxes</figcaption>
+    </figure>
+  </div>
+</section>
 
-  <!-- SPACE / GALLERY -->
-  <section id="space">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">The space</span>
-        <h2>Premium glow-up, in <em>Little Tokyo</em>.</h2>
-        <p>The newly refreshed counter is all warm wood, white brick and good lighting — vintage KitchenAids and a record player on the shelf, neon on the wall. Longtime regulars call it one of the best changes the marketplace has seen.</p>
+<!-- SERVICES / MENU -->
+<section class="sec wrap" id="menu" aria-labelledby="menu-title">
+  <div class="sec-head reveal">
+    <span class="eyebrow">What we bake</span>
+    <h2 id="menu-title">Three things, done properly.</h2>
+    <p>We keep the list short so we can keep the standards high. Locally milled flour, slow ferments, real butter.</p>
+  </div>
+  <div class="svc-grid">
+    <article class="svc reveal">
+      <div class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 13c0-4 3.6-6 8-6s8 2 8 6c0 1.7-1 2.5-2 2.5H6c-1 0-2-.8-2-2.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M4 16h16M8 7.5c0-1.5.8-2.5 1.5-3M12 7c0-1.5.8-2.5 1.5-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </div>
-      <div class="gallery reveal">
-        <figure class="big"><img src="assets/cake-case.jpg" alt="A glass case of whole cakes — fruit-topped, pink, and character cakes" loading="lazy"><figcaption>Whole cakes &amp; celebration cakes</figcaption></figure>
-        <figure><img src="assets/macarons.jpg" alt="Trays of pastel macarons in many flavors" loading="lazy"><figcaption>Macaron trays</figcaption></figure>
-        <figure><img src="assets/interior-vinyl.jpg" alt="Warm teak shelving with vintage KitchenAid mixers, vinyl records and a turntable above the macaron case" loading="lazy"><figcaption>Vinyl &amp; vintage mixers</figcaption></figure>
-        <figure class="wide"><img src="assets/pastry-case.jpg" alt="The pastry case filled with breads, cookies and savory pastries" loading="lazy"><figcaption>The bread &amp; pastry case</figcaption></figure>
-        <figure><img src="assets/savory-bread.jpg" alt="A savory stuffed bread with pesto, sun-dried tomato and cheese" loading="lazy"><figcaption>Savory, stuffed &amp; golden</figcaption></figure>
-        <figure><img src="assets/macaron-box.jpg" alt="A box of gourmet macarons in Goldenrod Bakehouse's botanical-print packaging" loading="lazy"><figcaption>Boxed to go</figcaption></figure>
-        <figure><img src="assets/muffins.jpg" alt="Muffins in the case — cookies and cream, blueberry, chocolate chip" loading="lazy"><figcaption>Fresh muffins</figcaption></figure>
-        <figure><img src="assets/packaged-teak.jpg" alt="Packaged breads and a fruit danish on warm wood" loading="lazy"><figcaption>Grab-and-go</figcaption></figure>
+      <h3>Fresh bread</h3>
+      <p>Naturally leavened sourdough, crackly baguettes, and seeded loaves baked off through the day.</p>
+      <ul><li>Sourdough</li><li>Baguettes</li><li>Seeded loaves</li></ul>
+    </article>
+    <article class="svc reveal">
+      <div class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 20h14v-6a7 7 0 0 0-14 0Z" stroke="currentColor" stroke-width="1.8"/><path d="M3 20h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 7V4M9 6V4M15 6V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <h3>Custom cakes</h3>
+      <p>Birthdays, weddings, and just-because. Tell us the flavor and the moment — we'll build it.</p>
+      <ul><li>Birthdays</li><li>Weddings</li><li>Made to order</li></ul>
+    </article>
+    <article class="svc reveal">
+      <div class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 11c0-1 1-2 2.5-2 1 0 1.5.5 2 1 .5-.6 1.4-1.5 2.5-1.5s2 .9 2.5 1.5c.5-.5 1-1 2-1C18 9 19 10 19 11c0 4-3.1 8-7 8s-7-4-7-8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9.5V5M12 5c0-1 .8-1.6 1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <h3>Pastries</h3>
+      <p>Laminated croissants, buttery scones, and morning buns that disappear before noon.</p>
+      <ul><li>Croissants</li><li>Scones</li><li>Morning buns</li></ul>
+    </article>
+  </div>
+</section>
+
+<!-- STORY -->
+<section class="sec wrap" id="story" aria-labelledby="story-title">
+  <div class="split reveal">
+    <div>
+      <span class="eyebrow">Our story</span>
+      <h2 id="story-title">Flour milled down the road. Bread baked before the village wakes.</h2>
+      <p>Goldenrod Bakehouse sits in an old brick storefront on Mill Lane, where the ovens are warm by 4 a.m. We work in small batches with flour milled nearby, so the loaves taste like the season they were baked in.</p>
+      <p>No day-old discounts, no freezer cases. What we make, we sell that day — and start again tomorrow.</p>
+      <p class="pull">"Real butter, slow time, and good company. That's the whole recipe."</p>
+    </div>
+    <div class="media float b">
+      <img src="assets/hero-storefront.jpg" alt="The warm wooden interior of Goldenrod Bakehouse, with a stocked counter and shelves behind it." />
+    </div>
+  </div>
+</section>
+
+<!-- SECONDARY GALLERY STRIP / interior -->
+<section class="sec wrap" aria-label="More from the bakehouse">
+  <div class="split flip reveal">
+    <div class="media float">
+      <img src="assets/interior-vinyl.jpg" alt="A cozy corner of the bakehouse with shelving, records, and warm afternoon light." />
+    </div>
+    <div>
+      <span class="eyebrow">The room</span>
+      <h2>A place to linger, not just grab-and-go.</h2>
+      <p>Pull up a seat by the window with a flat white and a warm morning bun. Vinyl on the turntable, regulars at the counter, and the smell of fresh bread doing most of the talking.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="https://maps.google.com/?q=Goldenrod+Bakehouse+5+Mill+Lane+Sutton+VT" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="2"/></svg>
+          Find us on the map
+        </a>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- LOVED -->
-  <section id="loved" class="loved">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">Why people keep coming back</span>
-        <h2>A hidden gem with a line for a reason.</h2>
-      </div>
-      <div class="quotes reveal">
-        <div class="q"><div class="mark">&ldquo;</div><p>One of the best bakeries in LA — a hidden gem. Amazing savory pastries, and the desserts are even better. Soft, pillowy, and just right.</p><div class="who">— Landen, Google review</div></div>
-        <div class="q"><div class="mark">&ldquo;</div><p>Sweetest people and best service. The pineapple sponge cake and the chocolate cake with puff pastry were delicious — great prices, too.</p><div class="who">— Katelyn, Google review</div></div>
-        <div class="q"><div class="mark">&ldquo;</div><p>An amazing transformation. After two decades in Little Tokyo Marketplace, the new Goldenrod Bakehouse is one of the best — a premium vibe, right down to the vinyl.</p><div class="who">— Jae, Google review</div></div>
-      </div>
-    </div>
-  </section>
+<!-- REVIEW -->
+<section class="sec wrap" aria-labelledby="review-title">
+  <figure class="review reveal">
+    <span class="stars" aria-hidden="true">★★★★★</span>
+    <h2 id="review-title" class="q">"Best croissant I've had outside of Paris — flaky, buttery, and still warm. Worth every mile of the drive."</h2>
+    <figcaption>
+      <cite>A Google reviewer<small>Paraphrased · 4.9★ average rating</small></cite>
+    </figcaption>
+  </figure>
+</section>
 
-  <!-- VISIT -->
-  <section id="visit">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">Find us</span>
-        <h2>Inside Little Tokyo Marketplace.</h2>
-        <p>Walk up to the case at 5 Mill Lane in Downtown LA — open early, open late, every day.</p>
-      </div>
-      <div class="visit-grid reveal">
-        <ul class="hours" id="hours">
-          <li data-day="1"><span class="d">Monday</span><span>7:00 AM – 8:30 PM</span></li>
-          <li data-day="2"><span class="d">Tuesday</span><span>7:00 AM – 8:30 PM</span></li>
-          <li data-day="3"><span class="d">Wednesday</span><span>7:00 AM – 8:30 PM</span></li>
-          <li data-day="4"><span class="d">Thursday</span><span>7:00 AM – 8:30 PM</span></li>
-          <li data-day="5"><span class="d">Friday</span><span>7:00 AM – 8:30 PM</span></li>
-          <li data-day="6"><span class="d">Saturday</span><span>7:00 AM – 8:30 PM</span></li>
-          <li data-day="0"><span class="d">Sunday</span><span>7:00 AM – 8:30 PM</span></li>
-        </ul>
-        <div class="info">
-          <p><b>Address</b><br>5 Mill Lane, Sutton, VT 05867<br>(inside Little Tokyo Marketplace)</p>
-          <p style="margin-top:.7rem"><b>Phone</b><br><a href="tel:+18025550119" style="color:var(--blue-deep);font-weight:600">(802) 555-0119</a></p>
-          <p style="margin-top:.7rem"><b>Good to know</b><br><span class="ico">✓</span> Takeout &amp; grab-and-go&nbsp; <span class="ico">✓</span> Whole cakes to order&nbsp; <span class="ico">✓</span> Marketplace parking&nbsp; <span class="ico">✓</span> Open 7 days</p>
-          <div class="hero-actions" style="margin-top:1.1rem">
-            <a class="btn btn-primary" href="tel:+18025550119">Call (802) 555-0119</a>
-            <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=5+Mill+Lane,+Sutton,+VT+05867" target="_blank" rel="noopener">Get directions</a>
+<!-- VISIT / CONTACT -->
+<section class="sec wrap" id="visit" aria-labelledby="visit-title">
+  <div class="visit">
+    <div class="visit-grid">
+      <div class="visit-copy reveal">
+        <span class="eyebrow" style="color:var(--honey)">Come say hi</span>
+        <h2 id="visit-title">Stop in before it's gone.</h2>
+        <p class="lede">We're a small shop with a short counter and a lot of regulars. Call ahead for cakes and large orders — everything else is first-come, oven-fresh.</p>
+
+        <div class="visit-info">
+          <div class="row">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="2"/></svg>
+            <div><b>5 Mill Lane</b><span>Sutton village, Vermont</span></div>
           </div>
-          <div class="map">
-            <iframe title="Map to Goldenrod Bakehouse" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-              src="https://maps.google.com/maps?q=5+Mill+Lane,+Sutton,+VT+05867&output=embed"></iframe>
+          <div class="row">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.5.6.6 0 1 .5 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.5-1 1-1h3.4c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.4 0 .8-.2 1l-2.2 2.3Z" fill="currentColor"/></svg>
+            <div><b>(802) 555-0119</b><span>Call for cakes &amp; large orders</span></div>
           </div>
         </div>
-      </div>
 
-      <div class="faq reveal">
-        <details><summary>Where exactly are you? <span class="pl" aria-hidden="true"></span></summary><div class="ans">Inside Little Tokyo Marketplace at 5 Mill Lane, Sutton, VT 05867, Downtown LA. Walk up to the Goldenrod Bakehouse counter — pay right there at the case.</div></details>
-        <details><summary>Can I order a whole cake? <span class="pl" aria-hidden="true"></span></summary><div class="ans">Yes — there's a case of whole cakes (fruit-topped, character and celebration cakes). Call (802) 555-0119 to ask what's available or to order one ahead.</div></details>
-        <details><summary>What should I try first? <span class="pl" aria-hidden="true"></span></summary><div class="ans">Regulars point to the sausage bread, the savory stuffed "fire" bread, the pineapple sponge cake, and a box of macarons — with a matcha or taro drink alongside.</div></details>
-        <details><summary>Are you open early? <span class="pl" aria-hidden="true"></span></summary><div class="ans">Every day, 7:00 AM to 8:30 PM — early enough for breakfast bread, late enough for after-dinner dessert.</div></details>
+        <div class="hours">
+          <dl>
+            <dt>Tue – Fri</dt><dd>7:00a – 5:00p</dd>
+            <dt>Sat – Sun</dt><dd>8:00a – 3:00p</dd>
+            <dt>Monday</dt><dd>Closed</dd>
+          </dl>
+        </div>
+
+        <div class="visit-cta">
+          <a class="btn btn-primary" href="tel:+18025550119">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.5.6.6 0 1 .5 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.5-1 1-1h3.4c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.4 0 .8-.2 1l-2.2 2.3Z" fill="currentColor"/></svg>
+            Call the bakehouse
+          </a>
+          <a class="btn btn-ghost" href="https://maps.google.com/?q=Goldenrod+Bakehouse+5+Mill+Lane+Sutton+VT" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="2"/></svg>
+            Directions
+          </a>
+        </div>
+      </div>
+      <div class="visit-media">
+        <img src="assets/muffins.jpg" alt="A close crop of golden muffins with crackly tops, fresh from the bakehouse oven." />
       </div>
     </div>
-  </section>
+  </div>
+</section>
+
 </main>
 
-<footer>
-  <div class="foot-mark" aria-hidden="true">Goldenrod Bakehouse</div>
+<footer class="site">
   <div class="wrap">
-    <div class="foot">
-      <a class="brand" href="#top"><span class="bt">Goldenrod Bakehouse</span></a>
-      <div>5 Mill Lane, Sutton, VT 05867 · <a href="tel:+18025550119">(802) 555-0119</a></div>
-      <a class="btn btn-primary" href="tel:+18025550119">Call (802) 555-0119</a>
-    </div>
-    <div class="foot-note">Bakery inside Little Tokyo Marketplace, Downtown LA · Open 7 days, 7 AM–8:30 PM · Sweet &amp; savory · Whole cakes to order. Case rotates through the day — call ahead for a specific item. © Goldenrod Bakehouse.</div>
+    <a class="brand" href="#top" aria-label="Goldenrod Bakehouse home">
+      <svg class="mark" width="34" height="34" viewBox="0 0 38 38" role="img" aria-hidden="true">
+        <circle cx="19" cy="19" r="18" fill="#9b2247"/>
+        <circle cx="19" cy="24" r="5.5" fill="#f6e6c4"/>
+        <circle cx="19" cy="24" r="2.2" fill="#c87d1e"/>
+        <path d="M19 8c2.4 2 2.4 4.6 0 6.6-2.4-2-2.4-4.6 0-6.6Z" fill="#f6e6c4"/>
+      </svg>
+      <span><b>Goldenrod Bakehouse</b><small>Sutton village · Vermont</small></span>
+    </a>
+    <p>5 Mill Lane, Sutton village, VT · <a href="tel:+18025550119">(802) 555-0119</a> · Open Tue–Sun</p>
+    <p class="small">Small-batch · Locally milled flour · Sold same day. Concept site for demonstration.</p>
   </div>
-<p class="concept-demo-note" style="margin-top:1rem;font-size:.85rem;opacity:.75">Concept demo — illustrative sample design by Better Business Web. Business details are fictional; layout and craft reflect real builds.</p>
 </footer>
 
 <script>
-  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  (function(){var d=new Date().getDay();var li=document.querySelector('#hours li[data-day="'+d+'"]');if(li)li.classList.add('today');})();
-  function countUp(el){
-    const to=parseFloat(el.dataset.to), dec=+(el.dataset.dec||0), suf=el.dataset.suffix||'';
-    if(RM) return;
-    const fmt=(v)=>(dec?v.toFixed(dec):Math.round(v).toLocaleString())+suf;
-    const dur=1100, t0=performance.now();
-    (function tick(t){let p=Math.min(1,(t-t0)/dur);p=1-Math.pow(1-p,3);
-      el.textContent=fmt(to*p); if(p<1) requestAnimationFrame(tick);})(t0);
-  }
-  const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){countUp(e.target);io.unobserve(e.target);}}),{threshold:.6});
-  document.querySelectorAll('.num[data-to]').forEach(n=>io.observe(n));
+  // Scroll reveal — only when motion is allowed
+  (function(){
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var els = document.querySelectorAll('.reveal');
+    if(reduce || !('IntersectionObserver' in window)){
+      els.forEach(function(e){e.classList.add('in');});
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    },{threshold:.14, rootMargin:'0px 0px -8% 0px'});
+    els.forEach(function(e){io.observe(e);});
+  })();
 </script>
 </body>
 </html>
