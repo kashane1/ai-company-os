@@ -241,7 +241,12 @@ def main() -> None:
     leg.add_argument(
         "--legacy-build",
         action="store_true",
-        help="generate token-fill dist/ via render_landing_html (bulk only — not for client-facing mockups)",
+        help=(
+            "DEPRECATED (web build path A): generate token-fill dist/ via "
+            "render_landing_html. Bulk regeneration only — NOT for client-facing "
+            "mockups. Use the bespoke playbook (docs/demo-site-build-playbook.md "
+            "→ dist-v2/); deployed prospect sites require dist-v2/."
+        ),
     )
     enr = ap.add_argument_group("enrichment (legacy-build only)")
     enr.add_argument(
@@ -263,16 +268,7 @@ def main() -> None:
 
     mode = "LEGACY BUILD" if args.legacy_build else "DEPLOY"
     print(f"{mode}{' + NETLIFY' if args.deploy else ''} — {len(records)} prospect site(s)\n")
-    if args.legacy_build:
-        print(
-            "⚠️  --legacy-build is DEPRECATED for customer-facing prospects "
-            "(web build path A, token-fill → dist/).\n"
-            "    Use the bespoke playbook instead: docs/demo-site-build-playbook.md "
-            "(→ dist-v2/).\n"
-            "    This flag is retained only for bulk regeneration; "
-            "deployed prospect sites require dist-v2/.\n"
-        )
-    else:
+    if not args.legacy_build:
         print("Requires dist-v2/ from docs/demo-site-build-playbook.md\n")
 
     summary = []
