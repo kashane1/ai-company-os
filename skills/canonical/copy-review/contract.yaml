@@ -1,0 +1,20 @@
+inputs:
+  - name: copy
+    type: string
+  - name: surface
+    type: enum
+    values: [marketing, demo]
+  - name: voice_guide_path
+    type: string
+  - name: proper_nouns
+    type: list
+  - name: language
+    type: string
+outputs:
+  - name: verdict
+    type: enum
+    values: [pass, fail]
+  - name: off_voice
+    type: list
+  - name: suggested_rewrite
+    type: string_or_null

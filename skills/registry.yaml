@@ -516,6 +516,27 @@ skills:
       claude: adapters/claude/gtm-artifact-refresh.md
     project_skill: .claude/skills/gtm-artifact-refresh.md
 
+  - id: copy-review
+    name: Copy Review
+    path: canonical/copy-review/skill.md
+    owner_agent: gtm
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Contract-freeze fixtures at
+    # skills/canonical/copy-review/fixtures/happy_path.yaml (3 cases) via
+    # tests/python/unit/test_copy_review_fixtures.py. Assert the canonical body
+    # keeps the I/O contract, the draft->critique->rewrite procedure headings,
+    # the verdict taxonomy, and the boundary carve-out (the word "guarantee" and
+    # a single em-dash are NOT hard fails).
+    fixture_status: passing
+    source: internal
+    adapters:
+      claude: adapters/claude/copy-review.md
+    # project_skill intentionally omitted until the operator creates
+    # .claude/skills/copy-review.md; adding it before the pointer file exists
+    # would trip registry_drift's dangling_project_skill check (plan D8).
+
   # ----- Phase 5 content pipeline skills -----
 
   - id: content-factory

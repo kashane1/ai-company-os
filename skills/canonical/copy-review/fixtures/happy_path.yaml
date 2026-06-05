@@ -1,0 +1,61 @@
+# Contract-freeze fixtures for copy-review.
+#
+# Skill is kind: agentic — the work is LLM-driven, so these are structural
+# assertions on the canonical body (not I/O replay). Each case freezes part of
+# the contract surface against silent drift. One file, multiple cases (same
+# convention as gtm-artifact-refresh).
+#
+# See tests/python/unit/test_copy_review_fixtures.py.
+
+- name: happy_path
+  description: Required contract surface present in the canonical body.
+  input:
+    skill_file: canonical/copy-review/skill.md
+  expected:
+    required_section_headings:
+      - "## Purpose"
+      - "## Contract"
+      - "## Procedure"
+      - "## Banned patterns (hard fails)"
+      - "## Fail-closed rule"
+      - "## Allowed edit boundaries"
+      - "## Forbidden areas"
+    required_input_fields:
+      - "`copy`"
+      - "`surface`"
+      - "`voice_guide_path`"
+      - "`proper_nouns`"
+      - "`language`"
+    required_output_fields:
+      - "`verdict`"
+      - "`off_voice`"
+      - "`suggested_rewrite`"
+    required_verdict_values:
+      - "pass"
+      - "fail"
+
+- name: boundary
+  description: >
+    Freezes the carve-out clause so the bbw guarantee and a single legitimate
+    em-dash can never be silently re-added as hard fails. This is a clause
+    freeze, not a behavioral pass/fail assertion — agentic skills have no
+    replay run.
+  input:
+    skill_file: canonical/copy-review/skill.md
+  expected:
+    required_safety_clauses:
+      - 'the word "guarantee" (bbw leads with a guarantee)'
+      - "Explicitly NOT hard fails"
+      - "the ~1-per-500-words budget"
+
+- name: adversarial
+  description: >
+    Freezes the slop-catching checks so the critique cannot be silently
+    softened out of the canonical body.
+  input:
+    skill_file: canonical/copy-review/skill.md
+  expected:
+    required_failure_modes:
+      - "It's not just X, it's Y"
+      - "Any banned construction"
+      - "uniform sentence rhythm"
