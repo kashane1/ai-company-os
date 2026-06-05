@@ -64,6 +64,10 @@ class WebsiteReviewRequest:
     status: ReviewStatus = ReviewStatus.NEW
     processed_at: str = ""
     notified_at: str = ""  # set when the operator email was sent (un-notified list)
+    # Location captured by the public form (added later) — lets the operator
+    # look the business up directly instead of supplying --city by hand.
+    city: str = ""
+    state: str = ""  # 2-letter US state code (form select)
 
     def validate(self) -> None:
         if not self.submission_id.strip():
@@ -80,6 +84,8 @@ class WebsiteReviewRequest:
             "contact": self.contact,
             "business": self.business,
             "website": self.website,
+            "city": self.city,
+            "state": self.state,
             "received_at": self.received_at,
             "source": self.source,
             "status": self.status.value,
@@ -95,6 +101,8 @@ class WebsiteReviewRequest:
             contact=str(payload["contact"]),
             business=str(payload.get("business", "")),
             website=str(payload.get("website", "")),
+            city=str(payload.get("city", "")),
+            state=str(payload.get("state", "")),
             received_at=str(payload.get("received_at", "")),
             source=str(payload.get("source", "netlify-form")),
             # Defaulted so legacy records (written before these fields existed)

@@ -200,6 +200,11 @@ def process_inbound_review(
 
     audit = _audit_website(request.website, fetcher=fetcher, resolver=resolver, opener=opener)
 
+    # The form now captures city/state, so fall back to the lead's own location
+    # when the operator didn't pass --city. An explicit --city still wins.
+    if not city.strip() and request.city.strip():
+        city = ", ".join(p for p in (request.city.strip(), request.state.strip()) if p)
+
     preview_path = ""
     preview_error = ""
     if city.strip() and genre.strip():

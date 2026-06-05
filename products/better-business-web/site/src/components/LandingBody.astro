@@ -9,6 +9,10 @@ const year = new Date().getFullYear();
 const featuredId = "package_b";
 const fmt = (n) => n.toLocaleString("en-US");
 
+// US states + DC (2-letter) for the review-form State dropdown — normalized
+// values make it easy to look the business up by location later.
+const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+
 const mockups = portfolio.demos.map((d) => ({
   name: d.name,
   url: `${d.slug}.example.com`,
@@ -199,6 +203,15 @@ const pfThemes = [
           <p hidden><label>Don't fill this out if you're human: <input name="bot-field" /></label></p>
           <div class="field"><label for="name">Your name</label><input id="name" name="name" type="text" autocomplete="name" required /></div>
           <div class="field"><label for="business">Business name</label><input id="business" name="business" type="text" autocomplete="organization" /></div>
+          <div class="field-row">
+            <div class="field"><label for="city">City</label><input id="city" name="city" type="text" autocomplete="address-level2" placeholder="e.g. Dahlonega" /></div>
+            <div class="field"><label for="state">State</label>
+              <select id="state" name="state" autocomplete="address-level1">
+                <option value="" selected>Select…</option>
+                {US_STATES.map((s) => <option value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
           <div class="field"><label for="website">Current website (or "none")</label><input id="website" name="website" type="text" inputmode="url" placeholder="example.com or none" /></div>
           <div class="field"><label for="contact">Email or phone</label><input id="contact" name="contact" type="text" autocomplete="email" required /></div>
           <button class="btn btn-accent btn-lg" type="submit" data-magnetic>Request my free website review <span class="arrow">→</span></button>

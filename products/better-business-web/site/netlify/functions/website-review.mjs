@@ -39,8 +39,10 @@ async function notifyLead(submission) {
     return null;
   }
 
-  const { submission_id, name, contact, business, website, received_at } = submission;
+  const { submission_id, name, contact, business, website, city, state, received_at } = submission;
   const looksEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact || "");
+  // "City, ST" — feeds the operator's lookup + the process command's --city.
+  const location = [city, state].map((s) => (s || "").trim()).filter(Boolean).join(", ");
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -62,13 +64,15 @@ async function notifyLead(submission) {
           `<p><strong>Name:</strong> ${esc(name)}</p>`,
           `<p><strong>Contact:</strong> ${esc(contact)}</p>`,
           `<p><strong>Business:</strong> ${esc(business) || "—"}</p>`,
+          `<p><strong>Location:</strong> ${esc(location) || "—"}</p>`,
           `<p><strong>Current site:</strong> ${esc(website) || "none"}</p>`,
           `<p><strong>Received:</strong> ${esc(received_at)}</p>`,
           `<p><strong>Submission ID:</strong> <code>${esc(submission_id)}</code></p>`,
           "<hr>",
           "<p>Pull + act on it:</p>",
           "<pre>node scripts/web/pull-inbound.mjs\n" +
-            `python scripts/agency/process_inbound_review.py --id ${esc(submission_id)}</pre>`,
+            `python scripts/agency/process_inbound_review.py --id ${esc(submission_id)}` +
+            `${location ? ` --city ${esc(JSON.stringify(location))}` : ""}</pre>`,
         ].join("\n"),
       }),
     });
@@ -108,6 +112,8 @@ export default async (req) => {
     contact,
     business: field("business"),
     website: field("website"),
+    city: field("city"),
+    state: field("state").toUpperCase().slice(0, 2),
     received_at: new Date().toISOString(),
     source: "netlify-function",
     notified_at: null,
