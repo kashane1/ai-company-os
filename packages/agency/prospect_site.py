@@ -23,6 +23,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+# Legacy theming (web build path A — DEPRECATED for prospects): used only for the
+# --legacy-build token-fill path and portfolio anonymization, never for bespoke
+# dist-v2 mockups. See demo_theme.py's deprecation note + docs/agency/README.md.
 from packages.agency.demo_theme import DemoTheme, apply_theme, theme_for_record
 from packages.agency.intake import ClientIntake
 from packages.web.deploy import DeployAccount, DeployResult, DeployTarget

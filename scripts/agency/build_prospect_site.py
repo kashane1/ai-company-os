@@ -263,7 +263,16 @@ def main() -> None:
 
     mode = "LEGACY BUILD" if args.legacy_build else "DEPLOY"
     print(f"{mode}{' + NETLIFY' if args.deploy else ''} — {len(records)} prospect site(s)\n")
-    if not args.legacy_build:
+    if args.legacy_build:
+        print(
+            "⚠️  --legacy-build is DEPRECATED for customer-facing prospects "
+            "(web build path A, token-fill → dist/).\n"
+            "    Use the bespoke playbook instead: docs/demo-site-build-playbook.md "
+            "(→ dist-v2/).\n"
+            "    This flag is retained only for bulk regeneration; "
+            "deployed prospect sites require dist-v2/.\n"
+        )
+    else:
         print("Requires dist-v2/ from docs/demo-site-build-playbook.md\n")
 
     summary = []
