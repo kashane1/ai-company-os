@@ -200,7 +200,7 @@ const pfThemes = [
       </div>
       <div class="review-card" data-reveal style="--reveal-delay:0.08s">
         <form name="website-review" method="POST" action="/.netlify/functions/website-review" class="review-form">
-          <p hidden><label>Don't fill this out if you're human: <input name="bot-field" /></label></p>
+          <p hidden><label>Don't fill this out if you're human: <input name="bot-field" aria-label="Leave this field empty" tabindex="-1" autocomplete="off" /></label></p>
           <div class="field"><label for="name">Your name</label><input id="name" name="name" type="text" autocomplete="name" required /></div>
           <div class="field"><label for="business">Business name</label><input id="business" name="business" type="text" autocomplete="organization" /></div>
           <div class="field-row">
