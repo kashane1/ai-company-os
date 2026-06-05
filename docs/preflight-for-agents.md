@@ -15,6 +15,7 @@ Then read the lane-specific doc for whatever you're about to touch:
 - engineering work → [docs/engineering-flow.md](engineering-flow.md) + [docs/codex-worker.md](codex-worker.md)
 - iOS work → [docs/ios-lane.md](ios-lane.md)
 - App Store work → [docs/appstore-lane.md](appstore-lane.md)
+- web / agency work (prospects, demo sites, client sites, retainer ops) → [docs/agency/README.md](agency/README.md) — the lane map; routes to the prospecting lane, demo playbook, client lifecycle, and the three build paths
 - approval changes → [docs/approval-policy.md](approval-policy.md) + [docs/approval-flow.md](approval-flow.md)
 - skill changes → [skills/WIRING.md](../skills/WIRING.md) + [skills/spec.md](../skills/spec.md)
 
