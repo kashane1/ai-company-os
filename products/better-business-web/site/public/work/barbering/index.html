@@ -1,1308 +1,626 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kingsway Barber Co. — Downtown Brighton, MA</title>
-  <meta name="description" content="Kingsway Barber Co. in Downtown Brighton, MA. Fades, tapers, lineups, beards &amp; more — 4.6★ across 362 reviews. Open 7 days. Walk-ins welcome." />
-  <meta property="og:title" content="Kingsway Barber Co. — Downtown Brighton, MA" />
-  <meta property="og:description" content="Sharp cuts, clean fades, real barbers. Walk-ins welcome at 88 Harbor St." />
-  <meta property="og:image" content="assets/exterior.jpg" />
-  <meta property="og:type" content="website" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kingsway Barber Co. — Heritage Barbershop · Downtown Brighton, MA</title>
+<meta name="description" content="Kingsway Barber Co. — a proper heritage barbershop in Downtown Brighton, MA. Haircuts, fades and straight-razor beard work. Walk-ins and online booking, seven days a week." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#13110f;        /* near-black */
+    --paper:#f4f1ea;      /* warm newsprint */
+    --paper-2:#ece7dc;    /* slightly deeper paper */
+    --muted:#5f5a52;      /* AA on paper */
+    --line:#cbc4b6;       /* hairline rules */
+    --red:#a01f1a;        /* restrained barber red — AA on paper */
+    --red-deep:#7e1814;
+    --shadow-1:0 1px 1px rgba(19,17,15,.05);
+    --shadow-2:0 18px 40px -24px rgba(19,17,15,.45), 0 6px 14px -10px rgba(19,17,15,.35);
+    --shadow-3:0 40px 80px -40px rgba(19,17,15,.6);
+    --serif:"Playfair Display", Georgia, "Times New Roman", serif;
+    --grotesk:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --maxw:1240px;
+    --gut:clamp(18px,4.5vw,64px);
+  }
 
-  <!-- Favicon: barber pole-inspired inline SVG -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230D0D0D'/%3E%3Crect x='13' y='3' width='6' height='26' rx='3' fill='%23F5F5F0'/%3E%3Crect x='13' y='3' width='6' height='26' rx='3' fill='url(%23bp)' opacity='.85'/%3E%3Cdefs%3E%3ClinearGradient id='bp' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23D42B2B'/%3E%3Cstop offset='50%25' stop-color='%23F5F5F0'/%3E%3Cstop offset='100%25' stop-color='%231A4FD8'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E" />
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--grotesk);
+    font-size:clamp(15px,1.05vw + 11px,17px);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  img{max-width:100%;display:block}
+  a{color:inherit}
 
-  <!-- Fonts: Anton (bold display) + Oswald (strong sub-heads) + Manrope (body) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+  /* paper grain */
+  body::before{
+    content:"";
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      radial-gradient(circle at 18% 22%, rgba(19,17,15,.020) 0 1px, transparent 1px),
+      radial-gradient(circle at 62% 71%, rgba(19,17,15,.018) 0 1px, transparent 1px);
+    background-size:7px 7px, 9px 9px;
+    opacity:.7;
+    mix-blend-mode:multiply;
+  }
 
-  <style>
-    /* =============================================
-       TOKENS
-    ============================================= */
-    :root {
-      --canvas:    #0D0D0D;
-      --surface:   #161616;
-      --surface2:  #1E1E1E;
-      --red:       #D42B2B;
-      --red-light: #E84040;
-      --red-glow:  rgba(212, 43, 43, 0.22);
-      --brick:     #C4875A;
-      --white:     #F5F5F0;
-      --muted:     #999999;
-      --border:    rgba(255,255,255,0.08);
-      --border-red: rgba(212,43,43,0.35);
+  /* ----- editorial type primitives ----- */
+  .kicker{
+    font-family:var(--grotesk);
+    font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;
+    font-weight:600;color:var(--red);
+    display:inline-flex;align-items:center;gap:.7em;
+  }
+  .kicker::before{content:"";width:2.4em;height:1px;background:var(--red);display:inline-block}
+  .smallcaps{font-variant:small-caps;letter-spacing:.06em}
+  .rule{height:1px;background:var(--line);border:0;margin:0}
 
-      --font-display: 'Anton', 'Impact', sans-serif;
-      --font-sub:     'Oswald', 'Arial Narrow', sans-serif;
-      --font-body:    'Manrope', 'Helvetica Neue', sans-serif;
+  /* duotone treatment for all photography */
+  .duo{position:relative;overflow:hidden;background:var(--ink)}
+  .duo img{
+    width:100%;height:100%;object-fit:cover;
+    filter:grayscale(1) contrast(1.18) brightness(.96);
+    transition:transform 1.4s cubic-bezier(.16,.84,.3,1), filter 1.4s ease;
+  }
+  .duo::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg, rgba(160,31,26,.10), rgba(19,17,15,.18));
+    mix-blend-mode:multiply;
+  }
+  .duo:hover img{transform:scale(1.04);filter:grayscale(1) contrast(1.24) brightness(1)}
 
-      --radius-sm: 6px;
-      --radius:    12px;
-      --radius-lg: 20px;
-    }
+  a.link{
+    text-decoration:none;position:relative;display:inline-block;
+  }
+  a.link::after{
+    content:"";position:absolute;left:0;right:100%;bottom:-2px;height:1px;
+    background:currentColor;transition:right .4s cubic-bezier(.16,.84,.3,1);
+  }
+  a.link:hover::after,a.link:focus-visible::after{right:0}
 
-    /* =============================================
-       RESET + BASE
-    ============================================= */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--canvas);
-      color: var(--white);
-      font-family: var(--font-body);
-      font-size: 16px;
-      line-height: 1.65;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-    img { display: block; max-width: 100%; }
-    a { color: inherit; text-decoration: none; }
+  :focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:1px}
 
-    /* =============================================
-       GRAIN OVERLAY
-    ============================================= */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 999;
-      opacity: 0.035;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-    }
+  .skip{
+    position:absolute;left:-999px;top:0;z-index:100;
+    background:var(--ink);color:var(--paper);padding:.7em 1.1em;border-radius:0 0 4px 0;
+    font-weight:600;letter-spacing:.04em;
+  }
+  .skip:focus{left:0}
 
-    /* =============================================
-       SCROLL PROGRESS BAR
-    ============================================= */
-    #progress-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 0%;
-      height: 2px;
-      background: linear-gradient(90deg, var(--red), var(--brick));
-      z-index: 10000;
-      transition: width 0.1s linear;
-    }
+  .shell{max-width:var(--maxw);margin-inline:auto;padding-inline:var(--gut);position:relative;z-index:1}
 
-    /* =============================================
-       STICKY GLASS HEADER
-    ============================================= */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 900;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 clamp(1.25rem, 4vw, 2.5rem);
-      height: 64px;
-      background: rgba(13, 13, 13, 0.80);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset,
-                  0 4px 24px rgba(0,0,0,0.4);
-    }
-    .nav-logo {
-      font-family: var(--font-display);
-      font-size: 1.25rem;
-      letter-spacing: 0.04em;
-      color: var(--white);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .nav-logo .star {
-      color: var(--red);
-      font-size: 1rem;
-    }
-    nav {
-      display: flex;
-      align-items: center;
-      gap: clamp(1rem, 2.5vw, 2rem);
-    }
-    nav a {
-      font-family: var(--font-sub);
-      font-size: 0.8rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      position: relative;
-      transition: color 0.2s;
-    }
-    nav a::after {
-      content: '';
-      position: absolute;
-      bottom: -3px;
-      left: 0;
-      width: 0;
-      height: 1px;
-      background: var(--red);
-      transition: width 0.25s ease;
-    }
-    nav a:hover { color: var(--white); }
-    nav a:hover::after { width: 100%; }
-    .nav-cta {
-      font-family: var(--font-sub);
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--white) !important;
-      background: var(--red);
-      padding: 0.45rem 1.1rem;
-      border-radius: 4px;
-      transition: background 0.2s, transform 0.15s;
-    }
-    .nav-cta:hover { background: var(--red-light); transform: translateY(-1px); }
-    .nav-cta::after { display: none !important; }
-    @media (max-width: 680px) {
-      nav a:not(.nav-cta) { display: none; }
-    }
+  /* ============ MASTHEAD ============ */
+  .masthead{position:relative;z-index:3;border-bottom:1px solid var(--line)}
+  .masthead-in{
+    display:flex;align-items:center;justify-content:space-between;gap:1.4rem;
+    padding-block:1rem;
+  }
+  .mast-right{display:flex;align-items:center;gap:1.8rem}
+  .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+  .brand .mark{width:34px;height:34px;flex:0 0 auto}
+  .brand b{
+    font-family:var(--serif);font-weight:700;font-size:1.12rem;letter-spacing:.01em;
+    line-height:1;
+  }
+  .brand small{display:block;font-size:.6rem;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);margin-top:.28em}
+  .mast-nav{display:none;gap:1.8rem;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+  .mast-cta{
+    display:inline-flex;align-items:center;gap:.5em;
+    background:var(--ink);color:var(--paper);text-decoration:none;
+    font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600;
+    padding:.78em 1.2em;border-radius:2px;box-shadow:var(--shadow-2);
+    transition:background .3s ease, transform .3s ease;
+  }
+  .mast-cta:hover{background:var(--red);transform:translateY(-1px)}
 
-    /* =============================================
-       HERO
-    ============================================= */
-    .hero {
-      position: relative;
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      overflow: hidden;
-    }
-    .hero-bg {
-      position: absolute;
-      inset: 0;
-      object-fit: cover;
-      object-position: center center;
-      width: 100%;
-      height: 100%;
-      filter: brightness(0.45) saturate(0.85);
-    }
-    /* Gradient mesh glow behind hero text */
-    .hero-glow {
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 50% at 20% 80%, var(--red-glow) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 30% at 80% 30%, rgba(196,135,90,0.10) 0%, transparent 60%),
-        linear-gradient(to top, rgba(13,13,13,0.95) 0%, rgba(13,13,13,0.3) 60%, transparent 100%);
-      pointer-events: none;
-    }
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      padding: clamp(2rem, 6vw, 5rem) clamp(1.25rem, 6vw, 5rem);
-      max-width: 820px;
-    }
-    .hero-eyebrow {
-      font-family: var(--font-sub);
-      font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--brick);
-      margin-bottom: 1rem;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: fade-up 0.6s 0.1s ease forwards;
-    }
-    .hero-headline {
-      font-family: var(--font-display);
-      font-size: clamp(3.2rem, 8vw, 7rem);
-      line-height: 0.95;
-      letter-spacing: 0.02em;
-      color: var(--white);
-      margin-bottom: 1.25rem;
-      opacity: 0;
-      animation: reveal-clip 0.7s 0.3s cubic-bezier(0.22,1,0.36,1) forwards;
-    }
-    .hero-headline .accent { color: var(--red); }
-    .hero-sub {
-      font-family: var(--font-body);
-      font-size: clamp(0.95rem, 2vw, 1.15rem);
-      color: rgba(245,245,240,0.75);
-      max-width: 500px;
-      margin-bottom: 2rem;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fade-up 0.6s 0.55s ease forwards;
-    }
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fade-up 0.6s 0.75s ease forwards;
-    }
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: var(--font-sub);
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--white);
-      background: var(--red);
-      padding: 0.8rem 1.75rem;
-      border-radius: 4px;
-      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .btn-primary::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-      transition: left 0.45s ease;
-    }
-    .btn-primary:hover { background: var(--red-light); transform: translateY(-2px); box-shadow: 0 8px 24px var(--red-glow); }
-    .btn-primary:hover::after { left: 150%; }
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: var(--font-sub);
-      font-size: 0.85rem;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--white);
-      padding: 0.8rem 1.75rem;
-      border-radius: 4px;
-      border: 1px solid rgba(245,245,240,0.25);
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(8px);
-      transition: border-color 0.2s, background 0.2s, transform 0.15s;
-    }
-    .btn-secondary:hover { border-color: var(--red); background: rgba(212,43,43,0.1); transform: translateY(-2px); }
+  @media(min-width:920px){
+    .mast-nav{display:flex}
+  }
 
-    /* =============================================
-       STAT BAND
-    ============================================= */
-    .stat-band {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem clamp(1.25rem, 6vw, 5rem);
-    }
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 0;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .stat-item {
-      text-align: center;
-      padding: 1.25rem 1rem;
-      position: relative;
-    }
-    .stat-item + .stat-item::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 20%;
-      height: 60%;
-      width: 1px;
-      background: var(--border);
-    }
-    .stat-num {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 5vw, 2.8rem);
-      color: var(--white);
-      line-height: 1;
-      font-variant-numeric: tabular-nums lining-nums;
-    }
-    .stat-num .unit {
-      font-family: var(--font-sub);
-      font-size: 1.1rem;
-      color: var(--red);
-      vertical-align: super;
-    }
-    .stat-label {
-      font-family: var(--font-sub);
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-top: 0.3rem;
-    }
+  /* ============ HERO — asymmetric magazine spread ============ */
+  .hero{position:relative;z-index:1;padding-top:clamp(28px,5vw,64px);padding-bottom:clamp(28px,5vw,72px)}
+  .hero-grid{
+    display:grid;gap:clamp(28px,4vw,56px);
+    grid-template-columns:1fr;align-items:end;
+  }
+  .hero-head{position:relative}
+  .issue-line{
+    display:flex;justify-content:space-between;align-items:baseline;gap:1rem;
+    font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+    border-bottom:1px solid var(--line);padding-bottom:.8rem;margin-bottom:clamp(18px,2.4vw,30px);
+    flex-wrap:wrap;
+  }
+  .issue-line .red{color:var(--red);font-weight:600}
+  h1{
+    font-family:var(--serif);font-weight:800;color:var(--ink);
+    font-size:clamp(3rem,11.5vw,8.2rem);
+    line-height:.92;letter-spacing:-.012em;margin:0;
+    text-wrap:balance;
+  }
+  h1 .em{font-style:italic;font-weight:600;color:var(--red)}
+  h1 .thin{font-weight:500}
+  .lede{max-width:48ch;margin-top:clamp(20px,2.6vw,32px)}
+  .lede .drop::first-letter{
+    font-family:var(--serif);font-weight:700;color:var(--red);
+    float:left;font-size:3.6em;line-height:.72;padding:.06em .12em 0 0;margin-top:.06em;
+  }
+  .lede p{margin:0 0 1em}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.4rem}
+  .btn{
+    display:inline-flex;align-items:center;gap:.6em;text-decoration:none;
+    font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+    padding:.95em 1.5em;border-radius:2px;transition:transform .3s ease,background .3s ease,color .3s ease,border-color .3s ease;
+  }
+  .btn-primary{background:var(--red);color:#fff;box-shadow:var(--shadow-2)}
+  .btn-primary:hover{background:var(--red-deep);transform:translateY(-2px)}
+  .btn-ghost{border:1px solid var(--ink);color:var(--ink)}
+  .btn-ghost:hover{background:var(--ink);color:var(--paper)}
 
-    /* =============================================
-       SECTION WRAPPER
-    ============================================= */
-    section {
-      padding: clamp(3rem, 8vw, 6rem) clamp(1.25rem, 6vw, 5rem);
-    }
-    .section-eyebrow {
-      font-family: var(--font-sub);
-      font-size: 0.7rem;
-      font-weight: 500;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--red);
-      margin-bottom: 0.75rem;
-    }
-    .section-title {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      line-height: 1.05;
-      letter-spacing: 0.02em;
-      color: var(--white);
-      margin-bottom: 1.25rem;
-    }
-    .section-body {
-      font-size: 1rem;
-      color: rgba(245,245,240,0.7);
-      max-width: 560px;
-      line-height: 1.75;
-    }
-    .section-max {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+  .hero-figure{position:relative}
+  .hero-figure .duo{aspect-ratio:4/5;box-shadow:var(--shadow-3);border:1px solid rgba(19,17,15,.12)}
+  .hero-figure figcaption{
+    font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+    margin-top:.7rem;display:flex;align-items:center;gap:.6em;
+  }
+  .hero-figure figcaption::before{content:"";width:1.6em;height:1px;background:var(--muted)}
+  .stamp{
+    position:absolute;left:-14px;top:-14px;z-index:2;
+    width:clamp(84px,11vw,118px);height:clamp(84px,11vw,118px);
+    color:var(--ink);
+  }
+  .stamp svg{width:100%;height:100%}
+  .stamp text{font-family:var(--grotesk)}
 
-    /* =============================================
-       TRUST STRIP / MARQUEE
-    ============================================= */
-    .trust-strip {
-      background: var(--red);
-      overflow: hidden;
-      padding: 0.6rem 0;
-    }
-    .trust-track {
-      display: flex;
-      gap: 2.5rem;
-      width: max-content;
-      animation: marquee 28s linear infinite;
-    }
-    @media (prefers-reduced-motion: reduce) { .trust-track { animation: none; } }
-    .trust-item {
-      font-family: var(--font-sub);
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--white);
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    .trust-item::before { content: '★'; opacity: 0.7; }
+  @media(min-width:980px){
+    .hero-grid{grid-template-columns:1.32fr .68fr;align-items:end}
+    .hero-figure{margin-bottom:.5rem}
+  }
 
-    /* =============================================
-       SERVICES
-    ============================================= */
-    .services-section { background: var(--canvas); }
-    .services-intro {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem 4rem;
-      align-items: start;
-      margin-bottom: 3rem;
-    }
-    @media (max-width: 720px) { .services-intro { grid-template-columns: 1fr; } }
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-    .service-card {
-      background: var(--surface);
-      border: 1px solid transparent;
-      background-clip: padding-box;
-      border-radius: var(--radius);
-      padding: 1.4rem 1.5rem;
-      position: relative;
-      transition: transform 0.2s, box-shadow 0.2s;
-      overflow: hidden;
-    }
-    .service-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      padding: 1px;
-      background: linear-gradient(135deg, rgba(212,43,43,0.5), rgba(196,135,90,0.15), transparent 60%);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-    }
-    .service-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 20px var(--red-glow);
-    }
-    .service-icon {
-      font-size: 1.5rem;
-      margin-bottom: 0.6rem;
-    }
-    .service-name {
-      font-family: var(--font-sub);
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--white);
-      margin-bottom: 0.3rem;
-    }
-    .service-desc {
-      font-size: 0.82rem;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-    .service-price {
-      font-family: var(--font-sub);
-      font-size: 0.9rem;
-      font-variant-numeric: tabular-nums lining-nums;
-      color: var(--red);
-      margin-top: 0.6rem;
-      font-weight: 600;
-    }
+  /* ============ MARQUEE TICKER ============ */
+  .ticker{
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    background:var(--ink);color:var(--paper);overflow:hidden;position:relative;z-index:2;
+  }
+  .ticker-track{
+    display:flex;gap:0;width:max-content;
+    animation:slide 38s linear infinite;
+  }
+  .ticker-track span{
+    font-family:var(--serif);font-style:italic;font-size:clamp(1.1rem,2.4vw,1.7rem);
+    padding:.7em 1.1em;display:inline-flex;align-items:center;gap:1.2em;white-space:nowrap;
+  }
+  .ticker-track span::after{content:"✶";color:var(--red);font-style:normal;font-size:.7em}
+  @keyframes slide{to{transform:translateX(-50%)}}
 
-    /* =============================================
-       GALLERY (BENTO)
-    ============================================= */
-    .gallery-section { background: var(--surface); }
-    .bento {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      grid-template-rows: auto;
-      gap: 0.75rem;
-    }
-    .bento-item {
-      overflow: hidden;
-      border-radius: var(--radius-sm);
-      position: relative;
-    }
-    .bento-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), filter 0.3s;
-    }
-    .bento-item:hover img { transform: scale(1.04); filter: brightness(1.1); }
-    .bento-a { grid-column: 1 / 8; grid-row: 1; height: 340px; }
-    .bento-b { grid-column: 8 / 13; grid-row: 1; height: 340px; }
-    .bento-c { grid-column: 1 / 5; grid-row: 2; height: 220px; }
-    .bento-d { grid-column: 5 / 9; grid-row: 2; height: 220px; }
-    .bento-e { grid-column: 9 / 13; grid-row: 2; height: 220px; }
-    @media (max-width: 760px) {
-      .bento { grid-template-columns: 1fr 1fr; }
-      .bento-a, .bento-b, .bento-c, .bento-d, .bento-e { grid-column: auto; grid-row: auto; height: 200px; }
-      .bento-a { grid-column: 1 / 3; height: 260px; }
-    }
+  /* ============ SERVICES — numbered tasting menu ============ */
+  .section{padding-block:clamp(54px,8vw,118px);position:relative;z-index:1}
+  .sec-head{
+    display:grid;gap:1.2rem;grid-template-columns:1fr;align-items:end;
+    margin-bottom:clamp(28px,4vw,56px);
+  }
+  .sec-head h2{
+    font-family:var(--serif);font-weight:700;font-size:clamp(2.2rem,6.4vw,4.4rem);
+    line-height:.98;margin:0;letter-spacing:-.01em;
+  }
+  .sec-head .aside{max-width:38ch;color:var(--muted)}
+  @media(min-width:820px){.sec-head{grid-template-columns:1.4fr 1fr}}
 
-    /* =============================================
-       REVIEWS
-    ============================================= */
-    .reviews-section {
-      background: var(--canvas);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .reviews-header {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-    }
-    .rating-big {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-    }
-    .rating-num {
-      font-family: var(--font-display);
-      font-size: 3.5rem;
-      color: var(--white);
-      line-height: 1;
-      font-variant-numeric: tabular-nums lining-nums;
-    }
-    .rating-stars { color: #F5A623; font-size: 1.1rem; letter-spacing: 0.05em; }
-    .rating-count {
-      font-family: var(--font-body);
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-    .reviews-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.25rem;
-    }
-    .review-card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .review-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      padding: 1px;
-      background: linear-gradient(135deg, rgba(245,166,35,0.35), transparent 55%);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-    }
-    .review-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
-    .review-stars { color: #F5A623; font-size: 0.9rem; letter-spacing: 0.05em; margin-bottom: 0.8rem; }
-    .review-text {
-      font-size: 0.9rem;
-      color: rgba(245,245,240,0.8);
-      line-height: 1.7;
-      margin-bottom: 1.25rem;
-    }
-    .review-author {
-      font-family: var(--font-sub);
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--brick);
-    }
+  .menu{display:grid;gap:0}
+  .menu-row{
+    display:grid;grid-template-columns:auto 1fr auto;
+    align-items:baseline;gap:clamp(.9rem,2.4vw,2rem);
+    padding:clamp(1.2rem,2.4vw,1.9rem) 0;
+    border-top:1px solid var(--line);
+    position:relative;
+  }
+  .menu-row:last-child{border-bottom:1px solid var(--line)}
+  .menu-row .no{
+    font-family:var(--serif);font-style:italic;color:var(--red);
+    font-size:clamp(1rem,2.2vw,1.5rem);font-weight:600;line-height:1;
+    min-width:2.4ch;
+  }
+  .menu-row .body h3{
+    font-family:var(--serif);font-weight:700;margin:0 0 .2em;
+    font-size:clamp(1.35rem,3.2vw,2.1rem);line-height:1.04;letter-spacing:-.005em;
+    transition:color .3s ease;
+  }
+  .menu-row .body p{margin:0;color:var(--muted);max-width:52ch;font-size:.95rem}
+  .menu-row .meta{text-align:right;white-space:nowrap}
+  .menu-row .price{
+    font-family:var(--serif);font-weight:700;font-size:clamp(1.1rem,2.4vw,1.55rem);
+    display:block;line-height:1;
+  }
+  .menu-row .time{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:.45em;display:block}
+  .menu-row::after{
+    content:"";position:absolute;left:0;bottom:-1px;width:0;height:2px;background:var(--red);
+    transition:width .5s cubic-bezier(.16,.84,.3,1);
+  }
+  .menu-row:hover::after{width:100%}
+  .menu-row:hover .body h3{color:var(--red)}
 
-    /* =============================================
-       VISIT / HOURS / MAP
-    ============================================= */
-    .visit-section { background: var(--surface); }
-    .visit-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem 4rem;
-      align-items: start;
-    }
-    @media (max-width: 800px) { .visit-grid { grid-template-columns: 1fr; } }
-    .hours-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-variant-numeric: tabular-nums lining-nums;
-    }
-    .hours-table tr {
-      border-bottom: 1px solid var(--border);
-    }
-    .hours-table td {
-      padding: 0.65rem 0;
-      font-size: 0.9rem;
-      color: rgba(245,245,240,0.75);
-    }
-    .hours-table td:first-child {
-      font-family: var(--font-sub);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-      width: 110px;
-    }
-    .hours-today td { color: var(--white) !important; }
-    .hours-today td:first-child { color: var(--red) !important; }
-    .today-badge {
-      display: inline-block;
-      background: var(--red);
-      color: #fff;
-      font-family: var(--font-sub);
-      font-size: 0.55rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 0.1em 0.4em;
-      border-radius: 2px;
-      margin-left: 0.5rem;
-      vertical-align: middle;
-    }
-    .contact-block {
-      margin-top: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .contact-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      font-size: 0.92rem;
-      color: rgba(245,245,240,0.8);
-    }
-    .contact-icon {
-      font-size: 1.1rem;
-      color: var(--red);
-      flex-shrink: 0;
-      margin-top: 0.1rem;
-    }
-    .map-frame {
-      border-radius: var(--radius);
-      overflow: hidden;
-      height: 300px;
-      background: var(--surface2);
-      position: relative;
-    }
-    .map-frame iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      filter: grayscale(0.4) contrast(1.05);
-    }
-    .map-overlay-btn {
-      position: absolute;
-      bottom: 1rem;
-      right: 1rem;
-      background: var(--red);
-      color: var(--white);
-      font-family: var(--font-sub);
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 0.55rem 1rem;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-    .map-overlay-btn:hover { background: var(--red-light); }
-    .accessibility-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 1.5rem;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-family: var(--font-sub);
-      font-size: 0.68rem;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 0.3rem 0.75rem;
-    }
+  .menu-foot{
+    margin-top:clamp(20px,3vw,32px);display:flex;flex-wrap:wrap;gap:.8rem 1.6rem;align-items:center;
+    color:var(--muted);font-size:.82rem;
+  }
 
-    /* =============================================
-       FAQ
-    ============================================= */
-    .faq-section { background: var(--canvas); }
-    .faq-list {
-      max-width: 700px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-    .faq-item {
-      border-bottom: 1px solid var(--border);
-    }
-    .faq-q {
-      width: 100%;
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-align: left;
-      padding: 1.25rem 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      font-family: var(--font-sub);
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      color: var(--white);
-      transition: color 0.2s;
-    }
-    .faq-q:hover { color: var(--red); }
-    .faq-icon {
-      flex-shrink: 0;
-      width: 22px;
-      height: 22px;
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
-      color: var(--muted);
-      transition: transform 0.3s, border-color 0.2s, color 0.2s;
-    }
-    .faq-item.open .faq-icon { transform: rotate(45deg); border-color: var(--red); color: var(--red); }
-    .faq-a {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.35s cubic-bezier(0.22,1,0.36,1), padding 0.25s;
-      padding-bottom: 0;
-    }
-    .faq-a-inner {
-      font-size: 0.9rem;
-      color: rgba(245,245,240,0.7);
-      line-height: 1.75;
-      padding-bottom: 1.25rem;
-    }
-    .faq-item.open .faq-a { max-height: 300px; }
+  /* ============ PULL QUOTE + DUOTONE BAND ============ */
+  .band{
+    background:var(--ink);color:var(--paper);position:relative;z-index:1;overflow:hidden;
+  }
+  .band::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(120% 90% at 80% 10%, rgba(160,31,26,.22), transparent 55%),
+      radial-gradient(80% 80% at 0% 100%, rgba(160,31,26,.10), transparent 60%);
+    pointer-events:none;
+  }
+  .band .shell{padding-block:clamp(56px,9vw,128px)}
+  .band-grid{display:grid;gap:clamp(30px,5vw,64px);grid-template-columns:1fr;align-items:center}
+  .quote{position:relative}
+  .quote .mk{
+    font-family:var(--serif);font-size:clamp(4rem,9vw,7rem);line-height:.5;color:var(--red);
+    display:block;height:.55em;
+  }
+  .quote blockquote{
+    margin:0;font-family:var(--serif);font-weight:500;font-style:italic;
+    font-size:clamp(1.7rem,4.4vw,3rem);line-height:1.16;letter-spacing:-.01em;
+    text-wrap:balance;
+  }
+  .quote figcaption{
+    margin-top:1.6rem;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;
+    color:#cfc8bb;display:flex;align-items:center;gap:.7em;
+  }
+  .quote figcaption b{color:var(--paper)}
+  .quote .stars{color:var(--red);letter-spacing:.15em}
+  .band-figure .duo{aspect-ratio:1/1;box-shadow:var(--shadow-3)}
+  .band-figure .duo img{filter:grayscale(1) contrast(1.25) brightness(.82)}
+  @media(min-width:880px){.band-grid{grid-template-columns:1.25fr .75fr}}
 
-    /* =============================================
-       FOOTER
-    ============================================= */
-    footer {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 3rem clamp(1.25rem, 6vw, 5rem) 2rem;
-    }
-    .footer-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .footer-wordmark {
-      font-family: var(--font-display);
-      font-size: clamp(2.5rem, 8vw, 5.5rem);
-      letter-spacing: 0.02em;
-      background: linear-gradient(135deg, var(--red) 0%, var(--brick) 60%, rgba(245,245,240,0.4) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1;
-      margin-bottom: 1rem;
-    }
-    .footer-sub {
-      font-family: var(--font-sub);
-      font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 2rem;
-    }
-    .footer-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-    }
-    .footer-copy {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-    .footer-actions {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-    .footer-link {
-      font-family: var(--font-sub);
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      transition: color 0.2s;
-    }
-    .footer-link:hover { color: var(--white); }
+  /* ============ ROOM — two-up editorial photo grid ============ */
+  .room-grid{
+    display:grid;gap:clamp(16px,2.4vw,28px);grid-template-columns:1fr;
+  }
+  .room-fig{position:relative}
+  .room-fig .duo{box-shadow:var(--shadow-2);border:1px solid rgba(19,17,15,.1)}
+  .room-fig.tall .duo{aspect-ratio:3/4}
+  .room-fig.wide .duo{aspect-ratio:4/5}
+  .room-fig figcaption{
+    font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+    margin-top:.7rem;display:flex;justify-content:space-between;gap:1rem;
+  }
+  .room-copy{align-self:center}
+  .room-copy h3{
+    font-family:var(--serif);font-weight:700;font-size:clamp(1.7rem,4vw,2.6rem);
+    line-height:1.02;margin:0 0 .6em;letter-spacing:-.01em;
+  }
+  .room-copy p{color:var(--muted);margin:0 0 1em;max-width:46ch}
+  @media(min-width:760px){
+    .room-grid{grid-template-columns:1fr 1fr;align-items:start}
+    .room-fig.tall{grid-row:span 2;margin-top:clamp(20px,4vw,52px)}
+    .room-copy{grid-column:1;padding-right:clamp(0px,2vw,24px)}
+  }
 
-    /* =============================================
-       SCROLL ANIMATIONS (reduced-motion gated)
-    ============================================= */
-    @media (prefers-reduced-motion: no-preference) {
-      .fade-in {
-        opacity: 0;
-        transform: translateY(18px);
-        animation: fade-up 0.6s ease forwards;
-        animation-play-state: paused;
-      }
-      .fade-in.visible {
-        animation-play-state: running;
-      }
-      .fade-in:nth-child(2) { animation-delay: 0.1s; }
-      .fade-in:nth-child(3) { animation-delay: 0.2s; }
-      .fade-in:nth-child(4) { animation-delay: 0.3s; }
-    }
+  /* ============ VISIT / FOOTER ============ */
+  .visit{border-top:1px solid var(--line)}
+  .visit-grid{display:grid;gap:clamp(28px,4vw,56px);grid-template-columns:1fr}
+  .visit h2{
+    font-family:var(--serif);font-weight:800;font-size:clamp(2.4rem,8vw,5rem);
+    line-height:.94;margin:0 0 .4em;letter-spacing:-.012em;
+  }
+  .visit h2 .em{font-style:italic;color:var(--red);font-weight:600}
+  .facts{display:grid;gap:0;border-top:1px solid var(--line)}
+  .fact{
+    display:grid;grid-template-columns:9rem 1fr;gap:1rem;
+    padding:1.05rem 0;border-bottom:1px solid var(--line);align-items:baseline;
+  }
+  .fact dt{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .fact dd{margin:0;font-family:var(--serif);font-size:1.05rem;line-height:1.4}
+  .fact dd a{text-decoration:none}
+  .visit-cta{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
+  @media(min-width:840px){
+    .visit-grid{grid-template-columns:1fr 1fr;align-items:start}
+    .fact{grid-template-columns:11rem 1fr}
+  }
 
-    @keyframes fade-up {
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes reveal-clip {
-      from { opacity: 0; clip-path: inset(0 0 100% 0); }
-      to   { opacity: 1; clip-path: inset(0 0 0% 0); }
-    }
-    @keyframes marquee {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
-  </style>
+  footer.colophon{
+    border-top:1px solid var(--ink);background:var(--ink);color:var(--paper);
+    position:relative;z-index:1;
+  }
+  .colophon .shell{
+    padding-block:clamp(28px,4vw,44px);
+    display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem 2rem;align-items:center;
+  }
+  .colophon .brand b{color:var(--paper)}
+  .colophon small{color:#b7b0a4;font-size:.74rem;letter-spacing:.06em}
+  .colophon .set{display:flex;gap:1.4rem;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+  .colophon a.link{color:#e7e1d6}
+
+  /* scroll reveal — gated below */
+  .reveal{opacity:1;transform:none}
+
+  @media (prefers-reduced-motion: no-preference){
+    .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s ease, transform .9s cubic-bezier(.16,.84,.3,1)}
+    .reveal.in{opacity:1;transform:none}
+    .reveal[data-d="1"]{transition-delay:.08s}
+    .reveal[data-d="2"]{transition-delay:.16s}
+    .reveal[data-d="3"]{transition-delay:.24s}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ticker-track{animation:none}
+    .duo img{transition:none}
+  }
+</style>
 </head>
 <body>
+<a class="skip" href="#menu">Skip to services</a>
 
-<!-- Scroll progress bar -->
-<div id="progress-bar"></div>
-
-<!-- ===== HEADER ===== -->
-<header>
-  <div class="nav-logo">
-    <span class="star">★</span>
-    BARBERSTARZ
+<header class="masthead">
+  <div class="shell masthead-in">
+    <a class="brand" href="#top" aria-label="Kingsway Barber Co., home">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true" fill="none">
+        <rect x="1" y="1" width="38" height="38" rx="3" stroke="var(--ink)" stroke-width="1.4"/>
+        <path d="M20 5v30M5 20h30" stroke="var(--line)" stroke-width="1"/>
+        <path d="M11 11c4 3 14 3 18 0M11 29c4-3 14-3 18 0" stroke="var(--red)" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="20" cy="20" r="3.4" fill="var(--ink)"/>
+        <circle cx="20" cy="20" r="1.3" fill="var(--red)"/>
+      </svg>
+      <span>
+        <b>Kingsway Barber Co.</b>
+        <small>Est. Harbor St · Brighton</small>
+      </span>
+    </a>
+    <div class="mast-right">
+      <nav class="mast-nav" aria-label="Primary">
+        <a class="link" href="#menu">The Menu</a>
+        <a class="link" href="#room">The Room</a>
+        <a class="link" href="#visit">Visit</a>
+      </nav>
+      <a class="mast-cta" href="#visit">Book a chair</a>
+    </div>
   </div>
-  <nav>
-    <a href="#services">Services</a>
-    <a href="#gallery">Gallery</a>
-    <a href="#reviews">Reviews</a>
-    <a href="#visit">Hours</a>
-    <a href="tel:+16175550188" class="nav-cta">Call Now</a>
-  </nav>
 </header>
 
-<!-- ===== HERO ===== -->
-<section class="hero" id="home">
-  <img src="assets/hero.jpg" alt="Inside Kingsway Barber Co. — barber chairs, barber pole, brick walls" class="hero-bg" />
-  <div class="hero-glow"></div>
-  <div class="hero-content">
-    <div class="hero-eyebrow">Downtown Brighton, MA · Est. Chestnut Ave</div>
-    <h1 class="hero-headline">
-      SHARP CUTS.<br />
-      <span class="accent">CLEAN FADES.</span><br />
-      REAL BARBERS.
-    </h1>
-    <p class="hero-sub">
-      Kingsway Barber Co. is Downtown Brighton's neighborhood barbershop — where fades are blended right, lineups are precise, and every chair delivers.
-    </p>
-    <div class="hero-actions">
-      <a href="tel:+16175550188" class="btn-primary">
-        <span>📞</span> Call to Book
-      </a>
-      <a href="https://www.google.com/maps/search/?api=1&query=88+Harbor+St,+Brighton,+MA+02135" target="_blank" rel="noopener" class="btn-secondary">
-        <span>📍</span> Get Directions
-      </a>
-    </div>
-  </div>
-</section>
+<main id="top">
 
-<!-- ===== TRUST STRIP ===== -->
-<div class="trust-strip" aria-hidden="true">
-  <div class="trust-track">
-    <span class="trust-item">4.6 Stars on Google</span>
-    <span class="trust-item">362 Reviews</span>
-    <span class="trust-item">High Fades &amp; Tapers</span>
-    <span class="trust-item">Beard Trims</span>
-    <span class="trust-item">Walk-Ins Welcome</span>
-    <span class="trust-item">Open 7 Days</span>
-    <span class="trust-item">$10 Wednesday Special</span>
-    <span class="trust-item">Wheelchair Accessible</span>
-    <!-- repeat for seamless loop -->
-    <span class="trust-item">4.6 Stars on Google</span>
-    <span class="trust-item">362 Reviews</span>
-    <span class="trust-item">High Fades &amp; Tapers</span>
-    <span class="trust-item">Beard Trims</span>
-    <span class="trust-item">Walk-Ins Welcome</span>
-    <span class="trust-item">Open 7 Days</span>
-    <span class="trust-item">$10 Wednesday Special</span>
-    <span class="trust-item">Wheelchair Accessible</span>
-  </div>
-</div>
+  <!-- ============ HERO ============ -->
+  <section class="hero" aria-labelledby="lede-h1">
+    <div class="shell hero-grid">
+      <div class="hero-head">
+        <div class="issue-line reveal">
+          <span>Vol. I · The Heritage Issue</span>
+          <span class="red">Open 7 days · Walk-ins welcome</span>
+          <span>88 Harbor St</span>
+        </div>
+        <h1 id="lede-h1" class="reveal" data-d="1">
+          A clean line<span class="thin">, </span><span class="em">held</span><br />by a steady hand.
+        </h1>
 
-<!-- ===== STAT BAND ===== -->
-<div class="stat-band">
-  <div class="stat-grid">
-    <div class="stat-item fade-in">
-      <div class="stat-num">
-        <span id="stat-rating">4.6</span><span class="unit">★</span>
-      </div>
-      <div class="stat-label">Google Rating</div>
-    </div>
-    <div class="stat-item fade-in">
-      <div class="stat-num">
-        <span id="stat-reviews">362</span>
-      </div>
-      <div class="stat-label">Google Reviews</div>
-    </div>
-    <div class="stat-item fade-in">
-      <div class="stat-num">7</div>
-      <div class="stat-label">Days Open</div>
-    </div>
-    <div class="stat-item fade-in">
-      <div class="stat-num">
-        <span class="unit">$</span><span id="stat-price">25</span>
-      </div>
-      <div class="stat-label">Starting Price</div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SERVICES ===== -->
-<section class="services-section section-max" id="services">
-  <div class="services-intro">
-    <div>
-      <div class="section-eyebrow">What We Do</div>
-      <h2 class="section-title">THE FULL MENU</h2>
-      <p class="section-body">
-        From high fades and tapers to afros and mohawks — Kingsway Barber Co. covers every cut with care. Lineups, beard work, and eyebrow shaping too.
-        Ask for Mark and you'll leave looking right.
-      </p>
-    </div>
-    <div>
-      <div class="section-eyebrow">Wednesday Deal</div>
-      <div style="background: var(--surface); border-radius: var(--radius); padding: 1.75rem; position: relative; overflow: hidden;">
-        <div style="position: absolute; top: 0; right: 0; width: 80px; height: 80px; background: var(--red-glow); filter: blur(24px); border-radius: 50%;"></div>
-        <div style="font-family: var(--font-display); font-size: 3.5rem; color: var(--red); line-height: 1; font-variant-numeric: tabular-nums lining-nums;">$10</div>
-        <div style="font-family: var(--font-sub); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 0.3rem;">Wednesday Special</div>
-        <div style="font-size: 0.85rem; color: rgba(245,245,240,0.65); margin-top: 0.75rem; line-height: 1.65;">Every Wednesday — walk in and save. Same sharp cut, special price.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="services-grid">
-    <div class="service-card fade-in">
-      <div class="service-icon">✂️</div>
-      <div class="service-name">Fade</div>
-      <div class="service-desc">High, mid, or low — clean blends from scalp to skin. Precise and well-finished.</div>
-      <div class="service-price">Starting $25</div>
-    </div>
-    <div class="service-card fade-in">
-      <div class="service-icon">💈</div>
-      <div class="service-name">Taper</div>
-      <div class="service-desc">Classic taper cuts with a tight, sharp lineup to match.</div>
-    </div>
-    <div class="service-card fade-in">
-      <div class="service-icon">🔲</div>
-      <div class="service-name">Lineup / Edge Up</div>
-      <div class="service-desc">Detail-focused lineup work — straight edges, precise corners.</div>
-    </div>
-    <div class="service-card fade-in">
-      <div class="service-icon">✂️</div>
-      <div class="service-name">Scissor Cut / Trim</div>
-      <div class="service-desc">Clean scissor work and shape-ups for every hair type.</div>
-    </div>
-    <div class="service-card fade-in">
-      <div class="service-icon">🌀</div>
-      <div class="service-name">Afro / Mohawk</div>
-      <div class="service-desc">Natural styles shaped and defined with confidence.</div>
-    </div>
-    <div class="service-card fade-in">
-      <div class="service-icon">🧔</div>
-      <div class="service-name">Beard Trim</div>
-      <div class="service-desc">Beard shaping and clean-up to keep things sharp below the chin.</div>
-    </div>
-    <div class="service-card fade-in">
-      <div class="service-icon">👁️</div>
-      <div class="service-name">Eyebrows</div>
-      <div class="service-desc">Clean up and shape the brows — the finishing touch.</div>
-    </div>
-    <div class="service-card fade-in">
-      <div class="service-icon">🎨</div>
-      <div class="service-name">Comb-Over & Style</div>
-      <div class="service-desc">Volume, movement, and style — structured cuts that hold their shape.</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== GALLERY ===== -->
-<section class="gallery-section" id="gallery">
-  <div class="section-max">
-    <div class="section-eyebrow">Inside the Shop</div>
-    <h2 class="section-title">THE SPACE</h2>
-    <p class="section-body" style="margin-bottom: 2.5rem;">Five barbers working, ring lights glowing, real tools on the bench. This is what a working barbershop looks like.</p>
-    <div class="bento">
-      <div class="bento-item bento-a">
-        <img src="assets/chairs.jpg" alt="Row of red barber chairs against exposed brick wall at Kingsway Barber Co." loading="lazy" />
-      </div>
-      <div class="bento-item bento-b">
-        <img src="assets/exterior.jpg" alt="Kingsway Barber Co. team standing in front of their Downtown Brighton storefront" loading="lazy" />
-      </div>
-      <div class="bento-item bento-c">
-        <img src="assets/night-sign.jpg" alt="Kingsway Barber Co. illuminated sign at night" loading="lazy" />
-      </div>
-      <div class="bento-item bento-d">
-        <img src="assets/waiting.jpg" alt="Kingsway Barber Co. waiting area with style charts and price list" loading="lazy" />
-      </div>
-      <div class="bento-item bento-e">
-        <img src="assets/work.jpg" alt="Clean hair cut result from Kingsway Barber Co." loading="lazy" />
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== REVIEWS ===== -->
-<section class="reviews-section" id="reviews">
-  <div class="section-max">
-    <div class="reviews-header">
-      <div>
-        <div class="section-eyebrow">What People Say</div>
-        <h2 class="section-title">CUSTOMER REVIEWS</h2>
-      </div>
-      <div class="rating-big">
-        <div>
-          <div class="rating-num">4.6</div>
-          <div class="rating-stars">★★★★★</div>
-          <div class="rating-count">362 Google reviews</div>
+        <div class="lede reveal" data-d="2">
+          <p class="drop">Kingsway Barber Co. is an old-fashioned barbershop run on patience. We measure twice, cut once, and never rush the chair — fades dialed to the millimeter, beards squared with a hot towel and a straight razor.</p>
+          <p>Sit down. We'll take it from here.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#visit">Reserve a time</a>
+            <a class="btn btn-ghost" href="tel:+16175550188">Call (617) 555-0188</a>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="reviews-grid">
-      <div class="review-card fade-in">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">
-          Mark got to work right away on a high fade and trim, took his time, and it came out exactly how I wanted. I'll definitely be booking him again — good barber who gets it done right.
-        </p>
-        <div class="review-author">Thong H. — Google</div>
-      </div>
-      <div class="review-card fade-in">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">
-          The fade was clean and blended perfectly. Mark paid close attention to the lineup and the comb-over had the right amount of volume and style. Easily one of the best cuts I've gotten — highly recommend him.
-        </p>
-        <div class="review-author">Christian R. — Google</div>
-      </div>
-      <div class="review-card fade-in">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">
-          Really affordable compared to other shops, and the quality is there. Mark is patient, takes the time to understand what you want, and makes sure you leave feeling good. I've never walked out unsatisfied.
-        </p>
-        <div class="review-author">Vincent P. — Google</div>
-      </div>
-      <div class="review-card fade-in">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">
-          Made my first appointment with Mark and he was very professional. All five stylists were busy, the vibe was great — like something out of a movie. Got a great cut and will be going back.
-        </p>
-        <div class="review-author">John H. — Google</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== VISIT / HOURS / MAP ===== -->
-<section class="visit-section" id="visit">
-  <div class="section-max">
-    <div class="section-eyebrow">Find Us</div>
-    <h2 class="section-title">HOURS &amp; LOMATION</h2>
-
-    <div class="visit-grid">
-      <div>
-        <table class="hours-table" aria-label="Weekly hours">
-          <tbody id="hours-body">
-            <tr><td>Monday</td><td>8:00 AM – 8:00 PM</td></tr>
-            <tr><td>Tuesday</td><td>9:00 AM – 8:00 PM</td></tr>
-            <tr><td>Wednesday</td><td>8:00 AM – 8:00 PM</td></tr>
-            <tr><td>Thursday</td><td>8:00 AM – 8:00 PM</td></tr>
-            <tr><td>Friday</td><td>8:00 AM – 8:00 PM</td></tr>
-            <tr><td>Saturday</td><td>8:00 AM – 8:00 PM</td></tr>
-            <tr><td>Sunday</td><td>8:00 AM – 8:00 PM</td></tr>
-          </tbody>
-        </table>
-
-        <div class="contact-block">
-          <div class="contact-item">
-            <span class="contact-icon">📞</span>
-            <div>
-              <a href="tel:+16175550188" style="font-variant-numeric: tabular-nums lining-nums; font-family: var(--font-sub); font-weight: 600; letter-spacing: 0.05em;">(617) 555-0188</a>
+      <figure class="hero-figure reveal" data-d="3">
+            <div class="stamp" aria-hidden="true">
+              <svg viewBox="0 0 120 120">
+                <defs>
+                  <path id="circ" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
+                </defs>
+                <circle cx="60" cy="60" r="57" fill="none" stroke="var(--ink)" stroke-width="1"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--red)" stroke-width="1"/>
+                <text font-size="9.4" letter-spacing="3" fill="var(--ink)" font-weight="600">
+                  <textPath href="#circ" startOffset="0">· KINGSWAY · BARBER · CO · BRIGHTON MA ·</textPath>
+                </text>
+                <text x="60" y="55" text-anchor="middle" font-family="var(--serif)" font-size="18" fill="var(--red)" font-weight="700" style="font-family:'Playfair Display',serif">4.8</text>
+                <text x="60" y="72" text-anchor="middle" font-size="7" letter-spacing="2.5" fill="var(--ink)" font-weight="600">★ RATED</text>
+              </svg>
             </div>
+            <div class="duo">
+              <img src="assets/hero.jpg" alt="A barber leaning in to finish a precise haircut for a seated client at Kingsway Barber Co." />
+            </div>
+            <figcaption>Plate 01 — The chair, mid-cut</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ TICKER ============ -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>Skin Fades</span><span>Taper · Drop</span><span>Hot-Towel Shaves</span><span>Straight-Razor Line-Ups</span><span>Beard Sculpting</span><span>Classic Scissor Cuts</span>
+      <span>Skin Fades</span><span>Taper · Drop</span><span>Hot-Towel Shaves</span><span>Straight-Razor Line-Ups</span><span>Beard Sculpting</span><span>Classic Scissor Cuts</span>
+    </div>
+  </div>
+
+  <!-- ============ SERVICES MENU ============ -->
+  <section class="section" id="menu" aria-labelledby="menu-h2">
+    <div class="shell">
+      <div class="sec-head">
+        <h2 id="menu-h2" class="reveal">The <span style="font-style:italic">Menu</span></h2>
+        <p class="aside reveal" data-d="1"><span class="smallcaps">A short list, done properly.</span> Every service includes a hot towel, a neck shave and a straight edge. Prices are starting points; your barber will quote anything bespoke before the first cut.</p>
+      </div>
+
+      <ol class="menu" aria-label="Services and pricing">
+        <li class="menu-row reveal">
+          <span class="no" aria-hidden="true">01</span>
+          <div class="body">
+            <h3>The Haircut</h3>
+            <p>A proper scissor-and-clipper cut, washed and styled. We take the time to read the hair before we shape it.</p>
           </div>
-          <div class="contact-item">
-            <span class="contact-icon">📍</span>
-            <div>88 Harbor St, Brighton, MA 02135<br />Downtown Brighton, MA 02135</div>
+          <div class="meta"><span class="price">$38</span><span class="time">45 min</span></div>
+        </li>
+        <li class="menu-row reveal" data-d="1">
+          <span class="no" aria-hidden="true">02</span>
+          <div class="body">
+            <h3>The Fade</h3>
+            <p>Skin, taper or drop — blended clean and seamless from the skin up. Finished with a razor line-up.</p>
           </div>
-        </div>
+          <div class="meta"><span class="price">$42</span><span class="time">50 min</span></div>
+        </li>
+        <li class="menu-row reveal" data-d="2">
+          <span class="no" aria-hidden="true">03</span>
+          <div class="body">
+            <h3>Beard Trim &amp; Line-Up</h3>
+            <p>Shaped, edged and detailed to your jaw. Crisp lines, balanced and tidy — never over-worked.</p>
+          </div>
+          <div class="meta"><span class="price">$26</span><span class="time">30 min</span></div>
+        </li>
+        <li class="menu-row reveal" data-d="3">
+          <span class="no" aria-hidden="true">04</span>
+          <div class="body">
+            <h3>Hot-Towel Straight-Razor Shave</h3>
+            <p>The full ritual: steamed towels, warm lather and a straight razor passed by a steady hand. Unhurried.</p>
+          </div>
+          <div class="meta"><span class="price">$40</span><span class="time">40 min</span></div>
+        </li>
+        <li class="menu-row reveal" data-d="3">
+          <span class="no" aria-hidden="true">05</span>
+          <div class="body">
+            <h3>The Full Service</h3>
+            <p>Cut, fade and beard squared in one sitting — the complete chair. Our most-booked appointment.</p>
+          </div>
+          <div class="meta"><span class="price">$64</span><span class="time">75 min</span></div>
+        </li>
+      </ol>
 
-        <div class="accessibility-row">
-          <span class="badge">♿ Accessible Parking</span>
-          <span class="badge">♿ Accessible Entry</span>
-          <span class="badge">🚻 Restroom</span>
-          <span class="badge">👶 Kid-Friendly</span>
-        </div>
-      </div>
-
-      <div>
-        <div class="map-frame">
-          <iframe
-            src="https://maps.google.com/maps?q=88+Harbor+St,+Brighton,+MA+02135&output=embed"
-            title="Kingsway Barber Co. on Google Maps"
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
-          <a href="https://www.google.com/maps/search/?api=1&query=88+Harbor+St,+Brighton,+MA+02135" target="_blank" rel="noopener" class="map-overlay-btn">
-            Open in Maps
-          </a>
-        </div>
-        <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
-          <a href="tel:+16175550188" class="btn-primary">📞 Call to Book</a>
-          <a href="https://www.google.com/maps/search/?api=1&query=88+Harbor+St,+Brighton,+MA+02135" target="_blank" rel="noopener" class="btn-secondary">📍 Get Directions</a>
-        </div>
+      <div class="menu-foot reveal">
+        <span class="smallcaps">Walk-ins taken as the chair opens.</span>
+        <a class="link" href="#visit" style="color:var(--red);font-weight:600;letter-spacing:.04em">Book online →</a>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===== FAQ ===== -->
-<section class="faq-section" id="faq">
-  <div class="section-max">
-    <div class="section-eyebrow">Common Questions</div>
-    <h2 class="section-title">FAQ</h2>
-    <div class="faq-list">
-      <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">
-          Do you take walk-ins?
-          <span class="faq-icon" aria-hidden="true">+</span>
-        </button>
-        <div class="faq-a" role="region">
-          <div class="faq-a-inner">Yes — walk-ins are welcome. Appointments are available too if you want to pick your barber or plan around a specific time.</div>
+  <!-- ============ PULL QUOTE BAND ============ -->
+  <section class="band" aria-labelledby="quote-h">
+    <div class="shell band-grid">
+      <figure class="quote reveal">
+        <span class="mk" aria-hidden="true">“</span>
+        <h2 id="quote-h" class="visually-hidden" style="position:absolute;left:-9999px">A guest's words</h2>
+        <blockquote>Cleanest fade I've had in years — they don't rush, and you can tell every barber here actually cares about the line.</blockquote>
+        <figcaption>
+          <span class="stars" aria-hidden="true">★★★★★</span>
+          <span><b>Paraphrased from a Google review</b> · 4.8 average</span>
+        </figcaption>
+      </figure>
+      <figure class="band-figure reveal" data-d="2">
+        <div class="duo">
+          <img src="assets/work.jpg" alt="Close-up of a finished fresh haircut, the fade blended clean at the side." />
         </div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ THE ROOM ============ -->
+  <section class="section" id="room" aria-labelledby="room-h2">
+    <div class="shell">
+      <div class="sec-head">
+        <h2 id="room-h2" class="reveal">The <span style="font-style:italic">Room</span></h2>
+        <p class="aside reveal" data-d="1">Tile, leather and good light. A shop built to sit in for a while — not a conveyor belt.</p>
       </div>
-      <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">
-          What services do you offer?
-          <span class="faq-icon" aria-hidden="true">+</span>
-        </button>
-        <div class="faq-a" role="region">
-          <div class="faq-a-inner">Fades (high, mid, low), tapers, lineups, scissor cuts, trims, afros, mohawks, beard trims, and eyebrow shaping — the full barbershop menu.</div>
+
+      <div class="room-grid">
+        <div class="room-copy reveal">
+          <h3>Built for the long sit</h3>
+          <p>Six heritage chairs, worn-in leather, and barbers who'd rather get it right than get it fast. Come early, take a coffee, and let the room slow you down.</p>
+          <p>No music too loud to talk over. No upsell. Just a clean cut and an honest line.</p>
+          <a class="link" href="#visit" style="color:var(--red);font-weight:600;letter-spacing:.04em">Plan your visit →</a>
         </div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">
-          Is there a Wednesday deal?
-          <span class="faq-icon" aria-hidden="true">+</span>
-        </button>
-        <div class="faq-a" role="region">
-          <div class="faq-a-inner">Yes — $10 haircut special every Wednesday. Walk in, get your cut, save on price.</div>
-        </div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">
-          What are your hours?
-          <span class="faq-icon" aria-hidden="true">+</span>
-        </button>
-        <div class="faq-a" role="region">
-          <div class="faq-a-inner">Open 7 days a week. Monday and Wednesday–Sunday 8 AM to 8 PM. Tuesday 9 AM to 8 PM.</div>
-        </div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">
-          Is the shop accessible?
-          <span class="faq-icon" aria-hidden="true">+</span>
-        </button>
-        <div class="faq-a" role="region">
-          <div class="faq-a-inner">Yes — wheelchair accessible parking, entrance, and restroom. Kid-friendly too.</div>
-        </div>
+
+        <figure class="room-fig tall reveal" data-d="2">
+          <div class="duo">
+            <img src="assets/chairs.jpg" alt="A row of classic barber chairs lined up along the interior of Kingsway Barber Co." />
+          </div>
+          <figcaption><span>Plate 02</span><span class="smallcaps">The chairs</span></figcaption>
+        </figure>
+
+        <figure class="room-fig wide reveal" data-d="1">
+          <div class="duo">
+            <img src="assets/waiting.jpg" alt="The waiting area at Kingsway Barber Co. with seating for guests before their appointment." />
+          </div>
+          <figcaption><span>Plate 03</span><span class="smallcaps">The wait</span></figcaption>
+        </figure>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===== FOOTER ===== -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-wordmark">BARBERSTARZ</div>
-    <div class="footer-sub">Barbershop · Downtown Brighton, MA · 88 Harbor St, Brighton, MA 02135</div>
-    <div class="footer-bottom">
-      <div class="footer-copy">© 2025 Kingsway Barber Co.. All rights reserved.</div>
-      <div class="footer-actions">
-        <a href="tel:+16175550188" class="footer-link">(617) 555-0188</a>
-        <a href="https://www.google.com/maps/search/?api=1&query=88+Harbor+St,+Brighton,+MA+02135" target="_blank" rel="noopener" class="footer-link">Get Directions</a>
+  <!-- ============ VISIT ============ -->
+  <section class="section visit" id="visit" aria-labelledby="visit-h2">
+    <div class="shell visit-grid">
+      <div class="reveal">
+        <h2 id="visit-h2">Take the <span class="em">chair</span>.</h2>
+        <p style="color:var(--muted);max-width:40ch;margin:0 0 0">Book ahead or walk in. We hold a few chairs open every day for the latter — seven days a week, Downtown Brighton.</p>
+        <div class="visit-cta">
+          <a class="btn btn-primary" href="tel:+16175550188">Call (617) 555-0188</a>
+          <a class="btn btn-ghost" href="https://maps.google.com/?q=Kingsway+Barber+Co,+88+Harbor+St,+Brighton,+MA" target="_blank" rel="noopener">Get directions</a>
+        </div>
       </div>
+
+      <dl class="facts reveal" data-d="1">
+        <div class="fact">
+          <dt>Address</dt>
+          <dd><a class="link" href="https://maps.google.com/?q=Kingsway+Barber+Co,+88+Harbor+St,+Brighton,+MA" target="_blank" rel="noopener">88 Harbor St<br />Downtown Brighton, MA</a></dd>
+        </div>
+        <div class="fact">
+          <dt>Telephone</dt>
+          <dd><a class="link" href="tel:+16175550188">(617) 555-0188</a></dd>
+        </div>
+        <div class="fact">
+          <dt>Hours</dt>
+          <dd>Open seven days a week<br /><span class="smallcaps" style="color:var(--muted)">Walk-ins as the chair opens</span></dd>
+        </div>
+        <div class="fact">
+          <dt>Standing</dt>
+          <dd><span style="color:var(--red)">★</span> 4.8 average · neighborhood-rated</dd>
+        </div>
+      </dl>
     </div>
+  </section>
+</main>
+
+<footer class="colophon">
+  <div class="shell">
+    <a class="brand" href="#top" aria-label="Kingsway Barber Co., back to top">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true" fill="none">
+        <rect x="1" y="1" width="38" height="38" rx="3" stroke="var(--paper)" stroke-width="1.4"/>
+        <path d="M11 11c4 3 14 3 18 0M11 29c4-3 14-3 18 0" stroke="var(--red)" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="20" cy="20" r="3.4" fill="var(--paper)"/>
+      </svg>
+      <span><b>Kingsway Barber Co.</b><small style="color:#b7b0a4">88 Harbor St · Brighton, MA</small></span>
+    </a>
+    <nav class="set" aria-label="Footer">
+      <a class="link" href="#menu">Menu</a>
+      <a class="link" href="#room">Room</a>
+      <a class="link" href="#visit">Visit</a>
+    </nav>
+    <small>© 2026 Kingsway Barber Co. · A heritage barbershop. Concept site.</small>
   </div>
-<p class="concept-demo-note" style="margin-top:1rem;font-size:.85rem;opacity:.75">Concept demo — illustrative sample design by Better Business Web. Business details are fictional; layout and craft reflect real builds.</p>
 </footer>
 
 <script>
-  // ===== Scroll progress bar =====
-  const bar = document.getElementById('progress-bar');
-  window.addEventListener('scroll', () => {
-    const p = window.scrollY / (document.body.scrollHeight - window.innerHeight);
-    bar.style.width = Math.min(p * 100, 100) + '%';
-  }, { passive: true });
-
-  // ===== Highlight today's hours row =====
-  (function() {
-    const day = new Date().getDay(); // 0=Sun, 1=Mon ... 6=Sat
-    // Table rows: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
-    // JS day: 0=Sun,1=Mon...6=Sat → map to row index
-    const rowIndex = day === 0 ? 6 : day - 1;
-    const rows = document.querySelectorAll('#hours-body tr');
-    if (rows[rowIndex]) {
-      rows[rowIndex].classList.add('hours-today');
-      const dayCell = rows[rowIndex].querySelector('td:first-child');
-      const badge = document.createElement('span');
-      badge.className = 'today-badge';
-      badge.textContent = 'Today';
-      dayCell.appendChild(badge);
-    }
+  (function(){
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if(!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, {threshold:.12, rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
   })();
-
-  // ===== Count-up animation =====
-  function countUp(el, from, to, decimals, dur) {
-    const start = performance.now();
-    function step(now) {
-      const t = Math.min((now - start) / dur, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
-      const val = from + (to - from) * ease;
-      el.textContent = val.toFixed(decimals);
-      if (t < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-
-  // ===== Scroll-triggered reveals + count-ups =====
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15 });
-
-  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-  // Count-up when stat band scrolls in
-  const statBand = document.querySelector('.stat-band');
-  let counted = false;
-  const statObs = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting && !counted) {
-      counted = true;
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        countUp(document.getElementById('stat-rating'), 0, 4.6, 1, 900);
-        countUp(document.getElementById('stat-reviews'), 0, 362, 0, 1100);
-        countUp(document.getElementById('stat-price'), 0, 25, 0, 700);
-      }
-    }
-  }, { threshold: 0.4 });
-  if (statBand) statObs.observe(statBand);
-
-  // ===== FAQ accordion =====
-  document.querySelectorAll('.faq-q').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const item = btn.closest('.faq-item');
-      const isOpen = item.classList.contains('open');
-      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
-      document.querySelectorAll('.faq-q').forEach(b => b.setAttribute('aria-expanded', 'false'));
-      if (!isOpen) {
-        item.classList.add('open');
-        btn.setAttribute('aria-expanded', 'true');
-      }
-    });
-  });
 </script>
 </body>
 </html>
