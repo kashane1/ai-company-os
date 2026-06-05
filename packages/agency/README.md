@@ -1,0 +1,43 @@
+# packages/agency — WaaS lane business logic
+
+Business logic for the Website-as-a-Service agency lane: prospecting, demo sites,
+client onboarding, and monthly retainer ops. Runnable entrypoints live in
+`scripts/agency/`; site machinery (scaffold/validation/palette) lives in
+`packages/web/`.
+
+> **Start at the lane map:** [docs/agency/README.md](../../docs/agency/README.md)
+> — pipeline stages, the `state/prospects/` data layout, and the three web build paths.
+
+## Modules by area
+
+**Prospects & demos**
+- `prospect_site.py` — render/deploy glue for prospect mockups; `resolve_prospect_dist_dir()` (requires `dist-v2/`, refuses legacy `dist/`).
+- `demo_theme.py` — **legacy** token-fill theming (path A, deprecated for prospects; kept for `--legacy-build` + some portfolio).
+- `demo_maps.py` — map embeds for demos.
+- `outreach.py` — channel × genre outreach templates.
+
+**Sale → client (Phases 3–6)**
+- `promotion.py` / `client_lifecycle.py` — promote prospect → client; lifecycle state.
+- `intake.py` — capture business details → `CLIENT_BRIEF.md` + client-site context.
+- `launch.py` — pre-launch readiness (composed by the `launch-checklist` skill).
+- `local_seo.py` — service × geo page generation with thin-content guards.
+
+**Retainer ops**
+- `retainer_ops.py`, `monthly_report.py` — monthly deliverables.
+- `gbp.py`, `google_ads.py`, `plausible.py` — Google Business Profile, Ads, analytics.
+- `business_email.py`, `booking.py`, `promo_page.py` — email setup, booking embeds, promo pages.
+
+**Money**
+- `billing.py`, `payments.py`, `stripe_receiver.py` — invoicing + Stripe events.
+
+**Shared**
+- `catalog.py`, `templates.py`, `registry.py`, `approvals.py`, `inbound.py`,
+  `inbound_fulfillment.py` — service catalog, render templates, registries, approval
+  glue, and inbound-lead handling.
+
+## Conventions
+
+- Workers don't own policy — policy lives in `packages/policies/`.
+- Demo palette: derive from the business's own visual cues first; the design
+  reference (`packages/web/design_reference/`) is fallback only.
+- Deploy is a separate, approval-gated step — build logic here stops at green validation.

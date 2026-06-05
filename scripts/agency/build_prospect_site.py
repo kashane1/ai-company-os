@@ -241,7 +241,12 @@ def main() -> None:
     leg.add_argument(
         "--legacy-build",
         action="store_true",
-        help="generate token-fill dist/ via render_landing_html (bulk only — not for client-facing mockups)",
+        help=(
+            "DEPRECATED (web build path A): generate token-fill dist/ via "
+            "render_landing_html. Bulk regeneration only — NOT for client-facing "
+            "mockups. Use the bespoke playbook (docs/demo-site-build-playbook.md "
+            "→ dist-v2/); deployed prospect sites require dist-v2/."
+        ),
     )
     enr = ap.add_argument_group("enrichment (legacy-build only)")
     enr.add_argument(

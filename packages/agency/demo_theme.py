@@ -1,8 +1,19 @@
 """Deterministic, offline theming (legacy token-fill + portfolio tooling).
 
-**Not** used for customer-facing prospect mockups — those follow
-``docs/demo-site-build-playbook.md`` (palette from real photos, ``dist-v2/``).
-This module remains for:
+.. deprecated:: 2026-06-04
+   **DEPRECATED for customer-facing prospect mockups.** This is web build
+   *path A* (legacy token-fill → ``dist/``); ``resolve_prospect_dist_dir()``
+   refuses ``dist/`` and requires the bespoke ``dist-v2/`` build. Do **not**
+   reach for this module to improve demo design. The live paths are:
+
+   * **Prospect demos** → the bespoke playbook (``docs/demo-site-build-playbook.md``)
+   * **Client sites** → the Astro scaffold (``packages/web/scaffold.py``)
+   * **Design intelligence** (palettes / fonts / contrast) →
+     ``packages/web/palette.py`` + ``packages/web/design_reference/``
+
+   See the lane map: ``docs/agency/README.md`` (the three web build paths).
+
+This module is **retained only** for:
 
 * ``--legacy-build`` token-fill previews (deprecated bulk path)
 * portfolio anonymization (``scripts/agency/build_portfolio_demos.py``)
