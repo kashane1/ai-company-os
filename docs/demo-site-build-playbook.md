@@ -32,6 +32,11 @@ https://skyline-nails-fortworth.netlify.app).
 - **Photos:** Google/owner photos are fine for a private preview shown to the
   owner; for a **published** site use owner-provided or explicitly-licensed
   images and honor source attribution/ToS.
+- **Voice is per-business, never templated.** Copy follows
+  `docs/products/better-business-web/gtm/demo-voice-framework.md` (lead-with
+  angle, attribution, anti-slop) + the "Banned everywhere" list in
+  `docs/products/better-business-web/gtm/voice.md`. No AI-tell phrasing
+  ("unlock", "elevate", "it's not just X, it's Y") on a small-business page.
 
 ## Data sources (ranked — what each gives, how, caveats)
 
@@ -69,6 +74,11 @@ services) → IG/FB (photos & voice) → BBB/press (story & credibility) → own
 - Draft **paraphrased** testimonials from the best real reviews.
 - Write the **guardrails** section: what NOT to claim, from the negative reviews
   and weak signals.
+- Set the **lead-with angle + voice** from
+  `docs/products/better-business-web/gtm/demo-voice-framework.md` (genre-specific;
+  derive from the business's own data, never a template phrase). Pull its genre
+  lead-with row + the say-this-not-that examples into the build prompt so the
+  draft is on-voice from the start — fix the input, not just the output.
 
 ### 3. Curate photos
 - Pick a hero, an interior/"the space" shot, and a work gallery. Rename
@@ -94,6 +104,17 @@ services) → IG/FB (photos & voice) → BBB/press (story & credibility) → own
 ### 5. Verify + LOCAL preview (iterate here — do NOT deploy yet)
 - Grep for template ghosts: `Northwind`, `Fast by default`, `paid for itself`,
   `{{`. Must be **zero**.
+- **AI-tell voice gate (the real gate) — iterate until clean:**
+  1. Whitelist the business's own name tokens, then `grep -iF` the "Banned
+     everywhere" words/openers from
+     `docs/products/better-business-web/gtm/voice.md`. English-only — skip
+     non-English body copy. Any non-whitelisted hit → fix.
+  2. Secondary LLM self-critique — re-read as a skeptical local owner and flag the
+     judgment tells: banned constructions ("it's not just X, it's Y"), em-dash
+     budget (~1 per 500 words — count, don't ban), uniform rhythm / rule-of-three
+     spam, clichés, and any claim not in the brief. Don't attach a real reviewer's
+     name to a paraphrase.
+  3. Rewrite and re-run 1–2. Loop until both pass.
 - Re-read every headline/claim against the brief; cut anything ungrounded.
 - **Serve locally** and review in a browser: `python scripts/agency/preview_site.py
   --place-id <PID>` → open `http://localhost:8011`. Give notes, edit the HTML,
@@ -148,6 +169,13 @@ them in order.
 > **Deploy is NOT part of the build loop.** We build → preview on localhost
 > (`scripts/agency/preview_site.py`) → iterate → and push to Netlify only on an
 > explicit operator go. Do not auto-deploy a bespoke build.
+
+> **Build-spec is a regenerated mirror.** `state/prospects/batch/SUBAGENT-BUILD-SPEC.md`
+> is gitignored and hand-synced from this playbook + `demo-site-learnings.md`.
+> Whenever the **Hard rules**, **§5 Verify**, or any subagent-facing rule changes
+> here, re-port the deltas into the spec (its "Read first" list + the §F gate)
+> before the next batch. No generator script exists yet — a stale spec means
+> subagents build voiceless.
 
 After each build, append what worked / what burned us to
 **`docs/demo-site-learnings.md`**. That file is the bridge to automation: when a

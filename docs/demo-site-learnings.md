@@ -32,6 +32,16 @@ Companion to `docs/demo-site-build-playbook.md`. Each rule tagged:
 - `[COPY]` **The "lead-with" angle is genre-specific.** Nails → the work + the
   experience. Auto repair → honesty / transparent pricing / no-upsell (the genre's
   core distrust). Don't reuse one value prop across genres.
+- `[COPY]` **Per-business voice + AI-tell self-critique gate** (0 builds — graduates
+  at ≥3). Derive voice from THIS business's data via
+  `docs/products/better-business-web/gtm/demo-voice-framework.md`; never a template
+  phrase. At generation, pull the genre lead-with row + say-this-not-that examples
+  into the prompt (fix the input). In verify, run the AI-tell gate: whitelist the
+  business's own name tokens, `grep -iF` the "Banned everywhere" words from
+  `gtm/voice.md`, then an LLM pass for constructions / em-dash budget (~1/500) /
+  rhythm / clichés / unbacked claims — **iterate until clean**. English-only list;
+  don't grep non-English body copy. Don't attach a real reviewer's name to a
+  paraphrase (unattributed / aggregate only).
 - `[PROCESS]` **Yelp + booking + FB-public are agent-automatable** via the
   operator's connected Chrome (read-only, paced — see
   `demo-site-gather-automation.md`). Yelp loads with **no captcha** and
@@ -187,4 +197,8 @@ When a rule is reliable across ≥3 builds, note here what it became:
 - "rich Place Details + photo download" → **`scripts/agency/gather_place.py`** (Checkpoint A).
 - "per-business bespoke build" → **`state/prospects/batch/SUBAGENT-BUILD-SPEC.md`** (fan-out spec).
 - "masked gradient border + lifted children" → make a hard line in `05-craft-pass.md`.
+- "per-business voice + AI-tell self-critique" → wired into playbook §5 + spec §F
+  (authority: `gtm/demo-voice-framework.md` + `gtm/voice.md` "Banned everywhere").
+  0 builds behind it — at ≥3 clean builds, graduate the literal grep into a check
+  and the self-critique into a `copy-review` call.
 - _e.g. "negative-review price check" → automated guardrail in the brief step_
