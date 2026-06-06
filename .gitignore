@@ -41,3 +41,6 @@ xcuserdata/
 
 # Codex desktop/app-local hooks and session metadata.
 .codex/
+
+# Local Netlify folder
+.netlify

@@ -78,6 +78,37 @@ cloudflared tunnel → the **actual** Netlify forwarder `.mjs` → local receive
    (`payments.py:156`). ⚠️ **Must be deployed to Netlify before the new
    `success_url` goes live** (else it 404s on `better-business-web.netlify.app`).
 
+## ✅ Production webhook architecture (2026-06-06 — replaces the tunnel design)
+
+Per operator decision, the production Stripe webhook is **self-contained on Netlify**,
+NOT forwarded to the local Mac over a tunnel (a laptop tunnel is too fragile for a
+payment webhook). It mirrors the proven inbound-leads pattern:
+
+```
+Stripe → netlify/functions/stripe-webhook.mjs (verify sig, minimal events, → Netlify Blobs "stripe-events")
+       → scripts/web/pull-stripe-events.mjs (local poller, drains Blobs when the Mac is up)
+       → state/agency/stripe-events/*.json → reconcile_stripe_billing.py → local ledger
+```
+
+- **Validated end-to-end in TEST mode** against the **live deployed function** (signed
+  event → Blobs → poller → reconcile → ledger `active`). 10/10 function logic checks pass.
+- One function URL backs both test + live endpoints — it tries
+  `STRIPE_WEBHOOK_SECRET_TEST` then `_LIVE` until one verifies, tagging by `livemode`.
+- ⚠️ **Function deploys require `netlify-cli`** (`netlify deploy --prod --functions
+  netlify/functions`). The repo's `deploy_bbw.py` digest deploy ships only `dist/` —
+  it does NOT deploy functions. (Follow-up: extend deploy_bbw or document the CLI step.)
+- ⚠️ The poller must run on a **schedule** (cron/launchd) for steady-state drain.
+
+### Remaining to finish go-live
+1. Register a real Stripe **TEST** webhook at the function URL → set its real
+   `whsec` as `STRIPE_WEBHOOK_SECRET_TEST` (Netlify) → one real `4242` test payment →
+   confirm poller+reconcile into **real** state.
+2. Register the **LIVE** webhook → set `STRIPE_WEBHOOK_SECRET_LIVE` + live
+   `STRIPE_SECRET_KEY` (Netlify) → grant `stripe_live_subscription` approval.
+3. **Cheap live proof:** temporary live price (~$1–5), one real charge, refund +
+   cancel, archive the price. Do NOT use the $748 Package A to test wiring.
+4. Schedule the poller (cron/launchd) + drain on an interval.
+
 ## Resume command (for the next session)
 
 ```bash
