@@ -21,10 +21,10 @@ def test_default_worker_specs_includes_api_worker() -> None:
 
     specs = runtime_supervisor_main.default_worker_specs()
 
-    # Phase 3 appended the skill_evolution worker as the fifth spec,
-    # keeping the first four in the same order so the launchd config
-    # is stable for existing workers. The api worker is now specs[-2].
-    assert len(specs) == 5
+    # Specs are appended in order so the launchd config stays stable for existing
+    # workers. G1 appended the billing-event poller last (a supervised periodic
+    # loop, not a task-claiming worker).
+    assert len(specs) == 6
     lanes = [spec.lane for spec in specs]
     assert lanes == [
         "engineering",
@@ -32,15 +32,18 @@ def test_default_worker_specs_includes_api_worker() -> None:
         "appstore",
         "api",
         "skill_evolution",
+        "billing_poller",
     ]
 
-    api_spec = specs[-2]
-    assert api_spec.worker_id == "worker-api"
-    assert str(api_spec.script_path).endswith("apps/api/server.py")
-
-    evolution_spec = specs[-1]
-    assert evolution_spec.lane == "skill_evolution"
-    assert evolution_spec.worker_id == "worker-skill-evolution"
-    assert str(evolution_spec.script_path).endswith(
+    by_lane = {spec.lane: spec for spec in specs}
+    assert by_lane["api"].worker_id == "worker-api"
+    assert str(by_lane["api"].script_path).endswith("apps/api/server.py")
+    assert by_lane["skill_evolution"].worker_id == "worker-skill-evolution"
+    assert str(by_lane["skill_evolution"].script_path).endswith(
         "apps/worker-skill-evolution/main.py"
     )
+
+    poller = specs[-1]
+    assert poller.lane == "billing_poller"
+    assert poller.worker_id == "worker-billing-poller"
+    assert str(poller.script_path).endswith("apps/worker-billing-poller/main.py")

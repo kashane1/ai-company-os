@@ -21,6 +21,7 @@ state/logs/*
 state/prospects/*
 state/handshake/
 state/postmortems/
+state/agency/
 
 !state/repos/.gitkeep
 !state/worktrees/.gitkeep
