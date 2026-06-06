@@ -18,8 +18,13 @@ behalf, using a phone number the Client controls or authorizes.
 
 The Client agrees that:
 
-1. They will only provide phone numbers for customers who have received a service
-   from the Client and who have **not** opted out of text messages from the Client.
+1. They will only provide phone numbers for customers who have given **prior
+   express written consent** to receive review-request text messages from the
+   Client, and who have **not** opted out. (A review request is treated as a
+   **marketing** message under the TCPA, which requires documented written opt-in —
+   having been a customer is **not**, by itself, consent.) The Client will retain
+   proof of that consent (opt-in record: date, method, and the language shown) and
+   provide it on request.
 2. They will not provide purchased, rented, or scraped phone lists.
 3. They own or have authority to use the sending phone number for this purpose.
 4. They will honor **STOP** (opt-out) requests and tell Better Business Web within
@@ -33,8 +38,10 @@ Better Business Web will:
 - Include opt-out language in each message (e.g. “Reply STOP to opt out”).
 - Cap frequency at **one review request per customer per 90 days** unless the
   Client requests a different cap in writing.
-- Send only during **9:00 AM – 8:00 PM** in the Client’s local time zone unless
-  the Client approves otherwise.
+- Send only during **9:00 AM – 8:00 PM in the _recipient’s_ local time zone** (the
+  legally relevant zone — the 8 PM cap also satisfies stricter state rules such as
+  Florida and Texas). Honor opt-out keywords (STOP / QUIT / END / REVOKE / OPT OUT /
+  CANCEL / UNSUBSCRIBE) immediately.
 
 ## No guarantee of reviews
 

@@ -18,6 +18,18 @@ client-delivery flow (Agency layer, Phase 4).
 
 - Business name, service category (plumbing / med spa / barber / …), city.
 - Services offered, hours, phone, ideal customer, photos, reviews, competitors.
+- **Access block (collect up front — the #1 lever against back-and-forth):**
+  domain registrar / DNS access, **GBP access added as a Manager** (not owner),
+  existing hosting / CMS / analytics logins if migrating.
+- **Single named approver** (name + email) for the preview-review — one decision
+  maker, not a committee.
+- **Brand kit:** logo (vector preferred), colors/fonts, and the **exact NAP**
+  (name / address / phone, no abbreviations — feeds GBP verification).
+
+> Capture the access block + named approver in `CLIENT_BRIEF.md` even though the
+> `ClientIntake` dataclass doesn't persist them yet — extending the dataclass to
+> store them is a tracked follow-up (must respect the strict typed-loader pattern;
+> see the go-live readiness plan's Implementation Notes).
 
 ## Procedure
 
