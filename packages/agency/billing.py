@@ -55,6 +55,14 @@ _TERMINAL_EVENT_TYPES = frozenset(
     }
 )
 
+# Events that must apply even if their timestamp is behind the ledger cursor.
+# Terminal events are severity-increasing; ``invoice.paid`` is the activation and
+# is emitted ~simultaneously with ``checkout.session.completed`` (often 1s OLDER),
+# so the cursor must not drop it as "stale". Stale-resurrection is instead guarded
+# by ``_target_status`` (a stale invoice.paid can't revive a cancelled/refunded
+# ledger). Without this, a real first sale's activation is silently dropped.
+_ORDER_EXEMPT_EVENT_TYPES = _TERMINAL_EVENT_TYPES | {"invoice.paid"}
+
 
 @dataclass(frozen=True)
 class BillingLedger:
@@ -195,7 +203,7 @@ def reconcile_stripe_event(
     out_of_order = (
         current is not None
         and epoch < current.last_event_created
-        and event_type not in _TERMINAL_EVENT_TYPES
+        and event_type not in _ORDER_EXEMPT_EVENT_TYPES
     )
     if out_of_order:
         recorded = BillingLedger.from_dict(
@@ -302,6 +310,16 @@ def _target_status(
     client. Only ``invoice.paid`` activates ([B9]).
     """
     if event_type == "invoice.paid":
+        # Activates from any non-terminal state (trial/active/past_due), regardless
+        # of sibling-event ordering. But a genuinely stale invoice.paid must not
+        # resurrect a terminal funds-gone state — this is the resurrection guard
+        # that lets the cursor exempt invoice.paid (see _ORDER_EXEMPT_EVENT_TYPES).
+        if current in (
+            BillingStatus.CANCELLED,
+            BillingStatus.REFUNDED,
+            BillingStatus.DISPUTED,
+        ):
+            return None
         return BillingStatus.ACTIVE
     if event_type == "invoice.payment_failed":
         return BillingStatus.PAST_DUE
