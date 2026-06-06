@@ -12,7 +12,9 @@ Key correctness rules (from the research pass):
 * Metadata ``{product_id, bundle, mode}`` is set on BOTH the session and
   ``subscription_data`` so every future ``invoice.paid`` carries it (the invoice
   object otherwise has none — see billing.py ``_find_ledger_by_object`` fallback).
-* An idempotency key keyed on ``(product_id, bundle, mode)`` collapses retries.
+* An idempotency key keyed on ``(product_id, bundle, mode, expires_at)`` collapses
+  a genuine network-retry of the same request, while still letting a re-issued
+  checkout (new expiry) be a fresh session.
 * **Live mode is approval-gated** (``stripe_live_subscription``); test mode is free.
 * Price ids are environment-scoped config (``STRIPE_PRICE_MAP``), never catalog data.
 
@@ -150,7 +152,10 @@ def create_client_checkout(
     price_map: dict[str, object] | None = None,
     approval_id: str = "",
     store: ApprovalStore | None = None,
-    success_url: str = "https://better-business-web.netlify.app/thanks/",
+    # /welcome/ is the PAID-customer success page. Do NOT use /thanks/ — that's the
+    # free-review request confirmation ("no payment until you're happy"), which is
+    # wrong/contradictory for someone who just paid.
+    success_url: str = "https://better-business-web.netlify.app/welcome/",
     cancel_url: str = "https://better-business-web.netlify.app/",
     expires_in_seconds: int = _MAX_EXPIRES,
     now: Clock = _utc_now,
@@ -176,6 +181,13 @@ def create_client_checkout(
 
     metadata = {"product_id": product_id, "bundle": bundle, "mode": mode}
     expires_in = max(_MIN_EXPIRES, min(_MAX_EXPIRES, expires_in_seconds))
+    expires_at = int(now().timestamp()) + expires_in
+    # Idempotency key must include the expiry. Stripe rejects a reused key whose
+    # params changed, and ``expires_at`` moves every call — so a key fixed on
+    # (product_id, bundle, mode) makes re-issuing a checkout (e.g. resending an
+    # offer after the link expired) fail with IdempotencyError for ~24h. Keying on
+    # the expiry as well means a genuine SDK network-retry of the *same* request
+    # still collapses, while a fresh issuance is a new session.
     request = CheckoutRequest(
         line_items=(
             {"price": entry.monthly_price_id, "quantity": 1},  # recurring retainer
@@ -184,8 +196,8 @@ def create_client_checkout(
         mode="subscription",
         session_metadata=dict(metadata),
         subscription_metadata=dict(metadata),
-        idempotency_key=f"checkout:{product_id}:{bundle}:{mode}",
-        expires_at=int(now().timestamp()) + expires_in,
+        idempotency_key=f"checkout:{product_id}:{bundle}:{mode}:{expires_at}",
+        expires_at=expires_at,
         success_url=success_url,
         cancel_url=cancel_url,
     )

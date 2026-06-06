@@ -51,9 +51,22 @@ def test_checkout_shaping_test_mode() -> None:
     meta = {"product_id": "joes-plumbing-site", "bundle": "package_c", "mode": "test"}
     assert req.session_metadata == meta
     assert req.subscription_metadata == meta
-    assert req.idempotency_key == "checkout:joes-plumbing-site:package_c:test"
+    # Key includes the expiry so re-issuing later yields a fresh session (not an
+    # IdempotencyError) while a same-request retry still collapses.
+    assert req.idempotency_key == f"checkout:joes-plumbing-site:package_c:test:{EPOCH + 24 * 60 * 60}"
     assert req.expires_at == EPOCH + 24 * 60 * 60
     assert session.url == "https://checkout.test/cs_1"
+
+
+def test_reissue_at_a_later_time_uses_a_distinct_idempotency_key() -> None:
+    # Regression: a fixed key + moving expires_at made Stripe reject any second
+    # checkout for the same client/bundle for ~24h. Distinct issuance times must
+    # produce distinct keys so an offer can be re-sent.
+    later = lambda: datetime(2026, 6, 4, 1, 0, tzinfo=timezone.utc)  # noqa: E731
+    p1, p2 = FakeProvider(), FakeProvider()
+    create_client_checkout("p", "package_c", provider=p1, mode="test", price_map=PRICE_MAP, now=FIXED)
+    create_client_checkout("p", "package_c", provider=p2, mode="test", price_map=PRICE_MAP, now=later)
+    assert p1.request.idempotency_key != p2.request.idempotency_key
 
 
 def test_expiry_is_clamped() -> None:
