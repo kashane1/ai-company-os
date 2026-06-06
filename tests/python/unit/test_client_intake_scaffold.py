@@ -78,3 +78,31 @@ def test_intake_rejects_negative_radius() -> None:
             city="Seattle",
             travel_radius_miles=-1,
         ).validate()
+
+
+def test_access_block_and_approver_round_trip_and_render() -> None:
+    """The access block + named approver (onboarding's #1 back-and-forth lever)
+    must persist through to_dict/from_dict and appear in the brief."""
+    from packages.agency.intake import ClientIntake, render_brief
+
+    intake = ClientIntake(
+        business_name="Joe's Plumbing", service_category="plumbing", city="Austin",
+        domain_registrar="GoDaddy", dns_access="delegated to us",
+        gbp_access="Manager granted", existing_logins=["wix:admin", "GA4"],
+        approver_name="Joe Smith", approver_email="joe@example.com",
+    )
+    intake.validate()
+    assert ClientIntake.from_dict(intake.to_dict()).to_dict() == intake.to_dict()
+    brief = render_brief(intake)
+    assert "## Access & Approver" in brief
+    assert "GoDaddy" in brief and "joe@example.com" in brief
+
+
+def test_invalid_approver_email_is_rejected() -> None:
+    from packages.agency.intake import ClientIntake
+    import pytest
+
+    bad = ClientIntake(business_name="x", service_category="y", city="z",
+                       approver_email="not-an-email")
+    with pytest.raises(ValueError):
+        bad.validate()

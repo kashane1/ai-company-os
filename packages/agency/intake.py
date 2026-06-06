@@ -37,6 +37,14 @@ class ClientIntake:
     matrix_approved: bool = False
     matrix_approved_by: str = ""
     matrix_approved_at: str = ""
+    # Access block (#1 lever against onboarding back-and-forth) + single named
+    # approver for the preview-review. Captured by the client-intake skill.
+    domain_registrar: str = ""  # where the domain lives (e.g. "GoDaddy") or "we register"
+    dns_access: str = ""  # how/whether we can edit DNS (e.g. "delegated", "client edits")
+    gbp_access: str = ""  # Google Business Profile access — Manager grant status
+    existing_logins: list[str] = field(default_factory=list)  # hosting/CMS/analytics if migrating
+    approver_name: str = ""
+    approver_email: str = ""
 
     def validate(self) -> None:
         if not self.business_name.strip():
@@ -47,6 +55,8 @@ class ClientIntake:
             raise ValueError("intake: city is required")
         if self.travel_radius_miles is not None and self.travel_radius_miles < 0:
             raise ValueError("intake: travel_radius_miles must be non-negative")
+        if self.approver_email and "@" not in self.approver_email:
+            raise ValueError("intake: approver_email must be an email address")
 
     def to_site_context(self) -> dict[str, str]:
         return local_business_context(
@@ -80,6 +90,12 @@ class ClientIntake:
             "matrix_approved": self.matrix_approved,
             "matrix_approved_by": self.matrix_approved_by,
             "matrix_approved_at": self.matrix_approved_at,
+            "domain_registrar": self.domain_registrar,
+            "dns_access": self.dns_access,
+            "gbp_access": self.gbp_access,
+            "existing_logins": list(self.existing_logins),
+            "approver_name": self.approver_name,
+            "approver_email": self.approver_email,
         }
 
     @classmethod
@@ -110,6 +126,12 @@ class ClientIntake:
             matrix_approved=bool(payload.get("matrix_approved", False)),
             matrix_approved_by=str(payload.get("matrix_approved_by", "")),
             matrix_approved_at=str(payload.get("matrix_approved_at", "")),
+            domain_registrar=str(payload.get("domain_registrar", "")),
+            dns_access=str(payload.get("dns_access", "")),
+            gbp_access=str(payload.get("gbp_access", "")),
+            existing_logins=[str(x) for x in list(payload.get("existing_logins", []))],
+            approver_name=str(payload.get("approver_name", "")),
+            approver_email=str(payload.get("approver_email", "")),
         )
 
 
@@ -143,8 +165,26 @@ def render_brief(intake: ClientIntake) -> str:
             "## Competitors",
             competitors,
             "",
+            "## Access & Approver",
+            f"- **Domain registrar:** {intake.domain_registrar or '_TBD_'}",
+            f"- **DNS access:** {intake.dns_access or '_TBD_'}",
+            f"- **GBP access (Manager):** {intake.gbp_access or '_TBD_'}",
+            f"- **Existing logins (if migrating):** {_logins(intake)}",
+            f"- **Approver:** {_approver(intake)}",
+            "",
         ]
     )
+
+
+def _logins(intake: ClientIntake) -> str:
+    return ", ".join(intake.existing_logins) if intake.existing_logins else "_none_"
+
+
+def _approver(intake: ClientIntake) -> str:
+    if not intake.approver_name and not intake.approver_email:
+        return "_TBD_"
+    email = f" <{intake.approver_email}>" if intake.approver_email else ""
+    return f"{intake.approver_name or '_unnamed_'}{email}"
 
 
 def _radius(intake: ClientIntake) -> str:

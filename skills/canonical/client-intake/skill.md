@@ -26,10 +26,10 @@ client-delivery flow (Agency layer, Phase 4).
 - **Brand kit:** logo (vector preferred), colors/fonts, and the **exact NAP**
   (name / address / phone, no abbreviations — feeds GBP verification).
 
-> Capture the access block + named approver in `CLIENT_BRIEF.md` even though the
-> `ClientIntake` dataclass doesn't persist them yet — extending the dataclass to
-> store them is a tracked follow-up (must respect the strict typed-loader pattern;
-> see the go-live readiness plan's Implementation Notes).
+> The access block + named approver are persisted on the `ClientIntake` dataclass
+> (`domain_registrar`, `dns_access`, `gbp_access`, `existing_logins`,
+> `approver_name`, `approver_email`) and rendered into `CLIENT_BRIEF.md` under
+> **Access & Approver**.
 
 ## Procedure
 

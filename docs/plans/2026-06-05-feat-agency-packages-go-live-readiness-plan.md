@@ -133,9 +133,11 @@ files cover them. The go-live checklist asserts the suite is green.
   `scripts/agency/process_inbound_review.py`. ✅ code · ⚙️ Resend env.
 - **Promote → intake → launch:** `scripts/promote_prospect.py`, `client_intake.py`,
   `launch_client.py` over `packages/agency/{promotion,client_lifecycle,launch}.py`. ✅
-- **Payments (G1):** `create_checkout.py` + `payments.py` + `stripe_receiver.py` +
-  `apps/api` `/stripe/forward` + `billing.py` reconciliation (disputes/refunds/ordering/idempotent
-  acceptance stamp). ✅ code · ⛔ live config.
+- **Payments (G1):** `create_checkout.py` + `payments.py` + `billing.py` reconciliation
+  (disputes/refunds/ordering/idempotent acceptance stamp). ✅ code · ✅ **live configured + smoke-tested
+  2026-06-06**. **Architecture changed:** the webhook is now a self-contained Netlify Function
+  (`netlify/functions/stripe-webhook.mjs` → Netlify Blobs) drained by `scripts/web/pull-stripe-events.mjs`
+  → `reconcile_stripe_billing.py` — **NOT** the local-Mac `/stripe/forward` receiver behind a tunnel.
 - **Reporting (G10):** `run_monthly_report.py` + `plausible.py`. ✅ code · ⚙️ Plausible config.
 - **Approvals/gates:** `packages/agency/approvals.py` + `packages/policies/agency_gates.py`
   (`assert_billing_active`, `assert_ad_campaign_go_live` [requires daily+monthly cap],
@@ -170,7 +172,7 @@ flowchart TD
 | 1 | Promote to client | `promote_prospect.py promote --place-id <id> --bundle package_a --approved-by kashane` → registry record + `docs/products/<slug>-site/OFFER.md` | Operator | 2 min | — |
 | 2 | Send offer + pay link | `create_checkout.py --product-id <id> --bundle package_a` → Stripe URL → paste into OFFER / reply | Operator | 2 min | **Stripe live (P0)** |
 | 3 | Client pays | Client opens link, pays setup + first month | Client | minutes | depends on #2 |
-| 4 | Auto-reconcile | webhook → forwarder → receiver → `billing.py` flips ledger `active`, stamps `accepted_at/by` | System | seconds | **needs forwarder tunnel + webhook (P0)** |
+| 4 | Auto-reconcile | Stripe → Netlify Function → Blobs → `pull-stripe-events.mjs` → `billing.py` flips ledger `active`, stamps `accepted_at/by` | System + poller | seconds–poll | ✅ **live (2026-06-06)** |
 | 5 | Intake + build | `client_intake.py --product-id <id> --from-prospect <place_id>`; `cd products/<slug>-site && npm install && npm run build` | Operator/Codex | 2–4 hrs | Preview→paid fidelity (P1) |
 | 6 | Launch | inject GBP link + analytics tag; `launch_client.py check … --deploy-approved --dns-approved`; `mark-live`; `webdeploy` | Operator | ~1 hr | Domain/DNS runbook (P1) |
 | 7 | GBP | `draft_gbp_changeset.py …` → apply `GBP_CHANGESET.md` by hand in Google | Operator | 1 hr work + **0–14d Google verify** | SLA expectation (P1) |
@@ -234,13 +236,13 @@ register below where action is needed):
 
 ### P0 — blocks taking money at all
 
-- **G1. Stripe live not configured.** *Impact:* can't cleanly charge anyone. *Fix:* follow
-  [go-live-checklist §2](../agency/go-live-checklist.md) — create test-mode prices for
-  `package_a/b/c` (setup + monthly), dry-run with `4242…`, then recreate live, set
-  `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/`STRIPE_PRICE_MAP`, stand up the `/stripe/forward`
-  receiver behind a tunnel, grant `stripe_live_subscription`, live smoke (charge own card → refund).
-  *Also write* a **manual-activation fallback** for sale #1 (hand-invoice + a documented way to mark
-  the ledger active so retainer guards pass). *Type:* ⚙️ + 📄. *Effort:* 1–2 hrs config + 30 min doc.
+- **G1. Stripe live — ✅ DONE (2026-06-06).** Test + live products/prices created, `STRIPE_PRICE_MAP`
+  wired (both modes), the Netlify-Blobs webhook + local poller + `reconcile_stripe_billing.py` validated
+  end-to-end, and a real **$2 live smoke** charged → reconciled → refunded → cancelled. The smoke caught
+  and fixed a sale-breaking bug (metadata-less `invoice.paid` dropped as out-of-order; now activates).
+  See [first-sale-setup-state.md](../agency/first-sale-setup-state.md). *Remaining nicety:* rotate the
+  live webhook secret; schedule the poller (cron/launchd). The manual-activation fallback remains
+  documented in [first-sale-runbook.md](../agency/first-sale-runbook.md).
 
 ### P1 — needed before we *promise* an SLA to a real customer
 
