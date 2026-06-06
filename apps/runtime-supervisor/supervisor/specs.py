@@ -64,4 +64,14 @@ def default_worker_specs() -> list[WorkerProcessSpec]:
             ),
             log_path=runtime_logs_root / "worker-skill-evolution.log",
         ),
+        # G1 — agency billing-event poller. Not a task-claiming worker: a periodic
+        # loop that drains the Netlify Blobs "stripe-events" store and reconciles to
+        # the local ledger. Lives here because launchd runs ONLY the supervisor
+        # (infra/launchd/README.md) — no standalone poller plist. Appended last.
+        WorkerProcessSpec(
+            lane="billing_poller",
+            worker_id="worker-billing-poller",
+            script_path=paths.repo_root / "apps" / "worker-billing-poller" / "main.py",
+            log_path=runtime_logs_root / "worker-billing-poller.log",
+        ),
     ]

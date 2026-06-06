@@ -37,18 +37,41 @@ def main() -> int:
         print(json.dumps({"processed": 0, "events_dir": str(args.events_dir)}, indent=2))
         return 0
 
-    processed = []
-    for path in sorted(args.events_dir.glob("*.json")):
-        try:
-            ledger = reconcile_stripe_event_file(
-                path,
-                billing_root=args.billing_root,
-                registry_path=args.registry_path,
+    # Order-independent drain (multi-pass / defer-on-miss). A metadata-less
+    # invoice.paid can only reconcile AFTER checkout.session.completed seeds the
+    # ledger, but Stripe gives no ordering guarantee and event-id filenames sort
+    # randomly. So we retry deferred events across passes until a pass makes no
+    # progress; only then are the stragglers real errors. Without this, ~half of
+    # real sales (invoice.paid sorted before its seed event) would abort the drain.
+    processed: list[dict] = []
+    pending = sorted(args.events_dir.glob("*.json"))
+    while pending:
+        deferred: list[Path] = []
+        progressed = False
+        for path in pending:
+            try:
+                ledger = reconcile_stripe_event_file(
+                    path, billing_root=args.billing_root, registry_path=args.registry_path
+                )
+            except BillingReconciliationError:
+                deferred.append(path)  # likely waiting on a seed event this batch
+                continue
+            processed.append(
+                {"event": path.name, "product_id": ledger.product_id, "status": ledger.billing_status}
             )
-        except BillingReconciliationError as exc:
-            print(f"ERROR {path}: {exc}", file=sys.stderr)
+            progressed = True
+        if not progressed:
+            # No event reconciled this pass — the deferred ones are genuine errors.
+            for path in deferred:
+                try:
+                    reconcile_stripe_event_file(
+                        path, billing_root=args.billing_root, registry_path=args.registry_path
+                    )
+                except BillingReconciliationError as exc:
+                    print(f"ERROR {path.name}: {exc}", file=sys.stderr)
+            print(json.dumps({"processed": processed, "errored": [p.name for p in deferred]}, indent=2))
             return 2
-        processed.append({"event": path.name, "product_id": ledger.product_id, "status": ledger.billing_status})
+        pending = deferred
     print(json.dumps({"processed": processed}, indent=2))
     return 0
 
