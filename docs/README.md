@@ -30,14 +30,20 @@ the engineering, do not read top-to-bottom — use the map below.
 
 ## Everything else is run/spec output (skim, don't read)
 
+Each directory below carries an auto-generated `INDEX.md` (title + one-line
+summary per file). **Read the index, then open only the file you need** —
+don't read the directory top-to-bottom. Regenerate after adding docs with
+`python3 scripts/docs/gen_doc_index.py <dir>` (`--recursive` for nested dirs).
+
 | Path | What it is |
 |---|---|
-| `products/` (~359 files) | Per-product specs, positioning, and release artifacts the system produced while building the iOS apps |
-| `plans/` (~38) | Per-feature implementation plans generated before execution |
-| `solutions/` (~20) | Recorded fixes/learnings from real runs |
-| `brainstorms/`, `handoffs/`, `research/` | Working notes from individual agent sessions |
-| `decisions/`, `adr/` | Architecture decision records |
-| `failure-modes/`, `security/`, `runbooks/` | Operational hardening notes |
+| `products/` (~219 files) | Per-product specs, positioning, and release artifacts the system produced while building the iOS apps |
+| [`plans/`](plans/INDEX.md) (46) | Per-feature implementation plans; completed/superseded ones move to `plans/archive/` |
+| [`solutions/`](solutions/INDEX.md) (21) | Recorded fixes/learnings from real runs (categorized subfolders) |
+| [`agency/`](agency/INDEX.md), [`founder/`](founder/INDEX.md) | Lane maps and operator guides |
+| [`brainstorms/`](brainstorms/INDEX.md), `handoffs/`, [`research/`](research/INDEX.md) | Working notes from individual agent sessions |
+| [`decisions/`](decisions/INDEX.md), [`adr/`](adr/INDEX.md) | Architecture decision records |
+| [`failure-modes/`](failure-modes/INDEX.md), [`security/`](security/INDEX.md), [`runbooks/`](runbooks/INDEX.md) | Operational hardening notes |
 
 Treating these as the system's audit/working trail (not documentation to
 be read linearly) is the intended way to evaluate this repo.

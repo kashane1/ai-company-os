@@ -1,0 +1,17 @@
+# Token-efficiency: keep generated lockfiles out of diffs and language stats.
+# `-diff` suppresses the patch text in `git diff` / review surfaces (agents stop
+# reading thousands of mechanical lines); `linguist-generated` collapses them in
+# GitHub diffs and excludes them from language detection. They stay tracked.
+
+# Node lockfiles
+**/package-lock.json   linguist-generated -diff
+**/yarn.lock           linguist-generated -diff
+
+# Python lockfile (uv)
+uv.lock                linguist-generated -diff
+
+# Swift Package Manager resolved versions
+**/Package.resolved    linguist-generated -diff
+
+# Generated coverage / build reports, if ever committed
+**/coverage.xml        linguist-generated -diff

@@ -1,5 +1,5 @@
 ---
-description: Count approximate tokens across every adapter file, canonical body, and project-skill pointer and report per-lane totals. v1 reports numbers, not verdicts. Invoke for "check the context budget", "how bloated are the skill lanes", "which lane is trending toward prompt bloat".
+description: Count approximate tokens across every adapter file, canonical body, and project-skill pointer and report per-lane totals. v1 reports numbers, not verdicts — no thresholds, no gating. Invoke for "check the context budget", "how bloated are the skill lanes", "which lane is trending toward prompt bloat".
 canonical_source: skills/canonical/context-budget/skill.md
 adapter_source: skills/adapters/claude/context-budget.md
 ---

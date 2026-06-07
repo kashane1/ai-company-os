@@ -1,0 +1,84 @@
+# repo-manifest.yaml — machine-readable orientation for agents and tools.
+#
+# Token-efficiency: a structured companion to REPO_MAP.md (prose). An agent or
+# tool can load THIS instead of reading several docs to learn where things live,
+# what to skip, and which files are large. REPO_MAP.md stays the human-readable
+# source; keep the two in sync when zones or entrypoints change.
+#
+# This file is hand-maintained and intentionally small — it indexes structure,
+# not every file. Do not enumerate generated trees here.
+
+repo: ai-company-os
+read_first:                      # canonical order (mirror of REPO_MAP)
+  - REPO_MAP.md
+  - docs/preflight-for-agents.md
+  - docs/agent-model.md
+  - docs/skills-index.md
+
+zones:
+  apps:      { path: apps/,      owns: "worker + API entrypoints", writes: state/ }
+  packages:  { path: packages/,  owns: "shared platform code (schemas, policies, db, queue, tools, config, agency, discovery, web)", writes: state/ }
+  products:  { path: products/,  owns: "managed iOS product source", scope: "iOS lane only — do not edit otherwise" }
+  docs:      { path: docs/,      owns: "architecture docs + run/spec output", note: "per-dir INDEX.md; read the index not the dir" }
+  state:     { path: state/,     owns: "runtime data only — never source", note: "mostly gitignored" }
+  skills:    { path: skills/,    owns: "canonical skill defs + adapters + registry" }
+  infra:     { path: infra/,     owns: "registries, launchd, fastlane", registry: infra/products.json }
+
+# Where a new artifact of each kind belongs (mirror of REPO_MAP "Where things go").
+write_targets:
+  runtime_artifact: state/artifacts/<lane>/<run-id>/
+  checkpoint:       state/checkpoints/platform/<kind>/
+  handoff:          docs/handoffs/YYYY-MM-DD-<slug>.md
+  plan:             docs/plans/YYYY-MM-DD-<slug>-plan.md
+  todo:             todos/NNN-<status>-<priority>-<slug>.md
+  adr:              docs/adr/YYYY-MM-DD-<slug>.md
+  product_spec:     docs/products/<product-id>/
+  product_source:   products/<product-id>/
+
+# Require explicit founder approval before editing.
+approval_required:
+  - packages/policies/
+  - packages/schemas/
+  - skills/canonical/
+  - skills/adapters/
+  - skills/registry.yaml
+  - .github/workflows/
+  - infra/
+
+# Operator-owned / private — do not inspect or edit.
+forbidden:
+  - .claude/commands/
+  - .claude/settings.json
+  - .claude/hooks/        # except via explicit founder approval
+  - .local
+  - .codex/
+
+# Indexed docs directories — read <dir>/INDEX.md, not the whole dir.
+indexed_docs:
+  generator: scripts/docs/gen_doc_index.py
+  flat:      [docs/adr, docs/decisions, docs/founder, docs/brainstorms, docs/failure-modes, docs/security, docs/runbooks, docs/skills, docs/architecture, docs/examples, docs/plans, docs/handoffs]
+  recursive: [docs/solutions, docs/agency, docs/research]
+
+# Large source files (read in full only when you must edit them).
+large_files:
+  - { path: packages/tools/primitives/approvals.py, lines: ~, role: "approval primitives (split into approvals/ package)" }
+  - { path: apps/worker-skill-evolution/main.py,    lines: 828, role: "skill-evolution worker entrypoint" }
+  - { path: apps/approval-reviewer/main.py,         lines: 621, role: "approval reviewer entrypoint" }
+
+# Skip in searches (also enforced by .ignore for ripgrep/ag/fd).
+skip_in_search:
+  - "**/package-lock.json"
+  - "uv.lock"
+  - "**/Package.resolved"
+  - "**/screenshots/"
+  - "*.png, *.jpg, *.webp"
+  - docs/plans/archive/
+  - todos/archive/
+  - state/            # gitignored runtime data
+
+# Token-efficiency guardrails (enforced in CI: token-efficiency job).
+guardrails:
+  large_doc_tldr:   { threshold_lines: 400, standard: docs/large-doc-standard.md, check: "make tokens-check" }
+  plan_archival:    { finished_statuses: [done, completed, complete, shipped, superseded, archived, abandoned], tool: scripts/docs/archive_plans.py }
+  no_heavy_state:   { max_lines: 200, rule: "non-prose files tracked under state/ must stay small" }
+  generated_diffs:  { config: .gitattributes, rule: "lockfiles are linguist-generated -diff" }

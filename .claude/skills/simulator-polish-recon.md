@@ -1,5 +1,5 @@
 ---
-description: Audit a product's current state and emit a ranked, variety-balanced backlog of `simulator-driven-polish` prompts. Read-only discovery pass that runs BEFORE polish sessions to decide what to run. Depths — quick (≤20), standard (≤40, default), deep (≤60). Minimum 10 prompts.
+description: Audit a product's current state (vision, prior polish coverage, fixture knobs, operator memory, submission readiness) and emit a ranked, variety-balanced backlog of `simulator-driven-polish` prompts. Read-only counterpart that runs BEFORE polish sessions.
 canonical_source: skills/canonical/simulator-polish-recon/skill.md
 adapter_source: skills/adapters/claude/simulator-polish-recon.md
 ---

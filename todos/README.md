@@ -39,6 +39,13 @@ Status transitions happen by explicit, reviewed rename of the file.
 Renaming `001-pending-p1-foo.md` to `001-completed-p1-foo.md` marks the
 ticket done. The sequence number and slug stay stable.
 
+**On completion, move the file to `todos/archive/`.** The top level of
+`todos/` is the *working set* — only `pending` tickets an agent should
+consider picking up. Completed tickets live in `todos/archive/` so a
+fresh agent scanning `ls todos/*.md` sees the backlog, not the history.
+The trail is preserved (we never delete todos); it's just one directory
+down. This keeps the working set small for token-efficient scans.
+
 When marking a todo `completed`, append a short completion note at the
 bottom of the file. One or two lines is enough:
 
@@ -53,15 +60,11 @@ todos — the trail is part of the audit.
 
 ## Inventory snapshot (filenames only)
 
-This snapshot reflects what's in the directory at the time this README
-was written. It is not authoritative — `ls todos/` is.
+This snapshot is not authoritative — `ls todos/*.md` (working set) and
+`ls todos/archive/*.md` (history) are.
 
-- Total tickets: 72
-- Pending: 23
-- Completed: 49
-- p1: 17
-- p2: 30
-- p3: 25
+- Working set (pending, top level of `todos/`): ~42
+- Archived (completed, under `todos/archive/`): ~65
 
 The `complete` vs `completed` filename token inconsistency that existed
 before Anti-drift batch 1.2 has been normalized — all completed tickets

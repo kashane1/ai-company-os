@@ -1,5 +1,5 @@
 ---
-description: Push generated slide images to Postiz as draft posts. Runs social-post-safety validator before upload. Creates drafts on TikTok and Instagram for human review and manual publishing.
+description: Push generated slide images and text-only posts to Postiz as draft posts. Runs social-post-safety validator before upload or post creation. Creates drafts on TikTok, Instagram, X, Facebook, and Threads for human review and manual publishing.
 canonical_source: skills/canonical/content-scheduler/skill.md
 adapter_source: skills/adapters/claude/content-scheduler.md
 ---
