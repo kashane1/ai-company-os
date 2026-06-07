@@ -1,0 +1,27 @@
+# Search-tool ignore file (ripgrep/ag/fd respect this; git does NOT).
+# Token-efficiency: keeps high-noise, low-signal tracked paths out of agent
+# grep/glob results without affecting what git tracks. Deliberately CONSERVATIVE
+# — it never hides live source. If you need to search an excluded path, pass
+# `rg -uu` / `rg --no-ignore` or grep it directly.
+
+# Generated lockfiles (mechanical, thousands of lines)
+**/package-lock.json
+**/yarn.lock
+uv.lock
+**/Package.resolved
+
+# Image/screenshot galleries (binary; rg skips them anyway, listed for fd/ls)
+**/screenshots/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+
+# Archived / historical trails — read their INDEX.md instead of grepping them
+docs/plans/archive/
+todos/archive/
+
+# Generated coverage / build reports if ever present in-tree
+**/coverage.xml
+build/

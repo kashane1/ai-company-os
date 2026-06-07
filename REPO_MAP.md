@@ -4,6 +4,12 @@ A fresh-agent orientation. Read this in 60 seconds, then read
 [docs/preflight-for-agents.md](docs/preflight-for-agents.md) before doing any
 work that mutates the repo.
 
+> **Machine-readable companion:** [repo-manifest.yaml](repo-manifest.yaml) carries
+> the zones, write targets, edit boundaries, indexed dirs, and search-skip list
+> as structured data — load it instead of re-reading prose. Keep it in sync with
+> this file. For searches, a root `.ignore` keeps lockfiles, screenshots, and
+> archives out of `rg`/`ag` results (use `rg -uu` to override).
+
 ## What this repo is
 
 `ai-company-os` — a local-first platform that turns founder goals into
