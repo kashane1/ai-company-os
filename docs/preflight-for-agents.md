@@ -3,12 +3,12 @@
 Read this before mutating anything in this repo. It encodes the
 boundaries every Claude and Codex session is expected to respect.
 
-## Read first (in this order)
+## Read first
 
-1. [REPO_MAP.md](../REPO_MAP.md) — five-zone orientation
-2. [CLAUDE.md](../CLAUDE.md) — Claude-facing project pointers
-3. [AGENTS.md](../AGENTS.md) — agent boundaries (links to [docs/agent-model.md](agent-model.md))
-4. [docs/skills-index.md](skills-index.md) — full skill catalog and trigger-phrase routing
+Use the **canonical read-first order** in
+[REPO_MAP.md](../REPO_MAP.md) → "What a fresh agent should read first". That is
+the single source for orientation sequencing; this file does not maintain its
+own copy. This document covers only the *boundaries* below.
 
 Then read the lane-specific doc for whatever you're about to touch:
 

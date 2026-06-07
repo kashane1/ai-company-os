@@ -1,57 +1,38 @@
 # CLAUDE.md
 
-## What this repo is
+`ai-company-os` — a local-first platform for running an AI-driven software
+business from an always-on Mac. See `README.md` for full context.
 
-`ai-company-os` — a local-first platform for running an AI-driven software business from an always-on Mac. See `README.md` for full context.
+> This file is loaded into every Claude session, so it stays lean: it links to
+> the canonical docs instead of restating them. Keep it that way — add detail to
+> the linked source, not here.
 
-## Key architecture rules
+## Orient first
 
-- The platform owns orchestration. Codex writes code. Workers specialize.
-- Policies live in `packages/policies/`. Workers do not own policy.
-- Runtime state lives in `state/`, never in source folders.
-- iOS implementation and App Store release are separate lanes.
-- Product artifacts live in `docs/products/<product-id>/`.
-- Product source lives in `products/<product-id>/`.
-- See `AGENTS.md` (stub) and `docs/agent-model.md` (full) for worker boundaries and roles.
+1. [REPO_MAP.md](REPO_MAP.md) — the **single source** for the five-zone model,
+   repository layout, where files go, edit boundaries, and the canonical
+   read-first order. Don't duplicate that content elsewhere; link to it.
+2. [docs/preflight-for-agents.md](docs/preflight-for-agents.md) — boundaries to
+   respect before mutating anything.
+3. [docs/agent-model.md](docs/agent-model.md) — worker roles and the
+   orchestration model (canonical; [AGENTS.md](AGENTS.md) is the stub).
 
-## Repository layout
+## Binding rules (enforced every session)
 
-- `apps/` — worker and API entrypoints
-- `packages/` — shared code (config, db, policies, queue, schemas, tools)
-- `products/` — managed product source (e.g. `products/catchbook-ios/`)
-- `docs/` — architecture docs, product artifacts, decisions
-- `infra/` — local infrastructure (db, scripts, fastlane, launchd)
-- `state/` — runtime data (repos, worktrees, artifacts, checkpoints, logs)
-- `skills/` — canonical skill definitions, adapters, and registry
-- `todos/` — per-task working tickets; see [todos/README.md](todos/README.md)
-
-## Read first
-
-- [REPO_MAP.md](REPO_MAP.md) — 60-second orientation
-- [docs/preflight-for-agents.md](docs/preflight-for-agents.md) — boundaries for this session
-- [docs/skills-index.md](docs/skills-index.md) — skill catalog + trigger phrases
-
-## Skills
-
-This repo has a canonical skill system. Skills are reusable, bounded procedures with explicit inputs, outputs, and edit boundaries.
-
-```
-skills/canonical/    — source-of-truth skill definitions
-skills/adapters/     — runtime-specific translations (claude/, codex/)
-skills/registry.yaml — index of all skills with metadata
-.claude/skills/      — Claude Code project skill discovery (routing pointers)
-```
-
-Files in `.claude/skills/` are **thin routing pointers**, not content forks. Each one tells you to read and follow the corresponding adapter file, which implements the canonical definition. **Do not add skill logic to `.claude/skills/` files.** Edit the adapter or canonical source instead. See `skills/WIRING.md` for the full convention.
-
-**Disambiguation rule (binding):** if multiple trigger phrases could apply to a user's message, Claude MUST ask which skill to invoke rather than guess. Do not silently route to the first match.
-
-The full skill catalog and trigger phrases live in `docs/skills-index.md`. Read it when you need to know which skill to invoke. Following the named adapter is not optional — the protocols encode boundaries, pre-flight checks, and failure modes that aren't obvious from the user's request alone.
+- **Skill disambiguation:** if multiple trigger phrases could apply to a
+  message, ASK which skill to invoke — never silently route to the first match.
+- **Skill edits:** logic lives in `skills/canonical/` (source of truth) and
+  `skills/adapters/` (per-runtime translation). `.claude/skills/*` are thin
+  routing pointers — never add skill logic there. See [skills/WIRING.md](skills/WIRING.md).
+- **Edit boundaries:** `packages/policies/`, `packages/schemas/`,
+  `skills/canonical/`, and `skills/registry.yaml` require explicit founder
+  approval. `state/` is runtime-only, never source. Full list lives in REPO_MAP
+  under "Where things must NOT go".
+- Skill catalog + trigger phrases: [docs/skills-index.md](docs/skills-index.md).
 
 ## Conventions
 
-- Python-first for platform code
-- Lightweight frameworks until architecture proves itself
-- No hidden orchestration in prompts
-- Structured task I/O with typed payloads
-- Approval gates on irreversible actions
+- Python-first for platform code; lightweight frameworks until the architecture
+  proves itself.
+- No hidden orchestration in prompts. Structured task I/O with typed payloads.
+- Approval gates on irreversible actions.
