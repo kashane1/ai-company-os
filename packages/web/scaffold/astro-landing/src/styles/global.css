@@ -274,8 +274,9 @@ p { margin: 0 0 var(--space-sm); }
   display: flex; flex-wrap: wrap; gap: var(--space-xs); justify-content: center;
   margin-top: var(--space-md);
 }
-.cta-form input[type="email"] {
-  flex: 1 1 16rem; min-width: 0; font: inherit; padding: 0.8em 1em;
+.cta-form input[type="email"],
+.cta-form input[type="text"] {
+  flex: 1 1 12rem; min-width: 0; font: inherit; padding: 0.8em 1em;
   border-radius: 999px; border: 1px solid transparent;
   background: var(--brand-contrast); color: var(--text);
 }
