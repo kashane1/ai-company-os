@@ -20,7 +20,7 @@
 import { getStore } from "@netlify/blobs";
 import Stripe from "stripe";
 
-import { quoteServices, servicesById } from "../../src/lib/pricing.mjs";
+import { quoteServices, servicesById, validateSelection } from "../../src/lib/pricing.mjs";
 import packages from "../../src/data/packages.json" with { type: "json" };
 
 const SITE = "https://better-business-web.netlify.app";
@@ -180,6 +180,10 @@ export default async (req) => {
   const byId = servicesById(packages.services);
   const norm = normalizeServiceIds(body.service_ids, byId);
   if (norm.error) return json({ error: norm.error }, 400);
+
+  // Variant constraints: at most one per exclusive group, dependencies satisfied.
+  const selectionErrors = validateSelection(norm.ids, byId);
+  if (selectionErrors.length) return json({ error: selectionErrors[0] }, 400);
 
   const preset = matchPreset(norm.ids, body.preset_id ?? null, packages.bundles);
   const quote = quoteServices(

@@ -37,12 +37,12 @@ def test_packages_json_hits_bundle_targets() -> None:
         by_id["package_b"]["setup_gross_cents"],
         by_id["package_b"]["setup_after_cents"],
         by_id["package_b"]["monthly_cents"],
-    ) == (107400, 89900, 8800)
+    ) == (112400, 89900, 8800)
     assert (
         by_id["package_c"]["setup_gross_cents"],
         by_id["package_c"]["setup_after_cents"],
         by_id["package_c"]["monthly_cents"],
-    ) == (222400, 179900, 55300)
+    ) == (227400, 179900, 55300)
     # Legacy dollar keys (used by the landing-page cards) = the promo price.
     assert (by_id["package_a"]["setup"], by_id["package_a"]["monthly"]) == (599, 49)
     assert (by_id["package_b"]["setup"], by_id["package_b"]["monthly"]) == (899, 88)
@@ -51,7 +51,7 @@ def test_packages_json_hits_bundle_targets() -> None:
 
 def test_savings_is_gross_minus_after() -> None:
     by_id = {b["id"]: b for b in render_catalog_json(load_catalog())["bundles"]}
-    for pkg, expected in [("package_a", 10000), ("package_b", 17500), ("package_c", 42500)]:
+    for pkg, expected in [("package_a", 10000), ("package_b", 22500), ("package_c", 47500)]:
         b = by_id[pkg]
         assert b["savings_cents"] == b["setup_gross_cents"] - b["setup_after_cents"]
         assert b["savings_cents"] == expected

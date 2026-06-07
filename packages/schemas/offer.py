@@ -75,6 +75,12 @@ class Service:
     # buy-now flow. Defaults True; set False for services that need an operator
     # step (account access, spend setup) before they can be executed.
     self_serve: bool = True
+    # Variant modelling for "slot" offers (e.g. booking). Services that share a
+    # non-empty ``exclusive_group`` are mutually exclusive — a cart may contain at
+    # most one. A service with ``requires_group`` set may only be added when the
+    # cart already contains a service from that group (a modifier needs its base).
+    exclusive_group: str = ""
+    requires_group: str = ""
 
     def validate(self) -> None:
         if self.setup_fee < 0 or self.monthly_fee < 0:
@@ -102,6 +108,8 @@ class Service:
             "cancellation": self.cancellation,
             "support_sla": self.support_sla,
             "self_serve": self.self_serve,
+            "exclusive_group": self.exclusive_group,
+            "requires_group": self.requires_group,
         }
 
     @classmethod
@@ -119,6 +127,8 @@ class Service:
             cancellation=str(payload.get("cancellation", "30-day notice, no penalty")),
             support_sla=str(payload.get("support_sla", "best-effort, 2 business days")),
             self_serve=bool(payload.get("self_serve", True)),
+            exclusive_group=str(payload.get("exclusive_group", "")),
+            requires_group=str(payload.get("requires_group", "")),
         )
 
 
@@ -324,6 +334,34 @@ class ServiceCatalog:
         promo = to_cents(bundle.setup_promo) if bundle.setup_promo else None
         quote = self.quote_services(bundle.service_ids, setup_promo_cents=promo)
         return replace(quote, bundle_id=bundle_id)
+
+    def validate_selection(self, service_ids: list[str]) -> list[str]:
+        """Check ``exclusive_group`` (pick-one) + ``requires_group`` (dependency).
+
+        Returns a list of human-readable error messages (empty = valid). The
+        builder prevents invalid carts in the UI; the checkout function calls this
+        server-side as the authoritative guard.
+        """
+        errors: list[str] = []
+        services = [self.services[s] for s in service_ids if s in self.services]
+        present_groups = {s.exclusive_group for s in services if s.exclusive_group}
+
+        # At most one service per exclusive group.
+        counts: dict[str, int] = {}
+        for s in services:
+            if s.exclusive_group:
+                counts[s.exclusive_group] = counts.get(s.exclusive_group, 0) + 1
+        for group, n in counts.items():
+            if n > 1:
+                errors.append(f"choose only one option for {group!r} (got {n})")
+
+        # Every dependency satisfied.
+        for s in services:
+            if s.requires_group and s.requires_group not in present_groups:
+                errors.append(
+                    f"{s.name!r} requires a {s.requires_group!r} option in the cart"
+                )
+        return errors
 
     def to_dict(self) -> dict[str, object]:
         return {

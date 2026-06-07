@@ -72,16 +72,97 @@ services:
       - Optional CRM routing
 
   # --- Tier 2: high value ---
-  - service_id: booking
-    name: Online Booking Setup
+  # --- Booking: a "slot" — pick ONE base, then stack optional modifiers. ---
+  - service_id: booking_connect
+    name: "Booking — Connect (your tool)"
     tier: tier_2
     bill_type: one_time
-    setup_fee: 300
+    setup_fee: 150
     monthly_fee: 0
+    exclusive_group: booking_base
     includes:
-      - Provider integration (Calendly / Square / Vagaro / Acuity / Mindbody)
+      - Embed + style your existing tool (Calendly / Square / Acuity / Booksy …)
       - Services mapped to bookable offerings
       - Confirmation + reminder setup
+      - You keep + pay your booking provider
+
+  - service_id: booking_setup
+    name: "Booking — Done-for-you Setup"
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 350
+    monthly_fee: 0
+    exclusive_group: booking_base
+    includes:
+      - Pick + fully configure a provider from scratch
+      - Services, staff, durations, buffers, hours
+      - Calendar sync + confirmations + reminders
+      - You pay the booking provider
+
+  - service_id: booking_native
+    name: "Booking — Native on-site"
+    tier: tier_2
+    bill_type: recurring
+    setup_fee: 450
+    monthly_fee: 35
+    exclusive_group: booking_base
+    includes:
+      - Booking built into your site — no third-party subscription
+      - Online scheduling, confirmations, reminders
+      - I manage your calendar + availability (included)
+    edit_limit: "Ongoing management + tweaks included"
+
+  - service_id: booking_deposits
+    name: Booking Deposits & Prepayment
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 120
+    monthly_fee: 0
+    requires_group: booking_base
+    includes:
+      - Take a card or deposit at booking to cut no-shows
+      - Stripe / Square payment configured on the booking flow
+
+  - service_id: booking_multistaff
+    name: Booking Multi-staff & Resources
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 150
+    monthly_fee: 0
+    requires_group: booking_base
+    includes:
+      - Per-staff calendars, rooms / equipment, round-robin assignment
+
+  - service_id: booking_classes
+    name: Class & Group Scheduling
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 200
+    monthly_fee: 0
+    requires_group: booking_base
+    includes:
+      - Capacity, recurring class schedules, waitlists (yoga / gym / workshops)
+
+  - service_id: booking_intake
+    name: Booking Intake Forms
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 90
+    monthly_fee: 0
+    requires_group: booking_base
+    includes:
+      - Pre-appointment forms / questionnaires (consult, medical, project brief)
+
+  - service_id: booking_management
+    name: Booking Management
+    tier: tier_2
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 35
+    requires_group: booking_base
+    includes:
+      - Ongoing availability / service / staff edits, seasonal hours
+      - No-show monitoring (for Connect / Done-for-you; Native includes this)
 
   - service_id: reviews
     name: Review Readiness System
@@ -197,7 +278,7 @@ bundles:
       - gbp
       - business_email
       - reviews
-      - booking
+      - booking_setup
 
   - bundle_id: package_c
     name: "Package C — Presence + Capture + Growth"
@@ -209,7 +290,7 @@ bundles:
       - gbp
       - business_email
       - reviews
-      - booking
+      - booking_setup
       - local_seo
       - promo_landing_page
       - monthly_reporting

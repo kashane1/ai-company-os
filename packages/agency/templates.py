@@ -218,6 +218,8 @@ def render_catalog_json(catalog: ServiceCatalog) -> dict[str, object]:
             "monthly_cents": to_cents(s.monthly_fee),
             "blurb": s.includes[0] if s.includes else "",
             "self_serve": s.self_serve,
+            "exclusive_group": s.exclusive_group,
+            "requires_group": s.requires_group,
         }
         for s in catalog.services.values()
     ]

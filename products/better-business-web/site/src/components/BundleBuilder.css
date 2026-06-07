@@ -107,6 +107,15 @@
 .byo-card[data-selected="true"] .byo-check { opacity: 1; }
 .byo-card-blurb { color: var(--ink-soft); font-size: var(--step--1); line-height: 1.45; }
 .byo-card-price { color: var(--ink-faint); font-size: var(--step--1); margin-top: auto; }
+.byo-pickone { color: var(--gold); font-weight: 600; }
+
+/* A modifier whose required base isn't in the cart yet. */
+.byo-card[data-locked="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+.byo-card[data-locked="true"]:hover { transform: none; border-color: var(--line); }
 
 /* Sticky cart ---------------------------------------------------------- */
 .byo-cart {

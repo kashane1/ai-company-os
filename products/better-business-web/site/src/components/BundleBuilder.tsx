@@ -1,11 +1,6 @@
 /** @jsxImportSource react */
 import { useEffect, useMemo, useReducer, useState } from "react";
-import {
-  dollars,
-  quoteServices,
-  servicesById as toServicesMap,
-  tierPctFor,
-} from "../lib/pricing.mjs";
+import { dollars, quoteServices, tierPctFor } from "../lib/pricing.mjs";
 
 type Service = {
   id: string;
@@ -16,6 +11,8 @@ type Service = {
   monthly_cents: number;
   blurb: string;
   self_serve: boolean;
+  exclusive_group: string;
+  requires_group: string;
 };
 
 type Bundle = {
@@ -45,22 +42,49 @@ const TIER_LABELS: Record<string, string> = {
 const TIER_ORDER = ["tier_1", "tier_2", "tier_3"];
 
 type Action =
-  | { type: "toggle"; id: string }
+  | { type: "set"; ids: Set<string> }
   | { type: "preset"; ids: string[] }
   | { type: "clear" };
 
-function reducer(state: Set<string>, action: Action): Set<string> {
+function reducer(_state: Set<string>, action: Action): Set<string> {
   switch (action.type) {
-    case "toggle": {
-      const next = new Set(state);
-      next.has(action.id) ? next.delete(action.id) : next.add(action.id);
-      return next;
-    }
+    case "set":
+      return action.ids;
     case "preset":
       return new Set(action.ids);
     case "clear":
       return new Set();
   }
+}
+
+// Toggle a service while enforcing variant rules: selecting a service in an
+// exclusive group swaps out its siblings; deselecting a base removes any
+// modifiers that depended on that group.
+function nextSelection(
+  selected: Set<string>,
+  id: string,
+  byId: Record<string, Service>,
+): Set<string> {
+  const svc = byId[id];
+  const next = new Set(selected);
+  if (next.has(id)) {
+    next.delete(id);
+  } else {
+    if (svc?.exclusive_group) {
+      for (const other of [...next]) {
+        if (byId[other]?.exclusive_group === svc.exclusive_group) next.delete(other);
+      }
+    }
+    next.add(id);
+  }
+  const groups = new Set(
+    [...next].map((x) => byId[x]?.exclusive_group).filter(Boolean),
+  );
+  for (const x of [...next]) {
+    const req = byId[x]?.requires_group;
+    if (req && !groups.has(req)) next.delete(x);
+  }
+  return next;
 }
 
 function sameSet(a: Set<string>, ids: string[]): boolean {
@@ -74,7 +98,10 @@ export default function BundleBuilder({
   checkoutEndpoint = "/.netlify/functions/create-checkout",
 }: Props) {
   const buyable = useMemo(() => services.filter((s) => s.self_serve), [services]);
-  const byId = useMemo(() => toServicesMap(services), [services]);
+  const byId = useMemo(
+    () => Object.fromEntries(services.map((s) => [s.id, s])) as Record<string, Service>,
+    [services],
+  );
   const grouped = useMemo(() => {
     const map: Record<string, Service[]> = {};
     for (const s of buyable) (map[s.tier] ??= []).push(s);
@@ -186,12 +213,26 @@ export default function BundleBuilder({
             <div className="byo-cards">
               {grouped[tier].map((s) => {
                 const on = selected.has(s.id);
+                // A modifier is locked until a service from its required group is
+                // in the cart; an exclusive base shows a "pick one" hint.
+                const baseInCart =
+                  !s.requires_group ||
+                  [...selected].some((x) => byId[x]?.exclusive_group === s.requires_group);
+                const locked = !on && !baseInCart;
                 return (
-                  <label className="byo-card" key={s.id} data-selected={on}>
+                  <label
+                    className="byo-card"
+                    key={s.id}
+                    data-selected={on}
+                    data-locked={locked}
+                  >
                     <input
                       type="checkbox"
                       checked={on}
-                      onChange={() => dispatch({ type: "toggle", id: s.id })}
+                      disabled={locked}
+                      onChange={() =>
+                        dispatch({ type: "set", ids: nextSelection(selected, s.id, byId) })
+                      }
                     />
                     <span className="byo-card-head">
                       <span className="byo-card-name">{s.name}</span>
@@ -199,6 +240,8 @@ export default function BundleBuilder({
                     </span>
                     <span className="byo-card-blurb">{s.blurb}</span>
                     <span className="byo-card-price">
+                      {s.exclusive_group && <span className="byo-pickone">pick one · </span>}
+                      {locked && <span className="byo-pickone">needs a booking option · </span>}
                       {s.setup_cents > 0 && <>{dollars(s.setup_cents)} setup</>}
                       {s.setup_cents > 0 && s.monthly_cents > 0 && " · "}
                       {s.monthly_cents > 0 && <>{dollars(s.monthly_cents)}/mo</>}

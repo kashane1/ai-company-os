@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from packages.agency.catalog import default_catalog, load_catalog
+from packages.agency.templates import render_catalog_json
 from packages.schemas.offer import (
     BillType,
     Bundle,
@@ -203,3 +204,27 @@ def test_promo_at_or_below_tier_discount_is_accepted() -> None:
     cat = _catalog(services, tiers=((3, 4, 10),), bundles=bundles)
     cat.validate()  # 850 <= 900 tier-after -> fine
     assert cat.quote_bundle("ok").setup_after_cents == 85000
+
+
+# --- variant groups (exclusive / dependency) -------------------------------
+
+
+def test_validate_selection_real_booking_family() -> None:
+    catalog = default_catalog()
+    # two bases from the same exclusive group is invalid
+    assert catalog.validate_selection(["booking_connect", "booking_setup"])
+    # a modifier without a base is invalid
+    assert catalog.validate_selection(["booking_deposits"])
+    # one base + a modifier is fine
+    assert catalog.validate_selection(["booking_setup", "booking_deposits"]) == []
+    # a single base is fine
+    assert catalog.validate_selection(["booking_native"]) == []
+    # non-booking services are unaffected
+    assert catalog.validate_selection(["website", "hosting"]) == []
+
+
+def test_services_payload_exposes_variant_fields() -> None:
+    services = {s["id"]: s for s in render_catalog_json(default_catalog())["services"]}
+    assert services["booking_setup"]["exclusive_group"] == "booking_base"
+    assert services["booking_deposits"]["requires_group"] == "booking_base"
+    assert services["website"]["exclusive_group"] == ""

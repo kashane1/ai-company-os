@@ -30,10 +30,10 @@
       "description": "Everything in A, plus turn visitors into booked customers.",
       "setup": 899,
       "monthly": 88,
-      "setup_gross_cents": 107400,
+      "setup_gross_cents": 112400,
       "setup_after_cents": 89900,
       "monthly_cents": 8800,
-      "savings_cents": 17500,
+      "savings_cents": 22500,
       "pricing_mode": "promo",
       "services": [
         "Professional Website",
@@ -41,7 +41,7 @@
         "Google Business Profile Setup",
         "Business Email Setup",
         "Review Readiness System",
-        "Online Booking Setup"
+        "Booking \u2014 Done-for-you Setup"
       ],
       "service_ids": [
         "website",
@@ -49,7 +49,7 @@
         "gbp",
         "business_email",
         "reviews",
-        "booking"
+        "booking_setup"
       ]
     },
     {
@@ -58,10 +58,10 @@
       "description": "Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.",
       "setup": 1799,
       "monthly": 553,
-      "setup_gross_cents": 222400,
+      "setup_gross_cents": 227400,
       "setup_after_cents": 179900,
       "monthly_cents": 55300,
-      "savings_cents": 42500,
+      "savings_cents": 47500,
       "pricing_mode": "promo",
       "services": [
         "Professional Website",
@@ -69,7 +69,7 @@
         "Google Business Profile Setup",
         "Business Email Setup",
         "Review Readiness System",
-        "Online Booking Setup",
+        "Booking \u2014 Done-for-you Setup",
         "Local SEO",
         "Promotional Landing Page",
         "Analytics Dashboard & Monthly Report",
@@ -81,7 +81,7 @@
         "gbp",
         "business_email",
         "reviews",
-        "booking",
+        "booking_setup",
         "local_seo",
         "promo_landing_page",
         "monthly_reporting",
@@ -98,7 +98,9 @@
       "setup_cents": 49900,
       "monthly_cents": 0,
       "blurb": "Up to 5 pages (home, services, about, contact, reviews)",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "hosting",
@@ -108,7 +110,9 @@
       "setup_cents": 0,
       "monthly_cents": 4900,
       "blurb": "Hosting + SSL",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "gbp",
@@ -118,7 +122,9 @@
       "setup_cents": 12500,
       "monthly_cents": 0,
       "blurb": "Claim / verify profile",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "business_email",
@@ -128,7 +134,9 @@
       "setup_cents": 7500,
       "monthly_cents": 0,
       "blurb": "Google Workspace setup",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "contact_forms",
@@ -138,17 +146,105 @@
       "setup_cents": 7500,
       "monthly_cents": 0,
       "blurb": "Form to email",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
-      "id": "booking",
-      "name": "Online Booking Setup",
+      "id": "booking_connect",
+      "name": "Booking \u2014 Connect (your tool)",
       "tier": "tier_2",
       "bill_type": "one_time",
-      "setup_cents": 30000,
+      "setup_cents": 15000,
       "monthly_cents": 0,
-      "blurb": "Provider integration (Calendly / Square / Vagaro / Acuity / Mindbody)",
-      "self_serve": true
+      "blurb": "Embed + style your existing tool (Calendly / Square / Acuity / Booksy \u2026)",
+      "self_serve": true,
+      "exclusive_group": "booking_base",
+      "requires_group": ""
+    },
+    {
+      "id": "booking_setup",
+      "name": "Booking \u2014 Done-for-you Setup",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 35000,
+      "monthly_cents": 0,
+      "blurb": "Pick + fully configure a provider from scratch",
+      "self_serve": true,
+      "exclusive_group": "booking_base",
+      "requires_group": ""
+    },
+    {
+      "id": "booking_native",
+      "name": "Booking \u2014 Native on-site",
+      "tier": "tier_2",
+      "bill_type": "recurring",
+      "setup_cents": 45000,
+      "monthly_cents": 3500,
+      "blurb": "Booking built into your site \u2014 no third-party subscription",
+      "self_serve": true,
+      "exclusive_group": "booking_base",
+      "requires_group": ""
+    },
+    {
+      "id": "booking_deposits",
+      "name": "Booking Deposits & Prepayment",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 12000,
+      "monthly_cents": 0,
+      "blurb": "Take a card or deposit at booking to cut no-shows",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": "booking_base"
+    },
+    {
+      "id": "booking_multistaff",
+      "name": "Booking Multi-staff & Resources",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 15000,
+      "monthly_cents": 0,
+      "blurb": "Per-staff calendars, rooms / equipment, round-robin assignment",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": "booking_base"
+    },
+    {
+      "id": "booking_classes",
+      "name": "Class & Group Scheduling",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 20000,
+      "monthly_cents": 0,
+      "blurb": "Capacity, recurring class schedules, waitlists (yoga / gym / workshops)",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": "booking_base"
+    },
+    {
+      "id": "booking_intake",
+      "name": "Booking Intake Forms",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 9000,
+      "monthly_cents": 0,
+      "blurb": "Pre-appointment forms / questionnaires (consult, medical, project brief)",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": "booking_base"
+    },
+    {
+      "id": "booking_management",
+      "name": "Booking Management",
+      "tier": "tier_2",
+      "bill_type": "recurring",
+      "setup_cents": 0,
+      "monthly_cents": 3500,
+      "blurb": "Ongoing availability / service / staff edits, seasonal hours",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": "booking_base"
     },
     {
       "id": "reviews",
@@ -158,7 +254,9 @@
       "setup_cents": 7500,
       "monthly_cents": 3900,
       "blurb": "Google review link",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "local_seo",
@@ -168,7 +266,9 @@
       "setup_cents": 40000,
       "monthly_cents": 9500,
       "blurb": "City / service / location / FAQ pages",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "monthly_reporting",
@@ -178,7 +278,9 @@
       "setup_cents": 5000,
       "monthly_cents": 2000,
       "blurb": "Owner-friendly monthly report (calls, form leads, bookings)",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "promo_landing_page",
@@ -188,7 +290,9 @@
       "setup_cents": 40000,
       "monthly_cents": 0,
       "blurb": "Single-purpose campaign page (e.g. summer.company.com)",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "google_ads",
@@ -198,7 +302,9 @@
       "setup_cents": 30000,
       "monthly_cents": 35000,
       "blurb": "Campaign setup + management",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "meta_ads",
@@ -208,7 +314,9 @@
       "setup_cents": 30000,
       "monthly_cents": 35000,
       "blurb": "Campaign setup + management",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "crm_setup",
@@ -218,7 +326,9 @@
       "setup_cents": 25000,
       "monthly_cents": 0,
       "blurb": "HubSpot / GoHighLevel / Zoho / Pipedrive setup",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     },
     {
       "id": "follow_up_automation",
@@ -228,7 +338,9 @@
       "setup_cents": 12500,
       "monthly_cents": 3900,
       "blurb": "Lead to auto text to auto email",
-      "self_serve": true
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
     }
   ],
   "discount_tiers": [

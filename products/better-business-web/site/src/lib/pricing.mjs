@@ -85,6 +85,37 @@ export function quoteServices(serviceIds, servicesById, tiers, setupPromoCents =
   };
 }
 
+/**
+ * Validate a selection's variant constraints — the JS twin of Python
+ * ServiceCatalog.validate_selection. At most one service per `exclusive_group`,
+ * and every `requires_group` satisfied. Returns an array of error strings (empty
+ * = valid). The builder prevents invalid carts; the function calls this as the
+ * authoritative server-side guard.
+ * @param {string[]} serviceIds
+ * @param {Record<string, any>} servicesById
+ * @returns {string[]}
+ */
+export function validateSelection(serviceIds, servicesById) {
+  const services = serviceIds.map((id) => servicesById[id]).filter(Boolean);
+  const presentGroups = new Set(
+    services.map((s) => s.exclusive_group).filter(Boolean),
+  );
+  const errors = [];
+  const counts = {};
+  for (const s of services) {
+    if (s.exclusive_group) counts[s.exclusive_group] = (counts[s.exclusive_group] || 0) + 1;
+  }
+  for (const [group, n] of Object.entries(counts)) {
+    if (n > 1) errors.push(`choose only one option for ${group} (got ${n})`);
+  }
+  for (const s of services) {
+    if (s.requires_group && !presentGroups.has(s.requires_group)) {
+      errors.push(`${s.name} requires a ${s.requires_group} option in the cart`);
+    }
+  }
+  return errors;
+}
+
 /** Build an id→service map from the packages.json `services` array. */
 export function servicesById(services) {
   /** @type {Record<string, ServiceLite>} */
