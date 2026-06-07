@@ -138,11 +138,11 @@ const pfThemes = [
               <span class="per">setup + ${fmt(b.monthly)}/mo</span>
             </div>
             <ul>{b.services.map((s) => <li>{s}</li>)}</ul>
-            <a class={b.id === featuredId ? "btn btn-accent" : "btn btn-primary"} href="#get-started" data-magnetic>Get a free review</a>
+            <a class={b.id === featuredId ? "btn btn-accent" : "btn btn-primary"} href={`/build?preset=${b.id}`} data-magnetic>Start this package <span class="arrow">→</span></a>
           </article>
         ))}
       </div>
-      <p class="center muted" style="margin-top:var(--space-md)" data-reveal>Need just one thing? Individual services are available too. Just ask in your review request.</p>
+      <p class="center muted" style="margin-top:var(--space-md)" data-reveal>Want just the pieces you need? <a href="/build">Build your own bundle →</a> — pick any services and pay for exactly what you choose. Or <a href="#get-started">get a free review</a> first.</p>
     </div>
   </section>
 

@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-import { useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import {
   dollars,
   quoteServices,
@@ -82,6 +82,14 @@ export default function BundleBuilder({
   }, [buyable]);
 
   const [selected, dispatch] = useReducer(reducer, new Set<string>());
+
+  // Preselect a package when arriving from a landing-page CTA (/build?preset=…).
+  useEffect(() => {
+    const presetId = new URLSearchParams(window.location.search).get("preset");
+    const b = presetId ? bundles.find((x) => x.id === presetId) : null;
+    if (b) dispatch({ type: "preset", ids: b.service_ids });
+  }, [bundles]);
+
   const [business, setBusiness] = useState("");
   const [contact, setContact] = useState("");
   const [submitting, setSubmitting] = useState(false);

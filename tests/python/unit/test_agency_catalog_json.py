@@ -9,7 +9,9 @@ from packages.agency.catalog import load_catalog
 from packages.agency.templates import render_catalog_json
 
 REPO = Path(__file__).resolve().parents[3]
-PACKAGES_JSON = REPO / "products" / "better-business-web" / "site" / "src" / "data" / "packages.json"
+PACKAGES_JSON = (
+    REPO / "products" / "better-business-web" / "site" / "src" / "data" / "packages.json"
+)
 
 
 def test_committed_packages_json_matches_generator() -> None:
