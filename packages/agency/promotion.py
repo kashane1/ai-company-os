@@ -127,3 +127,89 @@ def promote_prospect_to_client(
     if mark_onboarded:
         mark_prospect_onboarded(prospect, repo=prospect_repo)
     return record
+
+
+def promote_order_to_client(
+    *,
+    product_id: str,
+    business_name: str,
+    service_ids: list[str],
+    bundle: str = "custom",
+    catalog: ServiceCatalog | None = None,
+    registry_path: Path | None = None,
+    docs_root_parent: Path | None = None,
+    repo_root: Path | None = None,
+) -> dict[str, object]:
+    """Promote a self-serve buy-now order into a ``client-site`` registry record.
+
+    Unlike :func:`promote_prospect_to_client`, there is no prospect and no founder
+    approval gate — the public buy button *is* the approval. The ``product_id``
+    MUST be the one the Netlify function minted (it rides in the Stripe metadata),
+    so the billing reconciler finds a registry record and activates instead of
+    dead-lettering. Idempotent on ``product_id``.
+    """
+    catalog = catalog or default_catalog()
+    paths = load_runtime_paths(repo_root)
+    registry_path = registry_path or (paths.repo_root / "infra" / "products.json")
+    docs_root_parent = docs_root_parent or (paths.repo_root / "docs" / "products")
+
+    if not product_id:
+        raise PromotionError("promote_order_to_client: product_id is required")
+
+    # Validate the purchased services against the catalog (unknown id → error).
+    try:
+        catalog.quote_services(service_ids)
+    except CatalogError as exc:
+        raise PromotionError(str(exc)) from exc
+
+    # A preset order scaffolds from its bundle (curated promo); a custom cart
+    # scaffolds from the raw service set.
+    is_preset = bundle in catalog.bundles
+    scaffold_kwargs: dict[str, object] = (
+        {"bundle_id": bundle} if is_preset else {"service_ids": list(service_ids)}
+    )
+
+    registry = load_registry(registry_path)
+    existing = next((r for r in registry if r.get("id") == product_id), None)
+    if existing is not None:
+        existing_services = set((existing.get("client") or {}).get("services") or [])
+        if existing_services != set(service_ids):
+            raise PromotionError(
+                f"{product_id!r} already exists with a different service set; "
+                "refusing to silently change it."
+            )
+        scaffold_client_workspace(
+            docs_root_parent / product_id,
+            client_name=business_name,
+            catalog=catalog,
+            **scaffold_kwargs,
+        )
+        return existing
+
+    record = {
+        "id": product_id,
+        "name": business_name,
+        "slug": slugify(business_name),
+        "type": "client-site",
+        "platform": "web",
+        "source_path": f"products/{product_id}",
+        "docs_root": f"docs/products/{product_id}",
+        "phase": "discovery",
+        "client": {
+            "ownership": "client-owned",
+            "bundle": bundle,
+            "services": list(service_ids),
+            "from_order": product_id,
+            "billing_status": "trial",
+        },
+    }
+    registry.append(record)
+    write_registry(registry_path, registry)
+
+    scaffold_client_workspace(
+        docs_root_parent / product_id,
+        client_name=business_name,
+        catalog=catalog,
+        **scaffold_kwargs,
+    )
+    return record

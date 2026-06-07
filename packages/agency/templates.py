@@ -51,21 +51,33 @@ def slugify(name: str) -> str:
 
 def render_offer(
     catalog: ServiceCatalog,
-    bundle_id: str,
+    bundle_id: str | None = None,
     *,
     client_name: str,
+    service_ids: list[str] | None = None,
     payment_link: str = "",
     payment_expires_at: str = "",
 ) -> str:
-    quote = catalog.quote_bundle(bundle_id)
-    bundle = catalog.bundles[bundle_id]
+    """Render OFFER.md for a named bundle OR an arbitrary custom service set.
+
+    Pass ``bundle_id`` for a package (curated promo) or ``service_ids`` for a
+    build-your-own cart (tier discount). Exactly one must be given.
+    """
+    if bundle_id is not None:
+        quote = catalog.quote_bundle(bundle_id)
+        package_name = catalog.bundles[bundle_id].name
+    elif service_ids is not None:
+        quote = catalog.quote_services(service_ids)
+        package_name = "Custom bundle"
+    else:
+        raise ValueError("render_offer: pass either bundle_id or service_ids")
     lines = [
         f"# Offer — {client_name}",
         "",
         "> Rendered from `packages/agency/catalog.yaml`. Do not hand-edit prices;",
         "> override per-client terms explicitly and note the deviation below.",
         "",
-        f"**Package:** {bundle.name}",
+        f"**Package:** {package_name}",
         "",
         _headline_price(quote),
         "",
@@ -224,18 +236,25 @@ def scaffold_client_workspace(
     docs_root: Path,
     *,
     client_name: str,
-    bundle_id: str,
     catalog: ServiceCatalog,
+    bundle_id: str | None = None,
+    service_ids: list[str] | None = None,
     from_prospect: str = "",
 ) -> list[Path]:
-    """Write minimal client-workspace stubs under ``docs_root``. Idempotent."""
+    """Write minimal client-workspace stubs under ``docs_root``. Idempotent.
+
+    Pass ``bundle_id`` for a named package or ``service_ids`` for a custom cart
+    (a self-serve build-your-own order has no catalog bundle).
+    """
     docs_root.mkdir(parents=True, exist_ok=True)
     (docs_root / "reports").mkdir(exist_ok=True)
     written: list[Path] = []
 
     contents = {
         "CLIENT_BRIEF.md": _brief_stub(client_name, from_prospect),
-        "OFFER.md": render_offer(catalog, bundle_id, client_name=client_name),
+        "OFFER.md": render_offer(
+            catalog, bundle_id, client_name=client_name, service_ids=service_ids
+        ),
         "SITE_MAP.md": _stub("Site Map", client_name, "Pages and structure."),
         "COPY.md": _stub("Copy", client_name, "Page copy."),
         "LOCAL_SEO.md": _local_seo_stub(client_name),
