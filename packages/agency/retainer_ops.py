@@ -52,6 +52,9 @@ def plan_retainer_run(record: dict[str, object], *, month: str) -> RetainerRun:
         # Managed booking: process up to ~2 change requests, glance at no-shows,
         # check the booking link + calendar sync still work (see client-sla.md).
         planned.append("manage_booking")
+    if "follow_up_automation" in services:
+        # Recurring: review/tune the email follow-up sequences + task reminders.
+        planned.append("review_follow_up")
     return RetainerRun(
         product_id=str(record["id"]),
         month=month,
