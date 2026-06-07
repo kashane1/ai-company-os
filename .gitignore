@@ -22,6 +22,9 @@ state/prospects/*
 state/handshake/
 state/postmortems/
 state/agency/
+# One-off research/report output — runtime-owned, never source (token-efficiency: keeps
+# multi-thousand-line JSON out of agent grep/glob). Move keepers to docs/examples/ instead.
+state/last30days_social_report/
 
 !state/repos/.gitkeep
 !state/worktrees/.gitkeep
