@@ -23,6 +23,18 @@ def test_plan_retainer_run_lists_actions_and_blocked_approvals() -> None:
     assert "review_sms_activation" in run.blocked_approvals
 
 
+def test_managed_booking_plans_action() -> None:
+    record = {"id": "acme-site", "client": {"services": ["booking_native"]}}
+    run = plan_retainer_run(record, month="2026-06")
+    assert "manage_booking" in run.planned_actions
+
+
+def test_booking_management_plans_action() -> None:
+    record = {"id": "acme-site", "client": {"services": ["booking_connect", "booking_management"]}}
+    run = plan_retainer_run(record, month="2026-06")
+    assert "manage_booking" in run.planned_actions
+
+
 def test_write_retainer_run(tmp_path) -> None:
     run = plan_retainer_run(_record(), month="2026-06")
 

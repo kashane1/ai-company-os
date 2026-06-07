@@ -32,12 +32,16 @@ def _link(label: str) -> str:
 
 _PROVIDERS: dict[str, str] = {
     "calendly": (
-        '<div class="calendly-inline-widget" data-url="{url}" '
+        '<div class="calendly-inline-widget" data-url="{url}" data-resize="true" '
         'style="min-width:320px;height:700px"></div>\n'
         '<script src="https://assets.calendly.com/assets/external/widget.js" async></script>'
     ),
-    "acuity": '<iframe src="{url}" title="Schedule Appointment" width="100%" height="800" '
-    'frameborder="0"></iframe>',
+    # Acuity ships an embed.js that auto-resizes the iframe to its content height.
+    "acuity": (
+        '<iframe src="{url}" title="Schedule Appointment" width="100%" height="800" '
+        'frameborder="0"></iframe>\n'
+        '<script src="https://embed.acuityscheduling.com/js/embed.js" async></script>'
+    ),
     "square": _link("Book an appointment"),
     "vagaro": _link("Book on Vagaro"),
     "mindbody": _link("Book on Mindbody"),
@@ -98,6 +102,23 @@ def inject_booking_into_file(path: Path, provider: str, booking_url: str) -> Pat
     return path
 
 
+def inject_booking_html_into_file(path: Path, embed_html: str) -> Path:
+    """Inject an operator-supplied embed snippet (raw HTML) into a file. Idempotent.
+
+    For platforms whose real embed is account-specific HTML pasted from their
+    dashboard (e.g. Square Appointments' advanced booking widget) rather than a
+    URL we can template. The snippet is trusted operator input. Re-runs replace
+    the existing block, never append.
+    """
+    if not path.is_file():
+        raise BookingError(f"site file not found: {path}")
+    embed = embed_html.strip()
+    if not embed:
+        raise BookingError("empty booking embed")
+    path.write_text(inject_booking_embed(path.read_text(encoding="utf-8"), embed), encoding="utf-8")
+    return path
+
+
 @dataclass(frozen=True)
 class BookingSetup:
     product_id: str
@@ -105,6 +126,9 @@ class BookingSetup:
     booking_url: str
     injected: bool = False
     completed_at: str = ""
+    # True for the recurring "Booking — Fully Managed" service (we run it on the
+    # platform for the client); False for one-time Connect / Done-for-you setup.
+    managed: bool = False
 
     def validate(self) -> None:
         if not self.product_id.strip():
@@ -120,6 +144,7 @@ class BookingSetup:
             "booking_url": self.booking_url,
             "injected": self.injected,
             "completed_at": self.completed_at,
+            "managed": self.managed,
         }
 
     @classmethod
@@ -130,6 +155,7 @@ class BookingSetup:
             booking_url=str(payload["booking_url"]),
             injected=bool(payload.get("injected", False)),
             completed_at=str(payload.get("completed_at", "")),
+            managed=bool(payload.get("managed", False)),
         )
 
 

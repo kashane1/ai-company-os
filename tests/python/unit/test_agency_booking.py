@@ -10,6 +10,7 @@ from packages.agency.booking import (
     BookingError,
     BookingSetup,
     inject_booking_embed,
+    inject_booking_html_into_file,
     inject_booking_into_file,
     load_booking_setup,
     render_booking_embed,
@@ -77,3 +78,48 @@ def test_inject_file_and_record(tmp_path: Path) -> None:
     )
     save_booking_setup(record, root=tmp_path / "svc")
     assert load_booking_setup("joes-plumbing-site", root=tmp_path / "svc") == record
+
+
+def test_calendly_embed_auto_resizes() -> None:
+    embed = render_booking_embed("calendly", CAL_URL)
+    assert 'data-resize="true"' in embed
+
+
+def test_acuity_embed_includes_resize_script() -> None:
+    embed = render_booking_embed("acuity", CAL_URL)
+    assert "embed.acuityscheduling.com/js/embed.js" in embed
+    assert CAL_URL in embed
+
+
+def test_inject_raw_html_snippet_idempotent(tmp_path: Path) -> None:
+    site = tmp_path / "index.html"
+    site.write_text("<html><body>hi</body></html>", encoding="utf-8")
+    # Square's advanced widget is account-specific HTML pasted from the dashboard.
+    snippet = '<div class="sq-booking">book</div>'
+    inject_booking_html_into_file(site, snippet)
+    inject_booking_html_into_file(site, snippet)  # re-run replaces, never appends
+    text = site.read_text(encoding="utf-8")
+    assert text.count("bbw:booking:start") == 1
+    assert "sq-booking" in text
+
+
+def test_inject_empty_raw_html_rejected(tmp_path: Path) -> None:
+    site = tmp_path / "index.html"
+    site.write_text("<html><body>hi</body></html>", encoding="utf-8")
+    with pytest.raises(BookingError, match="empty booking embed"):
+        inject_booking_html_into_file(site, "   ")
+
+
+def test_booking_setup_managed_roundtrip(tmp_path: Path) -> None:
+    record = BookingSetup(
+        product_id="acme-site", provider="acuity", booking_url=CAL_URL, managed=True,
+    )
+    save_booking_setup(record, root=tmp_path / "svc")
+    loaded = load_booking_setup("acme-site", root=tmp_path / "svc")
+    assert loaded is not None and loaded.managed is True
+
+
+def test_booking_setup_legacy_dict_defaults_unmanaged() -> None:
+    # A record persisted before `managed` existed must still load (defaults False).
+    legacy = {"product_id": "x", "provider": "calendly", "booking_url": CAL_URL}
+    assert BookingSetup.from_dict(legacy).managed is False
