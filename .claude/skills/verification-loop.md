@@ -1,5 +1,5 @@
 ---
-description: Pre-PR / pre-release quality-gate sweep composing reconciliation + skill-stocktake + changed-surface missing-tests into a single verdict. Invoke for "run the verification loop", "pre-PR sweep", "check if this is ready to merge", "run all the quality gates".
+description: Pre-PR / pre-release quality-gate umbrella over the structural and runtime verification lanes. Invoke for "run the verification loop", "pre-PR sweep", "check if this is ready to merge", "run all the quality gates".
 canonical_source: skills/canonical/verification-loop/skill.md
 adapter_source: skills/adapters/claude/verification-loop.md
 ---

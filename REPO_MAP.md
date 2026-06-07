@@ -4,6 +4,12 @@ A fresh-agent orientation. Read this in 60 seconds, then read
 [docs/preflight-for-agents.md](docs/preflight-for-agents.md) before doing any
 work that mutates the repo.
 
+> **Machine-readable companion:** [repo-manifest.yaml](repo-manifest.yaml) carries
+> the zones, write targets, edit boundaries, indexed dirs, and search-skip list
+> as structured data — load it instead of re-reading prose. Keep it in sync with
+> this file. For searches, a root `.ignore` keeps lockfiles, screenshots, and
+> archives out of `rg`/`ag` results (use `rg -uu` to override).
+
 ## What this repo is
 
 `ai-company-os` — a local-first platform that turns founder goals into
@@ -61,6 +67,9 @@ Two supporting zones:
 
 ## What a fresh agent should read first
 
+<!-- CANONICAL read-first order. CLAUDE.md and docs/preflight-for-agents.md link
+     here instead of keeping their own sequence. Update this list, not copies. -->
+
 1. [REPO_MAP.md](REPO_MAP.md) — this file
 2. [docs/founder/operator-guide.md](docs/founder/operator-guide.md) — commands to kick off discovery, scoring, runtime, and agent work streams
 3. [docs/preflight-for-agents.md](docs/preflight-for-agents.md) — boundaries for this session
@@ -70,6 +79,9 @@ Two supporting zones:
 7. [docs/approval-policy.md](docs/approval-policy.md) — what requires human approval
 
 ## Architectural rules (non-negotiable)
+
+<!-- Quick reference only. Canonical statement + rationale: docs/agent-model.md.
+     Do not expand this list here — expand the model doc and link. -->
 
 - The platform owns orchestration.
 - Codex writes code but does not own business logic or policy.

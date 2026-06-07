@@ -38,6 +38,24 @@ Status meaning:
 Status transitions happen by editing the frontmatter, not by renaming
 the file. Filenames are immutable once committed so links stay stable.
 
+### Archival (real-time)
+
+When a plan reaches a finished status — any of `done`, `completed`,
+`shipped`, `superseded`, `archived`, `abandoned` — it moves to
+`docs/plans/archive/` so the top level of `docs/plans/` stays the *live*
+working set that agents glob. The move is automated three ways:
+
+1. **Real-time:** a Claude Code `PostToolUse` hook
+   (`.claude/hooks/archive-plans-on-edit.sh`) runs the archiver the moment
+   you edit a plan — flip the status, and it relocates on save.
+2. **Gate:** CI runs `archive_plans.py --check` and fails if a finished
+   plan is still in the working set, so it can't merge from any runtime.
+3. **Manual:** `make archive-plans` (or `python3 scripts/docs/archive_plans.py`).
+
+The archiver regenerates `docs/plans/archive/INDEX.md`. Links stay valid
+because filenames don't change — only the directory does. Nothing is
+deleted; archived plans remain part of the audit trail.
+
 ## Current plans
 
 Statuses were verified against each plan's YAML frontmatter (or, where

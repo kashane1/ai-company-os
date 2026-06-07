@@ -1,4 +1,4 @@
-.PHONY: demo test test-python doctor audit handoff
+.PHONY: demo test test-python doctor audit handoff archive-plans doc-index tokens-check skills-sync
 
 # Zero-dependency end-to-end demo: goal -> task -> execute -> validate
 # -> human approval gate -> structured audit artifact. No Postgres,
@@ -44,6 +44,27 @@ doctor:
 # Read-only doc-path drift check across the docs an agent reads first.
 audit:
 	./scripts/ci/check_doc_paths.sh
+
+# Token-efficiency maintenance. Move finished plans (status: completed/shipped/
+# superseded/...) into docs/plans/archive/ so the working set stays small.
+archive-plans:
+	python3 scripts/docs/archive_plans.py
+
+# Regenerate every auto-indexed docs directory.
+doc-index:
+	python3 scripts/docs/gen_doc_index.py \
+	  docs/adr docs/decisions docs/founder docs/brainstorms \
+	  docs/failure-modes docs/security docs/runbooks docs/skills \
+	  docs/architecture docs/examples
+	python3 scripts/docs/gen_doc_index.py --recursive docs/solutions docs/agency docs/research
+
+# Aggregate token-efficiency gate (mirrors CI). Nonzero on any violation.
+tokens-check:
+	python3 scripts/ci/token_efficiency_check.py
+
+# Regenerate .claude/skills/ pointers from their adapters (single source).
+skills-sync:
+	python3 scripts/skills/gen_project_skills.py
 
 # Print the handoff convention. Read-only.
 handoff:

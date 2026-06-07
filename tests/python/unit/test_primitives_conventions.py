@@ -46,13 +46,17 @@ FORBIDDEN_TOP_LEVEL_IMPORTS = {
 
 
 def _primitive_modules() -> list[Path]:
-    """All .py files under primitives/ except __init__.py."""
+    """All .py files under primitives/ except __init__.py.
+
+    Recurses so primitive *subpackages* (e.g. ``approvals/``) are guarded too,
+    not just flat-file primitives.
+    """
     if not PRIMITIVES_DIR.is_dir():
         return []
     return sorted(
         p
-        for p in PRIMITIVES_DIR.glob("*.py")
-        if p.name != "__init__.py"
+        for p in PRIMITIVES_DIR.rglob("*.py")
+        if p.name != "__init__.py" and "__pycache__" not in p.parts
     )
 
 
