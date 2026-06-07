@@ -173,6 +173,120 @@ def test_default_executors_run_lead_health(tmp_path: Path) -> None:
     assert "alert" in outcome.detail and "1 undelivered" in outcome.detail
 
 
+class _ReportStats:
+    """Goal-aware fake: Form Lead present, Call Click absent."""
+
+    def query(self, body):
+        if "dimensions" in body:
+            return {"results": [{"dimensions": ["Form Lead"], "metrics": [3]}]}
+        if "filters" in body:
+            return {"results": [{"dimensions": [], "metrics": [3, 4]}]}
+        return {"results": [{"dimensions": [], "metrics": [100, 200]}]}
+
+
+def _seed_intake(isolated_repo_root, product_id, *, category="plumbing"):
+    from packages.agency.client_lifecycle import client_paths
+    from packages.agency.intake import ClientIntake, write_intake
+
+    docs_root, _ = client_paths(product_id, repo_root=isolated_repo_root)
+    write_intake(
+        docs_root,
+        ClientIntake(
+            business_name="Joe's Plumbing",
+            service_category=category,
+            city="Austin, TX",
+            services=["Drain cleaning"],
+        ),
+    )
+    return docs_root
+
+
+def test_draft_gbp_executor_writes_changeset(isolated_repo_root) -> None:
+    docs_root = _seed_intake(isolated_repo_root, "joes-plumbing-site")
+    run = RetainerRun(
+        product_id="joes-plumbing-site",
+        month="2026-06",
+        services=["contact_forms"],
+        planned_actions=["draft_gbp_changeset"],
+        billing_status="active",
+    )
+    execs = default_safe_executors(
+        state_root=isolated_repo_root / "state",
+        as_of=date(2026, 6, 7),
+        repo_root=isolated_repo_root,
+    )
+    report = execute_retainer_run(run, executors=execs, mark_complete=False)
+    assert report.outcomes[0].status == "done"
+    assert (docs_root / "GBP_CHANGESET.md").exists()
+
+
+def test_ads_executor_blocks_banned_vertical(isolated_repo_root) -> None:
+    _seed_intake(isolated_repo_root, "joes-plumbing-site", category="gun store")
+    run = RetainerRun(
+        product_id="joes-plumbing-site",
+        month="2026-06",
+        services=["contact_forms"],
+        planned_actions=["draft_google_ads"],
+        billing_status="active",
+    )
+    execs = default_safe_executors(
+        state_root=isolated_repo_root / "state",
+        as_of=date(2026, 6, 7),
+        repo_root=isolated_repo_root,
+    )
+    report = execute_retainer_run(run, executors=execs, mark_complete=False)
+    assert report.outcomes[0].status == "skipped"
+    assert "banned" in report.outcomes[0].detail
+
+
+def test_executor_skips_when_no_intake(isolated_repo_root) -> None:
+    run = RetainerRun(
+        product_id="joes-plumbing-site",
+        month="2026-06",
+        services=["contact_forms"],
+        planned_actions=["draft_gbp_changeset"],
+        billing_status="active",
+    )
+    execs = default_safe_executors(
+        state_root=isolated_repo_root / "state",
+        as_of=date(2026, 6, 7),
+        repo_root=isolated_repo_root,
+    )
+    report = execute_retainer_run(run, executors=execs, mark_complete=False)
+    assert report.outcomes[0].status == "skipped"
+    assert "intake" in report.outcomes[0].detail
+
+
+def test_monthly_report_executor_writes_with_plausible(isolated_repo_root) -> None:
+    import json
+
+    docs_root = _seed_intake(isolated_repo_root, "joes-plumbing-site")
+    # Stamp a Plausible site id on the client record.
+    reg_path = isolated_repo_root / "infra" / "products.json"
+    registry = json.loads(reg_path.read_text())
+    for rec in registry:
+        if rec.get("id") == "joes-plumbing-site":
+            rec.setdefault("client", {})["plausible_site_id"] = "joesplumbing.com"
+    reg_path.write_text(json.dumps(registry, indent=2))
+
+    run = RetainerRun(
+        product_id="joes-plumbing-site",
+        month="2026-06",
+        services=["monthly_reporting"],
+        planned_actions=["run_monthly_report"],
+        billing_status="active",
+    )
+    execs = default_safe_executors(
+        state_root=isolated_repo_root / "state",
+        as_of=date(2026, 6, 7),
+        repo_root=isolated_repo_root,
+        stats_client_factory=lambda: _ReportStats(),
+    )
+    report = execute_retainer_run(run, executors=execs, mark_complete=False)
+    assert report.outcomes[0].status == "done"
+    assert (docs_root / "reports" / "2026-06.md").exists()
+
+
 def test_default_executors_does_not_auto_run_outward_drafts() -> None:
     # The growth drafts are NOT wired by default (need operator input) -> skipped.
     record = {

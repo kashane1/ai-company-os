@@ -30,6 +30,10 @@ client onboarding, and monthly retainer ops. Runnable entrypoints live in
   executors; tracks completion) and is the **single gate** for outward/irreversible
   steps: `assert_outward_action_allowed()` routes ad go-live / review SMS / deploy
   to their policy gates, so the gates are enforced from production code, not tests.
+  `default_safe_executors` auto-runs the drafts that work from the persisted
+  workspace (`intake.json`): GBP changeset, Google/Meta ads (eligibility-checked),
+  local SEO pages, and the monthly report (Plausible) — each skips cleanly when its
+  inputs aren't ready. `manage_booking` stays operator-run.
 - `monthly_report.py` — monthly report; `metrics_from_plausible()` wires real
   visit/lead numbers in (a missing lead goal degrades to "Not tracked yet", never a fake 0).
 - `lead_health.py` — the `hosting` "contact-form monitoring" SLA: flags leads that

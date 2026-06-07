@@ -11,9 +11,15 @@ produces. It feeds two outputs:
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from packages.web.scaffold import local_business_context
+
+# Machine-readable intake persisted alongside CLIENT_BRIEF.md so downstream
+# automation (retainer draft executors, ad creative) can reload it.
+INTAKE_FILENAME = "intake.json"
 
 
 @dataclass(frozen=True)
@@ -133,6 +139,23 @@ class ClientIntake:
             approver_name=str(payload.get("approver_name", "")),
             approver_email=str(payload.get("approver_email", "")),
         )
+
+
+def write_intake(docs_root: Path, intake: ClientIntake) -> Path:
+    """Persist ``intake.json`` (machine-readable twin of CLIENT_BRIEF.md)."""
+    intake.validate()
+    docs_root.mkdir(parents=True, exist_ok=True)
+    path = docs_root / INTAKE_FILENAME
+    path.write_text(json.dumps(intake.to_dict(), indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def load_intake(docs_root: Path) -> ClientIntake | None:
+    """Load a persisted ``intake.json`` from a client docs dir, or ``None``."""
+    path = docs_root / INTAKE_FILENAME
+    if not path.exists():
+        return None
+    return ClientIntake.from_dict(json.loads(path.read_text(encoding="utf-8")))
 
 
 def render_brief(intake: ClientIntake) -> str:

@@ -14,10 +14,15 @@ import json
 from pathlib import Path
 
 from packages.agency.catalog import ServiceCatalog, default_catalog
-from packages.agency.intake import ClientIntake, render_brief
+from packages.agency.intake import ClientIntake, render_brief, write_intake
 from packages.agency.launch import LaunchChecklistReport, run_launch_checklist
 from packages.agency.prospect_site import intake_from_record
-from packages.agency.registry import RegistryError, get_registry_record, set_client_phase
+from packages.agency.registry import (
+    RegistryError,
+    default_registry_path,
+    get_registry_record,
+    set_client_phase,
+)
 from packages.agency.templates import scaffold_client_workspace, slugify
 from packages.config.settings import load_runtime_paths
 from packages.prospecting.storage import ProspectRepository
@@ -70,12 +75,16 @@ def apply_client_intake(
     local_seo_path = docs_root / "LOCAL_SEO.md"
     local_seo_path.write_text(_local_seo_from_intake(intake), encoding="utf-8")
 
-    overwritten = {brief_path, copy_path, site_map_path, local_seo_path}
+    # Machine-readable twin so retainer draft executors can reload the intake.
+    intake_path = write_intake(docs_root, intake)
+
+    overwritten = {brief_path, copy_path, site_map_path, local_seo_path, intake_path}
     return [
         brief_path,
         copy_path,
         site_map_path,
         local_seo_path,
+        intake_path,
         *[p for p in paths if p not in overwritten],
     ]
 

@@ -11,14 +11,19 @@ from packages.agency.registry import (
     RegistryError,
     lead_drain_targets,
     set_client_netlify_site_id,
+    set_client_plausible_site_id,
 )
 from packages.schemas.product import ClientConfig
 
 
 def test_client_config_roundtrips_netlify_site_id() -> None:
-    cfg = ClientConfig(services=["hosting"], netlify_site_id="abc-123")
-    assert cfg.to_dict()["netlify_site_id"] == "abc-123"
-    assert ClientConfig.from_dict(cfg.to_dict()).netlify_site_id == "abc-123"
+    cfg = ClientConfig(services=["hosting"], netlify_site_id="abc-123", plausible_site_id="joe.com")
+    out = cfg.to_dict()
+    assert out["netlify_site_id"] == "abc-123"
+    assert out["plausible_site_id"] == "joe.com"
+    loaded = ClientConfig.from_dict(out)
+    assert loaded.netlify_site_id == "abc-123"
+    assert loaded.plausible_site_id == "joe.com"
 
 
 def test_client_config_defaults_site_id_for_legacy_records() -> None:
@@ -49,6 +54,17 @@ def test_set_client_netlify_site_id_unknown_product_raises(tmp_path: Path) -> No
     path = _registry(tmp_path, [])
     with pytest.raises(RegistryError):
         set_client_netlify_site_id("ghost", "x", registry_path=path)
+
+
+def test_set_client_plausible_site_id_updates_nested_block(tmp_path: Path) -> None:
+    path = _registry(
+        tmp_path,
+        [{"id": "joe-site", "type": "client-site", "client": {"services": ["monthly_reporting"]}}],
+    )
+    set_client_plausible_site_id("joe-site", "joe.com", registry_path=path)
+    record = json.loads(path.read_text())[0]
+    assert record["client"]["plausible_site_id"] == "joe.com"
+    assert record["client"]["services"] == ["monthly_reporting"]
 
 
 def test_lead_drain_targets_filters_to_lead_capture_with_site_id(tmp_path: Path) -> None:

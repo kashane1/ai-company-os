@@ -107,6 +107,9 @@ class ClientConfig:
     # The client's own Netlify site id (their site, their account). Stamped at
     # launch; lets the lead-health drain target their `inbound-leads` Blobs store.
     netlify_site_id: str = ""
+    # The client's Plausible site id (domain) — lets the monthly-report executor
+    # pull real traffic/lead numbers without an operator passing --site-id.
+    plausible_site_id: str = ""
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -118,6 +121,7 @@ class ClientConfig:
             "accepted_by": self.accepted_by,
             "accepted_at": self.accepted_at,
             "netlify_site_id": self.netlify_site_id,
+            "plausible_site_id": self.plausible_site_id,
         }
 
     @classmethod
@@ -137,6 +141,7 @@ class ClientConfig:
             accepted_by=str(payload.get("accepted_by", "")),
             accepted_at=str(payload.get("accepted_at", "")),
             netlify_site_id=str(payload.get("netlify_site_id", "")),
+            plausible_site_id=str(payload.get("plausible_site_id", "")),
         )
 
 

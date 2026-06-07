@@ -31,6 +31,7 @@ from packages.agency.client_lifecycle import (  # noqa: E402
 from packages.agency.registry import (  # noqa: E402
     get_registry_record,
     set_client_netlify_site_id,
+    set_client_plausible_site_id,
 )
 
 
@@ -63,6 +64,11 @@ def main() -> int:
             "--netlify-site-id",
             default="",
             help="client's Netlify site id; stamped on mark-live for lead-health monitoring",
+        )
+        cmd.add_argument(
+            "--plausible-site-id",
+            default="",
+            help="client's Plausible site id; stamped on mark-live for the monthly report",
         )
 
     args = ap.parse_args()
@@ -107,6 +113,9 @@ def main() -> int:
         if args.command == "mark-live" and args.netlify_site_id:
             set_client_netlify_site_id(args.product_id, args.netlify_site_id)
             print(f"recorded netlify_site_id={args.netlify_site_id} for {args.product_id}")
+        if args.command == "mark-live" and args.plausible_site_id:
+            set_client_plausible_site_id(args.product_id, args.plausible_site_id)
+            print(f"recorded plausible_site_id={args.plausible_site_id} for {args.product_id}")
         print(f"\n{'LIVE' if args.command == 'mark-live' else 'READY'} — {args.product_id}")
         return 0
     print("\nFAILED items:", file=sys.stderr)

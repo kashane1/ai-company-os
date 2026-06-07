@@ -171,17 +171,53 @@ def execute_retainer_run(
     )
 
 
-def default_safe_executors(
-    *, state_root: Path, as_of: date
-) -> dict[str, RetainerActionExecutor]:
-    """The safe, self-contained executors wired by default.
+def _resolve_client(run: RetainerRun, repo_root: Path | None):
+    """Resolve ``(docs_root, source_root, intake)`` for a run, or skip.
 
-    Only ``check_lead_health`` is fully safe to auto-run today (it assesses already-
-    drained local lead data). The other planned actions need operator-supplied
-    inputs (intake, approved matrices) and remain unregistered → reported as
-    "operator-run" until each grows a vetted executor.
+    Raises :class:`ActionPreconditionError` (→ recorded as "skipped") when the
+    client isn't in the registry yet or has no persisted ``intake.json`` — so an
+    unconfigured client never crashes the run, it just isn't auto-drafted.
     """
+    from packages.agency.client_lifecycle import client_paths
+    from packages.agency.intake import load_intake
+    from packages.agency.registry import RegistryError
+
+    try:
+        docs_root, source_root = client_paths(run.product_id, repo_root=repo_root)
+    except RegistryError as exc:
+        raise ActionPreconditionError(f"no client record: {exc}") from exc
+    intake = load_intake(docs_root)
+    if intake is None:
+        raise ActionPreconditionError("no intake.json — run client_intake first")
+    return docs_root, source_root, intake
+
+
+def default_safe_executors(
+    *,
+    state_root: Path,
+    as_of: date,
+    repo_root: Path | None = None,
+    stats_client_factory: Callable[[], object | None] | None = None,
+) -> dict[str, RetainerActionExecutor]:
+    """The safe prep executors wired by default.
+
+    Each produces a local draft/artifact for operator review — nothing outward.
+    Every executor resolves its own per-client inputs from the persisted workspace
+    and raises ``ActionPreconditionError`` (→ "skipped") when something isn't ready
+    (no intake, unapproved SEO matrix, missing Plausible id). ``manage_booking``
+    stays operator-run (it's a human login task) and is intentionally unregistered.
+    """
+    from packages.agency.ad_policy import check_ad_vertical
+    from packages.agency.gbp import emit_gbp_changeset
+    from packages.agency.google_ads import emit_ads_draft
     from packages.agency.lead_health import assess_lead_health, load_leads_from_dir
+    from packages.agency.local_seo import (
+        LocalSeoMatrixError,
+        emit_seo_pages_to_site,
+        generate_matrix,
+        parse_local_seo_matrix,
+    )
+    from packages.agency.meta_ads import emit_meta_ads_draft
 
     def _check_lead_health(run: RetainerRun) -> str:
         leads_dir = state_root / "clients" / run.product_id / "leads"
@@ -196,4 +232,77 @@ def default_safe_executors(
             f"{health.undelivered_in_window} undelivered in window"
         )
 
-    return {"check_lead_health": _check_lead_health}
+    def _draft_gbp(run: RetainerRun) -> str:
+        docs_root, _, intake = _resolve_client(run, repo_root)
+        return f"wrote {emit_gbp_changeset(intake, docs_root).name}"
+
+    def _ads_executor(platform: str, emit):
+        def _run(run: RetainerRun) -> str:
+            docs_root, _, intake = _resolve_client(run, repo_root)
+            level, reason = check_ad_vertical(intake.service_category, platform)
+            if level == "banned":
+                raise ActionPreconditionError(f"vertical banned on {platform}: {reason}")
+            note = f"wrote {emit(intake, docs_root).name}"
+            return f"{note} (restricted: {reason})" if level == "restricted" else note
+
+        return _run
+
+    def _run_local_seo(run: RetainerRun) -> str:
+        docs_root, source_root, intake = _resolve_client(run, repo_root)
+        seo_md = docs_root / "LOCAL_SEO.md"
+        if not seo_md.exists():
+            raise ActionPreconditionError("no LOCAL_SEO.md")
+        try:
+            matrix = parse_local_seo_matrix(seo_md)
+        except LocalSeoMatrixError as exc:
+            raise ActionPreconditionError(f"SEO matrix not ready: {exc}") from exc
+        pages = generate_matrix(intake.business_name, matrix.services, matrix.service_area_cities)
+        try:
+            emit_seo_pages_to_site(source_root, pages, site_url=intake.site_url)
+        except FileNotFoundError as exc:
+            raise ActionPreconditionError(f"site not scaffolded: {exc}") from exc
+        return f"generated {len(pages)} local SEO page(s) (deploy stays gated)"
+
+    def _run_monthly_report(run: RetainerRun) -> str:
+        from packages.agency.monthly_report import metrics_from_plausible, write_monthly_report
+        from packages.agency.registry import RegistryError, get_registry_record
+
+        docs_root, _, _ = _resolve_client(run, repo_root)
+        try:
+            record = get_registry_record(run.product_id)
+        except RegistryError as exc:
+            raise ActionPreconditionError(f"no client record: {exc}") from exc
+        client = record.get("client") or {}
+        site_id = str(client.get("plausible_site_id", "")).strip()
+        if not site_id:
+            raise ActionPreconditionError("no plausible_site_id on client record")
+        factory = stats_client_factory or _default_stats_factory
+        stats = factory()
+        if stats is None:
+            raise ActionPreconditionError("no PLAUSIBLE_API_KEY configured")
+        metrics = metrics_from_plausible(
+            stats,
+            product_id=run.product_id,
+            month=run.month,
+            site_id=site_id,
+            billing_status=run.billing_status,
+        )
+        path = write_monthly_report(
+            docs_root, metrics, client_name=str(record.get("name", run.product_id))
+        )
+        return f"wrote {path.name}"
+
+    return {
+        "check_lead_health": _check_lead_health,
+        "draft_gbp_changeset": _draft_gbp,
+        "draft_google_ads": _ads_executor("google", emit_ads_draft),
+        "draft_meta_ads": _ads_executor("meta", emit_meta_ads_draft),
+        "run_local_seo": _run_local_seo,
+        "run_monthly_report": _run_monthly_report,
+    }
+
+
+def _default_stats_factory() -> object | None:
+    from packages.agency.plausible import default_stats_client
+
+    return default_stats_client()

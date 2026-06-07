@@ -105,6 +105,22 @@ def set_client_netlify_site_id(
     return update_registry_record(product_id, {"client": client}, registry_path=registry_path)
 
 
+def set_client_plausible_site_id(
+    product_id: str,
+    site_id: str,
+    *,
+    registry_path: Path | None = None,
+) -> dict[str, object]:
+    """Stamp the client's Plausible site id onto the nested ``client`` block.
+
+    Lets the monthly-report executor pull real traffic/lead numbers without an
+    operator passing ``--site-id`` each run.
+    """
+    record = get_registry_record(product_id, registry_path=registry_path)
+    client = {**(record.get("client") or {}), "plausible_site_id": site_id}
+    return update_registry_record(product_id, {"client": client}, registry_path=registry_path)
+
+
 def lead_drain_targets(*, registry_path: Path | None = None) -> list[dict[str, str]]:
     """Client sites whose contact-form lead store should be drained + monitored.
 
