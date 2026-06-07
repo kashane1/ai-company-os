@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from packages.agency.catalog import load_catalog
-from packages.agency.templates import render_service_catalog
+from packages.agency.templates import _headline_price, render_service_catalog
 
 MIRROR = Path(__file__).resolve().parents[3] / "docs" / "agency" / "service-catalog.md"
 
@@ -26,5 +26,5 @@ def test_generator_reflects_bundle_quotes() -> None:
     # Bundle anchors must appear exactly as quote_bundle computes them.
     for bundle_id in ("package_a", "package_b", "package_c"):
         quote = catalog.quote_bundle(bundle_id)
-        anchor = f"${quote.setup_total:,.0f} setup + ${quote.monthly_total:,.0f}/mo."
+        anchor = _headline_price(quote)
         assert anchor in rendered, f"{bundle_id} anchor {anchor!r} missing from render"

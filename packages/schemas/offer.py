@@ -13,8 +13,24 @@ rest of the repo's persisted-state conventions (see
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
+
+
+def _half_up(value: Decimal) -> int:
+    """Round a Decimal to the nearest integer, half-up (not banker's).
+
+    Money is computed in integer cents so Python and the JS checkout function
+    agree to the cent. Python's built-in ``round()`` is round-half-to-even and
+    disagrees with JS ``Math.round`` on exact half-cents — never use it for money.
+    """
+    return int(value.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def to_cents(dollars: float) -> int:
+    """Convert a whole/decimal dollar amount to integer cents, half-up."""
+    return _half_up(Decimal(str(dollars)) * 100)
 
 
 class ServiceTier(str, Enum):
@@ -55,6 +71,10 @@ class Service:
     ownership: str = "client-owned"
     cancellation: str = "30-day notice, no penalty"
     support_sla: str = "best-effort, 2 business days"
+    # Whether the service can be bought instantly via the self-serve builder /
+    # buy-now flow. Defaults True; set False for services that need an operator
+    # step (account access, spend setup) before they can be executed.
+    self_serve: bool = True
 
     def validate(self) -> None:
         if self.setup_fee < 0 or self.monthly_fee < 0:
@@ -81,6 +101,7 @@ class Service:
             "ownership": self.ownership,
             "cancellation": self.cancellation,
             "support_sla": self.support_sla,
+            "self_serve": self.self_serve,
         }
 
     @classmethod
@@ -97,17 +118,25 @@ class Service:
             ownership=str(payload.get("ownership", "client-owned")),
             cancellation=str(payload.get("cancellation", "30-day notice, no penalty")),
             support_sla=str(payload.get("support_sla", "best-effort, 2 business days")),
+            self_serve=bool(payload.get("self_serve", True)),
         )
 
 
 @dataclass(frozen=True)
 class Bundle:
-    """A productized package (A/B/C) — a named set of services sold together."""
+    """A productized package (A/B/C) — a named set of services sold together.
+
+    ``setup_promo`` (USD, ``0`` = none) is a curated promotional setup price that
+    overrides the count-based tier discount when the buyer selects exactly this
+    bundle's service set. It is deliberately a little cheaper than the tier
+    discount so a named package is always the best deal for that set.
+    """
 
     bundle_id: str
     name: str
     service_ids: list[str]
     description: str = ""
+    setup_promo: float = 0.0
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -115,6 +144,7 @@ class Bundle:
             "name": self.name,
             "service_ids": list(self.service_ids),
             "description": self.description,
+            "setup_promo": self.setup_promo,
         }
 
     @classmethod
@@ -124,25 +154,92 @@ class Bundle:
             name=str(payload["name"]),
             service_ids=[str(x) for x in list(payload.get("service_ids", []))],
             description=str(payload.get("description", "")),
+            setup_promo=float(payload.get("setup_promo", 0.0) or 0.0),
+        )
+
+
+@dataclass(frozen=True)
+class DiscountTier:
+    """One rung of the setup-only bundle discount, keyed by service count.
+
+    ``max_services`` is ``None`` for the open-ended top rung. The discount
+    applies to the gross setup total only — never to monthly fees.
+    """
+
+    min_services: int
+    max_services: int | None
+    pct: int
+
+    def matches(self, count: int) -> bool:
+        if count < self.min_services:
+            return False
+        return self.max_services is None or count <= self.max_services
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "min_services": self.min_services,
+            "max_services": self.max_services,
+            "pct": self.pct,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, object]) -> "DiscountTier":
+        raw_max = payload.get("max_services", None)
+        return cls(
+            min_services=int(payload["min_services"]),
+            max_services=None if raw_max is None else int(raw_max),
+            pct=int(payload["pct"]),
         )
 
 
 @dataclass(frozen=True)
 class BundleQuote:
-    """Resolved pricing for a bundle — the setup + monthly a client signs."""
+    """Resolved pricing for a set of services — what a client signs / is charged.
 
-    bundle_id: str
+    All money is integer cents. ``setup_after_cents`` is the price actually
+    charged (after the tier discount or the bundle promo override).
+    ``savings_cents`` is always ``setup_gross - setup_after`` by subtraction —
+    never recompute it from a percentage. There is intentionally no
+    ``monthly_after`` field: monthly is never discounted.
+    """
+
     services: list[Service]
-    setup_total: float
-    monthly_total: float
+    setup_gross_cents: int
+    setup_after_cents: int
+    monthly_cents: int
+    pricing_mode: str  # "tier" | "promo"
+    tier_pct: int = 0  # rung applied (0 for a promo override or a 1–2 svc cart)
+    bundle_id: str | None = None
+
+    @property
+    def savings_cents(self) -> int:
+        return self.setup_gross_cents - self.setup_after_cents
+
+    # Dollar convenience views for the markdown renderers (display only).
+    @property
+    def setup_gross(self) -> float:
+        return self.setup_gross_cents / 100
+
+    @property
+    def setup_after_discount(self) -> float:
+        return self.setup_after_cents / 100
+
+    @property
+    def monthly_total(self) -> float:
+        return self.monthly_cents / 100
+
+    @property
+    def savings(self) -> float:
+        return self.savings_cents / 100
 
 
 @dataclass(frozen=True)
 class ServiceCatalog:
-    """The whole catalog: services keyed by id + bundles keyed by id."""
+    """The whole catalog: services + bundles + the setup-only discount tiers."""
 
     services: dict[str, Service]
     bundles: dict[str, Bundle]
+    discount_tiers: tuple[DiscountTier, ...] = ()
 
     def validate(self) -> None:
         for service in self.services.values():
@@ -155,23 +252,84 @@ class ServiceCatalog:
                     raise CatalogError(
                         f"bundle {bundle.bundle_id!r}: references unknown service {sid!r}"
                     )
+        for tier in self.discount_tiers:
+            if not (0 <= tier.pct <= 100):
+                raise CatalogError(f"discount tier pct out of range: {tier.pct}")
+            if tier.max_services is not None and tier.max_services < tier.min_services:
+                raise CatalogError(
+                    f"discount tier max < min: {tier.min_services}..{tier.max_services}"
+                )
+        # "Packages are always the best value": a bundle's promo must not exceed
+        # what the tier discount would charge for the same service set, or the
+        # "best value" claim drifts. Guard it at load time.
+        for bundle in self.bundles.values():
+            if not bundle.setup_promo:
+                continue
+            tier_quote = self.quote_services(bundle.service_ids)
+            promo_cents = to_cents(bundle.setup_promo)
+            if promo_cents > tier_quote.setup_after_cents:
+                raise CatalogError(
+                    f"bundle {bundle.bundle_id!r}: setup_promo "
+                    f"({promo_cents}c) exceeds tier-discounted setup "
+                    f"({tier_quote.setup_after_cents}c) — packages must be the best value"
+                )
+
+    def tier_pct_for(self, count: int) -> int:
+        """The setup discount % for a cart of ``count`` services (0 if none match)."""
+        for tier in self.discount_tiers:
+            if tier.matches(count):
+                return tier.pct
+        return 0
+
+    def quote_services(
+        self, service_ids: list[str], *, setup_promo_cents: int | None = None
+    ) -> BundleQuote:
+        """Price an arbitrary set of services — the single pricing path.
+
+        With ``setup_promo_cents`` (a preset's curated override) the setup is
+        pinned to that promo; otherwise the count-based tier discount applies.
+        Monthly is the plain sum, never discounted.
+        """
+        services: list[Service] = []
+        for sid in service_ids:
+            if sid not in self.services:
+                raise CatalogError(f"unknown service {sid!r}")
+            services.append(self.services[sid])
+
+        gross = sum(to_cents(s.setup_fee) for s in services)
+        monthly = sum(to_cents(s.monthly_fee) for s in services)
+
+        if setup_promo_cents is not None:
+            after = int(setup_promo_cents)
+            mode, tier_pct = "promo", 0
+        else:
+            tier_pct = self.tier_pct_for(len(services))
+            discount = _half_up(Decimal(gross) * tier_pct / 100)
+            after = gross - discount
+            mode = "tier"
+
+        return BundleQuote(
+            services=services,
+            setup_gross_cents=gross,
+            setup_after_cents=after,
+            monthly_cents=monthly,
+            pricing_mode=mode,
+            tier_pct=tier_pct,
+        )
 
     def quote_bundle(self, bundle_id: str) -> BundleQuote:
         if bundle_id not in self.bundles:
             raise CatalogError(f"unknown bundle {bundle_id!r}")
         bundle = self.bundles[bundle_id]
-        services = [self.services[sid] for sid in bundle.service_ids]
-        return BundleQuote(
-            bundle_id=bundle_id,
-            services=services,
-            setup_total=round(sum(s.setup_fee for s in services), 2),
-            monthly_total=round(sum(s.monthly_fee for s in services), 2),
-        )
+        promo = to_cents(bundle.setup_promo) if bundle.setup_promo else None
+        quote = self.quote_services(bundle.service_ids, setup_promo_cents=promo)
+        return replace(quote, bundle_id=bundle_id)
 
     def to_dict(self) -> dict[str, object]:
         return {
             "services": [s.to_dict() for s in self.services.values()],
             "bundles": [b.to_dict() for b in self.bundles.values()],
+            "discount_tiers": [t.to_dict() for t in self.discount_tiers],
         }
 
     @classmethod
@@ -184,4 +342,8 @@ class ServiceCatalog:
             str(item["bundle_id"]): Bundle.from_dict(item)
             for item in list(payload.get("bundles", []))
         }
-        return cls(services=services, bundles=bundles)
+        discount_tiers = tuple(
+            DiscountTier.from_dict(item)
+            for item in list(payload.get("discount_tiers", []))
+        )
+        return cls(services=services, bundles=bundles, discount_tiers=discount_tiers)

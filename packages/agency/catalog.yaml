@@ -87,8 +87,8 @@ services:
     name: Review Readiness System
     tier: tier_2
     bill_type: recurring
-    setup_fee: 0
-    monthly_fee: 50
+    setup_fee: 75
+    monthly_fee: 39
     includes:
       - Google review link
       - Review request template draft
@@ -99,8 +99,8 @@ services:
     name: Local SEO
     tier: tier_2
     bill_type: recurring
-    setup_fee: 0
-    monthly_fee: 125
+    setup_fee: 400
+    monthly_fee: 95
     includes:
       - City / service / location / FAQ pages
       - Service x geo page matrix
@@ -110,8 +110,8 @@ services:
     name: Analytics Dashboard & Monthly Report
     tier: tier_2
     bill_type: recurring
-    setup_fee: 0
-    monthly_fee: 25
+    setup_fee: 50
+    monthly_fee: 20
     includes:
       - Owner-friendly monthly report (calls, form leads, bookings)
       - Edits completed
@@ -132,8 +132,8 @@ services:
     name: Google Ads Management
     tier: tier_3
     bill_type: recurring
-    setup_fee: 0
-    monthly_fee: 375
+    setup_fee: 300
+    monthly_fee: 350
     includes:
       - Campaign setup + management
       - Ad copy + keyword/negative lists (spend owned by client)
@@ -142,8 +142,8 @@ services:
     name: Meta (Facebook/Instagram) Ads Management
     tier: tier_3
     bill_type: recurring
-    setup_fee: 0
-    monthly_fee: 375
+    setup_fee: 300
+    monthly_fee: 350
     includes:
       - Campaign setup + management
       - Creative variants + audiences (spend owned by client)
@@ -162,16 +162,25 @@ services:
     name: Automated Follow-Up
     tier: tier_3
     bill_type: recurring
-    setup_fee: 0
-    monthly_fee: 50
+    setup_fee: 125
+    monthly_fee: 39
     includes:
       - Lead to auto text to auto email
       - 2-day reminder sequence
+
+# Setup-only bundle discount for build-your-own carts (custom service sets).
+# Named packages below use an explicit setup_promo instead (always <= the tier
+# discount for the same set, enforced at catalog load).
+discount_tiers:
+  - { min_services: 1, max_services: 2, pct: 0 }
+  - { min_services: 3, max_services: 4, pct: 10 }
+  - { min_services: 5, max_services: null, pct: 15 }
 
 bundles:
   - bundle_id: package_a
     name: "Package A — Presence"
     description: Look professional online. Website + the annoying tech handled.
+    setup_promo: 599
     service_ids:
       - website
       - hosting
@@ -181,6 +190,7 @@ bundles:
   - bundle_id: package_b
     name: "Package B — Presence + Capture"
     description: Everything in A, plus turn visitors into booked customers.
+    setup_promo: 899
     service_ids:
       - website
       - hosting
@@ -192,6 +202,7 @@ bundles:
   - bundle_id: package_c
     name: "Package C — Presence + Capture + Growth"
     description: Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.
+    setup_promo: 1799
     service_ids:
       - website
       - hosting

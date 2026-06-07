@@ -12,9 +12,11 @@ from packages.schemas.offer import (
     BillType,
     Bundle,
     CatalogError,
+    DiscountTier,
     Service,
     ServiceCatalog,
     ServiceTier,
+    to_cents,
 )
 
 
@@ -35,17 +37,22 @@ def test_bundles_reference_real_services() -> None:
         assert set(bundle.service_ids) <= known, bundle.bundle_id
 
 
-def test_quote_bundle_sums_setup_and_monthly() -> None:
+def test_quote_bundle_applies_promo_and_sums_monthly() -> None:
     catalog = default_catalog()
     quote = catalog.quote_bundle("package_a")
     ids = catalog.bundles["package_a"].service_ids
-    expected_setup = sum(catalog.services[s].setup_fee for s in ids)
-    expected_monthly = sum(catalog.services[s].monthly_fee for s in ids)
-    assert quote.setup_total == round(expected_setup, 2)
-    assert quote.monthly_total == round(expected_monthly, 2)
+    gross = sum(to_cents(catalog.services[s].setup_fee) for s in ids)
+    monthly = sum(to_cents(catalog.services[s].monthly_fee) for s in ids)
+    # Setup gross is the plain sum; monthly is never discounted.
+    assert quote.setup_gross_cents == gross
+    assert quote.monthly_cents == monthly
+    # Package A is sold at its curated promo, cheaper than the tier discount.
+    assert quote.pricing_mode == "promo"
+    assert quote.setup_after_cents == 59900
+    assert quote.savings_cents == gross - 59900
     # Package A is a setup + monthly offer.
-    assert quote.setup_total > 0
-    assert quote.monthly_total > 0
+    assert quote.setup_after_cents > 0
+    assert quote.monthly_cents > 0
 
 
 def test_packages_escalate_in_scope() -> None:
@@ -126,4 +133,73 @@ def test_load_catalog_from_custom_path(tmp_path: Path) -> None:
     path = tmp_path / "catalog.yaml"
     path.write_text(yaml_text)
     catalog = load_catalog(path)
-    assert catalog.quote_bundle("only").setup_total == 250
+    assert catalog.quote_bundle("only").setup_after_cents == 25000
+
+
+# --- discount engine -------------------------------------------------------
+
+
+def _svc(sid: str, setup: float = 0.0, monthly: float = 0.0) -> Service:
+    bill = BillType.RECURRING if monthly else BillType.ONE_TIME
+    return Service(sid, sid.title(), ServiceTier.TIER_1, bill, setup, monthly)
+
+
+def _catalog(services, *, tiers=((1, None, 10),), bundles=None) -> ServiceCatalog:
+    return ServiceCatalog(
+        services={s.service_id: s for s in services},
+        bundles=bundles or {},
+        discount_tiers=tuple(
+            DiscountTier(mn, mx, pct) for (mn, mx, pct) in tiers
+        ),
+    )
+
+
+def test_tier_discount_applies_to_custom_cart() -> None:
+    cat = _catalog(
+        [_svc("a", setup=300), _svc("b", setup=400), _svc("c", setup=300)],
+        tiers=((1, 2, 0), (3, 4, 10), (5, None, 15)),
+    )
+    q = cat.quote_services(["a", "b", "c"])  # 3 services -> 10%
+    assert q.pricing_mode == "tier"
+    assert q.tier_pct == 10
+    assert q.setup_gross_cents == 100000
+    assert q.setup_after_cents == 90000  # 10% off setup
+    assert q.savings_cents == 10000
+
+
+def test_monthly_never_discounted() -> None:
+    cat = _catalog(
+        [_svc(c, setup=100, monthly=50) for c in "abcde"],
+        tiers=((5, None, 15),),
+    )
+    q = cat.quote_services(list("abcde"))  # 5 services -> 15% on setup only
+    assert q.tier_pct == 15
+    assert q.setup_after_cents == 42500  # 500_00 - 15%
+    assert q.monthly_cents == 25000  # 5 * 50_00, untouched by the discount
+
+
+def test_discount_rounds_half_up_not_bankers() -> None:
+    # gross 5c, 10% -> 0.5c; half-up rounds to 1c (banker's would give 0).
+    cat = _catalog([_svc("x", setup=0.05)], tiers=((1, None, 10),))
+    q = cat.quote_services(["x"])
+    assert q.setup_gross_cents == 5
+    assert q.setup_after_cents == 4  # 5 - half_up(0.5) = 5 - 1
+
+
+def test_promo_exceeding_tier_discount_is_rejected() -> None:
+    services = [_svc("a", setup=300), _svc("b", setup=400), _svc("c", setup=300)]
+    # 3 svc, 10% tier -> tier-after = 900_00. A promo of 950 (95000c) is worse.
+    bundles = {
+        "bad": Bundle("bad", "Bad", ["a", "b", "c"], setup_promo=950),
+    }
+    cat = _catalog(services, tiers=((3, 4, 10),), bundles=bundles)
+    with pytest.raises(CatalogError):
+        cat.validate()
+
+
+def test_promo_at_or_below_tier_discount_is_accepted() -> None:
+    services = [_svc("a", setup=300), _svc("b", setup=400), _svc("c", setup=300)]
+    bundles = {"ok": Bundle("ok", "Ok", ["a", "b", "c"], setup_promo=850)}
+    cat = _catalog(services, tiers=((3, 4, 10),), bundles=bundles)
+    cat.validate()  # 850 <= 900 tier-after -> fine
+    assert cat.quote_bundle("ok").setup_after_cents == 85000

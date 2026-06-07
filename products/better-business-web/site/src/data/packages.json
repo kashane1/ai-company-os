@@ -4,21 +4,37 @@
       "id": "package_a",
       "name": "Package A \u2014 Presence",
       "description": "Look professional online. Website + the annoying tech handled.",
-      "setup": 699,
+      "setup": 599,
       "monthly": 49,
+      "setup_gross_cents": 69900,
+      "setup_after_cents": 59900,
+      "monthly_cents": 4900,
+      "savings_cents": 10000,
+      "pricing_mode": "promo",
       "services": [
         "Professional Website",
         "Hosting & Maintenance",
         "Google Business Profile Setup",
         "Business Email Setup"
+      ],
+      "service_ids": [
+        "website",
+        "hosting",
+        "gbp",
+        "business_email"
       ]
     },
     {
       "id": "package_b",
       "name": "Package B \u2014 Presence + Capture",
       "description": "Everything in A, plus turn visitors into booked customers.",
-      "setup": 999,
-      "monthly": 99,
+      "setup": 899,
+      "monthly": 88,
+      "setup_gross_cents": 107400,
+      "setup_after_cents": 89900,
+      "monthly_cents": 8800,
+      "savings_cents": 17500,
+      "pricing_mode": "promo",
       "services": [
         "Professional Website",
         "Hosting & Maintenance",
@@ -26,14 +42,27 @@
         "Business Email Setup",
         "Review Readiness System",
         "Online Booking Setup"
+      ],
+      "service_ids": [
+        "website",
+        "hosting",
+        "gbp",
+        "business_email",
+        "reviews",
+        "booking"
       ]
     },
     {
       "id": "package_c",
       "name": "Package C \u2014 Presence + Capture + Growth",
       "description": "Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.",
-      "setup": 1399,
-      "monthly": 624,
+      "setup": 1799,
+      "monthly": 553,
+      "setup_gross_cents": 222400,
+      "setup_after_cents": 179900,
+      "monthly_cents": 55300,
+      "savings_cents": 42500,
+      "pricing_mode": "promo",
       "services": [
         "Professional Website",
         "Hosting & Maintenance",
@@ -45,7 +74,178 @@
         "Promotional Landing Page",
         "Analytics Dashboard & Monthly Report",
         "Google Ads Management"
+      ],
+      "service_ids": [
+        "website",
+        "hosting",
+        "gbp",
+        "business_email",
+        "reviews",
+        "booking",
+        "local_seo",
+        "promo_landing_page",
+        "monthly_reporting",
+        "google_ads"
       ]
+    }
+  ],
+  "services": [
+    {
+      "id": "website",
+      "name": "Professional Website",
+      "tier": "tier_1",
+      "bill_type": "one_time",
+      "setup_cents": 49900,
+      "monthly_cents": 0,
+      "blurb": "Up to 5 pages (home, services, about, contact, reviews)",
+      "self_serve": true
+    },
+    {
+      "id": "hosting",
+      "name": "Hosting & Maintenance",
+      "tier": "tier_1",
+      "bill_type": "recurring",
+      "setup_cents": 0,
+      "monthly_cents": 4900,
+      "blurb": "Hosting + SSL",
+      "self_serve": true
+    },
+    {
+      "id": "gbp",
+      "name": "Google Business Profile Setup",
+      "tier": "tier_1",
+      "bill_type": "one_time",
+      "setup_cents": 12500,
+      "monthly_cents": 0,
+      "blurb": "Claim / verify profile",
+      "self_serve": true
+    },
+    {
+      "id": "business_email",
+      "name": "Business Email Setup",
+      "tier": "tier_1",
+      "bill_type": "one_time",
+      "setup_cents": 7500,
+      "monthly_cents": 0,
+      "blurb": "Google Workspace setup",
+      "self_serve": true
+    },
+    {
+      "id": "contact_forms",
+      "name": "Contact Forms & Lead Routing",
+      "tier": "tier_1",
+      "bill_type": "one_time",
+      "setup_cents": 7500,
+      "monthly_cents": 0,
+      "blurb": "Form to email",
+      "self_serve": true
+    },
+    {
+      "id": "booking",
+      "name": "Online Booking Setup",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 30000,
+      "monthly_cents": 0,
+      "blurb": "Provider integration (Calendly / Square / Vagaro / Acuity / Mindbody)",
+      "self_serve": true
+    },
+    {
+      "id": "reviews",
+      "name": "Review Readiness System",
+      "tier": "tier_2",
+      "bill_type": "recurring",
+      "setup_cents": 7500,
+      "monthly_cents": 3900,
+      "blurb": "Google review link",
+      "self_serve": true
+    },
+    {
+      "id": "local_seo",
+      "name": "Local SEO",
+      "tier": "tier_2",
+      "bill_type": "recurring",
+      "setup_cents": 40000,
+      "monthly_cents": 9500,
+      "blurb": "City / service / location / FAQ pages",
+      "self_serve": true
+    },
+    {
+      "id": "monthly_reporting",
+      "name": "Analytics Dashboard & Monthly Report",
+      "tier": "tier_2",
+      "bill_type": "recurring",
+      "setup_cents": 5000,
+      "monthly_cents": 2000,
+      "blurb": "Owner-friendly monthly report (calls, form leads, bookings)",
+      "self_serve": true
+    },
+    {
+      "id": "promo_landing_page",
+      "name": "Promotional Landing Page",
+      "tier": "tier_3",
+      "bill_type": "one_time",
+      "setup_cents": 40000,
+      "monthly_cents": 0,
+      "blurb": "Single-purpose campaign page (e.g. summer.company.com)",
+      "self_serve": true
+    },
+    {
+      "id": "google_ads",
+      "name": "Google Ads Management",
+      "tier": "tier_3",
+      "bill_type": "recurring",
+      "setup_cents": 30000,
+      "monthly_cents": 35000,
+      "blurb": "Campaign setup + management",
+      "self_serve": true
+    },
+    {
+      "id": "meta_ads",
+      "name": "Meta (Facebook/Instagram) Ads Management",
+      "tier": "tier_3",
+      "bill_type": "recurring",
+      "setup_cents": 30000,
+      "monthly_cents": 35000,
+      "blurb": "Campaign setup + management",
+      "self_serve": true
+    },
+    {
+      "id": "crm_setup",
+      "name": "CRM Setup",
+      "tier": "tier_3",
+      "bill_type": "one_time",
+      "setup_cents": 25000,
+      "monthly_cents": 0,
+      "blurb": "HubSpot / GoHighLevel / Zoho / Pipedrive setup",
+      "self_serve": true
+    },
+    {
+      "id": "follow_up_automation",
+      "name": "Automated Follow-Up",
+      "tier": "tier_3",
+      "bill_type": "recurring",
+      "setup_cents": 12500,
+      "monthly_cents": 3900,
+      "blurb": "Lead to auto text to auto email",
+      "self_serve": true
+    }
+  ],
+  "discount_tiers": [
+    {
+      "min": 1,
+      "max": 2,
+      "pct": 0
+    },
+    {
+      "min": 3,
+      "max": 4,
+      "pct": 10
+    },
+    {
+      "min": 5,
+      "max": null,
+      "pct": 15
     }
   ]
 }
