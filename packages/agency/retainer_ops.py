@@ -43,6 +43,9 @@ def plan_retainer_run(record: dict[str, object], *, month: str) -> RetainerRun:
     if "reviews" in services:
         planned.append("draft_review_readiness")
         blocked.append("review_sms_activation")
+    if "follow_up_automation" in services:
+        # Recurring: review/tune the email follow-up sequences + task reminders.
+        planned.append("review_follow_up")
     return RetainerRun(
         product_id=str(record["id"]),
         month=month,
