@@ -104,6 +104,9 @@ class ClientConfig:
     # ``billing_status`` but never these). Defaulted so legacy records load.
     accepted_by: str = ""
     accepted_at: str = ""
+    # The client's own Netlify site id (their site, their account). Stamped at
+    # launch; lets the lead-health drain target their `inbound-leads` Blobs store.
+    netlify_site_id: str = ""
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -114,6 +117,7 @@ class ClientConfig:
             "billing_status": self.billing_status.value,
             "accepted_by": self.accepted_by,
             "accepted_at": self.accepted_at,
+            "netlify_site_id": self.netlify_site_id,
         }
 
     @classmethod
@@ -132,6 +136,7 @@ class ClientConfig:
             ),
             accepted_by=str(payload.get("accepted_by", "")),
             accepted_at=str(payload.get("accepted_at", "")),
+            netlify_site_id=str(payload.get("netlify_site_id", "")),
         )
 
 

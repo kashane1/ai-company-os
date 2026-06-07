@@ -87,3 +87,41 @@ def set_client_phase(
     registry_path: Path | None = None,
 ) -> dict[str, object]:
     return update_registry_record(product_id, {"phase": phase.value}, registry_path=registry_path)
+
+
+def set_client_netlify_site_id(
+    product_id: str,
+    site_id: str,
+    *,
+    registry_path: Path | None = None,
+) -> dict[str, object]:
+    """Stamp the client's own Netlify site id onto the nested ``client`` block.
+
+    Recorded at launch so the lead-health drain can target the client's
+    ``inbound-leads`` Blobs store on their own site.
+    """
+    record = get_registry_record(product_id, registry_path=registry_path)
+    client = {**(record.get("client") or {}), "netlify_site_id": site_id}
+    return update_registry_record(product_id, {"client": client}, registry_path=registry_path)
+
+
+def lead_drain_targets(*, registry_path: Path | None = None) -> list[dict[str, str]]:
+    """Client sites whose contact-form lead store should be drained + monitored.
+
+    A target is a ``client-site`` record that sells ``hosting`` (the SLA carrying
+    "contact-form monitoring") AND has a recorded ``netlify_site_id``. Returns
+    ``[{"product_id", "site_id"}]``. This is the canonical filter; the Node drain
+    (``scripts/web/pull-leads.mjs``) mirrors it.
+    """
+    targets: list[dict[str, str]] = []
+    for record in load_registry(registry_path):
+        if record.get("type") != "client-site":
+            continue
+        client = record.get("client") or {}
+        if not isinstance(client, dict):
+            continue
+        site_id = str(client.get("netlify_site_id", "")).strip()
+        services = [str(s) for s in list(client.get("services", []))]
+        if site_id and "hosting" in services:
+            targets.append({"product_id": str(record["id"]), "site_id": site_id})
+    return targets

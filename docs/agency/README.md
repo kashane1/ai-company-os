@@ -18,6 +18,7 @@ the stage doc you need.
 | Outreach | channel × genre templates, send, track replies | [waas-prospecting-lane.md](../waas-prospecting-lane.md) (stages 6–8) | `packages/agency/outreach.py`, `scripts/agency/build_outreach.py` |
 | 3–6 Sale → client | promote prospect → intake → scaffold → launch → SEO | [agency/client-lifecycle.md](client-lifecycle.md) · [agency/go-live-checklist.md](go-live-checklist.md) | `packages/agency/client_lifecycle.py`, `intake.py`, `launch.py`, `local_seo.py` |
 | Retainer ops | monthly report, ads, GBP, email, billing | [agency/operator-ads-playbook.md](operator-ads-playbook.md) | `packages/agency/retainer_ops.py`, `monthly_report.py`, `billing.py` |
+| Lead monitoring (hosting SLA) | drain each client's `inbound-leads` → flag leads captured but never emailed | (this doc) | `scripts/web/pull-leads.mjs` → `scripts/agency/check_lead_health.py` (`packages/agency/lead_health.py`) |
 
 Lessons learned from real runs: [demo-site-learnings.md](../demo-site-learnings.md).
 Service/genre definitions: [agency/service-catalog.md](service-catalog.md).
@@ -90,7 +91,9 @@ both the bespoke playbook (path B, as fallback guidance) and the Astro scaffold 
 - **`scripts/agency/`** — runnable entrypoints: `gather_place`, `build_prospect_site`,
   `build_portfolio_demos`, `client_intake`, `launch_client`, `build_outreach`,
   `preview_site`, `screenshot_demo`, `retheme_sites`, `inject_booking`, … (28 scripts).
-- **`scripts/web/`** — `shoot.mjs` (Playwright full-page screenshots) — see
+- **`scripts/web/`** — `shoot.mjs` (Playwright full-page screenshots),
+  `pull-inbound.mjs` / `pull-orders.mjs` / `pull-leads.mjs` (Netlify Blobs drains:
+  reviews, self-serve orders, and per-client contact-form leads) — see
   [scripts/web/README.md](../../scripts/web/README.md).
 
 ## Skills (canonical + claude adapters)

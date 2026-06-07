@@ -28,7 +28,10 @@ from packages.agency.client_lifecycle import (  # noqa: E402
     mark_client_live,
     run_client_launch_checklist,
 )
-from packages.agency.registry import get_registry_record  # noqa: E402
+from packages.agency.registry import (  # noqa: E402
+    get_registry_record,
+    set_client_netlify_site_id,
+)
 
 
 def _report_dict(report) -> dict:
@@ -56,6 +59,11 @@ def main() -> int:
             help="record that custom-domain/DNS approval was granted",
         )
         cmd.add_argument("--pass-threshold", type=int, default=70)
+        cmd.add_argument(
+            "--netlify-site-id",
+            default="",
+            help="client's Netlify site id; stamped on mark-live for lead-health monitoring",
+        )
 
     args = ap.parse_args()
     dist = args.dist if args.dist.is_absolute() else REPO / args.dist
@@ -94,6 +102,11 @@ def main() -> int:
 
     print(json.dumps(_report_dict(report), indent=2))
     if report.ready:
+        # Persist the client's Netlify site id at launch so the lead-health drain
+        # can find their inbound-leads store. Only on mark-live (the live event).
+        if args.command == "mark-live" and args.netlify_site_id:
+            set_client_netlify_site_id(args.product_id, args.netlify_site_id)
+            print(f"recorded netlify_site_id={args.netlify_site_id} for {args.product_id}")
         print(f"\n{'LIVE' if args.command == 'mark-live' else 'READY'} — {args.product_id}")
         return 0
     print("\nFAILED items:", file=sys.stderr)
