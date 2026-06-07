@@ -22,7 +22,7 @@
 |---|---|---|---|
 | Booking — Connect (your tool) (`booking_connect`) | one-time | $150 | — |
 | Booking — Done-for-you Setup (`booking_setup`) | one-time | $350 | — |
-| Booking — Native on-site (`booking_native`) | recurring | $450 | $35/mo |
+| Booking — Fully Managed (`booking_native`) | recurring | $450 | $35/mo |
 | Booking Deposits & Prepayment (`booking_deposits`) | one-time | $120 | — |
 | Booking Multi-staff & Resources (`booking_multistaff`) | one-time | $150 | — |
 | Class & Group Scheduling (`booking_classes`) | one-time | $200 | — |

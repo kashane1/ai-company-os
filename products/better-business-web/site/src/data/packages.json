@@ -169,19 +169,19 @@
       "bill_type": "one_time",
       "setup_cents": 35000,
       "monthly_cents": 0,
-      "blurb": "Pick + fully configure a provider from scratch",
+      "blurb": "We pick + fully configure the right platform (Calendly, Square, or Acuity)",
       "self_serve": true,
       "exclusive_group": "booking_base",
       "requires_group": ""
     },
     {
       "id": "booking_native",
-      "name": "Booking \u2014 Native on-site",
+      "name": "Booking \u2014 Fully Managed",
       "tier": "tier_2",
       "bill_type": "recurring",
       "setup_cents": 45000,
       "monthly_cents": 3500,
-      "blurb": "Booking built into your site \u2014 no third-party subscription",
+      "blurb": "We set up and run your booking on a proven platform (Square or Acuity) for you",
       "self_serve": true,
       "exclusive_group": "booking_base",
       "requires_group": ""

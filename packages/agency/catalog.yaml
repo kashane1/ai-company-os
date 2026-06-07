@@ -94,22 +94,23 @@ services:
     monthly_fee: 0
     exclusive_group: booking_base
     includes:
-      - Pick + fully configure a provider from scratch
+      - We pick + fully configure the right platform (Calendly, Square, or Acuity)
       - Services, staff, durations, buffers, hours
       - Calendar sync + confirmations + reminders
-      - You pay the booking provider
+      - You keep + pay the platform; account stays in your name
 
   - service_id: booking_native
-    name: "Booking — Native on-site"
+    name: "Booking — Fully Managed"
     tier: tier_2
     bill_type: recurring
     setup_fee: 450
     monthly_fee: 35
     exclusive_group: booking_base
     includes:
-      - Booking built into your site — no third-party subscription
-      - Online scheduling, confirmations, reminders
-      - I manage your calendar + availability (included)
+      - We set up and run your booking on a proven platform (Square or Acuity) for you
+      - Online scheduling, confirmations, reminders, and deposits, all handled
+      - Ongoing calendar and availability management included; you never touch the dashboard
+      - Account stays in your name; you keep and pay the platform, we do the work
     edit_limit: "Ongoing management + tweaks included"
 
   - service_id: booking_deposits
@@ -162,7 +163,7 @@ services:
     requires_group: booking_base
     includes:
       - Ongoing availability / service / staff edits, seasonal hours
-      - No-show monitoring (for Connect / Done-for-you; Native includes this)
+      - No-show monitoring (for Connect / Done-for-you; Fully Managed includes this)
 
   - service_id: reviews
     name: Review Readiness System
