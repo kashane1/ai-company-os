@@ -67,6 +67,34 @@ sign-off** (the client has approved the preview and provided all intake material
   connects their Ads account and approves a daily + monthly budget cap (ads go live
   only after that approval; spend stays in the client's account).
 
+## Managed booking
+
+"Booking — Fully Managed" ($450 setup + $35/mo) and the "Booking Management" add-on
+($35/mo) are delivered on a **proven platform** (Calendly / Square / Acuity), set up under
+the **client's own account** with us holding delegated admin access. We do not build custom
+booking software. Routing + setup: [booking-platform-routing.md](booking-platform-routing.md).
+
+**The $35/mo covers (labor only):**
+- Up to ~2 change requests / month: availability + seasonal hours, add/edit/remove a service
+  or staff member, price/duration tweaks, reminder/confirmation copy timing.
+- A monthly no-show / booking-volume glance from the platform dashboard.
+- A booking-link + calendar-sync sanity check.
+
+**Not included (bill separately or out of scope):**
+- The client's **platform subscription** (Calendly/Square/Acuity) — the client pays the
+  platform directly; our fee is labor only.
+- Live / same-day response or real-time calendar management. We are not a receptionist:
+  no answering customer messages, manual rebooking, or refund/dispute handling.
+- New capabilities (deposits, classes, multi-staff, intake build-outs) — these are one-time
+  setup add-ons (`booking_deposits` $120, `booking_multistaff` $150, `booking_classes` $200,
+  `booking_intake` $90).
+
+**Reminders** are sent by the platform on its own messaging registration (transactional), so
+there is no SMS-compliance burden on the client — we never run a separate texting path.
+
+**Offboarding:** remove our delegated access; the client keeps the account, calendar, and
+booking history. Nothing to migrate.
+
 ## Scope boundaries (prevent creep)
 
 State these in the OFFER so "can you also…" has a boundary. Every request is
