@@ -25,6 +25,10 @@ from packages.config.settings import (
 
 # The custom-event goal the client site must fire on form submit.
 FORM_LEAD_GOAL = "Form Lead"
+# Optional goal: a click on the site's tap-to-call (tel:) link. A free, honest
+# proxy for "calls" using the same Plausible-goal mechanism as form leads — it
+# measures call-button taps, NOT verified calls (that needs paid call tracking).
+CALL_CLICK_GOAL = "Call Click"
 _DEFAULT_BASE_URL = "https://plausible.io"
 
 
@@ -158,3 +162,31 @@ def fetch_monthly_stats(
     )
     form_leads = leads[0] if leads else 0
     return MonthlyStats(visits=visits, pageviews=pageviews, form_leads=form_leads)
+
+
+def fetch_goal_conversions(
+    client: StatsClient,
+    *,
+    site_id: str,
+    date_range: list[str],
+    goal: str,
+) -> int | None:
+    """Visitor conversions for an OPTIONAL goal, or ``None`` if it isn't configured.
+
+    Unlike :func:`fetch_monthly_stats`' form-lead goal (which fails loud), this is
+    for goals a site may legitimately not have set up — e.g. the tap-to-call goal.
+    ``None`` means "not tracked" (render accordingly); never a fake 0.
+    """
+    if not site_has_goal(client, site_id, date_range, goal):
+        return None
+    rows = _first_metrics(
+        client.query(
+            {
+                "site_id": site_id,
+                "metrics": ["visitors", "events"],
+                "date_range": date_range,
+                "filters": [["is", "event:goal", [goal]]],
+            }
+        )
+    )
+    return rows[0] if rows else 0

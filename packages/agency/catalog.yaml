@@ -199,9 +199,9 @@ services:
     setup_fee: 50
     monthly_fee: 20
     includes:
-      - Owner-friendly monthly report (calls, form leads, bookings)
-      - Edits completed
-      - Recommended next action
+      - "Owner-friendly monthly report: website visits, form leads, and tap-to-call clicks"
+      - Bookings where managed booking is set up; verified calls where call tracking is added
+      - Edits completed + recommended next action
 
   # --- Tier 3: recurring-revenue goldmine ---
   - service_id: promo_landing_page

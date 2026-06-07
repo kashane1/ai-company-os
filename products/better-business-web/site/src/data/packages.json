@@ -277,7 +277,7 @@
       "bill_type": "recurring",
       "setup_cents": 5000,
       "monthly_cents": 2000,
-      "blurb": "Owner-friendly monthly report (calls, form leads, bookings)",
+      "blurb": "Owner-friendly monthly report: website visits, form leads, and tap-to-call clicks",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""

@@ -32,6 +32,12 @@ def main() -> int:
     parser.add_argument("--form-leads", type=int, default=0)
     parser.add_argument("--completed-work", action="append", default=[])
     parser.add_argument("--recommended-action", default="")
+    parser.add_argument(
+        "--bookings",
+        type=int,
+        default=None,
+        help="bookings this month from the managed-booking dashboard (omit if N/A)",
+    )
     args = parser.parse_args()
 
     record = get_registry_record(args.product_id)
@@ -55,6 +61,7 @@ def main() -> int:
             completed_work=args.completed_work,
             recommended_action=args.recommended_action,
             billing_status=billing_status,
+            bookings=args.bookings,
         )
     else:
         metrics = MonthlyMetrics(
@@ -62,6 +69,7 @@ def main() -> int:
             month=args.month,
             visits=args.visits,
             form_leads=args.form_leads,
+            bookings=args.bookings,
             completed_work=args.completed_work,
             recommended_action=args.recommended_action,
             billing_status=billing_status,
