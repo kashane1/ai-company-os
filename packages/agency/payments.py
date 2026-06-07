@@ -29,9 +29,11 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Callable, Protocol, runtime_checkable
 
+from packages.agency.catalog import default_catalog
 from packages.config.settings import STRIPE_PRICE_MAP_ENV_VAR, get_api_key
 from packages.db.approval_store import ApprovalStore
 from packages.policies.agency_gates import assert_retainer_approval_granted
+from packages.schemas.offer import BundleQuote, CatalogError, ServiceCatalog
 
 # Stripe Checkout sessions expire between 30 min and 24h from creation.
 _MIN_EXPIRES = 30 * 60
@@ -83,6 +85,14 @@ class CheckoutProvider(Protocol):
     def create_subscription_checkout(self, request: CheckoutRequest) -> CheckoutSession: ...
 
 
+@runtime_checkable
+class InlineCheckoutProvider(Protocol):
+    """Provider for the inline (catalog-priced) path — honours ``request.mode``
+    (subscription or payment). ``StripeCheckoutProvider`` implements both."""
+
+    def create_checkout(self, request: CheckoutRequest) -> CheckoutSession: ...
+
+
 class StripeCheckoutProvider:
     """Real provider — wraps the Stripe SDK. ``stripe`` is imported lazily so the
     seam (and its tests) don't require the package."""
@@ -104,6 +114,29 @@ class StripeCheckoutProvider:
             api_key=self._secret_key,
             idempotency_key=request.idempotency_key,
         )
+        return CheckoutSession(
+            url=str(session.url),
+            session_id=str(session.id),
+            expires_at=int(session.expires_at or request.expires_at),
+        )
+
+    def create_checkout(self, request: CheckoutRequest) -> CheckoutSession:
+        import stripe  # lazy — only the real path needs it
+
+        params: dict[str, object] = {
+            "mode": request.mode,
+            "line_items": list(request.line_items),
+            "metadata": request.session_metadata,
+            "expires_at": request.expires_at,
+            "success_url": request.success_url,
+            "cancel_url": request.cancel_url,
+            "api_key": self._secret_key,
+            "idempotency_key": request.idempotency_key,
+        }
+        # subscription_data is only valid in subscription mode.
+        if request.mode == "subscription":
+            params["subscription_data"] = {"metadata": request.subscription_metadata}
+        session = stripe.checkout.Session.create(**params)
         return CheckoutSession(
             url=str(session.url),
             session_id=str(session.id),
@@ -202,3 +235,121 @@ def create_client_checkout(
         cancel_url=cancel_url,
     )
     return provider.create_subscription_checkout(request)
+
+
+def _inline_line_items(quote: BundleQuote) -> tuple[dict[str, object], ...]:
+    """Build Stripe inline ``price_data`` line items from a catalog quote.
+
+    Recurring monthly (when > 0) + a one-time setup line (after discount/promo).
+    Mirrors the JS ``create-checkout`` function so the operator CLI and the web
+    self-serve flow charge identical amounts.
+    """
+    items: list[dict[str, object]] = []
+    if quote.monthly_cents > 0:
+        items.append(
+            {
+                "quantity": 1,
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": quote.monthly_cents,
+                    "recurring": {"interval": "month"},
+                    "product_data": {"name": "Monthly services"},
+                },
+            }
+        )
+    if quote.setup_after_cents > 0:
+        items.append(
+            {
+                "quantity": 1,
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": quote.setup_after_cents,
+                    "product_data": {"name": "Setup (one-time)"},
+                },
+            }
+        )
+    return tuple(items)
+
+
+def create_inline_checkout(
+    product_id: str,
+    *,
+    provider: InlineCheckoutProvider,
+    catalog: ServiceCatalog | None = None,
+    bundle: str | None = None,
+    service_ids: list[str] | None = None,
+    mode: str = "test",
+    source: str = "agent-cli",
+    approval_id: str = "",
+    store: ApprovalStore | None = None,
+    success_url: str = "https://better-business-web.netlify.app/welcome/",
+    cancel_url: str = "https://better-business-web.netlify.app/build/",
+    expires_in_seconds: int = _MAX_EXPIRES,
+    now: Clock = _utc_now,
+) -> CheckoutSession:
+    """Create a checkout from the catalog (inline ``price_data``) — the agent/CLI
+    twin of the web self-serve flow, and the single pricing path for both.
+
+    Pass ``bundle`` for a named package (curated promo) or ``service_ids`` for an
+    arbitrary custom cart (tier discount). Setup-only carts use ``payment`` mode;
+    carts with a monthly use ``subscription`` mode. Live mode is approval-gated.
+    """
+    if mode not in {"test", "live"}:
+        raise PaymentInitiationError(f"mode must be 'test' or 'live', got {mode!r}")
+    if bool(bundle) == bool(service_ids):
+        raise PaymentInitiationError("pass exactly one of bundle or service_ids")
+
+    catalog = catalog or default_catalog()
+    try:
+        if bundle:
+            quote = catalog.quote_bundle(bundle)
+            bundle_token = bundle
+            ids = [s.service_id for s in quote.services]
+        else:
+            assert service_ids is not None
+            errors = catalog.validate_selection(service_ids)
+            if errors:
+                raise PaymentInitiationError("; ".join(errors))
+            quote = catalog.quote_services(service_ids)
+            bundle_token = "custom"
+            ids = list(service_ids)
+    except CatalogError as exc:
+        raise PaymentInitiationError(str(exc)) from exc
+
+    if mode == "live":
+        assert_retainer_approval_granted(
+            approval_id,
+            product_id=product_id,
+            approval_type="stripe_live_subscription",
+            store=store,
+        )
+
+    line_items = _inline_line_items(quote)
+    if not line_items:
+        raise PaymentInitiationError("nothing to charge (no setup or monthly)")
+    checkout_mode = "subscription" if quote.monthly_cents > 0 else "payment"
+
+    metadata = {
+        "product_id": product_id,
+        "bundle": bundle_token,
+        "service_ids": ",".join(ids)[:480],
+        "mode": mode,
+        "source": source,
+    }
+    expires_in = max(_MIN_EXPIRES, min(_MAX_EXPIRES, expires_in_seconds))
+    expires_at = int(now().timestamp()) + expires_in
+    idem = (
+        f"inline:{product_id}:{bundle_token}:{mode}:{','.join(sorted(ids))}:"
+        f"{quote.setup_after_cents}:{quote.monthly_cents}"
+    )[:200]
+    request = CheckoutRequest(
+        line_items=line_items,
+        mode=checkout_mode,
+        session_metadata=dict(metadata),
+        subscription_metadata=dict(metadata),
+        idempotency_key=idem,
+        expires_at=expires_at,
+        success_url=success_url,
+        cancel_url=cancel_url,
+    )
+    return provider.create_checkout(request)

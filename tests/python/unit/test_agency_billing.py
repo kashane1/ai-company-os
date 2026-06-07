@@ -77,6 +77,29 @@ def test_reconcile_stripe_event_updates_ledger_and_registry(tmp_path: Path) -> N
     assert updated[0]["client"]["billing_status"] == "active"
 
 
+def test_reconcile_records_custom_bundle_service_ids(tmp_path: Path) -> None:
+    registry = tmp_path / "products.json"
+    billing_root = tmp_path / "billing"
+    _registry(registry)
+
+    event = _event()
+    event["data"]["object"]["metadata"] = {
+        "product_id": "joes-plumbing-site",
+        "bundle": "custom",
+        "service_ids": "website,booking_setup,booking_deposits",
+    }
+    ledger = reconcile_stripe_event(event, billing_root=billing_root, registry_path=registry)
+    assert ledger.bundle == "custom"
+    assert ledger.service_ids == ["website", "booking_setup", "booking_deposits"]
+    # persisted + survives reload
+    saved = load_ledger("joes-plumbing-site", billing_root=billing_root)
+    assert saved is not None and saved.service_ids == [
+        "website",
+        "booking_setup",
+        "booking_deposits",
+    ]
+
+
 def test_reconcile_stripe_event_is_idempotent(tmp_path: Path) -> None:
     registry = tmp_path / "products.json"
     billing_root = tmp_path / "billing"

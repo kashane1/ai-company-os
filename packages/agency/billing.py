@@ -70,6 +70,10 @@ class BillingLedger:
     provider: str = "stripe"
     mode: str = "test"
     bundle: str = ""
+    # The purchased service set (from checkout metadata). For a named bundle this
+    # mirrors the catalog; for a self-serve "custom" bundle it's the only record of
+    # what was bought, so fulfillment can read it off the ledger.
+    service_ids: list[str] = field(default_factory=list)
     customer_id: str = ""
     subscription_id: str = ""
     setup_price_id: str = ""
@@ -88,6 +92,7 @@ class BillingLedger:
             "provider": self.provider,
             "mode": self.mode,
             "bundle": self.bundle,
+            "service_ids": list(self.service_ids),
             "customer_id": self.customer_id,
             "subscription_id": self.subscription_id,
             "setup_price_id": self.setup_price_id,
@@ -107,6 +112,7 @@ class BillingLedger:
             provider=str(payload.get("provider", "stripe")),
             mode=str(payload.get("mode", "test")),
             bundle=str(payload.get("bundle", "")),
+            service_ids=[str(s) for s in list(payload.get("service_ids", []))],
             customer_id=str(payload.get("customer_id", "")),
             subscription_id=str(payload.get("subscription_id", "")),
             setup_price_id=str(payload.get("setup_price_id", "")),
@@ -215,10 +221,20 @@ def reconcile_stripe_event(
     target = _target_status(current_status, event_type, obj)
     new_status = target if target is not None else current_status
 
+    # Carry the purchased composition from metadata (set on both session and
+    # subscription_data, so renewals keep it); fall back to the existing ledger.
+    meta_service_ids = str(metadata.get("service_ids", "")).strip()
+    service_ids = (
+        [s for s in meta_service_ids.split(",") if s]
+        if meta_service_ids
+        else (current.service_ids if current else [])
+    )
+
     ledger = BillingLedger(
         product_id=product_id,
         mode=event_mode,
         bundle=bundle,
+        service_ids=service_ids,
         customer_id=str(obj.get("customer") or (current.customer_id if current else "")),
         subscription_id=str(
             obj.get("subscription")
