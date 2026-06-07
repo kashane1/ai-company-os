@@ -18,6 +18,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
+from packages.agency.ad_policy import check_ad_vertical  # noqa: E402
 from packages.agency.google_ads import draft_google_ads, emit_ads_draft  # noqa: E402
 from packages.agency.intake import ClientIntake  # noqa: E402
 
@@ -50,6 +51,17 @@ def main() -> int:
         service_area_cities=_csv(args.service_area),
         site_url=args.site_url,
     )
+
+    # Don't draft a campaign for a vertical that can't run on Google.
+    level, reason = check_ad_vertical(intake.service_category, "google")
+    if level == "banned":
+        print(f"ERROR: {reason}; refusing to draft a Google Ads campaign", file=sys.stderr)
+        return 2
+    if level == "restricted":
+        print(
+            f"WARNING: {reason}; confirm eligibility/certification before go-live",
+            file=sys.stderr,
+        )
 
     try:
         if args.print or not args.out:
