@@ -128,10 +128,14 @@ import "../styles/global.css";
         <div class="cta-card stack-lg">
           <h2>{{CTA_HEADLINE}}</h2>
           <p style="opacity:0.92;max-width:48ch;margin-inline:auto">{{CTA_SUBHEAD}}</p>
-          <!-- Wire to a real handler (Netlify form / Stripe Checkout) in F8. -->
-          <form class="cta-form" name="waitlist" method="post" action="#">
-            <label for="email" class="visually-hidden" style="position:absolute;left:-9999px">Email address</label>
-            <input id="email" type="email" name="email" placeholder="you@work.com"
+          <!-- Lead capture: posts to the contact Netlify function (contact_forms → email). -->
+          <form class="cta-form" name="contact" method="POST" action="/.netlify/functions/contact">
+            <p hidden><label>Don't fill this out if you're human:
+              <input name="bot-field" aria-label="Leave this field empty" tabindex="-1" autocomplete="off" /></label></p>
+            <label for="lead-name" class="visually-hidden" style="position:absolute;left:-9999px">Your name</label>
+            <input id="lead-name" type="text" name="name" placeholder="Your name" autocomplete="name" />
+            <label for="lead-contact" class="visually-hidden" style="position:absolute;left:-9999px">Email or phone</label>
+            <input id="lead-contact" type="text" name="contact" placeholder="Email or phone"
                    autocomplete="email" required />
             <button class="btn btn-ghost btn-lg" type="submit">{{PRIMARY_CTA}}</button>
           </form>
