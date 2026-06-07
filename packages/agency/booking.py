@@ -51,9 +51,45 @@ _PROVIDERS: dict[str, str] = {
 
 SUPPORTED_PROVIDERS = tuple(sorted(_PROVIDERS))
 
+# The stackable booking modifier SKUs (catalog `requires_group: booking_base`).
+BOOKING_MODIFIERS = (
+    "booking_deposits",
+    "booking_multistaff",
+    "booking_classes",
+    "booking_intake",
+    "booking_management",
+)
+
+# Platform capability for each modifier, encoding the routing matrix in
+# docs/agency/booking-platform-routing.md so a sale can't be fulfilled on a
+# platform that can't deliver it. Level is one of:
+#   "none"    — not deliverable on this platform (hard block → BookingError)
+#   "limited" — deliverable but degraded (operator advisory, not a block)
+# A (modifier, provider) pair absent from this map is fully supported.
+# The full salon/studio platforms (vagaro/mindbody/fresha/booksy) default to full.
+_MODIFIER_PLATFORM: dict[str, dict[str, tuple[str, str]]] = {
+    "booking_deposits": {
+        "calendly": ("limited", "Calendly collects full prepayment only — no partial deposit"),
+        "square": (
+            "limited",
+            "Square does card-hold / full prepay — no partial deposit (Acuity for true %)",
+        ),
+    },
+    "booking_multistaff": {
+        "calendly": ("limited", "Calendly multi-staff/round-robin is weak — prefer Square/Acuity"),
+        "acuity": ("limited", "Acuity Standard caps at 6 staff calendars"),
+    },
+    "booking_classes": {
+        "calendly": ("none", "Calendly has no group/class scheduling — use Square (Plus)/Acuity"),
+    },
+    "booking_intake": {
+        "calendly": ("limited", "Calendly intake fields are basic — use Acuity for rich intake"),
+    },
+}
+
 
 class BookingError(ValueError):
-    """Unsupported provider, bad URL, or no injection target."""
+    """Unsupported provider, bad URL, no injection target, or modifier/platform mismatch."""
 
 
 def _validate_url(url: str) -> str:
@@ -74,6 +110,52 @@ def render_booking_embed(provider: str, booking_url: str) -> str:
             f"unsupported provider {provider!r}; supported: {', '.join(SUPPORTED_PROVIDERS)}"
         )
     return template.format(url=_validate_url(booking_url))
+
+
+def check_modifiers_for_platform(
+    provider: str, modifiers: tuple[str, ...] | list[str]
+) -> tuple[list[str], list[str]]:
+    """Return ``(errors, warnings)`` for a set of booking modifiers on ``provider``.
+
+    ``errors`` are modifiers the platform genuinely can't deliver (a hard block);
+    ``warnings`` are deliverable-but-degraded combos the operator should know about
+    (e.g. partial deposits on Square). Unknown modifier ids are reported as errors.
+    """
+    key = provider.strip().lower()
+    errors: list[str] = []
+    warnings: list[str] = []
+    for modifier in modifiers:
+        if modifier not in BOOKING_MODIFIERS:
+            errors.append(f"unknown booking modifier {modifier!r}")
+            continue
+        level, note = _MODIFIER_PLATFORM.get(modifier, {}).get(key, ("full", ""))
+        if level == "none":
+            errors.append(f"{modifier} is not supported on {key}: {note}")
+        elif level == "limited":
+            warnings.append(f"{modifier} is limited on {key}: {note}")
+    return errors, warnings
+
+
+def assert_modifiers_supported(
+    provider: str, modifiers: tuple[str, ...] | list[str]
+) -> None:
+    """Raise :class:`BookingError` if any modifier can't be delivered on ``provider``."""
+    errors, _ = check_modifiers_for_platform(provider, modifiers)
+    if errors:
+        raise BookingError("; ".join(errors))
+
+
+def recommend_platform(modifiers: tuple[str, ...] | list[str]) -> str:
+    """Recommend a managed platform (square/acuity/calendly) for a modifier set.
+
+    Mirrors the routing rule in booking-platform-routing.md: anything needing
+    real payments/staff/classes/intake routes to Acuity (one cheap plan covers
+    deposits + classes + SMS + intake); a bare booking goes to Calendly.
+    """
+    wants = set(modifiers)
+    if wants & {"booking_deposits", "booking_classes", "booking_multistaff", "booking_intake"}:
+        return "acuity"
+    return "calendly"
 
 
 def inject_booking_embed(html: str, embed: str) -> str:
@@ -129,6 +211,10 @@ class BookingSetup:
     # True for the recurring "Booking — Fully Managed" service (we run it on the
     # platform for the client); False for one-time Connect / Done-for-you setup.
     managed: bool = False
+    # The purchased modifier SKUs (deposits/multistaff/classes/intake/management).
+    # Validated against the chosen provider so a sale can't be marked fulfilled on
+    # a platform that can't deliver a modifier (e.g. classes on Calendly).
+    modifiers: tuple[str, ...] = ()
 
     def validate(self) -> None:
         if not self.product_id.strip():
@@ -136,6 +222,7 @@ class BookingSetup:
         if self.provider.strip().lower() not in _PROVIDERS:
             raise BookingError(f"unsupported provider {self.provider!r}")
         _validate_url(self.booking_url)
+        assert_modifiers_supported(self.provider, self.modifiers)
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -145,6 +232,7 @@ class BookingSetup:
             "injected": self.injected,
             "completed_at": self.completed_at,
             "managed": self.managed,
+            "modifiers": list(self.modifiers),
         }
 
     @classmethod
@@ -156,6 +244,7 @@ class BookingSetup:
             injected=bool(payload.get("injected", False)),
             completed_at=str(payload.get("completed_at", "")),
             managed=bool(payload.get("managed", False)),
+            modifiers=tuple(str(m) for m in payload.get("modifiers", [])),
         )
 
 

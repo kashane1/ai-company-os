@@ -9,10 +9,13 @@ import pytest
 from packages.agency.booking import (
     BookingError,
     BookingSetup,
+    assert_modifiers_supported,
+    check_modifiers_for_platform,
     inject_booking_embed,
     inject_booking_html_into_file,
     inject_booking_into_file,
     load_booking_setup,
+    recommend_platform,
     render_booking_embed,
     save_booking_setup,
 )
@@ -117,6 +120,63 @@ def test_booking_setup_managed_roundtrip(tmp_path: Path) -> None:
     save_booking_setup(record, root=tmp_path / "svc")
     loaded = load_booking_setup("acme-site", root=tmp_path / "svc")
     assert loaded is not None and loaded.managed is True
+
+
+def test_classes_not_supported_on_calendly_is_a_hard_block() -> None:
+    errors, _ = check_modifiers_for_platform("calendly", ["booking_classes"])
+    assert errors and "not supported" in errors[0]
+    with pytest.raises(BookingError, match="booking_classes"):
+        assert_modifiers_supported("calendly", ["booking_classes"])
+
+
+def test_classes_supported_on_square_and_acuity() -> None:
+    for provider in ("square", "acuity", "vagaro", "booksy"):
+        errors, _ = check_modifiers_for_platform(provider, ["booking_classes"])
+        assert errors == []
+
+
+def test_partial_deposit_is_a_warning_not_a_block() -> None:
+    # Deliverable (full prepay) but degraded — advisory, not an error.
+    errors, warnings = check_modifiers_for_platform("square", ["booking_deposits"])
+    assert errors == []
+    assert warnings and "booking_deposits" in warnings[0]
+    # Acuity does true % deposits — no warning.
+    assert check_modifiers_for_platform("acuity", ["booking_deposits"]) == ([], [])
+
+
+def test_unknown_modifier_is_an_error() -> None:
+    errors, _ = check_modifiers_for_platform("acuity", ["booking_teleport"])
+    assert errors and "unknown booking modifier" in errors[0]
+
+
+def test_booking_setup_validate_blocks_impossible_modifier(tmp_path: Path) -> None:
+    record = BookingSetup(
+        product_id="acme-site",
+        provider="calendly",
+        booking_url=CAL_URL,
+        modifiers=("booking_classes",),
+    )
+    with pytest.raises(BookingError, match="booking_classes"):
+        save_booking_setup(record, root=tmp_path / "svc")
+
+
+def test_booking_setup_modifiers_roundtrip(tmp_path: Path) -> None:
+    record = BookingSetup(
+        product_id="acme-site",
+        provider="acuity",
+        booking_url=CAL_URL,
+        modifiers=("booking_deposits", "booking_classes", "booking_intake"),
+    )
+    save_booking_setup(record, root=tmp_path / "svc")
+    loaded = load_booking_setup("acme-site", root=tmp_path / "svc")
+    assert loaded is not None and loaded.modifiers == record.modifiers
+
+
+def test_recommend_platform_routes_advanced_needs_to_acuity() -> None:
+    assert recommend_platform(["booking_classes"]) == "acuity"
+    assert recommend_platform(["booking_deposits", "booking_intake"]) == "acuity"
+    assert recommend_platform(["booking_management"]) == "calendly"
+    assert recommend_platform([]) == "calendly"
 
 
 def test_booking_setup_legacy_dict_defaults_unmanaged() -> None:
