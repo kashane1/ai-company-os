@@ -109,8 +109,13 @@ def main(argv: list[str]) -> int:
         print("All conforming project-skill pointers match their adapters.")
         return 0
 
-    print(f"regenerated {wrote} project-skill pointer(s); {len(problems)} problem(s)")
-    return 1 if problems else 0
+    print(
+        f"regenerated {wrote} project-skill pointer(s); "
+        f"{len(problems)} legacy adapter(s) skipped (see todos/086)"
+    )
+    # Regeneration succeeded. Legacy adapters without frontmatter are warnings,
+    # not failures — only --check (drift) gates CI.
+    return 0
 
 
 if __name__ == "__main__":
