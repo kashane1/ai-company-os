@@ -35,6 +35,10 @@ client onboarding, and monthly retainer ops. Runnable entrypoints live in
 - `lead_health.py` — the `hosting` "contact-form monitoring" SLA: flags leads that
   were captured but never emailed to the owner (silent Resend failure).
 - `gbp.py`, `google_ads.py`, `meta_ads.py`, `plausible.py` — Google Business Profile, Ads, analytics.
+- `ad_policy.py` — ad vertical eligibility (banned/restricted verticals per platform);
+  the draft CLIs refuse to draft an un-runnable campaign.
+- `ad_creative.py` — ad images at all placements + promo overlays; **real client
+  photos first, AI (Gemini) fallback**; drafts only (go-live stays gated).
 - `business_email.py`, `booking.py`, `promo_page.py` — email setup, booking embeds, promo pages.
 
 **Money**

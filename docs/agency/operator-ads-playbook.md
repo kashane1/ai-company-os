@@ -8,8 +8,29 @@ operator owns account connection, client budget confirmation, and go-live approv
 - Default channel: Google Search ads.
 - Meta ads (Facebook/Instagram): a parallel add-on, drafted the same way (see "Meta Ads" below).
 - Spend: billed through the client's ad account.
-- Agent work: keywords, negative keywords, ad copy, geo proposal, and launch checklist.
-- Operator work: connect account, confirm payment owner, set budget, approve go-live.
+- Agent work: keywords, negative keywords, ad copy, geo proposal, creative images, and launch checklist.
+- Operator work: connect account, confirm payment owner, set budget, approve go-live, upload creative.
+
+## Eligibility (check first)
+
+Some verticals can't run on Google/Meta. `packages/agency/ad_policy.py` enforces this
+and the draft CLIs call it: a **banned** vertical (firearms, tobacco/vaping,
+cannabis/CBD, adult) refuses to draft (exit 2); a **restricted** one (alcohol,
+gambling, high-risk finance, supplements) warns and needs certification before go-live.
+Don't sell ads to a banned vertical — your gun-store demo is the reminder.
+
+## Creative (images)
+
+`packages/agency/ad_creative.py` (CLI: `scripts/agency/generate_ad_creative.py`) produces
+ad images at all placements (1:1, 4:5, 9:16, 1.91:1) + promo overlays:
+
+- **Real photos first.** Pass the client's photos (`--photo`); AI generation
+  (Gemini) is only a fallback when none exist. Never generate the client's specific
+  storefront/staff/"customers" — fake people/awards are a deceptive-ad risk.
+- **Clean imagery + promo graphics.** Backgrounds are text-free (the platform renders
+  copy); promo overlays burn a `--headline` on via Pillow.
+- **Drafts only.** Output lands in `state/clients/<id>/ads/creative/` for operator
+  review + upload. Going live stays behind `ad_campaign_go_live`.
 
 ## Before First Campaign
 
