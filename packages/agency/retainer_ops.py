@@ -43,6 +43,10 @@ def plan_retainer_run(record: dict[str, object], *, month: str) -> RetainerRun:
     if "reviews" in services:
         planned.append("draft_review_readiness")
         blocked.append("review_sms_activation")
+    if "booking_native" in services or "booking_management" in services:
+        # Managed booking: process up to ~2 change requests, glance at no-shows,
+        # check the booking link + calendar sync still work (see client-sla.md).
+        planned.append("manage_booking")
     return RetainerRun(
         product_id=str(record["id"]),
         month=month,

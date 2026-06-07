@@ -260,11 +260,7 @@ def scaffold_client_workspace(
         "SITE_MAP.md": _stub("Site Map", client_name, "Pages and structure."),
         "COPY.md": _stub("Copy", client_name, "Page copy."),
         "LOCAL_SEO.md": _local_seo_stub(client_name),
-        "BOOKING.md": _stub(
-            "Booking",
-            client_name,
-            "Owner-managed booking URL (Fresha/Booksy/Square/etc.), embed plan, CTA copy.",
-        ),
+        "BOOKING.md": _booking_stub(client_name),
         "REVIEWS.md": _reviews_stub(client_name),
         "MAINTENANCE_PLAN.md": _stub(
             "Maintenance Plan", client_name, "What the retainer covers, edit limits, SLA."
@@ -332,6 +328,28 @@ def _local_seo_stub(client_name: str) -> str:
             "service_area_cities: []  # e.g. [Tacoma, Federal Way, Kent]",
             "services: []",
             "```",
+            "",
+        ]
+    )
+
+
+def _booking_stub(client_name: str) -> str:
+    return "\n".join(
+        [
+            f"# Booking — {client_name}",
+            "",
+            "> Booking is delivered on a proven platform (we do not build custom booking).",
+            "> Pick the path, set it up under the client's own account, then embed it.",
+            "> Routing + per-platform setup: `docs/agency/booking-platform-routing.md`.",
+            "",
+            "- **Path:** _Connect (their tool) / Simple (Calendly) / Local-service (Square·Acuity)_",
+            "- **Platform:** _TBD_",
+            "- **Managed?** _yes for Booking — Fully Managed; otherwise one-time setup_",
+            "- **Account owner:** the client (we hold delegated admin access)",
+            "- **Booking URL:** _TBD — verify it is the owner's own account, not an aggregator listing_",
+            "",
+            "Setup runbook: `docs/agency/runbooks/booking-setup-<platform>.md`.",
+            "Reminders: platform-native only (transactional; no agency-run SMS).",
             "",
         ]
     )
