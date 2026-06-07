@@ -40,6 +40,11 @@ def plan_retainer_run(record: dict[str, object], *, month: str) -> RetainerRun:
     if "google_ads" in services:
         planned.append("draft_google_ads")
         blocked.append("ad_campaign_go_live")
+    if "meta_ads" in services:
+        planned.append("draft_meta_ads")
+        # Same go-live gate as Google Ads; don't double-list it.
+        if "ad_campaign_go_live" not in blocked:
+            blocked.append("ad_campaign_go_live")
     if "reviews" in services:
         planned.append("draft_review_readiness")
         blocked.append("review_sms_activation")
