@@ -97,3 +97,30 @@ jobs:
 
       - name: Run check_doc_paths.sh
         run: ./scripts/ci/check_doc_paths.sh
+
+  token-efficiency:
+    # Required — keeps the repo cheap for AI agents to operate in:
+    #   * no finished plan left in the docs/plans/ working set
+    #   * no heavy runtime files tracked under state/
+    #   * new docs > 400 lines carry a TL;DR (existing offenders grandfathered
+    #     in scripts/ci/token_efficiency_baseline.txt — a ratchet, not a wall)
+    #   * generated docs INDEX.md files are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Token-efficiency gate
+        run: python3 scripts/ci/token_efficiency_check.py
+
+      - name: Doc indexes are fresh
+        run: |
+          python3 scripts/docs/gen_doc_index.py --check \
+            docs/adr docs/decisions docs/founder docs/brainstorms \
+            docs/failure-modes docs/security docs/runbooks docs/skills \
+            docs/architecture docs/examples
+          python3 scripts/docs/gen_doc_index.py --check --recursive \
+            docs/solutions docs/agency docs/research

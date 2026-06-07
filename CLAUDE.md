@@ -36,3 +36,6 @@ business from an always-on Mac. See `README.md` for full context.
   proves itself.
 - No hidden orchestration in prompts. Structured task I/O with typed payloads.
 - Approval gates on irreversible actions.
+- **Docs over 400 lines open with a TL;DR** ([docs/large-doc-standard.md](docs/large-doc-standard.md));
+  enforced by `make tokens-check` and CI. After adding docs to an indexed
+  directory, run `make doc-index`.
