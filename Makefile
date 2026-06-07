@@ -1,4 +1,4 @@
-.PHONY: demo test test-python doctor audit handoff archive-plans doc-index tokens-check
+.PHONY: demo test test-python doctor audit handoff archive-plans doc-index tokens-check skills-sync
 
 # Zero-dependency end-to-end demo: goal -> task -> execute -> validate
 # -> human approval gate -> structured audit artifact. No Postgres,
@@ -61,6 +61,10 @@ doc-index:
 # Aggregate token-efficiency gate (mirrors CI). Nonzero on any violation.
 tokens-check:
 	python3 scripts/ci/token_efficiency_check.py
+
+# Regenerate .claude/skills/ pointers from their adapters (single source).
+skills-sync:
+	python3 scripts/skills/gen_project_skills.py
 
 # Print the handoff convention. Read-only.
 handoff:

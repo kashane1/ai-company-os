@@ -124,3 +124,6 @@ jobs:
             docs/architecture docs/examples
           python3 scripts/docs/gen_doc_index.py --check --recursive \
             docs/solutions docs/agency docs/research
+
+      - name: Project-skill pointers match their adapters
+        run: python3 scripts/skills/gen_project_skills.py --check
