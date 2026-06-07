@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Lead-pipeline health monitor LaunchAgent (hosting "contact-form monitoring"
+  SLA + the agency's own funnel). Runs daily: drains the Netlify Blobs lead
+  stores, then flags any lead captured-but-never-emailed.
+
+  Installation (one-time, replace <REPO> with the absolute path on the Mac):
+
+    REPO=/Users/simons/ai-company-os
+    sed "s|/Users/simons/ai-company-os|$REPO|g" \
+      "$REPO/infra/launchd/com.ai-company-os.lead-health.plist" \
+      > /tmp/com.ai-company-os.lead-health.resolved.plist
+    cp /tmp/com.ai-company-os.lead-health.resolved.plist \
+       ~/Library/LaunchAgents/com.ai-company-os.lead-health.plist
+    launchctl bootstrap gui/$(id -u) \
+           ~/Library/LaunchAgents/com.ai-company-os.lead-health.plist
+    launchctl kickstart -k gui/$(id -u)/com.ai-company-os.lead-health
+
+  NOTE: Copy, do NOT symlink — symlinking causes the sed substitution to
+  clobber the source file.
+
+  Disable:
+
+    launchctl bootout gui/$(id -u)/com.ai-company-os.lead-health
+
+  A UserAgent (not a LaunchDaemon): NETLIFY_AUTH_TOKEN / .env and node/python
+  live in Kashane's login session.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ai-company-os.lead-health</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/simons/ai-company-os/infra/scripts/check-lead-health.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/simons/ai-company-os</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>AI_COMPANY_OS_ROOT</key>
+    <string>/Users/simons/ai-company-os</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/simons/ai-company-os/state/logs/lead-health/launchd.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/simons/ai-company-os/state/logs/lead-health/launchd.err.log</string>
+
+  <!-- Daily at 08:00 local. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>8</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>

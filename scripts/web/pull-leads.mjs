@@ -7,9 +7,10 @@
 //
 //   node scripts/web/pull-leads.mjs
 //
-// Targets: every client-site in infra/products.json that sells `hosting` AND has
-// a recorded client.netlify_site_id (mirrors registry.lead_drain_targets — keep
-// the two filters in sync). Each client's store lives on THEIR Netlify site.
+// Targets: every client-site in infra/products.json that bought `contact_forms`
+// (the lead-capture signal) AND has a recorded client.netlify_site_id (mirrors
+// registry.lead_drain_targets — keep the two filters in sync). Form-less sites are
+// skipped. Each client's store lives on THEIR Netlify site.
 //
 // Copy & keep: leads are the client's durable inbox — we copy locally (and
 // overwrite each run so a late notified_at stamp stays fresh) and NEVER delete
@@ -46,7 +47,7 @@ function drainTargets() {
     const client = rec.client || {};
     const siteId = String(client.netlify_site_id || "").trim();
     const services = Array.isArray(client.services) ? client.services.map(String) : [];
-    if (siteId && services.includes("hosting")) {
+    if (siteId && services.includes("contact_forms")) {
       targets.push({ productId: String(rec.id), siteId });
     }
   }

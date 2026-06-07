@@ -18,7 +18,7 @@ the stage doc you need.
 | Outreach | channel × genre templates, send, track replies | [waas-prospecting-lane.md](../waas-prospecting-lane.md) (stages 6–8) | `packages/agency/outreach.py`, `scripts/agency/build_outreach.py` |
 | 3–6 Sale → client | promote prospect → intake → scaffold → launch → SEO | [agency/client-lifecycle.md](client-lifecycle.md) · [agency/go-live-checklist.md](go-live-checklist.md) | `packages/agency/client_lifecycle.py`, `intake.py`, `launch.py`, `local_seo.py` |
 | Retainer ops | monthly report, ads, GBP, email, billing | [agency/operator-ads-playbook.md](operator-ads-playbook.md) | `packages/agency/retainer_ops.py`, `monthly_report.py`, `billing.py` |
-| Lead monitoring (hosting SLA) | drain each client's `inbound-leads` → flag leads captured but never emailed | (this doc) | `scripts/web/pull-leads.mjs` → `scripts/agency/check_lead_health.py` (`packages/agency/lead_health.py`) |
+| Lead monitoring (own funnel + lead-capture clients) | drain the agency funnel + each lead-form client → flag leads captured but never emailed; form-less sites skipped | (this doc) | `scripts/web/pull-leads.mjs` → `scripts/agency/check_all_lead_health.py` (`packages/agency/lead_health.py`); scheduled by `infra/launchd/com.ai-company-os.lead-health.plist` |
 
 Lessons learned from real runs: [demo-site-learnings.md](../demo-site-learnings.md).
 Service/genre definitions: [agency/service-catalog.md](service-catalog.md).

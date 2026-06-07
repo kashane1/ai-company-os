@@ -50,8 +50,13 @@ def _to_date(value: object) -> date | None:
 
 
 def _delivered(lead: dict[str, object]) -> bool:
-    """A lead is delivered once the owner notification was stamped."""
-    return bool(lead.get("notified_at"))
+    """A lead is delivered once the owner notification was stamped.
+
+    Works for both stores: client contact-form leads carry ``notified_at`` (set by
+    contact.mjs on send); the agency's own website-review funnel records may instead
+    carry ``status == "notified"`` after processing — either counts as delivered.
+    """
+    return bool(lead.get("notified_at")) or str(lead.get("status", "")) == "notified"
 
 
 @dataclass(frozen=True)
@@ -88,6 +93,7 @@ def assess_lead_health(
     window_days: int = 30,
     store_reachable: bool = True,
     dry_spell_days: int = 45,
+    lead_capture_expected: bool = True,
 ) -> LeadHealth:
     """Turn drained lead records into a health verdict for the month.
 
@@ -97,6 +103,13 @@ def assess_lead_health(
       owner was never emailed (the silent Resend-misconfig failure).
     * no lead for longer than ``dry_spell_days`` → WARN: maybe normal, maybe the
       form is broken upstream — worth an operator glance.
+
+    ``lead_capture_expected`` is the form-aware switch: many small-business sites
+    don't depend on a lead form, so a quiet month is normal, not a problem. When
+    ``False``, the absence-of-leads signals (dry spell / none-ever) are suppressed —
+    only the always-valid failures (undelivered, unreachable) remain. The undelivered
+    ALERT always fires regardless, because a captured-but-undelivered lead is a real
+    failure for any business that *did* receive one.
     """
     if not store_reachable:
         return LeadHealth(
@@ -130,13 +143,13 @@ def assess_lead_health(
             f"{len(undelivered)} lead(s) captured but the owner was never emailed — "
             "check RESEND_API_KEY / LEAD_NOTIFY_EMAIL / LEAD_FROM_EMAIL for this site"
         )
-    if days_since is not None and days_since > dry_spell_days:
+    if lead_capture_expected and days_since is not None and days_since > dry_spell_days:
         if status is LeadHealthStatus.OK:
             status = LeadHealthStatus.WARN
         alerts.append(
             f"no leads in {days_since} days — confirm the contact form still submits"
         )
-    if last is None:
+    if lead_capture_expected and last is None:
         if status is LeadHealthStatus.OK:
             status = LeadHealthStatus.WARN
         alerts.append("no leads on record yet — verify the form end-to-end with a test submission")

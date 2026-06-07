@@ -51,26 +51,29 @@ def test_set_client_netlify_site_id_unknown_product_raises(tmp_path: Path) -> No
         set_client_netlify_site_id("ghost", "x", registry_path=path)
 
 
-def test_lead_drain_targets_filters_to_hosting_with_site_id(tmp_path: Path) -> None:
+def test_lead_drain_targets_filters_to_lead_capture_with_site_id(tmp_path: Path) -> None:
     path = _registry(
         tmp_path,
         [
             {
                 "id": "joe-site",
                 "type": "client-site",
-                "client": {"services": ["hosting", "reviews"], "netlify_site_id": "joe-1"},
+                "client": {
+                    "services": ["hosting", "contact_forms"],
+                    "netlify_site_id": "joe-1",
+                },
             },
-            # hosting but no site id -> excluded (can't target a store)
+            # has a lead form but no site id -> excluded (can't target a store)
             {
                 "id": "no-site",
                 "type": "client-site",
-                "client": {"services": ["hosting"], "netlify_site_id": ""},
+                "client": {"services": ["contact_forms"], "netlify_site_id": ""},
             },
-            # site id but no hosting -> excluded (no monitoring SLA)
+            # hosted but NO lead form -> excluded (most SMBs; no false "no leads" nags)
             {
-                "id": "no-hosting",
+                "id": "form-less",
                 "type": "client-site",
-                "client": {"services": ["local_seo"], "netlify_site_id": "ns-1"},
+                "client": {"services": ["hosting", "local_seo"], "netlify_site_id": "ns-1"},
             },
             # not a client-site -> excluded
             {"id": "bbw", "type": "product", "client": {}},

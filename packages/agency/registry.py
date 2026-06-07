@@ -108,10 +108,12 @@ def set_client_netlify_site_id(
 def lead_drain_targets(*, registry_path: Path | None = None) -> list[dict[str, str]]:
     """Client sites whose contact-form lead store should be drained + monitored.
 
-    A target is a ``client-site`` record that sells ``hosting`` (the SLA carrying
-    "contact-form monitoring") AND has a recorded ``netlify_site_id``. Returns
-    ``[{"product_id", "site_id"}]``. This is the canonical filter; the Node drain
-    (``scripts/web/pull-leads.mjs``) mirrors it.
+    Lead monitoring only matters for sites that actually capture leads, so a target
+    is a ``client-site`` that bought the ``contact_forms`` service (the explicit
+    lead-capture signal) AND has a recorded ``netlify_site_id`` (so we can reach
+    their store). Form-less businesses are skipped entirely — no false "no leads"
+    nags. Returns ``[{"product_id", "site_id"}]``. This is the canonical filter;
+    the Node drain (``scripts/web/pull-leads.mjs``) mirrors it.
     """
     targets: list[dict[str, str]] = []
     for record in load_registry(registry_path):
@@ -122,6 +124,6 @@ def lead_drain_targets(*, registry_path: Path | None = None) -> list[dict[str, s
             continue
         site_id = str(client.get("netlify_site_id", "")).strip()
         services = [str(s) for s in list(client.get("services", []))]
-        if site_id and "hosting" in services:
+        if site_id and "contact_forms" in services:
             targets.append({"product_id": str(record["id"]), "site_id": site_id})
     return targets

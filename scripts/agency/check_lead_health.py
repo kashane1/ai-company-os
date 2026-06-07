@@ -46,6 +46,12 @@ def main() -> int:
         action="store_true",
         help="the drain could not read the Blobs store",
     )
+    parser.add_argument(
+        "--no-lead-capture-expected",
+        action="store_true",
+        help="this site doesn't depend on a lead form — suppress 'no leads' warnings "
+        "(undelivered/unreachable alerts still fire)",
+    )
     args = parser.parse_args()
 
     leads = load_leads_from_dir(args.leads_dir)
@@ -55,6 +61,7 @@ def main() -> int:
         as_of=date.fromisoformat(args.as_of),
         window_days=args.window_days,
         store_reachable=not args.store_unreachable,
+        lead_capture_expected=not args.no_lead_capture_expected,
     )
     print(json.dumps(health.to_dict(), indent=2))
     return _EXIT[health.status]
