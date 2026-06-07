@@ -15,14 +15,10 @@ from packages.agency.client_lifecycle import client_paths  # noqa: E402
 from packages.agency.monthly_report import (  # noqa: E402
     MonthlyMetrics,
     load_monthly_metrics,
+    metrics_from_plausible,
     write_monthly_report,
 )
-from packages.agency.plausible import (  # noqa: E402
-    GoalNotConfigured,
-    default_stats_client,
-    fetch_monthly_stats,
-    month_to_date_range,
-)
+from packages.agency.plausible import default_stats_client  # noqa: E402
 from packages.agency.registry import get_registry_record  # noqa: E402
 
 
@@ -40,32 +36,35 @@ def main() -> int:
 
     record = get_registry_record(args.product_id)
     docs_root, _ = client_paths(args.product_id)
+    client_cfg = dict(record.get("client") or {})
+    billing_status = str(client_cfg.get("billing_status", ""))
     if args.metrics_json:
         metrics = load_monthly_metrics(args.metrics_json)
+    elif args.site_id:
+        client = default_stats_client()
+        if client is None:
+            print("ERROR: PLAUSIBLE_API_KEY not set", file=sys.stderr)
+            return 1
+        # A missing 'Form Lead' goal no longer fails the report: traffic is still
+        # reported and leads are flagged "Not tracked yet" (never a fake 0).
+        metrics = metrics_from_plausible(
+            client,
+            product_id=args.product_id,
+            month=args.month,
+            site_id=args.site_id,
+            completed_work=args.completed_work,
+            recommended_action=args.recommended_action,
+            billing_status=billing_status,
+        )
     else:
-        visits, form_leads = args.visits, args.form_leads
-        if args.site_id:
-            client = default_stats_client()
-            if client is None:
-                print("ERROR: PLAUSIBLE_API_KEY not set", file=sys.stderr)
-                return 1
-            try:
-                stats = fetch_monthly_stats(
-                    client, site_id=args.site_id, date_range=month_to_date_range(args.month)
-                )
-            except GoalNotConfigured as exc:
-                print(f"ERROR: {exc}", file=sys.stderr)
-                return 2
-            visits, form_leads = stats.visits, stats.form_leads
-        client_cfg = dict(record.get("client") or {})
         metrics = MonthlyMetrics(
             product_id=args.product_id,
             month=args.month,
-            visits=visits,
-            form_leads=form_leads,
+            visits=args.visits,
+            form_leads=args.form_leads,
             completed_work=args.completed_work,
             recommended_action=args.recommended_action,
-            billing_status=str(client_cfg.get("billing_status", "")),
+            billing_status=billing_status,
         )
     client_name = str(record.get("name", args.product_id))
     path = write_monthly_report(docs_root, metrics, client_name=client_name)

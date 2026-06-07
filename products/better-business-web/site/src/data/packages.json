@@ -145,7 +145,7 @@
       "bill_type": "one_time",
       "setup_cents": 7500,
       "monthly_cents": 0,
-      "blurb": "Form to email",
+      "blurb": "Form to email (instant owner notification)",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""
@@ -205,7 +205,7 @@
       "bill_type": "one_time",
       "setup_cents": 15000,
       "monthly_cents": 0,
-      "blurb": "Per-staff calendars, rooms / equipment, round-robin assignment",
+      "blurb": "Per-staff calendars, individual availability, and service assignment",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": "booking_base"
@@ -217,7 +217,7 @@
       "bill_type": "one_time",
       "setup_cents": 20000,
       "monthly_cents": 0,
-      "blurb": "Capacity, recurring class schedules, waitlists (yoga / gym / workshops)",
+      "blurb": "Capacity limits and recurring class schedules (yoga / gym / workshops)",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": "booking_base"
@@ -325,7 +325,7 @@
       "bill_type": "one_time",
       "setup_cents": 25000,
       "monthly_cents": 0,
-      "blurb": "HubSpot / GoHighLevel / Zoho / Pipedrive setup",
+      "blurb": "HubSpot (default) or GoHighLevel setup; Zoho / Pipedrive on request",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""
@@ -337,7 +337,7 @@
       "bill_type": "recurring",
       "setup_cents": 12500,
       "monthly_cents": 3900,
-      "blurb": "Lead to auto text to auto email",
+      "blurb": "Instant auto-email reply to every new lead",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""

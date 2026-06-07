@@ -67,9 +67,9 @@ services:
     setup_fee: 75
     monthly_fee: 0
     includes:
-      - Form to email
-      - Form to SMS
-      - Optional CRM routing
+      - Form to email (instant owner notification)
+      - Durable lead capture + spam/honeypot filtering
+      - Optional CRM routing (with the CRM Setup add-on)
 
   # --- Tier 2: high value ---
   # --- Booking: a "slot" — pick ONE base, then stack optional modifiers. ---
@@ -108,10 +108,12 @@ services:
     exclusive_group: booking_base
     includes:
       - We set up and run your booking on a proven platform (Square or Acuity) for you
-      - Online scheduling, confirmations, reminders, and deposits, all handled
-      - Ongoing calendar and availability management included; you never touch the dashboard
+      - Online scheduling, confirmations, and reminders configured and maintained
+      - "Availability / service / staff changes handled for you (~2 change requests/mo)"
+      - No-show monitoring + a monthly booking-link & calendar-sync check
       - Account stays in your name; you keep and pay the platform, we do the work
-    edit_limit: "Ongoing management + tweaks included"
+      - "Deposits / prepayment available as an add-on (Booking Deposits)"
+    edit_limit: "~2 change requests / month included (see client-sla.md)"
 
   - service_id: booking_deposits
     name: Booking Deposits & Prepayment
@@ -132,7 +134,8 @@ services:
     monthly_fee: 0
     requires_group: booking_base
     includes:
-      - Per-staff calendars, rooms / equipment, round-robin assignment
+      - Per-staff calendars, individual availability, and service assignment
+      - Room / resource scheduling where the platform supports it
 
   - service_id: booking_classes
     name: Class & Group Scheduling
@@ -142,7 +145,8 @@ services:
     monthly_fee: 0
     requires_group: booking_base
     includes:
-      - Capacity, recurring class schedules, waitlists (yoga / gym / workshops)
+      - Capacity limits and recurring class schedules (yoga / gym / workshops)
+      - Waitlists where the platform supports them
 
   - service_id: booking_intake
     name: Booking Intake Forms
@@ -173,9 +177,9 @@ services:
     monthly_fee: 39
     includes:
       - Google review link
-      - Review request template draft
+      - Review request template draft (email / in-person QR)
       - Cadence management and compliance checklist
-      - Live SMS activation only after signed addendum
+      - "SMS review requests planned: require a signed consent addendum (not yet enabled)"
 
   - service_id: local_seo
     name: Local SEO
@@ -237,7 +241,7 @@ services:
     setup_fee: 250
     monthly_fee: 0
     includes:
-      - HubSpot / GoHighLevel / Zoho / Pipedrive setup
+      - HubSpot (default) or GoHighLevel setup; Zoho / Pipedrive on request
       - Pipeline + fields configured from intake
 
   - service_id: follow_up_automation
@@ -247,8 +251,9 @@ services:
     setup_fee: 125
     monthly_fee: 39
     includes:
-      - Lead to auto text to auto email
-      - 2-day reminder sequence
+      - Instant auto-email reply to every new lead
+      - 2-day reminder sequence + owner task reminders
+      - "Auto-text available on GoHighLevel (email-first on HubSpot)"
 
 # Setup-only bundle discount for build-your-own carts (custom service sets).
 # Named packages below use an explicit setup_promo instead (always <= the tier

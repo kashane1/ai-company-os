@@ -55,6 +55,7 @@ def test_legacy_dict_loads_email_first() -> None:
 
 
 def test_retainer_plans_review_follow_up() -> None:
-    record = {"id": "acme-site", "client": {"services": ["follow_up_automation"]}}
+    client = {"billing_status": "active", "services": ["follow_up_automation"]}
+    record = {"id": "acme-site", "client": client}
     run = plan_retainer_run(record, month="2026-06")
     assert "review_follow_up" in run.planned_actions

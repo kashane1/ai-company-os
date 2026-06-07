@@ -5,9 +5,11 @@ from __future__ import annotations
 import pytest
 
 from packages.agency.local_seo import (
-    LocalSeoMatrixError,
+    MAX_BODY_SIMILARITY,
     MIN_BODY_WORDS,
+    LocalSeoMatrixError,
     ThinContentError,
+    body_similarity,
     emit_seo_pages_to_site,
     generate_matrix,
     generate_page,
@@ -42,6 +44,32 @@ def test_pages_are_not_thin() -> None:
 def test_duplicate_inputs_rejected() -> None:
     with pytest.raises(ThinContentError):
         generate_matrix("Lone Star Roofing", ["Roof Repair", "Roof Repair"], ["Dallas"])
+
+
+def test_body_similarity_flags_token_swap_but_not_varied_pages() -> None:
+    # The pre-fix pattern: same template, only the city token swapped.
+    template = (
+        "Lone Star Roofing provides professional roof repair throughout {c} and the "
+        "surrounding area. Whether you need routine roof repair or an urgent fix, our "
+        "local team responds quickly. As a {c}-based business we stand behind every job."
+    )
+    swapped = body_similarity(template.format(c="Dallas"), template.format(c="Plano"))
+    assert swapped >= MAX_BODY_SIMILARITY
+
+    # Genuinely varied pages from the generator stay well under the threshold.
+    a = generate_page("Lone Star Roofing", "Roof Repair", "Dallas").body
+    b = generate_page("Lone Star Roofing", "Roof Repair", "Plano").body
+    assert body_similarity(a, b) < MAX_BODY_SIMILARITY
+
+
+def test_near_duplicate_guard_enforces_threshold() -> None:
+    # The default 4x3 matrix passes (varied bodies); a strict threshold rejects it,
+    # proving the guard actually compares bodies rather than rubber-stamping.
+    services = ["Roof Repair", "Roof Replacement", "Emergency Roof Repair"]
+    cities = ["Dallas", "Plano"]
+    generate_matrix("Lone Star Roofing", services, cities)  # default: ok
+    with pytest.raises(ThinContentError, match="near-duplicate"):
+        generate_matrix("Lone Star Roofing", services, cities, max_similarity=0.05)
 
 
 def test_thin_content_guard_fires() -> None:

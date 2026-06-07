@@ -65,7 +65,8 @@ def test_meta_ads_reuses_the_budget_cap_gate() -> None:
 
 
 def test_retainer_plans_meta_ads_without_duplicating_gate() -> None:
-    record = {"id": "acme-site", "client": {"services": ["google_ads", "meta_ads"]}}
+    client = {"billing_status": "active", "services": ["google_ads", "meta_ads"]}
+    record = {"id": "acme-site", "client": client}
     run = plan_retainer_run(record, month="2026-06")
     assert "draft_meta_ads" in run.planned_actions
     assert "draft_google_ads" in run.planned_actions

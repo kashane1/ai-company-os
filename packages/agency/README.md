@@ -23,8 +23,14 @@ client onboarding, and monthly retainer ops. Runnable entrypoints live in
 - `local_seo.py` — service × geo page generation with thin-content guards.
 
 **Retainer ops**
-- `retainer_ops.py`, `monthly_report.py` — monthly deliverables.
-- `gbp.py`, `google_ads.py`, `plausible.py` — Google Business Profile, Ads, analytics.
+- `retainer_ops.py` — plans the month's actions, **fenced to active billing** (a
+  lapsed/disputed client gets an empty plan), and tracks each planned action to
+  completion (`mark_action_complete` / `outstanding_actions`), not just a wishlist.
+- `monthly_report.py` — monthly report; `metrics_from_plausible()` wires real
+  visit/lead numbers in (a missing lead goal degrades to "Not tracked yet", never a fake 0).
+- `lead_health.py` — the `hosting` "contact-form monitoring" SLA: flags leads that
+  were captured but never emailed to the owner (silent Resend failure).
+- `gbp.py`, `google_ads.py`, `meta_ads.py`, `plausible.py` — Google Business Profile, Ads, analytics.
 - `business_email.py`, `booking.py`, `promo_page.py` — email setup, booking embeds, promo pages.
 
 **Money**

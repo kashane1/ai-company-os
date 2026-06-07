@@ -108,6 +108,24 @@ def site_has_goal(
     return goal in names
 
 
+def fetch_traffic(
+    client: StatsClient, *, site_id: str, date_range: list[str]
+) -> tuple[int, int]:
+    """(visits, pageviews) for the date range — traffic only, no goal needed.
+
+    Used both by :func:`fetch_monthly_stats` and as the fallback when the lead
+    goal is absent: traffic is real even when conversion tracking isn't set up.
+    """
+    traffic = _first_metrics(
+        client.query(
+            {"site_id": site_id, "metrics": ["visitors", "pageviews"], "date_range": date_range}
+        )
+    )
+    visits = traffic[0] if len(traffic) > 0 else 0
+    pageviews = traffic[1] if len(traffic) > 1 else 0
+    return visits, pageviews
+
+
 def fetch_monthly_stats(
     client: StatsClient,
     *,
@@ -120,13 +138,7 @@ def fetch_monthly_stats(
     Raises :class:`GoalNotConfigured` if ``goal`` isn't set up (so a missing goal
     is surfaced as an action item, never reported as a real zero).
     """
-    traffic = _first_metrics(
-        client.query(
-            {"site_id": site_id, "metrics": ["visitors", "pageviews"], "date_range": date_range}
-        )
-    )
-    visits = traffic[0] if len(traffic) > 0 else 0
-    pageviews = traffic[1] if len(traffic) > 1 else 0
+    visits, pageviews = fetch_traffic(client, site_id=site_id, date_range=date_range)
 
     if not site_has_goal(client, site_id, date_range, goal):
         raise GoalNotConfigured(
