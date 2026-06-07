@@ -27,6 +27,30 @@ const SITE = "https://better-business-web.netlify.app";
 const SUCCESS_URL = `${SITE}/welcome/`; // PAID success page (not /thanks/)
 const CANCEL_URL = `${SITE}/build/`;
 const MAX_DUE_TODAY_CENTS = 1_000_000; // $10k backstop — real bundles are << this
+const RATE_LIMIT_PER_IP_HOUR = 8; // legit buyers create very few sessions
+const RATE_LIMIT_GLOBAL_HOUR = 200; // circuit breaker against an IP-rotating botnet
+
+// Best-effort per-IP + global rate limit via a Blobs counter (fails OPEN — a
+// counter outage must not block real buyers). Uses Netlify's trusted client IP
+// header, NOT the spoofable x-forwarded-for.
+async function rateLimited(req) {
+  try {
+    const ip = req.headers.get("x-nf-client-connection-ip") || "unknown";
+    const bucket = Math.floor(Date.now() / 3_600_000); // hour bucket
+    const store = getStore("byo-ratelimit");
+    const bump = async (key) => {
+      const n = Number((await store.get(key)) || 0) + 1;
+      await store.set(key, String(n));
+      return n;
+    };
+    const perIp = await bump(`ip:${ip}:${bucket}`);
+    const global = await bump(`all:${bucket}`);
+    return perIp > RATE_LIMIT_PER_IP_HOUR || global > RATE_LIMIT_GLOBAL_HOUR;
+  } catch (err) {
+    console.error("rate-limit check failed (allowing)", err);
+    return false;
+  }
+}
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -146,6 +170,8 @@ export default async (req) => {
 
   // Honeypot — silently accept-and-drop obvious bots (no session, no order).
   if (body.bot_field) return json({ ok: true });
+
+  if (await rateLimited(req)) return json({ error: "too many requests" }, 429);
 
   const business = String(body.business || "").trim().slice(0, 200);
   const contact = String(body.contact || "").trim().slice(0, 200);
