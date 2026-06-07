@@ -6,7 +6,7 @@ operator owns account connection, client budget confirmation, and go-live approv
 ## Scope
 
 - Default channel: Google Search ads.
-- Meta ads: quote/add-on only.
+- Meta ads (Facebook/Instagram): a parallel add-on, drafted the same way (see "Meta Ads" below).
 - Spend: billed through the client's ad account.
 - Agent work: keywords, negative keywords, ad copy, geo proposal, and launch checklist.
 - Operator work: connect account, confirm payment owner, set budget, approve go-live.
@@ -54,3 +54,15 @@ Report owner-friendly numbers:
 - one recommended action
 
 Avoid jargon-first reporting. The owner cares whether the ads created useful work.
+
+## Meta Ads (Facebook / Instagram)
+
+Same model as Google Search, intent → interest:
+
+1. Confirm `meta_ads` is present in `client.services[]`.
+2. Draft: `python scripts/agency/draft_meta_ads.py --business … --service … --city … --service-area … --daily-budget N --monthly-budget M --out <docs>` → `META_ADS.md` (objective, audiences, placements, creative variants within Meta's limits).
+3. Operator work: client owns the **Meta ad account + Page**; we get **Business Manager** access. Install the **Meta Pixel / Conversions API** on the landing page.
+4. **Go-live is the SAME gate** as Google Ads — `assert_ad_campaign_go_live` requires a positive daily AND monthly budget cap plus the `ad_campaign_go_live` approval. Spend stays in the client's account.
+5. Monthly review: leads/forms, spend, best/worst creative + audience, one recommended action.
+
+Difference from Search: no keywords/negatives — Meta targets **audiences** (geo radius, interest, 1% lookalike of the client's customer list, retargeting) with **creative variants** (primary text / headline / description). Keep ads transactional and accurate; the client owns the Page voice.
