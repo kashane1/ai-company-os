@@ -1,0 +1,177 @@
+/* Build-Your-Own-Bundle island. Uses the global design tokens (inherited from
+   :root + the active theme class), no framework. */
+
+.byo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .byo {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+    gap: var(--space-lg);
+  }
+}
+
+/* Presets -------------------------------------------------------------- */
+.byo-presets {
+  display: grid;
+  gap: var(--space-sm);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: var(--space-md);
+}
+
+.byo-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+
+.byo-preset:hover { border-color: var(--accent); }
+.byo-preset[data-active="true"] {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+.byo-preset-name { font-weight: 650; }
+.byo-preset-price { color: var(--ink-soft); font-size: var(--step--1); }
+.byo-preset-badge {
+  color: var(--accent);
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+/* Service cards -------------------------------------------------------- */
+.byo-group { border: 0; margin: 0 0 var(--space-md); padding: 0; }
+.byo-group legend {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  margin-bottom: var(--space-xs);
+  padding: 0;
+}
+
+.byo-cards {
+  display: grid;
+  gap: var(--space-sm);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.byo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+.byo-card:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+.byo-card[data-selected="true"] {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
+/* visually-hidden native checkbox (keeps keyboard + SR support) */
+.byo-card input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.byo-card input:focus-visible + .byo-card-head { outline: none; box-shadow: var(--ring); border-radius: 6px; }
+
+.byo-card-head { display: flex; justify-content: space-between; align-items: center; }
+.byo-card-name { font-weight: 600; }
+.byo-check {
+  opacity: 0;
+  color: var(--accent);
+  font-weight: 800;
+  transition: opacity 0.15s;
+}
+.byo-card[data-selected="true"] .byo-check { opacity: 1; }
+.byo-card-blurb { color: var(--ink-soft); font-size: var(--step--1); line-height: 1.45; }
+.byo-card-price { color: var(--ink-faint); font-size: var(--step--1); margin-top: auto; }
+
+/* Sticky cart ---------------------------------------------------------- */
+.byo-cart {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-md);
+}
+@media (min-width: 900px) {
+  .byo-cart { position: sticky; top: var(--space-md); }
+}
+
+.byo-cart-title { font-family: var(--font-display); font-size: var(--step-1); margin: 0 0 var(--space-sm); }
+.byo-empty { color: var(--ink-faint); }
+
+.byo-due { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-xs); }
+.byo-due-label { color: var(--ink-soft); }
+.byo-due-amount { font-family: var(--font-display); font-size: var(--step-2); font-weight: 700; }
+
+.byo-lines { list-style: none; margin: 0 0 var(--space-xs); padding: 0; display: grid; gap: 4px; }
+.byo-lines li { display: flex; justify-content: space-between; font-size: var(--step--1); color: var(--ink-soft); }
+.byo-strike { color: var(--ink-faint); }
+.byo-discount { color: var(--accent); }
+.byo-then { font-size: var(--step--1); color: var(--ink-soft); padding-top: var(--space-xs); border-top: 1px solid var(--line); }
+.byo-nudge {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--step--1);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+}
+
+/* Checkout panel ------------------------------------------------------- */
+.byo-checkout { margin-top: var(--space-md); display: grid; gap: var(--space-sm); }
+.byo-field { display: grid; gap: 4px; font-size: var(--step--1); color: var(--ink-soft); }
+.byo-field input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+}
+.byo-field input:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
+
+.byo-buy {
+  font: inherit;
+  font-weight: 700;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.18s, transform 0.18s;
+}
+.byo-buy:hover:not(:disabled) { filter: brightness(1.05); transform: translateY(-1px); }
+.byo-buy:disabled { opacity: 0.5; cursor: not-allowed; }
+.byo-error { color: var(--accent-2); font-size: var(--step--1); }
+
+.byo-next { margin: var(--space-xs) 0 0; padding-left: 1.1em; color: var(--ink-faint); font-size: var(--step--1); display: grid; gap: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .byo-preset, .byo-card, .byo-check, .byo-buy { transition: none; }
+  .byo-card:hover, .byo-buy:hover:not(:disabled) { transform: none; }
+}

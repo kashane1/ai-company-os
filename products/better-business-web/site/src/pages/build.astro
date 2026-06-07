@@ -1,0 +1,68 @@
+---
+// Build-Your-Own-Bundle — interactive configurator + buy-now.
+// Single React island; the rest of the site stays static Astro. Pricing data is
+// the drift-guarded packages.json (one source of truth, integer cents).
+import "@fontsource-variable/geist";
+import "../styles/global.css";
+import "../styles/theme-luminous.css";
+import "../components/BundleBuilder.css";
+import BundleBuilder from "../components/BundleBuilder.tsx";
+import packages from "../data/packages.json";
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Build your own bundle — Better Business Web</title>
+  <meta name="description" content="Pick exactly the services you want, see the price update live, and start today. Cancel anytime." />
+  <meta name="robots" content="index,follow" />
+</head>
+<body class="theme-luminous">
+  <main class="byo-page">
+    <header class="byo-hero">
+      <a class="byo-back" href="/">← Better Business Web</a>
+      <h1>Build your own bundle</h1>
+      <p>
+        Pick exactly what you need. The price updates as you go — setup is one-time,
+        monthly covers the ongoing work. Start a package, or build from scratch.
+        Cancel anytime.
+      </p>
+    </header>
+
+    <BundleBuilder
+      services={packages.services}
+      bundles={packages.bundles}
+      discountTiers={packages.discount_tiers}
+      client:load
+    />
+  </main>
+</body>
+</html>
+
+<style>
+  .byo-page { padding: var(--space-lg) 0 var(--space-xl); }
+  .byo-hero {
+    max-width: var(--container);
+    margin: 0 auto var(--space-lg);
+    padding: 0 var(--space-md);
+  }
+  .byo-back {
+    display: inline-block;
+    margin-bottom: var(--space-sm);
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: var(--step--1);
+  }
+  .byo-back:hover { color: var(--accent); }
+  .byo-hero h1 {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    margin: 0 0 var(--space-xs);
+  }
+  .byo-hero p {
+    max-width: 60ch;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+</style>
