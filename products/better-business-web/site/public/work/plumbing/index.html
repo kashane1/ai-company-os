@@ -3,463 +3,221 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TrueLine Plumbing — Same-Day Repairs, Westbrook ME</title>
-<meta name="description" content="TrueLine Plumbing in Westbrook, Maine. Licensed & insured. Same-day repairs, water heaters, drain cleaning. 24/7 emergencies. Upfront quotes." />
+<title>TrueLine Plumbing — Precision Plumbing, Westbrook ME</title>
+<meta name="description" content="TrueLine Plumbing in Westbrook, Maine. Licensed & insured. Same-day repairs, water heaters, and drain cleaning — quoted upfront, finished clean. 24/7 emergencies." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@500;600;700;800;900&family=Spline+Sans+Mono:wght@600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --ink: #0a1530;
-    --blue: #1338e0;
-    --blue-deep: #0a1f8c;
-    --blue-night: #060c24;
-    --orange: #ff5a1f;
-    --orange-bright: #ff7a33;
-    --paper: #f4f1ea;
-    --paper-2: #eae5da;
-    --white: #ffffff;
-    --steel: #b9c2d6;
-    --maxw: 1280px;
-    --shadow-hard: 10px 10px 0 var(--ink);
-    --shadow-soft: 0 24px 60px -28px rgba(6,12,36,.55);
+    --ink: #0b1320;
+    --navy-2: #0f1a2b;
+    --slate: #16243b;
+    --paper: #f4efe6;
+    --paper-2: #ece4d6;
+    --line-warm: #ded3bf;
+    --copper: #c47e4e;
+    --copper-deep: #a8612f;
+    --brass: #d6a96a;
+    --ink-soft: #5b6172;
+    --maxw: 1240px;
+    --shadow-soft: 0 18px 50px -24px rgba(6,12,24,.55);
+    --shadow-card: 0 2px 4px rgba(11,19,32,.06), 0 18px 40px -26px rgba(11,19,32,.35);
   }
-
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-
   body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: "Archivo", system-ui, sans-serif;
-    font-weight: 500;
-    line-height: 1.5;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: "Archivo", system-ui, sans-serif; font-weight: 500; line-height: 1.6;
+    overflow-x: hidden; -webkit-font-smoothing: antialiased;
   }
-
   a { color: inherit; }
   img { display: block; max-width: 100%; }
 
-  .wrap {
-    width: 100%;
-    max-width: var(--maxw);
-    margin-inline: auto;
-    padding-inline: clamp(18px, 4vw, 56px);
-  }
-
-  .display {
-    font-family: "Archivo Black", "Archivo", sans-serif;
-    font-weight: 900;
-    line-height: 0.86;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
+  .wrap { width: 100%; max-width: var(--maxw); margin-inline: auto; padding-inline: clamp(20px, 4vw, 56px); }
+  .serif { font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.015em; line-height: 1.02; }
+  .serif em { font-style: italic; color: var(--copper); }
   .mono { font-family: "Spline Sans Mono", monospace; }
 
-  /* ---------- Focus / a11y ---------- */
-  a:focus-visible, button:focus-visible {
-    outline: 3px solid var(--orange);
-    outline-offset: 3px;
-    border-radius: 2px;
-  }
-  .skip {
-    position: absolute; left: -999px; top: 0; z-index: 200;
-    background: var(--ink); color: #fff; padding: 12px 18px; font-weight: 800;
-  }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; border-radius: 3px; }
+  .skip { position: absolute; left: -999px; top: 0; z-index: 200; background: var(--ink); color: #fff; padding: 12px 18px; font-weight: 700; }
   .skip:focus { left: 12px; top: 12px; }
 
   /* ---------- Top bar ---------- */
-  .topbar {
-    position: sticky; top: 0; z-index: 90;
-    background: var(--blue-night);
-    color: #fff;
-    border-bottom: 2px solid rgba(255,255,255,.12);
-  }
-  .topbar .wrap {
-    display: flex; align-items: center; gap: 18px;
-    min-height: 64px; justify-content: space-between;
-  }
-  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-  .brand .mark {
-    width: 38px; height: 38px; flex: none;
-    background: var(--orange);
-    display: grid; place-items: center;
-    transform: rotate(-6deg);
-    box-shadow: 4px 4px 0 rgba(0,0,0,.35);
-  }
-  .brand .mark svg { width: 22px; height: 22px; transform: rotate(6deg); }
-  .brand b { font-family: "Archivo Black", sans-serif; font-size: 1.05rem; letter-spacing: .02em; text-transform: uppercase; }
-  .brand b span { color: var(--orange); }
-  .nav { display: none; gap: 26px; font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .08em; }
-  .nav a { text-decoration: none; opacity: .82; }
-  .nav a:hover { opacity: 1; color: var(--orange-bright); }
-  .top-cta {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--orange); color: #fff; text-decoration: none;
-    font-weight: 900; font-size: .9rem; letter-spacing: .02em;
-    padding: 11px 16px; text-transform: uppercase;
-    box-shadow: 3px 3px 0 rgba(0,0,0,.4);
-  }
-  .top-cta:hover { background: var(--orange-bright); }
+  .topbar { position: sticky; top: 0; z-index: 90; background: rgba(11,19,32,.86); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: #fff; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .topbar .wrap { display: flex; align-items: center; gap: 18px; min-height: 68px; justify-content: space-between; }
+  .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand .mark { width: 38px; height: 38px; flex: none; border-radius: 9px; background: linear-gradient(150deg, var(--brass), var(--copper-deep)); display: grid; place-items: center; box-shadow: inset 0 1px 1px rgba(255,255,255,.45); }
+  .brand .mark svg { width: 20px; height: 20px; }
+  .brand b { font-family: "Fraunces", serif; font-weight: 600; font-size: 1.18rem; letter-spacing: -0.01em; }
+  .brand b span { color: var(--brass); }
+  .nav { display: none; gap: 30px; font-weight: 600; font-size: .9rem; }
+  .nav a { text-decoration: none; color: #c9d3e4; }
+  .nav a:hover { color: var(--brass); }
+  .top-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--copper); color: #fff; text-decoration: none; font-weight: 700; font-size: .9rem; padding: 11px 18px; border-radius: 100px; box-shadow: 0 8px 20px -8px rgba(196,126,78,.7); }
+  .top-cta:hover { background: var(--copper-deep); }
+  .top-cta svg { width: 17px; height: 17px; }
   @media (min-width: 940px) { .nav { display: flex; } }
 
   /* ---------- Hero ---------- */
-  .hero {
-    position: relative;
-    background:
-      radial-gradient(120% 90% at 100% 0%, rgba(255,90,31,.18), transparent 55%),
-      linear-gradient(160deg, var(--blue-deep), var(--blue-night) 70%);
-    color: #fff;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: ""; position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-    background-size: 46px 46px;
-    mask-image: radial-gradient(110% 80% at 20% 10%, #000, transparent 75%);
-    pointer-events: none;
-  }
-  .hero .wrap {
-    position: relative; z-index: 2;
-    display: grid; gap: 30px;
-    grid-template-columns: 1fr;
-    padding-top: clamp(34px, 6vw, 64px);
-    padding-bottom: clamp(40px, 7vw, 80px);
-  }
-  @media (min-width: 900px) {
-    .hero .wrap { grid-template-columns: 1.04fr 0.96fr; align-items: center; gap: 40px; }
-  }
+  .hero { position: relative; background: radial-gradient(120% 100% at 88% 0%, rgba(196,126,78,.16), transparent 55%), linear-gradient(165deg, var(--navy-2), var(--ink) 72%); color: #fff; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 52px 52px; mask-image: radial-gradient(120% 90% at 15% 0%, #000, transparent 72%); pointer-events: none; }
+  .hero .wrap { position: relative; z-index: 2; display: grid; gap: 34px; grid-template-columns: 1fr; padding-top: clamp(40px, 6vw, 76px); padding-bottom: clamp(48px, 7vw, 88px); }
+  @media (min-width: 940px) { .hero .wrap { grid-template-columns: 1.02fr 0.98fr; align-items: center; gap: clamp(40px, 5vw, 76px); } }
 
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: 10px;
-    font-weight: 800; font-size: .74rem; letter-spacing: .16em; text-transform: uppercase;
-    color: #fff; background: rgba(255,255,255,.08);
-    border: 1px solid rgba(255,255,255,.18);
-    padding: 7px 14px; border-radius: 100px;
-  }
-  .eyebrow .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px rgba(255,90,31,.25); }
+  .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: .76rem; letter-spacing: .14em; text-transform: uppercase; color: #e7ecf6; }
+  .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brass); box-shadow: 0 0 0 4px rgba(214,169,106,.22); }
+  h1.title { font-size: clamp(2.9rem, 7.2vw, 5.6rem); margin: 20px 0 0; }
+  h1.title span { display: block; }
+  .lede { margin: 26px 0 0; max-width: 42ch; font-size: clamp(1.04rem, 1.2vw, 1.2rem); color: #c4cde0; font-weight: 500; }
 
-  h1.title {
-    font-size: clamp(3.1rem, 13vw, 7.4rem);
-    margin: 22px 0 0;
-  }
-  h1.title .l2 { color: var(--orange); display: block; }
-  h1.title .l3 { display: block; -webkit-text-stroke: 2px rgba(255,255,255,.85); color: transparent; }
-  @supports not (-webkit-text-stroke: 2px #fff) { h1.title .l3 { color: #fff; } }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; padding: 15px 26px; font-size: 1rem; border-radius: 100px; border: 1px solid transparent; transition: transform .15s ease, background .2s ease, box-shadow .2s ease; }
+  .btn svg { width: 19px; height: 19px; }
+  .btn-primary { background: var(--copper); color: #fff; box-shadow: 0 12px 28px -10px rgba(196,126,78,.75); }
+  .btn-primary:hover { background: var(--copper-deep); }
+  .btn-ghost { background: rgba(255,255,255,.05); color: #fff; border-color: rgba(255,255,255,.28); }
+  .btn-ghost:hover { border-color: var(--brass); background: rgba(255,255,255,.1); }
+  @media (prefers-reduced-motion: no-preference) { .btn:hover { transform: translateY(-2px); } }
 
-  .lede {
-    margin: 24px 0 0; max-width: 38ch;
-    font-size: clamp(1rem, 1.4vw, 1.16rem);
-    color: #d9def0; font-weight: 600;
-  }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 18px 28px; margin-top: 34px; align-items: center; }
+  .stars { color: var(--brass); font-size: 1rem; letter-spacing: 2px; }
+  .meta-chip { font-weight: 600; font-size: .84rem; color: #c4cde0; display: flex; align-items: center; gap: 8px; }
+  .meta-chip svg { width: 17px; height: 17px; color: var(--brass); }
 
-  .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 10px;
-    font-weight: 900; text-transform: uppercase; letter-spacing: .02em;
-    text-decoration: none; padding: 16px 24px; font-size: 1rem;
-    border: 2px solid transparent; transition: transform .15s ease, background .15s ease;
-  }
-  .btn svg { width: 20px; height: 20px; }
-  .btn-primary { background: var(--orange); color: #fff; box-shadow: 6px 6px 0 rgba(0,0,0,.4); }
-  .btn-primary:hover { background: var(--orange-bright); }
-  .btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
-  .btn-ghost:hover { border-color: #fff; background: rgba(255,255,255,.08); }
-  @media (prefers-reduced-motion: no-preference) {
-    .btn:hover { transform: translate(-2px, -2px); }
-    .btn-primary:hover { box-shadow: 8px 8px 0 rgba(0,0,0,.45); }
-  }
+  /* Hero image */
+  .hero-art { position: relative; }
+  .hero-art .shot { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid rgba(214,169,106,.35); box-shadow: var(--shadow-soft); aspect-ratio: 4 / 5; }
+  .hero-art .shot img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-art .chip { position: absolute; left: -14px; bottom: 22px; z-index: 3; background: rgba(11,19,32,.82); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid rgba(214,169,106,.4); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow-soft); }
+  .hero-art .chip .k { font-family: "Fraunces", serif; font-weight: 600; font-size: 1.6rem; line-height: 1; }
+  .hero-art .chip .l { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: #aab6cb; margin-top: 4px; }
+  @media (max-width: 520px) { .hero-art .chip { left: 10px; } }
 
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 22px 30px; margin-top: 34px; align-items: center; }
-  .stars { color: var(--orange-bright); font-size: 1.1rem; letter-spacing: 2px; }
-  .meta-chip { font-weight: 700; font-size: .82rem; color: #c7cfe6; display: flex; align-items: center; gap: 8px; }
-  .meta-chip svg { width: 18px; height: 18px; color: var(--orange-bright); }
-
-  /* Hero collage */
-  .collage {
-    position: relative;
-    min-height: 360px;
-  }
-  .frame {
-    position: relative;
-    border: 3px solid #fff;
-    box-shadow: var(--shadow-hard);
-    overflow: hidden;
-    background: var(--blue-deep);
-  }
-  .frame img { width: 100%; height: 100%; object-fit: cover; }
-  .frame-main {
-    aspect-ratio: 4 / 5;
-    transform: rotate(2.5deg);
-  }
-  .frame-sub {
-    position: absolute;
-    width: 46%;
-    aspect-ratio: 1 / 1;
-    bottom: -22px; left: -16px;
-    transform: rotate(-5deg);
-    border-color: var(--orange);
-    z-index: 3;
-  }
-  .badge-float {
-    position: absolute; top: -18px; right: -10px; z-index: 4;
-    background: var(--orange); color: #fff;
-    width: 104px; height: 104px; border-radius: 50%;
-    display: grid; place-content: center; text-align: center;
-    transform: rotate(8deg);
-    box-shadow: 0 12px 30px -8px rgba(255,90,31,.7);
-    border: 3px solid #fff;
-  }
-  .badge-float .big { font-family: "Archivo Black"; font-size: 1.7rem; line-height: 1; }
-  .badge-float small { font-size: .58rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-  @media (prefers-reduced-motion: no-preference) {
-    .badge-float { animation: bob 4s ease-in-out infinite; }
-    @keyframes bob { 0%,100% { transform: rotate(8deg) translateY(0); } 50% { transform: rotate(8deg) translateY(-8px); } }
-  }
-  @media (min-width: 520px) and (max-width: 899px) { .collage { max-width: 460px; } }
-
-  /* ---------- Marquee ---------- */
-  .marquee {
-    background: var(--orange);
-    color: var(--ink);
-    border-block: 3px solid var(--ink);
-    overflow: hidden;
-    padding: 14px 0;
-  }
-  .marquee-track {
-    display: flex; gap: 0; width: max-content;
-    will-change: transform;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .marquee-track { animation: scroll 26s linear infinite; }
-    .marquee:hover .marquee-track { animation-play-state: paused; }
-    @keyframes scroll { to { transform: translateX(-50%); } }
-  }
-  .marquee-track span {
-    font-family: "Archivo Black"; text-transform: uppercase;
-    font-size: clamp(1.1rem, 2.4vw, 1.6rem); letter-spacing: .01em;
-    padding: 0 26px; white-space: nowrap; display: inline-flex; align-items: center; gap: 26px;
-  }
-  .marquee-track span::after { content: "◆"; font-size: .8em; color: var(--ink); opacity: .7; }
+  /* ---------- Trust strip ---------- */
+  .trust { background: var(--ink); color: #aeb9cd; border-top: 1px solid rgba(255,255,255,.06); }
+  .trust .wrap { display: flex; flex-wrap: wrap; gap: 14px 38px; align-items: center; justify-content: center; padding: 18px 0; font-family: "Spline Sans Mono", monospace; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; }
+  .trust span { display: inline-flex; align-items: center; gap: 9px; }
+  .trust span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--copper); }
 
   /* ---------- Section header ---------- */
-  .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-  .sec-num { font-family: "Spline Sans Mono"; font-weight: 700; color: var(--orange); font-size: .9rem; letter-spacing: .1em; }
-  .sec-title { font-size: clamp(2rem, 5.5vw, 3.6rem); margin: 6px 0 0; }
-  .sec-sub { max-width: 42ch; color: #4a536b; font-weight: 600; margin: 0; }
+  .sec-head { display: grid; gap: 14px; max-width: 60ch; }
+  .sec-num { font-family: "Spline Sans Mono", monospace; font-weight: 600; color: var(--copper-deep); font-size: .82rem; letter-spacing: .12em; }
+  .sec-title { font-size: clamp(2rem, 4.6vw, 3.2rem); margin: 0; }
+  .sec-sub { color: #5b6172; font-weight: 500; margin: 0; max-width: 50ch; }
 
   /* ---------- Services ---------- */
-  .services { padding: clamp(60px, 9vw, 110px) 0; background: var(--paper); }
-  .svc-grid {
-    margin-top: 46px;
-    display: grid; gap: 18px;
-    grid-template-columns: 1fr;
-  }
-  @media (min-width: 720px) { .svc-grid { grid-template-columns: repeat(6, 1fr); } }
+  .services { padding: clamp(64px, 9vw, 116px) 0; }
+  .svc-grid { margin-top: 48px; display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 760px) { .svc-grid { grid-template-columns: repeat(2, 1fr); } }
+  .svc { position: relative; background: #fff; border: 1px solid var(--line-warm); border-radius: 16px; padding: 30px 28px; box-shadow: var(--shadow-card); transition: transform .2s ease, box-shadow .2s ease; overflow: hidden; }
+  @media (prefers-reduced-motion: no-preference) { .svc:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(11,19,32,.06), 0 26px 50px -28px rgba(11,19,32,.5); } }
+  .svc::after { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--copper), var(--brass)); opacity: 0; transition: opacity .2s ease; }
+  .svc:hover::after { opacity: 1; }
+  .svc-ic { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 12px; background: var(--ink); color: var(--brass); margin-bottom: 18px; }
+  .svc-ic svg { width: 25px; height: 25px; }
+  .svc h3 { font-family: "Fraunces", serif; font-weight: 600; font-size: 1.4rem; margin: 0 0 8px; }
+  .svc p { margin: 0; color: #5b6172; font-weight: 500; font-size: .98rem; }
+  .svc ul { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .svc ul li { font-size: .74rem; font-weight: 600; letter-spacing: .02em; background: var(--paper-2); color: #4c5566; padding: 5px 11px; border-radius: 100px; }
 
-  .svc {
-    position: relative;
-    background: var(--white);
-    border: 2px solid var(--ink);
-    box-shadow: var(--shadow-hard);
-    padding: 28px 26px 26px;
-    overflow: hidden;
-    transition: transform .18s ease, box-shadow .18s ease;
-  }
-  @media (min-width: 720px) {
-    .svc-1 { grid-column: 1 / 4; }
-    .svc-2 { grid-column: 4 / 7; }
-    .svc-3 { grid-column: 1 / 3; }
-    .svc-4 { grid-column: 3 / 7; background: var(--ink); color: #fff; }
-  }
-  .svc::after {
-    content: ""; position: absolute; right: -40px; bottom: -40px;
-    width: 130px; height: 130px; background: var(--orange); opacity: .1;
-    transform: rotate(45deg);
-  }
-  .svc-4::after { background: var(--orange); opacity: .25; }
-  @media (prefers-reduced-motion: no-preference) {
-    .svc:hover { transform: translate(-3px, -3px); box-shadow: 13px 13px 0 var(--ink); }
-  }
-  .svc-ic {
-    width: 54px; height: 54px; display: grid; place-items: center;
-    background: var(--blue); color: #fff; margin-bottom: 18px;
-    transform: rotate(-4deg); box-shadow: 4px 4px 0 var(--orange);
-  }
-  .svc-4 .svc-ic { background: var(--orange); box-shadow: 4px 4px 0 #fff; }
-  .svc-ic svg { width: 28px; height: 28px; }
-  .svc h3 { font-family: "Archivo Black"; text-transform: uppercase; font-size: 1.35rem; margin: 0 0 8px; line-height: 1; }
-  .svc p { margin: 0; color: #4a536b; font-weight: 600; font-size: .95rem; position: relative; z-index: 2; }
-  .svc-4 p { color: #cdd4e8; }
-  .svc ul { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; position: relative; z-index: 2; }
-  .svc ul li { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; background: var(--paper-2); color: var(--ink); padding: 5px 10px; border-radius: 100px; }
-  .svc-4 ul li { background: rgba(255,255,255,.12); color: #fff; }
-
-  /* ---------- Stats band (angled) ---------- */
-  .stats {
-    position: relative;
-    background: var(--blue);
-    color: #fff;
-    padding: clamp(80px, 11vw, 140px) 0;
-    margin-top: -2px;
-    clip-path: polygon(0 4vw, 100% 0, 100% calc(100% - 4vw), 0 100%);
-  }
-  .stats::before {
-    content: ""; position: absolute; inset: 0;
-    background: radial-gradient(80% 120% at 90% 10%, rgba(255,90,31,.35), transparent 60%);
-    pointer-events: none;
-  }
-  .stat-grid {
-    position: relative; z-index: 2;
-    display: grid; gap: 30px 20px;
-    grid-template-columns: repeat(2, 1fr);
-  }
+  /* ---------- Stats ---------- */
+  .stats { position: relative; background: radial-gradient(90% 130% at 88% 10%, rgba(196,126,78,.2), transparent 55%), var(--ink); color: #fff; padding: clamp(64px, 9vw, 110px) 0; }
+  .stat-grid { display: grid; gap: 34px 24px; grid-template-columns: repeat(2, 1fr); }
   @media (min-width: 820px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
-  .stat { border-left: 3px solid rgba(255,255,255,.3); padding-left: 18px; }
-  .stat .n { font-family: "Archivo Black"; font-size: clamp(2.8rem, 6vw, 4.4rem); line-height: .9; }
-  .stat .n .u { color: var(--orange-bright); }
-  .stat .lbl { font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: .76rem; color: #d4dbf3; margin-top: 8px; }
+  .stat { border-left: 2px solid rgba(214,169,106,.45); padding-left: 20px; }
+  .stat .n { font-family: "Fraunces", serif; font-weight: 600; font-size: clamp(2.6rem, 5vw, 3.8rem); line-height: .95; }
+  .stat .n .u { color: var(--brass); }
+  .stat .lbl { font-weight: 600; letter-spacing: .04em; font-size: .82rem; color: #aeb9cd; margin-top: 8px; }
 
   /* ---------- Work / gallery ---------- */
-  .work { padding: clamp(60px, 9vw, 110px) 0; background: var(--paper); }
-  .gal {
-    margin-top: 46px;
-    display: grid; gap: 16px;
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: 180px;
-  }
-  @media (min-width: 760px) { .gal { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 220px; } }
-  .tile {
-    position: relative; overflow: hidden;
-    border: 3px solid var(--ink);
-    box-shadow: var(--shadow-hard);
-  }
-  .tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
-  .tile figcaption {
-    position: absolute; left: 0; bottom: 0; z-index: 2;
-    background: var(--ink); color: #fff;
-    font-weight: 800; text-transform: uppercase; letter-spacing: .06em; font-size: .72rem;
-    padding: 7px 12px;
-    border-top: 2px solid var(--orange); border-right: 2px solid var(--orange);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .tile:hover img { transform: scale(1.08); }
-  }
-  .t-wide { grid-column: span 2; }
-  @media (min-width: 760px) {
-    .t-tall { grid-row: span 2; }
-    .gal-1 { grid-column: span 2; grid-row: span 2; }
+  .work { padding: clamp(64px, 9vw, 116px) 0; }
+  .gal { margin-top: 48px; display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 200px; }
+  @media (min-width: 860px) { .gal { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 232px; } }
+  .tile { position: relative; overflow: hidden; border-radius: 14px; border: 1px solid var(--line-warm); box-shadow: var(--shadow-card); }
+  .tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .55s ease; }
+  .tile figcaption { position: absolute; left: 12px; bottom: 12px; z-index: 2; background: rgba(11,19,32,.78); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #fff; font-weight: 600; letter-spacing: .03em; font-size: .76rem; padding: 7px 13px; border-radius: 100px; border: 1px solid rgba(214,169,106,.4); }
+  @media (prefers-reduced-motion: no-preference) { .tile:hover img { transform: scale(1.06); } }
+  .t-fixture { grid-column: span 2; }
+  .t-install { grid-column: span 2; }
+  .t-mech { grid-column: span 2; }
+  @media (min-width: 860px) {
+    .t-fixture { grid-column: 1; grid-row: span 2; }
+    .t-install { grid-column: 2 / 4; grid-row: 1; }
+    .t-joint   { grid-column: 4; grid-row: 1; }
+    .t-fittings{ grid-column: 2; grid-row: 2; }
+    .t-mech    { grid-column: 3 / 5; grid-row: 2; }
   }
 
-  /* ---------- Promise / why ---------- */
-  .promise { padding: clamp(60px, 9vw, 110px) 0; background: var(--paper-2); }
-  .promise-grid { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 44px; }
+  /* ---------- Promise ---------- */
+  .promise { padding: clamp(64px, 9vw, 116px) 0; background: var(--paper-2); }
+  .promise-grid { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 46px; }
   @media (min-width: 760px) { .promise-grid { grid-template-columns: repeat(3, 1fr); } }
-  .pcard {
-    background: var(--white); border: 2px solid var(--ink);
-    padding: 26px 24px; box-shadow: 6px 6px 0 var(--ink);
-    display: flex; flex-direction: column; gap: 12px;
-  }
-  .pcard .pn { font-family: "Spline Sans Mono"; font-weight: 700; color: var(--orange); font-size: .9rem; }
-  .pcard svg { width: 34px; height: 34px; color: var(--blue); }
-  .pcard h3 { font-family: "Archivo Black"; text-transform: uppercase; font-size: 1.1rem; margin: 0; line-height: 1.05; }
-  .pcard p { margin: 0; color: #4a536b; font-weight: 600; font-size: .92rem; }
+  .pcard { background: #fff; border: 1px solid var(--line-warm); border-radius: 16px; padding: 28px 26px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 12px; }
+  .pcard .pn { font-family: "Spline Sans Mono", monospace; font-weight: 600; color: var(--copper-deep); font-size: .86rem; }
+  .pcard svg { width: 32px; height: 32px; color: var(--copper); }
+  .pcard h3 { font-family: "Fraunces", serif; font-weight: 600; font-size: 1.25rem; margin: 0; }
+  .pcard p { margin: 0; color: #5b6172; font-weight: 500; font-size: .96rem; }
 
   /* ---------- Quote ---------- */
-  .quote { background: var(--ink); color: #fff; padding: clamp(60px, 9vw, 100px) 0; }
-  .quote blockquote {
-    margin: 0; max-width: 22ch;
-  }
-  .quote .qmark { font-family: "Archivo Black"; color: var(--orange); font-size: 5rem; line-height: .4; display: block; height: 40px; }
-  .quote p { font-family: "Archivo", sans-serif; font-weight: 800; font-size: clamp(1.5rem, 4.4vw, 2.8rem); line-height: 1.12; max-width: 20ch; margin: 18px 0 0; }
-  .quote .cite { display: block; margin-top: 22px; font-style: normal; font-weight: 700; color: var(--steel); font-size: .92rem; }
-  .quote .cite .stars { display: block; margin-bottom: 4px; }
+  .quote { background: var(--ink); color: #fff; padding: clamp(64px, 9vw, 104px) 0; }
+  .quote blockquote { margin: 0; max-width: 24ch; }
+  .quote .qmark { font-family: "Fraunces", serif; color: var(--copper); font-size: 4.4rem; line-height: .5; display: block; height: 38px; }
+  .quote p { font-family: "Fraunces", serif; font-weight: 500; font-size: clamp(1.6rem, 4vw, 2.7rem); line-height: 1.16; max-width: 22ch; margin: 20px 0 0; }
+  .quote .cite { display: block; margin-top: 24px; font-style: normal; font-weight: 600; color: #aeb9cd; font-size: .92rem; }
+  .quote .cite .stars { display: block; margin-bottom: 6px; }
 
-  /* ---------- CTA / contact ---------- */
-  .contact {
-    position: relative;
-    background:
-      radial-gradient(90% 130% at 0% 0%, rgba(255,90,31,.22), transparent 55%),
-      linear-gradient(160deg, var(--blue-deep), var(--blue-night));
-    color: #fff;
-    padding: clamp(64px, 10vw, 120px) 0;
-  }
+  /* ---------- Contact ---------- */
+  .contact { position: relative; background: radial-gradient(90% 130% at 0% 0%, rgba(196,126,78,.18), transparent 55%), linear-gradient(165deg, var(--navy-2), var(--ink)); color: #fff; padding: clamp(66px, 10vw, 120px) 0; }
   .contact-grid { display: grid; gap: 40px; grid-template-columns: 1fr; }
-  @media (min-width: 880px) { .contact-grid { grid-template-columns: 1.1fr .9fr; align-items: center; } }
-  .contact h2 { font-size: clamp(2.4rem, 7vw, 4.6rem); margin: 14px 0 0; }
-  .contact h2 .o { color: var(--orange); }
+  @media (min-width: 900px) { .contact-grid { grid-template-columns: 1.1fr .9fr; align-items: center; } }
+  .contact h2 { font-size: clamp(2.3rem, 6vw, 4rem); margin: 14px 0 0; }
   .phone-block { margin-top: 30px; }
-  .phone-block .lbl { font-weight: 800; text-transform: uppercase; letter-spacing: .14em; font-size: .74rem; color: var(--orange-bright); }
-  .phone-block a.num {
-    font-family: "Archivo Black"; text-decoration: none; color: #fff;
-    font-size: clamp(2.2rem, 7vw, 3.6rem); display: inline-block; line-height: 1; margin-top: 6px;
-  }
-  .phone-block a.num:hover { color: var(--orange-bright); }
+  .phone-block .lbl { font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-size: .74rem; color: var(--brass); }
+  .phone-block a.num { font-family: "Fraunces", serif; font-weight: 600; text-decoration: none; color: #fff; font-size: clamp(2.1rem, 6vw, 3.2rem); display: inline-block; line-height: 1; margin-top: 8px; }
+  .phone-block a.num:hover { color: var(--brass); }
   .contact-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
-
-  .info-card {
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.16);
-    backdrop-filter: blur(4px);
-    padding: 30px 28px;
-    box-shadow: var(--shadow-soft);
-  }
-  .info-row { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .info-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 16px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); padding: 12px 28px; box-shadow: var(--shadow-soft); }
+  .info-row { display: flex; gap: 14px; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
   .info-row:last-child { border-bottom: 0; }
-  .info-row svg { width: 22px; height: 22px; color: var(--orange-bright); flex: none; margin-top: 2px; }
-  .info-row .k { font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: .72rem; color: #b9c2d6; }
-  .info-row .v { font-weight: 700; font-size: 1rem; }
+  .info-row svg { width: 21px; height: 21px; color: var(--brass); flex: none; margin-top: 2px; }
+  .info-row .k { font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: .72rem; color: #aeb9cd; }
+  .info-row .v { font-weight: 600; font-size: 1rem; }
   .info-row a { color: #fff; text-decoration: none; }
-  .info-row a:hover { color: var(--orange-bright); text-decoration: underline; }
+  .info-row a:hover { color: var(--brass); }
 
   /* ---------- Footer ---------- */
-  footer { background: var(--blue-night); color: #aeb7d0; padding: 40px 0; font-size: .85rem; }
+  footer { background: var(--ink); color: #8d99b1; padding: 40px 0; font-size: .86rem; border-top: 1px solid rgba(255,255,255,.06); }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 16px 30px; justify-content: space-between; align-items: center; }
   footer .brand b { color: #fff; }
-  footer .lic { font-weight: 700; }
 
   /* ---------- Sticky mobile CTA ---------- */
-  .sticky-cta {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
-    display: flex; gap: 2px;
-    background: var(--ink);
-    box-shadow: 0 -8px 24px -10px rgba(0,0,0,.5);
-  }
-  .sticky-cta a {
-    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 15px 10px; text-decoration: none; font-weight: 900; text-transform: uppercase;
-    letter-spacing: .02em; font-size: .9rem;
-  }
-  .sticky-cta a svg { width: 19px; height: 19px; }
-  .sticky-cta .s-call { background: var(--orange); color: #fff; }
-  .sticky-cta .s-map { background: var(--white); color: var(--ink); }
-  @media (min-width: 940px) { .sticky-cta { display: none; } body { } }
+  .sticky-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 100; display: flex; gap: 1px; background: rgba(11,19,32,.3); box-shadow: 0 -8px 24px -10px rgba(0,0,0,.5); }
+  .sticky-cta a { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 15px 10px; text-decoration: none; font-weight: 700; font-size: .92rem; }
+  .sticky-cta a svg { width: 18px; height: 18px; }
+  .sticky-cta .s-call { background: var(--copper); color: #fff; }
+  .sticky-cta .s-map { background: #fff; color: var(--ink); }
+  @media (min-width: 940px) { .sticky-cta { display: none; } }
   @media (max-width: 939px) { body { padding-bottom: 56px; } }
 
   /* Reveal */
-  .reveal { opacity: 1; }
   @media (prefers-reduced-motion: no-preference) {
-    .reveal { opacity: 0; transform: translateY(26px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
     .reveal.in { opacity: 1; transform: none; }
   }
 </style>
-<meta property="og:title" content="TrueLine Plumbing — Same-Day Repairs, Westbrook ME"><meta property="og:description" content="TrueLine Plumbing in Westbrook, Maine. Licensed & insured. Same-day repairs, water heaters, drain cleaning. 24/7 emergencies. Upfront quotes."><meta property="og:type" content="website"><meta property="og:url" content="https://better-business-web.netlify.app/work/plumbing/"><meta property="og:image" content="https://better-business-web.netlify.app/portfolio/plumbing.webp"><meta name="twitter:card" content="summary_large_image">
-<style>/* a11y: never hide content from reduced-motion users */@media (prefers-reduced-motion: reduce){.reveal,[data-reveal],.reveal-up,.fade,.fade-in,.will-reveal,.animate,.in-view{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important;}}</style>
+<meta property="og:title" content="TrueLine Plumbing — Precision Plumbing, Westbrook ME"><meta property="og:description" content="Licensed & insured plumbing in Westbrook, Maine. Same-day repairs, water heaters, drain cleaning — quoted upfront, finished clean."><meta property="og:type" content="website"><meta property="og:url" content="https://better-business-web.netlify.app/work/plumbing/"><meta property="og:image" content="https://better-business-web.netlify.app/portfolio/plumbing.webp"><meta name="twitter:card" content="summary_large_image">
+<style>@media (prefers-reduced-motion: reduce){.reveal,[data-reveal]{opacity:1!important;transform:none!important;}}</style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<!-- Top bar -->
 <header class="topbar">
   <div class="wrap">
     <a class="brand" href="#main" aria-label="TrueLine Plumbing home">
       <span class="mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#0a1530" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-6 6a3 3 0 104 4l6-6"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0b1320" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-6 6a3 3 0 104 4l6-6"/></svg>
       </span>
       <b>True<span>Line</span></b>
     </a>
@@ -483,12 +241,8 @@
   <div class="wrap">
     <div class="hero-copy">
       <span class="eyebrow"><span class="dot" aria-hidden="true"></span> Westbrook, Maine · Licensed &amp; Insured</span>
-      <h1 class="title display">
-        We Fix It
-        <span class="l2">Right The</span>
-        <span class="l3">First Time</span>
-      </h1>
-      <p class="lede">Same-day plumbing repairs, water heaters, and drain cleaning — with upfront quotes and no surprise fees. We treat your home like it's our own.</p>
+      <h1 class="title serif">Plumbing done <span>with <em>precision.</em></span></h1>
+      <p class="lede">Same-day repairs, water heaters, and drain cleaning for Greater Portland — quoted upfront, finished clean, and built to last. We treat your home like it's our own.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="tel:+12075550151">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8.1 9.6a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6a2 2 0 011.7 2z"/></svg>
@@ -500,7 +254,7 @@
         </a>
       </div>
       <div class="hero-meta">
-        <div class="meta-chip"><span class="stars" aria-hidden="true">★★★★★</span><span class="mono" style="font-weight:700">4.9 rating</span></div>
+        <div class="meta-chip"><span class="stars" aria-hidden="true">★★★★★</span><span class="mono" style="font-weight:600">4.9 rating</span></div>
         <div class="meta-chip">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           24/7 Emergency Service
@@ -512,26 +266,22 @@
       </div>
     </div>
 
-    <div class="collage">
-      <div class="badge-float" aria-hidden="true">
-        <span class="big">24/7</span>
-        <small>On Call</small>
+    <div class="hero-art">
+      <figure class="shot" style="margin:0">
+        <img src="assets/hero.webp" width="1200" height="1490" alt="Immaculate copper supply lines and brass valves meeting at clean right angles against a deep navy wall" />
+      </figure>
+      <div class="chip" aria-hidden="true">
+        <div class="k">Clean lines.</div>
+        <div class="l">Done right the first time</div>
       </div>
-      <figure class="frame frame-main">
-        <img src="assets/hero.webp" alt="TrueLine plumber installing new copper supply lines under a kitchen sink" />
-      </figure>
-      <figure class="frame frame-sub">
-        <img src="assets/work-copper-trench.webp" alt="Freshly soldered copper pipe run in an open trench" />
-      </figure>
     </div>
   </div>
 </section>
 
-<!-- Marquee -->
-<div class="marquee" aria-hidden="true">
-  <div class="marquee-track">
-    <span>Leak Repairs</span><span>Water Heaters</span><span>Drain Cleaning</span><span>Tankless</span><span>Same-Day Service</span><span>Licensed &amp; Insured</span><span>Upfront Quotes</span><span>24/7 Emergencies</span>
-    <span>Leak Repairs</span><span>Water Heaters</span><span>Drain Cleaning</span><span>Tankless</span><span>Same-Day Service</span><span>Licensed &amp; Insured</span><span>Upfront Quotes</span><span>24/7 Emergencies</span>
+<!-- Trust strip -->
+<div class="trust" aria-label="Services at a glance">
+  <div class="wrap">
+    <span>Leak Repairs</span><span>Water Heaters</span><span>Drain Cleaning</span><span>Tankless</span><span>Same-Day Service</span><span>24/7 Emergencies</span>
   </div>
 </div>
 
@@ -539,37 +289,32 @@
 <section class="services" id="services">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div>
-        <span class="sec-num">/ 01 — WHAT WE DO</span>
-        <h2 class="sec-title display">Plumbing,<br>Done Loud &amp; Right</h2>
-      </div>
-      <p class="sec-sub">Residential plumbing for Westbrook and Greater Portland. Pick a job — we show up, quote it upfront, and fix it.</p>
+      <span class="sec-num">/ 01 — What we do</span>
+      <h2 class="sec-title serif">Residential plumbing, done properly.</h2>
+      <p class="sec-sub">Plumbing for Westbrook and Greater Portland. Pick a job — we show up on time, quote it upfront, and leave it clean.</p>
     </div>
 
     <div class="svc-grid">
-      <article class="svc svc-1 reveal">
+      <article class="svc reveal">
         <div class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a6 6 0 006-6c0-4-6-10-6-10S6 12 6 16a6 6 0 006 6z"/></svg></div>
         <h3>Repairs &amp; Leaks</h3>
         <p>Dripping faucets, burst pipes, running toilets, and hidden leaks — found fast and fixed for good.</p>
         <ul><li>Faucets</li><li>Pipe repair</li><li>Toilets</li><li>Leak detection</li></ul>
       </article>
-
-      <article class="svc svc-2 reveal">
+      <article class="svc reveal">
         <div class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6"/><circle cx="12" cy="16.5" r="1.6"/></svg></div>
         <h3>Water Heaters</h3>
         <p>Repair, replace, or upgrade to tankless. We size it right and get the hot water flowing the same day.</p>
         <ul><li>Repair</li><li>Replace</li><li>Tankless</li></ul>
       </article>
-
-      <article class="svc svc-3 reveal">
+      <article class="svc reveal">
         <div class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M8 8h8l-1.5 11a2 2 0 01-2 1.8H11.5a2 2 0 01-2-1.8z"/></svg></div>
         <h3>Drain Cleaning</h3>
-        <p>Slow sinks and stubborn clogs cleared with the right tools — not guesswork.</p>
+        <p>Slow sinks and stubborn clogs cleared with the right tools — not guesswork, and no mess left behind.</p>
         <ul><li>Snaking</li><li>Hydro-clear</li><li>Main lines</li></ul>
       </article>
-
-      <article class="svc svc-4 reveal">
-        <div class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.4"/></svg></div>
+      <article class="svc reveal">
+        <div class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
         <h3>24/7 Emergencies</h3>
         <p>Water where it shouldn't be? We answer around the clock and roll a licensed pro to your door — fast.</p>
         <ul><li>Nights</li><li>Weekends</li><li>Holidays</li></ul>
@@ -582,22 +327,10 @@
 <section class="stats" aria-label="By the numbers">
   <div class="wrap">
     <div class="stat-grid">
-      <div class="stat reveal">
-        <div class="n">4.9<span class="u">★</span></div>
-        <div class="lbl">Average Review</div>
-      </div>
-      <div class="stat reveal">
-        <div class="n">24<span class="u">/7</span></div>
-        <div class="lbl">Emergency Line</div>
-      </div>
-      <div class="stat reveal">
-        <div class="n">$<span class="u">0</span></div>
-        <div class="lbl">Surprise Fees</div>
-      </div>
-      <div class="stat reveal">
-        <div class="n">100<span class="u">%</span></div>
-        <div class="lbl">Licensed &amp; Insured</div>
-      </div>
+      <div class="stat reveal"><div class="n">4.9<span class="u">★</span></div><div class="lbl">Average review</div></div>
+      <div class="stat reveal"><div class="n">24<span class="u">/7</span></div><div class="lbl">Emergency line</div></div>
+      <div class="stat reveal"><div class="n">$<span class="u">0</span></div><div class="lbl">Surprise fees</div></div>
+      <div class="stat reveal"><div class="n">100<span class="u">%</span></div><div class="lbl">Licensed &amp; insured</div></div>
     </div>
   </div>
 </section>
@@ -606,34 +339,16 @@
 <section class="work" id="work">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div>
-        <span class="sec-num">/ 02 — THE WORK</span>
-        <h2 class="sec-title display">Clean Lines.<br>Real Jobs.</h2>
-      </div>
-      <p class="sec-sub">A look at recent installs and repairs around Westbrook. No stock filler — this is the work that goes in your walls.</p>
+      <span class="sec-num">/ 02 — The work</span>
+      <h2 class="sec-title serif">Clean lines. Real jobs.</h2>
+      <p class="sec-sub">A look at recent installs and repairs around Westbrook — the kind of work that goes in your walls and stays out of your mind.</p>
     </div>
-
     <div class="gal">
-      <figure class="tile gal-1 reveal">
-        <img src="assets/work-kitchen-faucet.webp" alt="Newly installed modern kitchen faucet over a stainless sink" />
-        <figcaption>Kitchen Faucet Install</figcaption>
-      </figure>
-      <figure class="tile reveal">
-        <img src="assets/work-bath-faucet.webp" alt="Polished bathroom faucet fitted to a clean vanity" />
-        <figcaption>Bath Fixture</figcaption>
-      </figure>
-      <figure class="tile reveal">
-        <img src="assets/work-fittings.webp" alt="Assortment of new brass and copper plumbing fittings" />
-        <figcaption>Fittings</figcaption>
-      </figure>
-      <figure class="tile t-wide reveal">
-        <img src="assets/work-outdoor-pipe.webp" alt="Exterior pipe and hose-bib connection installed on a house" />
-        <figcaption>Outdoor Line</figcaption>
-      </figure>
-      <figure class="tile t-wide reveal">
-        <img src="assets/work-copper-trench.webp" alt="Soldered copper supply line running through an open trench" />
-        <figcaption>Copper Repipe</figcaption>
-      </figure>
+      <figure class="tile t-fixture reveal"><img src="assets/fixture.webp" alt="Premium brushed-brass kitchen faucet on a dark slate surface" /><figcaption>Fixture Upgrade</figcaption></figure>
+      <figure class="tile t-install reveal"><img src="assets/install.webp" alt="Tidy under-sink copper supply lines and shutoff valves" /><figcaption>Under-Sink Install</figcaption></figure>
+      <figure class="tile t-joint reveal"><img src="assets/joint.webp" alt="Clean soldered copper T-joint close-up" /><figcaption>Copper Joinery</figcaption></figure>
+      <figure class="tile t-fittings reveal"><img src="assets/fittings.webp" alt="Organized array of brass and copper plumbing fittings" /><figcaption>Right Parts</figcaption></figure>
+      <figure class="tile t-mech reveal"><img src="assets/mechanical.webp" alt="Wall-mounted tankless water heater with neat copper manifold" /><figcaption>Tankless &amp; Manifold</figcaption></figure>
     </div>
   </div>
 </section>
@@ -642,30 +357,27 @@
 <section class="promise" id="why">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div>
-        <span class="sec-num">/ 03 — WHY TRUELINE</span>
-        <h2 class="sec-title display">No Games.<br>Just Honest Work.</h2>
-      </div>
-      <p class="sec-sub">The stuff that should be standard — and somehow isn't. With us, it's the baseline.</p>
+      <span class="sec-num">/ 03 — Why TrueLine</span>
+      <h2 class="sec-title serif">No games. Just honest work.</h2>
+      <p class="sec-sub">The things that should be standard — and somehow aren't. With us, they're the baseline.</p>
     </div>
-
     <div class="promise-grid">
       <article class="pcard reveal">
         <span class="pn">01</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
-        <h3>Licensed &amp; Insured</h3>
+        <h3>Licensed &amp; insured</h3>
         <p>Every job is done by a licensed, insured pro — your home and your wallet are protected.</p>
       </article>
       <article class="pcard reveal">
         <span class="pn">02</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        <h3>Same-Day &amp; 24/7</h3>
+        <h3>Same-day &amp; 24/7</h3>
         <p>Call before noon and we'll usually be there today. Emergencies? We answer day or night.</p>
       </article>
       <article class="pcard reveal">
         <span class="pn">03</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 00-6 0v4M5 9h14l-1 11H6z"/></svg>
-        <h3>Upfront Quotes</h3>
+        <h3>Upfront quotes</h3>
         <p>You hear the price before we lift a wrench. No hourly surprises, no padded bills.</p>
       </article>
     </div>
@@ -678,10 +390,7 @@
     <blockquote>
       <span class="qmark" aria-hidden="true">&ldquo;</span>
       <p>Showed up the same day, gave me the price first, and left the place spotless.</p>
-      <cite class="cite">
-        <span class="stars" aria-hidden="true">★★★★★</span>
-        Paraphrased from a Google review · 4.9★ rating
-      </cite>
+      <cite class="cite"><span class="stars" aria-hidden="true">★★★★★</span>Paraphrased from a Google review · 4.9★ rating</cite>
     </blockquote>
   </div>
 </section>
@@ -691,8 +400,8 @@
   <div class="wrap">
     <div class="contact-grid">
       <div class="reveal">
-        <span class="sec-num">/ 04 — GET IT FIXED</span>
-        <h2 class="display">Got A Leak?<br><span class="o">Let's Talk.</span></h2>
+        <span class="sec-num" style="color:var(--brass)">/ 04 — Get it fixed</span>
+        <h2 class="serif">Got a leak? Let's talk.</h2>
         <div class="phone-block">
           <div class="lbl">Call or text — we pick up</div>
           <a class="num" href="tel:+12075550151">(207) 555-0151</a>
@@ -708,35 +417,22 @@
           </a>
         </div>
       </div>
-
       <div class="info-card reveal">
         <div class="info-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <div>
-            <div class="k">Shop</div>
-            <div class="v"><a href="https://www.google.com/maps/search/?api=1&amp;query=47+Forest+Ave+Westbrook+ME" target="_blank" rel="noopener">47 Forest Ave, Westbrook, ME</a></div>
-          </div>
+          <div><div class="k">Shop</div><div class="v"><a href="https://www.google.com/maps/search/?api=1&amp;query=47+Forest+Ave+Westbrook+ME" target="_blank" rel="noopener">47 Forest Ave, Westbrook, ME</a></div></div>
         </div>
         <div class="info-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8.1 9.6a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6a2 2 0 011.7 2z"/></svg>
-          <div>
-            <div class="k">Phone</div>
-            <div class="v"><a href="tel:+12075550151">(207) 555-0151</a></div>
-          </div>
+          <div><div class="k">Phone</div><div class="v"><a href="tel:+12075550151">(207) 555-0151</a></div></div>
         </div>
         <div class="info-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          <div>
-            <div class="k">Hours</div>
-            <div class="v">Mon–Sat 7a–7p · 24/7 Emergency</div>
-          </div>
+          <div><div class="k">Hours</div><div class="v">Mon–Sat 7a–7p · 24/7 Emergency</div></div>
         </div>
         <div class="info-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
-          <div>
-            <div class="k">Coverage</div>
-            <div class="v">Westbrook &amp; Greater Portland</div>
-          </div>
+          <div><div class="k">Coverage</div><div class="v">Westbrook &amp; Greater Portland</div></div>
         </div>
       </div>
     </div>
@@ -749,16 +445,15 @@
   <div class="wrap">
     <a class="brand" href="#main" aria-label="TrueLine Plumbing home">
       <span class="mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#0a1530" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-6 6a3 3 0 104 4l6-6"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0b1320" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-6 6a3 3 0 104 4l6-6"/></svg>
       </span>
       <b>TrueLine Plumbing</b>
     </a>
-    <div class="lic">Licensed &amp; Insured · Westbrook, Maine</div>
+    <div>Licensed &amp; Insured · Westbrook, Maine</div>
     <div>© 2026 TrueLine Plumbing · 47 Forest Ave, Westbrook, ME</div>
   </div>
 </footer>
 
-<!-- Sticky mobile CTA -->
 <nav class="sticky-cta" aria-label="Quick contact">
   <a class="s-call" href="tel:+12075550151">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8.1 9.6a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6a2 2 0 011.7 2z"/></svg>
@@ -774,14 +469,9 @@
   (function () {
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var els = document.querySelectorAll('.reveal');
-    if (reduce || !('IntersectionObserver' in window)) {
-      els.forEach(function (el) { el.classList.add('in'); });
-      return;
-    }
+    if (reduce || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('in'); }); return; }
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-      });
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     els.forEach(function (el) { io.observe(el); });
   })();
