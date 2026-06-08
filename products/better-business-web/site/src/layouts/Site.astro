@@ -91,7 +91,7 @@ const {
        away. No JS, nothing fixed; the sticky nav below it does the pinning. */
     .brand-banner { padding-block: clamp(0.8rem, 0.5rem + 1vw, 1.4rem); }
     .brand-banner__link {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.3em;
@@ -109,18 +109,15 @@ const {
       height: 0.85em;
       border-radius: 0.16em;
     }
-    /* Footer-style accent→gold gradient, but at full opacity so it reads
-       clearly against the dark canvas instead of receding like the footer word. */
+    /* Solid brand tone — a soft, fully-visible periwinkle (not the receding
+       faint footer word). */
     .brand-banner__word {
       font-family: var(--font-display);
       font-weight: 600;
       font-size: 1em;
       letter-spacing: -0.03em;
       line-height: 0.95;
-      background: linear-gradient(100deg, var(--accent), var(--gold));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      color: var(--accent-2);
     }
     .brand-banner.is-compact { padding-block: 0.9rem; }
     .brand-banner.is-compact .brand-banner__link { font-size: 1.6rem; }
