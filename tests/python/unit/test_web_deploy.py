@@ -176,6 +176,54 @@ def test_transfer_ownership_moves_account() -> None:
     assert site.account_id == "client_co"
 
 
+def test_attach_domain_merges_aliases_www_primary() -> None:
+    """www-as-primary + apex alias; GET-merge-PATCH must not clobber existing aliases."""
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            # Site already has an unrelated alias that must survive the merge.
+            return httpx.Response(200, json={"id": "s1", "domain_aliases": ["old.acme.com"]})
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(
+            200, json={"id": "s1", "name": "acme", "ssl_url": "https://www.acme.com"}
+        )
+
+    site = _make_target(handler).attach_domain(
+        SiteRef("s1", "acme"), "www.acme.com", aliases=("acme.com",)
+    )
+    assert captured["body"]["custom_domain"] == "www.acme.com"
+    # apex + the pre-existing alias are both present; primary isn't duplicated.
+    assert captured["body"]["domain_aliases"] == ["acme.com", "old.acme.com"]
+    assert site.url == "https://www.acme.com"
+
+
+def test_provision_and_get_ssl() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path.endswith("/ssl")
+        return httpx.Response(
+            200,
+            json={
+                "state": "issued",
+                "domains": ["acme.com", "www.acme.com"],
+                "expires_at": "2026-09-01",
+            },
+        )
+
+    target = _make_target(handler)
+    cert = target.provision_ssl(SiteRef("s1", "acme"))
+    assert cert.issued
+    assert cert.covers("www.acme.com") and cert.covers("ACME.COM")
+    assert target.get_ssl(SiteRef("s1", "acme")).expires_at == "2026-09-01"
+
+
+def test_ssl_pending_is_not_issued() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"state": "pending", "domains": []})
+
+    assert not _make_target(handler).get_ssl(SiteRef("s1", "acme")).issued
+
+
 def test_http_error_becomes_deploy_error() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(401, text="unauthorized")
