@@ -15,7 +15,7 @@ THANKS_PAGE = REPO / "products" / "better-business-web" / "site" / "src" / "page
 
 # Fields the function persists and WebsiteReviewRequest round-trips.
 INBOUND_FIELDS = frozenset(
-    {"submission_id", "name", "contact", "business", "website", "received_at", "source"}
+    {"submission_id", "name", "contact", "business", "website", "interest", "received_at", "source"}
 )
 
 
@@ -27,6 +27,10 @@ def test_landing_form_posts_to_function() -> None:
     assert 'name="bot-field"' in text
     for field in ("name", "business", "website", "contact"):
         assert f'name="{field}"' in text
+    # The three-audience intent selector (preview / review / both).
+    assert 'name="interest"' in text
+    for value in ("preview", "review", "both"):
+        assert f'value: "{value}"' in text
 
 
 def test_website_review_function_contract() -> None:
@@ -35,7 +39,7 @@ def test_website_review_function_contract() -> None:
     assert 'field("bot-field")' in text
     assert 'redirect(req, "/thanks/")' in text
     assert "submission_id" in text
-    for key in ("name", "contact", "business", "website", "received_at", "source"):
+    for key in ("name", "contact", "business", "website", "interest", "received_at", "source"):
         assert key in text
 
 

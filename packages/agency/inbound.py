@@ -68,6 +68,9 @@ class WebsiteReviewRequest:
     # look the business up directly instead of supplying --city by hand.
     city: str = ""
     state: str = ""  # 2-letter US state code (form select)
+    # What the prospect is after: "preview" (new site), "review" (existing site),
+    # or "both". Empty for legacy records written before the field existed.
+    interest: str = ""
 
     def validate(self) -> None:
         if not self.submission_id.strip():
@@ -86,6 +89,7 @@ class WebsiteReviewRequest:
             "website": self.website,
             "city": self.city,
             "state": self.state,
+            "interest": self.interest,
             "received_at": self.received_at,
             "source": self.source,
             "status": self.status.value,
@@ -103,6 +107,7 @@ class WebsiteReviewRequest:
             website=str(payload.get("website", "")),
             city=str(payload.get("city", "")),
             state=str(payload.get("state", "")),
+            interest=str(payload.get("interest", "")),
             received_at=str(payload.get("received_at", "")),
             source=str(payload.get("source", "netlify-form")),
             # Defaulted so legacy records (written before these fields existed)

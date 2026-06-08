@@ -27,6 +27,17 @@ def test_roundtrip_to_from_dict() -> None:
     assert WebsiteReviewRequest.from_dict(r.to_dict()) == r
 
 
+def test_interest_field_roundtrips_and_defaults() -> None:
+    # Carried through to_dict/from_dict…
+    r = _req(interest="both")
+    assert r.to_dict()["interest"] == "both"
+    assert WebsiteReviewRequest.from_dict(r.to_dict()).interest == "both"
+    # …and legacy records (written before the field existed) load as "".
+    legacy = _req().to_dict()
+    del legacy["interest"]
+    assert WebsiteReviewRequest.from_dict(legacy).interest == ""
+
+
 def test_validate_requires_name_and_contact() -> None:
     with pytest.raises(ValueError):
         _req(name=" ").validate()

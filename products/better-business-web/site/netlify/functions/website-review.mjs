@@ -39,10 +39,16 @@ async function notifyLead(submission) {
     return null;
   }
 
-  const { submission_id, name, contact, business, website, city, state, received_at } = submission;
+  const { submission_id, name, contact, business, website, city, state, interest, received_at } = submission;
   const looksEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact || "");
   // "City, ST" — feeds the operator's lookup + the process command's --city.
   const location = [city, state].map((s) => (s || "").trim()).filter(Boolean).join(", ");
+  // Map the radio value to a readable line for the operator email.
+  const interestLabel = {
+    preview: "Preview of a new website",
+    review: "Review of their current website",
+    both: "Both — review current site + preview a new one",
+  }[interest] || "Not specified";
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -65,6 +71,7 @@ async function notifyLead(submission) {
           `<p><strong>Contact:</strong> ${esc(contact)}</p>`,
           `<p><strong>Business:</strong> ${esc(business) || "—"}</p>`,
           `<p><strong>Location:</strong> ${esc(location) || "—"}</p>`,
+          `<p><strong>Looking for:</strong> ${esc(interestLabel)}</p>`,
           `<p><strong>Current site:</strong> ${esc(website) || "none"}</p>`,
           `<p><strong>Received:</strong> ${esc(received_at)}</p>`,
           `<p><strong>Submission ID:</strong> <code>${esc(submission_id)}</code></p>`,
@@ -114,6 +121,7 @@ export default async (req) => {
     website: field("website"),
     city: field("city"),
     state: field("state").toUpperCase().slice(0, 2),
+    interest: field("interest"), // preview | review | both
     received_at: new Date().toISOString(),
     source: "netlify-function",
     notified_at: null,
