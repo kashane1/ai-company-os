@@ -93,7 +93,7 @@ both the bespoke playbook (path B, as fallback guidance) and the Astro scaffold 
   `build_prospect_site`, `build_portfolio_demos`, `client_intake`, `launch_client`,
   `build_outreach`, `preview_site`, `screenshot_demo`, `retheme_sites`,
   `inject_booking`, plus domain onboarding (`domain_recon`, `verify_domain`,
-  `attach_domain`). Browse `scripts/agency/` for the full set.
+  `attach_domain`). Full index: [scripts/agency/README.md](../../scripts/agency/README.md).
 - **`scripts/web/`** — `shoot.mjs` (Playwright full-page screenshots),
   `pull-inbound.mjs` / `pull-orders.mjs` / `pull-leads.mjs` (Netlify Blobs drains:
   reviews, self-serve orders, and per-client contact-form leads) — see
