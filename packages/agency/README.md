@@ -22,6 +22,26 @@ client onboarding, and monthly retainer ops. Runnable entrypoints live in
 - `launch.py` — pre-launch readiness (composed by the `launch-checklist` skill).
 - `local_seo.py` — service × geo page generation with thin-content guards.
 
+**Domain & hosting (bring-your-own-domain onboarding)**
+- `domain_recon.py` — preemptive, registrar-agnostic readiness recon (RDAP + DNS-
+  over-HTTPS): registrar/nameservers, DNS-provider → apex ALIAS vs A-fallback, the
+  **email host whose records must survive a cutover**, SPF/DKIM/DMARC. Hardens the
+  untrusted-domain boundary (`validate_domain`) and generates copy-paste Netlify
+  DNS instructions with the client's email records carried over. Zero new deps.
+- `domain_verify.py` — multi-resolver, propagation-aware post-cutover safety net
+  (`ok`/`fail`/`propagating`); catches a wiped MX (broken email) before the client does.
+- `domain_attach.py` — gated attach orchestration: the existing
+  `assert_custom_domain_allowed` policy gate **plus** a `client_confirmed_registrar`
+  control proof, then www-primary + apex-alias attach via the Netlify deploy seam.
+- `business_email.py` — Google Workspace setup runbook generation. Pairs with the
+  manual [domain-dns-runbook](../../docs/agency/domain-dns-runbook.md).
+
+**Services & lead handling**
+- `contact_forms.py` — contact-form lead capture + routing for client sites.
+- `crm_setup.py` — CRM setup service (HubSpot-first).
+- `follow_up.py` — follow-up automation (email-first; SMS gated to compliant platforms).
+- `inbound.py`, `inbound_fulfillment.py` — inbound-lead handling glue.
+
 **Retainer ops**
 - `retainer_ops.py` — plans the month's actions, **fenced to active billing** (a
   lapsed/disputed client gets an empty plan), and tracks each planned action to
@@ -43,15 +63,15 @@ client onboarding, and monthly retainer ops. Runnable entrypoints live in
   the draft CLIs refuse to draft an un-runnable campaign.
 - `ad_creative.py` — ad images at all placements + promo overlays; **real client
   photos first, AI (Gemini) fallback**; drafts only (go-live stays gated).
-- `business_email.py`, `booking.py`, `promo_page.py` — email setup, booking embeds, promo pages.
+- `booking.py`, `promo_page.py` — booking embeds, promo pages.
 
 **Money**
 - `billing.py`, `payments.py`, `stripe_receiver.py` — invoicing + Stripe events.
+- `order_fulfillment.py` — self-serve (Package C) transaction-loop fulfillment.
 
 **Shared**
-- `catalog.py`, `templates.py`, `registry.py`, `approvals.py`, `inbound.py`,
-  `inbound_fulfillment.py` — service catalog, render templates, registries, approval
-  glue, and inbound-lead handling.
+- `catalog.py`, `templates.py`, `registry.py`, `approvals.py` — service catalog,
+  render templates, registries, approval glue.
 
 ## Conventions
 

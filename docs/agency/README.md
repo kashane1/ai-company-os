@@ -17,7 +17,8 @@ the stage doc you need.
 | — Portfolio | curate anonymized demos onto the BBW landing page | (this doc, below) | `scripts/agency/build_portfolio_demos.py`, `products/better-business-web/` |
 | Outreach | channel × genre templates, send, track replies | [waas-prospecting-lane.md](../waas-prospecting-lane.md) (stages 6–8) | `packages/agency/outreach.py`, `scripts/agency/build_outreach.py` |
 | 3–6 Sale → client | promote prospect → intake → scaffold → launch → SEO | [agency/client-lifecycle.md](client-lifecycle.md) · [agency/go-live-checklist.md](go-live-checklist.md) | `packages/agency/client_lifecycle.py`, `intake.py`, `launch.py`, `local_seo.py` |
-| Retainer ops | monthly report, ads, GBP, email, billing | [agency/operator-ads-playbook.md](operator-ads-playbook.md) | `packages/agency/retainer_ops.py`, `monthly_report.py`, `billing.py` |
+| Domain & hosting (bring-your-own-domain) | point the client's own domain at the Netlify site **without breaking their email**: recon → DNS instructions → gated attach → verify | [agency/domain-dns-runbook.md](domain-dns-runbook.md) | `packages/agency/domain_recon.py`, `domain_verify.py`, `domain_attach.py`; `scripts/agency/{domain_recon,verify_domain,attach_domain}.py` |
+| Retainer ops | monthly report, ads, GBP, email, billing, follow-up, CRM | [agency/operator-ads-playbook.md](operator-ads-playbook.md) | `packages/agency/retainer_ops.py`, `retainer_executor.py`, `monthly_report.py`, `billing.py`, `follow_up.py`, `crm_setup.py` |
 | Lead monitoring (own funnel + lead-capture clients) | drain the agency funnel + each lead-form client → flag leads captured but never emailed; form-less sites skipped | (this doc) | `scripts/web/pull-leads.mjs` → `scripts/agency/check_all_lead_health.py` (`packages/agency/lead_health.py`); scheduled by `infra/launchd/com.ai-company-os.lead-health.plist` |
 
 Lessons learned from real runs: [demo-site-learnings.md](../demo-site-learnings.md).
@@ -82,15 +83,17 @@ both the bespoke playbook (path B, as fallback guidance) and the Astro scaffold 
 
 ## Code index
 
-- **`packages/agency/`** — lane business logic: `prospect_site`, `demo_theme` (legacy),
-  `intake`, `client_lifecycle`, `launch`, `local_seo`, `outreach`, `promotion`,
-  `retainer_ops`, `monthly_report`, `billing`/`payments`/`stripe_receiver`, `booking`,
-  `business_email`, `gbp`, `google_ads`, `plausible`, `catalog`, `templates`.
-- **`packages/web/`** — site machinery: `scaffold`, `validation`, `build`, `deploy`,
-  `ux_audit`, `palette`, `stripe_monetization` + `design_reference/` + `scaffold/`.
-- **`scripts/agency/`** — runnable entrypoints: `gather_place`, `build_prospect_site`,
-  `build_portfolio_demos`, `client_intake`, `launch_client`, `build_outreach`,
-  `preview_site`, `screenshot_demo`, `retheme_sites`, `inject_booking`, … (28 scripts).
+- **`packages/agency/`** — lane business logic. The **authoritative, per-module
+  list** lives in [packages/agency/README.md](../../packages/agency/README.md)
+  (kept in sync with the source); start there rather than duplicating it here.
+- **`packages/web/`** — site machinery: `scaffold`, `validation`, `build`, `deploy`
+  (incl. custom-domain attach + SSL), `ux_audit`, `palette`, `stripe_monetization`
+  + `design_reference/` + `scaffold/`. See [packages/web/README.md](../../packages/web/README.md).
+- **`scripts/agency/`** — runnable entrypoints, e.g. `gather_place`,
+  `build_prospect_site`, `build_portfolio_demos`, `client_intake`, `launch_client`,
+  `build_outreach`, `preview_site`, `screenshot_demo`, `retheme_sites`,
+  `inject_booking`, plus domain onboarding (`domain_recon`, `verify_domain`,
+  `attach_domain`). Full index: [scripts/agency/README.md](../../scripts/agency/README.md).
 - **`scripts/web/`** — `shoot.mjs` (Playwright full-page screenshots),
   `pull-inbound.mjs` / `pull-orders.mjs` / `pull-leads.mjs` (Netlify Blobs drains:
   reviews, self-serve orders, and per-client contact-form leads) — see

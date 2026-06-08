@@ -30,7 +30,7 @@ import hashlib
 import io
 import re
 import zipfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
@@ -318,6 +318,65 @@ class NetlifyDeployTarget:
             json={"account_slug": to_account.id},
         )
         return _site_ref(updated)
+
+    def attach_domain(
+        self, site: SiteRef, primary: str, *, aliases: tuple[str, ...] = ()
+    ) -> SiteRef:
+        """Set the primary custom domain and merge in alias domains (a gated action).
+
+        For external DNS Netlify recommends **www as primary** with the apex as an
+        alias (apex then 301s to www). ``domain_aliases`` is replace-semantics on
+        the API, so we **GET-merge-PATCH**: read the current aliases and union them
+        rather than clobbering. ``primary`` is removed from the alias set so it
+        isn't listed twice.
+        """
+        current = self._request("GET", f"/sites/{site.site_id}", headers=self._headers())
+        existing = [str(a) for a in (current.get("domain_aliases") or [])]
+        merged = sorted({*existing, *aliases} - {primary})
+        updated = self._request(
+            "PATCH",
+            f"/sites/{site.site_id}",
+            headers=self._headers(),
+            json={"custom_domain": primary, "domain_aliases": merged},
+        )
+        return _site_ref(updated)
+
+    def provision_ssl(self, site: SiteRef) -> CertState:
+        """Nudge Netlify to provision/renew the Let's Encrypt cert (POST .../ssl).
+
+        Call after DNS resolves to skip the default 10-minute retry cycle.
+        """
+        payload = self._request("POST", f"/sites/{site.site_id}/ssl", headers=self._headers())
+        return _cert_state(payload)
+
+    def get_ssl(self, site: SiteRef) -> CertState:
+        """Read the site's TLS certificate state (GET .../ssl)."""
+        payload = self._request("GET", f"/sites/{site.site_id}/ssl", headers=self._headers())
+        return _cert_state(payload)
+
+
+@dataclass(frozen=True)
+class CertState:
+    """A site's TLS certificate state, as read from the Netlify SSL endpoint."""
+
+    state: str = ""
+    domains: list[str] = field(default_factory=list)
+    expires_at: str = ""
+
+    @property
+    def issued(self) -> bool:
+        return self.state.lower() in {"issued", "active"}
+
+    def covers(self, domain: str) -> bool:
+        return domain.lower() in {d.lower() for d in self.domains}
+
+
+def _cert_state(payload: dict) -> CertState:
+    return CertState(
+        state=str(payload.get("state", "")),
+        domains=[str(d) for d in (payload.get("domains") or [])],
+        expires_at=str(payload.get("expires_at", "")),
+    )
 
 
 def _site_ref(payload: dict) -> SiteRef:

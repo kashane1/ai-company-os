@@ -15,7 +15,7 @@ the agency lane's **client sites** (path C: `scaffold.py` → Astro under
 | `validation.py` | The web gate — `validate_web_dist()` runs build / internal-links / assets / responsive / accessibility / **contrast** checks on a built `dist/`. |
 | `palette.py` | Design intelligence: WCAG contrast primitives (`contrast_ratio`, `passes_aa`), a genre→palette table (`GENRE_PALETTES`), and a deterministic HSL synthesizer (`derive_palette`). |
 | `ux_audit.py` | Deeper responsive/a11y/perf/SEO audit (`audit_dist`) behind the `web-ux-audit` + `launch-checklist` skills. |
-| `build.py` / `deploy.py` | Build orchestration and the (approval-gated) deploy path. |
+| `build.py` / `deploy.py` | Build orchestration and the (approval-gated) deploy path. `NetlifyDeployTarget` also attaches a client's custom domain — `attach_domain` (www-primary + apex-alias, GET-merge-PATCH so it never clobbers existing aliases), `provision_ssl`/`get_ssl` (+ `CertState`), and `transfer_ownership` for client handoff. Driven by `packages/agency/domain_attach.py`. |
 | `stripe_monetization.py` | Stripe wiring for monetized sites. |
 
 ## Subdirectories
