@@ -1,39 +1,27 @@
 ---
-// Post-submit success page (form action="/thanks/"). Closes the conversion
-// moment instead of dumping to Netlify's generic page (plan todo 078).
-import "@fontsource-variable/fraunces";
-import "@fontsource-variable/hanken-grotesk";
-import "../styles/global.css";
+// Post-submit success page (free-review form → Netlify function → 303 here).
+// Closes the conversion moment instead of dumping to Netlify's generic page.
+// Not in the nav (no active item); compact banner.
+import Site from "../layouts/Site.astro";
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Thanks — Better Business Web</title>
-  <meta name="robots" content="noindex" />
-  <meta name="description" content="Thanks — we've received your free website review request and will be in touch shortly." />
-  <meta property="og:title" content="Thanks — Better Business Web" />
-  <meta property="og:description" content="Thanks — we've received your free website review request and will be in touch shortly." />
-  <meta property="og:type" content="website" />
-</head>
-<body>
-  <header class="site-header">
-    <div class="container nav">
-      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span>Better Business Web</span></a>
+<Site
+  title="Thanks — Better Business Web"
+  description="Thanks — we've received your free website review request and will be in touch shortly."
+  noindex
+  compactBanner
+>
+  <section class="section">
+    <div class="container center stack-lg">
+      <span class="eyebrow">Request received</span>
+      <h1>Thanks — your review is on the way.</h1>
+      <p class="muted measure">I've got your details and I'll start putting together a preview of
+        your site. You'll hear back within 2 business days with a link to review — no payment
+        until you're happy with it.</p>
+      <p><a class="btn btn-primary btn-lg" href="/">Back to home</a></p>
     </div>
-  </header>
-  <main id="main">
-    <section class="section">
-      <div class="container center stack-lg">
-        <span class="eyebrow">Request received</span>
-        <h1>Thanks — your review is on the way.</h1>
-        <p class="muted measure">I've got your details and I'll start putting together a preview of
-          your site. You'll hear back within 2 business days with a link to review — no payment
-          until you're happy with it.</p>
-        <p><a class="btn btn-primary btn-lg" href="/">Back to home</a></p>
-      </div>
-    </section>
-  </main>
-</body>
-</html>
+  </section>
+</Site>
+
+<style>
+  .stack-lg > * + * { margin-top: var(--space-md); }
+</style>

@@ -1,0 +1,40 @@
+---
+// Pricing — the three packages for ready buyers, plus the build-your-own path.
+import Site from "../layouts/Site.astro";
+import packages from "../data/packages.json";
+
+const featuredId = "package_b";
+const fmt = (n) => n.toLocaleString("en-US");
+---
+<Site
+  title="Pricing — Better Business Web"
+  description="Straightforward pricing for small-business websites. Pick a package or build your own bundle and pay online — setup is one-time, monthly covers the ongoing work."
+  ogTitle="Straightforward pricing — Better Business Web"
+  current="/pricing"
+>
+  <section class="section">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow">Packages</span>
+        <h2>Straightforward pricing.</h2>
+        <p class="muted measure">Ready to go? Pick a package or build your own bundle and pay online. Just browsing? <a href="/free-review">Get a free preview</a> of your site first — no card, no commitment.</p>
+      </div>
+      <div class="price-grid">
+        {packages.bundles.map((b) => (
+          <article class={b.id === featuredId ? "price-card is-featured" : "price-card"}>
+            {b.id === featuredId && <span class="price-badge">Most popular</span>}
+            <h3>{b.name}</h3>
+            <p class="blurb">{b.description}</p>
+            <div class="price">
+              <span class="amount">${fmt(b.setup)}</span>
+              <span class="per">setup + ${fmt(b.monthly)}/mo</span>
+            </div>
+            <ul>{b.services.map((s) => <li>{s}</li>)}</ul>
+            <a class={b.id === featuredId ? "btn btn-accent" : "btn btn-primary"} href={`/build?preset=${b.id}`}>Start this package <span class="arrow">→</span></a>
+          </article>
+        ))}
+      </div>
+      <p class="center muted" style="margin-top:var(--space-md)">Prefer to cherry-pick? <a href="/build">Build your own bundle →</a> and pay for exactly what you choose.</p>
+    </div>
+  </section>
+</Site>

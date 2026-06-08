@@ -1,0 +1,233 @@
+---
+// Sticky uniform nav. Rests under the brand banner on load and pins to the top
+// once the banner scrolls past — native `position: sticky`, zero JS for the pin.
+// A decorative "b" mark fades in (opacity only, in a permanently-reserved
+// fixed-width slot so the bar never shifts) and a faint shadow appears when the
+// nav is stuck — both driven by ONE sentinel + IntersectionObserver. The four
+// links are styled identically (no accent CTA); on phones they collapse to a
+// WAI-ARIA disclosure (button + dropdown panel, untabbable when closed).
+import BrandMark from "./BrandMark.astro";
+
+interface Props {
+  current?: string;
+}
+const { current } = Astro.props;
+
+const links = [
+  { href: "/", label: "Intro" },
+  { href: "/demos", label: "Demos" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/free-review", label: "Free review" },
+];
+---
+<nav class="site-nav" aria-label="Primary">
+  <div class="site-nav__inner">
+    <span class="site-nav__mark" aria-hidden="true"><BrandMark id="nav" size={30} /></span>
+
+    <ul class="site-nav__links" id="primary-menu">
+      {links.map((l) => (
+        <li>
+          <a
+            href={l.href}
+            class:list={["site-nav__link", current === l.href && "is-current"]}
+            aria-current={current === l.href ? "page" : undefined}
+          >{l.label}</a>
+        </li>
+      ))}
+    </ul>
+
+    <span class="site-nav__spacer" aria-hidden="true"></span>
+
+    <button
+      type="button"
+      class="site-nav__toggle"
+      aria-expanded="false"
+      aria-controls="primary-menu"
+      aria-label="Menu"
+    >
+      <svg class="icon-open" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+    </button>
+  </div>
+</nav>
+
+<style>
+  .site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: color-mix(in srgb, var(--paper) 72%, transparent);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    backdrop-filter: saturate(160%) blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  /* Opaque fallback where backdrop-filter is unsupported (blur alone wouldn't
+     give text contrast). */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .site-nav { background: color-mix(in srgb, var(--paper) 94%, transparent); }
+  }
+  .site-nav.is-stuck {
+    border-bottom-color: var(--line);
+    box-shadow: 0 8px 28px -18px rgba(0, 0, 0, 0.85);
+  }
+
+  .site-nav__inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+    max-width: var(--container);
+    margin-inline: auto;
+    padding: 0.6rem clamp(1.1rem, 0.4rem + 3vw, 2.2rem);
+    min-height: 56px;
+  }
+
+  /* Permanently-reserved, explicit-width slot — the mark fades in via opacity
+     only, so glyph/font load can never resize it and the links never shift. */
+  .site-nav__mark {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+  .site-nav.is-stuck .site-nav__mark { opacity: 1; }
+
+  /* Symmetric spacer so the link row sits centered between the mark slot (left)
+     and an equal slot (right) — the mark fade can't nudge it. */
+  .site-nav__spacer { flex: 0 0 30px; }
+
+  .site-nav__links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: clamp(1rem, 0.3rem + 1.8vw, 2.4rem);
+  }
+  .site-nav__link {
+    display: inline-block;
+    color: var(--ink-soft);
+    font-weight: 500;
+    font-size: var(--step--1);
+    letter-spacing: 0.01em;
+    padding: 0.35rem 0.15rem;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .site-nav__link:hover { color: var(--ink); }
+  .site-nav__link.is-current {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+
+  .site-nav__toggle { display: none; }
+
+  /* ---- Mobile: disclosure ---- */
+  @media (max-width: 759px) {
+    .site-nav__inner { gap: var(--space-sm); }
+    .site-nav__spacer { display: none; }
+
+    .site-nav__toggle {
+      display: grid;
+      place-items: center;
+      margin-left: auto;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--ink) 7%, transparent);
+      color: var(--ink);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .site-nav__toggle:focus-visible { outline: none; box-shadow: var(--ring); }
+    .site-nav__toggle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+    .site-nav__toggle .icon-close { display: none; }
+    .site-nav__toggle[aria-expanded="true"] .icon-open { display: none; }
+    .site-nav__toggle[aria-expanded="true"] .icon-close { display: block; }
+
+    /* The mark always shows on mobile (no room for a banner-sized brand once
+       stuck, and it anchors the bar). */
+    .site-nav__mark { opacity: 1; }
+
+    .site-nav__links {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      display: none; /* closed → not tabbable / not announced */
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 0;
+      padding: 0.5rem clamp(1.1rem, 0.4rem + 3vw, 2.2rem) 1rem;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow-lg);
+    }
+    .site-nav.is-open .site-nav__links { display: flex; }
+    .site-nav__link {
+      padding: 0.85rem 0.15rem;
+      border-bottom: 1px solid var(--line);
+      font-size: var(--step-0);
+    }
+    .site-nav__link.is-current { border-bottom-color: var(--line); color: var(--accent-2); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-nav__mark { transition: none; }
+    .site-nav { transition: none; }
+  }
+</style>
+
+<script>
+  // 1) Stuck detection — one sentinel (rendered by the layout, just above this
+  //    nav) + one IntersectionObserver. No scroll handlers. Drives both the
+  //    b-mark fade and the faint shadow via `.is-stuck`.
+  const nav = document.querySelector<HTMLElement>(".site-nav");
+  const sentinel = document.querySelector<HTMLElement>(".sticky-sentinel");
+  if (nav && sentinel && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      ([entry]) => nav.classList.toggle("is-stuck", !entry.isIntersecting),
+      { threshold: 0 },
+    );
+    io.observe(sentinel);
+  }
+
+  // 2) Mobile disclosure — WAI-ARIA pattern (button + dropdown), not a menu,
+  //    not a modal. Untabbable when closed (display:none), Escape closes and
+  //    returns focus, link tap / outside click closes.
+  const toggle = document.querySelector<HTMLButtonElement>(".site-nav__toggle");
+  if (nav && toggle) {
+    const setOpen = (open: boolean) => {
+      nav.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+    };
+    toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+    nav.querySelectorAll(".site-nav__link").forEach((a) =>
+      a.addEventListener("click", () => setOpen(false)),
+    );
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (toggle.getAttribute("aria-expanded") === "true" && !nav.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    });
+    // Crossing to desktop: clear mobile state so the inline row is clean.
+    window.matchMedia("(min-width: 760px)").addEventListener("change", (m) => {
+      if (m.matches) setOpen(false);
+    });
+  }
+</script>

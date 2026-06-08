@@ -2,63 +2,48 @@
 // Post-PAYMENT success page — the Stripe Checkout success_url for paid bundles
 // (packages/agency/payments.py). Distinct from /thanks/, which is the free-review
 // request confirmation. A paying customer must never see "no payment until you're
-// happy" copy — they've just paid. This page confirms the charge and sets onboarding
-// expectations.
-import "@fontsource-variable/fraunces";
-import "@fontsource-variable/hanken-grotesk";
-import "../styles/global.css";
+// happy" copy — they've just paid. This page confirms the charge and sets
+// onboarding expectations. Not in the nav (no active item); compact banner.
+import Site from "../layouts/Site.astro";
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Welcome aboard — Better Business Web</title>
-  <meta name="robots" content="noindex" />
-  <meta name="description" content="Payment received — welcome aboard. Your plan is active and we'll be in touch to kick things off." />
-  <meta property="og:title" content="Welcome aboard — Better Business Web" />
-  <meta property="og:description" content="Payment received — welcome aboard. Your plan is active and we'll be in touch to kick things off." />
-  <meta property="og:type" content="website" />
-</head>
-<body>
-  <header class="site-header">
-    <div class="container nav">
-      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span>Better Business Web</span></a>
+<Site
+  title="Welcome aboard — Better Business Web"
+  description="Payment received — welcome aboard. Your plan is active and we'll be in touch to kick things off."
+  noindex
+  compactBanner
+>
+  <section class="section">
+    <div class="container center stack-lg">
+      <span class="eyebrow">Payment received</span>
+      <h1>You're all set.</h1>
+      <p class="muted measure">Your plan is active and a receipt is on its way to your email.
+        Thank you for trusting me with your online presence. Here's what happens next.</p>
+      <ol class="next-steps measure">
+        <li><strong>Within 1 business day.</strong> I'll email you a short kickoff note with the
+          handful of things I need from you: logo, photos, business hours, and account access.</li>
+        <li><strong>This week.</strong> I get your site and setup underway, then share a preview link
+          so you can watch it come together.</li>
+        <li><strong>Ongoing.</strong> Your monthly plan covers hosting, updates, and the services in
+          your package. Reply to any of my emails anytime and you'll always reach a real person.</li>
+      </ol>
+      <p class="muted measure note">Need to change anything or have a question right now? Just reply
+        to your receipt email and it comes straight to me.</p>
+      <p><a class="btn btn-primary btn-lg" href="/">Back to home</a></p>
     </div>
-  </header>
-  <main id="main">
-    <section class="section">
-      <div class="container center stack-lg">
-        <span class="eyebrow">Payment received</span>
-        <h1>You're all set.</h1>
-        <p class="muted measure">Your plan is active and a receipt is on its way to your email.
-          Thank you for trusting me with your online presence. Here's what happens next.</p>
-        <ol class="next-steps measure">
-          <li><strong>Within 1 business day.</strong> I'll email you a short kickoff note with the
-            handful of things I need from you: logo, photos, business hours, and account access.</li>
-          <li><strong>This week.</strong> I get your site and setup underway, then share a preview link
-            so you can watch it come together.</li>
-          <li><strong>Ongoing.</strong> Your monthly plan covers hosting, updates, and the services in
-            your package. Reply to any of my emails anytime and you'll always reach a real person.</li>
-        </ol>
-        <p class="muted measure note">Need to change anything or have a question right now? Just reply
-          to your receipt email and it comes straight to me.</p>
-        <p><a class="btn btn-primary btn-lg" href="/">Back to home</a></p>
-      </div>
-    </section>
-  </main>
-  <style>
-    .next-steps {
-      text-align: left;
-      margin: var(--space-sm) auto 0;
-      padding-left: 1.25rem;
-      display: grid;
-      gap: 0.75rem;
-      color: var(--ink-soft);
-    }
-    .next-steps li { padding-left: 0.35rem; }
-    .next-steps strong { color: var(--ink); }
-    .note { font-size: var(--step--1); }
-  </style>
-</body>
-</html>
+  </section>
+</Site>
+
+<style>
+  .stack-lg > * + * { margin-top: var(--space-md); }
+  .next-steps {
+    text-align: left;
+    margin: var(--space-sm) auto 0;
+    padding-left: 1.25rem;
+    display: grid;
+    gap: 0.75rem;
+    color: var(--ink-soft);
+  }
+  .next-steps li { padding-left: 0.35rem; }
+  .next-steps strong { color: var(--ink); }
+  .note { font-size: var(--step--1); }
+</style>

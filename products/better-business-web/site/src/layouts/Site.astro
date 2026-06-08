@@ -1,0 +1,114 @@
+---
+// Shared site shell for Better Business Web. Owns the whole <html><head>…</head>
+// <body class="theme-luminous"> document: fonts + global.css + theme imported
+// ONCE here (pages no longer re-declare any of it). Renders, as direct flow
+// siblings of <body> (load-bearing for the sticky pin): the scroll-away brand
+// banner, a 1px sentinel that drives the nav's stuck state, the sticky <SiteNav>,
+// <main id="main"> (the skip-link target), and <SiteFooter>.
+import "@fontsource-variable/geist";
+import "../styles/global.css";
+import "../styles/theme-luminous.css";
+import BrandMark from "../components/BrandMark.astro";
+import SiteNav from "../components/SiteNav.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  ogTitle?: string;
+  current?: string;
+  noindex?: boolean;
+  compactBanner?: boolean;
+}
+const {
+  title,
+  description,
+  ogTitle,
+  current,
+  noindex = false,
+  compactBanner = false,
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  {noindex && <meta name="robots" content="noindex" />}
+  <meta property="og:title" content={ogTitle ?? title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+</head>
+<body class="theme-luminous">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class:list={["brand-banner", compactBanner && "is-compact"]}>
+    <a class="brand-banner__link" href="/">
+      <BrandMark id="banner" size={compactBanner ? 30 : 44} />
+      <span class="brand-banner__word">Better Business Web</span>
+    </a>
+  </header>
+
+  <div class="sticky-sentinel" aria-hidden="true"></div>
+
+  <SiteNav current={current} />
+
+  <main id="main">
+    <slot />
+  </main>
+
+  <SiteFooter />
+
+  <style>
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: auto;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      font-weight: 600;
+      z-index: 60;
+    }
+    .skip-link:focus-visible {
+      left: 1rem;
+      top: 1rem;
+      position: fixed;
+      outline: none;
+      box-shadow: var(--ring);
+    }
+
+    /* Scroll-away brand banner — static, in flow, no JS. Stable min-height so a
+       font-swap can't reflow it. */
+    .brand-banner {
+      padding-block: clamp(1rem, 0.5rem + 2vw, 1.9rem);
+    }
+    .brand-banner__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      max-width: var(--container);
+      margin-inline: auto;
+      padding-inline: clamp(1.1rem, 0.4rem + 3vw, 2.2rem);
+      width: 100%;
+      color: var(--ink);
+    }
+    .brand-banner__word {
+      font-family: var(--font-display);
+      font-weight: 640;
+      font-size: clamp(1.4rem, 1rem + 1.9vw, 2.1rem);
+      letter-spacing: -0.025em;
+      line-height: 1;
+    }
+    .brand-banner.is-compact { padding-block: 0.9rem; }
+    .brand-banner.is-compact .brand-banner__word { font-size: 1.3rem; }
+
+    /* 1px sentinel between banner and nav; the nav's IntersectionObserver watches
+       it leave the top to toggle `is-stuck`. */
+    .sticky-sentinel { height: 1px; }
+  </style>
+</body>
+</html>

@@ -1,0 +1,49 @@
+---
+// Site footer — repeated nav, a short studio/About line, the oversized wordmark,
+// and the copyright row. The About section folded into here in the multi-page
+// split (it no longer warrants its own section).
+const year = new Date().getFullYear();
+const links = [
+  { href: "/", label: "Intro" },
+  { href: "/demos", label: "Demos" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/free-review", label: "Free review" },
+];
+---
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-top">
+      <p class="footer-about measure">
+        Better Business Web is a small web studio run by Kashane Sakhakorn. You work
+        directly with the person designing and building your site — no account
+        managers, no call centers. Just clean, modern websites for small businesses.
+      </p>
+      <nav class="footer-nav" aria-label="Footer">
+        {links.map((l) => <a href={l.href}>{l.label}</a>)}
+        <a href="/build">Build your own</a>
+      </nav>
+    </div>
+    <div class="footer-word" aria-hidden="true">Better Business Web</div>
+    <div class="footer-row">
+      <span>© {year} Better Business Web. A small web studio run by Kashane Sakhakorn.</span>
+      <span>Previewed before you pay.</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer-top {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: 1fr;
+    margin-bottom: var(--space-lg);
+  }
+  .footer-about { color: var(--ink-soft); margin: 0; font-size: var(--step--1); }
+  .footer-nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; }
+  .footer-nav a { color: var(--ink-soft); font-weight: 500; font-size: var(--step--1); }
+  .footer-nav a:hover { color: var(--ink); }
+  @media (min-width: 760px) {
+    .footer-top { grid-template-columns: 1.4fr 1fr; align-items: center; }
+    .footer-nav { justify-content: flex-end; }
+  }
+</style>

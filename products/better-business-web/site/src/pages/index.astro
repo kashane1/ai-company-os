@@ -1,24 +1,151 @@
 ---
-// Better Business Web — the agency's own funnel/landing page.
-// DESIGN: "Luminous Dark" (the chosen direction). Other directions are archived
-// under /compare for reference.
-import "@fontsource-variable/geist";
-import "../styles/global.css";
-import "../styles/theme-luminous.css";
-import LandingBody from "../components/LandingBody.astro";
+// Intro (home) — the cold-browser entry point. Hero + proof carousel, the
+// "previewed before you pay" how-it-works, and a closing CTA band. Demos,
+// Pricing, and the review form now live on their own routes (see the nav).
+import Site from "../layouts/Site.astro";
+import portfolio from "../data/portfolio.json";
+
+const mockups = portfolio.demos.map((d) => ({
+  name: d.name,
+  url: `${d.slug}.example.com`,
+  thumbnail: d.thumbnail,
+  href: d.url,
+}));
 ---
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Better Business Web — websites previewed before you pay</title>
-  <meta name="description" content="I build clean, modern websites for small businesses. You get a real preview link first, so you can see exactly what your new site looks like before paying." />
-  <meta property="og:title" content="Better Business Web — previewed before you pay" />
-  <meta property="og:description" content="Clean, modern websites for small businesses. See a real preview of your new site before you pay." />
-  <meta property="og:type" content="website" />
-</head>
-<body class="theme-luminous">
-  <LandingBody />
-</body>
-</html>
+<Site
+  title="Better Business Web — websites previewed before you pay"
+  description="I build clean, modern websites for small businesses. You get a real preview link first, so you can see exactly what your new site looks like before paying."
+  ogTitle="Better Business Web — previewed before you pay"
+  current="/"
+>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow">Web design for small businesses</span>
+        <h1>A better website for your business. <span class="accent">Previewed</span> before you pay.</h1>
+        <p class="hero-sub">I build clean, modern websites for small businesses. You'll get a real preview link first. See exactly how your new site looks before you pay a cent.</p>
+        <div class="hero-actions">
+          <a class="btn btn-accent btn-lg" href="/free-review">Get a free website review <span class="arrow">→</span></a>
+          <a class="btn btn-ghost btn-lg" href="/demos">See demo sites</a>
+        </div>
+        <p class="hero-note"><span class="dot"></span> No commitment. You see the preview first.</p>
+        <div class="stats">
+          <div class="stat"><div class="n">48h</div><div class="l">Typical preview turnaround</div></div>
+          <div class="stat"><div class="n">$0</div><div class="l">Upfront, until you approve</div></div>
+          <div class="stat"><div class="n">{portfolio.demos.length}+</div><div class="l">Industries designed for</div></div>
+        </div>
+      </div>
+      <div class="mock">
+        <div class="mock-glow" aria-hidden="true"></div>
+        <div class="hero-carousel" id="hero-carousel" role="group" aria-label="Live previews of demo websites — hover to pause and use the arrows">
+          <div class="carousel-3d">
+            {mockups.map((m, i) => (
+              <a class="carousel-card" href={m.href} target="_blank" rel="noopener" style={`--i:${i}`} aria-label={`Open the ${m.name} demo site`}>
+                <span class="cc-bar" aria-hidden="true">
+                  <span class="cc-dots"><span></span><span></span><span></span></span>
+                  <span class="cc-url">{m.url}</span>
+                </span>
+                {m.thumbnail ? (
+                  <img class="cc-shot" src={m.thumbnail} alt={`${m.name} demo site preview`} loading="lazy" decoding="async" />
+                ) : (
+                  <span class="cc-fallback">{m.name}</span>
+                )}
+              </a>
+            ))}
+          </div>
+          <button class="carousel-arrow carousel-prev" type="button" aria-label="Previous demo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button class="carousel-arrow carousel-next" type="button" aria-label="Next demo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+        <span class="mock-caption"><span class="pulse" aria-hidden="true"></span> Live demos</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--panel">
+    <div class="container center">
+      <span class="eyebrow">The problem</span>
+      <p class="lead">Customers look you up before they call. No website, an outdated one, or only a social page, and they quietly <em>move on to the next business.</em></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">How it works</span>
+        <h2>Simple. And you see it before you pay.</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="num" aria-hidden="true"></span><h3>Tell me about your business</h3><p>A few quick details: what you do, where, and your current site if you have one.</p></div>
+        <div class="step"><span class="num" aria-hidden="true"></span><h3>I build a real preview</h3><p>I design a clean, modern site for your business and send a live preview link.</p></div>
+        <div class="step"><span class="num" aria-hidden="true"></span><h3>You review it</h3><p>See exactly how it looks and works. Ask for changes. No pressure, no payment yet.</p></div>
+        <div class="step"><span class="num" aria-hidden="true"></span><h3>Pay only if you love it</h3><p>Happy with the preview? We go live. That's the whole point: previewed before you pay.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--panel">
+    <div class="container center stack-lg">
+      <span class="eyebrow">Get started</span>
+      <h2>See your new site before you decide.</h2>
+      <p class="muted measure">Tell me a little about your business and I'll put together a real preview — no payment, no commitment.</p>
+      <div class="cta-row">
+        <a class="btn btn-accent btn-lg" href="/free-review">Get a free website review <span class="arrow">→</span></a>
+        <a class="btn btn-ghost btn-lg" href="/pricing">See pricing</a>
+      </div>
+    </div>
+  </section>
+</Site>
+
+<style>
+  .stack-lg > * + * { margin-top: var(--space-md); }
+  .cta-row { display: flex; flex-wrap: wrap; gap: var(--space-sm); justify-content: center; margin-top: var(--space-sm); }
+</style>
+
+<script>
+  // 3D demo carousel: slow auto-spin, pause on hover/focus, arrows step one card.
+  // Self-contained — declares its own reduced-motion check.
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  (function () {
+    const stage = document.getElementById("hero-carousel");
+    if (!stage) return;
+    const ring = stage.querySelector<HTMLElement>(".carousel-3d");
+    if (!ring) return;
+    const cards = [...ring.querySelectorAll(".carousel-card")];
+    const n = cards.length;
+    if (!n) return;
+    const step = 360 / n;
+    const cardW = parseFloat(getComputedStyle(ring).getPropertyValue("--cc-w")) || 210;
+    const radius = Math.round((cardW / 2) / Math.tan(Math.PI / n));
+    ring.style.setProperty("--cc-step", step + "deg");
+    ring.style.setProperty("--cc-r", radius + "px");
+
+    let angle = 0, raf: number | null = null, last: number | null = null, paused = false;
+    const SPEED = 0.01; // deg/ms — a full turn roughly every 36s
+    const apply = () => { ring.style.transform = "rotateY(" + angle + "deg)"; };
+    function loop(t: number) {
+      if (last == null) last = t;
+      const dt = Math.min(t - last, 60); last = t;
+      angle -= dt * SPEED; apply();
+      raf = requestAnimationFrame(loop);
+    }
+    function play() { if (raf || paused || reduce) return; last = null; ring!.style.transition = ""; raf = requestAnimationFrame(loop); }
+    function stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } last = null; }
+    function snap(dir: number) {
+      stop();
+      ring!.style.transition = reduce ? "" : "transform 0.7s cubic-bezier(.22,.7,.2,1)";
+      angle += dir * step; apply();
+    }
+    stage.addEventListener("pointerenter", () => { paused = true; stop(); });
+    stage.addEventListener("pointerleave", () => { paused = false; ring.style.transition = ""; play(); });
+    stage.addEventListener("focusin", () => { paused = true; stop(); });
+    stage.addEventListener("focusout", () => { if (!stage.matches(":hover")) { paused = false; play(); } });
+    stage.querySelector(".carousel-prev")?.addEventListener("click", () => snap(1));
+    stage.querySelector(".carousel-next")?.addEventListener("click", () => snap(-1));
+    apply();
+    play();
+  })();
+</script>

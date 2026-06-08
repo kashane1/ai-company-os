@@ -43,7 +43,6 @@ body.theme-luminous::before {
 body.theme-luminous::after { mix-blend-mode: screen; opacity: 0.3; }
 
 /* Glassmorphism surfaces */
-.theme-luminous .site-header { background: color-mix(in srgb, var(--paper) 62%, transparent); }
 .theme-luminous .price-card { background: color-mix(in srgb, var(--surface) 70%, transparent); backdrop-filter: blur(14px); border-color: color-mix(in srgb, var(--line-strong) 80%, transparent); }
 .theme-luminous .price-card.is-featured { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, var(--surface)), color-mix(in srgb, var(--surface) 70%, transparent)) padding-box, linear-gradient(160deg, var(--accent), var(--gold)) border-box; }
 .theme-luminous .review-card, .theme-luminous .pf-card { background: color-mix(in srgb, var(--surface) 75%, transparent); backdrop-filter: blur(14px); }
