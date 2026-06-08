@@ -43,6 +43,9 @@
   --space-md: 1.5rem;
   --space-lg: clamp(2rem, 1.2rem + 3vw, 4rem);
   --space-xl: clamp(3.5rem, 2rem + 6vw, 8rem);
+  /* Top gap from the nav to the first text on interior pages — tuned to sit just
+     under the home hero's gap. */
+  --page-top: clamp(2.6rem, 1.3rem + 5.5vw, 6rem);
   --radius: 14px;
   --radius-lg: 22px;
   --radius-xl: 30px;
@@ -119,6 +122,8 @@ p { margin: 0 0 var(--space-sm); }
 
 .container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: clamp(1.1rem, 0.4rem + 3vw, 2.2rem); }
 .section { padding-block: var(--space-xl); position: relative; }
+/* First block on an interior page — tightens the nav→content gap to match home. */
+.section--top { padding-block-start: var(--page-top); }
 .section--panel { background: linear-gradient(180deg, var(--paper-2), color-mix(in srgb, var(--paper-2) 50%, var(--paper))); border-block: 1px solid var(--line); }
 .center { text-align: center; }
 .measure { max-width: 56ch; }
