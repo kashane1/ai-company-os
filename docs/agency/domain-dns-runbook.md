@@ -8,6 +8,23 @@
 > Pairs with: [client-sla.md](client-sla.md) · [go-live-checklist.md](go-live-checklist.md) ·
 > [client-lifecycle.md](client-lifecycle.md). Sources: [go-live readiness plan](../plans/2026-06-05-feat-agency-packages-go-live-readiness-plan.md).
 
+## Automation (recon + verify)
+
+This runbook is the manual procedure; two CLIs now automate its riskiest reads so
+you don't eyeball `dig` output:
+
+- **Before** — `python scripts/agency/domain_recon.py <domain>` reads the live zone
+  (RDAP + DNS-over-HTTPS) and tells you the registrar, DNS provider (→ apex ALIAS
+  vs the A-record fallback in §1), and **the email host whose MX/SPF/DKIM/DMARC
+  must survive** (§2). Add `--site <name>.netlify.app` to print the exact records.
+- **Attach** — `python scripts/agency/attach_domain.py --product-id <id> --domain
+  <domain> --dns-approved --client-confirmed-registrar` attaches the domain to the
+  Netlify site (www-primary + apex-alias) behind the approval + control-proof gates.
+- **After** — `python scripts/agency/verify_domain.py <domain> --site
+  <name>.netlify.app --expect-email "<host>"` runs §4's checks as code across two
+  resolvers and **fails loudly if email broke**. Still send a real test email — the
+  live-mail check below remains the gate.
+
 ## The one rule that prevents most incidents
 
 A domain's zone holds **independent record types**: the website lives on
