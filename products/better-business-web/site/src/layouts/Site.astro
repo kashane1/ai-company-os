@@ -51,7 +51,8 @@ const {
        The nav below it is sticky and pins to the top once this scrolls past. -->
   <header class:list={["brand-banner", compactBanner && "is-compact"]}>
     <a class="brand-banner__link" href="/">
-      <BrandMark id="banner" size={compactBanner ? 30 : 40} />
+      {/* icon hidden for a test — restore by uncommenting */}
+      {/* <BrandMark id="banner" size={compactBanner ? 30 : 40} /> */}
       <span class="brand-banner__word">Better Business Web</span>
     </a>
   </header>
@@ -92,6 +93,7 @@ const {
     .brand-banner__link {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.3em;
       max-width: var(--container);
       margin-inline: auto;
@@ -107,12 +109,18 @@ const {
       height: 0.85em;
       border-radius: 0.16em;
     }
+    /* Footer-style accent→gold gradient, but at full opacity so it reads
+       clearly against the dark canvas instead of receding like the footer word. */
     .brand-banner__word {
       font-family: var(--font-display);
       font-weight: 600;
       font-size: 1em;
       letter-spacing: -0.03em;
       line-height: 0.95;
+      background: linear-gradient(100deg, var(--accent), var(--gold));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
     .brand-banner.is-compact { padding-block: 0.9rem; }
     .brand-banner.is-compact .brand-banner__link { font-size: 1.6rem; }

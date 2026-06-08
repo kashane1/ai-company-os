@@ -85,8 +85,18 @@ const links = [
     padding: 0;
     flex: 1;
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: clamp(1.4rem, 0.4rem + 2.4vw, 3rem);
+    gap: 0;
+  }
+  /* "|" divider between items, with symmetric margins for even spacing. */
+  .site-nav__links li + li::before {
+    content: "|";
+    color: var(--ink-faint);
+    font-size: var(--step-1);
+    font-weight: 300;
+    margin-inline: clamp(1.3rem, 0.5rem + 1.8vw, 2.8rem);
+    vertical-align: middle;
   }
   .site-nav__link {
     display: inline-block;
@@ -145,6 +155,8 @@ const links = [
       border-bottom: 1px solid var(--line);
       box-shadow: var(--shadow-lg);
     }
+    /* No "|" dividers in the stacked dropdown. */
+    .site-nav__links li + li::before { display: none; }
     .site-nav.is-open .site-nav__links { display: flex; }
     .site-nav__link {
       padding: 0.85rem 0.15rem;
