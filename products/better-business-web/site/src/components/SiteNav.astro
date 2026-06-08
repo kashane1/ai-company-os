@@ -1,12 +1,11 @@
 ---
 // Sticky uniform nav. Rests under the brand banner on load and pins to the top
 // once the banner scrolls past — native `position: sticky`, zero JS for the pin.
-// A decorative "b" mark fades in (opacity only, in a permanently-reserved
-// fixed-width slot so the bar never shifts) and a faint shadow appears when the
-// nav is stuck — both driven by ONE sentinel + IntersectionObserver. The four
-// links are styled identically (no accent CTA); on phones they collapse to a
-// WAI-ARIA disclosure (button + dropdown panel, untabbable when closed).
-import BrandMark from "./BrandMark.astro";
+// The brand "b" mark is a FIXED element owned by the layout (it never moves);
+// the nav just reserves an equal-width slot on the left so the centered links
+// stay clear of it. A faint shadow appears when stuck (one sentinel + IO). The
+// four links are styled identically (no accent CTA); on phones they collapse to
+// a WAI-ARIA disclosure (button + dropdown panel, untabbable when closed).
 
 interface Props {
   current?: string;
@@ -22,7 +21,7 @@ const links = [
 ---
 <nav class="site-nav" aria-label="Primary">
   <div class="site-nav__inner">
-    <span class="site-nav__mark" aria-hidden="true"><BrandMark id="nav" size={30} /></span>
+    <span class="site-nav__mark" aria-hidden="true"></span>
 
     <ul class="site-nav__links" id="primary-menu">
       {links.map((l) => (
@@ -80,26 +79,14 @@ const links = [
     width: 100%;
     max-width: var(--container);
     margin-inline: auto;
-    padding: 0.6rem clamp(1.1rem, 0.4rem + 3vw, 2.2rem);
-    min-height: 56px;
+    padding: 0 clamp(1.1rem, 0.4rem + 3vw, 2.2rem);
+    min-height: var(--nav-h);
   }
 
-  /* Permanently-reserved, explicit-width slot — the mark fades in via opacity
-     only, so glyph/font load can never resize it and the links never shift. */
-  .site-nav__mark {
-    flex: 0 0 30px;
-    width: 30px;
-    height: 30px;
-    display: grid;
-    place-items: center;
-    opacity: 0;
-    transition: opacity 0.18s ease;
-  }
-  .site-nav.is-stuck .site-nav__mark { opacity: 1; }
-
-  /* Symmetric spacer so the link row sits centered between the mark slot (left)
-     and an equal slot (right) — the mark fade can't nudge it. */
-  .site-nav__spacer { flex: 0 0 30px; }
+  /* Reserved left slot for the fixed brand mark (layout-owned) — the centered
+     links stay clear of it. Equal-width right spacer keeps the row centered. */
+  .site-nav__mark { flex: 0 0 var(--brand-icon-size); width: var(--brand-icon-size); }
+  .site-nav__spacer { flex: 0 0 var(--brand-icon-size); }
 
   .site-nav__links {
     list-style: none;
@@ -108,14 +95,14 @@ const links = [
     flex: 1;
     display: flex;
     justify-content: center;
-    gap: clamp(1rem, 0.3rem + 1.8vw, 2.4rem);
+    gap: clamp(1.4rem, 0.4rem + 2.4vw, 3rem);
   }
   .site-nav__link {
     display: inline-block;
     color: var(--ink-soft);
-    font-weight: 500;
-    font-size: var(--step--1);
-    letter-spacing: 0.01em;
+    font-weight: 550;
+    font-size: var(--step-1);
+    letter-spacing: -0.005em;
     padding: 0.35rem 0.15rem;
     border-bottom: 2px solid transparent;
     transition: color 0.2s ease, border-color 0.2s ease;
@@ -154,10 +141,6 @@ const links = [
     .site-nav__toggle[aria-expanded="true"] .icon-open { display: none; }
     .site-nav__toggle[aria-expanded="true"] .icon-close { display: block; }
 
-    /* The mark always shows on mobile (no room for a banner-sized brand once
-       stuck, and it anchors the bar). */
-    .site-nav__mark { opacity: 1; }
-
     .site-nav__links {
       position: absolute;
       top: 100%;
@@ -182,15 +165,14 @@ const links = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .site-nav__mark { transition: none; }
     .site-nav { transition: none; }
   }
 </style>
 
 <script>
   // 1) Stuck detection — one sentinel (rendered by the layout, just above this
-  //    nav) + one IntersectionObserver. No scroll handlers. Drives both the
-  //    b-mark fade and the faint shadow via `.is-stuck`.
+  //    nav) + one IntersectionObserver. No scroll handlers. Drives the faint
+  //    stuck shadow via `.is-stuck`.
   const nav = document.querySelector<HTMLElement>(".site-nav");
   const sentinel = document.querySelector<HTMLElement>(".sticky-sentinel");
   if (nav && sentinel && "IntersectionObserver" in window) {

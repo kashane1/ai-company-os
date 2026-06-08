@@ -47,7 +47,9 @@
   --radius-lg: 22px;
   --radius-xl: 30px;
   --container: 1180px;
-  --nav-h: 57px;
+  --nav-h: 60px;
+  --brand-icon-size: 32px;
+  --brand-gap: 0.6rem;
 
   /* Layered, warm-tinted elevation */
   --shadow-sm: 0 1px 2px rgba(33, 27, 21, 0.07);
