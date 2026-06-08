@@ -9,7 +9,7 @@ const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","
 ---
 <Site
   title="Get a free website review — Better Business Web"
-  description="Tell me a little about your business and I'll put together a real preview of your new site. No payment, no commitment."
+  description="Tell me a bit about your business and I'll put together a real preview of your new site. No payment, and no commitment to start."
   ogTitle="Get a free website review — Better Business Web"
   current="/free-review"
 >
@@ -18,7 +18,7 @@ const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","
       <div class="section-head center">
         <span class="eyebrow">Get started</span>
         <h1>Request your free website review.</h1>
-        <p class="muted measure">Tell me a little about your business and I'll put together a preview. No payment, no commitment.</p>
+        <p class="muted measure">Tell me a bit about your business and I'll put together a preview for you. No payment, and no commitment to start.</p>
       </div>
       <div class="review-card">
         <form name="website-review" method="POST" action="/.netlify/functions/website-review" class="review-form">
@@ -37,7 +37,7 @@ const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","
           <div class="field"><label for="website">Current website (or "none")</label><input id="website" name="website" type="text" inputmode="url" placeholder="example.com or none" /></div>
           <div class="field"><label for="contact">Email or phone</label><input id="contact" name="contact" type="text" autocomplete="email" required /></div>
           <button class="btn btn-accent btn-lg" type="submit">Request my free website review <span class="arrow">→</span></button>
-          <p class="form-note">I'll only use these details to prepare your review and get back to you. No spam, no resale.</p>
+          <p class="form-note">I'll only use these details to prepare your review and get back to you. I won't share them or send you spam.</p>
         </form>
       </div>
     </div>

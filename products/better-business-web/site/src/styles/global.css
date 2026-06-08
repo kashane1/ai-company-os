@@ -100,7 +100,9 @@ body::after {
 
 img { max-width: 100%; height: auto; display: block; }
 a { color: var(--accent-2); text-decoration: none; }
-a:hover { color: var(--accent); }
+/* Exclude buttons: they are <a>s with their own per-variant colours, and this
+   rule would otherwise repaint an accent button's label indigo-on-indigo. */
+a:not(.btn):hover { color: var(--accent); }
 :focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
 
 /* Typography --------------------------------------------------------- */
@@ -137,7 +139,7 @@ p { margin: 0 0 var(--space-sm); }
 .center .eyebrow::after { content: ""; width: 1.8rem; height: 1px; background: currentColor; opacity: 0.6; }
 
 .section-head { max-width: 60ch; margin-bottom: var(--space-lg); }
-.center .section-head { margin-inline: auto; }
+.center .section-head, .section-head.center { margin-inline: auto; }
 
 /* Buttons ------------------------------------------------------------ */
 .btn {
