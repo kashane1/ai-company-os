@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import textwrap
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -49,11 +50,32 @@ def test_quote_bundle_applies_promo_and_sums_monthly() -> None:
     assert quote.monthly_cents == monthly
     # Package A is sold at its curated promo, cheaper than the tier discount.
     assert quote.pricing_mode == "promo"
-    assert quote.setup_after_cents == 59900
-    assert quote.savings_cents == gross - 59900
-    # Package A is a setup + monthly offer.
+    assert quote.setup_after_cents == 60000
+    assert quote.savings_cents == gross - 60000
+    # Package A is a setup + monthly offer (A has no monthly_promo → monthly = sum).
     assert quote.setup_after_cents > 0
     assert quote.monthly_cents > 0
+
+
+def test_quote_bundle_applies_monthly_promo() -> None:
+    catalog = default_catalog()
+    quote = catalog.quote_bundle("package_c")
+    ids = catalog.bundles["package_c"].service_ids
+    monthly_sum = sum(to_cents(catalog.services[s].monthly_fee) for s in ids)
+    # Package C pins its monthly below the plain component sum via monthly_promo.
+    assert catalog.bundles["package_c"].monthly_promo > 0
+    assert quote.monthly_cents == to_cents(catalog.bundles["package_c"].monthly_promo)
+    assert quote.monthly_cents < monthly_sum  # genuinely cheaper than à-la-carte
+    # An à-la-carte cart of the same services gets NO monthly discount.
+    assert catalog.quote_services(ids).monthly_cents == monthly_sum
+
+
+def test_monthly_promo_above_gross_is_rejected() -> None:
+    catalog = default_catalog()
+    bad = replace(catalog.bundles["package_a"], monthly_promo=99999.0)
+    broken = replace(catalog, bundles={**catalog.bundles, "package_a": bad})
+    with pytest.raises(CatalogError):
+        broken.validate()
 
 
 def test_packages_escalate_in_scope() -> None:

@@ -191,6 +191,9 @@ export default async (req) => {
     byId,
     packages.discount_tiers,
     preset ? preset.setup_after_cents : null,
+    // A named package's monthly is its (possibly promo-discounted) monthly_cents;
+    // custom carts (no preset) fall through to the plain component sum.
+    preset ? preset.monthly_cents : null,
   );
 
   const dueToday = quote.setupAfterCents + quote.monthlyCents;

@@ -57,24 +57,36 @@ def _carts(catalog: ServiceCatalog) -> list[dict[str, object]]:
     a = catalog.bundles["package_a"]
     b = catalog.bundles["package_b"]
     c = catalog.bundles["package_c"]
+    def _mp(bundle):
+        return to_cents(bundle.monthly_promo) if bundle.monthly_promo else None
+
+    def _cart(svc_ids, setup_promo=None, monthly_promo=None):
+        return {
+            "service_ids": svc_ids,
+            "setup_promo_cents": setup_promo,
+            "monthly_promo_cents": monthly_promo,
+        }
+
     return [
-        # presets at their promo (override)
-        {"service_ids": a.service_ids, "setup_promo_cents": to_cents(a.setup_promo)},
-        {"service_ids": b.service_ids, "setup_promo_cents": to_cents(b.setup_promo)},
-        {"service_ids": c.service_ids, "setup_promo_cents": to_cents(c.setup_promo)},
+        # presets at their promo (setup + monthly overrides where set)
+        _cart(a.service_ids, to_cents(a.setup_promo), _mp(a)),
+        _cart(b.service_ids, to_cents(b.setup_promo), _mp(b)),
+        _cart(c.service_ids, to_cents(c.setup_promo), _mp(c)),
         # the SAME sets as custom carts (tier discount, no override)
-        {"service_ids": a.service_ids, "setup_promo_cents": None},
-        {"service_ids": b.service_ids, "setup_promo_cents": None},
-        {"service_ids": c.service_ids, "setup_promo_cents": None},
+        _cart(a.service_ids),
+        _cart(b.service_ids),
+        _cart(c.service_ids),
         # 1 / setup-only carts
-        {"service_ids": ["website"], "setup_promo_cents": None},
-        {"service_ids": ["website", "gbp", "business_email"], "setup_promo_cents": None},
+        _cart(["website"]),
+        _cart(["website", "gbp", "business_email"]),
     ]
 
 
 def _python_quote(catalog: ServiceCatalog, cart: dict[str, object]) -> dict[str, int]:
     q = catalog.quote_services(
-        list(cart["service_ids"]), setup_promo_cents=cart["setup_promo_cents"]
+        list(cart["service_ids"]),
+        setup_promo_cents=cart["setup_promo_cents"],
+        monthly_promo_cents=cart.get("monthly_promo_cents"),
     )
     return {
         "setupGrossCents": q.setup_gross_cents,

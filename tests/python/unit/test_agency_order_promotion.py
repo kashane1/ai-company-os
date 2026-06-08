@@ -69,7 +69,7 @@ def test_promote_preset_order_uses_promo_offer(tmp_path: Path) -> None:
         bundle="package_a",
     )
     offer = (tmp_path / "docs" / rec["id"] / "OFFER.md").read_text(encoding="utf-8")
-    assert "$599 setup" in offer  # curated promo, not the tier price
+    assert "$600 setup" in offer  # curated promo, not the tier price
 
 
 def test_render_offer_custom_service_ids() -> None:

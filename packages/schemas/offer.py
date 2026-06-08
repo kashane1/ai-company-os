@@ -140,6 +140,11 @@ class Bundle:
     overrides the count-based tier discount when the buyer selects exactly this
     bundle's service set. It is deliberately a little cheaper than the tier
     discount so a named package is always the best deal for that set.
+
+    ``monthly_promo`` (USD, ``0`` = none) does the same for the recurring price:
+    it pins the package's monthly below the plain component sum. À-la-carte carts
+    never get a monthly discount, so a named package can be the best monthly deal
+    too. Guarded at load time to never exceed the gross monthly sum.
     """
 
     bundle_id: str
@@ -147,6 +152,7 @@ class Bundle:
     service_ids: list[str]
     description: str = ""
     setup_promo: float = 0.0
+    monthly_promo: float = 0.0
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -155,6 +161,7 @@ class Bundle:
             "service_ids": list(self.service_ids),
             "description": self.description,
             "setup_promo": self.setup_promo,
+            "monthly_promo": self.monthly_promo,
         }
 
     @classmethod
@@ -165,6 +172,7 @@ class Bundle:
             service_ids=[str(x) for x in list(payload.get("service_ids", []))],
             description=str(payload.get("description", "")),
             setup_promo=float(payload.get("setup_promo", 0.0) or 0.0),
+            monthly_promo=float(payload.get("monthly_promo", 0.0) or 0.0),
         )
 
 
@@ -209,8 +217,9 @@ class BundleQuote:
     All money is integer cents. ``setup_after_cents`` is the price actually
     charged (after the tier discount or the bundle promo override).
     ``savings_cents`` is always ``setup_gross - setup_after`` by subtraction —
-    never recompute it from a percentage. There is intentionally no
-    ``monthly_after`` field: monthly is never discounted.
+    never recompute it from a percentage. ``monthly_cents`` is the monthly
+    actually charged: the plain component sum for à-la-carte carts, or a named
+    package's ``monthly_promo`` override when one is set.
     """
 
     services: list[Service]
@@ -283,6 +292,20 @@ class ServiceCatalog:
                     f"({promo_cents}c) exceeds tier-discounted setup "
                     f"({tier_quote.setup_after_cents}c) — packages must be the best value"
                 )
+        # A monthly_promo must be a real discount: never above the gross monthly sum.
+        for bundle in self.bundles.values():
+            if not bundle.monthly_promo:
+                continue
+            monthly_gross = sum(
+                to_cents(self.services[sid].monthly_fee) for sid in bundle.service_ids
+            )
+            monthly_promo_cents = to_cents(bundle.monthly_promo)
+            if monthly_promo_cents > monthly_gross:
+                raise CatalogError(
+                    f"bundle {bundle.bundle_id!r}: monthly_promo "
+                    f"({monthly_promo_cents}c) exceeds gross monthly "
+                    f"({monthly_gross}c) — a promo must be a discount"
+                )
 
     def tier_pct_for(self, count: int) -> int:
         """The setup discount % for a cart of ``count`` services (0 if none match)."""
@@ -292,13 +315,18 @@ class ServiceCatalog:
         return 0
 
     def quote_services(
-        self, service_ids: list[str], *, setup_promo_cents: int | None = None
+        self,
+        service_ids: list[str],
+        *,
+        setup_promo_cents: int | None = None,
+        monthly_promo_cents: int | None = None,
     ) -> BundleQuote:
         """Price an arbitrary set of services — the single pricing path.
 
         With ``setup_promo_cents`` (a preset's curated override) the setup is
         pinned to that promo; otherwise the count-based tier discount applies.
-        Monthly is the plain sum, never discounted.
+        Monthly is the plain component sum unless ``monthly_promo_cents`` pins it
+        (named packages only) — à-la-carte carts are never monthly-discounted.
         """
         services: list[Service] = []
         for sid in service_ids:
@@ -318,11 +346,13 @@ class ServiceCatalog:
             after = gross - discount
             mode = "tier"
 
+        monthly_after = int(monthly_promo_cents) if monthly_promo_cents is not None else monthly
+
         return BundleQuote(
             services=services,
             setup_gross_cents=gross,
             setup_after_cents=after,
-            monthly_cents=monthly,
+            monthly_cents=monthly_after,
             pricing_mode=mode,
             tier_pct=tier_pct,
         )
@@ -332,7 +362,10 @@ class ServiceCatalog:
             raise CatalogError(f"unknown bundle {bundle_id!r}")
         bundle = self.bundles[bundle_id]
         promo = to_cents(bundle.setup_promo) if bundle.setup_promo else None
-        quote = self.quote_services(bundle.service_ids, setup_promo_cents=promo)
+        monthly_promo = to_cents(bundle.monthly_promo) if bundle.monthly_promo else None
+        quote = self.quote_services(
+            bundle.service_ids, setup_promo_cents=promo, monthly_promo_cents=monthly_promo
+        )
         return replace(quote, bundle_id=bundle_id)
 
     def validate_selection(self, service_ids: list[str]) -> list[str]:

@@ -26,6 +26,12 @@ const byId = {};
 for (const [id, s] of Object.entries(services)) byId[id] = s;
 
 const out = carts.map((cart) =>
-  quoteServices(cart.service_ids, byId, tiers, cart.setup_promo_cents ?? null),
+  quoteServices(
+    cart.service_ids,
+    byId,
+    tiers,
+    cart.setup_promo_cents ?? null,
+    cart.monthly_promo_cents ?? null,
+  ),
 );
 process.stdout.write(JSON.stringify(out));

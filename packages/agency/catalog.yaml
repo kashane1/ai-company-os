@@ -14,7 +14,7 @@ services:
     name: Professional Website
     tier: tier_1
     bill_type: one_time
-    setup_fee: 499
+    setup_fee: 500
     monthly_fee: 0
     includes:
       - Up to 5 pages (home, services, about, contact, reviews)
@@ -29,7 +29,7 @@ services:
     tier: tier_1
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 49
+    monthly_fee: 50
     includes:
       - Hosting + SSL
       - Backups
@@ -42,7 +42,7 @@ services:
     name: Google Business Profile Setup
     tier: tier_1
     bill_type: one_time
-    setup_fee: 125
+    setup_fee: 120
     monthly_fee: 0
     includes:
       - Claim / verify profile
@@ -54,7 +54,7 @@ services:
     name: Business Email Setup
     tier: tier_1
     bill_type: one_time
-    setup_fee: 75
+    setup_fee: 80
     monthly_fee: 0
     includes:
       - Google Workspace setup
@@ -64,7 +64,7 @@ services:
     name: Contact Forms & Lead Routing
     tier: tier_1
     bill_type: one_time
-    setup_fee: 75
+    setup_fee: 80
     monthly_fee: 0
     includes:
       - Form to email (instant owner notification)
@@ -104,7 +104,7 @@ services:
     tier: tier_2
     bill_type: recurring
     setup_fee: 450
-    monthly_fee: 35
+    monthly_fee: 50
     exclusive_group: booking_base
     includes:
       - We set up and run your booking on a proven platform (Square or Acuity) for you
@@ -163,7 +163,7 @@ services:
     tier: tier_2
     bill_type: recurring
     setup_fee: 0
-    monthly_fee: 35
+    monthly_fee: 50
     requires_group: booking_base
     includes:
       - Ongoing availability / service / staff edits, seasonal hours
@@ -173,8 +173,8 @@ services:
     name: Review Readiness System
     tier: tier_2
     bill_type: recurring
-    setup_fee: 75
-    monthly_fee: 39
+    setup_fee: 80
+    monthly_fee: 40
     includes:
       - Google review link
       - Review request template draft (email / in-person QR)
@@ -185,8 +185,8 @@ services:
     name: Local SEO
     tier: tier_2
     bill_type: recurring
-    setup_fee: 400
-    monthly_fee: 95
+    setup_fee: 300
+    monthly_fee: 80
     includes:
       - City / service / location / FAQ pages
       - Service x geo page matrix
@@ -196,8 +196,8 @@ services:
     name: Analytics Dashboard & Monthly Report
     tier: tier_2
     bill_type: recurring
-    setup_fee: 50
-    monthly_fee: 20
+    setup_fee: 120
+    monthly_fee: 40
     includes:
       - "Owner-friendly monthly report: website visits, form leads, and tap-to-call clicks"
       - Bookings where managed booking is set up; verified calls where call tracking is added
@@ -248,8 +248,8 @@ services:
     name: Automated Follow-Up
     tier: tier_3
     bill_type: recurring
-    setup_fee: 125
-    monthly_fee: 39
+    setup_fee: 120
+    monthly_fee: 40
     includes:
       - Instant auto-email reply to every new lead
       - 2-day reminder sequence + owner task reminders
@@ -267,7 +267,7 @@ bundles:
   - bundle_id: package_a
     name: "Package A — Presence"
     description: Look professional online. Website + the annoying tech handled.
-    setup_promo: 599
+    setup_promo: 600
     service_ids:
       - website
       - hosting
@@ -277,7 +277,7 @@ bundles:
   - bundle_id: package_b
     name: "Package B — Presence + Capture"
     description: Everything in A, plus turn visitors into booked customers.
-    setup_promo: 899
+    setup_promo: 900
     service_ids:
       - website
       - hosting
@@ -289,7 +289,8 @@ bundles:
   - bundle_id: package_c
     name: "Package C — Presence + Capture + Growth"
     description: Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.
-    setup_promo: 1799
+    setup_promo: 1800
+    monthly_promo: 550
     service_ids:
       - website
       - hosting
