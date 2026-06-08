@@ -21,8 +21,6 @@ const links = [
 ---
 <nav class="site-nav" aria-label="Primary">
   <div class="site-nav__inner">
-    <span class="site-nav__mark" aria-hidden="true"></span>
-
     <ul class="site-nav__links" id="primary-menu">
       {links.map((l) => (
         <li>
@@ -34,8 +32,6 @@ const links = [
         </li>
       ))}
     </ul>
-
-    <span class="site-nav__spacer" aria-hidden="true"></span>
 
     <button
       type="button"
@@ -83,11 +79,6 @@ const links = [
     min-height: var(--nav-h);
   }
 
-  /* Reserved left slot for the fixed brand mark (layout-owned) — the centered
-     links stay clear of it. Equal-width right spacer keeps the row centered. */
-  .site-nav__mark { flex: 0 0 var(--brand-icon-size); width: var(--brand-icon-size); }
-  .site-nav__spacer { flex: 0 0 var(--brand-icon-size); }
-
   .site-nav__links {
     list-style: none;
     margin: 0;
@@ -118,7 +109,6 @@ const links = [
   /* ---- Mobile: disclosure ---- */
   @media (max-width: 759px) {
     .site-nav__inner { gap: var(--space-sm); }
-    .site-nav__spacer { display: none; }
 
     .site-nav__toggle {
       display: grid;

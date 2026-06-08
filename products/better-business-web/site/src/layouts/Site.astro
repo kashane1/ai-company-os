@@ -34,6 +34,9 @@ const {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <title>{title}</title>
   <meta name="description" content={description} />
   {noindex && <meta name="robots" content="noindex" />}
@@ -44,20 +47,11 @@ const {
 <body class="theme-luminous">
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- The brand "b" is ONE fixed element pinned to the top-left corner — it never
-       moves. The banner and the (stuck) nav each reserve its slot, so the same
-       mark appears to live in both while only the wordmark / links scroll past. -->
-  <div class="brand-pin">
-    <div class="brand-pin__inner">
-      <a class="brand-pin__link" href="/" aria-label="Better Business Web — home">
-        <BrandMark id="pin" size={32} />
-      </a>
-    </div>
-  </div>
-
+  <!-- Brand header — one section (mark + wordmark) that simply scrolls away.
+       The nav below it is sticky and pins to the top once this scrolls past. -->
   <header class:list={["brand-banner", compactBanner && "is-compact"]}>
     <a class="brand-banner__link" href="/">
-      <span class="brand-banner__slot" aria-hidden="true"></span>
+      <BrandMark id="banner" size={compactBanner ? 30 : 40} />
       <span class="brand-banner__word">Better Business Web</span>
     </a>
   </header>
@@ -92,31 +86,11 @@ const {
       box-shadow: var(--ring);
     }
 
-    /* Fixed brand mark — pinned to the top-left, never moves, always on top.
-       `pointer-events: none` on the overlay; only the mark itself is clickable,
-       so it never blocks the wordmark or nav links beneath it. */
-    .brand-pin {
-      position: fixed;
-      inset: 0 0 auto 0;
-      height: var(--nav-h);
-      z-index: 50;
-      pointer-events: none;
-    }
-    .brand-pin__inner {
-      max-width: var(--container);
-      height: 100%;
-      margin-inline: auto;
-      padding-inline: clamp(1.1rem, 0.4rem + 3vw, 2.2rem);
-      display: flex;
-      align-items: center;
-    }
-    .brand-pin__link { pointer-events: auto; display: inline-flex; align-items: center; }
-
-    /* Scroll-away brand banner — a slim strip (same height as the nav) holding
-       just the wordmark, offset to clear the fixed mark. Scrolls away, no JS. */
-    .brand-banner { min-height: var(--nav-h); display: flex; align-items: center; }
+    /* Brand header — a normal in-flow section (mark + wordmark) that scrolls
+       away. No JS, nothing fixed; the sticky nav below it does the pinning. */
+    .brand-banner { padding-block: clamp(1.1rem, 0.6rem + 1.6vw, 1.9rem); }
     .brand-banner__link {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: var(--brand-gap);
       max-width: var(--container);
@@ -125,14 +99,14 @@ const {
       width: 100%;
       color: var(--ink);
     }
-    .brand-banner__slot { flex: 0 0 var(--brand-icon-size); width: var(--brand-icon-size); }
     .brand-banner__word {
       font-family: var(--font-display);
       font-weight: 640;
-      font-size: clamp(1.35rem, 1.1rem + 1vw, 1.7rem);
+      font-size: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem);
       letter-spacing: -0.025em;
       line-height: 1;
     }
+    .brand-banner.is-compact { padding-block: 0.9rem; }
     .brand-banner.is-compact .brand-banner__word { font-size: 1.25rem; }
 
     /* 1px sentinel between banner and nav; the nav's IntersectionObserver watches
