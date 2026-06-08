@@ -10,19 +10,29 @@
 //     docs/products/better-business-web/screenshots \
 //     /:editorial-warm /compare/luminous:luminous-dark
 //
-// Capture is SLICE-AND-STITCH, not Playwright's fullPage:true. Headless Chromium
-// drops image layers to blank in tall single-surface captures (WebP especially),
-// while a normal viewport-sized surface paints reliably. So each page is shot in
-// viewport-height slices and composited on an in-browser canvas. We scroll each
-// slice into view with motion ALLOWED so IntersectionObserver scroll-reveals fire
-// (and settle) before capture, then hide fixed/sticky elements after the first
-// slice so a sticky nav isn't redrawn down the whole page.
+// Capture is a single NATIVE full-page screenshot (Playwright fullPage:true, which
+// uses CDP captureBeyondViewport under the hood — one off-screen surface for the
+// whole document). We previously slice-and-stitched per viewport, but that broke on
+// any page with `scroll-behavior:smooth`: window.scrollTo() animates, so the
+// pageYOffset read right after it returned the *pre-animation* offset and every
+// slice landed ~one viewport too high — dropping the hero and duplicating the
+// bottom. The native capture composites the real layout once and sidesteps all of
+// that scroll bookkeeping.
+//
+// Two things still need care before the shot:
+//   1. Scroll reveals — these builds reveal content on scroll. CSS scroll-driven
+//      reveals (animation-timeline) have a `prefers-reduced-motion: reduce`
+//      fallback that shows everything, so we run the context with reducedMotion:
+//      "reduce". For any JS IntersectionObserver reveals we also do one full
+//      scroll-through pass (then return to top) so they fire and lazy images load.
+//   2. Sticky/fixed elements — in a full-page capture a `position: sticky` header
+//      can smear or a fixed overlay can cover the page, so we neutralize them to
+//      `position: static` first; the header then renders once at the top in flow.
 
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
-import { PNG } from "pngjs";
 
 const [distDir, outDir, ...routeArgs] = process.argv.slice(2);
 if (!distDir || !outDir || routeArgs.length === 0) {
@@ -65,7 +75,7 @@ const base = `http://localhost:${port}`;
 
 fs.mkdirSync(outDir, { recursive: true });
 
-const VW = 1440, SLICE = 900, MAX_PX = 16000;
+const VW = 1440, VH = 900, MAX_PX = 16000;
 const browser = await chromium.launch();
 
 for (const arg of routeArgs) {
@@ -73,7 +83,12 @@ for (const arg of routeArgs) {
     ? [arg.slice(0, arg.lastIndexOf(":")), arg.slice(arg.lastIndexOf(":") + 1)]
     : [arg, arg.replace(/\W+/g, "-")];
 
-  const ctx = await browser.newContext({ viewport: { width: VW, height: SLICE }, deviceScaleFactor: 1 });
+  // reducedMotion: "reduce" → CSS scroll-driven reveals fall back to fully visible.
+  const ctx = await browser.newContext({
+    viewport: { width: VW, height: VH },
+    deviceScaleFactor: 1,
+    reducedMotion: "reduce",
+  });
   const page = await ctx.newPage();
   // "load" (not networkidle) — external font CDNs can keep the network busy and
   // never idle. Then settle fonts + first paint.
@@ -81,45 +96,44 @@ for (const arg of routeArgs) {
   await page.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
   await page.waitForTimeout(600);
 
-  let height = await page.evaluate(() =>
+  // One scroll-through pass so JS IntersectionObserver reveals fire and any lazy
+  // images start loading, then return to the top for the capture. (force auto so a
+  // page-level `scroll-behavior:smooth` doesn't turn this into slow animated jumps.)
+  await page.evaluate(async () => {
+    document.documentElement.style.scrollBehavior = "auto";
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const docH = () => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    for (let y = 0; y < docH(); y += Math.round(window.innerHeight * 0.8)) {
+      window.scrollTo(0, y);
+      await sleep(120);
+    }
+    window.scrollTo(0, 0);
+  });
+
+  // Neutralize sticky/fixed so nothing smears or covers the page in the full-page
+  // capture; a sticky header then renders once at the top in normal flow.
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll("*")) {
+      const pos = getComputedStyle(el).position;
+      if (pos === "fixed" || pos === "sticky") el.style.position = "static";
+    }
+  });
+
+  // Decode images and let the reveal fallbacks / layout settle before the shot.
+  await page.evaluate(() => Promise.all([...document.images].map((im) => (im.decode ? im.decode().catch(() => {}) : 0))));
+  await page.waitForTimeout(500);
+
+  const height = await page.evaluate(() =>
     Math.max(document.body.scrollHeight, document.documentElement.scrollHeight));
-  if (height > MAX_PX) { console.warn(`! ${route}: ${height}px tall, capping at ${MAX_PX}px`); height = MAX_PX; }
+  const opts = height > MAX_PX
+    ? (console.warn(`! ${route}: ${height}px tall, capping at ${MAX_PX}px`),
+       { clip: { x: 0, y: 0, width: VW, height: MAX_PX } })
+    : { fullPage: true };
 
-  const slices = [];
-  for (let y = 0, i = 0; y < height; y += SLICE, i++) {
-    const at = await page.evaluate((yy) => { window.scrollTo(0, yy); return Math.round(window.pageYOffset); }, y);
-    if (i === 1) {
-      await page.evaluate(() => {
-        for (const el of document.querySelectorAll("*")) {
-          const pos = getComputedStyle(el).position;
-          if (pos === "fixed" || pos === "sticky") el.style.visibility = "hidden";
-        }
-      });
-    }
-    // Let scroll-reveals trigger + finish their transition, and images decode.
-    await page.evaluate(() => Promise.all([...document.images].map((im) => im.decode ? im.decode().catch(() => {}) : 0)));
-    await page.waitForTimeout(700);
-    // Headless image rasterization is flaky here; a dropped-image slice compresses
-    // tiny (a real photo slice is ~1MB). Retry such slices a few times.
-    let buf = await page.screenshot();
-    for (let k = 0; k < 4 && buf.length < 120_000; k++) {
-      await page.waitForTimeout(500);
-      buf = await page.screenshot();
-    }
-    slices.push({ y: at, buf });
-  }
+  const buf = await page.screenshot(opts);
   await ctx.close();
-
-  // Stitch in Node (an in-browser canvas hits the same headless raster bug that
-  // blanks tall image surfaces). The per-slice screenshots paint reliably.
-  const out = new PNG({ width: VW, height });
-  for (const s of slices) {
-    const png = PNG.sync.read(s.buf);
-    const h = Math.min(png.height, height - s.y);
-    if (h > 0) PNG.bitblt(png, out, 0, 0, Math.min(VW, png.width), h, 0, s.y);
-  }
   const outFile = path.join(outDir, `${name}.png`);
-  fs.writeFileSync(outFile, PNG.sync.write(out));
+  fs.writeFileSync(outFile, buf);
   console.log(`✓ ${route} → ${outFile}`);
 }
 
