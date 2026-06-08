@@ -7,7 +7,8 @@ const links = [
   { href: "/", label: "Intro" },
   { href: "/demos", label: "Demos" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/free-review", label: "Free review" },
+  { href: "/build", label: "Build Your Bundle" },
+  { href: "/free-review", label: "Free Review" },
 ];
 ---
 <footer class="site-footer">
@@ -20,7 +21,6 @@ const links = [
       </p>
       <nav class="footer-nav" aria-label="Footer">
         {links.map((l) => <a href={l.href}>{l.label}</a>)}
-        <a href="/build">Build your own</a>
       </nav>
     </div>
     <div class="footer-word" aria-hidden="true">Better Business Web</div>
