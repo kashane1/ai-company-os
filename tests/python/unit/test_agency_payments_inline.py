@@ -57,8 +57,8 @@ def test_inline_bundle_uses_promo_and_subscription_mode() -> None:
     assert r.session_metadata["bundle"] == "package_c"
     assert r.session_metadata["source"] == "agent-cli"
     assert r.subscription_metadata["bundle"] == "package_c"  # rides renewals too
-    assert _setups(r) == [179900]  # curated promo
-    assert _monthlies(r) == [55300]
+    assert _setups(r) == [180000]  # curated promo
+    assert _monthlies(r) == [55000]  # monthly_promo ($550), below the $560 component sum
 
 
 def test_inline_custom_uses_tier_and_marks_custom() -> None:
@@ -69,9 +69,9 @@ def test_inline_custom_uses_tier_and_marks_custom() -> None:
     assert r.mode == "subscription"
     assert r.session_metadata["bundle"] == "custom"
     assert r.session_metadata["service_ids"] == "website,hosting,gbp"
-    # (499 + 0 + 125) = 624 gross; 3 services → 10% → 561.60; hosting monthly 49.
-    assert _setups(r) == [56160]
-    assert _monthlies(r) == [4900]
+    # (500 + 0 + 120) = 620 gross; 3 services → 10% → 558; hosting monthly 50.
+    assert _setups(r) == [55800]
+    assert _monthlies(r) == [5000]
 
 
 def test_inline_setup_only_uses_payment_mode() -> None:
@@ -81,7 +81,7 @@ def test_inline_setup_only_uses_payment_mode() -> None:
     assert r is not None
     assert r.mode == "payment"
     assert _monthlies(r) == []  # no recurring line
-    assert _setups(r) == [62400]  # 624, 2 services → 0% discount
+    assert _setups(r) == [62000]  # 620, 2 services → 0% discount
 
 
 def test_inline_rejects_invalid_selection() -> None:

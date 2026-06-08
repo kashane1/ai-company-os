@@ -10,11 +10,11 @@
 
 | Service | Bill | Setup | Monthly |
 |---|---|---|---|
-| Professional Website (`website`) | one-time | $499 | — |
-| Hosting & Maintenance (`hosting`) | recurring | — | $49/mo |
-| Google Business Profile Setup (`gbp`) | one-time | $125 | — |
-| Business Email Setup (`business_email`) | one-time | $75 | — |
-| Contact Forms & Lead Routing (`contact_forms`) | one-time | $75 | — |
+| Professional Website (`website`) | one-time | $500 | — |
+| Hosting & Maintenance (`hosting`) | recurring | — | $50/mo |
+| Google Business Profile Setup (`gbp`) | one-time | $120 | — |
+| Business Email Setup (`business_email`) | one-time | $80 | — |
+| Contact Forms & Lead Routing (`contact_forms`) | one-time | $80 | — |
 
 ### Tier 2 — High value
 
@@ -22,15 +22,15 @@
 |---|---|---|---|
 | Booking — Connect (your tool) (`booking_connect`) | one-time | $150 | — |
 | Booking — Done-for-you Setup (`booking_setup`) | one-time | $350 | — |
-| Booking — Fully Managed (`booking_native`) | recurring | $450 | $35/mo |
+| Booking — Fully Managed (`booking_native`) | recurring | $450 | $50/mo |
 | Booking Deposits & Prepayment (`booking_deposits`) | one-time | $120 | — |
 | Booking Multi-staff & Resources (`booking_multistaff`) | one-time | $150 | — |
 | Class & Group Scheduling (`booking_classes`) | one-time | $200 | — |
 | Booking Intake Forms (`booking_intake`) | one-time | $90 | — |
-| Booking Management (`booking_management`) | recurring | — | $35/mo |
-| Review Readiness System (`reviews`) | recurring | $75 | $39/mo |
-| Local SEO (`local_seo`) | recurring | $400 | $95/mo |
-| Analytics Dashboard & Monthly Report (`monthly_reporting`) | recurring | $50 | $20/mo |
+| Booking Management (`booking_management`) | recurring | — | $50/mo |
+| Review Readiness System (`reviews`) | recurring | $80 | $40/mo |
+| Local SEO (`local_seo`) | recurring | $300 | $80/mo |
+| Analytics Dashboard & Monthly Report (`monthly_reporting`) | recurring | $120 | $40/mo |
 
 ### Tier 3 — Recurring-revenue goldmine
 
@@ -40,7 +40,7 @@
 | Google Ads Management (`google_ads`) | recurring | $300 | $350/mo |
 | Meta (Facebook/Instagram) Ads Management (`meta_ads`) | recurring | $300 | $350/mo |
 | CRM Setup (`crm_setup`) | one-time | $250 | — |
-| Automated Follow-Up (`follow_up_automation`) | recurring | $125 | $39/mo |
+| Automated Follow-Up (`follow_up_automation`) | recurring | $120 | $40/mo |
 
 ## Bundles
 
@@ -48,16 +48,16 @@
 
 Look professional online. Website + the annoying tech handled.
 
-**$599 setup ($699 − $100 bundle discount) + $49/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup.
+**$600 setup ($700 − $100 bundle discount) + $50/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup.
 
 ### Package B — Presence + Capture
 
 Everything in A, plus turn visitors into booked customers.
 
-**$899 setup ($1,124 − $225 bundle discount) + $88/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Readiness System, Booking — Done-for-you Setup.
+**$900 setup ($1,130 − $230 bundle discount) + $90/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Readiness System, Booking — Done-for-you Setup.
 
 ### Package C — Presence + Capture + Growth
 
 Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.
 
-**$1,799 setup ($2,274 − $475 bundle discount) + $553/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Readiness System, Booking — Done-for-you Setup, Local SEO, Promotional Landing Page, Analytics Dashboard & Monthly Report, Google Ads Management.
+**$1,800 setup ($2,250 − $450 bundle discount) + $550/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Readiness System, Booking — Done-for-you Setup, Local SEO, Promotional Landing Page, Analytics Dashboard & Monthly Report, Google Ads Management.

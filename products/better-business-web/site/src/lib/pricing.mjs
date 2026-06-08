@@ -46,14 +46,22 @@ export function tierPctFor(count, tiers) {
 /**
  * Price a set of services. With `setupPromoCents` (a preset's curated override)
  * the setup is pinned to that promo; otherwise the count-based tier discount
- * applies. Monthly is the plain sum, never discounted.
+ * applies. Monthly is the plain component sum unless `monthlyPromoCents` pins it
+ * (named packages only) — à-la-carte carts are never monthly-discounted.
  * @param {string[]} serviceIds
  * @param {Record<string, ServiceLite>} servicesById
  * @param {DiscountTier[]} tiers
  * @param {number | null} [setupPromoCents]
+ * @param {number | null} [monthlyPromoCents]
  * @returns {Quote}
  */
-export function quoteServices(serviceIds, servicesById, tiers, setupPromoCents = null) {
+export function quoteServices(
+  serviceIds,
+  servicesById,
+  tiers,
+  setupPromoCents = null,
+  monthlyPromoCents = null,
+) {
   let gross = 0;
   let monthly = 0;
   for (const id of serviceIds) {
@@ -75,10 +83,13 @@ export function quoteServices(serviceIds, servicesById, tiers, setupPromoCents =
     pricingMode = "tier";
   }
 
+  const monthlyAfter =
+    monthlyPromoCents !== null && monthlyPromoCents !== undefined ? monthlyPromoCents : monthly;
+
   return {
     setupGrossCents: gross,
     setupAfterCents: after,
-    monthlyCents: monthly,
+    monthlyCents: monthlyAfter,
     savingsCents: gross - after,
     tierPct,
     pricingMode,
