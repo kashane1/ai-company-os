@@ -88,26 +88,34 @@ const {
 
     /* Brand header — a normal in-flow section (mark + wordmark) that scrolls
        away. No JS, nothing fixed; the sticky nav below it does the pinning. */
-    .brand-banner { padding-block: clamp(1.1rem, 0.6rem + 1.6vw, 1.9rem); }
+    .brand-banner { padding-block: clamp(0.8rem, 0.5rem + 1vw, 1.4rem); }
     .brand-banner__link {
       display: inline-flex;
       align-items: center;
-      gap: var(--brand-gap);
+      gap: 0.3em;
       max-width: var(--container);
       margin-inline: auto;
       padding-inline: clamp(1.1rem, 0.4rem + 3vw, 2.2rem);
       width: 100%;
       color: var(--ink);
+      /* Match the oversized footer wordmark (6rem cap) on desktop; the slope is
+         tuned so it still fits one line on a phone. The icon scales with it (em). */
+      font-size: clamp(1.8rem, 7.5vw, 6rem);
+    }
+    .brand-banner__link :global(.brand-mark-svg) {
+      width: 0.85em;
+      height: 0.85em;
+      border-radius: 0.16em;
     }
     .brand-banner__word {
       font-family: var(--font-display);
-      font-weight: 640;
-      font-size: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem);
-      letter-spacing: -0.025em;
-      line-height: 1;
+      font-weight: 600;
+      font-size: 1em;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
     }
     .brand-banner.is-compact { padding-block: 0.9rem; }
-    .brand-banner.is-compact .brand-banner__word { font-size: 1.25rem; }
+    .brand-banner.is-compact .brand-banner__link { font-size: 1.6rem; }
 
     /* 1px sentinel between banner and nav; the nav's IntersectionObserver watches
        it leave the top to toggle `is-stuck`. */
