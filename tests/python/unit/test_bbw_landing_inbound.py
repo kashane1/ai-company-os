@@ -7,7 +7,8 @@ import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
-LANDING_BODY = REPO / "products" / "better-business-web" / "site" / "src" / "components" / "LandingBody.astro"
+# The review form lives on its own /free-review route (multi-page split, 2026-06-07).
+REVIEW_FORM_PAGE = REPO / "products" / "better-business-web" / "site" / "src" / "pages" / "free-review.astro"
 FUNCTION = REPO / "products" / "better-business-web" / "site" / "netlify" / "functions" / "website-review.mjs"
 PULL_SCRIPT = REPO / "scripts" / "web" / "pull-inbound.mjs"
 THANKS_PAGE = REPO / "products" / "better-business-web" / "site" / "src" / "pages" / "thanks.astro"
@@ -19,7 +20,7 @@ INBOUND_FIELDS = frozenset(
 
 
 def test_landing_form_posts_to_function() -> None:
-    text = LANDING_BODY.read_text(encoding="utf-8")
+    text = REVIEW_FORM_PAGE.read_text(encoding="utf-8")
     assert 'name="website-review"' in text
     assert 'method="POST"' in text
     assert 'action="/.netlify/functions/website-review"' in text
