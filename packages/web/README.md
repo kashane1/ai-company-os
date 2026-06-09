@@ -12,6 +12,7 @@ the agency lane's **client sites** (path C: `scaffold.py` → Astro under
 | Module | Purpose |
 |---|---|
 | `scaffold.py` | Materialize an Astro static-first landing site from a token context (`scaffold_site`); also `render_landing_html()` for offline, Node-free preview. `default_context` / `local_business_context` build the token dicts. |
+| `design_studio.py` | Premium-design contract for the web lane: creates structured art-direction packets before a build and screenshot-backed visual review reports after a build. Complements the technical gate by rejecting valid-but-generic pages. |
 | `validation.py` | The web gate — `validate_web_dist()` runs build / internal-links / assets / responsive / accessibility / **contrast** checks on a built `dist/`. |
 | `palette.py` | Design intelligence: WCAG contrast primitives (`contrast_ratio`, `passes_aa`), a genre→palette table (`GENRE_PALETTES`), and a deterministic HSL synthesizer (`derive_palette`). |
 | `ux_audit.py` | Deeper responsive/a11y/perf/SEO audit (`audit_dist`) behind the `web-ux-audit` + `launch-checklist` skills. |
@@ -31,3 +32,11 @@ the agency lane's **client sites** (path C: `scaffold.py` → Astro under
 `:root` foreground/background pairs and *skips* (never guesses) `var()`,
 `color-mix()`, alpha<1, and dark-mode `@media` values. Body text is held to AA
 4.5:1; on-color labels (CTA on accent) to 3:1.
+
+## Design Studio gate (note)
+
+`design_studio.py` is intentionally separate from `validation.py`: it evaluates
+art direction, not HTML mechanics. A page can pass the web gate and still fail
+Design Studio review when the hero is forgettable, imagery is incoherent, type is
+generic, or screenshots are missing. See
+[`docs/agency/design-studio-lane.md`](../../docs/agency/design-studio-lane.md).
