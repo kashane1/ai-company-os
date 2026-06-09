@@ -55,10 +55,24 @@ def generate_conversion_copy(packet: DesignStudioPacket) -> dict[str, object]:
     """
 
     name = packet.site_name
-    concept = packet.concept_statement.split(";")[0].strip().rstrip(".")
+    clauses = [c.strip().rstrip(".") for c in packet.concept_statement.split(";") if c.strip()]
+    concept = clauses[0] if clauses else ""
     headline = (concept[:1].upper() + concept[1:]) if concept else name
     proof = _proof_points(packet)
     cta = primary_cta(packet)
+
+    # A DISTINCT mid-page band headline so the full-bleed media block never repeats the
+    # hero. Prefer the concept's second clause (concepts are written "A; B"); else a
+    # concrete proof point; else an invitation — always different from `headline`.
+    if len(clauses) > 1:
+        band = clauses[1]
+    elif proof and not proof[0].lower().startswith("add proof"):
+        band = proof[0]
+    else:
+        band = f"{cta.lower()} today"
+    band_headline = band[:1].upper() + band[1:]
+    if band_headline.strip().lower() == headline.strip().lower():
+        band_headline = f"{cta} today"  # last-resort guard against any echo
 
     # A subhead that states who it's for + the goal, grounded by the first proof
     # signal when there is one (no superlatives, no fabricated numbers).
@@ -74,6 +88,7 @@ def generate_conversion_copy(packet: DesignStudioPacket) -> dict[str, object]:
         "secondary_cta": "See the work",
         "proof_points": proof,
         "split_heading": f"Why {packet.audience.split(',')[0].strip()} choose {name}",
+        "band_headline": band_headline,
         "cta_headline": f"Ready when you are — {cta.lower()}",
         "cta_subhead": f"{name} for {packet.audience}. {cta} today.",
     }

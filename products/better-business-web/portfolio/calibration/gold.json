@@ -1,11 +1,11 @@
 [
   {
-    "id": "flagship-med-spa-pass",
+    "id": "flagship-fish-tacos-pass",
     "expected": "good",
-    "note": "First flagship that cleared the gate live (87/100): full-bleed photographic hero, cohesive concept-led imagery, serif display, grounded copy, mint color world. A judge that rates THIS failing has drifted harsh.",
+    "note": "Flagship that cleared the gate live (best 90/100): full-bleed photographic hero, cohesive concept-led imagery, serif display, grounded copy, a distinct (non-duplicated) full-bleed band. A judge that rates THIS failing has drifted harsh.",
     "screenshots": {
-      "desktop": "products/better-business-web/portfolio/calibration/flagship-med-spa-desktop.png",
-      "mobile": "products/better-business-web/portfolio/calibration/flagship-med-spa-mobile.png"
+      "desktop": "products/better-business-web/portfolio/calibration/flagship-fish-tacos-desktop.png",
+      "mobile": "products/better-business-web/portfolio/calibration/flagship-fish-tacos-mobile.png"
     }
   },
   {
