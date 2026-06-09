@@ -112,29 +112,40 @@ export function initScroll(): MotionHandle {
 
 /**
  * The SIGNATURE MOMENT — one memorable, on-concept, scroll-driven interaction the
- * judge sees across the scroll frames (a load-only animation wouldn't show). Two
- * cohesive parts on the hero:
- *  - a masked, line-by-line kinetic reveal of the headline on entrance, and
- *  - a cinematic scroll-scrub: the hero image slowly scales (Ken Burns) as the hero
- *    scrolls away. The scale is clipped inside `.media` (overflow:hidden), so it can
- *    never bleed into the next section — unlike a copy parallax-lift, which made the
- *    hero copy float over the incoming section in the scroll frames (an "overlap"
- *    defect). Copy therefore stays in normal flow; the image carries the scrub.
- * All reduced-motion safe (only runs when motion is enabled) and torn down with the
+ * judge sees across the scroll frames (a load-only animation wouldn't show). Three
+ * cohesive, overflow-safe parts:
+ *  - a masked, word-by-word kinetic reveal of the HERO headline on entrance (it sits
+ *    in `.word-mask` overflow-clip wrappers and finishes on load, before frame 1), and
+ *  - a continuous cinematic IMAGERY scrub on every media frame: the hero image and
+ *    each mid-page photo drift/scale WITHIN their overflow-clipped `.media` frames as
+ *    the page scrolls — real parallax depth that's visible across the scroll frames.
+ *
+ * Why imagery scrub and not a mid-page text reveal: the frame capture deliberately
+ * freezes motion mid-play, so any text reveal with a "broken" intermediate state gets
+ * flagged — a clip-mask slide reads as cut-off text, a blur focus-in reads as blurred
+ * text. A scrubbed image inside an overflow-clipped frame has NO broken state: every
+ * frozen frame is just a valid, slightly-different crop. Containment also means it can
+ * never overlap a neighbour (the bug a hero copy parallax-lift caused earlier).
+ * Reduced-motion safe (only runs when motion is enabled) and torn down with the
  * parent gsap.context().
  */
+function splitWords(el: HTMLElement): NodeListOf<HTMLElement> | null {
+  if (el.dataset.split) return null;
+  el.dataset.split = "1";
+  const words = (el.textContent || "").trim().split(/\s+/);
+  el.innerHTML = words
+    .map((w) => `<span class="word-mask"><span class="word">${w}</span></span>`)
+    .join(" ");
+  return el.querySelectorAll<HTMLElement>(".word");
+}
+
 function initSignature(p: { ease: string; duration: number }): void {
-  // Masked kinetic headline reveal (vanilla word-split — no GSAP SplitText plugin).
-  const headline = document.querySelector<HTMLElement>("[data-hero] h1");
-  if (headline && !headline.dataset.split) {
-    headline.dataset.split = "1";
-    const words = (headline.textContent || "").trim().split(/\s+/);
-    headline.innerHTML = words
-      .map((w) => `<span class="word-mask"><span class="word">${w}</span></span>`)
-      .join(" ");
-    const wordEls = headline.querySelectorAll<HTMLElement>(".word");
-    gsap.set(wordEls, { yPercent: 115 });
-    gsap.to(wordEls, {
+  // 1. Masked kinetic HERO headline reveal on entrance (vanilla split — no SplitText).
+  const h1 = document.querySelector<HTMLElement>("[data-hero] h1");
+  const heroWords = h1 ? splitWords(h1) : null;
+  if (heroWords) {
+    gsap.set(heroWords, { yPercent: 115 });
+    gsap.to(heroWords, {
       yPercent: 0,
       duration: p.duration,
       ease: p.ease,
@@ -143,7 +154,26 @@ function initSignature(p: { ease: string; duration: number }): void {
     });
   }
 
-  // Cinematic hero scrub: the image scales (Ken Burns) as the hero scrolls away.
+  // 2. Mid-page imagery scrub: each photo drifts vertically WITHIN its overflow-clipped
+  // frame as its section scrolls — visible across the captured frames as parallax depth,
+  // and since it's clipped to the frame, every frame is a valid crop (no cutoff/overlap/
+  // blur defect). Slightly over-scaled so the drift never exposes a frame edge.
+  for (const fig of gsap.utils.toArray<HTMLElement>("section:not([data-hero]) .media")) {
+    const img = fig.querySelector<HTMLElement>("img");
+    if (!img) continue;
+    gsap.set(img, { scale: 1.12 });
+    gsap.fromTo(
+      img,
+      { yPercent: -5 },
+      {
+        yPercent: 5,
+        ease: "none",
+        scrollTrigger: { trigger: fig, start: "top bottom", end: "bottom top", scrub: true },
+      },
+    );
+  }
+
+  // 3. Cinematic hero scrub: the image scales (Ken Burns) as the hero scrolls away.
   // Contained by `.media { overflow: hidden }`, so it never overlaps the next section.
   const heroImg = document.querySelector<HTMLElement>("[data-hero] .media img");
   if (heroImg) {

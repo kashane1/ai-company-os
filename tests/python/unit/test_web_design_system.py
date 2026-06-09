@@ -65,6 +65,53 @@ def test_color_roles_pass_wcag_aa() -> None:
     assert passes_aa(ds.roles["on-accent"], ds.roles["accent"], large=True)
 
 
+def test_accent_text_role_is_aa_legible_on_canvas() -> None:
+    # The brand accent sits mid-tone for a vivid FILL, but mid-tone-on-near-white
+    # fails AA as small text (the "02 index numeral / eyebrow is illegible" defect).
+    # `accent-text` is the accent nudged to clear AA 4.5 on the canvas, used wherever
+    # the accent is rendered AS small text.
+    for packet in (CINEMATIC, GALLERY):
+        ds = synthesize_design_system(packet)
+        assert "accent-text" in ds.roles
+        assert passes_aa(ds.roles["accent-text"], ds.roles["canvas"]), (
+            f"accent-text {ds.roles['accent-text']} not AA on canvas {ds.roles['canvas']}"
+        )
+
+
+def test_cta_pair_reads_crisply() -> None:
+    # A luminance-AA pass on a muddy mid-blue still reads as "invisible" to a human/
+    # judge. The CTA pairing must clear AA 4.5 (full, not just large) for a crisp
+    # button, and on a mid-tone hue should resolve to white text on a deep accent.
+    from packages.web.palette import contrast_ratio
+
+    for packet in (CINEMATIC, GALLERY):
+        ds = synthesize_design_system(packet)
+        assert {"accent-cta", "on-cta"} <= set(ds.roles)
+        assert contrast_ratio(ds.roles["on-cta"], ds.roles["accent-cta"]) >= 4.5
+
+
+def test_mid_tone_accent_cta_prefers_white_on_a_deepened_fill() -> None:
+    # Regression for the fish-tacos defect: a mid-blue accent where dark text only
+    # barely passes AA (4.62) but reads muddy → the CTA should become white text on a
+    # deepened accent, not dark text on the raw mid-tone.
+    from packages.web.design_system import _cta_pair
+
+    cta_bg, on_cta = _cta_pair("#237fdc")  # the real fish-tacos accent
+    assert on_cta == "#ffffff"
+    assert cta_bg != "#237fdc"  # deepened so white clears AA
+
+
+def test_light_accent_cta_keeps_dark_text() -> None:
+    # An intrinsically light accent (amber) should NOT be crushed into mud for white
+    # text — dark text on the brand accent is the right, legible CTA.
+    from packages.web.design_system import _cta_pair
+    from packages.web.palette import contrast_ratio
+
+    cta_bg, on_cta = _cta_pair("#f59e0b")  # amber
+    assert cta_bg == "#f59e0b"  # hue preserved
+    assert contrast_ratio(on_cta, cta_bg) >= 4.5
+
+
 def test_cinematic_archetype_is_dark_gallery_is_light() -> None:
     from packages.web.palette import relative_luminance
 
