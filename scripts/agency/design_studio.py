@@ -202,8 +202,14 @@ def shoot_commands(dist: str | Path, target: str | Path, *, frames: int = 0) -> 
         ]
         if frames > 0 and name == "desktop":
             argv += ["--frames", str(frames)]
+            argv += ["--geometry", str(geometry_path(target))]
         commands.append({"name": name, "width": width, "argv": argv})
     return commands
+
+
+def geometry_path(target: str | Path) -> Path:
+    """DOM geometry snapshot for the deterministic composition gate."""
+    return studio_dir(target) / "geometry.json"
 
 
 def capture_screenshots(dist: str | Path, target: str | Path, *, frames: int = 0) -> list[Path]:

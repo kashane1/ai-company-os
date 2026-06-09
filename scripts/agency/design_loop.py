@@ -27,6 +27,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
 from packages.web.build import subprocess_runner  # noqa: E402
+from packages.web.composition_gate import composition_defects  # noqa: E402
 from packages.web.design_loop import BudgetGuard, GoldSample, calibrate  # noqa: E402
 from packages.web.design_studio import VisualScore, build_design_studio_packet  # noqa: E402
 from packages.web.gemini_judge import (  # noqa: E402
@@ -39,6 +40,40 @@ from packages.web.premium_build import run_premium_loop  # noqa: E402
 
 def _studio(target: str | Path) -> Path:
     return Path(target) / "design-studio"
+
+
+def _geometry_defects(geo_file: Path) -> list[dict]:
+    """Classify the DOM geometry snapshot into composition defects (fail-open)."""
+    try:
+        if geo_file.exists():
+            return composition_defects(json.loads(geo_file.read_text()))
+    except Exception as exc:  # the gate's own error must never abort a build
+        print(f"! composition gate skipped: {exc}", file=sys.stderr)
+    return []
+
+
+def cmd_composition(target: str) -> int:
+    """Deterministic composition gate ONLY — DOM geometry, no Gemini. Captures a
+    geometry snapshot of the built site and reports composition defects (stacked
+    full-bleed sections, section/text overlaps, horizontal overflow)."""
+    from scripts.agency.design_studio import capture_screenshots, geometry_path
+
+    dist_dir = Path(target) / "site" / "dist"
+    if not (dist_dir / "index.html").exists():
+        print(f"no built site at {dist_dir} — build first", file=sys.stderr)
+        return 1
+    capture_screenshots(dist_dir, target, frames=4)  # frames>0 triggers the geometry pass
+    defects = _geometry_defects(geometry_path(target))
+    _studio(target).mkdir(parents=True, exist_ok=True)
+    (_studio(target) / "composition.json").write_text(json.dumps(defects, indent=2) + "\n")
+    highs = [d for d in defects if d.get("severity") == "high"]
+    if defects:
+        for d in defects:
+            print(f"  [{d['severity']}] {d['type']} @ {d['where']}: {d['detail']}")
+    else:
+        print("✓ no composition defects")
+    print(f"  → {_studio(target) / 'composition.json'}")
+    return 1 if highs else 0
 
 
 def cmd_judge(target: str, out: str | None) -> int:
@@ -84,6 +119,7 @@ def cmd_run(
     from scripts.agency.design_studio import (  # local import (script module)
         capture_screenshots,
         frame_paths,
+        geometry_path,
         request_from_spec,
         studio_dir,
     )
@@ -143,6 +179,10 @@ def cmd_run(
         # the build by capping the structural categories below the floor — the taste
         # score can't rescue a real defect.
         defects = inspect_defects(stills, frames=frames)
+        # Deterministic composition gate (DOM geometry — no model). Catches what the
+        # vision judge structurally can't: stacked full-bleed sections, section/text
+        # overlaps, horizontal overflow. Merged first so it shares the same gate.
+        defects = _geometry_defects(geometry_path(target)) + defects
         # Always record the current defects (empty list on a clean build) so the file
         # never goes stale and reflects the latest iteration.
         (studio_dir(target)).mkdir(parents=True, exist_ok=True)
@@ -241,6 +281,11 @@ def main(argv: list[str] | None = None) -> int:
     p_cal = sub.add_parser("calibrate", help="re-score the gold set; halt on drift")
     p_cal.add_argument("--gold", required=True)
 
+    p_comp = sub.add_parser(
+        "composition", help="deterministic composition/overlap gate (DOM geometry, no Gemini)"
+    )
+    p_comp.add_argument("--target", required=True, help="build hub dir (expects <dir>/site/dist)")
+
     args = parser.parse_args(argv)
     if args.command == "run":
         return cmd_run(
@@ -256,6 +301,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_judge(args.target, args.out)
     if args.command == "calibrate":
         return cmd_calibrate(args.gold)
+    if args.command == "composition":
+        return cmd_composition(args.target)
     return 2
 
 
