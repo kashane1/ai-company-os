@@ -218,7 +218,14 @@ def build_premium_site(
 
     if not run_build:
         return BuildResult(exit_code=0, stdout="", stderr="", dist_dir=project_dir / "dist")
-    return build_site(project_dir, runner=runner or subprocess_runner())
+    # `npm install` (not `npm ci`): a freshly-composed one-off project has no
+    # committed package-lock.json to install from, and per-build lock drift would be
+    # noise — so resolve from package.json each build.
+    return build_site(
+        project_dir,
+        runner=runner or subprocess_runner(),
+        steps=(("npm", "install"), ("npm", "run", "build")),
+    )
 
 
 def _tagline(packet: DesignStudioPacket) -> str:

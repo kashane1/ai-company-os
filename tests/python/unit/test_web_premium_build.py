@@ -115,8 +115,9 @@ def test_build_premium_site_composes_premium_stack(tmp_path) -> None:
     index = (project / "src" / "pages" / "index.astro").read_text()
     assert "CinematicHero" in index
     assert "{{SITE_NAME}}" not in index
-    # The real build steps ran (through the injected runner).
-    assert ["npm", "ci"] in calls and ["npm", "run", "build"] in calls
+    # The real build steps ran (through the injected runner). npm install (not ci):
+    # a one-off composed project has no committed lockfile.
+    assert ["npm", "install"] in calls and ["npm", "run", "build"] in calls
 
 
 def test_build_premium_site_can_skip_npm(tmp_path) -> None:
