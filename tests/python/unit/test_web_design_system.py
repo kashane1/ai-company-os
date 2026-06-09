@@ -196,3 +196,24 @@ def test_supplied_concept_palette_seeds_the_system() -> None:
     # Accent should derive from the supplied seed, not the genre default.
     assert ds.roles["accent"].startswith("#")
     assert passes_aa(ds.roles["on-accent"], ds.roles["accent"], large=True)
+
+
+def test_explicit_accent_overrides_derived_complement() -> None:
+    # Warm-monochrome / muted art directions need the brand accent to stay in the
+    # canvas family, not be replaced by a derived complement. An explicit accent on the
+    # request flows through and is used verbatim (with AA-safe variants recomputed).
+    from packages.web.palette import contrast_ratio
+
+    req = WebsiteDesignRequest(
+        site_name="Pelican & Lime",
+        business_category="fish taco restaurant",
+        audience="beachgoers",
+        goal="crave the food",
+        concept_palette="#C8553D",
+        accent="#C2502F",
+    )
+    ds = synthesize_design_system(build_design_studio_packet(req))
+    assert ds.roles["accent"] == "#C2502F"
+    # AA-safe variants still derived from the explicit accent.
+    assert contrast_ratio(ds.roles["accent-text"], ds.roles["canvas"]) >= 4.5
+    assert contrast_ratio(ds.roles["on-cta"], ds.roles["accent-cta"]) >= 4.5

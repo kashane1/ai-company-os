@@ -89,6 +89,8 @@ def request_from_spec(spec: dict) -> WebsiteDesignRequest:
         concept_statement=str(spec.get("concept_statement", "")),
         concept_palette=str(spec.get("concept_palette", "")),
         concept_type=str(spec.get("concept_type", "")),
+        accent=str(spec.get("accent", "")),
+        imagery_direction=str(spec.get("imagery_direction", "")),
     )
 
 

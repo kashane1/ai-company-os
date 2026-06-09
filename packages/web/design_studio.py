@@ -94,6 +94,15 @@ class WebsiteDesignRequest:
     concept_statement: str = ""
     concept_palette: str = ""
     concept_type: str = ""
+    # Explicit accent (hex). When set, the synthesizer uses it directly instead of
+    # deriving a complementary accent from concept_palette — needed for warm-
+    # monochrome / muted art directions where the brand accent stays in the canvas
+    # family (e.g. cream + terracotta) rather than contrasting against it.
+    accent: str = ""
+    # Composition + style direction for the generated imagery (e.g. "overhead
+    # flat-lay of the food" / "soft natural-light interiors"). Steers the hero +
+    # supporting shots toward a reference's signature look.
+    imagery_direction: str = ""
 
 
 @dataclass(frozen=True)
@@ -133,6 +142,8 @@ class DesignStudioPacket:
     # Raw concept cues carried through for the design-system synthesizer.
     concept_palette: str = ""
     concept_type: str = ""
+    accent: str = ""
+    imagery_direction: str = ""
     visual_qa: dict[str, object] = field(
         default_factory=lambda: {
             "minimum_overall": VISUAL_MIN_OVERALL,
@@ -226,6 +237,8 @@ def build_design_studio_packet(request: WebsiteDesignRequest) -> DesignStudioPac
         evidence=list(request.evidence),
         concept_palette=request.concept_palette,
         concept_type=request.concept_type,
+        accent=request.accent,
+        imagery_direction=request.imagery_direction,
     )
 
 

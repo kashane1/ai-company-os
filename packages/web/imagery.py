@@ -110,11 +110,17 @@ def style_spec(packet: DesignStudioPacket) -> str:
         "service-area-cinematic",
         "product-led",
     } else "bright, refined tones"
-    return (
+    direction = getattr(packet, "imagery_direction", "").strip().rstrip(".")
+    style = (
         f"art-directed editorial photography expressing: {concept}. "
         f"{palette}; consistent lighting, color grade, and crop across the set; "
         "premium, cinematic depth; no text, no logos, no watermark."
     )
+    if direction:
+        # Pull the reference's signature look through the whole set (e.g. an abundant
+        # overhead food flat-lay, or soft natural-light interiors).
+        style += f" Art direction: {direction}."
+    return style
 
 
 def build_image_briefs(
@@ -127,11 +133,16 @@ def build_image_briefs(
 
     spec = style_spec(packet)
     subject = f"{packet.business_category} for {packet.audience}"
+    # The hero composition follows the art direction when given (e.g. an overhead
+    # flat-lay) instead of the generic "composed scene", which tends to default to a
+    # person-in-a-room shot regardless of niche.
+    direction = getattr(packet, "imagery_direction", "").strip().rstrip(".")
+    hero_comp = direction if direction else "a composed scene"
     briefs = [
         ImageBrief(
             id="hero",
             role="hero",
-            prompt=f"Hero image — a composed scene of {subject}. {spec}",
+            prompt=f"Hero image — {hero_comp} of {subject}. {spec}",
             aspect_ratio="16:9",
             seed=base_seed,
         )

@@ -16,6 +16,7 @@ interface Props {
   title: string;
   description: string;
   ogTitle?: string;
+  ogImage?: string;
   current?: string;
   noindex?: boolean;
   compactBanner?: boolean;
@@ -24,10 +25,17 @@ const {
   title,
   description,
   ogTitle,
+  ogImage = "/og.png",
   current,
   noindex = false,
   compactBanner = false,
 } = Astro.props;
+
+// Absolute URLs for social unfurls (Astro.site is set in astro.config). Without an
+// explicit og:image, scrapers grab the first sizeable image on the page — which was a
+// demo screenshot, so shared links looked like one of the demo sites, not BBW.
+const ogImageUrl = new URL(ogImage, Astro.site).href;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 ---
 <!doctype html>
 <html lang="en">
@@ -40,9 +48,18 @@ const {
   <title>{title}</title>
   <meta name="description" content={description} />
   {noindex && <meta name="robots" content="noindex" />}
+  <link rel="canonical" href={canonicalUrl} />
   <meta property="og:title" content={ogTitle ?? title} />
   <meta property="og:description" content={description} />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:image" content={ogImageUrl} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={ogTitle ?? title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImageUrl} />
 </head>
 <body class="theme-luminous">
   <a class="skip-link" href="#main">Skip to content</a>
