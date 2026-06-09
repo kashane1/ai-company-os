@@ -42,6 +42,21 @@ def test_synthesis_is_deterministic() -> None:
     assert a.to_css() == b.to_css()
 
 
+def test_css_emits_depth_spacing_and_grid_tokens() -> None:
+    # v3 depth: a real elevation ramp + spacing scale + grid (the v2 output was flat
+    # — one glow, no shadows — so everything read coplanar).
+    css = synthesize_design_system(CINEMATIC).to_css()
+    for token in ("--shadow-1:", "--shadow-2:", "--shadow-3:", "--space-md:", "--grid-cols:"):
+        assert token in css, token
+
+
+def test_dark_and_light_archetypes_get_different_shadow_ramps() -> None:
+    dark = synthesize_design_system(CINEMATIC)  # service-area-cinematic → dark
+    light = synthesize_design_system(GALLERY)  # gallery-led → light
+    assert dark.shadows and light.shadows
+    assert dark.shadows != light.shadows  # tuned to the canvas
+
+
 def test_color_roles_pass_wcag_aa() -> None:
     ds = synthesize_design_system(CINEMATIC)
     # Body text on the dominant canvas must clear AA 4.5:1.

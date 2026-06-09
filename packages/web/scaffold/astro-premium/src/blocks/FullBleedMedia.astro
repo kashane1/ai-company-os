@@ -1,0 +1,24 @@
+---
+// Full-bleed media band — an edge-to-edge treated image with display type set
+// OVER it behind a scrim. This is the v3 fix for the #1 "$500 tell": boxed,
+// coplanar imagery. `data`: { image, alt, kicker, headline, cta, ctaHref }.
+// Degrades to a tinted accent panel when no image is supplied.
+const { data } = Astro.props;
+const { image, alt = "", kicker, headline, cta, ctaHref = "#get-started" } = data;
+---
+<section class="fullbleed" data-reveal>
+  <div class={`media band graded${image ? " scrim" : ""}`} style="position:absolute;inset:0;border-radius:0">
+    {image
+      ? <img src={image} alt={alt} loading="lazy" decoding="async" />
+      : <div style="position:absolute;inset:0;background:linear-gradient(135deg,var(--accent-strong),var(--canvas))"></div>}
+  </div>
+  <div class="container" style="position:relative;z-index:1;padding-block:clamp(5rem,12vw,11rem)">
+    {kicker && <p class="eyebrow">{kicker}</p>}
+    {headline && <h2 style="font-size:var(--step-5);max-width:20ch;margin-top:0.75rem">{headline}</h2>}
+    {cta && <a class="btn btn-primary elevated" href={ctaHref} style="margin-top:2rem">{cta}</a>}
+  </div>
+</section>
+
+<style>
+  .fullbleed { position: relative; isolation: isolate; }
+</style>

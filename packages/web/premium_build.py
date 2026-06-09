@@ -27,6 +27,7 @@ from __future__ import annotations
 import colorsys
 import dataclasses
 import json
+import shutil
 from collections.abc import Callable
 from pathlib import Path
 
@@ -40,6 +41,7 @@ from packages.web.design_loop import (
 )
 from packages.web.design_studio import VISUAL_SCORE_FLOOR, DesignStudioPacket
 from packages.web.design_system import synthesize_design_system
+from packages.web.imagery import ImageryManifest
 from packages.web.palette import parse_color
 from packages.web.scaffold import (
     PREMIUM_TEMPLATE,
@@ -199,7 +201,8 @@ def build_premium_site(
     (project_dir / "src" / "styles" / "design-system.css").write_text(
         design.to_css(), encoding="utf-8"
     )
-    composition = plan_composition(packet)
+    images = _stage_images(project_dir.parent, project_dir)
+    composition = plan_composition(packet, images=images)
     (project_dir / "src" / "pages" / "index.astro").write_text(
         render_index_astro(
             composition,
@@ -219,6 +222,46 @@ def _tagline(packet: DesignStudioPacket) -> str:
     concept = packet.concept_statement.split(";")[0].split(".")[0].strip()
     tagline = concept or packet.goal.strip() or packet.business_category.title()
     return tagline[:70]
+
+
+def _stage_images(target: Path, project_dir: Path) -> dict | None:
+    """Copy this build's SELECTED imagery into the Astro public dir and return the
+    composer's image map ({"hero": "/img/..", "supporting": [..]}).
+
+    Reads `<target>/design-studio/imagery/manifest.json` (written by the imagery
+    pipeline). Returns None when there's no manifest — the blocks then fall back to
+    the WebGL hero / text cards. Only `selected` assets are staged.
+    """
+
+    manifest_path = target / "design-studio" / "imagery" / "manifest.json"
+    if not manifest_path.exists():
+        return None
+    manifest = ImageryManifest.load(manifest_path)
+    public_img = project_dir / "public" / "img"
+    public_img.mkdir(parents=True, exist_ok=True)
+
+    hero: str | None = None
+    supporting: list[str] = []
+    for asset in manifest.assets:
+        if not asset.selected:
+            continue
+        src = Path(asset.path)
+        if not src.is_absolute() and not src.exists():
+            src = manifest_path.parent / Path(asset.path).name
+        if not src.exists():
+            continue
+        dest_name = f"{asset.id}{src.suffix or '.png'}"
+        shutil.copyfile(src, public_img / dest_name)
+        web_path = f"/img/{dest_name}"
+        if asset.role == "hero" and hero is None:
+            hero = web_path
+        else:
+            supporting.append(web_path)
+    if hero is None and supporting:
+        hero = supporting[0]
+    if hero is None and not supporting:
+        return None
+    return {"hero": hero, "supporting": supporting}
 
 
 # --------------------------------------------------------------------------- #

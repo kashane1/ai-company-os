@@ -311,6 +311,22 @@ motionless page strictly below an equivalent animated one.
 
 ### Phase 3 — Imagery + depth + layout variety (the verified 3.1 → 4.5 jump)
 **Goal:** kill the "$500 template" tells in the pixels.
+
+> **Build status (2026-06-08) — SHIPPED & verified (1344 tests green).** The page now
+> has pictures, depth, and variety: `design_system.py` emits an elevation ramp
+> (`--shadow-1/-2/-3`, canvas-tuned) + a spacing scale + 12-col grid tokens;
+> `global.css` gains `.card`/`.elevated`/`.media`/`.scrim` utilities; `CinematicHero`
+> gets a full-bleed image variant, `BentoGallery` renders treated images, and a new
+> `FullBleedMedia` block is the edge-to-edge image-over-type moment. The composer
+> picks one of N **per-archetype structural variants by a stable concept hash** (not
+> the seed) so two same-archetype builds differ, and `derive_content` places hero +
+> gallery + full-bleed imagery. `build_premium_site` stages the imagery manifest's
+> selected assets into `public/img/` and references them. `gemini_images.py` gains
+> `model` (Pro: `gemini-3-pro-image-preview`) + `seed`; the imagery CLI uses them.
+> Imagery clearance is gated by `premium_ready()` (correct layer — `deploy()` is
+> site-generic and doesn't know the build hub). Live image generation needs
+> `GEMINI_API_KEY`; the wiring is unit-tested with stub assets.
+
 **Deliverables:**
 - Media model + image slots in every block; `derive_content` reads
   `imagery/manifest.json`; a full-bleed hero variant (image-over-type + scrim);

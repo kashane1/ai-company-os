@@ -15,6 +15,7 @@ clearly meant to be replaced before ship.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass, field
 
@@ -26,11 +27,12 @@ _IMPORTS = {
     "EditorialSplit": "../blocks/EditorialSplit.astro",
     "BentoGallery": "../blocks/BentoGallery.astro",
     "StickyProcess": "../blocks/StickyProcess.astro",
+    "FullBleedMedia": "../blocks/FullBleedMedia.astro",
     "ClosingCta": "../blocks/ClosingCta.astro",
 }
 
-# Archetype -> ordered block plan. Every plan opens on a hero and closes on a CTA;
-# the middle varies so no two archetypes read like the same stacked template.
+# Archetype -> ordered block plan (the baseline). Every plan opens on a hero and
+# closes on a CTA; the middle varies so no two archetypes read like the same stack.
 _PLANS: dict[str, list[str]] = {
     "service-area-cinematic": [
         "CinematicHero", "EditorialSplit", "StickyProcess", "BentoGallery", "ClosingCta",
@@ -39,6 +41,38 @@ _PLANS: dict[str, list[str]] = {
     "gallery-led": ["CinematicHero", "BentoGallery", "EditorialSplit", "ClosingCta"],
     "editorial-visit": ["CinematicHero", "EditorialSplit", "BentoGallery", "ClosingCta"],
     "classic-custom": ["CinematicHero", "EditorialSplit", "ClosingCta"],
+}
+
+# Per-archetype STRUCTURAL VARIANTS. The composer picks one by a stable hash of the
+# concept (not the seed hue), so two same-archetype builds with different concepts
+# get a different skeleton — the v3 fix for "template-sameness" (the audit found the
+# v2 composer emitted the same section order every time). Each variant still opens on
+# a hero and closes on a CTA; the difference is the middle + where the full-bleed
+# media moment lands.
+_VARIANTS: dict[str, list[list[str]]] = {
+    "service-area-cinematic": [
+        ["CinematicHero", "EditorialSplit", "StickyProcess", "BentoGallery", "ClosingCta"],
+        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "BentoGallery",
+         "StickyProcess", "ClosingCta"],
+        ["CinematicHero", "BentoGallery", "FullBleedMedia", "EditorialSplit", "ClosingCta"],
+    ],
+    "product-led": [
+        ["CinematicHero", "EditorialSplit", "StickyProcess", "ClosingCta"],
+        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "StickyProcess", "ClosingCta"],
+    ],
+    "gallery-led": [
+        ["CinematicHero", "BentoGallery", "EditorialSplit", "ClosingCta"],
+        ["CinematicHero", "FullBleedMedia", "BentoGallery", "EditorialSplit", "ClosingCta"],
+        ["CinematicHero", "EditorialSplit", "BentoGallery", "FullBleedMedia", "ClosingCta"],
+    ],
+    "editorial-visit": [
+        ["CinematicHero", "EditorialSplit", "BentoGallery", "ClosingCta"],
+        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "BentoGallery", "ClosingCta"],
+    ],
+    "classic-custom": [
+        ["CinematicHero", "EditorialSplit", "ClosingCta"],
+        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "ClosingCta"],
+    ],
 }
 
 # Google Fonts for the premium type pairings (split to keep lines short).
@@ -75,16 +109,39 @@ class Composition:
         }
 
 
-def plan_composition(packet: DesignStudioPacket, content: dict | None = None) -> Composition:
-    """Choose + order + fill blocks for this packet's archetype."""
+def plan_composition(
+    packet: DesignStudioPacket,
+    content: dict | None = None,
+    *,
+    images: dict | None = None,
+    variant: int | None = None,
+) -> Composition:
+    """Choose + order + fill blocks for this packet's archetype.
+
+    The block order is one of the archetype's structural variants, selected by a
+    stable hash of the concept (override with ``variant``) so two same-archetype
+    builds differ. ``images`` ({"hero": src, "supporting": [src, ...]}) places real
+    imagery into the hero / gallery / full-bleed slots.
+    """
 
     archetype = packet.archetype if packet.archetype in _PLANS else "classic-custom"
-    content = content or derive_content(packet)
+    variants = _VARIANTS.get(archetype, [_PLANS[archetype]])
+    idx = variant if variant is not None else _variant_index(packet, len(variants))
+    plan = variants[idx % len(variants)]
+    content = content or derive_content(packet, images=images)
     blocks = [
-        BlockSpec(component=name, data=content.get(_slot(name), {}))
-        for name in _PLANS[archetype]
+        BlockSpec(component=name, data=content.get(_slot(name), {})) for name in plan
     ]
     return Composition(site_name=packet.site_name, archetype=archetype, blocks=blocks)
+
+
+def _variant_index(packet: DesignStudioPacket, n: int) -> int:
+    """A deterministic variant choice from the concept (not the seed hue)."""
+
+    if n <= 1:
+        return 0
+    digest = hashlib.md5(packet.concept_statement.encode("utf-8")).hexdigest()
+    return int(digest, 16) % n
 
 
 def _slot(component: str) -> str:
@@ -93,17 +150,29 @@ def _slot(component: str) -> str:
         "EditorialSplit": "split",
         "BentoGallery": "bento",
         "StickyProcess": "process",
+        "FullBleedMedia": "fullbleed",
         "ClosingCta": "cta",
     }[component]
 
 
-def derive_content(packet: DesignStudioPacket) -> dict:
-    """Serviceable placeholder content from the packet — replace with real copy."""
+def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> dict:
+    """Serviceable placeholder content from the packet — replace with real copy.
+
+    ``images`` ({"hero": src, "supporting": [src, ...]}) supplies real, art-directed
+    imagery; absent it, blocks fall back to the WebGL hero / text cards.
+    """
 
     name = packet.site_name
     concept = packet.concept_statement.split(";")[0].strip().rstrip(".")
     headline = concept[:1].upper() + concept[1:] if concept else f"{name}"
     proof = [e for e in packet.evidence if e.strip()][:6]
+    images = images or {}
+    hero_img = images.get("hero")
+    supporting = list(images.get("supporting", []))
+
+    def support(i: int) -> str | None:
+        return supporting[i % len(supporting)] if supporting else None
+
     return {
         "hero": {
             "eyebrow": packet.business_category.title(),
@@ -111,6 +180,8 @@ def derive_content(packet: DesignStudioPacket) -> dict:
             "subhead": f"{name} for {packet.audience} — {packet.goal}.",
             "primaryCta": "Get in touch",
             "secondaryCta": "See the work",
+            "image": hero_img,
+            "imageAlt": f"{name} — {concept}" if concept else name,
         },
         "split": {
             "index": "01",
@@ -121,7 +192,12 @@ def derive_content(packet: DesignStudioPacket) -> dict:
         "bento": {
             "heading": "The work, up close",
             "items": [
-                {"title": f"Detail {i + 1}", "body": p, "span": "wide" if i == 0 else None}
+                {
+                    "title": f"Detail {i + 1}",
+                    "body": p,
+                    "span": "wide" if i == 0 else ("tall" if i == 1 else None),
+                    "image": support(i),
+                }
                 for i, p in enumerate(proof or ["Replace with real proof of work."])
             ],
         },
@@ -132,6 +208,13 @@ def derive_content(packet: DesignStudioPacket) -> dict:
                 {"title": "We scope it", "body": "A clear plan and a clear price."},
                 {"title": "It gets done", "body": "Careful work, done right."},
             ],
+        },
+        "fullbleed": {
+            "image": hero_img or support(0),
+            "alt": f"{name} — {concept}" if concept else name,
+            "kicker": packet.business_category.title(),
+            "headline": headline,
+            "cta": "Get in touch",
         },
         "cta": {
             "headline": "Ready when you are",

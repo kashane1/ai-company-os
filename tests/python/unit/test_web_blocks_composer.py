@@ -42,11 +42,44 @@ def test_plan_opens_on_hero_and_closes_on_cta() -> None:
 def test_archetypes_get_different_compositions() -> None:
     cine = [b.component for b in plan_composition(CINEMATIC).blocks]
     gal = [b.component for b in plan_composition(GALLERY).blocks]
-    # Not the same stacked template: cinematic leads with process/editorial,
-    # gallery leads with the bento grid.
+    # Not the same stacked template; both still open on hero / close on CTA.
     assert cine != gal
-    assert "StickyProcess" in cine
-    assert gal.index("BentoGallery") < gal.index("EditorialSplit")
+    assert cine[0] == gal[0] == "CinematicHero"
+    assert cine[-1] == gal[-1] == "ClosingCta"
+    assert "BentoGallery" in gal  # the gallery archetype always features the grid
+
+
+def test_variant_selection_is_deterministic() -> None:
+    first = [b.component for b in plan_composition(CINEMATIC).blocks]
+    second = [b.component for b in plan_composition(CINEMATIC).blocks]
+    assert first == second  # same packet → same skeleton (no Math.random churn)
+
+
+def test_different_concepts_yield_varied_skeletons() -> None:
+    # The v3 fix for template-sameness: same archetype, different concepts → the
+    # composer picks different structural variants (not one fixed section order).
+    plans = set()
+    for i in range(6):
+        packet = build_design_studio_packet(
+            WebsiteDesignRequest(
+                site_name=f"Site {i}",
+                business_category="plumbing",
+                audience="homeowners",
+                goal="win work",
+                concept_statement=f"distinct concept number {i} with words {i * 7}",
+            )
+        )
+        plans.add(tuple(b.component for b in plan_composition(packet).blocks))
+    assert len(plans) >= 2  # not the same skeleton for every build
+
+
+def test_images_populate_hero_gallery_and_fullbleed() -> None:
+    images = {"hero": "/img/hero.png", "supporting": ["/img/s1.png", "/img/s2.png"]}
+    comp = plan_composition(GALLERY, images=images)
+    hero = next(b for b in comp.blocks if b.component == "CinematicHero")
+    assert hero.data["image"] == "/img/hero.png"
+    bento = next(b for b in comp.blocks if b.component == "BentoGallery")
+    assert any(item.get("image") for item in bento.data["items"])
 
 
 def test_blocks_are_filled_with_packet_content() -> None:

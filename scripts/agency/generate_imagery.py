@@ -64,12 +64,23 @@ def cmd_brief(target: str, spec: object) -> int:
 
 
 def cmd_generate(target: str, seed: int | None) -> int:
-    from packages.tools.content_tools.gemini_images import generate_image
+    from packages.tools.content_tools.gemini_images import (
+        GEMINI_IMAGE_MODEL_PRO,
+        generate_image,
+    )
 
     briefs = [ImageBrief(**b) for b in json.loads(_briefs_path(target).read_text())]
     assets: list[ImageAsset] = []
     for brief in briefs:
-        img = generate_image(brief.prompt, aspect_ratio=brief.aspect_ratio)
+        # Premium lane: Pro image model + the brief's seed (or the CLI override) so a
+        # hero + supporting set share one look (cohesion from model + seed, not just
+        # a shared prompt suffix).
+        img = generate_image(
+            brief.prompt,
+            aspect_ratio=brief.aspect_ratio,
+            model=GEMINI_IMAGE_MODEL_PRO,
+            seed=seed if seed is not None else brief.seed,
+        )
         path = imagery_dir(target) / f"{brief.id}.png"
         img.save(path)
         assets.append(

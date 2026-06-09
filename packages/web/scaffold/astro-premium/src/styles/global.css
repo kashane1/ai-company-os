@@ -54,6 +54,31 @@ a { color: inherit; }
 .btn-ghost { border-color: var(--border); color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn-primary:hover { transform: none; } }
 
+/* ---- Depth + media (v3) ---- */
+/* A card with real elevation — not a 1px hairline on a flat plane. */
+.card {
+  background: color-mix(in oklab, var(--ink) 3%, var(--canvas));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2, 0 10px 30px rgba(0,0,0,0.18));
+}
+.elevated { box-shadow: var(--shadow-3, 0 30px 70px rgba(0,0,0,0.22)); }
+/* Art-directed image wrapper: consistent crop + radius + a per-build accent grade. */
+.media { position: relative; overflow: hidden; border-radius: var(--radius); }
+.media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media.tall { aspect-ratio: 4 / 5; }
+.media.wide { aspect-ratio: 16 / 9; }
+.media.band { aspect-ratio: 21 / 9; }
+/* Optional duotone-toward-accent grade for a commissioned-set feel. */
+.media.graded img { filter: saturate(1.05) contrast(1.03); }
+/* A scrim so display type stays legible over a full-bleed image. */
+.scrim::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--canvas) 20%, transparent) 0%,
+    color-mix(in oklab, var(--canvas) 72%, transparent) 100%);
+}
+
 /* ---- Signature treatments (gated by tokens) ---- */
 /* Hairline dividers/borders use the role border. */
 .hairline { border-color: var(--border); }

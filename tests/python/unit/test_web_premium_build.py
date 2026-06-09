@@ -128,6 +128,37 @@ def test_build_premium_site_can_skip_npm(tmp_path) -> None:
     assert result.dist_dir == project / "dist"
 
 
+def test_build_premium_site_stages_manifest_imagery_into_the_page(tmp_path) -> None:
+    # When the imagery pipeline has produced a manifest, the build copies the
+    # selected assets into public/img and the composed page references them — the
+    # v3 fix for "the page has no pictures".
+    from packages.web.imagery import ImageAsset, ImageryManifest
+
+    target = tmp_path / "hub"
+    imagery = target / "design-studio" / "imagery"
+    imagery.mkdir(parents=True)
+    (imagery / "hero.png").write_bytes(b"\x89PNG\r\n\x1a\n")  # stub bytes
+    (imagery / "support-1.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+    ImageryManifest(
+        assets=[
+            ImageAsset(id="hero", role="hero", path=str(imagery / "hero.png"),
+                       provenance="generated", selected=True),
+            ImageAsset(id="support-1", role="supporting", path=str(imagery / "support-1.png"),
+                       provenance="generated", selected=True),
+            ImageAsset(id="support-2", role="supporting", path=str(imagery / "missing.png"),
+                       provenance="generated", selected=False),  # unselected → not staged
+        ]
+    ).save(imagery / "manifest.json")
+
+    project = target / "site"
+    build_premium_site(_packet("plumbing"), project, run_build=False)
+
+    assert (project / "public" / "img" / "hero.png").exists()
+    assert (project / "public" / "img" / "support-1.png").exists()
+    index = (project / "src" / "pages" / "index.astro").read_text()
+    assert "/img/hero.png" in index  # the hero image is referenced in the page
+
+
 # --------------------------------------------------------------------------- #
 # run_premium_loop — the loop closes end to end (with fakes)
 # --------------------------------------------------------------------------- #
