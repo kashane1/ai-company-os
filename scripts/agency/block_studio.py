@@ -8,6 +8,7 @@ as an un-cleared generated block that a founder must clear before it can ship.
 
   block_studio.py gen        --slot hero --archetype <a> --brief "..." [--generator claude|stitch] [--n 3] --out <dir>
   block_studio.py tournament --candidates <dir> --target <dir> [--keep 6] [--admit]
+  block_studio.py figma-tokens (--file <key> | --manual <tokens.json>) --out <dir>
   block_studio.py clear      --target <dir> --id <block-id> --by <name>
   block_studio.py list       --target <dir>
 
@@ -239,6 +240,42 @@ def cmd_gen(
     return 0
 
 
+def cmd_figma_tokens(*, file_key: str | None, manual: str | None, out: str) -> int:
+    """Emit brand tokens.json + tokens.css for a premium, brand-locked build.
+
+    Reads Figma Variables when available; falls back to a hand-authored tokens.json
+    (Variables REST is Enterprise-gated, so the fallback is the free-account path)."""
+
+    from packages.web.figma_tokens import (
+        FigmaClient,
+        FigmaError,
+        load_manual_tokens,
+        variables_to_tokens,
+        write_tokens,
+    )
+
+    if manual:
+        tokens = load_manual_tokens(Path(manual))
+        print(f"• {len(tokens)} token(s) from manual {manual}")
+    elif file_key:
+        try:
+            payload = FigmaClient().local_variables(file_key)
+        except FigmaError as exc:
+            print(f"✗ {exc}", file=sys.stderr)
+            print("  → author a tokens.json and re-run with --manual <tokens.json>", file=sys.stderr)
+            return 1
+        tokens = variables_to_tokens(payload)
+        print(f"• {len(tokens)} token(s) from Figma file {file_key}")
+    else:
+        print("need --file <key> or --manual <tokens.json>", file=sys.stderr)
+        return 2
+
+    json_path, css_path = write_tokens(tokens, Path(out))
+    print(f"✓ {json_path}\n✓ {css_path}")
+    print("  premium builds layer tokens.css over design-system.css to brand-lock.")
+    return 0
+
+
 def cmd_clear(target: str, block_id: str, by: str) -> int:
     library = _load_library(target)
     hit = next((e for e in library.entries if e.id == block_id), None)
@@ -284,6 +321,11 @@ def main(argv: list[str] | None = None) -> int:
     p_g.add_argument("--n", type=int, default=3)
     p_g.add_argument("--out", required=True, help="candidate dir to write")
 
+    p_f = sub.add_parser("figma-tokens", help="emit brand tokens.json+css (Figma or manual)")
+    p_f.add_argument("--file", default=None, help="Figma file key (Variables REST; Enterprise)")
+    p_f.add_argument("--manual", default=None, help="hand-authored tokens.json (free-tier fallback)")
+    p_f.add_argument("--out", required=True, help="output dir for tokens.json + tokens.css")
+
     p_c = sub.add_parser("clear", help="founder clearance — make an admitted block shippable")
     p_c.add_argument("--target", required=True)
     p_c.add_argument("--id", required=True)
@@ -304,6 +346,8 @@ def main(argv: list[str] | None = None) -> int:
             n=args.n,
             out=args.out,
         )
+    if args.command == "figma-tokens":
+        return cmd_figma_tokens(file_key=args.file, manual=args.manual, out=args.out)
     if args.command == "clear":
         return cmd_clear(args.target, args.id, args.by)
     if args.command == "list":
