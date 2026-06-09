@@ -19,6 +19,12 @@ import hashlib
 import json
 from dataclasses import dataclass, field
 
+from packages.web.block_library import (
+    SOURCE_HAND,
+    TIER_FLEET,
+    BlockEntry,
+    BlockLibrary,
+)
 from packages.web.copy import generate_conversion_copy
 from packages.web.design_studio import DesignStudioPacket
 
@@ -88,10 +94,16 @@ _FONTS_LINK = (
 
 @dataclass(frozen=True)
 class BlockSpec:
-    """One placed block: a component name and its content payload."""
+    """One placed block: a component name and its content payload.
+
+    ``import_path`` is set when the block was resolved from the block library (a
+    generated/admitted block living outside the builtin set); empty means "use the
+    builtin import path for ``component``", so existing callers are unchanged.
+    """
 
     component: str
     data: dict
+    import_path: str = ""
 
 
 @dataclass(frozen=True)
@@ -116,6 +128,8 @@ def plan_composition(
     *,
     images: dict | None = None,
     variant: int | None = None,
+    library: BlockLibrary | None = None,
+    tier: str = TIER_FLEET,
 ) -> Composition:
     """Choose + order + fill blocks for this packet's archetype.
 
@@ -123,6 +137,13 @@ def plan_composition(
     stable hash of the concept (override with ``variant``) so two same-archetype
     builds differ. ``images`` ({"hero": src, "supporting": [src, ...]}) places real
     imagery into the hero / gallery / full-bleed slots.
+
+    When ``library`` is given, each slot in the chosen variant is resolved through the
+    block library — a generated/admitted block may stand in for its builtin. The
+    builtin-seeded library (``builtin_library()``) resolves every slot back to its
+    builtin, so the composition is unchanged; ``library=None`` keeps the pure builtin
+    path. ``tier`` gates which blocks are eligible (a fleet build sees only fleet
+    blocks; a premium build sees both).
     """
 
     archetype = packet.archetype if packet.archetype in _PLANS else "classic-custom"
@@ -131,9 +152,66 @@ def plan_composition(
     plan = variants[idx % len(variants)]
     content = content or derive_content(packet, images=images)
     blocks = [
-        BlockSpec(component=name, data=content.get(_slot(name), {})) for name in plan
+        _place(name, content, archetype=archetype, packet=packet, library=library, tier=tier)
+        for name in plan
     ]
     return Composition(site_name=packet.site_name, archetype=archetype, blocks=blocks)
+
+
+def _place(
+    name: str,
+    content: dict,
+    *,
+    archetype: str,
+    packet: DesignStudioPacket,
+    library: BlockLibrary | None,
+    tier: str,
+) -> BlockSpec:
+    """Resolve one slot to a concrete block (library override, else the builtin)."""
+
+    slot = _slot(name)
+    data = content.get(slot, {})
+    if library is not None:
+        entry = library.resolve(
+            slot, archetype, concept=packet.concept_statement, tier=tier
+        )
+        if entry is not None:
+            return BlockSpec(
+                component=entry.component, data=data, import_path=entry.component_path
+            )
+    return BlockSpec(component=name, data=data)
+
+
+def builtin_library() -> BlockLibrary:
+    """The block library seeded from today's builtin blocks.
+
+    One entry per builtin component: slot derived from its mapping, archetype affinity
+    = every archetype whose variants use it, ``source=hand`` (always cleared, never a
+    deploy blocker). Seeding the registry from this reproduces the exact builtin
+    availability — so a library-driven compose equals a builtin compose, and admitting
+    a new block is purely additive.
+    """
+
+    affinity: dict[str, set[str]] = {}
+    for archetype, variants in _VARIANTS.items():
+        for plan in variants:
+            for comp in plan:
+                affinity.setdefault(comp, set()).add(archetype)
+    entries = [
+        BlockEntry(
+            id=f"builtin:{comp}",
+            component=comp,
+            component_path=path,
+            slot=_slot(comp),
+            archetype_affinity=tuple(sorted(affinity.get(comp, set()))),
+            source=SOURCE_HAND,
+            license="builtin",
+            tier=TIER_FLEET,
+            cleared=True,
+        )
+        for comp, path in _IMPORTS.items()
+    ]
+    return BlockLibrary(entries=entries)
 
 
 def duplicate_sections(composition: Composition) -> list[str]:
@@ -266,13 +344,16 @@ def render_index_astro(
 ) -> str:
     """Generate the premium `index.astro` that composes the chosen blocks."""
 
-    used = [b.component for b in composition.blocks]
     seen: set[str] = set()
     imports = []
-    for comp in used:
-        if comp not in seen:
-            imports.append(f'import {comp} from "{_IMPORTS[comp]}";')
-            seen.add(comp)
+    for block in composition.blocks:
+        if block.component in seen:
+            continue
+        # A library-resolved block carries its own import path; builtins fall back to
+        # the static map so existing (import_path="") compositions are unchanged.
+        path = block.import_path or _IMPORTS[block.component]
+        imports.append(f'import {block.component} from "{path}";')
+        seen.add(block.component)
 
     body_blocks = "\n    ".join(
         f"<{b.component} data={{{json.dumps(b.data)}}} />" for b in composition.blocks
