@@ -161,12 +161,12 @@ function initSignature(p: { ease: string; duration: number }): void {
   for (const fig of gsap.utils.toArray<HTMLElement>("section:not([data-hero]) .media")) {
     const img = fig.querySelector<HTMLElement>("img");
     if (!img) continue;
-    gsap.set(img, { scale: 1.12 });
+    gsap.set(img, { scale: 1.07 });
     gsap.fromTo(
       img,
-      { yPercent: -5 },
+      { yPercent: -3 },
       {
-        yPercent: 5,
+        yPercent: 3,
         ease: "none",
         scrollTrigger: { trigger: fig, start: "top bottom", end: "bottom top", scrub: true },
       },
