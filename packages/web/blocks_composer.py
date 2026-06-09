@@ -145,21 +145,25 @@ def duplicate_sections(composition: Composition) -> list[str]:
     """
 
     by_image: dict[str, str] = {}
-    by_headline: dict[str, str] = {}
+    by_text: dict[str, str] = {}
     defects: list[str] = []
     for block in composition.blocks:
         image = block.data.get("image")
-        headline = str(block.data.get("headline") or "").strip().lower()
         if image:
             if image in by_image:
                 defects.append(f"{block.component} reuses the image from {by_image[image]}")
             else:
                 by_image[image] = block.component
-        if headline:
-            if headline in by_headline:
-                defects.append(f"{block.component} repeats the headline of {by_headline[headline]}")
+        # Any prominent label (headline / heading / eyebrow / kicker) repeated across
+        # blocks reads as a duplicate — not just the headline.
+        for label in ("headline", "heading", "eyebrow", "kicker"):
+            text = str(block.data.get(label) or "").strip().lower()
+            if not text:
+                continue
+            if text in by_text:
+                defects.append(f"{block.component} repeats '{label}' text of {by_text[text]}")
             else:
-                by_headline[headline] = block.component
+                by_text[text] = block.component
     return defects
 
 
@@ -240,12 +244,12 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
         },
         "fullbleed": {
             # A DISTINCT image (a supporting shot, never the hero) + a DISTINCT band
-            # headline — so this never renders as a duplicate of CinematicHero. Falls
-            # back to no image (the block's tinted-accent panel) rather than reusing
-            # the hero photo.
+            # headline — so this never renders as a duplicate of CinematicHero. No
+            # kicker here: the hero already uses the category as its eyebrow, and a
+            # repeated label reads as a defect.
             "image": support(0),
             "alt": f"{name} — {copy['band_headline']}",
-            "kicker": packet.business_category.title(),
+            "kicker": "",
             "headline": copy["band_headline"],
             "cta": copy["primary_cta"],
         },

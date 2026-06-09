@@ -152,4 +152,20 @@ def test_duplicate_sections_detects_a_repeated_hero() -> None:
     )
     defects = duplicate_sections(comp)
     assert any("reuses the image" in d for d in defects)
-    assert any("repeats the headline" in d for d in defects)
+    assert any("repeats" in d and "headline" in d for d in defects)
+
+
+def test_duplicate_sections_detects_a_repeated_label() -> None:
+    # The eyebrow/kicker label repeated across blocks is also a defect (the bug that
+    # put "Fish Taco Restaurant" in both the hero eyebrow and the band kicker).
+    from packages.web.blocks_composer import BlockSpec, Composition, duplicate_sections
+
+    comp = Composition(
+        site_name="X",
+        archetype="editorial-visit",
+        blocks=[
+            BlockSpec("CinematicHero", {"image": "/a.png", "eyebrow": "Fish Taco Restaurant"}),
+            BlockSpec("FullBleedMedia", {"image": "/b.png", "kicker": "Fish Taco Restaurant"}),
+        ],
+    )
+    assert any("repeats" in d for d in duplicate_sections(comp))
