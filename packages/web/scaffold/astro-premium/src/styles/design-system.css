@@ -1,0 +1,42 @@
+/* ------------------------------------------------------------------
+   Design system tokens (role-based).
+
+   This file is the THEME LAYER. The design-system synthesizer
+   (packages/web/design_system.py :: synthesize_design_system) overwrites it
+   per build with concept-specific values — a dark canvas + warm-metal accent
+   for cinematic archetypes, a light palette for gallery/editorial, etc.
+
+   The values below are a presentable premium baseline so the template builds
+   and reads well before synthesis. global.css consumes ONLY these role tokens
+   (never hard-coded colors), so a re-synthesis re-themes the whole site.
+   ------------------------------------------------------------------ */
+:root {
+  --canvas: #0e111b;
+  --ink: #ebecef;
+  --muted: #a1a5af;
+  --border: #282d3e;
+  --accent: #cf8530;
+  --accent-strong: #a66a26;
+  --on-accent: #111111;
+
+  --display-font: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --body-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono-font: 'Spline Sans Mono', ui-monospace, 'SF Mono', monospace;
+
+  --type-ratio: 1.333;
+  --space-unit: 0.5rem;
+  --radius: 0.75rem;
+
+  --step-n1: 0.7502rem;
+  --step-0: 1.0rem;
+  --step-1: clamp(1.0397rem, 1.0397rem + 0.51vw, 1.333rem);
+  --step-2: clamp(1.386rem, 1.386rem + 0.68vw, 1.7769rem);
+  --step-3: clamp(1.8475rem, 1.8475rem + 0.906vw, 2.3686rem);
+  --step-4: clamp(2.4627rem, 2.4627rem + 1.208vw, 3.1573rem);
+  --step-5: clamp(3.2828rem, 3.2828rem + 1.61vw, 4.2087rem);
+  --step-6: clamp(4.376rem, 4.376rem + 2.146vw, 5.6102rem);
+
+  --treatment-grain: 1;
+  --treatment-glow: 1;
+  --treatment-hairline: 1;
+}

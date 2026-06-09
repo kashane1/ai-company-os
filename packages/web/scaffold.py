@@ -33,6 +33,9 @@ from pathlib import Path
 
 TEMPLATES_ROOT = Path(__file__).resolve().parent / "scaffold"
 DEFAULT_TEMPLATE = "astro-landing"
+# The opt-in premium surface (design engine). Selected explicitly for five-figure
+# builds via the design-studio lane; cold demos keep using DEFAULT_TEMPLATE.
+PREMIUM_TEMPLATE = "astro-premium"
 
 # Files we token-substitute (text). Anything else is copied verbatim.
 _TEXT_SUFFIXES = {

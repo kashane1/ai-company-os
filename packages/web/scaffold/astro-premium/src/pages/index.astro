@@ -1,0 +1,88 @@
+---
+// Premium stack — baseline page. Content is framework-agnostic HTML over the
+// role tokens (design-system.css), so the design-system synthesizer re-themes it
+// and the offline preview/gate can read it. Tokens like {{SITE_NAME}} are filled
+// in at scaffold time. Phase 3 (the block library) replaces these inline sections
+// with composed blocks; this skeleton proves the stack + tokens + motion wire up.
+import "../styles/global.css";
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{SITE_NAME}} — {{TAGLINE}}</title>
+  <meta name="description" content="{{META_DESCRIPTION}}" />
+  <meta property="og:title" content="{{SITE_NAME}} — {{TAGLINE}}" />
+  <meta property="og:description" content="{{META_DESCRIPTION}}" />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=Inter:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" />
+</head>
+<body class="grain">
+  <a class="btn btn-ghost" href="#main" style="position:absolute;left:-9999px;top:auto"
+     onfocus="this.style.left='1rem';this.style.top='1rem';this.style.position='fixed'">Skip to content</a>
+
+  <header class="section" style="padding-block:1.5rem">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between">
+      <a href="/" style="font-family:var(--display-font);font-weight:600;text-decoration:none">{{SITE_NAME}}</a>
+      <a class="btn btn-primary" href="#get-started">{{PRIMARY_CTA}}</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Cinematic hero -->
+    <section class="section glow">
+      <div class="container" style="max-width:54rem">
+        <p class="eyebrow" data-reveal>{{EYEBROW}}</p>
+        <h1 data-reveal style="margin-top:1rem">{{HERO_HEADLINE}}</h1>
+        <p class="muted" data-reveal style="font-size:var(--step-1);max-width:42rem;margin-top:1.25rem">
+          {{HERO_SUBHEAD}}
+        </p>
+        <div data-reveal style="display:flex;gap:0.75rem;margin-top:2rem;flex-wrap:wrap">
+          <a class="btn btn-primary" href="#get-started">{{PRIMARY_CTA}}</a>
+          <a class="btn btn-ghost" href="#proof">{{SECONDARY_CTA}}</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Proof band -->
+    <section id="proof" class="section" style="border-block:1px solid var(--border)">
+      <div class="container" style="display:grid;gap:2rem;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))">
+        <div data-reveal>
+          <h3>{{FEATURE_1_TITLE}}</h3>
+          <p class="muted">{{FEATURE_1_BODY}}</p>
+        </div>
+        <div data-reveal>
+          <h3>{{FEATURE_2_TITLE}}</h3>
+          <p class="muted">{{FEATURE_2_BODY}}</p>
+        </div>
+        <div data-reveal>
+          <h3>{{FEATURE_3_TITLE}}</h3>
+          <p class="muted">{{FEATURE_3_BODY}}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Closing CTA -->
+    <section id="get-started" class="section">
+      <div class="container glow" style="text-align:center;max-width:40rem">
+        <h2 data-reveal>{{CTA_HEADLINE}}</h2>
+        <p class="muted" data-reveal style="margin-top:1rem">{{CTA_SUBHEAD}}</p>
+        <a class="btn btn-primary" data-reveal href="#" style="margin-top:1.5rem">{{PRIMARY_CTA}}</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="section" style="padding-block:2rem;border-top:1px solid var(--border)">
+    <div class="container muted" style="font-size:var(--step-n1)">
+      © {{YEAR}} {{SITE_NAME}}. {{FOOTER_NOTE}}
+    </div>
+  </footer>
+
+  <script>
+    import "../scripts/motion.ts";
+  </script>
+</body>
+</html>
