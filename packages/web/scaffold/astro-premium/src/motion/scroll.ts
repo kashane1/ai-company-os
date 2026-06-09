@@ -115,8 +115,11 @@ export function initScroll(): MotionHandle {
  * judge sees across the scroll frames (a load-only animation wouldn't show). Two
  * cohesive parts on the hero:
  *  - a masked, line-by-line kinetic reveal of the headline on entrance, and
- *  - a cinematic scroll-scrub: the hero image slowly scales (Ken Burns) while the
- *    copy parallax-lifts as the hero scrolls away.
+ *  - a cinematic scroll-scrub: the hero image slowly scales (Ken Burns) as the hero
+ *    scrolls away. The scale is clipped inside `.media` (overflow:hidden), so it can
+ *    never bleed into the next section — unlike a copy parallax-lift, which made the
+ *    hero copy float over the incoming section in the scroll frames (an "overlap"
+ *    defect). Copy therefore stays in normal flow; the image carries the scrub.
  * All reduced-motion safe (only runs when motion is enabled) and torn down with the
  * parent gsap.context().
  */
@@ -140,7 +143,8 @@ function initSignature(p: { ease: string; duration: number }): void {
     });
   }
 
-  // Cinematic hero scrub: image scales, copy lifts — a scroll-driven moment.
+  // Cinematic hero scrub: the image scales (Ken Burns) as the hero scrolls away.
+  // Contained by `.media { overflow: hidden }`, so it never overlaps the next section.
   const heroImg = document.querySelector<HTMLElement>("[data-hero] .media img");
   if (heroImg) {
     gsap.fromTo(
@@ -157,20 +161,5 @@ function initSignature(p: { ease: string; duration: number }): void {
         },
       },
     );
-  }
-  const heroCopy = document.querySelector<HTMLElement>(
-    "[data-hero] .media-copy, [data-hero] .container",
-  );
-  if (heroCopy) {
-    gsap.to(heroCopy, {
-      yPercent: -16,
-      ease: "none",
-      scrollTrigger: {
-        trigger: "[data-hero]",
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
   }
 }
