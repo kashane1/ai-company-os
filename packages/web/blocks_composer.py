@@ -56,31 +56,53 @@ _PLANS: dict[str, list[str]] = {
 # v2 composer emitted the same section order every time). Each variant still opens on
 # a hero and closes on a CTA; the difference is the middle + where the full-bleed
 # media moment lands.
+# NB: a full-bleed media band must never sit *directly* after the cinematic hero —
+# the hero is already a full-bleed photo, so two stacked full-bleed sections read as a
+# cluttered, "overlapping" patchwork. A contained section (editorial / bento / process)
+# always separates the two full-bleed moments. `_separate_fullbleed_from_hero` enforces
+# this at runtime too, so future variants can't reintroduce the defect.
 _VARIANTS: dict[str, list[list[str]]] = {
     "service-area-cinematic": [
         ["CinematicHero", "EditorialSplit", "StickyProcess", "BentoGallery", "ClosingCta"],
-        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "BentoGallery",
+        ["CinematicHero", "EditorialSplit", "FullBleedMedia", "BentoGallery",
          "StickyProcess", "ClosingCta"],
         ["CinematicHero", "BentoGallery", "FullBleedMedia", "EditorialSplit", "ClosingCta"],
     ],
     "product-led": [
         ["CinematicHero", "EditorialSplit", "StickyProcess", "ClosingCta"],
-        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "StickyProcess", "ClosingCta"],
+        ["CinematicHero", "EditorialSplit", "FullBleedMedia", "StickyProcess", "ClosingCta"],
     ],
     "gallery-led": [
         ["CinematicHero", "BentoGallery", "EditorialSplit", "ClosingCta"],
-        ["CinematicHero", "FullBleedMedia", "BentoGallery", "EditorialSplit", "ClosingCta"],
+        ["CinematicHero", "BentoGallery", "FullBleedMedia", "EditorialSplit", "ClosingCta"],
         ["CinematicHero", "EditorialSplit", "BentoGallery", "FullBleedMedia", "ClosingCta"],
     ],
     "editorial-visit": [
         ["CinematicHero", "EditorialSplit", "BentoGallery", "ClosingCta"],
-        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "BentoGallery", "ClosingCta"],
+        ["CinematicHero", "EditorialSplit", "FullBleedMedia", "BentoGallery", "ClosingCta"],
     ],
     "classic-custom": [
         ["CinematicHero", "EditorialSplit", "ClosingCta"],
-        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "ClosingCta"],
+        ["CinematicHero", "EditorialSplit", "FullBleedMedia", "ClosingCta"],
     ],
 }
+
+# Contained (non-full-bleed) sections that can buffer the hero from a full-bleed band.
+_CONTAINED_SECTIONS = ("EditorialSplit", "BentoGallery", "StickyProcess")
+
+
+def _separate_fullbleed_from_hero(names: list[str]) -> list[str]:
+    """Guarantee a contained section sits between the cinematic hero and a full-bleed
+    band. If a variant opens ``[CinematicHero, FullBleedMedia, ...]``, swap the band
+    with the first contained section after it so two full-bleed photo sections never
+    stack (the "overlapping/cluttered" defect)."""
+    names = list(names)
+    if len(names) > 2 and names[0] == "CinematicHero" and names[1] == "FullBleedMedia":
+        for j in range(2, len(names)):
+            if names[j] in _CONTAINED_SECTIONS:
+                names[1], names[j] = names[j], names[1]
+                break
+    return names
 
 # Google Fonts for the premium type pairings (split to keep lines short).
 _FONTS_LINK = (
@@ -149,7 +171,7 @@ def plan_composition(
     archetype = packet.archetype if packet.archetype in _PLANS else "classic-custom"
     variants = _VARIANTS.get(archetype, [_PLANS[archetype]])
     idx = variant if variant is not None else _variant_index(packet, len(variants))
-    plan = variants[idx % len(variants)]
+    plan = _separate_fullbleed_from_hero(variants[idx % len(variants)])
     content = content or derive_content(packet, images=images)
     blocks = [
         _place(name, content, archetype=archetype, packet=packet, library=library, tier=tier)

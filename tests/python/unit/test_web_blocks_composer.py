@@ -169,3 +169,22 @@ def test_duplicate_sections_detects_a_repeated_label() -> None:
         ],
     )
     assert any("repeats" in d for d in duplicate_sections(comp))
+
+
+def test_fullbleed_never_directly_after_cinematic_hero() -> None:
+    # Two full-bleed photo sections back-to-back (hero is already full-bleed) read as a
+    # cluttered, overlapping patchwork. No variant — and nothing the guard returns —
+    # may place FullBleedMedia immediately after CinematicHero.
+    from packages.web.blocks_composer import _VARIANTS, _separate_fullbleed_from_hero
+
+    for archetype, variants in _VARIANTS.items():
+        for v in variants:
+            norm = _separate_fullbleed_from_hero(v)
+            if norm and norm[0] == "CinematicHero":
+                assert norm[1] != "FullBleedMedia", (archetype, norm)
+
+    # The guard repairs a bad variant by swapping in the next contained section.
+    fixed = _separate_fullbleed_from_hero(
+        ["CinematicHero", "FullBleedMedia", "EditorialSplit", "ClosingCta"]
+    )
+    assert fixed == ["CinematicHero", "EditorialSplit", "FullBleedMedia", "ClosingCta"]
