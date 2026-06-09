@@ -154,16 +154,20 @@ def test_visual_review_rejects_technically_valid_but_generic_page() -> None:
     assert any(check.name == "design-studio-visual-quality" for check in report.checks)
 
 
+def _strong_scores() -> list[VisualScore]:
+    """A full v3 (12-dimension) passing score set."""
+    values = {
+        "visual_thesis": 5, "hero_impact": 5, "imagery_art_direction": 4,
+        "typography": 4, "color_system": 4, "layout_composition": 4,
+        "whitespace_depth": 4, "motion_quality": 4, "signature_moment": 4,
+        "conversion_strength": 4, "copy_specificity": 5, "ai_house_style": 5,
+    }
+    return [VisualScore(cat, score, "strong") for cat, score in values.items()]
+
+
 def test_visual_review_requires_desktop_and_mobile_screenshots() -> None:
     report = review_visual_quality(
-        scores=[
-            VisualScore("visual_thesis", 5, "Clear concept"),
-            VisualScore("hero_impact", 5, "Memorable hero"),
-            VisualScore("imagery_art_direction", 5, "Cohesive image set"),
-            VisualScore("typography", 4, "Strong pairing"),
-            VisualScore("layout_composition", 4, "Varied rhythm"),
-            VisualScore("copy_specificity", 5, "Evidence-grounded"),
-        ],
+        scores=_strong_scores(),
         screenshots={"desktop": "/tmp/site-desktop.png"},
     )
 
@@ -173,20 +177,26 @@ def test_visual_review_requires_desktop_and_mobile_screenshots() -> None:
 
 def test_visual_review_passes_with_strong_scores_and_required_screenshots() -> None:
     report = review_visual_quality(
-        scores=[
-            VisualScore("visual_thesis", 5, "One-line concept carries the page"),
-            VisualScore("hero_impact", 5, "Hero is presentation-worthy"),
-            VisualScore("imagery_art_direction", 4, "Consistent image treatment"),
-            VisualScore("typography", 4, "Distinctive display and legible body"),
-            VisualScore("layout_composition", 4, "Varied section rhythm"),
-            VisualScore("copy_specificity", 5, "Every claim is grounded"),
-        ],
+        scores=_strong_scores(),
         screenshots={"desktop": "/tmp/site-desktop.png", "mobile": "/tmp/site-mobile.png"},
     )
 
     assert report.passed is True
     assert report.failure_codes == []
     assert report.overall >= 80
+
+
+def test_visual_review_fails_on_ai_house_style_even_if_rest_is_strong() -> None:
+    # ai_house_style is critical in v3: a page full of the cheap/AI tells fails even
+    # when every other dimension scores well.
+    scores = [s for s in _strong_scores() if s.category != "ai_house_style"]
+    scores.append(VisualScore("ai_house_style", 3, "purple aurora + 3-icon grid + default sans"))
+    report = review_visual_quality(
+        scores=scores,
+        screenshots={"desktop": "/tmp/d.png", "mobile": "/tmp/m.png"},
+    )
+    assert report.passed is False
+    assert "design_studio_ai_house_style" in report.failure_codes
 
 
 def test_design_studio_packet_serializes_as_structured_contract() -> None:

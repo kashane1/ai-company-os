@@ -34,6 +34,11 @@ from packages.web.palette import (
 # Archetypes that read as premium on a dark canvas + warm-metal accent.
 _DARK_ARCHETYPES = {"service-area-cinematic", "product-led"}
 
+# Named spacing steps as multiples of --space-unit (a real scale → rhythm).
+_SPACE_SCALE: list[tuple[str, float]] = [
+    ("2xs", 0.5), ("xs", 1), ("sm", 1.5), ("md", 3), ("lg", 6), ("xl", 10), ("2xl", 16),
+]
+
 # Archetype -> (type ratio, display family, body family, mono family).
 # Display faces are chosen to escape the genre cliché (an editorial serif over a
 # trades site reads premium; a precise grotesk over SaaS reads engineered).
@@ -129,6 +134,10 @@ class DesignSystem:
     radius_rem: float
     motion_preset: str = "calm"
     treatments: list[str] = field(default_factory=list)
+    # Elevation/shadow ramp (--shadow-1/-2/-3). v3 depth: the v2 output was flat —
+    # one reused glow, no shadows — so everything read coplanar. A real elevation
+    # ramp is what lets cards float and imagery overlap convincingly.
+    shadows: dict[str, str] = field(default_factory=dict)
 
     # ---- W3C DTCG token document (interop artifact) -----------------------
     def to_dtcg(self) -> dict:
@@ -171,6 +180,17 @@ class DesignSystem:
         lines.append(f'  --motion-preset: "{self.motion_preset}";')
         for step in self.type_scale:
             lines.append(f"  {step.name}: {step.to_css_clamp()};")
+        # Spacing scale (multiples of the unit) — a real scale, not one literal, so
+        # sections can compress/expand for rhythm instead of uniform padding.
+        for name, mult in _SPACE_SCALE:
+            lines.append(f"  --space-{name}: calc(var(--space-unit) * {mult});")
+        # A 12-column grid + fluid gutter for art-directed, off-center composition.
+        lines.append("  --grid-cols: 12;")
+        lines.append("  --gutter: clamp(1rem, 2.5vw, 2rem);")
+        # Elevation ramp.
+        for key in ("1", "2", "3"):
+            if key in self.shadows:
+                lines.append(f"  --shadow-{key}: {self.shadows[key]};")
         for treatment in self.treatments:
             lines.append(f"  --treatment-{treatment}: 1;")
         lines.append("}")
@@ -198,7 +218,24 @@ def synthesize_design_system(packet: DesignStudioPacket) -> DesignSystem:
         radius_rem=0.75 if archetype != "product-led" else 0.5,
         motion_preset=_MOTION.get(archetype, "calm"),
         treatments=list(_TREATMENTS.get(archetype, ["hairline"])),
+        shadows=_shadows(is_dark=is_dark),
     )
+
+
+def _shadows(*, is_dark: bool) -> dict[str, str]:
+    """A three-step elevation ramp tuned to the canvas (deeper on dark)."""
+
+    if is_dark:
+        return {
+            "1": "0 1px 2px rgba(0,0,0,0.40)",
+            "2": "0 10px 30px rgba(0,0,0,0.45)",
+            "3": "0 30px 80px rgba(0,0,0,0.55)",
+        }
+    return {
+        "1": "0 1px 2px rgba(17,17,34,0.06)",
+        "2": "0 12px 30px rgba(17,17,34,0.10)",
+        "3": "0 30px 70px rgba(17,17,34,0.16)",
+    }
 
 
 def _color_roles(packet: DesignStudioPacket, archetype: str, *, is_dark: bool) -> dict[str, str]:

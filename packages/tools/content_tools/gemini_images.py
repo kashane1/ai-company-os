@@ -17,8 +17,8 @@ import logging
 import ssl
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 from packages.config.settings import GEMINI_API_KEY_ENV_VAR, get_api_key
 
@@ -39,6 +39,10 @@ def _ssl_context() -> ssl.SSLContext:
         return ssl.create_default_context()
 
 GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"
+# The premium design lane uses the Pro image model ("Nano Banana Pro") for
+# art-directed, brand-grade imagery (see the concept-led-imagery playbook). It's
+# opt-in per call so the content factory keeps the cheaper/faster flash default.
+GEMINI_IMAGE_MODEL_PRO = "gemini-3-pro-image-preview"
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
@@ -72,6 +76,9 @@ def generate_image(
     prompt: str,
     aspect_ratio: str = "9:16",
     api_key: str | None = None,
+    *,
+    model: str | None = None,
+    seed: int | None = None,
 ) -> GeneratedImage:
     """Generate a single background image via the Gemini API.
 
@@ -84,13 +91,20 @@ def generate_image(
         aspect_ratio: "9:16" for TikTok/Reels vertical, "1:1" for IG feed,
                       "16:9" for landscape.
         api_key: Override API key (defaults to env var).
+        model: Override the image model (e.g. GEMINI_IMAGE_MODEL_PRO for the
+               premium design lane). Defaults to the flash model.
+        seed: Fixed seed for reproducible/cohesive sets (a hero + supporting shots
+              that share one look). Omitted → the model's default randomness.
 
     Returns:
         GeneratedImage with raw bytes and MIME type.
     """
     key = api_key or _get_api_key()
-    url = f"{GEMINI_API_BASE}/{GEMINI_IMAGE_MODEL}:generateContent?key={key}"
+    url = f"{GEMINI_API_BASE}/{model or GEMINI_IMAGE_MODEL}:generateContent?key={key}"
 
+    generation_config: dict[str, object] = {"responseModalities": ["TEXT", "IMAGE"]}
+    if seed is not None:
+        generation_config["seed"] = seed
     payload = {
         "contents": [
             {
@@ -106,9 +120,7 @@ def generate_image(
                 ]
             }
         ],
-        "generationConfig": {
-            "responseModalities": ["TEXT", "IMAGE"],
-        },
+        "generationConfig": generation_config,
     }
 
     request = Request(

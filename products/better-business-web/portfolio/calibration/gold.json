@@ -1,0 +1,47 @@
+[
+  {
+    "id": "legacy-luminous-dark",
+    "expected": "bad",
+    "note": "Legacy centered-stack template (headline+subhead+two buttons, 3 pricing cards). The $500 baseline — a judge that rates this passing has drifted.",
+    "screenshots": {
+      "desktop": "docs/products/better-business-web/screenshots/luminous-dark.png",
+      "mobile": "docs/products/better-business-web/screenshots/luminous-dark.png"
+    }
+  },
+  {
+    "id": "legacy-warm-boutique",
+    "expected": "bad",
+    "note": "The same legacy template as luminous-dark in a different palette — the clearest template tell in the set.",
+    "screenshots": {
+      "desktop": "docs/products/better-business-web/screenshots/warm-boutique.png",
+      "mobile": "docs/products/better-business-web/screenshots/warm-boutique.png"
+    }
+  },
+  {
+    "id": "legacy-editorial-studio",
+    "expected": "bad",
+    "note": "Centered-stack editorial template; competent but generic.",
+    "screenshots": {
+      "desktop": "docs/products/better-business-web/screenshots/editorial-studio.png",
+      "mobile": "docs/products/better-business-web/screenshots/editorial-studio.png"
+    }
+  },
+  {
+    "id": "v2-barbering-below-bar",
+    "expected": "bad",
+    "note": "Best v3-engine output (~3.1/5 in the audit) — solid pro, but below the five-figure bar: flat depth, no visible motion, predictable section rhythm. Correctly 'bad' until depth/motion land (Phases 3-4).",
+    "screenshots": {
+      "desktop": "docs/products/better-business-web/screenshots/barbering-v3.png",
+      "mobile": "docs/products/better-business-web/screenshots/barbering-v3.png"
+    }
+  },
+  {
+    "id": "v2-auto-repair-below-bar",
+    "expected": "bad",
+    "note": "Bold hero but SaaS-template dashboard panel + flat depth; below the bar.",
+    "screenshots": {
+      "desktop": "docs/products/better-business-web/screenshots/auto-repair-v3.png",
+      "mobile": "docs/products/better-business-web/screenshots/auto-repair-v3.png"
+    }
+  }
+]

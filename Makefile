@@ -1,4 +1,4 @@
-.PHONY: demo test test-python doctor audit handoff archive-plans doc-index tokens-check skills-sync
+.PHONY: demo test test-python doctor audit handoff archive-plans doc-index tokens-check skills-sync premium
 
 # Zero-dependency end-to-end demo: goal -> task -> execute -> validate
 # -> human approval gate -> structured audit artifact. No Postgres,
@@ -10,6 +10,18 @@ test: test-python
 
 test-python:
 	./scripts/test_python.sh
+
+# Premium website factory — run the autonomous design loop for a niche.
+#   make premium NICHE="med spa" [TARGET=products/better-business-web/portfolio/flagship]
+# Needs npm (build) + GEMINI_API_KEY (independent judge). The loop builds → shoots →
+# judges → revises until the visual gate passes or it halts to the best build; a pass
+# still needs founder sign-off (it never auto-ships).
+PREMIUM_PY ?= $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3)
+premium:
+	@test -n "$(NICHE)" || { echo "usage: make premium NICHE=\"med spa\" [TARGET=...]"; exit 2; }
+	@$(PREMIUM_PY) -c "import json; from packages.web.niches import niche_to_spec; print(json.dumps(niche_to_spec('$(NICHE)')))" \
+	  | $(PREMIUM_PY) scripts/agency/design_loop.py run \
+	      --target $(or $(TARGET),products/better-business-web/portfolio/flagship) --spec -
 
 # Local-dev preflight checklist. Read-only; points at REPO_MAP.md.
 doctor:

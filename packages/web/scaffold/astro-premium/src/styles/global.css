@@ -54,6 +54,31 @@ a { color: inherit; }
 .btn-ghost { border-color: var(--border); color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn-primary:hover { transform: none; } }
 
+/* ---- Depth + media (v3) ---- */
+/* A card with real elevation — not a 1px hairline on a flat plane. */
+.card {
+  background: color-mix(in oklab, var(--ink) 3%, var(--canvas));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2, 0 10px 30px rgba(0,0,0,0.18));
+}
+.elevated { box-shadow: var(--shadow-3, 0 30px 70px rgba(0,0,0,0.22)); }
+/* Art-directed image wrapper: consistent crop + radius + a per-build accent grade. */
+.media { position: relative; overflow: hidden; border-radius: var(--radius); }
+.media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media.tall { aspect-ratio: 4 / 5; }
+.media.wide { aspect-ratio: 16 / 9; }
+.media.band { aspect-ratio: 21 / 9; }
+/* Optional duotone-toward-accent grade for a commissioned-set feel. */
+.media.graded img { filter: saturate(1.05) contrast(1.03); }
+/* A scrim so display type stays legible over a full-bleed image. */
+.scrim::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--canvas) 20%, transparent) 0%,
+    color-mix(in oklab, var(--canvas) 72%, transparent) 100%);
+}
+
 /* ---- Signature treatments (gated by tokens) ---- */
 /* Hairline dividers/borders use the role border. */
 .hairline { border-color: var(--border); }
@@ -68,6 +93,21 @@ a { color: inherit; }
 .grain::after {
   content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- Custom cursor (v3, fine pointers only; JS adds .has-cursor) ---- */
+.cursor-dot, .cursor-ring {
+  position: fixed; top: 0; left: 0; z-index: 10000; pointer-events: none;
+  border-radius: 50%; translate: -50% -50%; mix-blend-mode: difference;
+}
+.cursor-dot { width: 7px; height: 7px; background: var(--ink); }
+.cursor-ring {
+  width: 34px; height: 34px; border: 1px solid var(--ink);
+  transition: width .25s ease, height .25s ease, opacity .25s ease; opacity: 0.6;
+}
+.cursor-ring.is-hot { width: 56px; height: 56px; opacity: 0.9; }
+@media (hover: hover) and (pointer: fine) {
+  html.has-cursor, html.has-cursor a, html.has-cursor button, html.has-cursor .btn { cursor: none; }
 }
 
 /* ---- Reveal baseline: visible by default; JS opts elements into animation ---- */

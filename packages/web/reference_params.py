@@ -11,6 +11,7 @@ parameters (not hand-fed prose).
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 
 from packages.web.palette import parse_color
 
@@ -60,6 +61,45 @@ def params_to_takeaways(params: ReferenceParams) -> list[str]:
     # Dedupe preserving order.
     seen: set[str] = set()
     return [x for x in out if not (x in seen or seen.add(x))]
+
+
+def palette_from_image(path: str | Path, k: int = 5) -> list[str]:
+    """Extract the k dominant colors from a reference image, most-frequent first.
+
+    Real reference *reading* (the v2 analyzer never ingested an image — it only
+    validated agent-typed JSON). Uses Pillow's median-cut quantizer; deterministic
+    and offline, so it runs without an API key.
+    """
+
+    from PIL import Image  # local import keeps Pillow optional for the rest of the lane
+
+    img = Image.open(path).convert("RGB")
+    img.thumbnail((200, 200))
+    quantized = img.quantize(colors=max(1, k), method=Image.Quantize.MEDIANCUT)
+    palette = quantized.getpalette() or []
+    by_freq = sorted(quantized.getcolors() or [], reverse=True)  # (count, index)
+    hexes: list[str] = []
+    for _, idx in by_freq:
+        r, g, b = palette[idx * 3 : idx * 3 + 3]
+        hexes.append(f"#{r:02x}{g:02x}{b:02x}")
+    return hexes[:k]
+
+
+# hero_structure keyword -> which composition variant fits. Variant index 1 is, by
+# convention, each archetype's image-led skeleton (leads with FullBleedMedia early);
+# index 0 is the clean editorial skeleton. So a reference's hero structure
+# measurably changes the LAYOUT, not just the palette (the Phase 5 exit criterion).
+def recommended_variant(params: ReferenceParams, n: int) -> int:
+    """Pick a composition variant from the reference's hero structure / grid."""
+
+    if n <= 1:
+        return 0
+    hero = (params.hero_structure or "").lower()
+    if any(t in hero for t in ("full", "bleed", "image", "cinematic", "photo", "media")):
+        return 1  # image-led variant (FullBleedMedia early)
+    if any(t in hero for t in ("split", "editorial", "text", "type")):
+        return 0  # clean editorial variant
+    return 2 % n if params.grid == "asymmetric" else 0
 
 
 def apply_to_spec(params: ReferenceParams, spec: dict) -> dict:
