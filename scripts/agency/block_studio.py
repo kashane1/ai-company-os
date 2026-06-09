@@ -292,6 +292,24 @@ def cmd_clear(target: str, block_id: str, by: str) -> int:
     return 0
 
 
+def cmd_metrics(target: str, *, tier: str) -> int:
+    """Report whether the library actually widened the search space + diversity."""
+
+    from packages.web.library_metrics import library_report
+
+    library = _load_library(target)
+    report = library_report(library, tier=tier)
+    out = Path(target) / "block-library" / "metrics.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(report, indent=2) + "\n")
+    print(f"search-space width ({tier}): {report['search_space_width']}  "
+          f"({report['blocks_cleared']}/{report['blocks_total']} blocks cleared)")
+    for slot, n in report["slot_coverage"].items():
+        print(f"  {slot:9} {n} option(s)")
+    print(f"→ {out}")
+    return 0
+
+
 def cmd_list(target: str) -> int:
     library = _load_library(target)
     if not library.entries:
@@ -331,6 +349,10 @@ def main(argv: list[str] | None = None) -> int:
     p_c.add_argument("--id", required=True)
     p_c.add_argument("--by", required=True)
 
+    p_m = sub.add_parser("metrics", help="report search-space width + diversity")
+    p_m.add_argument("--target", required=True)
+    p_m.add_argument("--tier", default="fleet", choices=("fleet", "premium"))
+
     p_l = sub.add_parser("list", help="list the library")
     p_l.add_argument("--target", required=True)
 
@@ -350,6 +372,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_figma_tokens(file_key=args.file, manual=args.manual, out=args.out)
     if args.command == "clear":
         return cmd_clear(args.target, args.id, args.by)
+    if args.command == "metrics":
+        return cmd_metrics(args.target, tier=args.tier)
     if args.command == "list":
         return cmd_list(args.target)
     return 2
