@@ -142,7 +142,7 @@ def _inline_image(path: str) -> dict:
     return {"inlineData": {"mimeType": "image/png", "data": data}}
 
 
-def _one_judgment(parts: list[dict], key: str) -> list[VisualScore]:
+def _call_gemini(parts: list[dict], key: str) -> str:
     payload = {"contents": [{"parts": parts}], "generationConfig": _GENERATION_CONFIG}
     request = Request(
         f"{_BASE}/{_MODEL}:generateContent?key={key}",
@@ -152,8 +152,21 @@ def _one_judgment(parts: list[dict], key: str) -> list[VisualScore]:
     )
     with urlopen(request, timeout=120, context=_ssl_context()) as response:
         result = json.loads(response.read())
-    text = result["candidates"][0]["content"]["parts"][0]["text"]
-    return parse_judge_response(text)
+    return result["candidates"][0]["content"]["parts"][0]["text"]
+
+
+def _one_judgment(parts: list[dict], key: str, *, attempts: int = 3) -> list[VisualScore]:
+    """Call + parse, retrying on a malformed response. The model occasionally
+    returns invalid JSON (an unescaped quote in a note); a retry re-samples valid
+    JSON rather than crashing the whole loop on one bad response."""
+
+    last: Exception | None = None
+    for _ in range(max(1, attempts)):
+        try:
+            return parse_judge_response(_call_gemini(parts, key))
+        except (ValueError, KeyError, json.JSONDecodeError) as exc:
+            last = exc
+    raise ValueError(f"judge returned unparseable JSON after {attempts} attempts: {last}")
 
 
 def gemini_vision_judge(
@@ -195,3 +208,83 @@ def gemini_vision_judge(
 
     runs = [_one_judgment(parts, key) for _ in range(max(1, samples))]
     return runs[0] if len(runs) == 1 else median_scores(runs)
+
+
+# --------------------------------------------------------------------------- #
+# Defect inspector — an adversarial QA lens, separate from the taste judge.
+# --------------------------------------------------------------------------- #
+_DEFECT_PROMPT = (
+    "You are a ruthless QA inspector for a website (desktop + mobile screenshots + scroll "
+    "frames). Your ONLY job is to find DEFECTS — ignore taste/beauty. Hunt for: "
+    "(1) text that is hard to read because it sits on top of a busy or low-contrast image "
+    "(legibility); (2) elements overlapping each other — text over text, image over text, "
+    "images colliding; (3) content cut off, clipped, or overflowing its container; "
+    "(4) a section that visually repeats another (same image or heading shown twice); "
+    "(5) large broken/empty gaps or clearly misaligned blocks; (6) images that look "
+    "stretched, distorted, or broken. Assume defects exist and look hard. "
+    "Return ONLY a JSON array (empty [] if truly none): "
+    '[{"type":"text_over_image|overlap|cutoff|duplicate|broken_layout|broken_image",'
+    '"severity":"high|medium|low","where":"short location","detail":"what is wrong"}]. '
+    "severity=high means a paying client would reject it (illegible text over a photo, clear "
+    "overlap, a repeated section, broken layout). Be strict about legibility over images."
+)
+
+
+def _extract_json_array(text: str) -> list | None:
+    """Best-effort parse of a JSON array from model output; None on failure."""
+
+    match = re.search(r"\[.*\]", text, re.DOTALL)
+    if not match:
+        return None
+    try:
+        data = json.loads(match.group(0))
+        return data if isinstance(data, list) else None
+    except (json.JSONDecodeError, ValueError):
+        return None
+
+
+def inspect_defects(
+    screenshots: dict[str, str],
+    *,
+    frames: Sequence[str] | None = None,
+    api_key: str | None = None,
+) -> list[dict]:
+    """Run the adversarial defect lens; return a list of defect dicts (fail-open).
+
+    Separate from the taste judge because a holistic aesthetic judge rationalizes
+    defects ("well-composed text overlay") instead of hunting them. This lens is
+    *only* asked to find defects, so it catches the legibility/overlap/broken-layout
+    issues the taste score misses. Never raises — a backstop, not a hard dependency.
+    """
+
+    key = api_key or get_api_key(GEMINI_API_KEY_ENV_VAR)
+    if not key:
+        return []
+    parts: list[dict] = [{"text": _DEFECT_PROMPT}]
+    for name in ("desktop", "mobile"):
+        if screenshots.get(name):
+            parts.append({"text": f"--- {name} ---"})
+            parts.append(_inline_image(screenshots[name]))
+    for i, frame in enumerate(frames or []):
+        parts.append({"text": f"--- scroll frame {i + 1}/{len(frames)} ---"})
+        parts.append(_inline_image(frame))
+    try:
+        rows = _extract_json_array(_call_gemini(parts, key)) or []
+    except Exception:  # fail-open: a backstop must never break the loop
+        return []
+    out: list[dict] = []
+    for r in rows:
+        if isinstance(r, dict) and r.get("type"):
+            out.append(
+                {
+                    "type": str(r.get("type", "")),
+                    "severity": str(r.get("severity", "medium")).lower(),
+                    "where": str(r.get("where", "")),
+                    "detail": str(r.get("detail", "")),
+                }
+            )
+    return out
+
+
+def high_severity_defects(defects: Sequence[dict]) -> list[dict]:
+    return [d for d in defects if d.get("severity") == "high"]

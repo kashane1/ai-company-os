@@ -13,9 +13,11 @@ const { image, alt = "", kicker, headline, cta, ctaHref = "#get-started" } = dat
       : <div style="position:absolute;inset:0;background:linear-gradient(135deg,var(--accent-strong),var(--canvas))"></div>}
   </div>
   <div class="container" style="position:relative;z-index:1;padding-block:clamp(5rem,12vw,11rem)">
-    {kicker && <p class="eyebrow">{kicker}</p>}
-    {headline && <h2 style="font-size:var(--step-5);max-width:20ch;margin-top:0.75rem">{headline}</h2>}
-    {cta && <a class="btn btn-primary elevated" href={ctaHref} style="margin-top:2rem">{cta}</a>}
+    <div class={image ? "media-copy" : ""}>
+      {kicker && <p class="eyebrow">{kicker}</p>}
+      {headline && <h2 style="font-size:var(--step-5);max-width:20ch;margin-top:0.75rem">{headline}</h2>}
+      {cta && <a class="btn btn-primary elevated" href={ctaHref} style="margin-top:2rem">{cta}</a>}
+    </div>
   </div>
 </section>
 

@@ -71,12 +71,35 @@ a { color: inherit; }
 .media.band { aspect-ratio: 21 / 9; }
 /* Optional duotone-toward-accent grade for a commissioned-set feel. */
 .media.graded img { filter: saturate(1.05) contrast(1.03); }
-/* A scrim so display type stays legible over a full-bleed image. */
+/* Copy set OVER a photo gets its own frosted wedge so ANY text color (incl. the
+   muted subhead) clears contrast — the scrim alone can't rescue light-grey text on
+   a light photo. Sized to content (a left text card), one per image block, so it
+   reads as editorial art direction, not glassmorphism-everywhere. */
+.media-copy {
+  width: fit-content;
+  max-width: 100%;
+  background: color-mix(in oklab, var(--canvas) 82%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius);
+  padding: clamp(1.5rem, 3vw, 2.75rem);
+  box-shadow: var(--shadow-2, 0 10px 30px rgba(0,0,0,0.2));
+}
+
+/* A scrim so display type stays legible over a full-bleed image. Text sits in the
+   LEFT column, so the scrim is strongest there (canvas-tinted, so it lightens the
+   photo for dark ink on a light theme and darkens it for light ink on a dark theme),
+   fading to transparent on the right where the photo reads clean. A soft bottom
+   vignette covers centered/bottom text. */
 .scrim::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--canvas) 20%, transparent) 0%,
-    color-mix(in oklab, var(--canvas) 72%, transparent) 100%);
+  background:
+    linear-gradient(90deg,
+      color-mix(in oklab, var(--canvas) 90%, transparent) 0%,
+      color-mix(in oklab, var(--canvas) 64%, transparent) 38%,
+      transparent 72%),
+    linear-gradient(180deg, transparent 45%,
+      color-mix(in oklab, var(--canvas) 55%, transparent) 100%);
 }
 
 /* ---- Signature treatments (gated by tokens) ---- */
