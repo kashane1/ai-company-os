@@ -1,0 +1,34 @@
+---
+// Bento gallery — a varied, non-uniform grid (not equal cards). Items can span
+// two columns/rows for visual rhythm. `data`: { heading, items[{title,body,span}] }.
+const { data } = Astro.props;
+const { heading, items = [] } = data;
+const spanStyle = (span) =>
+  span === "wide" ? "grid-column:span 2" : span === "tall" ? "grid-row:span 2" : "";
+---
+<section class="section">
+  <div class="container">
+    {heading && <h2 data-reveal style="font-size:var(--step-3);max-width:32rem">{heading}</h2>}
+    <div style="margin-top:2.5rem;display:grid;gap:1rem;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(9rem,auto)">
+      {items.map((it, i) => (
+        <article
+          data-reveal
+          style={`${spanStyle(it.span)};border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;background:color-mix(in oklab, var(--ink) 3%, transparent);display:flex;flex-direction:column;justify-content:space-between`}
+        >
+          <div style="font-family:var(--mono-font);color:var(--accent);font-size:var(--step-n1)">{String(i + 1).padStart(2, "0")}</div>
+          <div>
+            <h3 style="font-size:var(--step-1)">{it.title}</h3>
+            {it.body && <p class="muted" style="margin:0.5rem 0 0">{it.body}</p>}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  @media (max-width: 720px) {
+    section .container > div { grid-template-columns: 1fr !important; }
+    section article { grid-column: auto !important; grid-row: auto !important; }
+  }
+</style>

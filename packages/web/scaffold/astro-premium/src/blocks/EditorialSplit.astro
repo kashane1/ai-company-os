@@ -1,0 +1,34 @@
+---
+// Editorial split — asymmetric two-column: an oversized index numeral + display
+// heading on the left, body + proof points on the right. Breaks the centered
+// stack. `data`: { index, heading, body, points[] }.
+const { data } = Astro.props;
+const { index, heading, body, points = [] } = data;
+---
+<section id="approach" class="section" style="border-top:1px solid var(--border)">
+  <div class="container" style="display:grid;gap:clamp(1.5rem,4vw,4rem);grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start">
+    <div data-reveal data-parallax="0.12">
+      {index && <div style="font-family:var(--mono-font);color:var(--accent);font-size:var(--step-n1);letter-spacing:0.2em">/ {index}</div>}
+      <h2 style="margin-top:0.75rem;font-size:var(--step-3)">{heading}</h2>
+    </div>
+    <div data-reveal>
+      <p style="font-size:var(--step-1)">{body}</p>
+      {points.length > 0 && (
+        <ul style="list-style:none;padding:0;margin:1.5rem 0 0;display:grid;gap:0.75rem">
+          {points.map((p) => (
+            <li style="display:flex;gap:0.75rem;align-items:baseline">
+              <span aria-hidden="true" style="color:var(--accent)">—</span>
+              <span class="muted">{p}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  @media (max-width: 720px) {
+    section > .container { grid-template-columns: 1fr !important; }
+  }
+</style>
