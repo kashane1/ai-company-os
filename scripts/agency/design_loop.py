@@ -73,6 +73,7 @@ def cmd_run(
     max_seconds: float | None,
     no_improve_patience: int | None,
     imagery: bool = True,
+    min_overall: int | None = None,
 ) -> int:
     """The autonomous premium loop: build → shoot → judge → revise → repeat."""
 
@@ -145,6 +146,7 @@ def cmd_run(
         max_iters=max_iters,
         no_improve_patience=no_improve_patience,
         budget=budget,
+        min_overall=min_overall,
     )
 
     best = result.best
@@ -200,6 +202,12 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="skip concept-led imagery generation (build without photography)",
     )
+    p_run.add_argument(
+        "--min-overall",
+        type=int,
+        default=None,
+        help="raise the pass bar above 80 (e.g. 95) to keep revising past 'good enough'",
+    )
 
     p_judge = sub.add_parser("judge", help="score the build's screenshots with Gemini")
     p_judge.add_argument("--target", required=True)
@@ -217,6 +225,7 @@ def main(argv: list[str] | None = None) -> int:
             max_seconds=args.max_seconds,
             no_improve_patience=args.no_improve_patience,
             imagery=not args.no_imagery,
+            min_overall=args.min_overall,
         )
     if args.command == "judge":
         return cmd_judge(args.target, args.out)

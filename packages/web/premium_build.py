@@ -288,8 +288,13 @@ def run_premium_loop(
     max_iters: int = 4,
     no_improve_patience: int | None = 2,
     budget: BudgetGuard | None = None,
+    min_overall: int | None = None,
 ) -> LoopResult:
     """Drive build → capture → judge → revise to a pass (or halt-to-best).
+
+    ``min_overall`` raises the pass bar above the default 80 (e.g. 95) so the loop
+    keeps revising past a "good enough" build toward a higher score — surfacing the
+    best it reaches if it can't clear the higher bar.
 
     The build leg is :func:`build_premium_site` with :func:`apply_brief` applied on
     every revision (so the brief is real); ``capture`` and ``judge`` are injected
@@ -303,6 +308,8 @@ def run_premium_loop(
     target_dir = Path(target) if target is not None else project_dir.parent
     studio = target_dir / "design-studio"
     log_path = studio / "loop-log.jsonl"
+    best_dir = studio / "best"
+    best_seen = [-1]
 
     def build(index: int, brief: object | None) -> None:
         revised = packet if brief is None else apply_brief(packet, brief, attempt=index)
@@ -324,6 +331,13 @@ def run_premium_loop(
                 ],
             },
         )
+        # Snapshot the best build's artifacts. The loop overwrites project_dir each
+        # round, so without this the on-disk site would be the LAST iteration — which,
+        # when chasing a raised bar, is often worse than the best. Snapshot now (dist +
+        # screenshots are on disk from this round's build + capture).
+        if iteration.overall > best_seen[0]:
+            best_seen[0] = iteration.overall
+            _snapshot_best(project_dir / "dist", studio / "screenshots", best_dir)
 
     result = run_design_loop(
         build=build,
@@ -332,6 +346,7 @@ def run_premium_loop(
         max_iters=max_iters,
         no_improve_patience=no_improve_patience,
         budget=budget,
+        min_overall=min_overall,
         on_progress=on_progress,
     )
 
@@ -340,7 +355,31 @@ def run_premium_loop(
         (studio / "visual-review.json").write_text(
             json.dumps(result.best.report.to_dict(), indent=2) + "\n", encoding="utf-8"
         )
+        # Restore the best build to be the primary on-disk site (the last iteration
+        # may have been a worse exploration), so <project_dir>/dist == the best build.
+        if (best_dir / "dist").is_dir():
+            _restore_best(best_dir / "dist", project_dir / "dist")
     return result
+
+
+def _snapshot_best(dist_dir: Path, screenshots_dir: Path, best_dir: Path) -> None:
+    """Copy the current build's dist + screenshots into best_dir (replacing it)."""
+
+    if best_dir.exists():
+        shutil.rmtree(best_dir)
+    best_dir.mkdir(parents=True, exist_ok=True)
+    if dist_dir.is_dir():
+        shutil.copytree(dist_dir, best_dir / "dist")
+    if screenshots_dir.is_dir():
+        shutil.copytree(screenshots_dir, best_dir / "screenshots")
+
+
+def _restore_best(best_dist: Path, project_dist: Path) -> None:
+    """Make the best build's dist the primary on-disk dist."""
+
+    if project_dist.exists():
+        shutil.rmtree(project_dist)
+    shutil.copytree(best_dist, project_dist)
 
 
 def _append_log(path: Path, row: dict) -> None:

@@ -221,3 +221,20 @@ def test_loop_requires_at_least_one_iteration_scored() -> None:
     assert result.passed is True
     assert len(result.iterations) == 1
     assert result.best is not None and result.best.overall >= 80
+
+
+def test_min_overall_raises_the_bar_past_a_default_pass() -> None:
+    # STRONG scores 87 — clears the default 80 gate but not a 95 bar, so --min-overall
+    # makes the loop keep chasing a higher score instead of stopping at "good enough".
+    passes = run_design_loop(
+        build=lambda i, b: None, capture=lambda: SHOTS,
+        judge=lambda s: _scores(STRONG), max_iters=2,
+    )
+    assert passes.passed is True
+
+    chasing = run_design_loop(
+        build=lambda i, b: None, capture=lambda: SHOTS,
+        judge=lambda s: _scores(STRONG), max_iters=2, min_overall=95,
+    )
+    assert chasing.passed is False
+    assert chasing.best is not None and chasing.best.overall == 87
