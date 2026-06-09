@@ -34,16 +34,27 @@ for. The premium track adds real iteration cost on purpose.
    `python scripts/agency/design_studio.py packet --target <dir> --spec <spec.json|->`.
    Read the generated `<dir>/design-studio/packet.md` — that's your art-direction
    brief.
-3. **Build to the packet.** Execute the concept, archetype, palette, type,
-   imagery, and motion plans — via the bespoke playbook (path B) or the Astro
-   scaffold (path C). For weak/absent owned imagery, use the concept-led imagery
-   pipeline ([concept-led-imagery-playbook.md](../../../docs/products/better-business-web/concept-led-imagery-playbook.md)).
+3. **Build to the packet — via the design engine** (the premium surface):
+   - **Tokens:** `packages.web.design_system.synthesize_design_system(packet)` →
+     write `design-system.css` (role-based, AA-gated, zoom-safe).
+   - **Stack:** materialize `scaffold_site(target, ctx, template="astro-premium")`
+     (Astro + GSAP/Lenis/Three motion).
+   - **Layout:** `packages.web.blocks_composer.plan_composition(packet)` +
+     `render_index_astro(...)` → a varied, archetype-driven page (not a stacked template).
+   - **Imagery:** `scripts/agency/generate_imagery.py` (brief→generate→select); for a
+     real client ship, founder-clear generated assets (`clear`) or swap for licensed.
+   - **Reference:** optionally fold a Dribbble/Awwwards read in with
+     `scripts/agency/analyze_reference.py`.
+   - For the legacy hand-built path (B) or quick demos, the bespoke playbook still applies.
 4. **Screenshot.**
    `python scripts/agency/design_studio.py shoot --target <dir> --dist <distDir>`
    captures desktop (1440) + mobile (390) full-page PNGs.
-5. **Score against the rubric.** Open the two screenshots, grade all six
-   categories per [`visual_rubric.md`](../../../packages/web/design_reference/visual_rubric.md)
-   (grade down on doubt), write `<dir>/design-studio/scores.json`, then
+5. **Score against the rubric — with the independent judge.** Prefer
+   `python scripts/agency/design_loop.py judge --target <dir>` (Gemini vision scores
+   the screenshots — a different model family from the Claude builder, which
+   neutralizes self-preference) → writes `scores.json`. Or grade by hand per
+   [`visual_rubric.md`](../../../packages/web/design_reference/visual_rubric.md)
+   (grade down on doubt). Then
    `python scripts/agency/design_studio.py review --target <dir> --scores <dir>/design-studio/scores.json`.
 6. **Iterate until it passes.** A fail's notes are the revision brief — fix the
    build, re-shoot, re-score. Don't re-score the same pixels.

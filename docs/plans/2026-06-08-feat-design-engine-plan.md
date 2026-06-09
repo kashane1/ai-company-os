@@ -30,18 +30,27 @@ loop**.
 | 3 | **Top-tier generated imagery, used on production** | Reference-anchored + seeded Gemini pipeline. Provenance tracked + founder-cleared per asset (legal posture is logged, not silent). |
 | 4 | **Independent judge + founder sign-off** | Claude builds; a *different* model family (Gemini vision) scores screenshots; founder approves before any client ship. |
 
-## Build status (2026-06-08, branch `feat/design-engine-v2`)
+## Build status (2026-06-08, branch `feat/design-engine-v2`) — ALL PHASES SHIPPED
 
-- [x] **Phase 0 — premium stack** — `packages/web/scaffold/astro-premium/` builds,
-  passes the web gate, renders a synthesized dark+copper premium page. *(commit b02b7f3)*
-- [x] **Phase 1 — token synthesizer** — `packages/web/design_system.py`; role-based
-  DTCG tokens, AA-gated, zoom-safe scale, archetype↔genre bridge; `concept_statement`
-  is now a real packet field. *(commits 7828cb6, b6e31b8)*
-- [ ] **Phase 2 — motion + WebGL** (next; skeleton motion island in place)
-- [ ] **Phase 3 — block library + composer**
-- [ ] **Phase 4 — imagery pipeline** (provenance + clearance)
-- [ ] **Phase 5 — reference analyzer**
-- [ ] **Phase 6 — quality loop + Gemini judge + calibration**
+- [x] **Phase 0 — premium stack** — `scaffold/astro-premium/`; builds, web gate
+  passes, renders a synthesized dark+copper premium page.
+- [x] **Phase 1 — token synthesizer** — `design_system.py`; role-based DTCG tokens,
+  AA-gated, zoom-safe scale, archetype↔genre bridge; `concept_statement` is a real field.
+- [x] **Phase 2 — motion + WebGL** — GSAP/Lenis choreography + Three.js shader
+  aurora tinted by `--accent`; lazy-split, reduced-motion safe; verified live.
+- [x] **Phase 3 — block library + composer** — 5 art-directed Astro blocks +
+  `blocks_composer.py`; varied per-archetype layout, verified end-to-end.
+- [x] **Phase 4 — imagery pipeline** — `imagery.py` + `generate_imagery.py`; cohesive
+  briefs, provenance + founder clearance gate wired into `premium_ready`.
+- [x] **Phase 5 — reference analyzer** — `reference_params.py` + `analyze_reference.py`;
+  structured vision read folded into a build spec.
+- [x] **Phase 6 — quality loop + Gemini judge** — `design_loop.py` (builder≠judge,
+  gate-not-gradient, calibration, sign-off) + `gemini_judge.py` + CLI.
+
+74 unit tests green; the full stack verified with a real `npm` build, web-gate
+pass, and live WebGL screenshot. Remaining before a real client build: live Gemini
+runs (imagery generation + the judge) need `GEMINI_API_KEY`; per-build copy is still
+the build agent's job (the composer provides serviceable placeholders).
 
 ## What already exists to build on
 
