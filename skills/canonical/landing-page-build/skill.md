@@ -13,6 +13,13 @@ can be validated by the web gate and shipped by the deploy lane.
 - You need a customer-facing page to run a **web-first validation experiment**
   (demand test) before committing to a full build.
 
+> **Premium track (optional, select builds only):** this skill ships a solid,
+> validated page — the right floor for cold-outreach demos. For a build you intend
+> to *elevate* to five-figure quality (art direction, concept-led imagery,
+> screenshot-scored visual review), run the `design-studio` skill instead/around
+> this one. Don't put every cold demo through it — it adds real iteration cost on
+> purpose.
+
 ## Inputs
 
 - Product/opportunity context: name, audience, the problem, the promise, proof

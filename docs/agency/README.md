@@ -13,6 +13,7 @@ the stage doc you need.
 | Stage | What happens | Lead doc | Key code |
 |---|---|---|---|
 | 1–4 Prospect & qualify | discover businesses, enrich contacts, verify "no real site" | [waas-prospecting-lane.md](../waas-prospecting-lane.md) | `scripts/agency/gather_place.py`, `packages/agency/prospect_site.py` |
+| Design Studio | convert evidence + references into a premium art-direction packet, then review screenshots for visual quality | [agency/design-studio-lane.md](design-studio-lane.md) | `packages/web/design_studio.py` |
 | 5 Demo build | hand-build a bespoke mockup per business → `dist-v2/` | [demo-site-build-playbook.md](../demo-site-build-playbook.md) · [demo-site-gather-automation.md](../demo-site-gather-automation.md) | `state/prospects/sites/<place_id>/`, `scripts/agency/build_prospect_site.py` |
 | — Portfolio | curate anonymized demos onto the BBW landing page | (this doc, below) | `scripts/agency/build_portfolio_demos.py`, `products/better-business-web/` |
 | Outreach | channel × genre templates, send, track replies | [waas-prospecting-lane.md](../waas-prospecting-lane.md) (stages 6–8) | `packages/agency/outreach.py`, `scripts/agency/build_outreach.py` |
@@ -87,7 +88,7 @@ both the bespoke playbook (path B, as fallback guidance) and the Astro scaffold 
   list** lives in [packages/agency/README.md](../../packages/agency/README.md)
   (kept in sync with the source); start there rather than duplicating it here.
 - **`packages/web/`** — site machinery: `scaffold`, `validation`, `build`, `deploy`
-  (incl. custom-domain attach + SSL), `ux_audit`, `palette`, `stripe_monetization`
+  (incl. custom-domain attach + SSL), `design_studio`, `ux_audit`, `palette`, `stripe_monetization`
   + `design_reference/` + `scaffold/`. See [packages/web/README.md](../../packages/web/README.md).
 - **`scripts/agency/`** — runnable entrypoints, e.g. `gather_place`,
   `build_prospect_site`, `build_portfolio_demos`, `client_intake`, `launch_client`,

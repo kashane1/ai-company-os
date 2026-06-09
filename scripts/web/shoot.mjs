@@ -2,7 +2,10 @@
 // Screenshot any built static site → PNG files. Reusable across every demo /
 // prospect / landing site we build.
 //
-//   node scripts/web/shoot.mjs <distDir> <outDir> <route:name> [route:name ...]
+//   node scripts/web/shoot.mjs <distDir> <outDir> <route:name> [route:name ...] [--width <px>]
+//
+// --width sets the capture viewport width (default 1440 desktop; pass 390 for a
+// true mobile full-page shot). Capture stays full-page top-to-bottom.
 //
 // Example (from repo root, after `astro build`):
 //   node scripts/web/shoot.mjs \
@@ -34,9 +37,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 
-const [distDir, outDir, ...routeArgs] = process.argv.slice(2);
-if (!distDir || !outDir || routeArgs.length === 0) {
-  console.error("usage: node shoot.mjs <distDir> <outDir> <route:name> [route:name ...]");
+// Pull `--width <px>` / `--width=<px>` out of argv; everything else is positional.
+const rawArgs = process.argv.slice(2);
+let widthArg = 1440;
+const positional = [];
+for (let i = 0; i < rawArgs.length; i++) {
+  const a = rawArgs[i];
+  if (a === "--width") { widthArg = parseInt(rawArgs[++i], 10); continue; }
+  if (a.startsWith("--width=")) { widthArg = parseInt(a.slice(8), 10); continue; }
+  positional.push(a);
+}
+const [distDir, outDir, ...routeArgs] = positional;
+if (!distDir || !outDir || routeArgs.length === 0 || !Number.isFinite(widthArg)) {
+  console.error("usage: node shoot.mjs <distDir> <outDir> <route:name> [route:name ...] [--width <px>]");
   process.exit(1);
 }
 
@@ -75,7 +88,7 @@ const base = `http://localhost:${port}`;
 
 fs.mkdirSync(outDir, { recursive: true });
 
-const VW = 1440, VH = 900, MAX_PX = 16000;
+const VW = widthArg, VH = 900, MAX_PX = 16000;
 const browser = await chromium.launch();
 
 for (const arg of routeArgs) {

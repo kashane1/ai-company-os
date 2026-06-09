@@ -845,6 +845,24 @@ skills:
       claude: adapters/claude/landing-page-build.md
     project_skill: .claude/skills/landing-page-build.md
 
+  # Premium design track (opt-in, select builds only): art-direction packet →
+  # build → desktop/mobile screenshots → visual rubric review. Sits beside the
+  # web gate; rejects valid-but-generic pages. Entry: scripts/agency/design_studio.py
+  # over packages/web/design_studio.py.
+  - id: design-studio
+    name: Design Studio
+    path: canonical/design-studio/skill.md
+    owner_agent: web
+    target_runtimes: [claude, codex]
+    stage: active
+    kind: agentic
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/design-studio.md
+    project_skill: .claude/skills/design-studio.md
+
   # Section F — quality bar for a built web product: responsive / a11y /
   # performance / SEO scoring beyond the fail-closed F2 gate.
   - id: web-ux-audit
