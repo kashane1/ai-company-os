@@ -57,6 +57,12 @@ doctor:
 # Read-only doc-path drift check across the docs an agent reads first.
 audit:
 	./scripts/ci/check_doc_paths.sh
+	python3 scripts/docs/check_plans_index.py
+
+# Verify docs/plans/INDEX.md lists exactly the live plan working set
+# (every live plan has a row; no row points at a missing/archived file).
+plans-index-check:
+	python3 scripts/docs/check_plans_index.py
 
 # Token-efficiency maintenance. Move finished plans (status: completed/shipped/
 # superseded/...) into docs/plans/archive/ so the working set stays small.

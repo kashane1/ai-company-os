@@ -125,5 +125,8 @@ jobs:
           python3 scripts/docs/gen_doc_index.py --check --recursive \
             docs/solutions docs/agency docs/research
 
+      - name: Plans index matches the live working set
+        run: python3 scripts/docs/check_plans_index.py
+
       - name: Project-skill pointers match their adapters
         run: python3 scripts/skills/gen_project_skills.py --check

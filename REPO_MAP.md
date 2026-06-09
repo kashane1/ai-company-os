@@ -116,7 +116,7 @@ If multiple trigger phrases match a user message, ASK rather than guess
 | iOS | [apps/worker-ios/](apps/worker-ios/) | [docs/ios-lane.md](docs/ios-lane.md) |
 | App Store | [apps/worker-appstore/](apps/worker-appstore/) | [docs/appstore-lane.md](docs/appstore-lane.md) |
 | GTM | [apps/worker-gtm/](apps/worker-gtm/) | (per-skill docs under `skills/canonical/`) |
-| Agency / Web (WaaS) | [packages/agency/](packages/agency/), [scripts/agency/](scripts/agency/) | **[docs/agency/README.md](docs/agency/README.md)** — lane map: prospects, demo sites, client sites, the three build paths |
+| Agency / Web (WaaS) | [packages/agency/](packages/agency/), [packages/web/](packages/web/), [scripts/agency/](scripts/agency/) | **[docs/agency/README.md](docs/agency/README.md)** — lane map: prospects, demo sites, client sites, the build paths · premium design engine (autonomous build→judge→revise): [docs/agency/design-studio-lane.md](docs/agency/design-studio-lane.md) |
 | Web build | [apps/worker-web/](apps/worker-web/) | [docs/agency/README.md](docs/agency/README.md) (lane map) · [docs/founder/operator-guide.md](docs/founder/operator-guide.md) |
 | Web deploy | [apps/worker-webdeploy/](apps/worker-webdeploy/) | [docs/agency/README.md](docs/agency/README.md) · `packages/policies/deploy_readiness.py` |
 | Skill evolution | [apps/worker-skill-evolution/](apps/worker-skill-evolution/) | [docs/runbooks/skill-evolution-revert.md](docs/runbooks/skill-evolution-revert.md) |

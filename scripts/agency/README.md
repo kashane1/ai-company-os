@@ -23,6 +23,18 @@ don't bypass it.
 | `build_outreach.py` | Generate per-prospect outreach copy for every lead with a live preview site. |
 | `gen_gunstore_images.py` | Generate imagery for the Blue Ridge Gun & Ammo portfolio demo via Gemini. |
 
+## Premium design engine (opt-in, design engine v3)
+
+The autonomous **build → judge → revise** loop for select premium builds. Core
+machinery lives in [`packages/web/`](../../packages/web/README.md)
+(`design_loop.py`, `premium_build.py`, `gemini_judge.py`); these CLIs are the
+operator-facing entrypoints. Contract + gates: [docs/agency/design-studio-lane.md](../../docs/agency/design-studio-lane.md).
+
+| Script | Purpose |
+|---|---|
+| `design_loop.py` | Quality-loop CLI: `run` (build→judge→revise until the visual bar is met), `judge` (score screenshots with Gemini), `calibrate` (halt on judge drift). |
+| `design_studio.py` | Premium-track plumbing for one chosen build: `packet` (art-direction packet), `shoot` (desktop/mobile screenshots), `review` (ingest rubric scores → visual-review report), `status`. |
+
 ## Portfolio & the BBW agency site
 
 | Script | Purpose |

@@ -68,9 +68,7 @@ follow-ups" below for the source-signal mapping used.
 | [2026-04-12-feat-catchbook-competitive-gap-plan.md](2026-04-12-feat-catchbook-competitive-gap-plan.md) | 2026-04-12 | feat-catchbook-competitive-gap | open | product-scoped (catchbook) |
 | [2026-04-12-feat-content-pipeline-skills-plan.md](2026-04-12-feat-content-pipeline-skills-plan.md) | 2026-04-12 | feat-content-pipeline-skills | open | platform / skills |
 | [2026-04-13-feat-gtm-multi-platform-content-engine-plan.md](2026-04-13-feat-gtm-multi-platform-content-engine-plan.md) | 2026-04-13 | feat-gtm-multi-platform-content-engine | open | platform / GTM |
-| [2026-04-13-refactor-catchbook-optional-waterbody-plan.md](2026-04-13-refactor-catchbook-optional-waterbody-plan.md) | 2026-04-13 | refactor-catchbook-optional-waterbody | done | product-scoped (catchbook) — frontmatter: completed |
 | [2026-04-14-feat-hermes-inspired-platform-upgrade-plan.md](2026-04-14-feat-hermes-inspired-platform-upgrade-plan.md) | 2026-04-14 | feat-hermes-inspired-platform-upgrade | open | platform |
-| [2026-04-15-feat-ecc-gap-recommendations-plan.md](2026-04-15-feat-ecc-gap-recommendations-plan.md) | 2026-04-15 | feat-ecc-gap-recommendations | done | platform / skills — frontmatter: completed |
 | [2026-04-15-macos-keychain-approval-signing-migration.md](2026-04-15-macos-keychain-approval-signing-migration.md) | 2026-04-15 | macos-keychain-approval-signing-migration | open | platform / approvals — no frontmatter; body status: proposed |
 | [2026-04-20-001-feat-catchbook-app-store-submission-automation-plan.md](2026-04-20-001-feat-catchbook-app-store-submission-automation-plan.md) | 2026-04-20 | feat-catchbook-app-store-submission-automation | open | product-scoped (catchbook) |
 | [2026-04-27-001-feat-after-plans-context-model-refactor-plan.md](2026-04-27-001-feat-after-plans-context-model-refactor-plan.md) | 2026-04-27 | feat-after-plans-context-model-refactor | open | product-scoped (after-plans) |
@@ -81,7 +79,6 @@ follow-ups" below for the source-signal mapping used.
 | [2026-04-28-001-feat-life-clock-live-healthkit-plan.md](2026-04-28-001-feat-life-clock-live-healthkit-plan.md) | 2026-04-28 | feat-life-clock-live-healthkit | open | product-scoped (life-clock) |
 | [2026-04-28-002-feat-life-clock-persistence-plan.md](2026-04-28-002-feat-life-clock-persistence-plan.md) | 2026-04-28 | feat-life-clock-persistence | open | product-scoped (life-clock) |
 | [2026-04-28-003-feat-life-clock-storekit-paywall-plan.md](2026-04-28-003-feat-life-clock-storekit-paywall-plan.md) | 2026-04-28 | feat-life-clock-storekit-paywall | open | product-scoped (life-clock) |
-| [2026-04-28-feat-app-name-discovery-skill-plan.md](2026-04-28-feat-app-name-discovery-skill-plan.md) | 2026-04-28 | feat-app-name-discovery-skill | done | platform / skills — frontmatter: completed |
 | [2026-04-29-001-feat-life-clock-palette-picker-plan.md](2026-04-29-001-feat-life-clock-palette-picker-plan.md) | 2026-04-29 | feat-life-clock-palette-picker | open | product-scoped (life-clock) |
 | [2026-04-29-fix-after-plans-dark-mode-and-create-plan-ux-plan.md](2026-04-29-fix-after-plans-dark-mode-and-create-plan-ux-plan.md) | 2026-04-29 | fix-after-plans-dark-mode-and-create-plan-ux | open | product-scoped (after-plans) |
 | [2026-04-30-001-feat-life-clock-daily-reminder-plan.md](2026-04-30-001-feat-life-clock-daily-reminder-plan.md) | 2026-04-30 | feat-life-clock-daily-reminder | open | product-scoped (life-clock) |
@@ -90,9 +87,7 @@ follow-ups" below for the source-signal mapping used.
 | [2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md](2026-05-01-feat-life-clock-reveal-onboarding-anchor-dial-plan.md) | 2026-05-01 | feat-life-clock-reveal-onboarding-anchor-dial | open | product-scoped (life-clock) |
 | [2026-05-01-refactor-history-feature-hardening-pass-plan.md](2026-05-01-refactor-history-feature-hardening-pass-plan.md) | 2026-05-01 | refactor-history-feature-hardening-pass | open | product-scoped (likely life-clock) |
 | [2026-05-01-refactor-life-clock-tab-consolidation-plan.md](2026-05-01-refactor-life-clock-tab-consolidation-plan.md) | 2026-05-01 | refactor-life-clock-tab-consolidation | open | product-scoped (life-clock) — frontmatter: in-review |
-| [2026-05-02-feat-life-clock-diet-rhythm-and-copy-pass-plan.md](2026-05-02-feat-life-clock-diet-rhythm-and-copy-pass-plan.md) | 2026-05-02 | feat-life-clock-diet-rhythm-and-copy-pass | done | product-scoped (life-clock) — frontmatter: shipped |
 | [2026-05-02-feat-life-clock-mascot-animated-primitive-plan.md](2026-05-02-feat-life-clock-mascot-animated-primitive-plan.md) | 2026-05-02 | feat-life-clock-mascot-animated-primitive | open | product-scoped (life-clock) |
-| [2026-05-03-feat-life-clock-onboarding-polish-pass-plan.md](2026-05-03-feat-life-clock-onboarding-polish-pass-plan.md) | 2026-05-03 | feat-life-clock-onboarding-polish-pass | done | product-scoped (life-clock) — frontmatter: completed |
 | [2026-05-08-feat-quest-pool-affinity-engine-plan.md](2026-05-08-feat-quest-pool-affinity-engine-plan.md) | 2026-05-08 | feat-quest-pool-affinity-engine | open | product-scoped (likely life-clock) |
 | [2026-05-08-feat-quest-pool-phase-3-engines-plan.md](2026-05-08-feat-quest-pool-phase-3-engines-plan.md) | 2026-05-08 | feat-quest-pool-phase-3-engines | open | product-scoped |
 | [2026-05-08-feat-quest-pool-phase-3cd-wiring-plan.md](2026-05-08-feat-quest-pool-phase-3cd-wiring-plan.md) | 2026-05-08 | feat-quest-pool-phase-3cd-wiring | open | product-scoped |
@@ -100,11 +95,25 @@ follow-ups" below for the source-signal mapping used.
 | [2026-05-08-feat-quest-pool-phase-4-and-5-prompt.md](2026-05-08-feat-quest-pool-phase-4-and-5-prompt.md) | 2026-05-08 | feat-quest-pool-phase-4-and-5-prompt | open | not a plan — paired prompt artifact (no frontmatter) |
 | [2026-05-08-feat-quest-pool-phase-4a-activity-plan.md](2026-05-08-feat-quest-pool-phase-4a-activity-plan.md) | 2026-05-08 | feat-quest-pool-phase-4a-activity | open | product-scoped |
 | [2026-05-09-feat-life-clock-quest-completion-payoff-plan.md](2026-05-09-feat-life-clock-quest-completion-payoff-plan.md) | 2026-05-09 | feat-life-clock-quest-completion-payoff | open | product-scoped (life-clock) — no frontmatter; body status: implementation-launched |
-| [2026-05-11-feat-future-tab-history-summary-plan.md](2026-05-11-feat-future-tab-history-summary-plan.md) | 2026-05-11 | feat-future-tab-history-summary | done | product-scoped — frontmatter: completed |
 | [2026-05-12-feat-premium-and-pro-value-audit-skills-plan.md](2026-05-12-feat-premium-and-pro-value-audit-skills-plan.md) | 2026-05-12 | feat-premium-and-pro-value-audit-skills | open | platform / skills |
 | [2026-06-01-feat-local-smb-agency-layer-plan.md](2026-06-01-feat-local-smb-agency-layer-plan.md) | 2026-06-01 | agency-layer-v1 | open | platform / web / prospecting — related_brainstorm: docs/brainstorms/2026-06-01-agency-layer-brainstorm.md |
+| [2026-06-03-feat-agency-retainer-ops-phases-6-8-plan.md](2026-06-03-feat-agency-retainer-ops-phases-6-8-plan.md) | 2026-06-03 | feat-agency-retainer-ops-phases-6-8 | open | platform / web / agency — frontmatter: active |
+| [2026-06-04-feat-agency-transaction-loop-package-c-fulfillment-plan.md](2026-06-04-feat-agency-transaction-loop-package-c-fulfillment-plan.md) | 2026-06-04 | feat-agency-transaction-loop-package-c-fulfillment | open | platform / web / agency — frontmatter: planned |
+| [2026-06-04-feat-demo-engine-design-intelligence-and-archetypes-plan.md](2026-06-04-feat-demo-engine-design-intelligence-and-archetypes-plan.md) | 2026-06-04 | feat-demo-engine-design-intelligence-and-archetypes | open | platform / web / design — frontmatter: planned |
+| [2026-06-05-feat-agency-packages-go-live-readiness-plan.md](2026-06-05-feat-agency-packages-go-live-readiness-plan.md) | 2026-06-05 | feat-agency-packages-go-live-readiness | open | platform / web / agency — frontmatter: draft |
+| [2026-06-05-feat-bbw-copy-voice-system-plan.md](2026-06-05-feat-bbw-copy-voice-system-plan.md) | 2026-06-05 | feat-bbw-copy-voice-system | open | platform / web / agency — frontmatter: plan |
+| [2026-06-06-feat-managed-booking-on-platforms-plan.md](2026-06-06-feat-managed-booking-on-platforms-plan.md) | 2026-06-06 | feat-managed-booking-on-platforms | open | platform / web / agency — frontmatter: draft |
+| [2026-06-07-feat-agency-domain-onboarding-automation-plan.md](2026-06-07-feat-agency-domain-onboarding-automation-plan.md) | 2026-06-07 | feat-agency-domain-onboarding-automation | open | platform / web / agency — frontmatter: in-progress |
+| [2026-06-08-feat-design-engine-plan.md](2026-06-08-feat-design-engine-plan.md) | 2026-06-08 | feat-design-engine | open | platform / web / design — no frontmatter; design engine v2 |
+| [2026-06-08-feat-design-engine-v3-premium-loop-plan.md](2026-06-08-feat-design-engine-v3-premium-loop-plan.md) | 2026-06-08 | feat-design-engine-v3-premium-loop | open | platform / web / design — no frontmatter; v3 autonomous loop |
+| [2026-06-08-feat-design-studio-integration-plan.md](2026-06-08-feat-design-studio-integration-plan.md) | 2026-06-08 | feat-design-studio-integration | open | platform / web / design — body status: proposed |
+| [2026-06-08-feat-web-design-studio-lane-plan.md](2026-06-08-feat-web-design-studio-lane-plan.md) | 2026-06-08 | feat-web-design-studio-lane | open | platform / web / design — no frontmatter |
+| [2026-06-09-feat-design-engine-external-authoring-pipeline-plan.md](2026-06-09-feat-design-engine-external-authoring-pipeline-plan.md) | 2026-06-09 | design-engine-external-authoring | open | platform / web / design — frontmatter: open |
 
-Totals: 39 plan files — **33 open**, **6 done**, **0 abandoned**.
+Totals: **45 open** plans (the live working set). Finished plans
+(`done` / `abandoned`) are moved out of this directory into
+[archive/](archive/INDEX.md), so this table lists open work only. This
+index is verified by `make plans-index-check` (drift gate; see below).
 
 Statuses were derived from each plan's YAML frontmatter `status:` field
 (or, for plans without frontmatter, an explicit body status line). The
