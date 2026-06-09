@@ -152,6 +152,35 @@ def test_premium_ready_guard_blocks_unreviewed_premium_build(tmp_path) -> None:
     assert premium_ready(tmp_path) is True
 
 
+def test_premium_ready_blocks_on_uncleared_generated_imagery(tmp_path) -> None:
+    from packages.web.imagery import ImageAsset, ImageryManifest
+
+    # A passing premium build...
+    write_packet(tmp_path, request_from_spec(SPEC))
+    shots = studio_dir(tmp_path) / "screenshots"
+    shots.mkdir(parents=True, exist_ok=True)
+    (shots / "desktop.png").write_bytes(b"x")
+    (shots / "mobile.png").write_bytes(b"x")
+    run_review(tmp_path, scores_from_payload(STRONG_SCORES))
+    assert premium_ready(tmp_path) is True
+
+    # ...is blocked once it carries an uncleared generated image.
+    manifest = studio_dir(tmp_path) / "imagery" / "manifest.json"
+    ImageryManifest(
+        assets=[ImageAsset(id="hero", role="hero", path="a", provenance="generated")]
+    ).save(manifest)
+    assert premium_ready(tmp_path) is False
+
+    # ...and ready again once the founder clears it.
+    ImageryManifest(
+        assets=[
+            ImageAsset(id="hero", role="hero", path="a", provenance="generated",
+                       production_clearance=True, cleared_by="founder")
+        ]
+    ).save(manifest)
+    assert premium_ready(tmp_path) is True
+
+
 def test_shoot_commands_cover_desktop_and_mobile_widths(tmp_path) -> None:
     commands = shoot_commands("/some/dist", tmp_path)
 

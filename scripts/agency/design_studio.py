@@ -298,10 +298,15 @@ def premium_ready(target: str | Path) -> bool:
     demo — is unaffected and always returns True.
     """
 
+    from packages.web.imagery import imagery_cleared
+
     status = studio_status(target)
     if not status["has_packet"]:
         return True
-    return bool(status["passed"])
+    if not status["passed"]:
+        return False
+    # A premium build also can't ship with uncleared generated imagery on it.
+    return imagery_cleared(studio_dir(target) / "imagery" / "manifest.json")
 
 
 # --------------------------------------------------------------------------- #
