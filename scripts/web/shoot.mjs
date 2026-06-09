@@ -44,6 +44,7 @@ import { chromium } from "playwright";
 const rawArgs = process.argv.slice(2);
 let widthArg = 1440;
 let framesArg = 0;
+let geometryArg = "";  // when set, write a DOM geometry snapshot (the composition gate)
 const positional = [];
 for (let i = 0; i < rawArgs.length; i++) {
   const a = rawArgs[i];
@@ -51,6 +52,8 @@ for (let i = 0; i < rawArgs.length; i++) {
   if (a.startsWith("--width=")) { widthArg = parseInt(a.slice(8), 10); continue; }
   if (a === "--frames") { framesArg = parseInt(rawArgs[++i], 10); continue; }
   if (a.startsWith("--frames=")) { framesArg = parseInt(a.slice(9), 10); continue; }
+  if (a === "--geometry") { geometryArg = rawArgs[++i]; continue; }
+  if (a.startsWith("--geometry=")) { geometryArg = a.slice(11); continue; }
   positional.push(a);
 }
 const [distDir, outDir, ...routeArgs] = positional;
@@ -187,6 +190,53 @@ for (const arg of routeArgs) {
       console.log(`  ↳ frame ${k + 1}/${framesArg} → ${frameFile}`);
     }
     await mctx.close();
+  }
+
+  // Geometry snapshot for the deterministic composition gate — measured at a SETTLED,
+  // reduced-motion layout (no scrub transforms), so element rects reflect the true
+  // composition. Written once (first route).
+  if (geometryArg) {
+    const gctx = await browser.newContext({ viewport: { width: VW, height: VH }, reducedMotion: "reduce", deviceScaleFactor: 1 });
+    const gpage = await gctx.newPage();
+    await gpage.goto(base + route, { waitUntil: "load" });
+    await gpage.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
+    await gpage.waitForTimeout(500);
+    await gpage.evaluate(async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const h = () => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+      for (let y = 0; y < h(); y += 600) { window.scrollTo(0, y); await sleep(90); }
+      window.scrollTo(0, 0); await sleep(200);
+    });
+    const geo = await gpage.evaluate(() => {
+      const abs = (el) => {
+        const r = el.getBoundingClientRect();
+        return { top: Math.round(r.top + scrollY), bottom: Math.round(r.bottom + scrollY),
+                 left: Math.round(r.left), right: Math.round(r.right),
+                 w: Math.round(r.width), h: Math.round(r.height) };
+      };
+      const secs = [...document.querySelectorAll("main > section, body > section, section")];
+      const sections = secs.map((s, i) => {
+        const sr = abs(s);
+        const media = [...s.querySelectorAll("img, canvas, video")].map(abs).filter((m) => m.w > 4 && m.h > 4);
+        // A "full-bleed" section: a single media element covers most of it.
+        const fullBleed = media.some((m) => m.w >= sr.w * 0.85 && m.h >= sr.h * 0.6);
+        const texts = [...s.querySelectorAll("h1, h2, h3, p, li, .btn")]
+          .filter((e) => (e.textContent || "").trim().length > 1)
+          .map((e) => ({ tag: e.tagName, ...abs(e) }));
+        return { i, cls: s.className, top: sr.top, bottom: sr.bottom, left: sr.left, right: sr.right, w: sr.w, h: sr.h, fullBleed, imgs: media, texts };
+      });
+      const de = document.documentElement;
+      return {
+        viewportWidth: window.innerWidth,
+        scrollWidth: Math.max(de.scrollWidth, document.body.scrollWidth),
+        clientWidth: de.clientWidth,
+        hasHorizontalScroll: Math.max(de.scrollWidth, document.body.scrollWidth) > de.clientWidth + 2,
+        sections,
+      };
+    });
+    fs.writeFileSync(geometryArg, JSON.stringify(geo, null, 2));
+    console.log(`  ⊞ geometry → ${geometryArg} (${geo.sections.length} sections)`);
+    await gctx.close();
   }
 }
 
