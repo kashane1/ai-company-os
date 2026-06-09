@@ -140,13 +140,16 @@ def gemini_vision_judge(
     screenshots: dict[str, str],
     *,
     frames: Sequence[str] | None = None,
+    reference: str | None = None,
     samples: int = 1,
     api_key: str | None = None,
 ) -> list[VisualScore]:
     """Score the build with Gemini vision (a non-Claude judge).
 
     ``screenshots`` are the desktop/mobile stills; ``frames`` are optional ordered
-    scroll-frame PNGs (motion enabled) so the judge can see scroll choreography.
+    scroll-frame PNGs (motion enabled) so the judge can see scroll choreography;
+    ``reference`` is an optional exemplar image (an Awwwards/Dribbble shot) the build
+    is converging toward — given for *craft-level calibration*, not to be copied.
     ``samples`` > 1 calls the model N times and returns the per-category median —
     use it on a real gate to damp variance.
     """
@@ -158,6 +161,10 @@ def gemini_vision_judge(
             "key (a different model family from the Claude builder)."
         )
     parts: list[dict] = [{"text": _prompt()}]
+    if reference:
+        parts.append({"text": "--- reference exemplar (calibrate craft level to THIS bar; "
+                              "do NOT reward copying it) ---"})
+        parts.append(_inline_image(reference))
     for name in ("desktop", "mobile"):
         if screenshots.get(name):
             parts.append({"text": f"--- {name} ---"})

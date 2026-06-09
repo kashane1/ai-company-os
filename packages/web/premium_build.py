@@ -177,6 +177,7 @@ def build_premium_site(
     runner: CommandRunner | None = None,
     run_build: bool = True,
     template: str = PREMIUM_TEMPLATE,
+    variant: int | None = None,
 ) -> BuildResult:
     """Materialize + build a premium site from a packet.
 
@@ -204,7 +205,7 @@ def build_premium_site(
         design.to_css(), encoding="utf-8"
     )
     images = _stage_images(project_dir.parent, project_dir)
-    composition = plan_composition(packet, images=images)
+    composition = plan_composition(packet, images=images, variant=variant)
     (project_dir / "src" / "pages" / "index.astro").write_text(
         render_index_astro(
             composition,

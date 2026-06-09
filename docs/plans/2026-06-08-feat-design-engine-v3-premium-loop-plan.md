@@ -374,6 +374,21 @@ revises copy autonomously; AI-tell count on output drops to 0–1.
 
 ### Phase 5 — Reference-anchored convergence + scale
 **Goal:** the loop converges *toward a chosen exemplar*, then fans out.
+
+> **Build status (2026-06-08) — SHIPPED & verified (1355 tests green).** Reference
+> reading is real and it changes layout, not just color: `reference_params.py` gains
+> `palette_from_image` (offline k-means via Pillow — the v2 analyzer never ingested
+> an image) and `recommended_variant` (a reference's hero structure → a composition
+> variant, so a full-bleed reference pulls the `FullBleedMedia` block into the
+> skeleton — the exit criterion); `analyze_reference.py ingest --image` extracts the
+> palette; `build_premium_site`/`plan_composition` take a `variant`; the Gemini judge
+> takes a `reference` exemplar anchor (calibrate craft, don't copy). Scale: new
+> `packages/web/niches.py` (`niche_to_spec` — med spa / boutique fitness / fine
+> dining / law / remodeling) + `make premium NICHE="med spa"` is the one-command
+> front door (needs npm + `GEMINI_API_KEY` for the live loop). **Deferred:** live
+> Gemini vision structural read of a reference (offline palette ships now); proving a
+> flagship end-to-end is the founder's first live `make premium` run.
+
 **Deliverables:** real reference ingestion (`--image`/`--url` → vision + k-means
 palette); a structured art-direction packet with controlled vocabularies
 (`grid_system`, `hero_archetype`, `motion_signature{easing,stagger,parallax,
