@@ -30,6 +30,19 @@ loop**.
 | 3 | **Top-tier generated imagery, used on production** | Reference-anchored + seeded Gemini pipeline. Provenance tracked + founder-cleared per asset (legal posture is logged, not silent). |
 | 4 | **Independent judge + founder sign-off** | Claude builds; a *different* model family (Gemini vision) scores screenshots; founder approves before any client ship. |
 
+## Build status (2026-06-08, branch `feat/design-engine-v2`)
+
+- [x] **Phase 0 — premium stack** — `packages/web/scaffold/astro-premium/` builds,
+  passes the web gate, renders a synthesized dark+copper premium page. *(commit b02b7f3)*
+- [x] **Phase 1 — token synthesizer** — `packages/web/design_system.py`; role-based
+  DTCG tokens, AA-gated, zoom-safe scale, archetype↔genre bridge; `concept_statement`
+  is now a real packet field. *(commits 7828cb6, b6e31b8)*
+- [ ] **Phase 2 — motion + WebGL** (next; skeleton motion island in place)
+- [ ] **Phase 3 — block library + composer**
+- [ ] **Phase 4 — imagery pipeline** (provenance + clearance)
+- [ ] **Phase 5 — reference analyzer**
+- [ ] **Phase 6 — quality loop + Gemini judge + calibration**
+
 ## What already exists to build on
 
 - `packages/web/design_studio.py` — packet + `review_visual_quality`.
