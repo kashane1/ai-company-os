@@ -84,6 +84,26 @@
       "portfolio_address": "388 Morrison Moore Pkwy E, Dahlonega, GA 30533",
       "portfolio_phone": "(706) 555-0173",
       "portfolio_area": "Dahlonega"
+    },
+    {
+      "genre_id": "med_spa",
+      "slug": "med-spa",
+      "type": "Med spa",
+      "synthetic": true,
+      "portfolio_name": "Lumina Aesthetics",
+      "portfolio_address": "24 Tidewater Ave, Del Mar, CA 92014",
+      "portfolio_phone": "(858) 555-0190",
+      "portfolio_area": "Del Mar"
+    },
+    {
+      "genre_id": "fish_tacos",
+      "slug": "fish-tacos",
+      "type": "Taco restaurant",
+      "synthetic": true,
+      "portfolio_name": "Pelican & Lime",
+      "portfolio_address": "318 Surfrider Blvd, Ocean Beach, CA 92107",
+      "portfolio_phone": "(619) 555-0177",
+      "portfolio_area": "Ocean Beach"
     }
   ]
 }

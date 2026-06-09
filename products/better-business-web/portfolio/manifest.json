@@ -94,5 +94,29 @@
     "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/gun_store/dist",
     "url": "/work/gun-store/",
     "thumbnail": "/portfolio/gun-store.webp"
+  },
+  {
+    "genre_id": "med_spa",
+    "slug": "med-spa",
+    "name": "Lumina Aesthetics",
+    "type": "Med spa",
+    "genre": "med-spa",
+    "place_id": "",
+    "source_business": "Lumina Aesthetics",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/med_spa/dist",
+    "url": "/work/med-spa/",
+    "thumbnail": "/portfolio/med-spa.webp"
+  },
+  {
+    "genre_id": "fish_tacos",
+    "slug": "fish-tacos",
+    "name": "Pelican & Lime",
+    "type": "Taco restaurant",
+    "genre": "fish-tacos",
+    "place_id": "",
+    "source_business": "Pelican & Lime",
+    "dist": "/Users/kashane/dev/ai-company-os/products/better-business-web/portfolio/fish_tacos/dist",
+    "url": "/work/fish-tacos/",
+    "thumbnail": "/portfolio/fish-tacos.webp"
   }
 ]

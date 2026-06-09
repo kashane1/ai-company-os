@@ -63,6 +63,22 @@
       "slug": "gun-store",
       "url": "/work/gun-store/",
       "thumbnail": "/portfolio/gun-store.webp"
+    },
+    {
+      "name": "Lumina Aesthetics",
+      "type": "Med spa",
+      "genre": "med-spa",
+      "slug": "med-spa",
+      "url": "/work/med-spa/",
+      "thumbnail": "/portfolio/med-spa.webp"
+    },
+    {
+      "name": "Pelican & Lime",
+      "type": "Taco restaurant",
+      "genre": "fish-tacos",
+      "slug": "fish-tacos",
+      "url": "/work/fish-tacos/",
+      "thumbnail": "/portfolio/fish-tacos.webp"
     }
   ]
 }

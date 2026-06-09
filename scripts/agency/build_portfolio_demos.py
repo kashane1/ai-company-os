@@ -237,6 +237,22 @@ def anonymize_html(html_text: str, record: dict, demo: dict) -> str:
     return out
 
 
+def _rebase_root_relative(html_text: str) -> str:
+    """Make root-absolute asset refs relative so a multi-file (Astro) dist works when
+    served from a SUBPATH (/work/<slug>/), not just the domain root.
+
+    Premium Astro builds emit absolute asset paths (``/_astro/...``, ``/img/...``);
+    at /work/<slug>/ those resolve against the domain root and 404. Rewriting them to
+    ``./_astro/...`` works both at a subpath and at the root (so a standalone draft
+    deploy still works). Only asset paths are touched — the home link (``href="/"``)
+    and external URLs (fonts) are left alone. No-op for self-contained demos.
+    """
+    out = html_text
+    for prefix in ("_astro/", "img/", "assets/", "fonts/"):
+        out = out.replace(f'="/{prefix}', f'="./{prefix}')
+    return out
+
+
 def source_dist(place_id: str) -> Path | None:
     site_dir = SITES / place_id
     for sub in ("dist-v2", "dist"):
@@ -291,6 +307,13 @@ def build_synthetic(demo: dict, *, deploy: bool, target: NetlifyDeployTarget | N
     public_thumb = SITE_PUBLIC / "portfolio" / f"{slug}.webp"
     public_work.parent.mkdir(parents=True, exist_ok=True)
     copy_demo_tree(portfolio_dist, public_work)
+    # Served at /work/<slug>/ — rebase any root-absolute asset paths so a multi-file
+    # (Astro) build's CSS/JS/images resolve at the subpath instead of 404ing.
+    work_index = public_work / "index.html"
+    if work_index.is_file():
+        work_index.write_text(
+            _rebase_root_relative(work_index.read_text(encoding="utf-8")), encoding="utf-8"
+        )
 
     public_thumb.parent.mkdir(parents=True, exist_ok=True)
     make_thumb(screenshot_dist(portfolio_dist, slug), public_thumb)
