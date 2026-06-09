@@ -173,9 +173,14 @@ for (const arg of routeArgs) {
     for (let k = 0; k < framesArg; k++) {
       const y = framesArg === 1 ? 0 : Math.round((scrollRange * k) / (framesArg - 1));
       await mpage.evaluate((yy) => window.scrollTo(0, yy), y);
-      // Short settle so reveal animations are mid/partially played (motion is visible)
-      // but the frame isn't a blur — enough for the judge to read choreography.
-      await mpage.waitForTimeout(280);
+      // Let TIME-BASED entrance reveals (masked headline, section fades) finish before
+      // the shot. Freezing them mid-play used to make the judge read a half-revealed
+      // heading as "cut off" / "blurred" / "overlapping" — a non-deterministic false
+      // defect, since which reveal a 280ms freeze caught depended on timing. Motion is
+      // still visible because the SCRUB-based imagery parallax is scroll-POSITION-based:
+      // it's stable at a given offset, so each settled frame shows a different, valid
+      // crop/scale — real choreography the judge can read, with no broken mid-state.
+      await mpage.waitForTimeout(1000);
       const frameBuf = await mpage.screenshot({ clip: { x: 0, y: 0, width: VW, height: VH } });
       const frameFile = path.join(outDir, `${name}.frame${k + 1}.png`);
       fs.writeFileSync(frameFile, frameBuf);

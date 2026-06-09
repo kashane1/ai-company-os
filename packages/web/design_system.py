@@ -260,6 +260,15 @@ def _color_roles(packet: DesignStudioPacket, archetype: str, *, is_dark: bool) -
         accent = base.accent
 
     accent_strong = _shift_l(accent, -0.10)
+    # Accent used AS TEXT (eyebrow, index numerals, small marks) on the canvas needs
+    # its own lightness-adjusted variant: the brand accent sits mid-tone for a vivid
+    # FILL, but mid-tone-on-near-white fails AA as small text. `accent-text` is the
+    # accent nudged until it clears AA 4.5 on the canvas (darker on light, lighter on
+    # dark). `accent-cta`/`on-cta` give a crisp button pairing — a luminance-AA pass on
+    # a muddy mid-blue still reads as "invisible" to a human/judge, so prefer white on
+    # a deep-enough accent (the CTA convention), keeping dark text only for light hues.
+    accent_text = _accent_text_on(accent, canvas)
+    cta_bg, on_cta = _cta_pair(accent)
     return {
         "canvas": canvas,
         "ink": ink,
@@ -267,6 +276,9 @@ def _color_roles(packet: DesignStudioPacket, archetype: str, *, is_dark: bool) -
         "border": border,
         "accent": accent,
         "accent-strong": accent_strong,
+        "accent-text": accent_text,
+        "accent-cta": cta_bg,
+        "on-cta": on_cta,
         "on-accent": best_text_on(accent),
     }
 
@@ -324,6 +336,52 @@ def _shift_l(hex_color: str, delta: float) -> str:
     r, g, b = parse_color(hex_color)
     h, light, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
     return _hsl(h * 360, s, max(0.0, min(1.0, light + delta)))
+
+
+def _hls(hex_color: str) -> tuple[float, float, float]:
+    """``(hue_deg, saturation, lightness)`` for a hex color."""
+    r, g, b = parse_color(hex_color)
+    h, light, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+    return h * 360.0, s, light
+
+
+def _accent_text_on(accent: str, canvas: str) -> str:
+    """The accent nudged in lightness until it clears AA 4.5 as text on ``canvas``.
+
+    Preserves hue + saturation (still reads as the brand accent) and moves away from
+    the canvas: darker on a light canvas, lighter on a dark one.
+    """
+    h, s, light = _hls(accent)
+    step = -0.03 if _hls(canvas)[2] >= 0.5 else 0.03
+    cur = accent
+    for _ in range(24):
+        if contrast_ratio(cur, canvas) >= AA_NORMAL:
+            return cur
+        light = max(0.0, min(1.0, light + step))
+        cur = _hsl(h, s, light)
+    return cur
+
+
+def _cta_pair(accent: str) -> tuple[str, str]:
+    """A CTA fill + label that reads crisply, not just AA-on-paper.
+
+    Prefer white on the accent when it clears AA. If white fails but the accent is a
+    LIGHT hue (dark text scores very high — e.g. yellow), keep the brand accent with
+    dark text. Otherwise the accent is a muddy mid-tone (e.g. mid-blue) where neither
+    color reads crisp: deepen the accent until white clears AA — the premium CTA look.
+    """
+    if contrast_ratio("#ffffff", accent) >= AA_NORMAL:
+        return accent, "#ffffff"
+    if contrast_ratio("#111111", accent) >= 7.0:  # intrinsically light accent
+        return accent, best_text_on(accent)
+    h, s, light = _hls(accent)
+    cur = accent
+    for _ in range(10):
+        light = max(0.0, light - 0.03)
+        cur = _hsl(h, s, light)
+        if contrast_ratio("#ffffff", cur) >= AA_NORMAL:
+            return cur, "#ffffff"
+    return accent, best_text_on(accent)
 
 
 def _aa_accent(h: float, s: float) -> str:

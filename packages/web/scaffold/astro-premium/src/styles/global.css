@@ -35,7 +35,7 @@ a { color: inherit; }
   font-size: var(--step-n1);
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));  /* AA-legible accent for small text on the canvas */
 }
 
 .container { width: min(100% - 2.5rem, 72rem); margin-inline: auto; }
@@ -49,7 +49,7 @@ a { color: inherit; }
   font-weight: 600; text-decoration: none; cursor: pointer;
   border: 1px solid transparent; transition: transform .18s ease, background .18s ease;
 }
-.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary { background: var(--accent-cta, var(--accent)); color: var(--on-cta, var(--on-accent)); }
 .btn-primary:hover { background: var(--accent-strong); transform: translateY(-1px); }
 .btn-ghost { border-color: var(--border); color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn-primary:hover { transform: none; } }
@@ -78,7 +78,9 @@ a { color: inherit; }
 .media-copy {
   width: fit-content;
   max-width: 100%;
-  background: color-mix(in oklab, var(--canvas) 82%, transparent);
+  /* 90% (not 82%) so small accent text — the eyebrow/kicker — keeps its on-canvas AA
+     contrast even where a busy photo shows through the frost. */
+  background: color-mix(in oklab, var(--canvas) 90%, transparent);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-radius: var(--radius);
@@ -136,7 +138,7 @@ a { color: inherit; }
 /* Kinetic masked headline reveal (the signature moment). Words sit in overflow-clip
    wrappers so JS can slide them up from behind the mask; fully visible without JS. */
 .word-mask { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; }
-.word { display: inline-block; will-change: transform; }
+.word { display: inline-block; will-change: transform, opacity, filter; }
 
 /* ---- Reveal baseline: visible by default; JS opts elements into animation ---- */
 [data-reveal] { opacity: 1; }

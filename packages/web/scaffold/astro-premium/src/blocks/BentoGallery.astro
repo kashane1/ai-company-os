@@ -19,7 +19,7 @@ const spanStyle = (span) =>
             </div>
           )}
           <div style="padding:1.5rem;display:flex;flex-direction:column;justify-content:space-between;flex:1;gap:1.5rem">
-            <div style="font-family:var(--mono-font);color:var(--accent);font-size:var(--step-n1)">{String(i + 1).padStart(2, "0")}</div>
+            <div style="font-family:var(--mono-font);color:var(--accent-text,var(--accent));font-size:var(--step-n1)">{String(i + 1).padStart(2, "0")}</div>
             <div>
               <h3 style="font-size:var(--step-1)">{it.title}</h3>
               {it.body && <p class="muted" style="margin:0.5rem 0 0">{it.body}</p>}
