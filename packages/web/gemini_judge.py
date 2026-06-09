@@ -37,6 +37,23 @@ _MODEL = "gemini-2.5-flash"
 _BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 _RUBRIC_PATH = Path(__file__).resolve().parent / "design_reference" / "visual_rubric.md"
 
+
+def _ssl_context() -> ssl.SSLContext:
+    """Verified TLS context, preferring certifi's CA bundle.
+
+    Some interpreters (e.g. python.org macOS builds) ship without OS trust roots
+    wired in, so a bare urlopen fails CERTIFICATE_VERIFY_FAILED — which is exactly
+    why the image client already does this. The judge must match it, or a Gemini key
+    that works for image-gen still fails the judge call. Falls back to the system
+    default if certifi isn't installed.
+    """
+    try:
+        import certifi  # noqa: PLC0415 — optional dependency
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
+
 # Low temperature: this is a gate, not a brainstorm — we want stable scores.
 _GENERATION_CONFIG = {"temperature": 0.15, "topP": 0.5}
 
@@ -130,7 +147,7 @@ def _one_judgment(parts: list[dict], key: str) -> list[VisualScore]:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urlopen(request, timeout=120, context=ssl.create_default_context()) as response:
+    with urlopen(request, timeout=120, context=_ssl_context()) as response:
         result = json.loads(response.read())
     text = result["candidates"][0]["content"]["parts"][0]["text"]
     return parse_judge_response(text)
