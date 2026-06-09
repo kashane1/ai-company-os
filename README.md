@@ -32,6 +32,7 @@ flowchart LR
     Q --> WE[worker-engineering]
     Q --> WI[worker-ios]
     Q --> WG[worker-gtm]
+    Q --> WO[worker-outreach]
     Q --> WA[worker-appstore]
     WE --> WT[Isolated git worktree<br/>Codex execution]
     WI --> WT
@@ -54,7 +55,7 @@ approval gate; every run leaves a replayable audit artifact.
 
 | Path | What it is |
 |---|---|
-| `apps/` | Thin worker + API entrypoints (engineering, iOS, gtm, appstore, supervisor, approval-reviewer) |
+| `apps/` | Thin worker + API entrypoints (engineering, iOS, gtm, outreach, appstore, supervisor, approval-reviewer) |
 | `packages/` | Shared platform code: `schemas` (typed contracts), `policies` (approval rules), `db`, `queue`, `tools`, `config`, `discovery` (opportunity find → score → validate) |
 | `products/` | Source roots for the iOS apps the system has produced |
 | `docs/` | Platform docs **plus** the system's own run/spec output — read [`docs/README.md`](docs/README.md) first |

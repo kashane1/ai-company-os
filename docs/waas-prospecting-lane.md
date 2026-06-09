@@ -145,7 +145,19 @@ from `genre-snippets.md`; personalize ≥1 line by hand.
 Operator copies the draft and sends manually. Nothing in the pipeline sends.
 
 ### Stage 8 — Tracking / follow-up
-Record outcome on the lead (`engagement_status`). Follow-up cadence is manual.
+Use the outreach operations ledger:
+
+```bash
+python scripts/agency/outreach_lane.py refresh
+python scripts/agency/outreach_lane.py list --status ready_to_send
+python scripts/agency/outreach_lane.py log --place-id <PID> --channel email --outcome sent --next-follow-up 2026-06-12
+```
+
+The operator-facing status list lives at
+`state/prospects/outreach-lane/client-status.md`; the machine ledger lives at
+`state/prospects/outreach-lane/client-status.json`; manual touches append to
+`state/prospects/outreach-lane/touches.jsonl`. The `worker-outreach` lane may
+refresh/draft/reconcile this state, but outbound send tasks fail closed.
 
 ## Current gaps (build backlog, priority order)
 
@@ -159,8 +171,9 @@ Record outcome on the lead (`engagement_status`). Follow-up cadence is manual.
    owned-site check.
 4. **Fixture hygiene** — synthetic `Fixture Local N` records leak into
    `state/prospects/records/`; purge and guard against re-entry.
-5. **Outreach tracking** — formalize status transitions and follow-up beyond a
-   single field.
+5. ~~Outreach tracking~~ — ✅ built as `packages/agency/outreach_lane.py`,
+   `scripts/agency/outreach_lane.py`, and `apps/worker-outreach/`. Remaining:
+   optional CRM adapter for email/reply sync.
 
 ## Client delivery (after they say yes)
 
@@ -175,5 +188,6 @@ Phases 3–5 (promote → intake → launch) are documented in
 - Warehouse: `state/prospects/records/*.json` · cohorts `packages/prospecting/cohorts.py`
 - Verification reports: `state/artifacts/prospecting/*-verification.md`
 - Outreach templates: `state/prospects/outreach/` (README, manifest, genre-snippets, channel dirs)
+- Outreach status: `state/prospects/outreach-lane/client-status.md`
 - Web build lane: `packages/web/` · worker `apps/worker-web`
 - Caps/cost: `packages/prospecting/config/weekly_caps.yaml`

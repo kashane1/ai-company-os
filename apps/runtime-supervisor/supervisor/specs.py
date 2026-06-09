@@ -74,4 +74,12 @@ def default_worker_specs() -> list[WorkerProcessSpec]:
             script_path=paths.repo_root / "apps" / "worker-billing-poller" / "main.py",
             log_path=runtime_logs_root / "worker-billing-poller.log",
         ),
+        # Outreach operations lane. It drafts and reconciles local outreach
+        # state; outbound sending is explicitly not automated here.
+        WorkerProcessSpec(
+            lane="outreach",
+            worker_id="worker-outreach",
+            script_path=paths.repo_root / "apps" / "worker-outreach" / "main.py",
+            log_path=runtime_logs_root / "worker-outreach.log",
+        ),
     ]

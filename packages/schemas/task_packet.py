@@ -23,6 +23,9 @@ class WorkerLane(str, Enum):
     # deploys / DNS / spend are gated in packages/policies/deploy_readiness.py.
     WEB = "web"
     WEBDEPLOY = "webdeploy"
+    # Outreach operations lane. Drafts and tracks cold outreach, but outbound
+    # send actions remain human-gated or future CRM-adapter gated.
+    OUTREACH = "outreach"
 
 
 # Phase 2.1 — GTM task types. These are referenced by task.task_type (the
@@ -35,6 +38,15 @@ GTM_TASK_TYPES = frozenset(
         "SOCIAL_POST_SCHEDULE",
         "GTM_CAMPAIGN_BRIEF",
         "ASO_METADATA_REFRESH",
+    }
+)
+
+OUTREACH_TASK_TYPES = frozenset(
+    {
+        "OUTREACH_LEDGER_REFRESH",
+        "OUTREACH_DRAFT",
+        "OUTREACH_TOUCH_LOG",
+        "OUTREACH_REPLY_RECONCILE",
     }
 )
 

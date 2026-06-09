@@ -357,7 +357,7 @@ p { margin: 0 0 var(--space-sm); }
 .price-card.is-featured { border-color: transparent; background: linear-gradient(180deg, var(--surface), var(--surface)) padding-box, linear-gradient(160deg, var(--accent), var(--gold)) border-box; border: 1.5px solid transparent; box-shadow: var(--shadow-md); }
 .price-card.is-featured::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--glow); opacity: 0.5; pointer-events: none; z-index: -1; }
 .price-badge { position: absolute; top: -0.85rem; left: var(--space-lg); background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.35em 0.85em; border-radius: 999px; box-shadow: var(--shadow-sm); }
-.price-card h3 { margin: 0; font-size: var(--step-1); }
+.price-card h2 { margin: 0; font-size: var(--step-1); font-weight: 560; }
 .price-card .blurb { color: var(--ink-soft); margin: 0; font-size: var(--step--1); min-height: 2.8em; }
 .price { display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap; margin-block: 0.3rem var(--space-xs); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--line); }
 .price .amount { font-family: var(--font-display); font-size: var(--step-3); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
