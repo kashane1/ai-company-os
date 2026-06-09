@@ -15,6 +15,7 @@ client onboarding, and monthly retainer ops. Runnable entrypoints live in
 - `demo_theme.py` — **legacy** token-fill theming (path A, deprecated for prospects; kept for `--legacy-build` + some portfolio).
 - `demo_maps.py` — map embeds for demos.
 - `outreach.py` — channel × genre outreach templates.
+- `outreach_lane.py` — human-gated client-status ledger, manual touch log, and next-action queue for cold outreach.
 
 **Sale → client (Phases 3–6)**
 - `promotion.py` / `client_lifecycle.py` — promote prospect → client; lifecycle state.

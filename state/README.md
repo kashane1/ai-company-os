@@ -21,6 +21,7 @@ lazily on first write by the code that owns them.
 | `state/health/skill-estate/`           | CI + operators            | `StocktakeReport` + `ContextBudgetReport` baselines from `skill-stocktake` / `context-budget`. | Retain last 30.                   |
 | `state/followups/`                     | agents + operators        | Typed `FollowupEntry` YAML files from `followup_issue_writer.py` — drift items and other issues captured for deferred resolution. | Retain until resolved, then archive to `state/archive/followups/<yyyy>/`. |
 | `state/last30days_social_report/`      | `last30days` skill        | Cached social-research payloads.                                                      | Cache TTL per skill.                   |
+| `state/prospects/outreach-lane/`        | `worker-outreach` + operator | Human-gated cold outreach ledger: `client-status.json`, `client-status.md`, and append-only `touches.jsonl`. Drafts and tracking only; no send automation. | Retain while prospects are active, then archive with the prospect cohort. |
 
 ## Semantic categories
 

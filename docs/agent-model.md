@@ -117,11 +117,32 @@ It must remain separate from the iOS implementation lane.
 Possible future lanes include:
 
 - support
-- growth
 - research
 - ops
 
 Each should be narrow in scope, schema-driven, and policy-bound.
+
+### 7. Outreach Worker
+
+The outreach worker handles cold outreach operations for the agency lane.
+
+It is responsible for:
+
+- refreshing the client-status ledger
+- organizing operator-ready drafts
+- tracking manual touches and next actions
+- reconciling replies through future approved CRM/inbox adapters
+
+It must not:
+
+- send cold email
+- send SMS/texts
+- send Instagram or Facebook DMs
+- bypass opt-out/suppression state
+- own deliverability or CRM policy
+
+Outbound contact stays human-gated unless a future CRM adapter and policy gate
+explicitly allow a narrower automation path.
 
 ## Codex's Role
 

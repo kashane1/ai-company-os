@@ -11,6 +11,7 @@ It is designed to support:
 - policy-driven execution
 - repo-based engineering workflows
 - iOS development and release handling
+- outreach operations with human-gated outbound contact
 - human approval at high-risk boundaries
 - optional remote control surfaces such as OpenClaw
 
@@ -27,6 +28,7 @@ The architecture is built around a few key principles:
 - runtime data is separate from source code
 - OpenClaw is optional interface only
 - iOS engineering and App Store operations are separate lanes
+- outreach drafting/tracking is separate from outbound sending
 
 The system should remain understandable to a human engineer without prompt archaeology.
 
@@ -231,6 +233,21 @@ Responsibilities:
 - release-state tracking
 
 The App Store worker is separate from the iOS worker because building an app and shipping an app are different operational concerns.
+
+### Outreach Worker
+
+The outreach worker is the operations lane for cold outreach around local-SMB
+demo sites.
+
+Responsibilities:
+
+- refresh the prospect client-status ledger
+- organize draft outreach artifacts
+- log manual touches and follow-up dates
+- reconcile replies through future approved CRM or inbox adapters
+
+It does not send cold email, SMS, Instagram DMs, or Facebook DMs. Sending stays
+human-gated until a dedicated CRM adapter and policy gate exist.
 
 ## Product Registry And Artifact Chain
 

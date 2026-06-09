@@ -21,6 +21,7 @@ don't bypass it.
 | `preview_site.py` | Serve a demo site's build locally to preview + iterate before deploying. |
 | `screenshot_demo.py` | Full-page screenshot of a demo build — the mandatory pre-Netlify review step. |
 | `build_outreach.py` | Generate per-prospect outreach copy for every lead with a live preview site. |
+| `outreach_lane.py` | Refresh/list/log the human-gated outreach client-status ledger. |
 | `gen_gunstore_images.py` | Generate imagery for the Blue Ridge Gun & Ammo portfolio demo via Gemini. |
 
 ## Premium design engine (opt-in, design engine v3)
