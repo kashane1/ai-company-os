@@ -60,6 +60,7 @@ class _AuditParser(HTMLParser):
         self._interactive_depth = 0
         self._interactive_attrs: list[dict[str, str]] = []
         self._interactive_text: list[str] = []
+        self._label_depth = 0
         # Two-pass-ish: collect label[for] then resolve inputs at end.
         self._pending_inputs: list[dict[str, str]] = []
 
@@ -88,12 +89,20 @@ class _AuditParser(HTMLParser):
             self.page.stylesheet_links += 1
         if tag == "script" and a.get("src") and "defer" not in a and "async" not in a:
             self.page.blocking_scripts += 1
-        if tag == "label" and a.get("for", "").strip():
-            self.page.label_for_ids.add(a["for"].strip())
+        if tag == "label":
+            self._label_depth += 1
+            if a.get("for", "").strip():
+                self.page.label_for_ids.add(a["for"].strip())
         if tag in ("input", "select", "textarea") and a.get("type", "") not in (
             "hidden", "submit", "button"
         ):
-            self._pending_inputs.append(a)
+            # aria-hidden controls are removed from the a11y tree (e.g. honeypots), and
+            # a control nested inside a <label> is labelled by that label's text
+            # (implicit association — valid WCAG, no for/id needed). Record both so the
+            # audit doesn't false-positive on either.
+            if a.get("aria-hidden", "").strip().lower() != "true":
+                a["__in_label__"] = "1" if self._label_depth > 0 else ""
+                self._pending_inputs.append(a)
         if tag in ("a", "button"):
             self._interactive_depth += 1
             self._interactive_attrs.append(a)
@@ -104,6 +113,8 @@ class _AuditParser(HTMLParser):
             self._in_title = False
         if tag == "style":
             self._in_style = False
+        if tag == "label":
+            self._label_depth = max(0, self._label_depth - 1)
         if tag in ("a", "button") and self._interactive_attrs:
             attrs = self._interactive_attrs.pop()
             text = self._interactive_text.pop().strip()
@@ -128,6 +139,7 @@ class _AuditParser(HTMLParser):
                 attrs.get("aria-label", "").strip()
                 or attrs.get("aria-labelledby", "").strip()
                 or (attrs.get("id", "").strip() in self.page.label_for_ids)
+                or attrs.get("__in_label__")  # nested inside a <label> (implicit)
             )
             if labelled:
                 self.page.inputs_labelled += 1

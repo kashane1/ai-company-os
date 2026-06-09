@@ -30,6 +30,7 @@ from packages.web.deploy import NetlifyDeployTarget  # noqa: E402
 
 sys.path.insert(0, str(REPO / "scripts" / "web"))
 from make_thumb import make_thumb  # noqa: E402
+from PIL import Image  # noqa: E402
 
 CURATED = REPO / "products" / "better-business-web" / "portfolio" / "curated.json"
 OUT_ROOT = REPO / "products" / "better-business-web" / "portfolio"
@@ -40,6 +41,9 @@ SCREENSHOT_DOCS = REPO / "docs" / "products" / "better-business-web" / "screensh
 RECORDS = REPO / "state" / "prospects" / "records"
 SITES = REPO / "state" / "prospects" / "sites"
 PREVIEW_SITE_NAME = "bbw-portfolio"
+# Mirror the ux-audit performance budget: any single published image must stay under
+# this, or the launch checklist's `performance` category drops below its pass bar.
+MAX_IMAGE_BYTES = 600_000
 
 CONCEPT_NOTE = (
     "Concept demo — illustrative sample design by Better Business Web. "
@@ -253,6 +257,37 @@ def _rebase_root_relative(html_text: str) -> str:
     return out
 
 
+def _shrink_oversized_images(root: Path, *, max_bytes: int = MAX_IMAGE_BYTES) -> None:
+    """Downscale any published image over the perf budget, FORMAT-PRESERVING so the
+    HTML refs don't change. Image-model output (the premium demos' hero/support PNGs)
+    ships far larger than its display size; the ux-audit perf gate caps any single
+    image at 600KB, so an unshrunk one silently fails the launch checklist.
+    """
+    exts = {".png", ".jpg", ".jpeg", ".webp"}
+    for img_path in root.rglob("*"):
+        if not (img_path.is_file() and img_path.suffix.lower() in exts):
+            continue
+        if img_path.stat().st_size <= max_bytes:
+            continue
+        try:
+            im = Image.open(img_path)
+            im.load()
+        except Exception as exc:  # never let one bad image abort the build
+            print(f"  ! could not shrink {img_path.name}: {exc}", file=sys.stderr)
+            continue
+        fmt = im.format or img_path.suffix.lstrip(".").upper().replace("JPG", "JPEG")
+        for _ in range(8):  # ~0.85 linear/step → converges well under budget in a few
+            if img_path.stat().st_size <= max_bytes:
+                break
+            w, h = im.size
+            im = im.resize((max(1, int(w * 0.85)), max(1, int(h * 0.85))), Image.LANCZOS)
+            save_kwargs: dict[str, object] = {"optimize": True}
+            if fmt in ("JPEG", "WEBP"):
+                save_kwargs["quality"] = 82
+            im.save(img_path, format=fmt, **save_kwargs)
+        print(f"    ↓ shrank {img_path.name} → {img_path.stat().st_size // 1024}KB ({im.size[0]}px)")
+
+
 def source_dist(place_id: str) -> Path | None:
     site_dir = SITES / place_id
     for sub in ("dist-v2", "dist"):
@@ -291,86 +326,39 @@ def screenshot_dist(dist: Path, slug: str) -> Path:
     return SCREENSHOT_DOCS / f"{slug}.png"
 
 
-def build_synthetic(demo: dict, *, deploy: bool, target: NetlifyDeployTarget | None, site) -> dict:
-    """Publish a hand-authored demo (no real source business / place_id).
-
-    The dist already lives at portfolio/<genre>/dist — no anonymization needed.
-    Thumbnail comes from a fresh full-page screenshot of that dist.
+def _publish_demo(
+    demo: dict,
+    portfolio_dist: Path,
+    *,
+    source_business: str,
+    place_id: str,
+    deploy: bool,
+    target: NetlifyDeployTarget | None,
+    site,
+) -> dict:
+    """Publish a (committed) portfolio dist into the BBW site: copy → rebase subpath
+    asset paths → shrink oversized images to the perf budget → screenshot a thumbnail.
     """
     genre = demo["genre_id"]
     slug = demo["slug"]
-    portfolio_dist = OUT_ROOT / genre / "dist"
-    if not (portfolio_dist / "index.html").is_file():
-        raise FileNotFoundError(f"synthetic demo has no authored dist: {portfolio_dist}")
-
     public_work = SITE_PUBLIC / "work" / slug
     public_thumb = SITE_PUBLIC / "portfolio" / f"{slug}.webp"
+
     public_work.parent.mkdir(parents=True, exist_ok=True)
     copy_demo_tree(portfolio_dist, public_work)
-    # Served at /work/<slug>/ — rebase any root-absolute asset paths so a multi-file
-    # (Astro) build's CSS/JS/images resolve at the subpath instead of 404ing.
+    # Served at /work/<slug>/ — rebase root-absolute asset paths so a multi-file
+    # (Astro) build resolves at the subpath instead of 404ing.
     work_index = public_work / "index.html"
     if work_index.is_file():
         work_index.write_text(
             _rebase_root_relative(work_index.read_text(encoding="utf-8")), encoding="utf-8"
         )
+    # Keep every published image under the ux-audit perf budget.
+    _shrink_oversized_images(public_work)
 
     public_thumb.parent.mkdir(parents=True, exist_ok=True)
-    make_thumb(screenshot_dist(portfolio_dist, slug), public_thumb)
-
-    entry = {
-        "genre_id": genre,
-        "slug": slug,
-        "name": demo["portfolio_name"],
-        "type": demo["type"],
-        "genre": slug,
-        "place_id": "",
-        "source_business": demo["portfolio_name"],
-        "dist": str(portfolio_dist),
-        "url": f"/work/{slug}/",
-        "thumbnail": f"/portfolio/{slug}.webp" if public_thumb.exists() else "",
-    }
-
-    if deploy and target and site:
-        result = target.deploy(site, portfolio_dist, production=False)
-        entry["deploy_url"] = result.url
-        print(f"  ✓ {demo['portfolio_name']:28s} ({genre})  →  {result.url}")
-    else:
-        print(f"  ✓ {demo['portfolio_name']:28s} ({genre})  →  {public_work.relative_to(REPO)}")
-    return entry
-
-
-def build_one(demo: dict, *, deploy: bool, target: NetlifyDeployTarget | None, site) -> dict:
-    if demo.get("synthetic"):
-        return build_synthetic(demo, deploy=deploy, target=target, site=site)
-    place_id = demo["place_id"]
-    record_path = RECORDS / f"{place_id}.json"
-    if not record_path.is_file():
-        raise FileNotFoundError(f"missing record: {record_path}")
-    record = json.loads(record_path.read_text(encoding="utf-8"))
-
-    src = source_dist(place_id)
-    if src is None:
-        raise FileNotFoundError(f"no dist build for {place_id}")
-
-    genre = demo["genre_id"]
-    slug = demo["slug"]
-    portfolio_dist = OUT_ROOT / genre / "dist"
-    public_work = SITE_PUBLIC / "work" / slug
-    public_thumb = SITE_PUBLIC / "portfolio" / f"{slug}.webp"
-
-    copy_demo_tree(src, portfolio_dist)
-    html_path = portfolio_dist / "index.html"
-    html_path.write_text(anonymize_html(html_path.read_text(encoding="utf-8"), record, demo), encoding="utf-8")
-
-    public_work.parent.mkdir(parents=True, exist_ok=True)
-    copy_demo_tree(portfolio_dist, public_work)
-
-    public_thumb.parent.mkdir(parents=True, exist_ok=True)
-    # Thumbnail from the ANONYMIZED portfolio_dist, not the pre-anonymization
-    # prospect screenshot — otherwise the public card would leak the real
-    # business name, phone, and city. Crop top + downscale + WebP keeps it
-    # ~100 KB crisp vs a multi-MB full-page PNG the browser downscales ~8x.
+    # Thumbnail from the published dist (already anonymized for prospect demos) — never
+    # a pre-anonymization prospect screenshot, which would leak real business details.
     make_thumb(screenshot_dist(portfolio_dist, slug), public_thumb)
 
     entry = {
@@ -380,20 +368,73 @@ def build_one(demo: dict, *, deploy: bool, target: NetlifyDeployTarget | None, s
         "type": demo["type"],
         "genre": slug,
         "place_id": place_id,
-        "source_business": record.get("display_name", ""),
+        "source_business": source_business,
         "dist": str(portfolio_dist),
         "url": f"/work/{slug}/",
         "thumbnail": f"/portfolio/{slug}.webp" if public_thumb.exists() else "",
     }
-
     if deploy and target and site:
         result = target.deploy(site, portfolio_dist, production=False)
         entry["deploy_url"] = result.url
         print(f"  ✓ {demo['portfolio_name']:28s} ({genre})  →  {result.url}")
     else:
         print(f"  ✓ {demo['portfolio_name']:28s} ({genre})  →  {public_work.relative_to(REPO)}")
-
     return entry
+
+
+def build_synthetic(demo: dict, *, deploy: bool, target: NetlifyDeployTarget | None, site) -> dict:
+    """Publish a hand-authored demo (no real source business / place_id). The dist
+    already lives at portfolio/<genre>/dist — no source pull or anonymization."""
+    genre = demo["genre_id"]
+    portfolio_dist = OUT_ROOT / genre / "dist"
+    if not (portfolio_dist / "index.html").is_file():
+        raise FileNotFoundError(f"synthetic demo has no authored dist: {portfolio_dist}")
+    return _publish_demo(
+        demo, portfolio_dist, source_business=demo["portfolio_name"], place_id="",
+        deploy=deploy, target=target, site=site,
+    )
+
+
+def build_one(
+    demo: dict, *, deploy: bool, target: NetlifyDeployTarget | None, site, refresh: bool
+) -> dict:
+    if demo.get("synthetic"):
+        return build_synthetic(demo, deploy=deploy, target=target, site=site)
+
+    genre = demo["genre_id"]
+    place_id = demo["place_id"]
+    portfolio_dist = OUT_ROOT / genre / "dist"
+    record_path = RECORDS / f"{place_id}.json"
+    record = json.loads(record_path.read_text(encoding="utf-8")) if record_path.is_file() else {}
+
+    # The committed portfolio_dist is the source of truth. Only RE-PULL from the
+    # volatile prospect build (state/prospects/sites/<id>/dist-v2 — gitignored, and
+    # rewritten whenever that prospect is re-rendered for outreach) when explicitly
+    # asked (--refresh) or when no committed dist exists yet. This stops a routine run
+    # from silently overwriting a curated demo with a drifted prospect rebuild.
+    need_pull = refresh or not (portfolio_dist / "index.html").is_file()
+    if need_pull:
+        src = source_dist(place_id)
+        if src is None:
+            if not (portfolio_dist / "index.html").is_file():
+                raise FileNotFoundError(
+                    f"no source dist for {place_id} and no committed portfolio dist at {portfolio_dist}"
+                )
+            print(f"  ! no source dist for {place_id}; reusing committed {portfolio_dist.relative_to(REPO)}")
+        else:
+            if not record:
+                raise FileNotFoundError(f"missing record: {record_path}")
+            copy_demo_tree(src, portfolio_dist)
+            html_path = portfolio_dist / "index.html"
+            html_path.write_text(
+                anonymize_html(html_path.read_text(encoding="utf-8"), record, demo), encoding="utf-8"
+            )
+
+    source_business = record.get("display_name", "") if record else demo["portfolio_name"]
+    return _publish_demo(
+        demo, portfolio_dist, source_business=source_business, place_id=place_id,
+        deploy=deploy, target=target, site=site,
+    )
 
 
 def write_site_data(manifest: list[dict]) -> None:
@@ -415,21 +456,50 @@ def write_site_data(manifest: list[dict]) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--deploy", action="store_true", help="draft-deploy each demo to bbw-portfolio")
+    ap.add_argument("--deploy", action="store_true", help="draft-deploy each built demo to bbw-portfolio")
+    ap.add_argument(
+        "--only",
+        default="",
+        help="comma-separated slugs to (re)build; every other demo is left exactly as "
+        "committed and its existing manifest entry is carried forward",
+    )
+    ap.add_argument(
+        "--refresh",
+        action="store_true",
+        help="re-pull non-synthetic demos from their prospect dist-v2 source. Default: "
+        "reuse the committed portfolio dist, so a routine run never drifts a curated demo "
+        "even if its prospect source was rebuilt for outreach.",
+    )
     args = ap.parse_args()
 
     curated = json.loads(CURATED.read_text(encoding="utf-8"))
     demos = curated["demos"]
+    only = {s.strip() for s in args.only.split(",") if s.strip()}
+
+    manifest_path = OUT_ROOT / "manifest.json"
+    existing: dict[str, dict] = {}
+    if manifest_path.is_file():
+        existing = {e["slug"]: e for e in json.loads(manifest_path.read_text(encoding="utf-8"))}
 
     target = NetlifyDeployTarget() if args.deploy else None
     site = target.ensure_site(PREVIEW_SITE_NAME) if target else None
 
     manifest = []
     for demo in demos:
-        manifest.append(build_one(demo, deploy=args.deploy, target=target, site=site))
+        slug = demo["slug"]
+        if only and slug not in only:
+            if slug in existing:
+                manifest.append(existing[slug])  # untouched — carry the entry forward
+                print(f"  · {demo['portfolio_name']:28s} ({demo['genre_id']})  →  unchanged (not in --only)")
+            else:
+                print(f"  ! {slug}: not in --only and no existing manifest entry — skipped")
+            continue
+        manifest.append(
+            build_one(demo, deploy=args.deploy, target=target, site=site, refresh=args.refresh)
+        )
 
     OUT_ROOT.mkdir(parents=True, exist_ok=True)
-    (OUT_ROOT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     write_site_data(manifest)
 
     print(f"\n{len(manifest)} portfolio demo(s).")
