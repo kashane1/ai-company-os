@@ -79,3 +79,50 @@ def test_median_scores_takes_per_category_median() -> None:
     assert merged["hero_impact"] == 4  # median of 2,4,5
     assert merged["typography"] == 4  # all 4
     assert {s.category for s in median_scores(runs)} == set(RUBRIC_CATEGORIES)
+
+
+def test_extract_json_array_is_tolerant() -> None:
+    from packages.web.gemini_judge import _extract_json_array
+
+    assert _extract_json_array('prose [{"type":"overlap"}] more') == [{"type": "overlap"}]
+    assert _extract_json_array("no array here") is None
+    assert _extract_json_array("[broken json") is None
+
+
+def test_high_severity_defects_filters() -> None:
+    from packages.web.gemini_judge import high_severity_defects
+
+    defects = [
+        {"type": "overlap", "severity": "high"},
+        {"type": "minor", "severity": "low"},
+    ]
+    assert high_severity_defects(defects) == [{"type": "overlap", "severity": "high"}]
+
+
+def test_one_judgment_retries_past_a_malformed_response(monkeypatch) -> None:
+    # The model sometimes returns invalid JSON (an unescaped quote in a note); one bad
+    # response must not crash the loop — retry re-samples valid JSON.
+    import packages.web.gemini_judge as gj
+
+    bad = '[{"category":"visual_thesis","score":4,"note":"he said "hi""}]'  # invalid JSON
+    good = _full_json()
+    responses = iter([bad, good])
+    monkeypatch.setattr(gj, "_call_gemini", lambda parts, key: next(responses))
+    scores = gj._one_judgment([], "key", attempts=3)
+    assert {s.category for s in scores} == set(RUBRIC_CATEGORIES)
+
+
+def test_one_judgment_raises_after_exhausting_retries(monkeypatch) -> None:
+    import packages.web.gemini_judge as gj
+    import pytest as _pytest
+
+    monkeypatch.setattr(gj, "_call_gemini", lambda parts, key: "not json at all")
+    with _pytest.raises(ValueError, match="unparseable"):
+        gj._one_judgment([], "key", attempts=2)
+
+
+def test_inspect_defects_fails_open_without_key(monkeypatch) -> None:
+    import packages.web.gemini_judge as gj
+
+    monkeypatch.setattr(gj, "get_api_key", lambda _: None)
+    assert gj.inspect_defects({"desktop": "/x.png"}) == []

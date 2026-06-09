@@ -28,8 +28,12 @@ sys.path.insert(0, str(REPO))
 
 from packages.web.build import subprocess_runner  # noqa: E402
 from packages.web.design_loop import BudgetGuard, GoldSample, calibrate  # noqa: E402
-from packages.web.design_studio import build_design_studio_packet  # noqa: E402
-from packages.web.gemini_judge import gemini_vision_judge  # noqa: E402
+from packages.web.design_studio import VisualScore, build_design_studio_packet  # noqa: E402
+from packages.web.gemini_judge import (  # noqa: E402
+    gemini_vision_judge,
+    high_severity_defects,
+    inspect_defects,
+)
 from packages.web.premium_build import run_premium_loop  # noqa: E402
 
 
@@ -133,7 +137,28 @@ def cmd_run(
     def judge(shots: dict[str, str]) -> list:
         stills = {k: v for k, v in shots.items() if k in ("desktop", "mobile")}
         frames = [v for k, v in sorted(shots.items()) if k.startswith("frame")]
-        return gemini_vision_judge(stills, frames=frames, samples=judge_samples)
+        scores = gemini_vision_judge(stills, frames=frames, samples=judge_samples)
+        # Adversarial defect lens (separate from the taste judge). A high-severity
+        # defect (illegible text over a photo, overlap, broken layout, repeat) FAILS
+        # the build by capping the structural categories below the floor — the taste
+        # score can't rescue a real defect.
+        defects = inspect_defects(stills, frames=frames)
+        # Always record the current defects (empty list on a clean build) so the file
+        # never goes stale and reflects the latest iteration.
+        (studio_dir(target)).mkdir(parents=True, exist_ok=True)
+        (studio_dir(target) / "defects.json").write_text(json.dumps(defects, indent=2) + "\n")
+        highs = high_severity_defects(defects)
+        if highs:
+            note = "DEFECT — " + "; ".join(f"{d['type']}: {d['detail']}" for d in highs)[:140]
+            kinds = ", ".join(d["type"] for d in highs)
+            print(f"  ✗ {len(highs)} high-severity defect(s): {kinds}")
+            scores = [
+                VisualScore(s.category, min(2, s.score), note)
+                if s.category in ("layout_composition", "ai_house_style")
+                else s
+                for s in scores
+            ]
+        return scores
 
     budget = BudgetGuard(max_seconds=max_seconds) if max_seconds else None
     result = run_premium_loop(
