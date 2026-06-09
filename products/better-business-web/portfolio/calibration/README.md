@@ -25,11 +25,10 @@ single-image references both `desktop` and `mobile` point at the same full-page 
 ## Status (2026-06-08) — honest
 
 By the strict five-figure bar, **nothing currently in-repo clears the gate**, so the
-starter corpus is all `expected: "bad"`. This already has teeth: it catches a judge
-that's too lenient (rates a $500 template or a below-bar build as passing). It does
-**not** yet catch a judge that's too harsh — that needs `expected: "good"`
-exemplars, which get added when the **first flagship build clears the gate**
-(Phase 5). When that happens, drop its desktop/mobile PNGs here labelled `"good"`.
+corpus is now **two-sided**: the known-`"bad"` legacy/below-bar samples catch a judge
+that's too lenient, and `flagship-med-spa-pass` — the **first flagship that cleared
+the gate live (87/100)** — catches one that's too harsh. Add more `"good"` exemplars
+as future flagships pass.
 
 (Third-party Awwwards screenshots are intentionally NOT committed here — licensing.
 Good exemplars come from our own pass-grade builds.)

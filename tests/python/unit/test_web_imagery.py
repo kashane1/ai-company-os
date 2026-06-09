@@ -98,3 +98,31 @@ def test_imagery_cleared_gate(tmp_path) -> None:
         ]
     ).save(mpath)
     assert imagery_cleared(mpath) is True
+
+
+def test_generate_imagery_set_curates_and_writes_manifest(tmp_path) -> None:
+    # The loop's imagery leg: generate a hero + supporting set, auto-curate to top-N,
+    # persist the manifest — all without an API key (generator injected).
+    from packages.web.imagery import generate_imagery_set
+
+    class _StubImage:
+        def save(self, path):
+            from pathlib import Path
+
+            Path(path).write_bytes(b"\x89PNG\r\n\x1a\n")
+            return path
+
+    calls = []
+
+    def gen(prompt, aspect_ratio, seed):
+        calls.append((aspect_ratio, seed))
+        return _StubImage()
+
+    manifest = generate_imagery_set(PACKET, tmp_path, generate=gen, supporting=4, keep=3)
+    assert len(calls) == 5  # 1 hero + 4 supporting
+    assert len(manifest.assets) == 5
+    selected = [a for a in manifest.assets if a.selected]
+    assert len(selected) == 3  # auto-curated to the top 3
+    assert any(a.role == "hero" and a.selected for a in manifest.assets)
+    assert (tmp_path / "manifest.json").exists()
+    assert (tmp_path / "hero.png").exists()

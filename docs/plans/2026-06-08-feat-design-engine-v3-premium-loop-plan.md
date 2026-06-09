@@ -326,6 +326,13 @@ motionless page strictly below an equivalent animated one.
 > Imagery clearance is gated by `premium_ready()` (correct layer — `deploy()` is
 > site-generic and doesn't know the build hub). Live image generation needs
 > `GEMINI_API_KEY`; the wiring is unit-tested with stub assets.
+>
+> **Imagery wired INTO the loop (2026-06-09).** `imagery.generate_imagery_set`
+> (briefs → generate → auto-curate → manifest, generator injected) + `design_loop.py
+> run` generates a concept-led set once up front (`--no-imagery` to skip), so the
+> loop is self-sufficient. **PROVEN LIVE: med-spa flagship cleared the gate at
+> 87/100** (`imagery_art_direction` 3→5 once real photography landed) — committed as
+> the first `"good"` calibration exemplar.
 
 **Deliverables:**
 - Media model + image slots in every block; `derive_content` reads

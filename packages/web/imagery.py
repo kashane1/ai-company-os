@@ -18,10 +18,21 @@ generation is wrapped in `scripts/agency/generate_imagery.py` over the existing
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Protocol
 
 from packages.web.design_studio import DesignStudioPacket
+
+
+class _Saveable(Protocol):
+    def save(self, path: Path) -> object: ...
+
+
+# (prompt, aspect_ratio, seed) -> an object with a .save(path) method. Matches
+# packages.tools.content_tools.gemini_images.generate_image; injectable for tests.
+ImageGenerator = Callable[[str, str, int], _Saveable]
 
 PROVENANCE_GENERATED = "generated"
 PROVENANCE_OWNER = "owner"
@@ -136,6 +147,56 @@ def build_image_briefs(
             )
         )
     return briefs
+
+
+# --------------------------------------------------------------------------- #
+# Generate a cohesive set + auto-curate (the loop's imagery leg)
+# --------------------------------------------------------------------------- #
+def generate_imagery_set(
+    packet: DesignStudioPacket,
+    out_dir: Path,
+    *,
+    generate: ImageGenerator,
+    supporting: int = 4,
+    keep: int = 3,
+    base_seed: int = 1000,
+) -> ImageryManifest:
+    """Generate a hero + supporting set, auto-curate, and persist the manifest.
+
+    This is the loop's imagery leg made self-sufficient: it builds cohesive briefs
+    (shared style spec + seed family), runs ``generate`` for each (the live caller
+    passes the Pro image model), keeps the hero + the first ``keep``-1 supporting
+    assets (unattended curation), and writes ``manifest.json`` next to the PNGs —
+    ready for ``build_premium_site`` to stage into the page. ``generate`` is injected
+    so this is unit-testable without an API key.
+    """
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    briefs = build_image_briefs(packet, supporting=supporting, base_seed=base_seed)
+    assets: list[ImageAsset] = []
+    for brief in briefs:
+        image = generate(brief.prompt, brief.aspect_ratio, brief.seed)
+        path = out_dir / f"{brief.id}.png"
+        image.save(path)
+        assets.append(
+            ImageAsset(
+                id=brief.id,
+                role=brief.role,
+                path=str(path),
+                provenance=PROVENANCE_GENERATED,
+                prompt=brief.prompt,
+                seed=brief.seed,
+                selected=True,
+            )
+        )
+    # Auto-curate: hero first, then supporting in seed order; keep the top N.
+    ordered = sorted(assets, key=lambda a: (a.role != "hero", a.id))
+    keep_ids = {a.id for a in ordered[: max(1, keep)]}
+    assets = [ImageAsset(**{**a.to_dict(), "selected": a.id in keep_ids}) for a in assets]
+    manifest = ImageryManifest(assets=assets)
+    manifest.save(out_dir / "manifest.json")
+    return manifest
 
 
 # --------------------------------------------------------------------------- #

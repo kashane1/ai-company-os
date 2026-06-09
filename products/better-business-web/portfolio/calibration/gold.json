@@ -1,5 +1,14 @@
 [
   {
+    "id": "flagship-med-spa-pass",
+    "expected": "good",
+    "note": "First flagship that cleared the gate live (87/100): full-bleed photographic hero, cohesive concept-led imagery, serif display, grounded copy, mint color world. A judge that rates THIS failing has drifted harsh.",
+    "screenshots": {
+      "desktop": "products/better-business-web/portfolio/calibration/flagship-med-spa-desktop.png",
+      "mobile": "products/better-business-web/portfolio/calibration/flagship-med-spa-mobile.png"
+    }
+  },
+  {
     "id": "legacy-luminous-dark",
     "expected": "bad",
     "note": "Legacy centered-stack template (headline+subhead+two buttons, 3 pricing cards). The $500 baseline — a judge that rates this passing has drifted.",
