@@ -29,8 +29,9 @@ def test_gold_corpus_is_well_formed_and_resolvable() -> None:
             assert (REPO / path).exists(), f"{sample['id']} references missing {path}"
 
 
-def test_corpus_can_catch_a_too_lenient_judge() -> None:
-    # Today every sample is below the five-figure bar (expected "bad"), so the corpus
-    # has teeth against a judge that rates generic work as passing.
+def test_corpus_is_two_sided() -> None:
+    # The corpus has teeth in both directions: known-"bad" catches a too-lenient
+    # judge; the first passing flagship (known-"good") catches a too-harsh one.
     samples = json.loads(GOLD.read_text())
     assert any(s["expected"] == "bad" for s in samples)
+    assert any(s["expected"] == "good" for s in samples)

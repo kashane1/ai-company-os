@@ -72,6 +72,7 @@ def cmd_run(
     max_iters: int,
     max_seconds: float | None,
     no_improve_patience: int | None,
+    imagery: bool = True,
 ) -> int:
     """The autonomous premium loop: build → shoot → judge → revise → repeat."""
 
@@ -87,6 +88,32 @@ def cmd_run(
     dist_dir = project_dir / "dist"
     motion_frames = 4  # scroll-frame captures so the judge can see motion
     judge_samples = 2  # median across N judge calls to damp variance on the gate
+
+    # Imagery leg: generate a concept-led set ONCE up front (reused across iterations)
+    # so the loop is self-sufficient and `imagery_art_direction` can actually clear.
+    # Skipped if a manifest already exists (cheap re-runs) or --no-imagery.
+    if imagery:
+        manifest_path = studio_dir(target) / "imagery" / "manifest.json"
+        if manifest_path.exists():
+            print(f"• reusing existing imagery manifest → {manifest_path}")
+        else:
+            from packages.tools.content_tools.gemini_images import (
+                GEMINI_IMAGE_MODEL_PRO,
+                generate_image,
+            )
+            from packages.web.imagery import generate_imagery_set
+
+            def _gen(prompt: str, aspect_ratio: str, seed: int):
+                return generate_image(
+                    prompt, aspect_ratio=aspect_ratio, model=GEMINI_IMAGE_MODEL_PRO, seed=seed
+                )
+
+            print("• generating concept-led imagery (Gemini Pro)…")
+            try:
+                generate_imagery_set(packet, manifest_path.parent, generate=_gen)
+                print("✓ imagery generated + auto-curated")
+            except Exception as exc:  # never let imagery failure abort the build
+                print(f"! imagery generation failed ({exc}); building without it", file=sys.stderr)
 
     def capture() -> dict[str, str]:
         capture_screenshots(dist_dir, target, frames=motion_frames)
@@ -168,6 +195,11 @@ def main(argv: list[str] | None = None) -> int:
         default=2,
         help="halt after N rounds with no gain over the best build (plateau; default 2)",
     )
+    p_run.add_argument(
+        "--no-imagery",
+        action="store_true",
+        help="skip concept-led imagery generation (build without photography)",
+    )
 
     p_judge = sub.add_parser("judge", help="score the build's screenshots with Gemini")
     p_judge.add_argument("--target", required=True)
@@ -184,6 +216,7 @@ def main(argv: list[str] | None = None) -> int:
             max_iters=args.max_iters,
             max_seconds=args.max_seconds,
             no_improve_patience=args.no_improve_patience,
+            imagery=not args.no_imagery,
         )
     if args.command == "judge":
         return cmd_judge(args.target, args.out)
