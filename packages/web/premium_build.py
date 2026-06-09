@@ -31,7 +31,11 @@ import shutil
 from collections.abc import Callable
 from pathlib import Path
 
-from packages.web.blocks_composer import plan_composition, render_index_astro
+from packages.web.blocks_composer import (
+    duplicate_sections,
+    plan_composition,
+    render_index_astro,
+)
 from packages.web.build import BuildResult, CommandRunner, build_site, subprocess_runner
 from packages.web.design_loop import (
     BudgetGuard,
@@ -206,6 +210,11 @@ def build_premium_site(
     )
     images = _stage_images(project_dir.parent, project_dir)
     composition = plan_composition(packet, images=images, variant=variant)
+    # Structural defect gate: a duplicated section (e.g. the hero rendered twice) is a
+    # hard build failure, not something to leave for the taste judge to maybe notice.
+    defects = duplicate_sections(composition)
+    if defects:
+        raise ValueError("duplicate sections in composition: " + "; ".join(defects))
     (project_dir / "src" / "pages" / "index.astro").write_text(
         render_index_astro(
             composition,

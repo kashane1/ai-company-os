@@ -55,3 +55,26 @@ def test_derive_content_uses_conversion_copy() -> None:
     assert content["hero"]["primaryCta"] == "Book your visit"
     assert content["cta"]["cta"] == "Book your visit"
     assert "homeowners" in content["hero"]["subhead"]
+
+
+def test_band_headline_is_distinct_from_the_hero_headline() -> None:
+    # Guards the duplicate-hero bug at the copy layer: the full-bleed band must never
+    # echo the hero headline.
+    two_clause = generate_conversion_copy(
+        _packet("book appointments")  # concept "precision you can see; the calm craftsman"
+    )
+    assert two_clause["band_headline"] != two_clause["headline"]
+    assert two_clause["band_headline"].lower() != two_clause["headline"].lower()
+
+    # Even a single-clause concept (no ";") gets a distinct band line, not a repeat.
+    from packages.web.design_studio import WebsiteDesignRequest, build_design_studio_packet
+
+    single = generate_conversion_copy(
+        build_design_studio_packet(
+            WebsiteDesignRequest(
+                site_name="Acme", business_category="plumbing", audience="homeowners",
+                goal="book jobs", concept_statement="one bold idea", evidence=["licensed & insured"],
+            )
+        )
+    )
+    assert single["band_headline"].lower() != single["headline"].lower()

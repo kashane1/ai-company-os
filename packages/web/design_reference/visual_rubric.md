@@ -89,7 +89,10 @@ Judge the top viewport alone. Would it stop a scroll on Dribbble?
 - **5** A color world with a point of view; deliberate light/dark; accent deployed with restraint for emphasis.
 
 ### `layout_composition` — varied rhythm, not a stacked template?
-- **0–1** Identical full-width centered blocks top to bottom.
+- **Defect cap:** if any section is a near-duplicate of another (the same hero
+  image or headline shown twice down the page), score **2 or lower** and say so —
+  a repeated section is a build defect, not "rhythm".
+- **0–1** Identical full-width centered blocks top to bottom; or a section repeated.
 - **2–3** Mostly uniform cards/grids; little asymmetry or spatial interest.
 - **4** Varied section rhythm — asymmetry, bento/editorial moments, deliberate whitespace, alignment to a real grid.
 - **5** Composition carries meaning; intentional asymmetry/overlap on a disciplined baseline grid; mobile recomposed, not just reflowed.

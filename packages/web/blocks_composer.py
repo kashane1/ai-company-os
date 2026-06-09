@@ -136,6 +136,33 @@ def plan_composition(
     return Composition(site_name=packet.site_name, archetype=archetype, blocks=blocks)
 
 
+def duplicate_sections(composition: Composition) -> list[str]:
+    """Blocks that render a near-duplicate of another (same image AND/OR headline).
+
+    A structural defect detector — the v2/early-v3 composer shipped FullBleedMedia
+    reusing the hero's image + headline, so the page rendered the hero twice and the
+    taste judge didn't flag it. This makes that defect deterministically catchable.
+    """
+
+    by_image: dict[str, str] = {}
+    by_headline: dict[str, str] = {}
+    defects: list[str] = []
+    for block in composition.blocks:
+        image = block.data.get("image")
+        headline = str(block.data.get("headline") or "").strip().lower()
+        if image:
+            if image in by_image:
+                defects.append(f"{block.component} reuses the image from {by_image[image]}")
+            else:
+                by_image[image] = block.component
+        if headline:
+            if headline in by_headline:
+                defects.append(f"{block.component} repeats the headline of {by_headline[headline]}")
+            else:
+                by_headline[headline] = block.component
+    return defects
+
+
 def _variant_index(packet: DesignStudioPacket, n: int) -> int:
     """A deterministic variant choice from the concept (not the seed hue)."""
 
@@ -212,10 +239,14 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
             ],
         },
         "fullbleed": {
-            "image": hero_img or support(0),
-            "alt": f"{name} — {concept}" if concept else name,
+            # A DISTINCT image (a supporting shot, never the hero) + a DISTINCT band
+            # headline — so this never renders as a duplicate of CinematicHero. Falls
+            # back to no image (the block's tinted-accent panel) rather than reusing
+            # the hero photo.
+            "image": support(0),
+            "alt": f"{name} — {copy['band_headline']}",
             "kicker": packet.business_category.title(),
-            "headline": headline,
+            "headline": copy["band_headline"],
             "cta": copy["primary_cta"],
         },
         "cta": {

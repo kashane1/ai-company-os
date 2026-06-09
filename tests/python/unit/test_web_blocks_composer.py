@@ -122,3 +122,34 @@ def test_render_embeds_valid_json_data() -> None:
     astro = render_index_astro(comp)
     # The serialized data round-trips as JSON (valid JS object literal in the prop).
     assert json.dumps(hero.data) in astro
+
+
+def test_no_duplicate_sections_when_fullbleed_is_present() -> None:
+    # Regression: the hero and the full-bleed band must NOT share an image or headline
+    # (the bug that rendered the hero twice). variant=1 forces the FullBleedMedia plan.
+    from packages.web.blocks_composer import duplicate_sections
+
+    images = {"hero": "/img/hero.png", "supporting": ["/img/s1.png", "/img/s2.png"]}
+    comp = plan_composition(CINEMATIC, images=images, variant=1)
+    assert "FullBleedMedia" in [b.component for b in comp.blocks]
+    assert duplicate_sections(comp) == []
+    hero = next(b for b in comp.blocks if b.component == "CinematicHero")
+    band = next(b for b in comp.blocks if b.component == "FullBleedMedia")
+    assert hero.data["image"] != band.data["image"]
+    assert hero.data["headline"] != band.data["headline"]
+
+
+def test_duplicate_sections_detects_a_repeated_hero() -> None:
+    from packages.web.blocks_composer import BlockSpec, Composition, duplicate_sections
+
+    comp = Composition(
+        site_name="X",
+        archetype="gallery-led",
+        blocks=[
+            BlockSpec("CinematicHero", {"image": "/img/h.png", "headline": "Same line"}),
+            BlockSpec("FullBleedMedia", {"image": "/img/h.png", "headline": "Same line"}),
+        ],
+    )
+    defects = duplicate_sections(comp)
+    assert any("reuses the image" in d for d in defects)
+    assert any("repeats the headline" in d for d in defects)
