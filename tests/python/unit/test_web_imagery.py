@@ -126,3 +126,24 @@ def test_generate_imagery_set_curates_and_writes_manifest(tmp_path) -> None:
     assert any(a.role == "hero" and a.selected for a in manifest.assets)
     assert (tmp_path / "manifest.json").exists()
     assert (tmp_path / "hero.png").exists()
+
+
+def test_imagery_direction_steers_hero_and_style() -> None:
+    # The art-direction string drives the hero composition (instead of the generic
+    # "composed scene") and is carried through the shared style spec for the whole set.
+    from packages.web.design_studio import WebsiteDesignRequest, build_design_studio_packet
+    from packages.web.imagery import build_image_briefs, style_spec
+
+    packet = build_design_studio_packet(
+        WebsiteDesignRequest(
+            site_name="Pelican & Lime",
+            business_category="fish taco restaurant",
+            audience="beachgoers",
+            goal="crave",
+            imagery_direction="an abundant overhead flat-lay of fresh fish tacos",
+        )
+    )
+    assert "overhead flat-lay" in style_spec(packet)
+    hero = build_image_briefs(packet)[0]
+    assert "overhead flat-lay" in hero.prompt
+    assert "composed scene" not in hero.prompt

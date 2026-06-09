@@ -259,6 +259,19 @@ def _color_roles(packet: DesignStudioPacket, archetype: str, *, is_dark: bool) -
         border = _hsl(base_h, 0.20, 0.88)
         accent = base.accent
 
+    # Explicit accent override (warm-monochrome / muted art directions): when the
+    # packet names an accent, use it directly instead of the derived complement, so a
+    # brand accent that lives in the canvas's own colour family (cream + terracotta,
+    # stone + sage) isn't replaced by a contrasting pop. All AA-safe variants below
+    # (accent-strong / accent-text / accent-cta / on-accent) are recomputed from it.
+    explicit_accent = packet.accent.strip()
+    if explicit_accent.startswith("#"):
+        try:
+            parse_color(explicit_accent)
+            accent = explicit_accent
+        except ValueError:
+            pass
+
     accent_strong = _shift_l(accent, -0.10)
     # Accent used AS TEXT (eyebrow, index numerals, small marks) on the canvas needs
     # its own lightness-adjusted variant: the brand accent sits mid-tone for a vivid

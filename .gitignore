@@ -48,3 +48,6 @@ xcuserdata/
 
 # Local Netlify folder
 .netlify
+
+# Throwaway workspace (reference moodboards, one-off capture scripts)
+scratch/
