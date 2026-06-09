@@ -95,6 +95,21 @@ a { color: inherit; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* ---- Custom cursor (v3, fine pointers only; JS adds .has-cursor) ---- */
+.cursor-dot, .cursor-ring {
+  position: fixed; top: 0; left: 0; z-index: 10000; pointer-events: none;
+  border-radius: 50%; translate: -50% -50%; mix-blend-mode: difference;
+}
+.cursor-dot { width: 7px; height: 7px; background: var(--ink); }
+.cursor-ring {
+  width: 34px; height: 34px; border: 1px solid var(--ink);
+  transition: width .25s ease, height .25s ease, opacity .25s ease; opacity: 0.6;
+}
+.cursor-ring.is-hot { width: 56px; height: 56px; opacity: 0.9; }
+@media (hover: hover) and (pointer: fine) {
+  html.has-cursor, html.has-cursor a, html.has-cursor button, html.has-cursor .btn { cursor: none; }
+}
+
 /* ---- Reveal baseline: visible by default; JS opts elements into animation ---- */
 [data-reveal] { opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {

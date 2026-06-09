@@ -19,6 +19,7 @@ import hashlib
 import json
 from dataclasses import dataclass, field
 
+from packages.web.copy import generate_conversion_copy
 from packages.web.design_studio import DesignStudioPacket
 
 # Component name -> import path (relative to src/pages/index.astro).
@@ -164,8 +165,9 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
 
     name = packet.site_name
     concept = packet.concept_statement.split(";")[0].strip().rstrip(".")
-    headline = concept[:1].upper() + concept[1:] if concept else f"{name}"
-    proof = [e for e in packet.evidence if e.strip()][:6]
+    copy = generate_conversion_copy(packet)  # grounded conversion copy (Phase 4)
+    headline = str(copy["headline"])
+    proof = list(copy["proof_points"])
     images = images or {}
     hero_img = images.get("hero")
     supporting = list(images.get("supporting", []))
@@ -177,17 +179,17 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
         "hero": {
             "eyebrow": packet.business_category.title(),
             "headline": headline,
-            "subhead": f"{name} for {packet.audience} — {packet.goal}.",
-            "primaryCta": "Get in touch",
-            "secondaryCta": "See the work",
+            "subhead": copy["subhead"],
+            "primaryCta": copy["primary_cta"],
+            "secondaryCta": copy["secondary_cta"],
             "image": hero_img,
             "imageAlt": f"{name} — {concept}" if concept else name,
         },
         "split": {
             "index": "01",
-            "heading": "Built around what actually matters here",
+            "heading": copy["split_heading"],
             "body": packet.goal.capitalize() + ".",
-            "points": proof or ["Add proof points from real business evidence."],
+            "points": proof,
         },
         "bento": {
             "heading": "The work, up close",
@@ -214,12 +216,12 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
             "alt": f"{name} — {concept}" if concept else name,
             "kicker": packet.business_category.title(),
             "headline": headline,
-            "cta": "Get in touch",
+            "cta": copy["primary_cta"],
         },
         "cta": {
-            "headline": "Ready when you are",
-            "subhead": f"Get in touch with {name} today.",
-            "cta": "Get in touch",
+            "headline": copy["cta_headline"],
+            "subhead": copy["cta_subhead"],
+            "cta": copy["primary_cta"],
         },
     }
 

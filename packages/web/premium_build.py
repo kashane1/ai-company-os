@@ -114,7 +114,9 @@ def apply_brief(
         seed = _rotate_hue(_seed_of(packet), 47.0 * (attempt + 1))
         changes["concept_palette"] = seed
 
-    if "visual_thesis" in failing:
+    # A weak thesis or weak conversion both reshape via a sharper concept (the
+    # concept drives the generated headline + CTA copy).
+    if failing & {"visual_thesis", "conversion_strength"}:
         changes["concept_statement"] = _sharpen(packet.concept_statement, attempt)
 
     if not changes:

@@ -345,6 +345,24 @@ output judge ≥4 on art-direction and layout; two same-archetype builds differ.
 
 ### Phase 4 — Motion choreography + conversion copy
 **Goal:** spend the loaded libraries; make copy a judged artifact.
+
+> **Build status (2026-06-08) — SHIPPED & verified (1348 tests green).** Motion is
+> now spent and lifecycle-safe, and copy is a real generated artifact: `motion.ts`
+> is rewritten boot()/shutdown() lifecycle-safe (survives view-transition nav,
+> no-ops to a single boot on MPA — R3's "highest-value fix"); `scroll.ts` reads the
+> previously-dead `--motion-preset` token and varies stagger/ease/parallax per
+> archetype, returning a teardown handle; a new `cursor.ts` adds a custom cursor +
+> magnetic CTAs (fine-pointer only, fully torn down). New `packages/web/copy.py`
+> derives **grounded conversion copy** from `packet.evidence`/goal (intent-matched
+> CTA — "Book your visit" / "Get a free quote" — never fabricated claims); the
+> composer uses it for hero/split/CTA/full-bleed slots, and `apply_brief` treats a
+> `conversion_strength` fail as a copy lever. **Deferred (need a live build to
+> verify; the generated site is single-page):** wiring `<ViewTransitions>` into the
+> generated page (motion.ts is already lifecycle-*ready*), GSAP SplitText per-char
+> reveals (needs a gsap 3.13 bump), and an explicit pin+scrub scene (StickyProcess
+> uses CSS `position:sticky` today). TS/Astro changes are verified by structure +
+> the offline smoke, not a browser (no npm in this environment).
+
 **Deliverables:**
 - `BaseLayout.astro` + `<ClientRouter />` + lifecycle-safe `gsap.context()`
   teardown; wire `--motion-preset` to distinct choreography; SplitText reveals; one
