@@ -46,8 +46,14 @@ STRONG_SCORES = [
     {"category": "hero_impact", "score": 5, "note": "presentation-worthy hero"},
     {"category": "imagery_art_direction", "score": 4, "note": "cohesive set"},
     {"category": "typography", "score": 4, "note": "distinctive display"},
+    {"category": "color_system", "score": 4, "note": "dominant + sharp accent"},
     {"category": "layout_composition", "score": 4, "note": "varied rhythm"},
+    {"category": "whitespace_depth", "score": 4, "note": "breathes, real depth"},
+    {"category": "motion_quality", "score": 4, "note": "cohesive scroll choreography"},
+    {"category": "signature_moment", "score": 4, "note": "memorable hero moment"},
+    {"category": "conversion_strength", "score": 4, "note": "clear offer + CTA"},
     {"category": "copy_specificity", "score": 5, "note": "evidence-grounded"},
+    {"category": "ai_house_style", "score": 5, "note": "no AI tells"},
 ]
 
 WEAK_SCORES = [
@@ -55,8 +61,14 @@ WEAK_SCORES = [
     {"category": "hero_impact", "score": 3, "note": "forgettable"},
     {"category": "imagery_art_direction", "score": 2, "note": "no system"},
     {"category": "typography", "score": 3, "note": "safe sans"},
+    {"category": "color_system", "score": 3, "note": "timid palette"},
     {"category": "layout_composition", "score": 3, "note": "uniform cards"},
+    {"category": "whitespace_depth", "score": 2, "note": "flat, coplanar"},
+    {"category": "motion_quality", "score": 2, "note": "no real motion"},
+    {"category": "signature_moment", "score": 2, "note": "nothing memorable"},
+    {"category": "conversion_strength", "score": 3, "note": "buried CTA"},
     {"category": "copy_specificity", "score": 4, "note": "grounded enough"},
+    {"category": "ai_house_style", "score": 2, "note": "aurora + 3-icon grid"},
 ]
 
 

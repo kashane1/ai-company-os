@@ -44,11 +44,15 @@ def _scores(values: dict[str, int]) -> list[VisualScore]:
 
 WEAK = {
     "visual_thesis": 2, "hero_impact": 3, "imagery_art_direction": 2,
-    "typography": 3, "layout_composition": 3, "copy_specificity": 4,
+    "typography": 3, "color_system": 3, "layout_composition": 3,
+    "whitespace_depth": 2, "motion_quality": 2, "signature_moment": 2,
+    "conversion_strength": 3, "copy_specificity": 4, "ai_house_style": 2,
 }
 STRONG = {
     "visual_thesis": 5, "hero_impact": 5, "imagery_art_direction": 4,
-    "typography": 4, "layout_composition": 4, "copy_specificity": 5,
+    "typography": 4, "color_system": 4, "layout_composition": 4,
+    "whitespace_depth": 4, "motion_quality": 4, "signature_moment": 4,
+    "conversion_strength": 4, "copy_specificity": 5, "ai_house_style": 5,
 }
 
 

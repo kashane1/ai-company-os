@@ -77,6 +77,7 @@ def cmd_run(
 
     from scripts.agency.design_studio import (  # local import (script module)
         capture_screenshots,
+        frame_paths,
         request_from_spec,
         studio_dir,
     )
@@ -84,15 +85,27 @@ def cmd_run(
     packet = build_design_studio_packet(request_from_spec(spec))  # type: ignore[arg-type]
     project_dir = Path(target) / "site"
     dist_dir = project_dir / "dist"
+    motion_frames = 4  # scroll-frame captures so the judge can see motion
+    judge_samples = 2  # median across N judge calls to damp variance on the gate
 
     def capture() -> dict[str, str]:
-        capture_screenshots(dist_dir, target)
+        capture_screenshots(dist_dir, target, frames=motion_frames)
         shots_dir = studio_dir(target) / "screenshots"
-        return {
+        shots = {
             name: str(shots_dir / f"{name}.png")
             for name in ("desktop", "mobile")
             if (shots_dir / f"{name}.png").exists()
         }
+        # Carry motion frames alongside the stills under frame* keys; the judge
+        # closure splits them out, and review_visual_quality ignores extra keys.
+        for i, fp in enumerate(frame_paths(target), start=1):
+            shots[f"frame{i}"] = fp
+        return shots
+
+    def judge(shots: dict[str, str]) -> list:
+        stills = {k: v for k, v in shots.items() if k in ("desktop", "mobile")}
+        frames = [v for k, v in sorted(shots.items()) if k.startswith("frame")]
+        return gemini_vision_judge(stills, frames=frames, samples=judge_samples)
 
     budget = BudgetGuard(max_seconds=max_seconds) if max_seconds else None
     result = run_premium_loop(
@@ -100,7 +113,7 @@ def cmd_run(
         project_dir,
         runner=subprocess_runner(),
         capture=capture,
-        judge=gemini_vision_judge,
+        judge=judge,
         target=Path(target),
         max_iters=max_iters,
         no_improve_patience=no_improve_patience,

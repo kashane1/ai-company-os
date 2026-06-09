@@ -177,11 +177,13 @@ def render_packet_md(packet: DesignStudioPacket) -> str:
 # --------------------------------------------------------------------------- #
 # Screenshots
 # --------------------------------------------------------------------------- #
-def shoot_commands(dist: str | Path, target: str | Path) -> list[dict]:
+def shoot_commands(dist: str | Path, target: str | Path, *, frames: int = 0) -> list[dict]:
     """The desktop + mobile capture commands for `scripts/web/shoot.mjs`.
 
     Returned as structured dicts so callers (and tests) can inspect them before
-    anything shells out to a browser.
+    anything shells out to a browser. ``frames`` > 0 adds a motion-capture pass to
+    the desktop command (`<name>.frameK.png`), so the judge can see scroll
+    choreography the reduced-motion static shot can't.
     """
 
     out_dir = _screenshots_dir(target)
@@ -196,21 +198,35 @@ def shoot_commands(dist: str | Path, target: str | Path) -> list[dict]:
             "--width",
             str(width),
         ]
+        if frames > 0 and name == "desktop":
+            argv += ["--frames", str(frames)]
         commands.append({"name": name, "width": width, "argv": argv})
     return commands
 
 
-def capture_screenshots(dist: str | Path, target: str | Path) -> list[Path]:
+def capture_screenshots(dist: str | Path, target: str | Path, *, frames: int = 0) -> list[Path]:
     """Run the capture commands; return the PNG paths that now exist."""
 
     _screenshots_dir(target).mkdir(parents=True, exist_ok=True)
-    for cmd in shoot_commands(dist, target):
+    for cmd in shoot_commands(dist, target, frames=frames):
         subprocess.run(cmd["argv"], check=True, cwd=REPO)
     return [
         _screenshots_dir(target) / f"{name}.png"
         for name in VIEWPORTS
         if (_screenshots_dir(target) / f"{name}.png").exists()
     ]
+
+
+def frame_paths(target: str | Path, *, name: str = "desktop") -> list[str]:
+    """Ordered motion scroll-frame PNGs captured under the screenshots dir."""
+
+    shots = _screenshots_dir(target)
+    out: list[str] = []
+    k = 1
+    while (shots / f"{name}.frame{k}.png").exists():
+        out.append(str(shots / f"{name}.frame{k}.png"))
+        k += 1
+    return out
 
 
 def _screenshot_map(target: str | Path) -> dict[str, str]:

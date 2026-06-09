@@ -37,19 +37,25 @@ import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 
-// Pull `--width <px>` / `--width=<px>` out of argv; everything else is positional.
+// Pull `--width <px>` / `--frames <n>` out of argv; everything else is positional.
+// --frames N additionally captures N scroll-position frames with MOTION ENABLED
+// (`<name>.frameK.png`), so the independent judge can see scroll choreography /
+// reveals — the static full-page shot runs reduced-motion and can't show motion.
 const rawArgs = process.argv.slice(2);
 let widthArg = 1440;
+let framesArg = 0;
 const positional = [];
 for (let i = 0; i < rawArgs.length; i++) {
   const a = rawArgs[i];
   if (a === "--width") { widthArg = parseInt(rawArgs[++i], 10); continue; }
   if (a.startsWith("--width=")) { widthArg = parseInt(a.slice(8), 10); continue; }
+  if (a === "--frames") { framesArg = parseInt(rawArgs[++i], 10); continue; }
+  if (a.startsWith("--frames=")) { framesArg = parseInt(a.slice(9), 10); continue; }
   positional.push(a);
 }
 const [distDir, outDir, ...routeArgs] = positional;
-if (!distDir || !outDir || routeArgs.length === 0 || !Number.isFinite(widthArg)) {
-  console.error("usage: node shoot.mjs <distDir> <outDir> <route:name> [route:name ...] [--width <px>]");
+if (!distDir || !outDir || routeArgs.length === 0 || !Number.isFinite(widthArg) || !Number.isFinite(framesArg)) {
+  console.error("usage: node shoot.mjs <distDir> <outDir> <route:name> [route:name ...] [--width <px>] [--frames <n>]");
   process.exit(1);
 }
 
@@ -148,6 +154,35 @@ for (const arg of routeArgs) {
   const outFile = path.join(outDir, `${name}.png`);
   fs.writeFileSync(outFile, buf);
   console.log(`✓ ${route} → ${outFile}`);
+
+  // Motion pass: capture N scroll-position frames with motion ENABLED so the judge
+  // can see scroll choreography / reveals / pinned sections (the static shot above
+  // is reduced-motion and shows none of it). Sticky/fixed are left intact here.
+  if (framesArg > 0) {
+    const mctx = await browser.newContext({
+      viewport: { width: VW, height: VH },
+      deviceScaleFactor: 1,
+      // no reducedMotion → animations + scroll-driven reveals run for real.
+    });
+    const mpage = await mctx.newPage();
+    await mpage.goto(base + route, { waitUntil: "load" });
+    await mpage.evaluate(() => document.fonts && document.fonts.ready).catch(() => {});
+    await mpage.waitForTimeout(600);
+    const scrollRange = await mpage.evaluate(() =>
+      Math.max(0, Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight));
+    for (let k = 0; k < framesArg; k++) {
+      const y = framesArg === 1 ? 0 : Math.round((scrollRange * k) / (framesArg - 1));
+      await mpage.evaluate((yy) => window.scrollTo(0, yy), y);
+      // Short settle so reveal animations are mid/partially played (motion is visible)
+      // but the frame isn't a blur — enough for the judge to read choreography.
+      await mpage.waitForTimeout(280);
+      const frameBuf = await mpage.screenshot({ clip: { x: 0, y: 0, width: VW, height: VH } });
+      const frameFile = path.join(outDir, `${name}.frame${k + 1}.png`);
+      fs.writeFileSync(frameFile, frameBuf);
+      console.log(`  ↳ frame ${k + 1}/${framesArg} → ${frameFile}`);
+    }
+    await mctx.close();
+  }
 }
 
 await browser.close();

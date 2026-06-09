@@ -29,10 +29,37 @@ REQUIRED_SCREENSHOTS = ["desktop", "mobile"]
 VISUAL_MIN_OVERALL = 80
 VISUAL_SCORE_FLOOR = 4
 
+# The v3 rubric the independent judge scores (single source of truth — the Gemini
+# judge imports this). v2 had 6 static-screenshot categories; v3 adds the
+# dimensions the judge was blind to: a color system, whitespace/depth, MOTION
+# quality + a signature moment (scored from scroll-frame captures, not a frozen
+# still), conversion strength, and an anti-"AI-house-style" check (the cheap/AI
+# tells). Performance + a11y stay in the technical gate (ux_audit), not here — this
+# judge scores taste + motion. Anchors live in design_reference/visual_rubric.md.
+RUBRIC_CATEGORIES = [
+    "visual_thesis",
+    "hero_impact",
+    "imagery_art_direction",
+    "typography",
+    "color_system",
+    "layout_composition",
+    "whitespace_depth",
+    "motion_quality",
+    "signature_moment",
+    "conversion_strength",
+    "copy_specificity",
+    "ai_house_style",
+]
+
+# A single 3 in any of these fails the build (no halo-averaging past a fatal flaw).
+# ai_house_style is critical in v3: a page full of the cheap/AI tells must fail even
+# if everything else scores well — that template-sameness is exactly what the
+# premium track exists to reject.
 CRITICAL_CATEGORIES = {
     "visual_thesis": "design_studio_no_visual_thesis",
     "hero_impact": "design_studio_weak_hero",
     "imagery_art_direction": "design_studio_weak_imagery",
+    "ai_house_style": "design_studio_ai_house_style",
 }
 
 

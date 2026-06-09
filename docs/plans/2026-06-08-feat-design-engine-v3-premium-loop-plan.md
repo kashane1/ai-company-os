@@ -274,6 +274,24 @@ against fakes in CI, then once live with a real `GEMINI_API_KEY`.
 
 ### Phase 2 — Make the judge see what it certifies
 **Goal:** the gate can perceive motion, performance, and the AI-house-style tells.
+
+> **Build status (2026-06-08) — SHIPPED & verified (1338 tests green).** The judge now
+> *sees motion* and grades against the repo's rubric: `shoot.mjs --frames N` captures
+> motion-enabled scroll frames; `gemini_judge.py` injects the full `visual_rubric.md`
+> anchors, ingests the scroll frames, runs low-temp with an N-sample per-category
+> median, and scores the **v3 12-dimension rubric** (single source of truth:
+> `design_studio.RUBRIC_CATEGORIES`) — adding `color_system`, `whitespace_depth`,
+> `motion_quality`, `signature_moment`, `conversion_strength`, and a critical
+> `ai_house_style` anti-tell. Gold corpus at
+> `products/better-business-web/portfolio/calibration/gold.json` (starter set all
+> known-"bad" — nothing in-repo clears the bar yet — which catches a too-lenient
+> judge; "good" exemplars land with the first flagship pass). **Deviations from §7,
+> by design:** equal per-category floor + critical gate (stricter, less fragile)
+> instead of 40/30/20/10 weighting; performance + a11y stay in `ux_audit` so the
+> Gemini judge is a pure taste+motion judge (no fragile Lighthouse-in-Gemini); and
+> scores-provenance stamping is deferred (the autonomous `run` path calls the judge
+> in-process and can't be hand-gamed).
+
 **Deliverables:**
 - Un-freeze capture: extend `scripts/web/shoot.mjs` to record a full-motion
   scroll-through video (keep a reduced-motion static pass for a11y).
