@@ -45,6 +45,15 @@ _TYPE: dict[str, tuple[float, str, str, str]] = {
     "classic-custom": (1.25, "Fraunces", "Inter", "Spline Sans Mono"),
 }
 
+# Archetype -> motion direction (read by the motion layer to tune choreography).
+_MOTION: dict[str, str] = {
+    "service-area-cinematic": "cinematic",
+    "product-led": "precise",
+    "gallery-led": "gallery",
+    "editorial-visit": "editorial",
+    "classic-custom": "calm",
+}
+
 # Archetype -> opt-in signature surface treatments.
 _TREATMENTS: dict[str, list[str]] = {
     "service-area-cinematic": ["grain", "glow", "hairline"],
@@ -118,6 +127,7 @@ class DesignSystem:
     type_scale: list[TypeStep]
     space_unit_rem: float
     radius_rem: float
+    motion_preset: str = "calm"
     treatments: list[str] = field(default_factory=list)
 
     # ---- W3C DTCG token document (interop artifact) -----------------------
@@ -158,6 +168,7 @@ class DesignSystem:
         lines.append(f"  --type-ratio: {self.type_ratio};")
         lines.append(f"  --space-unit: {self.space_unit_rem}rem;")
         lines.append(f"  --radius: {self.radius_rem}rem;")
+        lines.append(f'  --motion-preset: "{self.motion_preset}";')
         for step in self.type_scale:
             lines.append(f"  {step.name}: {step.to_css_clamp()};")
         for treatment in self.treatments:
@@ -185,6 +196,7 @@ def synthesize_design_system(packet: DesignStudioPacket) -> DesignSystem:
         type_scale=_type_scale(ratio),
         space_unit_rem=0.5,
         radius_rem=0.75 if archetype != "product-led" else 0.5,
+        motion_preset=_MOTION.get(archetype, "calm"),
         treatments=list(_TREATMENTS.get(archetype, ["hairline"])),
     )
 

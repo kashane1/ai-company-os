@@ -33,7 +33,9 @@ import "../styles/global.css";
 
   <main id="main">
     <!-- Cinematic hero -->
-    <section class="section glow">
+    <section class="section glow" data-hero style="position:relative;overflow:hidden">
+      <canvas data-hero-canvas aria-hidden="true"
+              style="position:absolute;inset:0;width:100%;height:100%;z-index:-1;opacity:0.9"></canvas>
       <div class="container" style="max-width:54rem">
         <p class="eyebrow" data-reveal>{{EYEBROW}}</p>
         <h1 data-reveal style="margin-top:1rem">{{HERO_HEADLINE}}</h1>

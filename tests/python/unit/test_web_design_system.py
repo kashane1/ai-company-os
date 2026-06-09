@@ -104,6 +104,14 @@ def test_dtcg_document_is_valid_two_tier() -> None:
     assert re.search(r"\{[a-z0-9.-]+\}", flat), "expected DTCG aliases for tiering"
 
 
+def test_motion_preset_is_archetype_driven_and_exposed() -> None:
+    dark = synthesize_design_system(CINEMATIC)
+    light = synthesize_design_system(GALLERY)
+    assert dark.motion_preset == "cinematic"
+    assert light.motion_preset == "gallery"
+    assert '--motion-preset: "cinematic"' in dark.to_css()
+
+
 def test_css_exposes_role_custom_properties() -> None:
     css = synthesize_design_system(CINEMATIC).to_css()
     for role in ("--canvas", "--ink", "--accent", "--on-accent", "--display-font", "--body-font"):
