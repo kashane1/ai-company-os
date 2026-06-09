@@ -33,31 +33,53 @@ for. The premium track adds real iteration cost on purpose.
    visual assets, references with takeaways, `imagery_mode`) and run
    `python scripts/agency/design_studio.py packet --target <dir> --spec <spec.json|->`.
    Read the generated `<dir>/design-studio/packet.md` — that's your art-direction
-   brief.
-3. **Build to the packet — via the design engine** (the premium surface):
+   brief and the persisted done-condition.
+
+### Path A — the autonomous loop (preferred; "run the premium factory")
+
+3. **Run the loop, one command:**
+   `python scripts/agency/design_loop.py run --target <dir> --spec <spec.json|->`.
+   This drives **build → shoot → JUDGE → parametric revise → repeat** by itself: it
+   synthesizes tokens, materializes the `astro-premium` stack, composes the page,
+   builds (`npm`), captures desktop/mobile, scores with the **independent Gemini
+   judge** (a different model family from the Claude builder), and on a fail applies
+   the revision brief *parametrically* and rebuilds — until the visual gate passes
+   or it halts to the best build (iteration cap / plateau / `--max-seconds` budget).
+   It **never auto-ships**: a pass requires founder sign-off. Needs `npm` +
+   `GEMINI_API_KEY`. Each iteration is checkpointed to `<dir>/design-studio/loop-log.jsonl`.
+4. **Read the result.** On halt-to-best, open `<dir>/design-studio/visual-review.json`
+   + the screenshots; the failing categories are the revision brief if you want to
+   refine by hand (Path B) before re-running.
+
+### Path B — manual / agent-guided (for hand-built path-B demos or refinement)
+
+3b. **Build to the packet — via the design engine:**
    - **Tokens:** `packages.web.design_system.synthesize_design_system(packet)` →
      write `design-system.css` (role-based, AA-gated, zoom-safe).
-   - **Stack:** materialize `scaffold_site(target, ctx, template="astro-premium")`
-     (Astro + GSAP/Lenis/Three motion).
+   - **Stack:** `packages.web.premium_build.build_premium_site(packet, <dir>/site)`
+     (or `scaffold_site(target, ctx, template="astro-premium")`).
    - **Layout:** `packages.web.blocks_composer.plan_composition(packet)` +
      `render_index_astro(...)` → a varied, archetype-driven page (not a stacked template).
-   - **Imagery:** `scripts/agency/generate_imagery.py` (brief→generate→select); for a
-     real client ship, founder-clear generated assets (`clear`) or swap for licensed.
+   - **Imagery:** `scripts/agency/generate_imagery.py` (brief→generate→select, or
+     `select --auto-curate N` for unattended); for a real client ship, founder-clear
+     generated assets (`clear`) or swap for licensed.
    - **Reference:** optionally fold a Dribbble/Awwwards read in with
      `scripts/agency/analyze_reference.py`.
    - For the legacy hand-built path (B) or quick demos, the bespoke playbook still applies.
-4. **Screenshot.**
+4b. **Screenshot.**
    `python scripts/agency/design_studio.py shoot --target <dir> --dist <distDir>`
    captures desktop (1440) + mobile (390) full-page PNGs.
-5. **Score against the rubric — with the independent judge.** Prefer
-   `python scripts/agency/design_loop.py judge --target <dir>` (Gemini vision scores
-   the screenshots — a different model family from the Claude builder, which
-   neutralizes self-preference) → writes `scores.json`. Or grade by hand per
+5b. **Score against the rubric — with the independent judge.** Prefer
+   `python scripts/agency/design_loop.py judge --target <dir>` (Gemini vision) →
+   writes `scores.json`. Or grade by hand per
    [`visual_rubric.md`](../../../packages/web/design_reference/visual_rubric.md)
    (grade down on doubt). Then
    `python scripts/agency/design_studio.py review --target <dir> --scores <dir>/design-studio/scores.json`.
-6. **Iterate until it passes.** A fail's notes are the revision brief — fix the
+6b. **Iterate until it passes.** A fail's notes are the revision brief — fix the
    build, re-shoot, re-score. Don't re-score the same pixels.
+
+### Both paths
+
 7. **Then the technical gates.** Only once the visual review passes, hand to the
    normal web gate (`validate_web_dist`) + UX audit, then the gated deploy lane.
 

@@ -16,6 +16,7 @@ covered without a browser or an API.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -48,6 +49,34 @@ class RevisionBrief:
             "notes": self.notes,
             "overall": self.overall,
         }
+
+
+@dataclass
+class BudgetGuard:
+    """A cost ceiling for a long/unattended loop run.
+
+    The orchestrator asks ``allows(index)`` before each build; once a cap is hit it
+    halts and surfaces the best build so far (it never abandons work in progress).
+    ``clock`` is injectable so wall-clock budgets are deterministically testable.
+    """
+
+    max_iters: int | None = None
+    max_seconds: float | None = None
+    clock: Callable[[], float] = time.monotonic
+    _start: float | None = field(default=None, init=False, repr=False)
+
+    def allows(self, index: int) -> bool:
+        if self._start is None:
+            self._start = self.clock()
+        if self.max_iters is not None and index >= self.max_iters:
+            return False
+        if self.max_seconds is not None and (self.clock() - self._start) >= self.max_seconds:
+            return False
+        return True
+
+    @property
+    def reason(self) -> str:
+        return "budget_exhausted"
 
 
 @dataclass(frozen=True)
@@ -85,19 +114,33 @@ def run_design_loop(
     capture: Capture,
     judge: Judge,
     max_iters: int = 4,
+    no_improve_patience: int | None = None,
+    budget: BudgetGuard | None = None,
     on_progress: Callable[[Iteration], None] | None = None,
 ) -> LoopResult:
-    """Drive build -> capture -> judge -> revise until pass or the iteration cap.
+    """Drive build -> capture -> judge -> revise until pass or a stop condition.
 
-    Never auto-ships: a pass returns ``needs_signoff=True`` for the founder to
-    dispose. Non-convergence returns the best-scoring iteration. A judge or build
-    exception halts and returns the best result so far (graceful degradation).
+    Stop conditions, in order: a passing build (``needs_signoff=True`` — never
+    auto-ships); ``budget`` exhausted; ``no_improve_patience`` consecutive rounds
+    with no gain over the best so far (plateau detection — improvements plateau
+    after 1-2 rounds, so polishing past that invites the judge inflating a build
+    that isn't getting better); or the ``max_iters`` hard cap. On any of the
+    non-pass exits the **best-scoring** iteration is surfaced. A build/judge/capture
+    exception halts and degrades to the best result so far.
+
+    The next revision brief is derived from the **best** iteration's report, not the
+    latest — so a regression doesn't poison the chain (monotonic acceptance: the
+    loop always branches from its best build).
     """
 
     iterations: list[Iteration] = []
     brief: RevisionBrief | None = None
+    best: Iteration | None = None
+    stale = 0
 
     for i in range(max_iters):
+        if budget is not None and not budget.allows(i):
+            return _result(iterations, passed=False, halted_reason=budget.reason)
         try:
             build(i, brief)
             screenshots = capture()
@@ -114,7 +157,15 @@ def run_design_loop(
 
         if report.passed:
             return _result(iterations, passed=True)
-        brief = revision_brief(report)
+
+        if best is None or iteration.overall > best.overall:
+            best, stale = iteration, 0
+        else:
+            stale += 1
+            if no_improve_patience is not None and stale >= no_improve_patience:
+                return _result(iterations, passed=False, halted_reason="plateau")
+
+        brief = revision_brief(best.report)  # monotonic: branch from the best build
 
     return _result(iterations, passed=False, halted_reason="max_iters")
 

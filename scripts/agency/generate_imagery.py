@@ -90,9 +90,15 @@ def cmd_generate(target: str, seed: int | None) -> int:
     return 0
 
 
-def cmd_select(target: str, keep: list[str]) -> int:
+def cmd_select(target: str, keep: list[str] | None, auto_curate: int | None) -> int:
     manifest = ImageryManifest.load(_manifest_path(target))
-    keep_set = set(keep)
+    if auto_curate is not None:
+        # Unattended convergence: keep the hero + the first (N-1) supporting assets in
+        # manifest (seed) order, so the loop can run without a human/agent curator.
+        ordered = sorted(manifest.assets, key=lambda a: (a.role != "hero", a.id))
+        keep_set = {a.id for a in ordered[: max(1, auto_curate)]}
+    else:
+        keep_set = set(keep or [])
     manifest.assets = [
         ImageAsset(**{**a.to_dict(), "selected": a.id in keep_set}) for a in manifest.assets
     ]
@@ -144,7 +150,14 @@ def main(argv: list[str] | None = None) -> int:
 
     p_sel = sub.add_parser("select")
     p_sel.add_argument("--target", required=True)
-    p_sel.add_argument("--keep", required=True, help="JSON list of ids, or '-'")
+    p_sel.add_argument("--keep", default=None, help="JSON list of ids, or '-'")
+    p_sel.add_argument(
+        "--auto-curate",
+        type=int,
+        default=None,
+        metavar="N",
+        help="unattended: keep hero + first N-1 supporting assets (no curator needed)",
+    )
 
     p_clear = sub.add_parser("clear")
     p_clear.add_argument("--target", required=True)
@@ -161,7 +174,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "generate":
         return cmd_generate(args.target, args.seed)
     if args.command == "select":
-        return cmd_select(args.target, list(_read_json(args.keep)))  # type: ignore[arg-type]
+        if args.auto_curate is None and args.keep is None:
+            parser.error("select needs --keep <ids> or --auto-curate N")
+        keep = list(_read_json(args.keep)) if args.keep is not None else None  # type: ignore[arg-type]
+        return cmd_select(args.target, keep, args.auto_curate)
     if args.command == "clear":
         return cmd_clear(args.target, list(_read_json(args.ids)), args.by)  # type: ignore[arg-type]
     if args.command == "status":

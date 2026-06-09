@@ -846,9 +846,11 @@ skills:
     project_skill: .claude/skills/landing-page-build.md
 
   # Premium design track (opt-in, select builds only): art-direction packet →
-  # build → desktop/mobile screenshots → visual rubric review. Sits beside the
-  # web gate; rejects valid-but-generic pages. Entry: scripts/agency/design_studio.py
-  # over packages/web/design_studio.py.
+  # build → desktop/mobile screenshots → visual rubric review. The autonomous loop
+  # (build→judge→revise→repeat) is `scripts/agency/design_loop.py run` over
+  # packages/web/premium_build.py; the manual primitives are
+  # scripts/agency/design_studio.py over packages/web/design_studio.py. Sits beside
+  # the web gate; rejects valid-but-generic pages.
   - id: design-studio
     name: Design Studio
     path: canonical/design-studio/skill.md
