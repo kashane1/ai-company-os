@@ -6,6 +6,7 @@ The autonomous fleet loop *searches* the block library; this CLI is how the libr
 with the same independent Gemini judge the loop uses, and admit the survivors — each
 as an un-cleared generated block that a founder must clear before it can ship.
 
+  block_studio.py gen        --slot hero --archetype <a> --brief "..." [--generator claude|stitch] [--n 3] --out <dir>
   block_studio.py tournament --candidates <dir> --target <dir> [--keep 6] [--admit]
   block_studio.py clear      --target <dir> --id <block-id> --by <name>
   block_studio.py list       --target <dir>
@@ -178,6 +179,66 @@ def _admit_into_library(target: Path, candidates, admitted) -> None:
           f"{target} --id <id> --by <name>")
 
 
+def cmd_gen(
+    *, slot: str, archetype: str, brief: str, generator: str, n: int, out: str
+) -> int:
+    """Generate raw block designs, normalize each to tokenized Astro, write a
+    candidate dir ready for `tournament`. External keys are touched only here."""
+
+    from packages.tools.llm.client import OpenRouterClient
+    from packages.web.block_generators import GenerationRequest, claude_generator, stitch_generator
+    from packages.web.block_harness import sample_data_for
+    from packages.web.block_normalizer import normalize_block
+
+    # The slot's canonical data shape — so a generated block reads the same `data`
+    # fields the harness and the real composer supply (not an invented shape).
+    data_shape = json.dumps(sample_data_for(slot))
+
+    model = OpenRouterClient()
+    if generator == "claude":
+        gen = claude_generator(model)
+    elif generator == "stitch":
+        import httpx
+
+        from packages.web.block_generators import StitchClient
+
+        client = StitchClient()
+        gen = stitch_generator(client.call_tool, fetch=lambda u: httpx.get(u, timeout=60).text)
+    else:
+        print(f"unknown generator {generator}", file=sys.stderr)
+        return 2
+
+    raws = gen(GenerationRequest(slot=slot, archetype=archetype, brief=brief, n=n))
+    out_dir = Path(out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    meta = []
+    cap = slot.capitalize()
+    for i, raw in enumerate(raws, start=1):
+        component = f"{raw.source.capitalize()}{cap}{i}"
+        norm = normalize_block(
+            raw.markup, slot=slot, component=component, model=model, data_shape=data_shape
+        )
+        (out_dir / f"{component}.astro").write_text(norm.astro)
+        meta.append(
+            {
+                "id": f"{raw.source}:{slot}-{i}",
+                "component": component,
+                "slot": slot,
+                "source": raw.source,
+                "license": raw.license,
+                "archetype_affinity": [archetype],
+                "prompt": raw.prompt,
+                "tokenization_issues": list(norm.issues),
+            }
+        )
+        flag = "clean" if not norm.issues else f"{len(norm.issues)} token issue(s)"
+        print(f"  • {component:18} ({raw.source}, {flag})")
+    (out_dir / "candidates.json").write_text(json.dumps(meta, indent=2) + "\n")
+    print(f"✓ {len(meta)} candidate(s) → {out_dir}")
+    print(f"  next: block_studio.py tournament --candidates {out_dir} --target <hub> --admit")
+    return 0
+
+
 def cmd_clear(target: str, block_id: str, by: str) -> int:
     library = _load_library(target)
     hit = next((e for e in library.entries if e.id == block_id), None)
@@ -215,6 +276,14 @@ def main(argv: list[str] | None = None) -> int:
     p_t.add_argument("--keep", type=int, default=6)
     p_t.add_argument("--admit", action="store_true", help="record passers into the library")
 
+    p_g = sub.add_parser("gen", help="generate + normalize candidate blocks (touches keys)")
+    p_g.add_argument("--slot", required=True, choices=("hero", "split", "bento", "process", "fullbleed", "cta"))
+    p_g.add_argument("--archetype", required=True)
+    p_g.add_argument("--brief", required=True, help="what the block should express")
+    p_g.add_argument("--generator", default="claude", choices=("claude", "stitch"))
+    p_g.add_argument("--n", type=int, default=3)
+    p_g.add_argument("--out", required=True, help="candidate dir to write")
+
     p_c = sub.add_parser("clear", help="founder clearance — make an admitted block shippable")
     p_c.add_argument("--target", required=True)
     p_c.add_argument("--id", required=True)
@@ -226,6 +295,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "tournament":
         return cmd_tournament(args.candidates, args.target, keep=args.keep, do_admit=args.admit)
+    if args.command == "gen":
+        return cmd_gen(
+            slot=args.slot,
+            archetype=args.archetype,
+            brief=args.brief,
+            generator=args.generator,
+            n=args.n,
+            out=args.out,
+        )
     if args.command == "clear":
         return cmd_clear(args.target, args.id, args.by)
     if args.command == "list":

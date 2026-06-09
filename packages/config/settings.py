@@ -12,6 +12,10 @@ REDIS_URL_ENV_VAR = "AI_COMPANY_OS_REDIS_URL"
 
 # ── API Key Environment Variables ────────────────────────────
 GEMINI_API_KEY_ENV_VAR = "GEMINI_API_KEY"
+# Design-engine authoring lane — external design tools (used sparingly, at authoring
+# time only, to grow the block library; never called on a fleet build).
+STITCH_API_KEY_ENV_VAR = "STITCH_API_KEY"  # Google Stitch MCP API (X-Goog-Api-Key)
+FIGMA_API_KEY_ENV_VAR = "FIGMA_API_KEY"  # Figma REST (X-Figma-Token)
 POSTIZ_API_KEY_ENV_VAR = "POSTIZ_API_KEY"
 REVENUECAT_API_KEY_ENV_VAR = "REVENUECAT_API_KEY"
 OPENROUTER_API_KEY_ENV_VAR = "OPENROUTER_API_KEY"
