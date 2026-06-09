@@ -101,6 +101,9 @@ class DesignStudioPacket:
     required_build_phases: list[str]
     required_screenshots: list[str]
     references: list[DesignReference] = field(default_factory=list)
+    # Raw concept cues carried through for the design-system synthesizer.
+    concept_palette: str = ""
+    concept_type: str = ""
     visual_qa: dict[str, object] = field(
         default_factory=lambda: {
             "minimum_overall": VISUAL_MIN_OVERALL,
@@ -191,6 +194,8 @@ def build_design_studio_packet(request: WebsiteDesignRequest) -> DesignStudioPac
         required_build_phases=list(REQUIRED_BUILD_PHASES),
         required_screenshots=list(REQUIRED_SCREENSHOTS),
         references=list(request.references),
+        concept_palette=request.concept_palette,
+        concept_type=request.concept_type,
     )
 
 
