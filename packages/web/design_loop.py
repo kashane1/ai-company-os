@@ -116,6 +116,7 @@ def run_design_loop(
     max_iters: int = 4,
     no_improve_patience: int | None = None,
     budget: BudgetGuard | None = None,
+    min_overall: int | None = None,
     on_progress: Callable[[Iteration], None] | None = None,
 ) -> LoopResult:
     """Drive build -> capture -> judge -> revise until pass or a stop condition.
@@ -149,7 +150,8 @@ def run_design_loop(
             reason = f"error: {type(exc).__name__}: {exc}"
             return _result(iterations, passed=False, halted_reason=reason)
 
-        report = review_visual_quality(scores=scores, screenshots=screenshots)
+        gate_kwargs = {} if min_overall is None else {"minimum_overall": min_overall}
+        report = review_visual_quality(scores=scores, screenshots=screenshots, **gate_kwargs)
         iteration = Iteration(index=i, overall=report.overall, passed=report.passed, report=report)
         iterations.append(iteration)
         if on_progress:
@@ -165,7 +167,12 @@ def run_design_loop(
             if no_improve_patience is not None and stale >= no_improve_patience:
                 return _result(iterations, passed=False, halted_reason="plateau")
 
-        brief = revision_brief(best.report)  # monotonic: branch from the best build
+        # Monotonic: branch from the best build. When chasing a raised bar
+        # (min_overall), target "not-yet-excellent" categories (< 5) so the revision
+        # has levers to pull past a build that already clears every floor; otherwise
+        # only sub-floor (< 4) categories drive the brief (gate-not-gradient default).
+        brief_floor = 5 if min_overall is not None else 4
+        brief = revision_brief(best.report, floor=brief_floor)
 
     return _result(iterations, passed=False, halted_reason="max_iters")
 
