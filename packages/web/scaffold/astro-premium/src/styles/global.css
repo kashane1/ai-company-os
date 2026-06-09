@@ -133,6 +133,11 @@ a { color: inherit; }
   html.has-cursor, html.has-cursor a, html.has-cursor button, html.has-cursor .btn { cursor: none; }
 }
 
+/* Kinetic masked headline reveal (the signature moment). Words sit in overflow-clip
+   wrappers so JS can slide them up from behind the mask; fully visible without JS. */
+.word-mask { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; }
+.word { display: inline-block; will-change: transform; }
+
 /* ---- Reveal baseline: visible by default; JS opts elements into animation ---- */
 [data-reveal] { opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {
