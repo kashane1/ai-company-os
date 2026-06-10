@@ -37,6 +37,26 @@ https://skyline-nails-fortworth.netlify.app).
   angle, attribution, anti-slop) + the "Banned everywhere" list in
   `docs/products/better-business-web/gtm/voice.md`. No AI-tell phrasing
   ("unlock", "elevate", "it's not just X, it's Y") on a small-business page.
+- **Responsive edge padding — verify at mobile width.** Every section must keep the
+  same left/right padding at 390px, header and hero included. **Never override a
+  container's padding with a `padding` shorthand that zeroes the horizontal sides**
+  (`padding: 2rem 0` / `padding: 3rem 0 2rem` → left/right become `0`, so that section
+  runs to the screen edge on mobile while the rest of the page looks fine). Use
+  **`padding-block`** for vertical-only overrides. The two usual offenders are the header
+  nav and the hero wrapper. (Caught on Five Star + Duval; baked into `05-craft-pass.md` §8.)
+- **Blur license plates & PII in every gathered photo (privacy/security).** Google photos routinely
+  show readable license plates (and sometimes faces/personal docs). Before a photo ships, bake an
+  **irreversible blur+pixelate into the image file itself** — never a CSS overlay (bypassable). Use
+  `scripts/agency/blur_plates.py` (Pillow): set per-file fractional boxes, it backs up pristine
+  originals to `assets/_orig/` and reprocesses from them (idempotent). **Verify by cropping each
+  plate region at high res** — boxes read off a scaled preview are easy to mis-place (e.g. hitting a
+  door instead of the plate). Plates in the lot count, not just the subject car. (Caught on Motor City.)
+- **Full-bleed strips must keep content off the viewport edge.** Any edge-to-edge band —
+  scrolling marquee/trust strip, ticker, ribbon — will let its text butt right against the
+  screen edge. Give it breathing room: an **edge fade** (a `var(--bg)`-to-`transparent`
+  gradient pseudo-element pinned left & right, `width: clamp(1.75rem,7vw,4.5rem)`, so the
+  text fades into the band) for a scrolling marquee, or `padding-inline` for a static strip.
+  (Caught on Nghia's trust-strip marquee; baked into `05-craft-pass.md` §8.)
 
 ## Data sources (ranked — what each gives, how, caveats)
 
@@ -57,15 +77,29 @@ services) → IG/FB (photos & voice) → BBB/press (story & credibility) → own
 
 ## The process
 
-### 1. Deep-gather → `sites/<place_id>/source/`  (mostly automated)
+### 1. Deep-gather → `sites/<place_id>/source/`  (agent-driven by default)
+**Default posture: the agent gathers everything it can itself; the human steps in
+only for genuine gaps and judgment.** Don't pre-emptively hand a research checklist
+to the human — try the browser first, then escalate what's actually missing.
 - Rich Place Details JSON (`place-details.json`) incl. reviews + photos (API).
-- Download photos → `source/photos/` and **look at every one** (Read the images).
-- **Auto-pull Yelp + booking + FB-public via the browser** per
-  `docs/demo-site-gather-automation.md` (Chrome MCP, paced/anti-bot, read-only).
-  Yelp gives the owner About, full service list, amenities, and all reviews +
-  owner replies — capture the negatives, they're the best guardrail material.
-- Human adds only what's gated/judgment: IG/FB *full* content (if logged in),
-  best-photo picks, brand vibe.
+- Download photos → `source/photos/` and **look at every one** (Read the images;
+  a contact-sheet montage is a fast way to view all 10 at once).
+- **Agent pulls Yelp + BBB + Birdeye + booking + FB-public via the browser**
+  (Chrome MCP, paced/anti-bot, read-only) per `docs/demo-site-gather-automation.md`.
+  Work slowly (scroll, wait, one source at a time) to avoid IP bans. Yelp gives the
+  owner About, full service list, amenities, and all reviews + owner replies.
+
+- **⛔ Integrity check (mandatory, do NOT skip).** Pull the *other* rating sources,
+  not just Google — Google can be gamed, and a glowing 5.0 there can hide a 3.x with
+  fraud reports elsewhere. Read the negatives across Yelp/BBB/Birdeye. If you see
+  **scam / "took my money, no delivery" / fake-or-manipulated-review / threatened-
+  the-customer** signals, **STOP — log an `⛔ INTEGRITY FLAG` at the top of the gather
+  packet and escalate to the operator before any brief or build.** Disqualify-or-
+  proceed is an operator decision, never the agent's. (Worked case: Duval Notary —
+  Google 5.0/440 looked clean; Yelp 3.7/6 carried two detailed fraud allegations.)
+
+- Human steps in only for what's truly gated/judgment: IG/FB *full* content behind a
+  login, best-photo picks, final brand vibe, and the integrity disquaify/proceed call.
 
 ### 2. Evidence → content brief  → `source/content-brief.md`
 - List **verified facts** (with source).
@@ -153,14 +187,15 @@ state/prospects/sites/<place_id>/
 
 ## Human-in-the-loop workflow (current phase)
 
-We are deliberately **human-first** until the process is proven, then we automate.
-Each build runs through four checkpoints; copy the scaffold templates from
-`state/prospects/sites/_scaffold/` into the business's `source/` folder and fill
-them in order.
+**Agent-first, human-on-gaps.** The agent runs each stage as far as it can on its
+own (browser gather included) and pulls the human in only for gated content and
+judgment calls — not as a default checkpoint on every step. Copy the scaffold
+templates from `state/prospects/sites/_scaffold/` into the business's `source/`
+folder and fill them in order.
 
 | Checkpoint | Template | Agent | Human (operator) |
 |---|---|---|---|
-| **A · Gather** | `01-gather-packet.md` | **Google + Yelp + booking + FB-public — auto** (see `demo-site-gather-automation.md`) | **IG/FB *full* content (if logged in), best-photo picks, brand vibe** |
+| **A · Gather** | `01-gather-packet.md` | **Google + Yelp + BBB + Birdeye + booking + FB-public — agent-driven via browser** (see `demo-site-gather-automation.md`); **run the ⛔ integrity check** | only **login-gated IG/FB content, best-photo picks, brand vibe**, and the **integrity disqualify/proceed call** if flagged |
 | **B · Brief** | `02-content-brief.md` | draft sourced brief | **approve facts, pick lead-with, confirm guardrails** |
 | **C · Design** | `03-design-direction.md` | propose options | **palette from visual cues, choose aesthetic/hero, brand assets** |
 | **D · Build + Craft Pass + LOCAL preview** | `04-qa-checklist.md` + `05-craft-pass.md` | build, **run craft pass**, checks, screenshot, **serve locally** | **review on localhost, give notes — iterate** |
@@ -183,15 +218,20 @@ rule holds across ≥3 builds, it graduates into a default, a check, or a templa
 
 ## Manual vs automatable (be honest)
 
-- **Automatable:** the gather (Place Details, photo download, booking/Yelp fetch),
-  the verify grep, the deploy.
-- **Judgment (human or strong agent + verify loop):** photo curation, reading
+- **Agent-driven (default):** the gather end-to-end — Place Details, photo download,
+  **and the browser pull of Yelp/BBB/Birdeye/booking/FB-public** (proven on Duval:
+  the agent ran the full Yelp read itself), the integrity check, the verify grep,
+  and the deploy.
+- **Judgment (human, or strong agent + verify loop):** photo curation, reading
   reviews to find what's *really* true, writing grounded copy, and the design.
   The quality bar here wants a review loop, **not** blind templating — that's the
   whole point of moving off v1.
+- **Operator-only (never the agent):** the **integrity disqualify/proceed call**,
+  the brand sign-off, the **ship-it** approval, and the **send** approval.
 
 ## Status
 
 - v1 (template-fill) — deprecated for client demos; produced generic copy.
-- v2 (this playbook) — proven on Skyline Nails. Next: decide how much of steps
-  1–3 to systematize behind an agent without losing genuineness.
+- v2 (this playbook) — proven on Skyline Nails + Café Ollama. Gather is now
+  **agent-first** (browser-driven, with a mandatory integrity check) as of the
+  Duval run; human-in-loop is reserved for gaps and judgment.

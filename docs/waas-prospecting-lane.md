@@ -141,6 +141,9 @@ Use `state/prospects/outreach/`: pick the channel from the manifest's
 preview URL exists (`prefer_mockup: true`); pull `{observed_gap}` / `{genre_noun}`
 from `genre-snippets.md`; personalize ≥1 line by hand.
 
+Hard copy rule: outreach must read human-written and must never use an em dash.
+The maintained rule sheet is `docs/agency/outreach-copy-rules.md`.
+
 ### Stage 7 — Operator send
 Operator copies the draft and sends manually. Nothing in the pipeline sends.
 
