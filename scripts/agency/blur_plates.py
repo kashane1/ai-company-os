@@ -39,6 +39,19 @@ SITES: dict[str, dict[str, list[tuple[float, float, float, float]]]] = {
             (0.560, 0.690, 0.678, 0.737), # black SUV rear plate
         ],
     },
+    # Nashville Auto Care (Nashville) — auto branch
+    # hero.jpg = storefront photo_01 cropped to drop the burned-in timestamp (top 90%).
+    # counter.jpg = photo_03 cropped (x .06..1, y .02...71) to drop a customer's foot.
+    # Run AFTER those crops exist so _orig backs up the cropped pristine versions.
+    "ChIJf9s1im9oZIgRXrA7I4ooKY0": {
+        "hero.jpg": [
+            (0.378, 0.532, 0.428, 0.568),  # Chevy Avalanche rear plate (center)
+            (0.383, 0.654, 0.425, 0.686),  # yellow plate lying on the wet lot
+        ],
+        "counter.jpg": [
+            (0.525, 0.200, 0.615, 0.305),  # seated staff member's face (consent)
+        ],
+    },
     # Houston Mobile Mechanic & Diesel Repair (Houston)
     "ChIJcV_ilnrBQIYR62xFJZfYb-A": {
         "diesel-rig.jpg": [

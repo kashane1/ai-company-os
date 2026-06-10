@@ -18,6 +18,24 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": ["-c", "cd products/better-business-web/site && npm run preview"],
       "port": 4321
+    },
+    {
+      "name": "fiesta-bakery",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8042", "--directory", "state/prospects/sites/ChIJXYZOGZFYXIYRVADY8l30usk/dist-v2"],
+      "port": 8042
+    },
+    {
+      "name": "fade-factory",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8061", "--directory", "state/prospects/sites/ChIJf7r9agAF9YgRd7ObV7mwRpE/dist-v2"],
+      "port": 8061
+    },
+    {
+      "name": "silver-garage",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8055", "--directory", "state/prospects/sites/ChIJ50C8LKtrkFQR7CIz2NN6JGY/dist-v2"],
+      "port": 8055
     }
   ]
 }
