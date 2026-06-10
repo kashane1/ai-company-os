@@ -188,3 +188,29 @@ def test_fullbleed_never_directly_after_cinematic_hero() -> None:
         ["CinematicHero", "FullBleedMedia", "EditorialSplit", "ClosingCta"]
     )
     assert fixed == ["CinematicHero", "EditorialSplit", "FullBleedMedia", "ClosingCta"]
+
+
+def test_bento_images_distinct_and_band_separate() -> None:
+    # Regression: the bento used to cycle images (supplying < cells repeated photos) and
+    # the full-bleed band reused bento cell 0's image. With enough supporting images the
+    # bento cells must be distinct AND the band image must not appear in the bento.
+    from packages.web.blocks_composer import derive_content
+
+    imgs = {"hero": "/img/hero.png",
+            "supporting": ["/img/a.png", "/img/b.png", "/img/c.png", "/img/d.png"]}
+    content = derive_content(CINEMATIC, images=imgs)
+    bento_imgs = [it["image"] for it in content["bento"]["items"] if it.get("image")]
+    assert len(bento_imgs) == len(set(bento_imgs)), f"bento repeats: {bento_imgs}"
+    band_img = content["fullbleed"]["image"]
+    assert band_img not in bento_imgs, "band image duplicates a bento cell"
+
+
+def test_bento_fewer_images_than_cells_uses_text_cards_not_repeats() -> None:
+    # With only 2 supporting (1 reserved for the band → 1 for the bento), extra bento
+    # cells fall back to text-only (image=None), never a repeated photo.
+    from packages.web.blocks_composer import derive_content
+
+    imgs = {"hero": "/img/hero.png", "supporting": ["/img/a.png", "/img/b.png"]}
+    content = derive_content(CINEMATIC, images=imgs)
+    bento_imgs = [it["image"] for it in content["bento"]["items"] if it.get("image")]
+    assert len(bento_imgs) == len(set(bento_imgs)), f"bento repeats: {bento_imgs}"
