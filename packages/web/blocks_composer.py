@@ -303,8 +303,16 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
     hero_img = images.get("hero")
     supporting = list(images.get("supporting", []))
 
-    def support(i: int) -> str | None:
-        return supporting[i % len(supporting)] if supporting else None
+    # Reserve the last supporting image for the full-bleed band so it never duplicates a
+    # bento cell; the bento draws from the rest with NO cycling — when there are fewer
+    # images than bento cells, the extra cells become clean text-only cards instead of
+    # repeating an image (the "the work, up close" grid no longer shows the same photo
+    # twice).
+    band_img = supporting[-1] if supporting else None
+    bento_pool = supporting[:-1] if len(supporting) > 1 else supporting
+
+    def bento_img(i: int) -> str | None:
+        return bento_pool[i] if i < len(bento_pool) else None
 
     return {
         "hero": {
@@ -329,7 +337,7 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
                     "title": f"Detail {i + 1}",
                     "body": p,
                     "span": "wide" if i == 0 else ("tall" if i == 1 else None),
-                    "image": support(i),
+                    "image": bento_img(i),
                 }
                 for i, p in enumerate(proof or ["Replace with real proof of work."])
             ],
@@ -347,7 +355,7 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
             # headline — so this never renders as a duplicate of CinematicHero. No
             # kicker here: the hero already uses the category as its eyebrow, and a
             # repeated label reads as a defect.
-            "image": support(0),
+            "image": band_img,
             "alt": f"{name} — {copy['band_headline']}",
             "kicker": "",
             "headline": copy["band_headline"],
