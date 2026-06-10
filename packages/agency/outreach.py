@@ -3,7 +3,7 @@
 Turns a verified prospect record that already has a built preview site
 (``mockup_url``) into ready-to-send, channel-appropriate, genre-specific
 outreach drafts. Composes the editable template library under
-``state/prospects/outreach/`` — nothing here sends, and outputs never contain
+``state/prospects/outreach/``. Nothing here sends, and outputs never contain
 first-person send claims (the GTM lane forbids them).
 
 The pipeline:
@@ -34,6 +34,22 @@ _GENRE_GAP_REF = {
     "coffee_shop": "cafe",
 }
 
+_SEARCH_PHRASES = {
+    "accountant": "tax and accounting help",
+    "auto_repair": "auto shops",
+    "bakery": "bakeries",
+    "barber_shop": "barbershops",
+    "beauty_salon": "hair salons",
+    "coffee_shop": "coffee shops",
+    "electrician": "electricians",
+    "garage_door": "garage door companies",
+    "landscaper": "landscapers",
+    "massage_therapy": "massage studios",
+    "nail_salon": "nail salons",
+    "notary": "notaries",
+    "roofer": "roofers",
+}
+
 # Short, SMS-friendly gap phrasing keyed by gap_ref (the long observed_gap is too
 # verbose for a text). Kept here (not in markdown) so it's testable.
 _SHORT_GAP = {
@@ -41,9 +57,11 @@ _SHORT_GAP = {
     "salon_nails": "there's no website showing your work and an easy way to book or call",
     "appointment_service": "there's no simple site that makes it easy for new clients to find and book you",
     "cafe": "there's no website with your menu, hours, and location",
-    "marketplace_only": "your only web presence is a booking/listing page — not a real owned site",
+    "marketplace_only": "your main web presence looks like a booking or listing page, not a simple site you own",
     "generic": "there's no website where a new customer can see what you offer and how to reach you",
 }
+
+FORBIDDEN_OUTREACH_MARKS = ("—",)
 
 
 def gap_ref_for(record: dict) -> str:
@@ -62,12 +80,16 @@ def genre_noun(record: dict) -> str:
     return profile.category if profile else "local business"
 
 
+def search_phrase(record: dict) -> str:
+    return _SEARCH_PHRASES.get(str(record.get("genre_id", "")), "local businesses")
+
+
 def parse_snippets(text: str) -> dict[str, dict[str, str]]:
     """Parse genre-snippets.md into ``{section_key: {observed_gap, hook}}``.
 
     Section keys are taken from the leading token of each ``## heading`` (e.g.
     ``## salon_nails  (nail / beauty / barber)`` → ``salon_nails``). Values may
-    span multiple wrapped lines (indented continuations) — these are joined into
+    span multiple wrapped lines (indented continuations). These are joined into
     one string. Surrounding quotes and markdown ``*emphasis*`` are stripped so
     the text drops cleanly into a plain-text email/SMS.
     """
@@ -112,10 +134,12 @@ class OutreachContext:
     neighborhood: str
     city: str
     genre_noun: str
+    search_phrase: str
     observed_gap: str
     observed_gap_short: str
     hook: str
     review_count: str
+    review_phrase: str
     mockup_url: str
     email: str = ""
     instagram: str = ""
@@ -132,10 +156,12 @@ class OutreachContext:
             "{neighborhood}": self.neighborhood,
             "{city}": self.city,
             "{genre_noun}": self.genre_noun,
+            "{search_phrase}": self.search_phrase,
             "{observed_gap}": self.observed_gap,
             "{observed_gap_short}": self.observed_gap_short,
             "{hook}": self.hook,
             "{review_count}": self.review_count,
+            "{review_phrase}": self.review_phrase,
             "{mockup_url}": self.mockup_url,
             "{sender_name}": self.sender_name,
             "{sender_company}": self.sender_company,
@@ -147,16 +173,19 @@ def context_for(record: dict, snippets: dict[str, dict[str, str]]) -> OutreachCo
     snip = snippets.get(ref, snippets.get("generic", {}))
     city = city_label(str(record.get("city_id", "")))
     reviews = record.get("user_ratings_total")
+    review_count = int(reviews or 0)
     ctx = OutreachContext(
         business_name=str(record.get("display_name", "")),
         owner_name="there",
         neighborhood=city,
         city=city,
         genre_noun=genre_noun(record),
+        search_phrase=search_phrase(record),
         observed_gap=snip.get("observed_gap", _SHORT_GAP["generic"]),
         observed_gap_short=_SHORT_GAP.get(ref, _SHORT_GAP["generic"]),
         hook=snip.get("hook", ""),
         review_count=f"{reviews}" if reviews else "your",
+        review_phrase=review_phrase(review_count),
         mockup_url=str(record.get("mockup_url", "")),
         email=str(record.get("contact_email", "")),
         instagram=str(record.get("contact_instagram", "")),
@@ -178,7 +207,22 @@ def context_for(record: dict, snippets: dict[str, dict[str, str]]) -> OutreachCo
 def _fill(text: str, repl: dict[str, str]) -> str:
     for k, v in repl.items():
         text = text.replace(k, v)
-    return text
+    return sanitize_outreach_copy(text)
+
+
+def review_phrase(review_count: int) -> str:
+    if review_count >= 300:
+        return "a lot of strong reviews"
+    if review_count >= 75:
+        return "a strong review profile"
+    if review_count > 0:
+        return "good reviews"
+    return "a good local reputation"
+
+
+def sanitize_outreach_copy(text: str) -> str:
+    """Remove punctuation that makes outreach read machine-written."""
+    return re.sub(r"\s*—\s*", ", ", text)
 
 
 def recommended_channel(record: dict) -> str:

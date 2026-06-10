@@ -8,6 +8,8 @@ from packages.agency.outreach import (
     parse_snippets,
     recommended_channel,
     render_template,
+    sanitize_outreach_copy,
+    search_phrase,
     unfilled_placeholders,
 )
 
@@ -15,7 +17,7 @@ SNIPPETS_MD = """# Genre Snippets
 
 ## auto_repair
 - **observed_gap:** "no website where a customer can see your hours."
-- **hook:** "{business_name} stood out — {review_count} reviews, no website."
+- **hook:** "{business_name} stood out with {review_count} reviews and no website."
 
 ## marketplace_only  (only a booking page)
 - **observed_gap:** "your only web presence is a booking-platform page."
@@ -57,7 +59,7 @@ def test_parse_snippets_joins_multiline_and_strips_emphasis() -> None:
     md = (
         "## marketplace_only\n"
         '- **observed_gap:** "your only web presence is a booking page, which\n'
-        "  works for appointments but isn't really *yours* — a real site\n"
+        "  works for appointments but isn't really *yours*, a real site\n"
         '  fixes that and still links to your booking."\n'
         '- **hook:** "found {business_name} through your booking page."\n'
     )
@@ -70,7 +72,7 @@ def test_parse_snippets_joins_multiline_and_strips_emphasis() -> None:
 def test_context_resolves_snippet_placeholders() -> None:
     snips = parse_snippets(SNIPPETS_MD)
     ctx = context_for(AUTO, snips)
-    # hook in the snippet had {business_name}/{review_count} — must be resolved
+    # hook in the snippet had {business_name}/{review_count}, so it must be resolved
     assert "Motor City Auto" in ctx.hook
     assert "836" in ctx.hook
     assert "{" not in ctx.hook
@@ -81,7 +83,7 @@ def test_context_resolves_snippet_placeholders() -> None:
 def test_render_leaves_only_sender_placeholders() -> None:
     snips = parse_snippets(SNIPPETS_MD)
     ctx = context_for(MKT, snips)
-    body = "Hi {business_name} in {city} — {observed_gap_short}. See {mockup_url}. — {sender_name}"
+    body = "Hi {business_name} in {city}. {observed_gap_short}. See {mockup_url}. {sender_name}"
     out = render_template(body, ctx)
     assert "Skyline Nails" in out and "Fort Worth" in out
     assert unfilled_placeholders(out) == []  # no {curly} placeholders left
@@ -109,3 +111,20 @@ def test_context_carries_found_contacts() -> None:
                        "contact_booking_url": "https://fresha.com/x"}, snips)
     assert ctx.facebook == "https://fb.com/skyline"
     assert ctx.booking_url == "https://fresha.com/x"
+
+
+def test_search_phrase_is_human_for_genre() -> None:
+    assert search_phrase({"genre_id": "bakery"}) == "bakeries"
+    assert search_phrase({"genre_id": "auto_repair"}) == "auto shops"
+    assert search_phrase({"genre_id": "nail_salon"}) == "nail salons"
+
+
+def test_render_template_strips_forbidden_em_dash() -> None:
+    snips = parse_snippets(SNIPPETS_MD)
+    ctx = context_for(MKT, snips)
+    out = render_template("Hi {business_name} — see {mockup_url}.", ctx)
+    assert "—" not in out
+
+
+def test_sanitize_outreach_copy_removes_em_dash() -> None:
+    assert sanitize_outreach_copy("human copy — not machine copy") == "human copy, not machine copy"
