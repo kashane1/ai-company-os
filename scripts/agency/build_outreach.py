@@ -5,10 +5,10 @@ For each warehouse record with a ``mockup_url`` (i.e. we built them a website),
 this fills the channel templates under ``state/prospects/outreach/`` with that
 lead's real data + the right genre/verdict snippet, and writes:
 
-  - ``state/prospects/sites/<place_id>/outreach.md``  — all channels, ready to send
-  - ``state/prospects/audited/outreach-index-<date>.csv`` — one row per prospect
+  - ``state/prospects/sites/<place_id>/outreach.md``: all channels, ready to send
+  - ``state/prospects/audited/outreach-index-<date>.csv``: one row per prospect
 
-Channels rendered: SMS/text (primary — phone is the only contact we store), a
+Channels rendered: SMS/text (primary because phone is the only contact we store), a
 phone-call opener, the with-mockup email, and an IG/FB DM (for when a handle is
 found). Nothing sends; these are drafts the operator personalizes by hand.
 
@@ -36,6 +36,7 @@ from packages.agency.outreach import (  # noqa: E402
     parse_snippets,
     recommended_channel,
     render_template,
+    sanitize_outreach_copy,
     unfilled_placeholders,
 )
 
@@ -89,13 +90,13 @@ def render_prospect(record: dict, snippets, templates: dict[str, str]) -> str:
     if ctx.booking_url:
         channels.append(f"booking {ctx.booking_url}")
     parts = [
-        f"# Outreach — {ctx.business_name}",
+        f"# Outreach: {ctx.business_name}",
         "",
         f"- **City:** {ctx.city}  |  **Type:** {ctx.genre_noun}  "
-        f"|  **Reviews:** {record.get('user_ratings_total') or '—'}",
+        f"|  **Reviews:** {record.get('user_ratings_total') or 'n/a'}",
         f"- **Verdict:** {record.get('web_verify_verdict')}  "
         f"(gap angle: `{gap_ref_for(record)}`)",
-        f"- **Contacts found:** {'  |  '.join(channels) if channels else '— none yet'}",
+        f"- **Contacts found:** {'  |  '.join(channels) if channels else 'none yet'}",
         f"- **Recommended first touch:** **{recommended_channel(record)}**",
         f"- **Preview site:** {ctx.mockup_url}",
         "",
@@ -103,24 +104,24 @@ def render_prospect(record: dict, snippets, templates: dict[str, str]) -> str:
     if ctx.owned_website:
         parts += [
             f"> ⚠️ **RECHECK before contacting:** this business appears to already have an "
-            f"owned website ({ctx.owned_website}). The 'no website' pitch may not apply — "
-            f"verify, and consider dropping or re-angling.",
+            f"owned website ({ctx.owned_website}). The no-website pitch may not apply. "
+            f"Verify, and consider dropping or re-angling.",
             "",
         ]
     parts += [
         "> Draft only. Personalize at least one line, then send by hand. "
-        "Do not claim the site is published — it's a private preview built for them.",
+        "Do not claim the site is published. It is a private preview built for them.",
         "",
-        "## 📱 Text / SMS  (primary — we have their phone)",
+        "## Text / SMS",
         _strip_template_header(templates["sms"]),
         "",
-        "## ☎️ Phone call opener",
+        "## Phone call opener",
         _phone_script(ctx),
         "",
-        "## ✉️ Email — with mockup  (when you find an email)",
+        "## Email with mockup",
         _strip_template_header(templates["email_with_mockup"]),
         "",
-        "## 💬 DM — Instagram / Facebook  (when you find a handle)",
+        "## DM, Instagram / Facebook",
         "**Instagram:**",
         _strip_template_header(templates["instagram_dm"]),
         "",
@@ -129,15 +130,15 @@ def render_prospect(record: dict, snippets, templates: dict[str, str]) -> str:
         "",
     ]
     body = "\n".join(parts)
-    return render_template(body, ctx)
+    return sanitize_outreach_copy(render_template(body, ctx))
 
 
 def _phone_script(ctx) -> str:
     return (
-        f"\"Hi, is this the owner? My name's {{sender_name}} — I'll be quick. "
-        f"I came across {ctx.business_name} and your {ctx.review_count} reviews are great. "
-        f"I noticed {ctx.observed_gap_short}, so I actually built a quick website preview for you — "
-        f"can I text you the link to take a look? It's free to see and there's no obligation.\""
+        f"\"Hi, is this the owner? My name's {{sender_name}}. Quick one. "
+        f"I came across {ctx.business_name} while looking up {ctx.search_phrase} around {ctx.city}. "
+        f"I put together a private one-page website preview for you. "
+        f"Can I text you the link? No obligation, I just thought it might be useful.\""
     )
 
 
@@ -164,7 +165,7 @@ def main() -> None:
             "contact_instagram", "contact_facebook", "contact_booking_url",
             "contact_owned_website", "mockup_url", "outreach_file"]
 
-    print(f"Outreach copy — {len(records)} prospect(s) with a live site\n")
+    print(f"Outreach copy: {len(records)} prospect(s) with a live site\n")
     rows = []
     flagged = 0
     for r in records:
@@ -202,7 +203,7 @@ def main() -> None:
 
     print(f"\nWrote {len(rows)} outreach docs + index: {index_path.relative_to(REPO)}")
     if flagged:
-        print(f"WARNING: {flagged} docs had unfilled placeholders — check above.")
+        print(f"WARNING: {flagged} docs had unfilled placeholders. Check above.")
 
 
 if __name__ == "__main__":

@@ -79,6 +79,79 @@ def test_http_checker_retries_transient_timeout_before_classifying() -> None:
     assert check.http_check_class is HttpCheckClass.OK_OWNED
 
 
+def test_http_checker_treats_waf_blocked_status_as_live_owned_site() -> None:
+    # A 403/503 from a WAF means the server is up and the site exists — it must
+    # NOT be classified as dead (the cohort-B false-positive bug).
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "cloudflared.example":
+            return httpx.Response(403, text="Access denied / Cloudflare")
+        return httpx.Response(451, text="unavailable for legal reasons")
+
+    checker = HTTPChecker(
+        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        now=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc),
+        enforce_public_url=False,
+    )
+
+    assert checker.check("https://cloudflared.example").http_check_class is HttpCheckClass.OK_OWNED
+    assert checker.check("https://legalblock.example").http_check_class is HttpCheckClass.OK_OWNED
+
+
+def test_http_checker_genuinely_gone_and_broken_stay_dead() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "gone.example":
+            return httpx.Response(410)
+        return httpx.Response(500, text="internal error")  # 500 not an access gate
+
+    checker = HTTPChecker(
+        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        now=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc),
+        enforce_public_url=False,
+        max_attempts=2,
+    )
+
+    assert checker.check("https://gone.example").http_check_class is HttpCheckClass.DEAD
+    assert checker.check("https://broken.example").http_check_class is HttpCheckClass.DEAD
+
+
+def test_http_checker_retries_transient_status_then_succeeds() -> None:
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return httpx.Response(503, text="temporarily unavailable")
+        return httpx.Response(200, text="owned site", request=request)
+
+    checker = HTTPChecker(
+        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        now=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc),
+        enforce_public_url=False,
+    )
+
+    check = checker.check("https://owned.example")
+    assert attempts == 2
+    assert check.http_check_class is HttpCheckClass.OK_OWNED
+
+
+def test_http_checker_sends_browser_user_agent() -> None:
+    seen: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["ua"] = request.headers.get("user-agent", "")
+        return httpx.Response(200, text="owned site")
+
+    checker = HTTPChecker(
+        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        now=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc),
+        enforce_public_url=False,
+    )
+    checker.check("https://owned.example")
+    assert "Mozilla/5.0" in seen["ua"]
+    assert "prospecting/1.0" not in seen["ua"]
+
+
 def test_http_checker_blocks_non_public_url_ssrf() -> None:
     # The guard must reject a metadata/loopback target before any fetch happens.
     fetched = False
