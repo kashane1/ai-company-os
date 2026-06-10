@@ -60,3 +60,17 @@ pytest tests/python/unit/test_agency_outreach_lane.py tests/python/unit/test_out
 python scripts/agency/outreach_lane.py refresh
 python scripts/agency/outreach_lane.py list --status ready_to_send
 ```
+
+---
+
+## Follow-up (2026-06-10): touches now SQLite-backed
+
+The localhost **outreach action panel**
+(`docs/plans/2026-06-10-outreach-action-dashboard.md`) introduces
+`packages/agency/outreach_store.py` — a `control_plane_db`-style store (SQLite
+default, Postgres via `AI_COMPANY_OS_DATABASE_URL`). The panel logs **touches**
+(append-only, multiple channels per prospect) and operator **contact overrides**
+there; `OutreachStore.import_legacy_jsonl` migrates the original
+`touches.jsonl`. The `client-status.json` ledger remains the single status
+rollup, advanced via `auto_bump_on_touch` / `set_row_status`. The CLI `log`
+path is unchanged for now; unifying it onto the store is a later cleanup.

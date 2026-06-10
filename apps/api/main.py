@@ -14,6 +14,7 @@ from apps.api.approval_endpoint import router as approval_router  # noqa: E402
 from apps.api.control_plane import ControlPlaneService, as_payload  # noqa: E402
 from apps.api.dashboard_endpoint import router as dashboard_router  # noqa: E402
 from apps.api.discovery_endpoint import router as discovery_router  # noqa: E402
+from apps.api.outreach_endpoint import router as outreach_router  # noqa: E402
 from apps.api.stripe_endpoint import router as stripe_router  # noqa: E402
 from packages.schemas.approval import ApprovalStatus  # noqa: E402
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane  # noqa: E402
@@ -25,6 +26,8 @@ app.include_router(approval_router, prefix="/magic")
 # D3 — operator dashboard's first panel: the read-only discovery view.
 app.include_router(discovery_router)
 app.include_router(dashboard_router)
+# Outreach action panel — per-prospect launch buttons, human-gated sends.
+app.include_router(outreach_router)
 # G1 — local receiver for Stripe events forwarded by the Netlify webhook.
 app.include_router(stripe_router)
 

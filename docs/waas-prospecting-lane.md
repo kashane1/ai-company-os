@@ -36,6 +36,7 @@ irreversible/external action is human-gated.
 
 | # | Stage | Status | Owner | Artifact / location |
 |--:|---|---|---|---|
+| 0 | **Coverage + dedupe guard** | ✅ built | prospecting platform | `packages/prospecting/identity.py`, `packages/prospecting/source_runs.py`, `packages/prospecting/source_import.py` |
 | 1 | **Discovery sweep** | ✅ built | Places pipeline (scheduled) | `state/prospects/records/*.json`, cohorts via `packages/prospecting/cohorts.py` |
 | 2 | **Verification** | ✅ built (this doc formalizes it) | web-search workflow | `web_verify_*` fields on each record; run report e.g. `state/artifacts/prospecting/agold-website-verification.md` |
 | 3 | **Target selection** | ⚠️ manual | operator + analyst | this doc (selection rules below) |
@@ -44,6 +45,62 @@ irreversible/external action is human-gated.
 | 6 | **Outreach draft** | ✅ built | template library | `state/prospects/outreach/` (channel × genre) |
 | 7 | **Operator send** | manual (by design) | operator | — |
 | 8 | **Tracking / follow-up** | ⚠️ partial | operator | `engagement_status` on record |
+
+### Stage 0 — Coverage + dedupe guard
+The current Google Places warehouse is canonical. New sources (Overture,
+Foursquare OS Places, OSM extracts, Socrata/open-data catalogs) must never write
+directly to `state/prospects/records/`. They first pass through:
+
+- `IdentityIndex` (`packages/prospecting/identity.py`) — matches by normalized
+  phone, URL, and name+address before creating anything new.
+- `SourceRunStore` (`packages/prospecting/source_runs.py`) — records
+  `source + city_id + genre_id + query + connector_version`, so the same source
+  query is not re-run blindly.
+- `collect-source` (`scripts/prospect_scan.py`) — imports source candidates only
+  after identity matching, and keeps source provenance on the record.
+- `prospect_scan.py next-qualification` — decides whether the next operator
+  move should verify the current warehouse or collect new source data.
+
+Safe next-step check:
+
+```bash
+python scripts/prospect_scan.py next-qualification --provider brave --limit 50
+```
+
+### Stage 0.5 — Open-source collection tranches
+Open-source collection is deterministic and ledgered. The scale plan is:
+
+| tranche | cells | intended source | purpose |
+|---|---:|---|---|
+| `tranche1` | 10 cities × 6 genres = 60 | FSQ OS or override | prove volume/quality on focused cities |
+| `tranche2` | 40 cities × 6 genres = 240 | FSQ OS or override | scale the first source across the full grid |
+| `tranche3` | 40 cities × 6 genres = 240 | Overture | second-source coverage and duplicate collision test |
+| `tranche4` | 40 cities × 13 genres = 520 | Overture | expanded genres after the first six are covered |
+
+Commands:
+
+```bash
+# FSQ OS requires a local portal export/catalog path.
+python scripts/prospect_scan.py collect-source \
+  --tranche tranche1 --source fsq_os --fsq-path "$FSQ_OS_PLACES_PATH"
+
+# Overture uses public S3 via DuckDB.
+python scripts/prospect_scan.py collect-source \
+  --tranche tranche3 --source overture --candidates-per-cell 50
+
+# Expanded Overture discovery across the remaining enabled genres.
+python scripts/prospect_scan.py collect-source \
+  --tranche tranche4 --source overture --candidates-per-cell 50
+```
+
+2026-06-10 Overture execution: all 240 tranche-3 source/city/genre cells are
+completed in `state/prospects/source-runs/overture/`: 8,496 candidates seen,
+8,155 new source records created, 335 duplicate collisions skipped, and 6
+owned-site source rows skipped. The tranche-4 expansion also completed all 520
+remaining enabled Overture cells: 7,503 candidates seen, 7,138 new source
+records created, 358 duplicate collisions skipped, and 7 owned-site rows
+skipped. FSQ OS importer is built but was not executed because
+`FSQ_OS_PLACES_PATH` is not configured yet.
 
 ### Stage 1 — Discovery sweep
 The Places pipeline populates the warehouse and assigns cohorts. The WaaS
@@ -66,9 +123,26 @@ web search (`name + city + state + genre`) and is classified:
 
 Verdicts are written back to each record as `web_verify_verdict`,
 `web_verify_url`, `web_verify_confidence`, `web_verify_note`, `web_verified_at`,
-`web_verify_method`. **Method of record:** batched multi-agent workflow, one
-WebSearch per lead, schema-validated output, two passes to cover failures. Keep
-the per-run report under `state/artifacts/prospecting/`.
+`web_verify_method`. **Current automated verifier:** `scripts/prospect_scan.py
+verify-web` runs the same verification shape through Brave Search or DataForSEO
+before outreach:
+
+```bash
+# Brave: simple path, good for free monthly credit / small batches
+python scripts/prospect_scan.py verify-web \
+  --provider brave --cohort A_gold --limit 50
+
+# DataForSEO: lower-cost Google Organic SERP verification at volume
+python scripts/prospect_scan.py verify-web \
+  --provider dataforseo --cohort A_gold --limit 200 \
+  --location-code 2840 --count 10
+```
+
+Use `BRAVE_SEARCH_API_KEY` or `DATAFORSEO_LOGIN` / `DATAFORSEO_PASSWORD` in
+`.env`. The previous 2026-06-02 method of record was a batched multi-agent
+workflow, one WebSearch per lead, schema-validated output, two passes to cover
+failures. Keep per-run reports under `state/artifacts/prospecting/` when doing
+operator analysis.
 
 ### Stage 3 — Target selection
 Rank within verified buckets, do **not** treat raw `A_gold` as the list:
@@ -147,6 +221,16 @@ The maintained rule sheet is `docs/agency/outreach-copy-rules.md`.
 ### Stage 7 — Operator send
 Operator copies the draft and sends manually. Nothing in the pipeline sends.
 
+The **outreach action panel** (localhost only, `127.0.0.1:8765/dashboard/outreach`)
+makes this one-tap-per-channel: each deployed prospect gets Email / SMS / Call /
+FB DM / IG DM buttons that open the native composer *prefilled* (Gmail compose,
+Messages, `tel:`, m.me, instagram.com). A button is greyed until its contact
+field has a value; an inline edit adds the value and lights it up. The buttons
+only *open* a draft — the human still clicks send. After sending, "✓ Log sent"
+records a touch (Stage 8). See `packages/dashboard/outreach_panel.py`,
+`packages/agency/outreach_actions.py`, `apps/api/outreach_endpoint.py`, and the
+plan at `docs/plans/2026-06-10-outreach-action-dashboard.md`.
+
 ### Stage 8 — Tracking / follow-up
 Use the outreach operations ledger:
 
@@ -157,10 +241,14 @@ python scripts/agency/outreach_lane.py log --place-id <PID> --channel email --ou
 ```
 
 The operator-facing status list lives at
-`state/prospects/outreach-lane/client-status.md`; the machine ledger lives at
-`state/prospects/outreach-lane/client-status.json`; manual touches append to
-`state/prospects/outreach-lane/touches.jsonl`. The `worker-outreach` lane may
-refresh/draft/reconcile this state, but outbound send tasks fail closed.
+`state/prospects/outreach-lane/client-status.md`; the machine ledger (status
+rollup) lives at `state/prospects/outreach-lane/client-status.json`. The
+**action panel logs touches and contact overrides to SQLite**
+(`state/prospects/outreach-lane/outreach.sqlite3`, via the `control_plane_db`
+backend pattern — Postgres when `AI_COMPANY_OS_DATABASE_URL` is set). The legacy
+`touches.jsonl` is imported once via `OutreachStore.import_legacy_jsonl`. The
+`worker-outreach` lane may refresh/draft/reconcile this state, but outbound send
+tasks fail closed.
 
 ## Current gaps (build backlog, priority order)
 
@@ -168,10 +256,11 @@ refresh/draft/reconcile this state, but outbound send tasks fail closed.
    outreach is possible for the cleanest leads. **Now the top gap.**
 2. ~~Prospect → preview-site glue (Stage 5)~~ — ✅ **built** (playbook `dist-v2` +
    deploy glue). Remaining: automate more playbook steps; **photos** in gather.
-3. **Verification as a first-class pipeline step** — Stage 2 ran as an ad-hoc
-   workflow; fold it into the sweep so `A_gold` is never emitted unverified, and
-   add a branded-booking-page (Fresha/Booksy/Square/Toast) detector to the
-   owned-site check.
+3. **Fold verification into sweep completion** — `verify-web` is now a
+   first-class CLI, but the Places sweep still emits raw candidate cohorts before
+   verification. Next step: make "outreach-ready" exports require
+   `web_verify_verdict` and keep branded booking pages (Fresha/Booksy/Square/
+   Toast) in the detector.
 4. **Fixture hygiene** — synthetic `Fixture Local N` records leak into
    `state/prospects/records/`; purge and guard against re-entry.
 5. ~~Outreach tracking~~ — ✅ built as `packages/agency/outreach_lane.py`,

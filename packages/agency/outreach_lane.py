@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable
 
 from packages.agency.outreach import recommended_channel
 from packages.agency.prospect_site import city_label
@@ -287,6 +287,88 @@ def log_manual_touch(
     )
     write_client_status(sorted(updated_rows, key=_row_sort_key), lane_root=root)
     return updated_row
+
+
+# States that count as "before first contact" — a logged send bumps them to SENT.
+# Manual states past SENT (replied/won/lost/etc.) are never auto-downgraded.
+PRE_SEND_STATUSES = {
+    OutreachLaneStatus.NEEDS_BESPOKE,
+    OutreachLaneStatus.READY_TO_DRAFT,
+    OutreachLaneStatus.READY_TO_SEND,
+}
+
+
+def _mutate_row(
+    place_id: str,
+    apply: "Callable[[OutreachClientRow], dict[str, object]]",
+    *,
+    lane_root: Path | None = None,
+) -> OutreachClientRow:
+    """Load the ledger, replace one row via ``apply``, rewrite atomically."""
+    root = lane_root or default_outreach_lane_root()
+    status_path = root / "client-status.json"
+    if not status_path.exists():
+        raise FileNotFoundError(f"missing outreach status ledger: {status_path}")
+    payload = json.loads(status_path.read_text())
+    rows = [OutreachClientRow.from_dict(row) for row in payload.get("rows", [])]
+    updated_row: OutreachClientRow | None = None
+    updated_rows: list[OutreachClientRow] = []
+    for row in rows:
+        if row.place_id != place_id:
+            updated_rows.append(row)
+            continue
+        merged = {**row.to_dict(), **apply(row)}
+        updated_row = OutreachClientRow.from_dict(merged)
+        updated_rows.append(updated_row)
+    if updated_row is None:
+        raise KeyError(f"place_id {place_id!r} not found in outreach ledger")
+    write_client_status(sorted(updated_rows, key=_row_sort_key), lane_root=root)
+    return updated_row
+
+
+def set_row_status(
+    place_id: str,
+    new_status: OutreachLaneStatus,
+    *,
+    lane_root: Path | None = None,
+) -> OutreachClientRow:
+    """Operator-driven status change (the dashboard dropdown)."""
+    return _mutate_row(
+        place_id,
+        lambda row: {
+            "status": new_status.value,
+            "next_action": _next_action_for_status(
+                new_status, row.manual_channel or row.recommended_channel
+            ),
+        },
+        lane_root=lane_root,
+    )
+
+
+def auto_bump_on_touch(
+    place_id: str,
+    channel: str,
+    *,
+    occurred_at: str = "",
+    lane_root: Path | None = None,
+) -> OutreachClientRow:
+    """Record that a manual send happened: stamp the touch time, set the channel,
+    and advance a pre-send row to SENT. Rows already past SENT keep their status.
+    """
+    occurred_at = occurred_at or _now_iso()
+
+    def apply(row: OutreachClientRow) -> dict[str, object]:
+        new_status = (
+            OutreachLaneStatus.SENT if row.status in PRE_SEND_STATUSES else row.status
+        )
+        return {
+            "status": new_status.value,
+            "manual_channel": channel,
+            "last_touch_at": occurred_at,
+            "next_action": _next_action_for_status(new_status, channel),
+        }
+
+    return _mutate_row(place_id, apply, lane_root=lane_root)
 
 
 def render_client_status_markdown(rows: list[OutreachClientRow], *, updated_at: str) -> str:
