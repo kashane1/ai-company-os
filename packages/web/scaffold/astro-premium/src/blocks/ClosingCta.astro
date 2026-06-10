@@ -1,13 +1,14 @@
 ---
 // Closing CTA — centered, glowing, single decisive action. `data`: { headline,
-// subhead, cta }.
+// subhead, cta, href }. A real order/booking URL is injected per build; the default
+// is a valid in-page anchor (never href="#", which jumps to top).
 const { data } = Astro.props;
-const { headline, subhead, cta } = data;
+const { headline, subhead, cta, href = "#get-started" } = data;
 ---
 <section id="get-started" class="section">
   <div class="container glow" style="text-align:center;max-width:40rem;position:relative">
     <h2 data-reveal style="font-size:var(--step-4)">{headline}</h2>
     {subhead && <p class="muted" data-reveal style="margin-top:1rem;font-size:var(--step-1)">{subhead}</p>}
-    {cta && <a class="btn btn-primary" data-reveal href="#" style="margin-top:1.75rem">{cta}</a>}
+    {cta && <a class="btn btn-primary" data-reveal href={href} style="margin-top:1.75rem">{cta}</a>}
   </div>
 </section>

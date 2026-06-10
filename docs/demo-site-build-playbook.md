@@ -32,6 +32,19 @@ https://skyline-nails-fortworth.netlify.app).
 - **Photos:** Google/owner photos are fine for a private preview shown to the
   owner; for a **published** site use owner-provided or explicitly-licensed
   images and honor source attribution/ToS.
+- **AI-generated images — real photos lead, generated fills gaps, ATMOSPHERIC ONLY.**
+  We can generate high-quality images with the owner's logged-in ChatGPT via the Chrome
+  extension (see memory "Operating ChatGPT in Chrome": Instant model, self-contained prompts
+  — no live URLs; after clicking *Download image*, switch to **computer use** to confirm the
+  native Chrome save-to-Downloads popup; one image at a time). Wire results in with
+  `scripts/web/ingest_images.py`. **Use it when** real imagery is thin (have 1–2 good shots, need
+  more) or absent-but-we-have-a-style-hint. **Integrity rule (operator-set 2026-06-08):** generated
+  images must be **atmospheric / illustrative only** — generic mood, craft, texture, ingredients,
+  ambiance — and must **never** be presented as photos of *this* business's actual products or
+  premises (that's the same fabrication line as a fake price/claim). Real photos always carry the
+  hero and any "our work / our shop" context; generated imagery supports as backgrounds, texture,
+  section breaks, and generic-subject accents. Blur-plates rule still applies to any gathered real
+  photo used alongside them.
 - **Voice is per-business, never templated.** Copy follows
   `docs/products/better-business-web/gtm/demo-voice-framework.md` (lead-with
   angle, attribution, anti-slop) + the "Banned everywhere" list in
@@ -119,6 +132,11 @@ to the human — try the browser first, then escalate what's actually missing.
   semantically into `dist/assets/` (`hero.jpg`, `work-chrome.jpg`, …).
 
 ### 4. Build bespoke → `sites/<place_id>/dist-v2/index.html`
+- **Start from the genre kit if one exists.** `python scripts/agency/art_direction.py
+  list` shows kits; `scaffold --slug <kit> --site-name … --audience … --goal …` emits a
+  first-draft spec (palette + type + imagery direction + composition) to customize to the
+  brand. See [agency/art-direction-kits.md](agency/art-direction-kits.md). The business's
+  own visual cues still win (next bullet) — the kit is the starting draft, not an override.
 - **Palette from visual cues first** — derive it from the business's storefront /
   signage / logo / photos (dominant canvas + one sharp accent), not an invented
   scheme. (King: hand-painted red storefront → red/white/minimal-blue.)

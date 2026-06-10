@@ -1,0 +1,71 @@
+slug: fish_tacos
+display_name: Fish Tacos / Coastal Taqueria
+niche_aliases:
+  - fish taco
+  - fish tacos
+  - taqueria
+  - baja
+  - coastal taqueria
+  - taco shop
+  - taco stand
+# Validated build: better-business-web.netlify.app/work/fish-tacos/ (reference: cafegratitude.com)
+concept_statement: >-
+  a sun-warmed coastal taqueria where abundance feels joyful and fresh; vivid overhead
+  flat-lays of just-made fish tacos, bright produce, citrus and salsas on warm marble;
+  cream and terracotta with pops of lime-green and chili-orange; generous, appetizing,
+  editorial-but-warm
+palette: "#C8553D"   # terracotta seed → warm cream canvas
+accent: "#C2502F"    # vivid terracotta, EXPLICIT so the engine keeps the warm-monochrome family
+type_vibe: elegant
+concept_type: elegant high-contrast serif display with a clean uppercase sans for nav and labels
+imagery_direction: >-
+  an abundant overhead flat-lay shot straight from above of vivid, fresh baja fish tacos,
+  bright produce, lime wedges and colorful salsas on warm marble; bright natural daylight,
+  saturated, appetizing and generous
+composition_rules:
+  - "Hero: an abundant overhead flat-lay (straight down) of fresh fish tacos on warm marble."
+  - "Bento: ingredients, a plated close-up, drinks/sides — each a vivid top-down still."
+  - "Band (ingest LAST): the taco trio on a wooden board. Warm cream + terracotta, pops of lime/chili."
+image_prompts:
+  hero: >-
+    A vivid overhead flat-lay shot straight down of fresh baja fish tacos on a warm marble
+    surface — golden battered fish, bright cabbage slaw, lime wedges, cilantro, radish,
+    colorful salsas in small bowls, a drizzle of crema; cream + terracotta tones with pops of
+    lime-green and chili-orange. Bright natural daylight, saturated, generous negative space.
+    No people, no text, no logos. Wide 16:9.
+  bento:
+    - >-
+      A vivid overhead flat-lay of fresh fish-taco ingredients on warm marble — a bowl of
+      crunchy cabbage-lime slaw, halved limes, fresh cilantro, sliced radish, a small bowl of
+      chili-orange salsa, a dish of lime crema, and a few warm corn tortillas. Bright natural
+      daylight, saturated, generous negative space. No people, no text, no logos. Wide 16:9.
+    - >-
+      A vivid overhead flat-lay close-up of a single baja fish taco — crispy golden fish,
+      cabbage slaw, cilantro, a lime wedge, drizzle of lime crema and chili-orange salsa, on
+      warm marble. Bright natural daylight, saturated, generous negative space. No people, no
+      text, no logos. Wide 16:9.
+    - >-
+      A vivid overhead flat-lay of a tall glass of lime agua fresca with mint, beside a small
+      bowl of guacamole, tortilla chips, and a dish of pico de gallo, on warm marble. Bright
+      natural daylight, saturated, generous negative space. No people, no text, no logos. Wide 16:9.
+  band: >-
+    Three baja fish tacos lined up on a rustic wooden board, topped with slaw, crema, cilantro
+    and lime, with a few lime wedges and a small bowl of salsa beside them, on warm marble.
+    Bright natural daylight, saturated, generous negative space. No people, no text, no logos.
+    Wide 16:9.
+references:
+  - title: Café Gratitude
+    url: https://cafegratitude.com
+    source_type: reference
+    takeaways:
+      - Centered elegant serif wordmark over cream
+      - Hero is a bright top-down flat-lay of abundant colorful fresh food
+      - Editorial splits pair a warm food photo with a saturated terracotta panel
+      - Playful warm community energy (not minimal or cold)
+evidence_hints:
+  - the catch / sourcing note
+  - the salsas and sides
+  - a signature taco
+harvested_from:
+  - state/artifacts/fish-tacos
+version: 1

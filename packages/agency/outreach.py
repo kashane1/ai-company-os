@@ -141,6 +141,7 @@ class OutreachContext:
     review_count: str
     review_phrase: str
     mockup_url: str
+    moodboard_url: str = ""
     email: str = ""
     instagram: str = ""
     facebook: str = ""
@@ -163,6 +164,7 @@ class OutreachContext:
             "{review_count}": self.review_count,
             "{review_phrase}": self.review_phrase,
             "{mockup_url}": self.mockup_url,
+            "{moodboard_url}": self.moodboard_url,
             "{sender_name}": self.sender_name,
             "{sender_company}": self.sender_company,
         }
@@ -187,6 +189,7 @@ def context_for(record: dict, snippets: dict[str, dict[str, str]]) -> OutreachCo
         review_count=f"{reviews}" if reviews else "your",
         review_phrase=review_phrase(review_count),
         mockup_url=str(record.get("mockup_url", "")),
+        moodboard_url=str(record.get("moodboard_url", "")),
         email=str(record.get("contact_email", "")),
         instagram=str(record.get("contact_instagram", "")),
         facebook=str(record.get("contact_facebook", "")),

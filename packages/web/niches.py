@@ -102,8 +102,8 @@ _CATALOG: list[tuple[tuple[str, ...], dict[str, object]]] = [
 ]
 
 
-def niche_to_spec(niche: str) -> dict[str, object]:
-    """Return a starter build spec for ``niche`` (catalog match or generic fallback)."""
+def _base_spec(niche: str) -> dict[str, object]:
+    """The catalog match or the generic fallback — business framing, no art direction."""
 
     key = niche.strip().lower()
     for needles, spec in _CATALOG:
@@ -119,6 +119,25 @@ def niche_to_spec(niche: str) -> dict[str, object]:
         "evidence": ["Add real proof from the business (reviews, credentials, work)."],
         "imagery_mode": "concept-led",
     }
+
+
+def niche_to_spec(niche: str) -> dict[str, object]:
+    """Return a starter build spec for ``niche``.
+
+    A genre **art-direction kit** is the durable, image-backed successor to this
+    function's hardcoded catalog: if a kit matches the niche, its recipe (palette,
+    accent, imagery direction, references, evidence) is overlaid onto the base spec —
+    the "instant high-quality first draft." With no kit, the catalog/generic spec is
+    returned unchanged, so the legacy ``make premium`` path is unaffected.
+    """
+
+    spec = _base_spec(niche)
+    # Lazy import: keep this module a leaf, and avoid pulling yaml/PIL into callers
+    # that only want the catalog.
+    from packages.web.art_direction import apply_kit_to_spec, find_kit_for_niche
+
+    kit = find_kit_for_niche(niche)
+    return apply_kit_to_spec(spec, kit) if kit else spec
 
 
 def catalog_niches() -> list[str]:

@@ -243,9 +243,36 @@ def _tagline(packet: DesignStudioPacket) -> str:
     return tagline[:70]
 
 
+def _encode_web_image(
+    src: Path, public_img: Path, asset_id: str, *, max_width: int = 1800, quality: int = 80
+) -> str:
+    """Downscale (no crop) + WebP-encode ``src`` into ``public/img``; return the filename.
+
+    Raw concept imagery is ~2.5-3 MB PNG each — a multi-MB page. WebP at a sane display
+    width drops that ~10x with no visible loss. Falls back to a raw copy if Pillow/WebP
+    isn't available, so a build never fails on an image.
+    """
+
+    try:
+        from PIL import Image
+
+        dest = public_img / f"{asset_id}.webp"
+        with Image.open(src) as image:
+            image = image.convert("RGB")
+            if image.width > max_width:
+                height = round(image.height * max_width / image.width)
+                image = image.resize((max_width, height), Image.LANCZOS)
+            image.save(dest, "WEBP", quality=quality, method=6)
+        return dest.name
+    except Exception:  # noqa: BLE001 — never fail a build on image optimization
+        dest_name = f"{asset_id}{src.suffix or '.png'}"
+        shutil.copyfile(src, public_img / dest_name)
+        return dest_name
+
+
 def _stage_images(target: Path, project_dir: Path) -> dict | None:
-    """Copy this build's SELECTED imagery into the Astro public dir and return the
-    composer's image map ({"hero": "/img/..", "supporting": [..]}).
+    """Stage this build's SELECTED imagery into the Astro public dir (downscaled + WebP)
+    and return the composer's image map ({"hero": "/img/..", "supporting": [..]}).
 
     Reads `<target>/design-studio/imagery/manifest.json` (written by the imagery
     pipeline). Returns None when there's no manifest — the blocks then fall back to
@@ -269,8 +296,7 @@ def _stage_images(target: Path, project_dir: Path) -> dict | None:
             src = manifest_path.parent / Path(asset.path).name
         if not src.exists():
             continue
-        dest_name = f"{asset.id}{src.suffix or '.png'}"
-        shutil.copyfile(src, public_img / dest_name)
+        dest_name = _encode_web_image(src, public_img, asset.id)
         web_path = f"/img/{dest_name}"
         if asset.role == "hero" and hero is None:
             hero = web_path

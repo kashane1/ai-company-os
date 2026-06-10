@@ -1,0 +1,37 @@
+{
+  "assets": [
+    {
+      "id": "hero",
+      "role": "hero",
+      "path": "exemplars/hero.webp",
+      "provenance": "owner",
+      "prompt": "ChatGPT (ai-company-os project) \u2014 operator-curated \u00b7 hero.png",
+      "seed": 0,
+      "selected": true,
+      "production_clearance": true,
+      "cleared_by": "operator"
+    },
+    {
+      "id": "support-1",
+      "role": "supporting",
+      "path": "exemplars/support-1.webp",
+      "provenance": "owner",
+      "prompt": "ChatGPT (ai-company-os project) \u2014 operator-curated \u00b7 detail.png",
+      "seed": 0,
+      "selected": true,
+      "production_clearance": true,
+      "cleared_by": "operator"
+    },
+    {
+      "id": "support-2",
+      "role": "supporting",
+      "path": "exemplars/support-2.webp",
+      "provenance": "owner",
+      "prompt": "ChatGPT (ai-company-os project) \u2014 operator-curated \u00b7 room2.png",
+      "seed": 0,
+      "selected": true,
+      "production_clearance": true,
+      "cleared_by": "operator"
+    }
+  ]
+}
