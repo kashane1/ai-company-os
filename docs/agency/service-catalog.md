@@ -31,6 +31,8 @@
 | Review Readiness System (`reviews`) | recurring | $80 | $40/mo |
 | Local SEO (`local_seo`) | recurring | $300 | $80/mo |
 | Analytics Dashboard & Monthly Report (`monthly_reporting`) | recurring | $120 | $40/mo |
+| Conversion Snapshot (`conversion_snapshot`) | one-time | $199 | — |
+| Conversion Audit (`conversion_audit`) | one-time | $750 | — |
 
 ### Tier 3 — Recurring-revenue goldmine
 
@@ -41,6 +43,7 @@
 | Meta (Facebook/Instagram) Ads Management (`meta_ads`) | recurring | $300 | $350/mo |
 | CRM Setup (`crm_setup`) | one-time | $250 | — |
 | Automated Follow-Up (`follow_up_automation`) | recurring | $120 | $40/mo |
+| Ad Copy Lab (`ad_copy_lab`) | recurring | $150 | $200/mo |
 
 ## Bundles
 

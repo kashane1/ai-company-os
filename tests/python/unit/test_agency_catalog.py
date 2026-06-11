@@ -28,6 +28,13 @@ def test_bundled_catalog_loads_and_validates() -> None:
     assert {"package_a", "package_b", "package_c"} <= set(catalog.bundles)
 
 
+def test_conversion_lab_services_exist() -> None:
+    catalog = load_catalog()
+    assert catalog.services["conversion_snapshot"].name == "Conversion Snapshot"
+    assert catalog.services["conversion_audit"].name == "Conversion Audit"
+    assert catalog.services["ad_copy_lab"].name == "Ad Copy Lab"
+
+
 def test_default_catalog_is_cached() -> None:
     assert default_catalog() is default_catalog()
 
