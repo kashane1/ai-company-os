@@ -14,6 +14,9 @@ Cohorts:
 - ``C_potential_signal``: 10–24 reviews — too few to clear the active-signal
   floor, but enough demand to still be a plausible client. A review-count
   bucket, gated before web-signal classification just like ``D_low_signal``.
+- ``S_source_candidate``: imported from an open/source dataset without a Google
+  review-count demand proxy. These need web-search qualification before they
+  can graduate into an operator prospect list.
 - ``D_low_signal``: 9 or fewer reviews — too little signal to act on.
   ``Z_needs_review``: ambiguous.
 
@@ -24,15 +27,20 @@ classification; ``10..24`` lands in ``C_potential_signal``; ``< 10`` lands in
 Priority score formula: ``cohort_weight * demand_factor``. ``cohort_weight``
 ranks no-site/stale signals ahead of ambiguous or has-site rows:
 ``A_gold=100``, ``A2_marketplace_review=85``, ``B_stale_maps=80``,
-``Z_needs_review=40``, ``C_potential_signal=25``, ``D_low_signal=15``, and
-``E_has_site=5``.
+``Z_needs_review=40``, ``S_source_candidate=30``, ``C_potential_signal=25``,
+``D_low_signal=15``, and ``E_has_site=5``.
 ``demand_factor`` is ``min(user_ratings_total / 100, 1.0)``. The score is rounded
 to two decimals and is deterministic/idempotent for warehouse backfills.
 """
 
 from __future__ import annotations
 
-from packages.schemas.prospect import HttpCheckClass, MapsWebsiteClass, ProspectRecord
+from packages.schemas.prospect import (
+    HttpCheckClass,
+    MapsWebsiteClass,
+    ProspectRecord,
+    WebVerifyVerdict,
+)
 
 # Reviews at/above this clear the active-signal floor and flow through
 # web-signal classification (A_gold, marketplace, stale, has-site, …).
@@ -43,6 +51,17 @@ POTENTIAL_SIGNAL_MIN_REVIEWS = 10
 
 
 def derive_composite_cohort(record: ProspectRecord) -> str:
+    # A web-verified owned site is a confirmed drop: it belongs in the
+    # deprioritized has-site bucket regardless of stale Maps/review signals. Without
+    # this, a browsed-and-dropped Overture row (e.g. a closed restaurant with 899
+    # reviews, or one we found a real site for) would recompute back into A_gold/A2
+    # off its review count. Checked first so it overrides the source/review gates.
+    if record.web_verify_verdict is WebVerifyVerdict.OWNED_SITE:
+        return "E_has_site"
+
+    if record.source_name and record.user_ratings_total == 0:
+        return "S_source_candidate"
+
     if record.user_ratings_total < POTENTIAL_SIGNAL_MIN_REVIEWS:
         return "D_low_signal"
 
@@ -100,9 +119,12 @@ def priority_score(record: ProspectRecord, cohort: str | None = None) -> float:
         "A2_marketplace_review": 85,
         "B_stale_maps": 80,
         "Z_needs_review": 40,
+        "S_source_candidate": 30,
         "C_potential_signal": 25,
         "D_low_signal": 15,
         "E_has_site": 5,
     }.get(resolved, 0)
+    if resolved == "S_source_candidate":
+        return float(cohort_weight)
     demand_factor = min(max(record.user_ratings_total, 0) / 100, 1.0)
     return round(cohort_weight * demand_factor, 2)

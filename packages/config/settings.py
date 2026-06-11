@@ -21,6 +21,10 @@ REVENUECAT_API_KEY_ENV_VAR = "REVENUECAT_API_KEY"
 OPENROUTER_API_KEY_ENV_VAR = "OPENROUTER_API_KEY"
 NVIDIA_API_KEY_ENV_VAR = "NVIDIA_API_KEY"
 GITHUB_TOKEN_ENV_VAR = "GITHUB_TOKEN"
+# Prospect web-presence verification providers. These are server-side only.
+BRAVE_SEARCH_API_KEY_ENV_VAR = "BRAVE_SEARCH_API_KEY"
+DATAFORSEO_LOGIN_ENV_VAR = "DATAFORSEO_LOGIN"
+DATAFORSEO_PASSWORD_ENV_VAR = "DATAFORSEO_PASSWORD"
 # Server-side Places API (New) key — prospecting/enrichment, never in a browser.
 GOOGLE_PLACES_API_KEY_ENV_VAR = "GOOGLE_PLACES_API_KEY"
 # Browser-side Maps key for embedding maps on demo/prospect sites we ship. Kept

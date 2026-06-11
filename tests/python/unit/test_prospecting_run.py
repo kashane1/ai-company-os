@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
+import scripts.prospect_scan as prospect_scan
 from packages.prospecting.config import CityConfig, GenreConfig, WeeklyCaps
 from packages.prospecting.run import run_prospecting
 from packages.prospecting.storage import ProspectRepository
@@ -11,9 +12,9 @@ from packages.schemas.prospect import (
     HttpCheckClass,
     MapsWebsiteClass,
     ProspectRecord,
+    WebVerifyVerdict,
 )
 from scripts.prospect_scan import _selected_cells_for_start
-import scripts.prospect_scan as prospect_scan
 
 FIXED = datetime(2026, 6, 1, tzinfo=timezone.utc)
 
@@ -67,7 +68,11 @@ class StubHTTPChecker:
 def test_run_prospecting_persists_deduped_records_and_assigns_cohorts(tmp_path: Path) -> None:
     repo = ProspectRepository(tmp_path / "records")
     city = CityConfig(id="seattle", name="Seattle", lat=47.6062, lng=-122.3321)
-    genre = GenreConfig(id="beauty_salon", label="beauty salon", text_query_template="{label} in {city_name}")
+    genre = GenreConfig(
+        id="beauty_salon",
+        label="beauty salon",
+        text_query_template="{label} in {city_name}",
+    )
 
     report = run_prospecting(
         cities=[city],
@@ -76,7 +81,11 @@ def test_run_prospecting_persists_deduped_records_and_assigns_cohorts(tmp_path: 
         records=repo,
         places=StubPlacesConnector(),
         http_checker=StubHTTPChecker(),
-        weekly_caps=WeeklyCaps(text_search_requests=10, place_details_essentials=10, http_checks=10),
+        weekly_caps=WeeklyCaps(
+            text_search_requests=10,
+            place_details_essentials=10,
+            http_checks=10,
+        ),
         now=lambda: FIXED,
         selected_cells=["seattle:beauty_salon"],
     )
@@ -87,7 +96,11 @@ def test_run_prospecting_persists_deduped_records_and_assigns_cohorts(tmp_path: 
         records=repo,
         places=StubPlacesConnector(),
         http_checker=StubHTTPChecker(),
-        weekly_caps=WeeklyCaps(text_search_requests=10, place_details_essentials=10, http_checks=10),
+        weekly_caps=WeeklyCaps(
+            text_search_requests=10,
+            place_details_essentials=10,
+            http_checks=10,
+        ),
         now=lambda: FIXED,
         selected_cells=["seattle:beauty_salon"],
     )
@@ -176,3 +189,85 @@ def test_start_dry_run_auto_refreshes_isolated_exports(tmp_path: Path, monkeypat
     # production exports/records warehouses are never created by a dry-run.
     assert not (state / "exports").exists()
     assert not (state / "records").exists()
+
+
+def test_verify_web_command_updates_unverified_cohort_records(
+    tmp_path: Path, monkeypatch
+) -> None:
+    repo = ProspectRepository(tmp_path / "records")
+    repo.save(
+        ProspectRecord(
+            place_id="places/abc123",
+            display_name="Tonic Salon",
+            formatted_address="1420 Pine St, Seattle, WA 98101",
+            phone="+1 206-555-0100",
+            types=["beauty_salon"],
+            city_id="seattle",
+            genre_id="beauty_salon",
+            grid_cell_id="seattle:beauty_salon",
+            maps_website_class=MapsWebsiteClass.ABSENT,
+            user_ratings_total=42,
+            composite_cohort="A_gold",
+            priority_score=42,
+        )
+    )
+    repo.save(
+        ProspectRecord(
+            place_id="places/has-site",
+            display_name="Has Site",
+            formatted_address="Seattle, WA",
+            phone="+1 206-555-0102",
+            types=["beauty_salon"],
+            city_id="seattle",
+            genre_id="beauty_salon",
+            grid_cell_id="seattle:beauty_salon",
+            maps_website_class=MapsWebsiteClass.PRESENT,
+            user_ratings_total=42,
+            composite_cohort="E_has_site",
+            priority_score=2,
+        )
+    )
+    monkeypatch.setattr(prospect_scan, "ProspectRepository", lambda: repo)
+
+    assert (
+        prospect_scan.main(
+            ["verify-web", "--provider", "stub", "--cohort", "A_gold", "--limit", "1"]
+        )
+        == 0
+    )
+
+    updated = repo.get("places/abc123")
+    untouched = repo.get("places/has-site")
+    assert updated.web_verify_verdict is WebVerifyVerdict.MARKETPLACE_ONLY
+    assert updated.web_verify_method == "stub"
+    assert updated.web_verify_url == "https://www.yelp.com/biz/tonic-salon"
+    assert untouched.web_verify_verdict is WebVerifyVerdict.UNVERIFIED
+
+
+def test_next_qualification_command_prints_current_warehouse_step(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    repo = ProspectRepository(tmp_path / "records")
+    repo.save(
+        ProspectRecord(
+            place_id="places/a2",
+            display_name="Marketplace Only Salon",
+            formatted_address="Seattle, WA",
+            phone="+1 206-555-0100",
+            types=["beauty_salon"],
+            city_id="seattle",
+            genre_id="beauty_salon",
+            grid_cell_id="seattle:beauty_salon",
+            maps_website_class=MapsWebsiteClass.MARKETPLACE,
+            user_ratings_total=80,
+            composite_cohort="A2_marketplace_review",
+            priority_score=68,
+        )
+    )
+    monkeypatch.setattr(prospect_scan, "ProspectRepository", lambda: repo)
+
+    assert prospect_scan.main(["next-qualification", "--provider", "brave", "--limit", "50"]) == 0
+
+    output = capsys.readouterr().out
+    assert "verify_current_warehouse" in output
+    assert "--cohort A2_marketplace_review --limit 1" in output

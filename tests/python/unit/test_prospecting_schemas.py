@@ -3,12 +3,13 @@ from __future__ import annotations
 from packages.prospecting.cohorts import derive_composite_cohort, priority_score
 from packages.schemas.prospect import (
     GoogleSearchCheck,
-    HumanVerified,
     HttpCheckClass,
+    HumanVerified,
     MapsWebsiteClass,
     ProspectRecord,
     ProspectStatus,
     ReviewTier,
+    WebVerifyVerdict,
 )
 
 
@@ -59,6 +60,75 @@ def test_prospect_record_defaults_human_verification_to_unset() -> None:
     assert record.human_verified is HumanVerified.UNSET
     assert record.human_verified_at == ""
     assert record.human_verify_note == ""
+
+
+def test_prospect_record_defaults_empty_web_verdict_to_unverified() -> None:
+    record = ProspectRecord.from_dict(
+        {
+            "place_id": "places/abc123",
+            "display_name": "Tonic Salon",
+            "formatted_address": "Seattle, WA",
+            "web_verify_verdict": "",
+        }
+    )
+
+    assert record.web_verify_verdict is WebVerifyVerdict.UNVERIFIED
+
+
+def test_prospect_record_coerces_legacy_web_confidence_labels() -> None:
+    assert (
+        ProspectRecord.from_dict(
+            {
+                "place_id": "places/high",
+                "display_name": "High Confidence",
+                "formatted_address": "Seattle, WA",
+                "web_verify_confidence": "high",
+            }
+        ).web_verify_confidence
+        == 0.9
+    )
+    assert (
+        ProspectRecord.from_dict(
+            {
+                "place_id": "places/medium",
+                "display_name": "Medium Confidence",
+                "formatted_address": "Seattle, WA",
+                "web_verify_confidence": "medium",
+            }
+        ).web_verify_confidence
+        == 0.6
+    )
+    assert (
+        ProspectRecord.from_dict(
+            {
+                "place_id": "places/low",
+                "display_name": "Low Confidence",
+                "formatted_address": "Seattle, WA",
+                "web_verify_confidence": "low",
+            }
+        ).web_verify_confidence
+        == 0.3
+    )
+
+
+def test_prospect_record_round_trips_open_source_provenance_fields() -> None:
+    record = ProspectRecord.from_dict(
+        {
+            "place_id": "source/overture:fresh-1",
+            "display_name": "Fresh Nails",
+            "formatted_address": "20 Pine St, Seattle, WA",
+            "source_name": "overture",
+            "source_record_id": "fresh-1",
+            "source_run_key": "overture__seattle__nail_salon__v1__abc123",
+            "source_query": "nail_salon near seattle",
+            "source_confidence": 0.87,
+            "source_collected_at": "2026-06-10T00:00:00+00:00",
+        }
+    )
+
+    assert ProspectRecord.from_dict(record.to_dict()) == record
+    assert record.source_name == "overture"
+    assert record.source_confidence == 0.87
 
 
 def test_cohort_logic_uses_website_signal_not_genre() -> None:
@@ -123,6 +193,17 @@ def test_cohort_logic_uses_website_signal_not_genre() -> None:
     )
     assert derive_composite_cohort(present_unchecked) == "E_has_site"
 
+    source_candidate = ProspectRecord.from_dict(
+        {
+            **base.to_dict(),
+            "place_id": "source/overture:fresh-1",
+            "source_name": "overture",
+            "source_record_id": "fresh-1",
+            "user_ratings_total": 0,
+        }
+    )
+    assert derive_composite_cohort(source_candidate) == "S_source_candidate"
+
 
 def test_priority_score_uses_documented_cohort_weight_times_demand_factor() -> None:
     record = ProspectRecord(
@@ -145,6 +226,7 @@ def test_priority_score_uses_documented_cohort_weight_times_demand_factor() -> N
     assert priority_score(record, "C_potential_signal") == 12.5
     # New secondary bucket weight (85) sits just below A_gold, above B_stale_maps.
     assert priority_score(record, "A2_marketplace_review") == 42.5
+    assert priority_score(record, "S_source_candidate") == 30.0
 
     high_demand = ProspectRecord.from_dict({**record.to_dict(), "user_ratings_total": 250})
     assert priority_score(high_demand, "A_gold") == 100.0
@@ -175,6 +257,10 @@ def test_marketplace_only_routes_to_secondary_review_bucket() -> None:
     assert derive_composite_cohort(loads_ok) == "A2_marketplace_review"
     # Absent/social are still the prime A_gold cohort.
     social = ProspectRecord.from_dict(
-        {**base.to_dict(), "maps_website_class": "social_only", "http_check_class": "redirect_social"}
+        {
+            **base.to_dict(),
+            "maps_website_class": "social_only",
+            "http_check_class": "redirect_social",
+        }
     )
     assert derive_composite_cohort(social) == "A_gold"

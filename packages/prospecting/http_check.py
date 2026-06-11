@@ -32,7 +32,11 @@ import httpx
 from packages.discovery.connectors.rate_limiter import RateLimiter
 from packages.policies.url_guard import Resolver, is_safe_public_url
 from packages.prospecting.config import HttpConfig
-from packages.prospecting.connectors.google_places import MARKETPLACE_HOSTS, SOCIAL_HOSTS, normalized_host
+from packages.prospecting.connectors.google_places import (
+    MARKETPLACE_HOSTS,
+    SOCIAL_HOSTS,
+    normalized_host,
+)
 from packages.schemas.prospect import HttpCheck, HttpCheckClass, MapsWebsiteClass, ProspectRecord
 
 # Match genuine parked/for-sale pages. Use specific phrases and the parking
@@ -142,7 +146,11 @@ class HTTPChecker:
                 return HttpCheck(
                     HttpCheckClass.ERROR, checked_at=self._timestamp(), error=str(last_error)
                 )
-            return HttpCheck(HttpCheckClass.ERROR, checked_at=self._timestamp(), error="no response")
+            return HttpCheck(
+                HttpCheckClass.ERROR,
+                checked_at=self._timestamp(),
+                error="no response",
+            )
         final_url = str(response.url)
         # Defense-in-depth: a public URL can redirect to an internal host.
         if not self._url_safe(final_url):

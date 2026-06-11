@@ -82,6 +82,7 @@ MARKETPLACE_HOSTS = {
     "toasttab.com",
     "square.site",
     "vagaro.com",
+    "mytime.com",
     "mindbodyonline.com",
     "booksy.com",
     "schedulicity.com",

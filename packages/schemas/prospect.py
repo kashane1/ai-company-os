@@ -43,9 +43,19 @@ class HumanVerified(str, Enum):
     FALSE = "false"
 
 
+class WebVerifyVerdict(str, Enum):
+    UNVERIFIED = "unverified"
+    OWNED_SITE = "owned_site"
+    SOCIAL_ONLY = "social_only"
+    MARKETPLACE_ONLY = "marketplace_only"
+    NONE_FOUND = "none_found"
+    AMBIGUOUS = "ambiguous"
+
+
 class ProspectStatus(str, Enum):
     RAW = "raw"
     MAPS_ENRICHED = "maps_enriched"
+    SOURCE_ENRICHED = "source_enriched"
     HTTP_ENRICHED = "http_enriched"
     ERROR = "error"
 
@@ -138,6 +148,36 @@ class ProspectRecord:
     human_verified_at: str = ""
     human_verify_note: str = ""
 
+    # Search-backed web-presence verification. These fields are the gate between
+    # raw directory/Maps candidates and any outreach-ready prospect list.
+    web_verify_class: str = ""
+    web_verify_verdict: WebVerifyVerdict = WebVerifyVerdict.UNVERIFIED
+    web_verify_url: str = ""
+    web_verify_confidence: float = 0.0
+    web_verify_note: str = ""
+    web_verified_at: str = ""
+    web_verify_method: str = ""
+
+    # Contact channels. Filled by the manual (browser) verification sweep so the
+    # outreach layer has a reachable channel without re-browsing. Outreach reads
+    # these; Phase 1 scan/HTTP paths leave them blank.
+    contact_email: str = ""
+    contact_instagram: str = ""
+    contact_facebook: str = ""
+    contact_booking_url: str = ""
+    contact_source: str = ""
+    contact_collected_at: str = ""
+
+    # Open-source / third-party source provenance. Google Places records leave
+    # these blank; Overture/FSQ imports fill them so every warehouse row can be
+    # traced back to the source-run ledger and query that created it.
+    source_name: str = ""
+    source_record_id: str = ""
+    source_run_key: str = ""
+    source_query: str = ""
+    source_confidence: float = 0.0
+    source_collected_at: str = ""
+
     # Lifecycle.
     status: ProspectStatus = ProspectStatus.RAW
     # Agency layer (Phase 3) — operator-set sales track; no automated transitions.
@@ -173,6 +213,25 @@ class ProspectRecord:
             "human_verified": self.human_verified.value,
             "human_verified_at": self.human_verified_at,
             "human_verify_note": self.human_verify_note,
+            "web_verify_class": self.web_verify_class,
+            "web_verify_verdict": self.web_verify_verdict.value,
+            "web_verify_url": self.web_verify_url,
+            "web_verify_confidence": self.web_verify_confidence,
+            "web_verify_note": self.web_verify_note,
+            "web_verified_at": self.web_verified_at,
+            "web_verify_method": self.web_verify_method,
+            "contact_email": self.contact_email,
+            "contact_instagram": self.contact_instagram,
+            "contact_facebook": self.contact_facebook,
+            "contact_booking_url": self.contact_booking_url,
+            "contact_source": self.contact_source,
+            "contact_collected_at": self.contact_collected_at,
+            "source_name": self.source_name,
+            "source_record_id": self.source_record_id,
+            "source_run_key": self.source_run_key,
+            "source_query": self.source_query,
+            "source_confidence": self.source_confidence,
+            "source_collected_at": self.source_collected_at,
             "status": self.status.value,
             "engagement_status": self.engagement_status.value,
             "created_at": self.created_at,
@@ -219,6 +278,32 @@ class ProspectRecord:
             ),
             human_verified_at=str(payload.get("human_verified_at", "")),
             human_verify_note=str(payload.get("human_verify_note", "")),
+            web_verify_class=str(payload.get("web_verify_class", "")),
+            web_verify_verdict=WebVerifyVerdict(
+                str(
+                    payload.get("web_verify_verdict", WebVerifyVerdict.UNVERIFIED.value)
+                    or WebVerifyVerdict.UNVERIFIED.value
+                )
+            ),
+            web_verify_url=str(payload.get("web_verify_url", "")),
+            web_verify_confidence=_web_confidence_float(
+                payload.get("web_verify_confidence", 0)
+            ),
+            web_verify_note=str(payload.get("web_verify_note", "")),
+            web_verified_at=str(payload.get("web_verified_at", "")),
+            web_verify_method=str(payload.get("web_verify_method", "")),
+            contact_email=str(payload.get("contact_email", "")),
+            contact_instagram=str(payload.get("contact_instagram", "")),
+            contact_facebook=str(payload.get("contact_facebook", "")),
+            contact_booking_url=str(payload.get("contact_booking_url", "")),
+            contact_source=str(payload.get("contact_source", "")),
+            contact_collected_at=str(payload.get("contact_collected_at", "")),
+            source_name=str(payload.get("source_name", "")),
+            source_record_id=str(payload.get("source_record_id", "")),
+            source_run_key=str(payload.get("source_run_key", "")),
+            source_query=str(payload.get("source_query", "")),
+            source_confidence=float(payload.get("source_confidence", 0) or 0),
+            source_collected_at=str(payload.get("source_collected_at", "")),
             status=ProspectStatus(str(payload.get("status", ProspectStatus.RAW.value))),
             engagement_status=EngagementStatus(
                 str(payload.get("engagement_status", EngagementStatus.NONE.value))
@@ -241,3 +326,13 @@ def _opt_float(value: object) -> float | None:
 
 def _opt_int(value: object) -> int | None:
     return None if value is None else int(value)  # type: ignore[arg-type]
+
+
+def _web_confidence_float(value: object) -> float:
+    if value is None or value == "":
+        return 0.0
+    if isinstance(value, str):
+        mapped = {"high": 0.9, "medium": 0.6, "low": 0.3}.get(value.strip().lower())
+        if mapped is not None:
+            return mapped
+    return float(value)  # type: ignore[arg-type]

@@ -18,7 +18,13 @@ from packages.prospecting.config import CityConfig, GenreConfig, WeeklyCaps
 from packages.prospecting.grid import GridCursorStore, build_grid, select_cells
 from packages.prospecting.http_check import HTTPChecker, should_check_http
 from packages.prospecting.storage import ProspectRepository
-from packages.schemas.prospect import HttpCheck, HttpCheckClass, ProspectRecord, ProspectStatus, replace_record
+from packages.schemas.prospect import (
+    HttpCheck,
+    HttpCheckClass,
+    ProspectRecord,
+    ProspectStatus,
+    replace_record,
+)
 
 STOP_FILE_NAME = "STOP"
 CURRENT_RUN_ID = "current"

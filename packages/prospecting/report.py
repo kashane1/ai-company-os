@@ -83,7 +83,7 @@ def render_phase2_cohort_report(
         "",
         f"Records: {len(records)}",
         f"Exported cohort-A rows: {exported_count}",
-        f"A_gold target: 50",
+        "A_gold target: 50",
         f"A_gold actual: {after.get('A_gold', 0)}",
         f"A_gold target status: {'met' if after.get('A_gold', 0) >= 50 else 'shortfall'}",
         "",
@@ -134,7 +134,9 @@ def render_phase2_cohort_report(
             + " |"
         )
     if not z_records:
-        lines.append("| none | none | none | none | all records resolved by Phase 2 classifier/backfill |")
+        lines.append(
+            "| none | none | none | none | all records resolved by Phase 2 classifier/backfill |"
+        )
     return "\n".join(lines) + "\n"
 
 
