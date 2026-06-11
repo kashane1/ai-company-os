@@ -2,8 +2,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from packages.agency.conversion_lab import render_report_markdown, write_report
-from packages.schemas.conversion_lab import ConversionLabReport, PersonaReview, Scorecard
+from packages.agency.conversion_lab import (
+    build_persona_review_prompt,
+    render_report_markdown,
+    write_report,
+)
+from packages.agency.conversion_personas import ConversionPersona
+from packages.schemas.conversion_lab import (
+    ConversionAction,
+    ConversionLabInput,
+    ConversionLabReport,
+    PersonaReview,
+    Scorecard,
+)
 
 
 def _report() -> ConversionLabReport:
@@ -65,3 +76,34 @@ def test_write_report_uses_state_client_artifact_path(tmp_path: Path) -> None:
     assert path == expected
     assert path.exists()
     assert "docs" not in path.parts
+
+
+def test_build_persona_review_prompt_contains_review_contract() -> None:
+    persona = ConversionPersona(
+        persona_id="nervous-first-time-buyer",
+        vertical="med_spa",
+        dossier="Cautious buyer who needs credentials and first-visit reassurance.",
+        trust_signals=["Licensed provider credentials"],
+        objections=["No pricing context"],
+        review_prompt="Review whether the page feels safe.",
+    )
+    input_payload = ConversionLabInput(
+        product_id="smooth-med-spa-site",
+        vertical="med_spa",
+        target_action=ConversionAction.BOOKING,
+        url="https://example.com",
+        page_copy="Book a consultation today.",
+        known_objections=["Is it safe?"],
+    )
+
+    prompt = build_persona_review_prompt(persona=persona, input_payload=input_payload)
+
+    assert "synthetic simulation" in prompt
+    assert "Cautious buyer who needs credentials" in prompt
+    assert "Book a consultation today." in prompt
+    assert "Target action: booking" in prompt
+    assert "likely_action" in prompt
+    assert "clarity_notes" in prompt
+    assert "objections" in prompt
+    assert "trust_gaps" in prompt
+    assert "useful_rewrites" in prompt

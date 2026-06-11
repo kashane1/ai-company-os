@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from packages.agency.conversion_personas import ConversionPersona
 from packages.schemas.conversion_lab import ConversionLabInput, ConversionLabReport
 
 
@@ -98,3 +99,52 @@ def render_prompts_markdown(input_payload: ConversionLabInput, prompts: list[str
     for index, prompt in enumerate(prompts, start=1):
         lines.extend([f"## Prompt {index}", "", prompt.strip(), ""])
     return "\n".join(lines)
+
+
+def build_persona_review_prompt(
+    *,
+    persona: ConversionPersona,
+    input_payload: ConversionLabInput,
+) -> str:
+    known_objections = "\n".join(f"- {item}" for item in input_payload.known_objections)
+    objections = known_objections or "- None provided"
+    trust_signals = "\n".join(f"- {item}" for item in persona.trust_signals)
+    persona_objections = "\n".join(f"- {item}" for item in persona.objections)
+    return f"""Embody the following buyer persona for exploratory conversion review.
+
+This is a synthetic simulation, not a real customer interview.
+
+Persona ID: {persona.persona_id}
+Persona vertical: {persona.vertical}
+
+Persona dossier:
+{persona.dossier}
+
+Persona trust signals:
+{trust_signals}
+
+Persona objections:
+{persona_objections}
+
+Business vertical: {input_payload.vertical}
+Target action: {input_payload.target_action.value}
+URL: {input_payload.url}
+
+Known objections from the operator:
+{objections}
+
+Page copy:
+{input_payload.page_copy}
+
+Persona-specific review instruction:
+{persona.review_prompt}
+
+Return JSON with exactly these keys:
+- persona_id
+- likely_action
+- clarity_notes
+- objections
+- trust_gaps
+- useful_rewrites
+- confidence
+"""
