@@ -16,7 +16,7 @@ from packages.agency.conversion_lab import (  # noqa: E402
     render_prompts_markdown,
     write_report,
 )
-from packages.agency.conversion_personas import load_persona_pack  # noqa: E402
+from packages.agency.conversion_personas import load_audience_panel  # noqa: E402
 from packages.schemas.conversion_lab import (  # noqa: E402
     ConversionAction,
     ConversionLabInput,
@@ -38,10 +38,14 @@ def _prepare(args: argparse.Namespace) -> int:
         page_copy=page_copy,
         known_objections=list(args.known_objection or []),
     )
-    pack = load_persona_pack(args.vertical)
+    panel = load_audience_panel(args.vertical)
     prompts = [
-        build_persona_review_prompt(persona=persona, input_payload=input_payload)
-        for persona in pack.personas
+        build_persona_review_prompt(
+            persona=persona,
+            input_payload=input_payload,
+            modifier=panel.modifier,
+        )
+        for persona in panel.personas
     ]
 
     out_dir = _run_dir(args.root, args.product_id, args.run_id)

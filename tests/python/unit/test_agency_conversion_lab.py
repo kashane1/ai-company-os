@@ -7,7 +7,7 @@ from packages.agency.conversion_lab import (
     render_report_markdown,
     write_report,
 )
-from packages.agency.conversion_personas import ConversionPersona
+from packages.agency.conversion_personas import ConversionPersona, VerticalModifier
 from packages.schemas.conversion_lab import (
     ConversionAction,
     ConversionLabInput,
@@ -107,3 +107,40 @@ def test_build_persona_review_prompt_contains_review_contract() -> None:
     assert "objections" in prompt
     assert "trust_gaps" in prompt
     assert "useful_rewrites" in prompt
+
+
+def test_build_persona_review_prompt_can_include_vertical_modifier() -> None:
+    persona = ConversionPersona(
+        persona_id="urgent-problem-solver",
+        vertical="core",
+        dossier="Needs fast help and clear availability.",
+        trust_signals=["Same-day availability"],
+        objections=["Cannot tell if they can help today"],
+        review_prompt="Review whether fast action is obvious.",
+    )
+    modifier = VerticalModifier(
+        modifier_id="home_services",
+        verticals=["plumber"],
+        objections=["Are they licensed and insured?"],
+        trust_signals=["Emergency or same-day availability"],
+        decision_triggers=["emergency repair"],
+        compliance_notes=["Do not claim licensing unless verified."],
+    )
+    input_payload = ConversionLabInput(
+        product_id="pipe-rescue-site",
+        vertical="plumber",
+        target_action=ConversionAction.CALL,
+        url="https://example.com",
+        page_copy="Call now for repairs.",
+    )
+
+    prompt = build_persona_review_prompt(
+        persona=persona,
+        input_payload=input_payload,
+        modifier=modifier,
+    )
+
+    assert "Vertical modifier: home_services" in prompt
+    assert "Emergency or same-day availability" in prompt
+    assert "emergency repair" in prompt
+    assert "Do not claim licensing unless verified." in prompt
