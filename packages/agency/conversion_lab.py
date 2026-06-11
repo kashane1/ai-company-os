@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from packages.agency.conversion_personas import ConversionPersona
+from packages.agency.conversion_personas import ConversionPersona, VerticalModifier
 from packages.schemas.conversion_lab import ConversionLabInput, ConversionLabReport
 
 
@@ -105,11 +105,13 @@ def build_persona_review_prompt(
     *,
     persona: ConversionPersona,
     input_payload: ConversionLabInput,
+    modifier: VerticalModifier | None = None,
 ) -> str:
     known_objections = "\n".join(f"- {item}" for item in input_payload.known_objections)
     objections = known_objections or "- None provided"
     trust_signals = "\n".join(f"- {item}" for item in persona.trust_signals)
     persona_objections = "\n".join(f"- {item}" for item in persona.objections)
+    modifier_context = _format_modifier_context(modifier)
     return f"""Embody the following buyer persona for exploratory conversion review.
 
 This is a synthetic simulation, not a real customer interview.
@@ -125,6 +127,8 @@ Persona trust signals:
 
 Persona objections:
 {persona_objections}
+
+{modifier_context}
 
 Business vertical: {input_payload.vertical}
 Target action: {input_payload.target_action.value}
@@ -148,3 +152,28 @@ Return JSON with exactly these keys:
 - useful_rewrites
 - confidence
 """
+
+
+def _format_modifier_context(modifier: VerticalModifier | None) -> str:
+    if modifier is None:
+        return "Vertical modifier: None"
+
+    trust_signals = "\n".join(f"- {item}" for item in modifier.trust_signals)
+    objections = "\n".join(f"- {item}" for item in modifier.objections)
+    decision_triggers = "\n".join(f"- {item}" for item in modifier.decision_triggers)
+    compliance_notes = "\n".join(f"- {item}" for item in modifier.compliance_notes)
+    if not compliance_notes:
+        compliance_notes = "- None"
+    return f"""Vertical modifier: {modifier.modifier_id}
+
+Vertical trust signals to check:
+{trust_signals}
+
+Vertical objections to pressure-test:
+{objections}
+
+Vertical decision triggers:
+{decision_triggers}
+
+Compliance notes:
+{compliance_notes}"""

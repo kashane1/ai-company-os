@@ -40,6 +40,38 @@ class PersonaPack:
     personas: list[ConversionPersona]
 
 
+@dataclass(frozen=True)
+class VerticalModifier:
+    modifier_id: str
+    verticals: list[str]
+    objections: list[str]
+    trust_signals: list[str]
+    decision_triggers: list[str]
+    compliance_notes: list[str] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, object]) -> "VerticalModifier":
+        return cls(
+            modifier_id=str(payload["modifier_id"]),
+            verticals=[str(item) for item in list(payload.get("verticals", []))],
+            objections=[str(item) for item in list(payload.get("objections", []))],
+            trust_signals=[str(item) for item in list(payload.get("trust_signals", []))],
+            decision_triggers=[
+                str(item) for item in list(payload.get("decision_triggers", []))
+            ],
+            compliance_notes=[
+                str(item) for item in list(payload.get("compliance_notes", []))
+            ],
+        )
+
+
+@dataclass(frozen=True)
+class AudiencePanel:
+    vertical: str
+    modifier: VerticalModifier
+    personas: list[ConversionPersona]
+
+
 def load_persona_pack(vertical: str, *, root: Path | None = None) -> PersonaPack:
     pack_root = root or PACK_ROOT
     path = pack_root / f"{vertical}.yaml"
@@ -56,6 +88,34 @@ def load_persona_pack(vertical: str, *, root: Path | None = None) -> PersonaPack
     return PersonaPack(vertical=pack_vertical, personas=personas)
 
 
+def load_audience_panel(vertical: str, *, root: Path | None = None) -> AudiencePanel:
+    pack_root = root or PACK_ROOT
+    core = load_persona_pack("core", root=pack_root)
+    modifier = _modifier_for(vertical, root=pack_root)
+    personas = list(core.personas)
+    vertical_path = pack_root / f"{vertical}.yaml"
+    if vertical_path.exists() and vertical != "core":
+        personas.extend(load_persona_pack(vertical, root=pack_root).personas)
+    _validate_personas(personas)
+    return AudiencePanel(vertical=vertical, modifier=modifier, personas=personas)
+
+
+def _modifier_for(vertical: str, *, root: Path) -> VerticalModifier:
+    path = root / "modifiers.yaml"
+    if not path.exists():
+        raise PersonaPackError("missing modifiers.yaml")
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    modifiers = [
+        VerticalModifier.from_dict(dict(item))
+        for item in list(payload.get("modifiers", []))
+    ]
+    for modifier in modifiers:
+        if vertical == modifier.modifier_id or vertical in modifier.verticals:
+            _validate_modifier(modifier)
+            return modifier
+    raise PersonaPackError(f"missing vertical modifier: {vertical}")
+
+
 def _validate_personas(personas: list[ConversionPersona]) -> None:
     seen: set[str] = set()
     for persona in personas:
@@ -70,3 +130,16 @@ def _validate_personas(personas: list[ConversionPersona]) -> None:
             raise PersonaPackError(f"persona {persona.persona_id}: objections required")
         if not persona.review_prompt:
             raise PersonaPackError(f"persona {persona.persona_id}: review_prompt required")
+
+
+def _validate_modifier(modifier: VerticalModifier) -> None:
+    if not modifier.verticals:
+        raise PersonaPackError(f"modifier {modifier.modifier_id}: verticals required")
+    if not modifier.objections:
+        raise PersonaPackError(f"modifier {modifier.modifier_id}: objections required")
+    if not modifier.trust_signals:
+        raise PersonaPackError(f"modifier {modifier.modifier_id}: trust_signals required")
+    if not modifier.decision_triggers:
+        raise PersonaPackError(
+            f"modifier {modifier.modifier_id}: decision_triggers required"
+        )

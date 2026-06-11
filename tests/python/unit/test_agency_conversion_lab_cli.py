@@ -105,3 +105,43 @@ def test_run_conversion_lab_prepare_and_render(tmp_path: Path) -> None:
     report = Path(rendered["report"])
     assert report == run_dir / "REPORT.md"
     assert "Conversion Lab Report" in report.read_text(encoding="utf-8")
+
+
+def test_run_conversion_lab_prepare_uses_audience_panel_for_generic_vertical(
+    tmp_path: Path,
+) -> None:
+    page_copy = tmp_path / "page.txt"
+    page_copy.write_text("Call now for emergency drain repair.", encoding="utf-8")
+
+    prepare = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "prepare",
+            "--root",
+            str(tmp_path),
+            "--product-id",
+            "pipe-rescue-site",
+            "--vertical",
+            "plumber",
+            "--target-action",
+            "call",
+            "--url",
+            "https://example.com",
+            "--page-copy-file",
+            str(page_copy),
+            "--run-id",
+            "2026-06-11-002",
+        ],
+        check=True,
+        cwd=Path.cwd(),
+        text=True,
+        capture_output=True,
+    )
+    prepared = json.loads(prepare.stdout)
+    prompts = Path(prepared["prompts"]).read_text(encoding="utf-8")
+
+    assert "Persona ID: urgent-problem-solver" in prompts
+    assert "Vertical modifier: home_services" in prompts
+    assert "Emergency or same-day availability" in prompts
+    assert "emergency repair" in prompts

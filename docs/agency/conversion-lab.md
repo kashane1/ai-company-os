@@ -20,13 +20,16 @@ revenue prediction. The promise is better preflight judgment, not guaranteed lif
 
 ## Good Fits
 
-- Med spas, dentists, roofing, HVAC, and local law firms.
+- Med spas, dentists, roofing, HVAC, restaurants, auto services, personal care,
+  professional services, and other local service businesses covered by the
+  persona library.
 - Existing websites with traffic but weak lead flow.
 - Package C ad campaigns before go-live.
 - Warm prospects where a teardown can make the sales conversation concrete.
 - Promo pages where the offer, proof, and CTA need to be tightened quickly.
 
-Avoid broad generic SMB panels at the start. Persona quality is the asset.
+The reusable audience panel model is documented in
+[`conversion-lab/persona-library.md`](conversion-lab/persona-library.md).
 
 ## Inputs
 
@@ -41,7 +44,7 @@ Avoid broad generic SMB panels at the start. Persona quality is the asset.
 
 ## Manual Workflow
 
-1. Select one vertical persona pack.
+1. Select the audience panel for the business vertical.
 2. Extract the page or paste the page copy into the run notes.
 3. Ask each persona for clarity, trust, objection, and action-likelihood feedback.
 4. Summarize cross-persona patterns.
