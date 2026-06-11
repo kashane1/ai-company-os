@@ -25,7 +25,7 @@ from packages.web.block_library import (
     BlockEntry,
     BlockLibrary,
 )
-from packages.web.copy import generate_conversion_copy, process_steps
+from packages.web.copy import generate_conversion_copy
 from packages.web.design_studio import DesignStudioPacket
 
 # Component name -> import path (relative to src/pages/index.astro).
@@ -84,9 +84,6 @@ _VARIANTS: dict[str, list[list[str]]] = {
     "classic-custom": [
         ["CinematicHero", "EditorialSplit", "ClosingCta"],
         ["CinematicHero", "EditorialSplit", "FullBleedMedia", "ClosingCta"],
-        # Process-led: a consult/visit flow between the split and the band — a calmer,
-        # editorial rhythm for wellness/clinical brands (distinct from the bento gallery).
-        ["CinematicHero", "EditorialSplit", "StickyProcess", "FullBleedMedia", "ClosingCta"],
     ],
 }
 
@@ -307,38 +304,15 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
     supporting = list(images.get("supporting", []))
 
     # Reserve the last supporting image for the full-bleed band so it never duplicates a
-    # bento cell; the bento draws from the rest with NO cycling (no repeated photos).
+    # bento cell; the bento draws from the rest with NO cycling — when there are fewer
+    # images than bento cells, the extra cells become clean text-only cards instead of
+    # repeating an image (the "the work, up close" grid no longer shows the same photo
+    # twice).
     band_img = supporting[-1] if supporting else None
     bento_pool = supporting[:-1] if len(supporting) > 1 else supporting
 
     def bento_img(i: int) -> str | None:
         return bento_pool[i] if i < len(bento_pool) else None
-
-    # Image-led bento: one card per AVAILABLE image (each paired with a proof line), so the
-    # gallery never renders a lone image-less card that reads as a broken/missing photo
-    # (a build can have more proof bullets than bento images — extra bullets live in the
-    # split section). With NO imagery at all, fall back to a text card per proof point.
-    # Spans adapt to the card count so the grid always fills cleanly (no holes).
-    proof_list = list(proof) or ["Replace with real proof of work."]
-    n_cards = len(bento_pool) or len(proof_list)
-
-    def _span(i: int) -> str | None:
-        if n_cards >= 4:
-            return "wide" if i == 0 else ("tall" if i == 1 else None)
-        if n_cards == 2:
-            return "wide" if i == 0 else None
-        return None  # 3 → a clean row of three; 1 → a single card
-
-    bento_items = [
-        {
-            "title": (pt := proof_list[i % len(proof_list)])[:1].upper() + pt[1:],
-            "body": "",
-            "alt": f"{name} — {pt}",
-            "span": _span(i),
-            "image": bento_img(i),
-        }
-        for i in range(n_cards)
-    ]
 
     return {
         "hero": {
@@ -353,16 +327,28 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
         "split": {
             "index": "01",
             "heading": copy["split_heading"],
-            "body": copy["split_body"],
+            "body": packet.goal.capitalize() + ".",
             "points": proof,
         },
         "bento": {
-            "heading": copy["gallery_heading"],
-            "items": bento_items,
+            "heading": "The work, up close",
+            "items": [
+                {
+                    "title": f"Detail {i + 1}",
+                    "body": p,
+                    "span": "wide" if i == 0 else ("tall" if i == 1 else None),
+                    "image": bento_img(i),
+                }
+                for i, p in enumerate(proof or ["Replace with real proof of work."])
+            ],
         },
         "process": {
-            "heading": (_proc := process_steps(packet))[0],
-            "steps": [{"title": t, "body": b} for t, b in _proc[1]],
+            "heading": "How it goes",
+            "steps": [
+                {"title": "Reach out", "body": "Tell us what you need."},
+                {"title": "We scope it", "body": "A clear plan and a clear price."},
+                {"title": "It gets done", "body": "Careful work, done right."},
+            ],
         },
         "fullbleed": {
             # A DISTINCT image (a supporting shot, never the hero) + a DISTINCT band
@@ -379,7 +365,6 @@ def derive_content(packet: DesignStudioPacket, images: dict | None = None) -> di
             "headline": copy["cta_headline"],
             "subhead": copy["cta_subhead"],
             "cta": copy["primary_cta"],
-            "href": copy["cta_href"],
         },
     }
 

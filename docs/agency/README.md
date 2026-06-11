@@ -14,7 +14,6 @@ the stage doc you need.
 |---|---|---|---|
 | 1–4 Prospect & qualify | discover businesses, enrich contacts, verify "no real site" | [waas-prospecting-lane.md](../waas-prospecting-lane.md) | `scripts/agency/gather_place.py`, `packages/agency/prospect_site.py` |
 | Design Studio | convert evidence + references into a premium art-direction packet, then review screenshots for visual quality | [agency/design-studio-lane.md](design-studio-lane.md) | `packages/web/design_studio.py` |
-| Art-direction kits + mood board | per-genre design recipe (palette+type+imagery direction+exemplars) → instant build first-draft, a client-facing mood board, and a harvest loop that grows the library from real builds | [agency/art-direction-kits.md](art-direction-kits.md) | `packages/web/art_direction.py`, `packages/web/moodboard.py`, `scripts/agency/{art_direction,moodboard}.py` |
 | 5 Demo build | hand-build a bespoke mockup per business → `dist-v2/` | [demo-site-build-playbook.md](../demo-site-build-playbook.md) · [demo-site-gather-automation.md](../demo-site-gather-automation.md) | `state/prospects/sites/<place_id>/`, `scripts/agency/build_prospect_site.py` |
 | — Portfolio | curate anonymized demos onto the BBW landing page | (this doc, below) | `scripts/agency/build_portfolio_demos.py`, `products/better-business-web/` |
 | Outreach | channel × genre templates, human send, track replies | [waas-prospecting-lane.md](../waas-prospecting-lane.md) (stages 6–8) · [outreach-copy-rules.md](outreach-copy-rules.md) | `packages/agency/outreach.py`, `scripts/agency/build_outreach.py` |
@@ -78,8 +77,6 @@ both the bespoke playbook (path B, as fallback guidance) and the Astro scaffold 
   (+ `LICENSE`, `ATTRIBUTION.md`). See [packages/web/README.md](../../packages/web/README.md).
 - `packages/web/palette.py` — WCAG contrast primitives, a genre→palette table
   (`GENRE_PALETTES`), and a deterministic HSL synthesizer (`derive_palette`).
-- `packages/web/design_reference/kits/` — per-genre **art-direction kits** (the durable
-  recipe + a few exemplars). See [agency/art-direction-kits.md](art-direction-kits.md).
 - The web gate `check_contrast` (`packages/web/validation.py`) enforces AA on built sites.
 
 > **Palette precedence for demos:** derive from the business's own visual cues first
