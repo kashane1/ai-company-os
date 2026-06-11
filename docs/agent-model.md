@@ -144,6 +144,28 @@ It must not:
 Outbound contact stays human-gated unless a future CRM adapter and policy gate
 explicitly allow a narrower automation path.
 
+### 8. Agency Conversion Lab
+
+Conversion Lab is an advisory agency capability, not a new autonomous worker.
+
+It is responsible for:
+
+- preparing synthetic-audience preflight prompts from approved persona packs
+- rendering operator-reviewed conversion reports
+- surfacing likely objections, trust gaps, and rewrite recommendations
+- feeding Package C ad and promo-page drafts with optional preflight summaries
+
+It must not:
+
+- claim deterministic revenue prediction
+- create or launch ad campaigns
+- change spend, budgets, DNS, billing, or outbound contact state
+- use private customer data in persona packs without client permission
+
+The platform owns the service catalog, runtime artifact path, and approval gates.
+The operator owns client-facing claims. Ads remain draft-only until the existing
+`ad_campaign_go_live` approval gate passes.
+
 ## Codex's Role
 
 Codex is the engineering engine, not the operating system.
