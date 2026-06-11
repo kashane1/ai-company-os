@@ -16,12 +16,12 @@
 | 1 | **Collect** | Local businesses enter the warehouse from Google Places + open data (Overture/FSQ) | ✅ live | [../waas-prospecting-lane.md](../waas-prospecting-lane.md) |
 | 2 | **Verify** | Confirm the "no owned website" signal is real; classify web presence | ✅ live | [manual-verification-sop.md](manual-verification-sop.md) |
 | 3 | **Resolve contact** | Find the best reachable channel (email/IG/FB/booking; phone is baseline) | ✅ live | [manual-verification-sop.md](manual-verification-sop.md) |
-| 4 | **Build demo** | Hand-build one bespoke preview site as the conversion edge | ✅ live | [../demo-site-build-playbook.md](../demo-site-build-playbook.md) |
+| 4 | **Build demo** | Hand-build one bespoke preview site as the conversion edge; optionally run Conversion Lab on the current page/profile | ✅ live | [../demo-site-build-playbook.md](../demo-site-build-playbook.md), [conversion-lab.md](conversion-lab.md) |
 | 5 | **Outreach** | Draft a personalized, channel-appropriate message (operator sends by hand) | ✅ draft-only (by design) | [outreach-copy-rules.md](outreach-copy-rules.md) |
-| 6 | **Sell** | Stripe checkout (one-time setup + monthly), webhook → billing ledger | ✅ live (test proven) | [first-sale-runbook.md](first-sale-runbook.md) |
+| 6 | **Sell** | Stripe checkout (one-time setup + monthly), webhook → billing ledger; Conversion Lab can also sell as a paid diagnostic | ✅ live (test proven) | [first-sale-runbook.md](first-sale-runbook.md), [conversion-lab.md](conversion-lab.md) |
 | 7 | **Onboard** | Promote prospect → client; intake → scaffold the real site | ✅ live | [client-lifecycle.md](client-lifecycle.md) |
 | 8 | **Launch** | Final QA checklist (UX/SEO/form/GBP/DNS) → go live | ✅ live | [client-lifecycle.md](client-lifecycle.md), [domain-dns-runbook.md](domain-dns-runbook.md) |
-| 9 | **Recurring** | Monthly retainer ops (SEO/GBP/booking/reports/ads) + subscription billing | ⚠️ partial | [go-live-checklist.md](go-live-checklist.md), [client-sla.md](client-sla.md) |
+| 9 | **Recurring** | Monthly retainer ops (SEO/GBP/booking/reports/ads) + subscription billing; Conversion Lab preflights Package C promo/ad work | ⚠️ partial | [go-live-checklist.md](go-live-checklist.md), [client-sla.md](client-sla.md), [conversion-lab.md](conversion-lab.md) |
 
 Hard boundary across the whole funnel: **no automated outbound send and no
 irreversible/external action without an approval gate.** Outreach is always a draft;
@@ -81,6 +81,11 @@ private Netlify URL). Code: `packages/web/` + `scripts/agency/build_prospect_sit
 `screenshot_demo.py`. Canonical: [../demo-site-build-playbook.md](../demo-site-build-playbook.md).
 A premium design track exists (`packages/web/design_studio.py`).
 
+For higher-ticket prospects, [Conversion Lab](conversion-lab.md) can run before or
+beside the demo build to turn the owner's existing page, marketplace profile, or
+promo copy into a concrete conversion-teardown artifact. That report is advisory
+preflight intelligence, not a guaranteed prediction of future revenue.
+
 **Gaps:** intentionally manual (no code generator — bespoke is the moat); photo
 sourcing + the Craft Pass need a human eye; Netlify draft-deploy cleanup is manual.
 
@@ -106,6 +111,10 @@ the source of truth in [catalog.yaml](../../packages/agency/catalog.yaml) (rende
 `registry.py`; CLI: `scripts/agency/create_checkout.py`. Webhook architecture
 (Netlify Function + Blobs + local poller) and the test→live sequence:
 [first-sale-runbook.md](first-sale-runbook.md), [first-sale-setup-state.md](first-sale-setup-state.md).
+
+Conversion Lab can also be sold here as a paid diagnostic before a full website
+rebuild. The useful sales motion is "we will show you what is blocking calls or
+bookings before we rebuild," not "we ran an AI focus group."
 
 **Gaps:** test mode proven, live mode validated cheaply but not yet at volume; a known
 idempotency-key issue on re-issuing a checkout; tax handling deferred; poller not yet
@@ -133,6 +142,10 @@ the billing ledger; retainer work halts on refund/dispute. Code:
 `meta_ads.py`, `follow_up.py`, `retainer_executor.py`; gates in
 `packages/policies/agency_gates.py`. Booking recipes:
 [runbooks/](runbooks/). SLA: [client-sla.md](client-sla.md).
+
+[Conversion Lab](conversion-lab.md) is the recommended preflight for Package C
+promo pages and ad copy. It should produce objections, trust gaps, rewrites, and
+a ranked angle before the operator approves ad spend.
 
 **Gaps (the least-finished stage):** retainer ops are partially built; **ads are
 draft-only** (no real spend path); **review SMS / follow-up is templates-only** (no
