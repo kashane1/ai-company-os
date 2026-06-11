@@ -110,8 +110,11 @@ follow-ups" below for the source-signal mapping used.
 | [2026-06-08-feat-web-design-studio-lane-plan.md](2026-06-08-feat-web-design-studio-lane-plan.md) | 2026-06-08 | feat-web-design-studio-lane | open | platform / web / design — no frontmatter |
 | [2026-06-09-feat-design-engine-external-authoring-pipeline-plan.md](2026-06-09-feat-design-engine-external-authoring-pipeline-plan.md) | 2026-06-09 | design-engine-external-authoring | open | platform / web / design — frontmatter: open |
 | [2026-06-09-outreach-operations-lane.md](2026-06-09-outreach-operations-lane.md) | 2026-06-09 | outreach-operations-lane | open | platform / outreach — human-gated cold outreach lane |
+| [2026-06-10-feat-prospect-source-ledger-identity-plan.md](2026-06-10-feat-prospect-source-ledger-identity-plan.md) | 2026-06-10 | feat-prospect-source-ledger-identity | open | platform / prospecting |
+| [2026-06-10-feat-prospect-web-verification-providers-plan.md](2026-06-10-feat-prospect-web-verification-providers-plan.md) | 2026-06-10 | feat-prospect-web-verification-providers | open | platform / prospecting |
+| [2026-06-10-outreach-action-dashboard.md](2026-06-10-outreach-action-dashboard.md) | 2026-06-10 | outreach-action-dashboard | open | platform / outreach |
 
-Totals: **46 open** plans (the live working set). Finished plans
+Totals: **49 open** plans (the live working set). Finished plans
 (`done` / `abandoned`) are moved out of this directory into
 [archive/](archive/INDEX.md), so this table lists open work only. This
 index is verified by `make plans-index-check` (drift gate; see below).
