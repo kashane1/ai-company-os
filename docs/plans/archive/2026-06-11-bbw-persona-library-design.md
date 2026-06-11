@@ -1,6 +1,13 @@
+---
+status: done
+change_id: bbw-persona-library-design
+owner: kashane
+last_reviewed: 2026-06-11
+---
+
 # BBW Persona Library Design
 
-**Status:** approved
+**Status:** done (shipped 2026-06-11)
 
 ## Decision
 

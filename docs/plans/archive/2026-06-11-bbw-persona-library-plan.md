@@ -1,3 +1,10 @@
+---
+status: done
+change_id: bbw-persona-library
+owner: kashane
+last_reviewed: 2026-06-11
+---
+
 # BBW Persona Library Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.

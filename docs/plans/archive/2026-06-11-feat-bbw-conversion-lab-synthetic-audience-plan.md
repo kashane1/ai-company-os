@@ -1,3 +1,10 @@
+---
+status: done
+change_id: feat-bbw-conversion-lab-synthetic-audience
+owner: kashane
+last_reviewed: 2026-06-11
+---
+
 # BBW Conversion Lab Synthetic Audience Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
@@ -800,13 +807,28 @@ Run full Python verification before PR:
 ./scripts/test_python.sh
 ```
 
-## Open Decisions
+## Decisions
 
-- Should `conversion_snapshot` be a standalone paid offer, a lead magnet, or bundled into proposals?
-- Should the first vertical be med spas or roofing? Med spas have higher perceived value, but roofing has clearer emergency-intent conversion paths.
-- Should Package C absorb Ad Copy Lab, or should it become a premium C+ retainer?
-- Should persona packs live in `packages/agency/conversion_personas/` long term, or should mature packs become versioned product artifacts under `docs/agency/conversion-lab/` with a loader pointed at docs?
+Resolved at ship (2026-06-11). Edit here if the go-to-market motion changes.
 
-## Recommended Next Move
+- **`conversion_snapshot` pricing shape:** Standalone paid offer at **$199** (catalog:
+  `conversion_snapshot`). Use as a **proposal sweetener** for warm prospects — not a
+  free lead magnet. Deeper work stays on `conversion_audit` ($750).
+- **First vertical to sell:** **Med spas.** Higher perceived value, existing seed pack
+  (`med_spa.yaml`, sample personas), and strong fit for trust-heavy conversion copy.
+  Roofing and HVAC remain strong second-wave verticals once the med-spa motion repeats.
+- **Ad Copy Lab vs Package C:** **Optional Package C add-on**, not absorbed into base
+  Package C pricing. Catalog lists `ad_copy_lab` at $150 setup + $200/mo so C stays
+  entry-priced while ad-heavy clients can upsell preflight + copy iteration.
+- **Persona pack home:** **`packages/agency/conversion_personas/`** is the runtime
+  source of truth (YAML loaded by `load_persona_pack` / `load_audience_panel`).
+  `docs/agency/conversion-lab/` holds operator templates, samples, and human-readable
+  docs — not the loader target for mature packs.
 
-Ship Tasks 1 and 2 only, then manually run three audits before touching code. The repo already has enough agency machinery. The thing to learn first is whether a founder or owner will pay for the report and whether the report changes the sale.
+## Next Steps (post-ship)
+
+Manual proof before Milestone 3 automation:
+
+1. Run three paid or pilot Conversion Lab audits (med spa first).
+2. Capture whether the report changes close rate or rebuild scope.
+3. Only then consider provider-backed batch reviews, PDF export, or dashboard surfacing.
