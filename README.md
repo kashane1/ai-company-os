@@ -56,7 +56,7 @@ approval gate; every run leaves a replayable audit artifact.
 | Path | What it is |
 |---|---|
 | `apps/` | Thin worker + API entrypoints (engineering, iOS, gtm, outreach, appstore, supervisor, approval-reviewer) |
-| `packages/` | Shared platform code: `schemas` (typed contracts), `policies` (approval rules), `db`, `queue`, `tools`, `config`, `discovery` (opportunity find → score → validate) |
+| `packages/` | Shared platform code: `schemas` (typed contracts), `policies` (approval rules), `db`, `queue`, `tools`, `config`, `discovery` (opportunity find → score → validate), `agency` (Better Business Web fulfillment and advisory artifacts) |
 | `products/` | Source roots for the iOS apps the system has produced |
 | `docs/` | Platform docs **plus** the system's own run/spec output — read [`docs/README.md`](docs/README.md) first |
 | `state/` | Runtime-owned data only (worktrees, artifacts, checkpoints, logs) — never source |
@@ -134,6 +134,7 @@ The repo has moved past a paper scaffold. The current useful surface is:
 - `packages/schemas`
 - `packages/config`
 - `packages/discovery` (opportunity discovery → scoring → validation gate; see [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md))
+- `packages/agency` (Better Business Web catalog, client lifecycle, retainer ops, and Conversion Lab preflight reports)
 - `infra`
 - `state`
 - `docs`

@@ -29,6 +29,7 @@ The architecture is built around a few key principles:
 - OpenClaw is optional interface only
 - iOS engineering and App Store operations are separate lanes
 - outreach drafting/tracking is separate from outbound sending
+- synthetic-audience conversion reports are advisory agency artifacts, not launch authority
 
 The system should remain understandable to a human engineer without prompt archaeology.
 
@@ -135,6 +136,8 @@ Examples:
 - cached context
 
 Runtime state belongs in `state/`, not mixed into implementation folders.
+Conversion Lab client run output follows the same rule:
+`state/clients/<product_id>/conversion_lab/<run_id>/`.
 
 ### 6. Optional Interface Layer
 
@@ -248,6 +251,25 @@ Responsibilities:
 
 It does not send cold email, SMS, Instagram DMs, or Facebook DMs. Sending stays
 human-gated until a dedicated CRM adapter and policy gate exist.
+
+### Agency Conversion Lab
+
+Conversion Lab is a Better Business Web capability under `packages/agency/`.
+It prepares persona-backed synthetic-audience prompts, renders operator-reviewed
+reports, and passes optional preflight summaries into Package C Google/Meta ad
+drafts.
+
+This is deliberately not a new orchestrator or worker lane. The reports are
+advisory artifacts for conversion review: objections, trust gaps, rewrite ideas,
+and recommended angles. They do not guarantee revenue and do not replace live
+analytics, real customer interviews, or controlled ad experiments.
+
+Hard boundaries remain unchanged:
+
+- ad campaigns stay draft-only until `ad_campaign_go_live` approval passes
+- spend and budget changes remain human-gated
+- private customer data requires client permission before entering persona packs
+- run output lives in `state/`, while reusable templates live in `docs/agency/`
 
 ## Product Registry And Artifact Chain
 

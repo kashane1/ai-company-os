@@ -283,6 +283,30 @@
       "requires_group": ""
     },
     {
+      "id": "conversion_snapshot",
+      "name": "Conversion Snapshot",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 19900,
+      "monthly_cents": 0,
+      "blurb": "Synthetic audience preflight for one page or ad",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
+    },
+    {
+      "id": "conversion_audit",
+      "name": "Conversion Audit",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 75000,
+      "monthly_cents": 0,
+      "blurb": "Synthetic audience report for one website or landing page",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
+    },
+    {
       "id": "promo_landing_page",
       "name": "Promotional Landing Page",
       "tier": "tier_3",
@@ -338,6 +362,18 @@
       "setup_cents": 12000,
       "monthly_cents": 4000,
       "blurb": "Instant auto-email reply to every new lead",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": ""
+    },
+    {
+      "id": "ad_copy_lab",
+      "name": "Ad Copy Lab",
+      "tier": "tier_3",
+      "bill_type": "recurring",
+      "setup_cents": 15000,
+      "monthly_cents": 20000,
+      "blurb": "Monthly ad copy preflight",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""

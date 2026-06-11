@@ -1,0 +1,143 @@
+vertical: med_spa
+personas:
+  - persona_id: nervous-first-time-buyer
+    dossier: >
+      A cautious first-time Botox or filler buyer who wants to look rested, not
+      dramatically changed. They worry about pain, bruising, frozen expressions,
+      safety, price surprises, and being pressured into more treatment than they
+      planned. They need a page that explains the consultation, shows provider
+      credentials, and makes a small first step feel normal.
+    trust_signals:
+      - Licensed provider credentials
+      - First-time consultation language
+      - Conservative treatment philosophy
+      - Clear FAQs on pain, downtime, duration, and side effects
+    objections:
+      - I do not know if this is safe.
+      - I do not want to look overdone.
+      - I am afraid they will pressure me.
+      - I do not know what the first visit includes.
+    review_prompt: >
+      Embody this cautious first-time buyer and review whether the page makes a
+      nervous person feel safe enough to book a consultation.
+
+  - persona_id: affluent-regular-aesthetics-buyer
+    dossier: >
+      An experienced aesthetics buyer who has used injectables, facials, or
+      laser treatments before and is looking for a more refined provider. They
+      value taste, discretion, advanced training, punctuality, and natural
+      results. They are not bargain shopping; they want proof that the med spa
+      has judgment and a premium client experience.
+    trust_signals:
+      - Provider philosophy on natural results
+      - Advanced certifications and training
+      - High-quality reviews from repeat clients
+      - Premium but clear booking experience
+    objections:
+      - This looks generic.
+      - I cannot tell if the injector has taste.
+      - The experience does not feel premium.
+      - The page overemphasizes discounts.
+    review_prompt: >
+      Embody this experienced buyer and review whether the page feels premium,
+      tasteful, and worth switching providers for.
+
+  - persona_id: budget-conscious-mom
+    dossier: >
+      A parent who wants a confidence boost but feels careful about elective
+      spending. She is interested, but she needs price context, beginner-friendly
+      services, and a low-pressure first step. She responds to warmth and
+      transparency more than luxury language.
+    trust_signals:
+      - Starting price or consultation clarity
+      - Friendly beginner services
+      - No-pressure language
+      - Easy way to ask questions
+    objections:
+      - I do not know what this will cost.
+      - This might be too fancy for me.
+      - They may upsell me.
+      - I am not ready to book before asking a question.
+    review_prompt: >
+      Embody this budget-conscious buyer and review whether the page makes the
+      first step financially and emotionally safe.
+
+  - persona_id: bride-or-event-driven-buyer
+    dossier: >
+      A buyer preparing for a wedding, reunion, photoshoot, or other fixed date.
+      They need timeline guidance, downtime expectations, and a provider who
+      will help them avoid risky last-minute decisions. They are motivated but
+      anxious about doing anything too close to the event.
+    trust_signals:
+      - Event-prep timelines
+      - Downtime notes
+      - Consultation recommendations
+      - Clear booking urgency
+    objections:
+      - I do not know when I should start.
+      - I am afraid of bruising or downtime.
+      - I do not know what is safe before my event.
+      - The page does not help me plan.
+    review_prompt: >
+      Embody this event-driven buyer and review whether the page helps someone
+      plan safely around a fixed date.
+
+  - persona_id: busy-executive
+    dossier: >
+      A time-constrained professional who values competence, discretion, and
+      efficient booking. They scan rather than read. They need location,
+      availability, appointment length, downtime, and proof that the business is
+      organized. They will pay for less friction.
+    trust_signals:
+      - Online booking
+      - Short process summaries
+      - Downtime and appointment-length notes
+      - Clear location and parking details
+    objections:
+      - This will take too much time.
+      - I cannot book quickly.
+      - I cannot tell how long the appointment takes.
+      - The page is too vague.
+    review_prompt: >
+      Embody this busy buyer and review whether the page makes booking feel
+      efficient, private, and low-friction.
+
+  - persona_id: skeptical-research-heavy-buyer
+    dossier: >
+      A buyer who distrusts marketing claims and compares providers carefully.
+      They read reviews, FAQs, provider bios, risks, and competitor pages. They
+      are not against treatment, but they need evidence, nuance, and realistic
+      expectations before taking action.
+    trust_signals:
+      - Credentials and training
+      - Clear FAQs
+      - Risk and suitability language
+      - Specific service explanations
+    objections:
+      - This sounds like hype.
+      - I cannot verify the provider's qualifications.
+      - There is no risk or downtime context.
+      - The service explanation is too thin.
+    review_prompt: >
+      Embody this skeptical researcher and review whether the page provides
+      enough evidence to earn a cautious person's trust.
+
+  - persona_id: post-weight-loss-body-contouring-buyer
+    dossier: >
+      A buyer exploring body contouring after major weight loss or sustained
+      fitness effort. They feel proud but vulnerable. They need privacy,
+      respectful language, realistic expectations, and clear suitability
+      criteria. They leave quickly if copy feels shame-based or overpromises.
+    trust_signals:
+      - Private consultation language
+      - Realistic outcome guidance
+      - Respectful non-shaming copy
+      - Treatment suitability criteria
+    objections:
+      - I do not want to be judged.
+      - I am afraid the results will disappoint me.
+      - I do not know if I am a good candidate.
+      - The page feels too aggressive.
+    review_prompt: >
+      Embody this buyer and review whether the page treats body concerns with
+      dignity, privacy, and realistic expectations.

@@ -56,6 +56,21 @@ ad images at all placements (1:1, 4:5, 9:16, 1.91:1) + promo overlays:
 - Ads point to the relevant page.
 - No claims the business cannot substantiate.
 
+## Conversion Lab Preflight
+
+For new Package C campaigns, run [Conversion Lab](conversion-lab.md) before
+go-live when there is enough page or offer copy to review. The report should
+summarize:
+
+- the main objections
+- the trust gaps that could waste spend
+- the recommended ad angle
+- copy risks or compliance concerns
+
+Attach the report path or preflight summary to `ADS.md` / `META_ADS.md`. This is
+advisory preflight only; it does not replace budget confirmation, conversion
+tracking, or the `ad_campaign_go_live` approval.
+
 ## Go-Live
 
 Do not launch until:

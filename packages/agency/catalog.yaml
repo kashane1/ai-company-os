@@ -203,6 +203,31 @@ services:
       - Bookings where managed booking is set up; verified calls where call tracking is added
       - Edits completed + recommended next action
 
+  - service_id: conversion_snapshot
+    name: Conversion Snapshot
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 199
+    monthly_fee: 0
+    includes:
+      - Synthetic audience preflight for one page or ad
+      - Conversion blocker scorecard
+      - Trust gap review
+      - Hero and CTA rewrite
+
+  - service_id: conversion_audit
+    name: Conversion Audit
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 750
+    monthly_fee: 0
+    includes:
+      - Synthetic audience report for one website or landing page
+      - Persona-by-persona objections
+      - Trust and clarity audit
+      - Priority implementation backlog
+      - Homepage or landing page copy rewrite
+
   # --- Tier 3: recurring-revenue goldmine ---
   - service_id: promo_landing_page
     name: Promotional Landing Page
@@ -254,6 +279,18 @@ services:
       - Instant auto-email reply to every new lead
       - 2-day reminder sequence + owner task reminders
       - "Auto-text available on GoHighLevel (email-first on HubSpot)"
+
+  - service_id: ad_copy_lab
+    name: Ad Copy Lab
+    tier: tier_3
+    bill_type: recurring
+    setup_fee: 150
+    monthly_fee: 200
+    includes:
+      - Monthly ad copy preflight
+      - Persona critiques
+      - Three copy variants
+      - Ranked recommendation before operator-approved spend
 
 # Setup-only bundle discount for build-your-own carts (custom service sets).
 # Named packages below use an explicit setup_promo instead (always <= the tier

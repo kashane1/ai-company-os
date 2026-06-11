@@ -52,6 +52,8 @@ class MetaAdsDraft:
     landing_url: str
     daily_budget: float | None = None
     monthly_budget: float | None = None
+    preflight_summary: str = ""
+    conversion_lab_report_path: str = ""
 
     def to_markdown(self) -> str:
         budget = (
@@ -72,13 +74,16 @@ class MetaAdsDraft:
             f"**Budget cap:** {budget}",
             f"**Destination URL:** {self.landing_url}",
             "",
-            "## Geo targeting",
-            "",
-            *geo_lines,
-            "",
-            "## Audiences",
-            "",
         ]
+        if self.preflight_summary or self.conversion_lab_report_path:
+            lines += [
+                "## Conversion Lab Preflight",
+                "",
+                f"- Report: {self.conversion_lab_report_path or '_not linked_'}",
+                f"- Recommended angle: {self.preflight_summary or '_none supplied_'}",
+                "",
+            ]
+        lines += ["## Geo targeting", "", *geo_lines, "", "## Audiences", ""]
         for aud in self.audiences:
             lines.append(f"- **{aud.name}:** {aud.targeting}")
         lines += ["", "## Placements", ""]
@@ -126,6 +131,8 @@ def draft_meta_ads(
     *,
     daily_budget: float | None = None,
     monthly_budget: float | None = None,
+    preflight_summary: str = "",
+    conversion_lab_report_path: str = "",
 ) -> MetaAdsDraft:
     intake.validate()
     city = intake.city
@@ -169,6 +176,8 @@ def draft_meta_ads(
         landing_url=intake.site_url,
         daily_budget=daily_budget,
         monthly_budget=monthly_budget,
+        preflight_summary=preflight_summary,
+        conversion_lab_report_path=conversion_lab_report_path,
     )
 
 
@@ -178,10 +187,18 @@ def emit_meta_ads_draft(
     *,
     daily_budget: float | None = None,
     monthly_budget: float | None = None,
+    preflight_summary: str = "",
+    conversion_lab_report_path: str = "",
 ) -> Path:
     """Write ``META_ADS.md`` into a client workspace and return its path."""
     docs_root.mkdir(parents=True, exist_ok=True)
     path = docs_root / "META_ADS.md"
-    draft = draft_meta_ads(intake, daily_budget=daily_budget, monthly_budget=monthly_budget)
+    draft = draft_meta_ads(
+        intake,
+        daily_budget=daily_budget,
+        monthly_budget=monthly_budget,
+        preflight_summary=preflight_summary,
+        conversion_lab_report_path=conversion_lab_report_path,
+    )
     path.write_text(draft.to_markdown(), encoding="utf-8")
     return path
