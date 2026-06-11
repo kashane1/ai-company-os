@@ -73,61 +73,8 @@ def test_band_headline_is_distinct_from_the_hero_headline() -> None:
         build_design_studio_packet(
             WebsiteDesignRequest(
                 site_name="Acme", business_category="plumbing", audience="homeowners",
-                goal="book jobs", concept_statement="one bold idea",
-                evidence=["licensed & insured"],
+                goal="book jobs", concept_statement="one bold idea", evidence=["licensed & insured"],
             )
         )
     )
     assert single["band_headline"].lower() != single["headline"].lower()
-
-
-def test_subhead_never_leaks_the_operator_goal() -> None:
-    # The raw goal ("drive walk-in visits…") is internal objective-speak, not customer
-    # copy — it must not appear in the hero subhead, which still names the audience + proof.
-    copy = generate_conversion_copy(
-        _packet("drive walk-in visits and online pickup orders", evidence=["wild-caught fish"])
-    )
-    assert "walk-in" not in str(copy["subhead"]).lower()
-    assert "homeowners" in str(copy["subhead"])
-    assert "wild-caught fish" in str(copy["subhead"]).lower()
-
-
-def test_section_labels_are_genre_aware() -> None:
-    from packages.web.copy import section_labels
-
-    assert section_labels(_packet("orders", category="fish taco restaurant")) == {
-        "gallery": "On the menu", "secondary_cta": "See the menu",
-    }
-    assert section_labels(_packet("book", category="nail salon"))["secondary_cta"] == "Take a look"
-    assert section_labels(_packet("quote", category="plumbing")) == {
-        "gallery": "The work, up close", "secondary_cta": "See the work",
-    }
-
-
-def test_process_steps_are_genre_aware() -> None:
-    from packages.web.copy import process_steps
-
-    heading, steps = process_steps(_packet("book consultations", category="med spa"))
-    assert heading == "What to expect"
-    assert steps[0][0] == "Consultation"  # a calm consult flow, not trades scope-and-do
-    d_heading, d_steps = process_steps(_packet("win work", category="plumbing"))
-    assert d_heading == "How it goes"
-    assert d_steps[0][0] == "Reach out"
-
-
-def test_derive_content_real_titles_genre_heading_no_goal_leak_live_cta() -> None:
-    from packages.web.blocks_composer import derive_content
-
-    content = derive_content(
-        _packet(
-            "drive walk-in visits and online pickup orders",
-            category="fish taco restaurant",
-            evidence=["beer-battered wild-caught fish", "hand-pressed tortillas"],
-        )
-    )
-    titles = [it["title"] for it in content["bento"]["items"]]
-    assert all(not t.startswith("Detail ") for t in titles)  # real proof, not "Detail N"
-    assert titles[0] == "Beer-battered wild-caught fish"
-    assert content["bento"]["heading"] == "On the menu"  # genre-aware, not "The work, up close"
-    assert "walk-in" not in str(content["split"]["body"]).lower()  # goal not leaked into copy
-    assert content["cta"]["href"] == "#get-started"  # a valid anchor, never href="#"

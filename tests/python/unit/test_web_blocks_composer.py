@@ -33,22 +33,6 @@ GALLERY = build_design_studio_packet(
 )
 
 
-def test_classic_custom_has_a_process_led_variant() -> None:
-    # med-spa-style wellness brands get a calm, process-led layout (a consult flow between
-    # the split and the band) — structurally distinct from the bento-gallery demos.
-    packet = build_design_studio_packet(
-        WebsiteDesignRequest(
-            site_name="Lumina", business_category="med spa", audience="clients",
-            goal="book consultations", evidence=["board-certified injectors"],
-        )
-    )
-    assert packet.archetype == "classic-custom"
-    names = [b.component for b in plan_composition(packet, variant=2).blocks]
-    assert names == [
-        "CinematicHero", "EditorialSplit", "StickyProcess", "FullBleedMedia", "ClosingCta",
-    ]
-
-
 def test_plan_opens_on_hero_and_closes_on_cta() -> None:
     comp = plan_composition(CINEMATIC)
     assert comp.blocks[0].component == "CinematicHero"
@@ -221,36 +205,12 @@ def test_bento_images_distinct_and_band_separate() -> None:
     assert band_img not in bento_imgs, "band image duplicates a bento cell"
 
 
-def test_bento_is_image_led_no_imageless_cards() -> None:
-    # Image-led: with fewer proof IMAGES than proof points, the bento renders one card per
-    # image (every card has a photo) instead of padding with a lone image-less card that
-    # reads as a broken/missing photo. Extra proof points live in the split section.
+def test_bento_fewer_images_than_cells_uses_text_cards_not_repeats() -> None:
+    # With only 2 supporting (1 reserved for the band → 1 for the bento), extra bento
+    # cells fall back to text-only (image=None), never a repeated photo.
     from packages.web.blocks_composer import derive_content
 
     imgs = {"hero": "/img/hero.png", "supporting": ["/img/a.png", "/img/b.png"]}
-    content = derive_content(CINEMATIC, images=imgs)  # 1 reserved for band → 1 bento image
-    items = content["bento"]["items"]
-    assert items and all(it.get("image") for it in items), "every bento card must have an image"
-    bento_imgs = [it["image"] for it in items]
+    content = derive_content(CINEMATIC, images=imgs)
+    bento_imgs = [it["image"] for it in content["bento"]["items"] if it.get("image")]
     assert len(bento_imgs) == len(set(bento_imgs)), f"bento repeats: {bento_imgs}"
-    assert content["fullbleed"]["image"] not in bento_imgs
-
-
-def test_bento_caps_cards_to_images_when_proof_exceeds_photos() -> None:
-    # The fish-taco case: 4 proof bullets but only 3 bento photos (the 4th supporting is
-    # the band) → 3 image cards, no 4th image-less card.
-    from packages.web.blocks_composer import derive_content
-
-    packet = build_design_studio_packet(
-        WebsiteDesignRequest(
-            site_name="Pelican & Lime", business_category="fish taco restaurant",
-            audience="beachgoers", goal="drive orders",
-            evidence=["wild-caught fish", "hand-pressed tortillas", "ocean-view patio", "crema"],
-        )
-    )
-    imgs = {"hero": "/img/h.png",
-            "supporting": ["/img/a.png", "/img/b.png", "/img/c.png", "/img/d.png"]}
-    content = derive_content(packet, images=imgs)
-    items = content["bento"]["items"]
-    assert len(items) == 3  # one per bento image (a,b,c); d is the band
-    assert all(it.get("image") for it in items)

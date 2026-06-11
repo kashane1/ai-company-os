@@ -5,7 +5,6 @@
 
 | Document | Summary |
 |---|---|
-| [Art-direction kits + the mood-board generator](art-direction-kits.md) | **TL;DR.** A **kit** is the durable per-genre *design recipe* — palette, type vibe, |
 | [Booking — platform routing & managed model](booking-platform-routing.md) | We don't build booking software. We set up + (optionally) run booking on a |
 | [Client lifecycle (Phases 3–5)](client-lifecycle.md) | Operator guide for turning a **human-verified prospect** into a **live client site**. |
 | [Client SLA & Turnaround](client-sla.md) | What Better Business Web commits to, and what's on Google's / a registrar's |
@@ -16,6 +15,7 @@
 | [First-Sale Runbook — taking money for the first time](first-sale-runbook.md) | The one-time setup tax that turns "code-complete" into "can accept a paying |
 | [First-Sale Setup — current state & handoff](first-sale-setup-state.md) | Working companion to [first-sale-runbook.md](first-sale-runbook.md). Tracks what's |
 | [Agency Go-Live Checklist](go-live-checklist.md) | Operator runbook to take the agency transaction loop **live** and deliver |
+| [Manual Prospect Verification SOP (browser-based, no paid APIs)](manual-verification-sop.md) | **TL;DR** — We no longer pay for Brave/DataForSEO search. Instead an agent drives |
 | [Operator Ads Playbook](operator-ads-playbook.md) | Package C includes Google Search ads management, but agents only draft. The |
 | [Outreach Copy Rules](outreach-copy-rules.md) | Cold outreach should sound like one person writing to another person. |
 | [Runbook — Booking setup on Acuity Scheduling (the default "Local-service" path)](runbooks/booking-setup-acuity.md) | The best all-rounder for local service: true % deposits, classes/group, rich |
