@@ -290,7 +290,7 @@ def test_ingest_contacts_only_writes_contacts_and_preserves_verdict(tmp_path: Pa
     assert saved.user_ratings_total == 120
 
 
-def test_ingest_contacts_only_skips_rows_without_a_channel(tmp_path: Path) -> None:
+def test_ingest_contacts_only_marks_channel_less_rows_attempted(tmp_path: Path) -> None:
     repo = ProspectRepository(tmp_path / "records")
     repo.save(_verified_target("places/x", verdict="marketplace_only"))
     result = ingest_manual_contacts(
@@ -302,8 +302,27 @@ def test_ingest_contacts_only_skips_rows_without_a_channel(tmp_path: Path) -> No
         now=lambda: FIXED,
     )
     assert result.updated == 0
-    assert result.skipped == 1
+    assert result.attempted == 1  # browsed + stamped, even with no channel
+    assert result.skipped == 0
     assert result.missing == ["places/ghost"]
+    # The attempted row is stamped checked but keeps no digital contact...
+    saved = repo.get("places/x")
+    assert saved.contact_checked_at == FIXED.isoformat()
+    assert not saved.contact_email and not saved.contact_instagram
+    # ...so it drops out of the next worklist instead of re-selecting forever.
+    assert export_contact_worklist([saved], limit=10) == []
+
+
+def test_ingest_contacts_only_skips_rows_without_a_place_id(tmp_path: Path) -> None:
+    repo = ProspectRepository(tmp_path / "records")
+    result = ingest_manual_contacts(
+        repo,
+        [{"contacts": {"email": "a@b.com"}}],  # no place_id at all
+        now=lambda: FIXED,
+    )
+    assert result.updated == 0
+    assert result.attempted == 0
+    assert result.skipped == 1
 
 
 def test_invalid_verdict_override_is_an_error_not_a_crash(tmp_path: Path) -> None:

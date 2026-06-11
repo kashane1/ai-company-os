@@ -167,6 +167,11 @@ class ProspectRecord:
     contact_booking_url: str = ""
     contact_source: str = ""
     contact_collected_at: str = ""
+    # Stamped by the contacts-only pass for EVERY record browsed, even when no
+    # digital channel was found, so the worklist export can exclude already-attempted
+    # businesses and the loop can drain (a no-contact business is otherwise re-selected
+    # forever). Empty = never attempted.
+    contact_checked_at: str = ""
 
     # Open-source / third-party source provenance. Google Places records leave
     # these blank; Overture/FSQ imports fill them so every warehouse row can be
@@ -226,6 +231,7 @@ class ProspectRecord:
             "contact_booking_url": self.contact_booking_url,
             "contact_source": self.contact_source,
             "contact_collected_at": self.contact_collected_at,
+            "contact_checked_at": self.contact_checked_at,
             "source_name": self.source_name,
             "source_record_id": self.source_record_id,
             "source_run_key": self.source_run_key,
@@ -298,6 +304,7 @@ class ProspectRecord:
             contact_booking_url=str(payload.get("contact_booking_url", "")),
             contact_source=str(payload.get("contact_source", "")),
             contact_collected_at=str(payload.get("contact_collected_at", "")),
+            contact_checked_at=str(payload.get("contact_checked_at", "")),
             source_name=str(payload.get("source_name", "")),
             source_record_id=str(payload.get("source_record_id", "")),
             source_run_key=str(payload.get("source_run_key", "")),

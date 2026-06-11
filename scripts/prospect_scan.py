@@ -305,6 +305,7 @@ def _cmd_verify_web_ingest(args: argparse.Namespace) -> int:
         result = ingest_manual_contacts(repo, payload)
         print(
             f"Contact ingest: updated={result.updated}, "
+            f"attempted={result.attempted}, "
             f"missing={len(result.missing)}, skipped={result.skipped}"
         )
         if result.missing:

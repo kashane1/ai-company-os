@@ -64,6 +64,7 @@ class ManualIngestResult:
 @dataclass(frozen=True)
 class ContactIngestResult:
     updated: int = 0
+    attempted: int = 0  # browsed + stamped checked, but no channel found
     missing: list[str] = field(default_factory=list)
     skipped: int = 0
 
@@ -232,10 +233,14 @@ def export_contact_worklist(
     """Worklist for the lighter CONTACTS-ONLY pass (verdict already settled).
 
     Selects already-verified TARGET records (social/marketplace/none_found) that
-    still lack a digital contact channel. Pass ``ids`` to restrict to a specific set
-    (e.g. the sample-site businesses). Each row carries the business's known
-    ``web_verify_url`` (their Yelp/social page) and phone as the agent's starting
-    point — no verdict work needed, just grab the best email/IG/FB/booking.
+    still lack a digital contact channel AND have never been attempted
+    (``contact_checked_at`` empty). The ingest stamps ``contact_checked_at`` on every
+    browsed row, so a business with no findable channel drops out of subsequent
+    worklists instead of re-selecting forever — that is what lets the loop drain to
+    ``rows=0``. Pass ``ids`` to restrict to a specific set (e.g. the sample-site
+    businesses). Each row carries the business's known ``web_verify_url`` (their
+    Yelp/social page) and phone as the agent's starting point — no verdict work
+    needed, just grab the best email/IG/FB/booking.
     """
     if shard_count < 1:
         raise ValueError("shard_count must be >= 1")
@@ -248,6 +253,7 @@ def export_contact_worklist(
         if (ids is None or record.place_id in ids)
         and record.web_verify_verdict in TARGET_VERDICTS
         and not _has_digital_contact(record)
+        and not record.contact_checked_at
         and _shard_of(record.place_id, shard_count) == shard
     ]
     candidates.sort(key=lambda record: (-record.priority_score, record.display_name.lower()))
@@ -265,48 +271,59 @@ def ingest_manual_contacts(
 
     Unlike :func:`ingest_manual_results`, this never reclassifies web presence or
     recomputes the cohort — it is the safe path for businesses whose verdict is
-    already settled. A row needs ``place_id`` and a ``contacts`` mapping with at
-    least one non-empty channel.
+    already settled. A row needs a ``place_id`` for a record that exists; the
+    ``contacts`` mapping may be empty. Every browsed row is stamped
+    ``contact_checked_at`` so it drops out of later worklists — rows with a found
+    channel additionally write it (``updated``); rows with none are just marked
+    attempted (``attempted``). This is what lets the contacts-only loop drain.
     """
     clock = now or (lambda: datetime.now(timezone.utc))
     updated = 0
+    attempted = 0
     skipped = 0
     missing: list[str] = []
 
     for row in results:
         place_id = str(row.get("place_id", "")).strip()
+        if not place_id:
+            skipped += 1
+            continue
+        if not repo.exists(place_id):
+            missing.append(place_id)
+            continue
         contacts = row.get("contacts")
         provided = (
             {k: str(contacts.get(k, "")).strip() for k in _CONTACT_KEYS}
             if isinstance(contacts, dict)
             else {}
         )
-        if not place_id or not any(provided.values()):
-            skipped += 1
-            continue
-        if not repo.exists(place_id):
-            missing.append(place_id)
-            continue
         timestamp = clock().isoformat()
         record = repo.get(place_id)
+        # Stamp every browsed row as attempted so the loop can drain; only write the
+        # channel fields when the agent actually found one (don't blank existing).
         updates: dict[str, object] = {
-            "contact_source": MANUAL_METHOD,
-            "contact_collected_at": timestamp,
+            "contact_checked_at": timestamp,
             "updated_at": timestamp,
         }
-        # Only overwrite a channel when the agent found one (don't blank existing).
-        if provided["email"]:
-            updates["contact_email"] = provided["email"]
-        if provided["instagram"]:
-            updates["contact_instagram"] = provided["instagram"]
-        if provided["facebook"]:
-            updates["contact_facebook"] = provided["facebook"]
-        if provided["booking_url"]:
-            updates["contact_booking_url"] = provided["booking_url"]
+        if any(provided.values()):
+            updates["contact_source"] = MANUAL_METHOD
+            updates["contact_collected_at"] = timestamp
+            if provided["email"]:
+                updates["contact_email"] = provided["email"]
+            if provided["instagram"]:
+                updates["contact_instagram"] = provided["instagram"]
+            if provided["facebook"]:
+                updates["contact_facebook"] = provided["facebook"]
+            if provided["booking_url"]:
+                updates["contact_booking_url"] = provided["booking_url"]
+            updated += 1
+        else:
+            attempted += 1
         repo.save(replace_record(record, **updates))
-        updated += 1
 
-    return ContactIngestResult(updated=updated, missing=missing, skipped=skipped)
+    return ContactIngestResult(
+        updated=updated, attempted=attempted, missing=missing, skipped=skipped
+    )
 
 
 def _contact_worklist_row(record: ProspectRecord) -> dict[str, object]:
