@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Premium Office Hero</title>
+<style>
+  :root {
+    /* Loop length — change once, everything stays in sync */
+    --loop: 8s;
+
+    /* Palette */
+    --sky-top: #bcdcf3;
+    --sky-bot: #eaf4fb;
+    --wall: #e9e3d8;
+    --wall-shadow: #d8d0c2;
+    --oak-light: #c69a63;
+    --oak: #a9784a;
+    --oak-dark: #8a6038;
+    --stone-light: #efece6;
+    --stone: #ddd8cf;
+    --stone-dark: #c7c1b6;
+    --floor-light: #c9a877;
+    --floor: #b08e5c;
+    --floor-dark: #946f3f;
+    --leaf: #4f7a4c;
+    --leaf-dark: #3a5f39;
+    --leaf-light: #6fa05f;
+    --sun: 255, 238, 196;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    background: #0c0c0d;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 16:9 stage that scales to the viewport */
+  .stage {
+    position: relative;
+    width: 100vw;
+    max-width: calc(100vh * 16 / 9);
+    aspect-ratio: 16 / 9;
+    margin: 0 auto;
+    top: 50%;
+    transform: translateY(-50%);
+    overflow: hidden;
+    background: var(--wall);
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+  }
+
+  .scene, .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* ---------- Sunlight sweep ---------------------------------------- */
+  /* A wide, soft light bar that crosses the room and returns over one loop,
+     ending exactly where it began so the cut is invisible. */
+  .sunlight {
+    position: absolute;
+    inset: -20% -30%;
+    background:
+      linear-gradient(105deg,
+        rgba(var(--sun), 0)   38%,
+        rgba(var(--sun), .55) 50%,
+        rgba(var(--sun), 0)   62%);
+    mix-blend-mode: screen;
+    filter: blur(6px);
+    will-change: transform, opacity;
+    animation: sunSweep var(--loop) ease-in-out infinite;
+  }
+  .sunlight.beam2 {
+    background:
+      linear-gradient(105deg,
+        rgba(var(--sun), 0)   42%,
+        rgba(var(--sun), .35) 50%,
+        rgba(var(--sun), 0)   58%);
+    filter: blur(18px);
+    animation-duration: var(--loop);
+  }
+  @keyframes sunSweep {
+    0%   { transform: translateX(-14%); opacity: .85; }
+    50%  { transform: translateX(14%);  opacity: 1;   }
+    100% { transform: translateX(-14%); opacity: .85; }
+  }
+
+  /* Warmth wash that breathes with the light, also a full cycle */
+  .warmth {
+    position: absolute; inset: 0;
+    background: radial-gradient(120% 90% at 30% 18%,
+      rgba(255, 226, 170, .35), rgba(255, 226, 170, 0) 55%);
+    mix-blend-mode: soft-light;
+    animation: warmthCycle var(--loop) ease-in-out infinite;
+  }
+  @keyframes warmthCycle {
+    0%, 100% { opacity: .5; }
+    50%      { opacity: .9; }
+  }
+
+  /* Window cast on the floor — light pools shift then return */
+  .floor-cast {
+    position: absolute;
+    left: 12%; bottom: 6%;
+    width: 46%; height: 30%;
+    background: linear-gradient(180deg, rgba(var(--sun), .5), rgba(var(--sun), 0));
+    transform-origin: top left;
+    filter: blur(10px);
+    mix-blend-mode: screen;
+    animation: castShift var(--loop) ease-in-out infinite;
+  }
+  @keyframes castShift {
+    0%, 100% { transform: translateX(0)   skewX(-26deg) scaleX(1);    opacity: .55; }
+    50%      { transform: translateX(7%)  skewX(-20deg) scaleX(1.08); opacity: .8;  }
+  }
+
+  /* ---------- Dust ---------------------------------------------------- */
+  .dust { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; }
+  .mote {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,248,225,.95), rgba(255,248,225,0) 70%);
+    will-change: transform, opacity;
+  }
+
+  /* ---------- Plants -------------------------------------------------- */
+  .sway       { transform-origin: bottom center; animation: sway calc(var(--loop) * 1.5) ease-in-out infinite; }
+  .sway.delay { animation-duration: calc(var(--loop) * 2); animation-delay: calc(var(--loop) * -0.5); }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-1.1deg); }
+    50%      { transform: rotate(1.1deg);  }
+  }
+  .leaf-flutter { transform-origin: bottom center; animation: flutter calc(var(--loop) * 1) ease-in-out infinite; }
+  @keyframes flutter {
+    0%, 100% { transform: rotate(0deg); }
+    50%      { transform: rotate(2.5deg); }
+  }
+
+  /* ---------- Vignette + grain --------------------------------------- */
+  .vignette {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(20,14,6,.32) 100%);
+  }
+
+  /* ---------- Marketing copy (center kept clean) --------------------- */
+  .copy {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; color: #2c2419;
+    padding: 0 8%;
+    text-shadow: 0 1px 18px rgba(255,250,240,.6);
+  }
+  .copy .eyebrow {
+    font-size: clamp(10px, 1.1vw, 16px);
+    letter-spacing: .42em; text-transform: uppercase;
+    font-weight: 600; opacity: .7; margin-bottom: 1.1em;
+  }
+  .copy h1 {
+    font-size: clamp(28px, 4.6vw, 76px);
+    font-weight: 600; line-height: 1.04; letter-spacing: -.015em;
+    max-width: 14ch;
+  }
+  .copy p {
+    font-size: clamp(13px, 1.5vw, 22px);
+    margin-top: 1em; opacity: .72; max-width: 38ch; font-weight: 400;
+  }
+  .copy .cta {
+    margin-top: 2em;
+    display: inline-block;
+    padding: .85em 2.2em;
+    font-size: clamp(12px, 1.2vw, 17px);
+    font-weight: 600; letter-spacing: .02em;
+    color: #fff; background: #1f2a37;
+    border-radius: 999px;
+    box-shadow: 0 10px 30px rgba(31,42,55,.35);
+  }
+
+  /* Hide copy with ?bare in the URL handled via JS class on body */
+  body.bare .copy { display: none; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="scene">
+      <!-- ===== Static architectural scene (SVG) ===== -->
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--sky-top)"/>
+            <stop offset="1" stop-color="var(--sky-bot)"/>
+          </linearGradient>
+          <linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#efe9df"/>
+            <stop offset="1" stop-color="var(--wall-shadow)"/>
+          </linearGradient>
+          <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--floor-light)"/>
+            <stop offset="1" stop-color="var(--floor-dark)"/>
+          </linearGradient>
+          <linearGradient id="oakG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--oak-light)"/>
+            <stop offset="1" stop-color="var(--oak-dark)"/>
+          </linearGradient>
+          <linearGradient id="stoneG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--stone-light)"/>
+            <stop offset="1" stop-color="var(--stone-dark)"/>
+          </linearGradient>
+          <linearGradient id="glass" x1="0" y1="0" x2="0.3" y2="1">
+            <stop offset="0"  stop-color="#d6ecfa"/>
+            <stop offset=".5" stop-color="#eaf5fc"/>
+            <stop offset="1"  stop-color="#cfe6f6"/>
+          </linearGradient>
+          <radialGradient id="potShade" cx="0.5" cy="0.2" r="0.9">
+            <stop offset="0" stop-color="#cfc7ba"/>
+            <stop offset="1" stop-color="#a89e8d"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Back wall -->
+        <rect x="0" y="0" width="1600" height="640" fill="url(#wallG)"/>
+
+        <!-- Floor-to-ceiling window band -->
+        <rect x="60" y="40" width="1480" height="600" fill="url(#glass)"/>
+        <!-- Sky / soft cityscape behind glass -->
+        <rect x="60" y="40" width="1480" height="380" fill="url(#sky)"/>
+        <g opacity="0.5" fill="#b9cdd9">
+          <rect x="120" y="250" width="90"  height="170"/>
+          <rect x="240" y="210" width="70"  height="210"/>
+          <rect x="330" y="290" width="110" height="130"/>
+          <rect x="1180" y="230" width="80" height="190"/>
+          <rect x="1300" y="270" width="120" height="150"/>
+          <rect x="1450" y="240" width="70" height="180"/>
+        </g>
+        <rect x="60" y="40" width="1480" height="600" fill="rgba(255,255,255,0.06)"/>
+
+        <!-- Window mullions (oak frames) -->
+        <g fill="var(--oak-dark)">
+          <rect x="60"  y="40" width="1480" height="18"/>
+          <rect x="60"  y="624" width="1480" height="18"/>
+          <rect x="60"  y="40" width="18" height="600"/>
+          <rect x="1522" y="40" width="18" height="600"/>
+          <rect x="425"  y="40" width="14" height="600"/>
+          <rect x="790"  y="40" width="14" height="600"/>
+          <rect x="1155" y="40" width="14" height="600"/>
+          <rect x="60" y="330" width="1480" height="10"/>
+        </g>
+
+        <!-- Floor -->
+        <rect x="0" y="636" width="1600" height="264" fill="url(#floorG)"/>
+        <!-- Floor plank lines -->
+        <g stroke="rgba(120,86,46,0.28)" stroke-width="2">
+          <line x1="0" y1="690" x2="1600" y2="690"/>
+          <line x1="0" y1="752" x2="1600" y2="752"/>
+          <line x1="0" y1="824" x2="1600" y2="824"/>
+        </g>
+        <!-- Soft floor reflection of windows -->
+        <rect x="160" y="640" width="1280" height="120" fill="rgba(214,236,250,0.18)"/>
+
+        <!-- Stone credenza (left) -->
+        <g>
+          <rect x="70" y="470" width="300" height="22" rx="4" fill="url(#stoneG)"/>
+          <rect x="84" y="492" width="272" height="150" fill="url(#oakG)"/>
+          <rect x="84" y="492" width="136" height="150" fill="rgba(0,0,0,0.06)"/>
+          <line x1="220" y1="492" x2="220" y2="642" stroke="var(--oak-dark)" stroke-width="3"/>
+          <circle cx="196" cy="567" r="5" fill="var(--stone-dark)"/>
+          <circle cx="244" cy="567" r="5" fill="var(--stone-dark)"/>
+        </g>
+
+        <!-- Oak desk / table (right) with stone top -->
+        <g>
+          <rect x="1180" y="500" width="360" height="20" rx="4" fill="url(#stoneG)"/>
+          <rect x="1200" y="520" width="22" height="122" fill="url(#oakG)"/>
+          <rect x="1498" y="520" width="22" height="122" fill="url(#oakG)"/>
+          <rect x="1210" y="520" width="300" height="14" fill="var(--oak-dark)"/>
+          <!-- a low stack / books, no people -->
+          <rect x="1250" y="470" width="70" height="30" fill="var(--oak)"/>
+          <rect x="1250" y="462" width="70" height="10" fill="var(--stone-light)"/>
+        </g>
+
+        <!-- Area rug under center (keeps middle calm/clean) -->
+        <ellipse cx="800" cy="800" rx="430" ry="70" fill="rgba(160,130,90,0.18)"/>
+      </svg>
+
+      <!-- ===== Plants (animated) ===== -->
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;">
+        <!-- Left plant -->
+        <g>
+          <path d="M150 642 q40 -10 120 0 l-14 150 q-46 12 -92 0 z" fill="url(#potShade)"/>
+          <g class="sway">
+            <path d="M210 560 q-70 -120 -120 -190 q90 40 130 150 z" fill="var(--leaf-dark)"/>
+            <path d="M210 560 q70 -130 130 -200 q-30 100 -100 200 z" fill="var(--leaf)"/>
+            <g class="leaf-flutter">
+              <path d="M210 560 q-10 -150 -8 -250 q40 110 28 250 z" fill="var(--leaf-light)"/>
+            </g>
+            <path d="M210 560 q40 -120 110 -150 q-30 90 -90 160 z" fill="var(--leaf)"/>
+          </g>
+        </g>
+        <!-- Right plant -->
+        <g>
+          <path d="M1410 648 q44 -12 132 0 l-16 160 q-50 12 -100 0 z" fill="url(#potShade)"/>
+          <g class="sway delay">
+            <path d="M1476 568 q70 -130 128 -210 q-26 110 -98 210 z" fill="var(--leaf-dark)"/>
+            <path d="M1476 568 q-72 -120 -128 -196 q96 40 136 156 z" fill="var(--leaf)"/>
+            <g class="leaf-flutter">
+              <path d="M1476 568 q12 -160 8 -266 q44 116 30 266 z" fill="var(--leaf-light)"/>
+            </g>
+            <path d="M1476 568 q-44 -118 -116 -150 q34 92 96 162 z" fill="var(--leaf)"/>
+          </g>
+        </g>
+      </svg>
+
+      <!-- ===== Light layers ===== -->
+      <div class="floor-cast"></div>
+      <div class="sunlight beam1"></div>
+      <div class="sunlight beam2"></div>
+      <div class="warmth"></div>
+
+      <!-- ===== Dust ===== -->
+      <div class="dust" id="dust"></div>
+
+      <div class="vignette"></div>
+    </div>
+
+    <!-- ===== Marketing copy — center stays clean ===== -->
+    <div class="copy">
+      <div class="eyebrow">Established Excellence</div>
+      <h1>Where ambitious work gets done</h1>
+      <p>Your headline and message live here, framed by a calm, professional backdrop.</p>
+      <span class="cta">Get started</span>
+    </div>
+  </div>
+
+<script>
+  // Bare mode: office-hero.html?bare hides the placeholder copy
+  if (location.search.includes('bare')) document.body.classList.add('bare');
+
+  // Generate drifting dust motes. Each loops seamlessly over the master loop
+  // (or an integer multiple of it) so the 8s cut is invisible.
+  (function () {
+    const loopSec = 8;
+    const dust = document.getElementById('dust');
+    const N = 42;
+    const style = document.createElement('style');
+    let css = '';
+    for (let i = 0; i < N; i++) {
+      const size = (Math.random() * 3 + 1.2).toFixed(2);
+      const left = (Math.random() * 100).toFixed(2);
+      const top  = (Math.random() * 100).toFixed(2);
+      // drift distances small; multiples of loop keep seamlessness
+      const dx = (Math.random() * 60 - 30).toFixed(1);
+      const dy = (Math.random() * 50 - 25).toFixed(1);
+      const dur = loopSec * (Math.random() < 0.5 ? 1 : 2); // 8s or 16s
+      const delay = (-Math.random() * dur).toFixed(2);
+      const maxOp = (Math.random() * 0.5 + 0.25).toFixed(2);
+
+      const m = document.createElement('div');
+      m.className = 'mote';
+      m.style.cssText =
+        `left:${left}%;top:${top}%;width:${size}px;height:${size}px;` +
+        `animation:mote${i} ${dur}s linear ${delay}s infinite;`;
+      dust.appendChild(m);
+
+      css += `@keyframes mote${i}{` +
+        `0%{transform:translate(0,0);opacity:0}` +
+        `25%{opacity:${maxOp}}` +
+        `50%{transform:translate(${dx}px,${dy}px);opacity:${maxOp}}` +
+        `75%{opacity:${maxOp*0.6}}` +
+        `100%{transform:translate(0,0);opacity:0}}`;
+    }
+    style.textContent = css;
+    document.head.appendChild(style);
+  })();
+</script>
+</body>
+</html>
