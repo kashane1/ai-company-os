@@ -3,6 +3,10 @@
 Operator guide for turning a **human-verified prospect** into a **live client site**.
 Code lives under `packages/agency/`; skills: `client-intake`, `launch-checklist`.
 
+> This doc zooms into Phases 3–5 (promotion → intake → launch). For the **full
+> funnel** — collect → verify → contact → demo → outreach → sell → onboard → recurring
+> — see [prospect-to-client-pipeline.md](prospect-to-client-pipeline.md).
+
 ## Overview
 
 ```text

@@ -38,9 +38,9 @@ irreversible/external action is human-gated.
 |--:|---|---|---|---|
 | 0 | **Coverage + dedupe guard** | ✅ built | prospecting platform | `packages/prospecting/identity.py`, `packages/prospecting/source_runs.py`, `packages/prospecting/source_import.py` |
 | 1 | **Discovery sweep** | ✅ built | Places pipeline (scheduled) | `state/prospects/records/*.json`, cohorts via `packages/prospecting/cohorts.py` |
-| 2 | **Verification** | ✅ built (this doc formalizes it) | web-search workflow | `web_verify_*` fields on each record; run report e.g. `state/artifacts/prospecting/agold-website-verification.md` |
+| 2 | **Verification** | ✅ built | browser verify (primary) or paid API | `web_verify_*` fields; SOP: [agency/manual-verification-sop.md](agency/manual-verification-sop.md) |
 | 3 | **Target selection** | ⚠️ manual | operator + analyst | this doc (selection rules below) |
-| 4 | **Contact-channel resolution** | ❌ gap | — | not built; see Gaps |
+| 4 | **Contact-channel resolution** | ✅ built | browser contacts pass | `contact_*` fields; `verify-web-export --contacts-only` → `verify-web-ingest --contacts-only` |
 | 5 | **Preview site build** | ✅ built | `packages/agency/prospect_site.py` + `scripts/agency/build_prospect_site.py` | `state/prospects/sites/<place_id>/dist/`; Netlify draft URL → `{mockup_url}` |
 | 6 | **Outreach draft** | ✅ built | template library | `state/prospects/outreach/` (channel × genre) |
 | 7 | **Operator send** | manual (by design) | operator | — |
@@ -123,26 +123,34 @@ web search (`name + city + state + genre`) and is classified:
 
 Verdicts are written back to each record as `web_verify_verdict`,
 `web_verify_url`, `web_verify_confidence`, `web_verify_note`, `web_verified_at`,
-`web_verify_method`. **Current automated verifier:** `scripts/prospect_scan.py
-verify-web` runs the same verification shape through Brave Search or DataForSEO
-before outreach:
+`web_verify_method`.
+
+**Primary method (no API cost): manual browser verification.** An agent drives the
+operator's logged-in Chrome to check each prospect on Google Maps / Google / social,
+sets the verdict, and captures the demand (review count) and best contact channel in
+one sweep. Work is sharded across N parallel chats. This is the current method of
+record — see the full procedure in
+[agency/manual-verification-sop.md](agency/manual-verification-sop.md).
 
 ```bash
-# Brave: simple path, good for free monthly credit / small batches
-python scripts/prospect_scan.py verify-web \
-  --provider brave --cohort A_gold --limit 50
+# export a shard of unverified prospects, browse them, ingest the results:
+python scripts/prospect_scan.py verify-web-export --cohort S_source_candidate \
+  --shard 0 --shard-count 4 --limit 15 --out state/prospects/manual/chat1-batch.json
+python scripts/prospect_scan.py verify-web-ingest --in state/prospects/manual/chat1-batch.json
 
-# DataForSEO: lower-cost Google Organic SERP verification at volume
-python scripts/prospect_scan.py verify-web \
-  --provider dataforseo --cohort A_gold --limit 200 \
-  --location-code 2840 --count 10
+# contacts-only pass for already-verified targets missing a digital channel:
+python scripts/prospect_scan.py verify-web-export --contacts-only \
+  --ids <id-list> --shard 0 --shard-count 4 --out state/prospects/manual/contacts.json
+python scripts/prospect_scan.py verify-web-ingest --contacts-only --in state/prospects/manual/contacts.json
 ```
 
-Use `BRAVE_SEARCH_API_KEY` or `DATAFORSEO_LOGIN` / `DATAFORSEO_PASSWORD` in
-`.env`. The previous 2026-06-02 method of record was a batched multi-agent
-workflow, one WebSearch per lead, schema-validated output, two passes to cover
-failures. Keep per-run reports under `state/artifacts/prospecting/` when doing
-operator analysis.
+**Legacy path (paid APIs, optional):** `scripts/prospect_scan.py verify-web
+--provider brave|dataforseo` runs the same `classify_web_presence` logic through
+Brave Search or DataForSEO (`BRAVE_SEARCH_API_KEY` or `DATAFORSEO_LOGIN`/`_PASSWORD`
+in `.env`). Retained for automated/bulk runs, but the browser method is preferred to
+avoid API spend. The 2026-06-02 method of record was a batched multi-agent WebSearch
+workflow (one search per lead, schema-validated, two passes). Keep per-run reports
+under `state/artifacts/prospecting/` for operator analysis.
 
 ### Stage 3 — Target selection
 Rank within verified buckets, do **not** treat raw `A_gold` as the list:
@@ -154,14 +162,24 @@ service) per the wedge brief — booking friction makes the offer land hardest.
 Exclude chains, franchises, lead-gen/SEO operations, and `garage_door`
 (deprioritized in the manifest).
 
-### Stage 4 — Contact-channel resolution  ❌ **GAP**
-Templates require a reachable channel (`email` / `instagram_dm` / `facebook_dm`)
-but the warehouse only reliably stores `phone`. There is no step that resolves a
-contact channel per lead. Until built:
-- `none_found` leads are typically **phone-only** → phone-first outreach, not the
-  with-mockup email.
-- The with-mockup **email** play requires a found email address; if none, either
-  enrich manually or switch channel.
+### Stage 4 — Contact-channel resolution  ✅ **built** (browser contacts pass)
+Templates need a reachable channel (`email` / `instagram_dm` / `facebook_dm`); the
+warehouse always stores `phone`, and a dedicated contacts pass now resolves the
+digital channels into `contact_email` / `contact_instagram` / `contact_facebook` /
+`contact_booking_url`. Run it on already-verified targets (it never re-touches the
+verdict) — see the "Contacts-only pass" section of
+[agency/manual-verification-sop.md](agency/manual-verification-sop.md):
+
+```bash
+python scripts/prospect_scan.py verify-web-export --contacts-only --ids <id-list> \
+  --shard 0 --shard-count 4 --out state/prospects/manual/contacts.json
+python scripts/prospect_scan.py verify-web-ingest --contacts-only --in state/prospects/manual/contacts.json
+```
+
+- `none_found` leads have no web presence by definition → still **phone-only**
+  (phone-first outreach, not the with-mockup email). Nothing to collect.
+- `marketplace_only` / `social_only` leads often expose an email/IG/FB on their
+  Yelp/social page — the pass captures the best one; phone remains the fallback.
 
 > **Default path (customer-facing):** **`docs/demo-site-build-playbook.md`** —
 > evidence-grounded bespoke HTML at
@@ -252,8 +270,9 @@ tasks fail closed.
 
 ## Current gaps (build backlog, priority order)
 
-1. **Contact-channel resolution (Stage 4)** — without it, only phone-first
-   outreach is possible for the cleanest leads. **Now the top gap.**
+1. ~~Contact-channel resolution (Stage 4)~~ — ✅ **built** (browser contacts-only
+   pass writes `contact_*`). Remaining: an automated/API fallback for bulk
+   enrichment so it isn't browse-only.
 2. ~~Prospect → preview-site glue (Stage 5)~~ — ✅ **built** (playbook `dist-v2` +
    deploy glue). Remaining: automate more playbook steps; **photos** in gather.
 3. **Fold verification into sweep completion** — `verify-web` is now a
