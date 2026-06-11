@@ -20,22 +20,64 @@
       "port": 4321
     },
     {
-      "name": "fiesta-bakery",
+      "name": "donuts16",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8042", "--directory", "state/prospects/sites/ChIJXYZOGZFYXIYRVADY8l30usk/dist-v2"],
-      "port": 8042
+      "runtimeArgs": ["-m", "http.server", "8043", "--directory", "state/prospects/sites/ChIJwYb7ndHQmoAR851rX6hK2MQ/dist-v2"],
+      "port": 8043
     },
     {
-      "name": "fade-factory",
+      "name": "yamazaki",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8061", "--directory", "state/prospects/sites/ChIJf7r9agAF9YgRd7ObV7mwRpE/dist-v2"],
-      "port": 8061
+      "runtimeArgs": ["-m", "http.server", "8044", "--directory", "state/prospects/sites/ChIJsQG87UfGwoARYQLISiV2tzM/dist-v2"],
+      "port": 8044
     },
     {
-      "name": "silver-garage",
+      "name": "immediately-electricians",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8055", "--directory", "state/prospects/sites/ChIJ50C8LKtrkFQR7CIz2NN6JGY/dist-v2"],
-      "port": 8055
+      "runtimeArgs": ["-m", "http.server", "8056", "--directory", "state/prospects/sites/ChIJTy9e_9bJwoARfgqbeOv2NbY/dist-v2"],
+      "port": 8056
+    },
+    {
+      "name": "corner-cafe",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8045", "--directory", "state/prospects/sites/ChIJQf1NInh644kR_l8gIms3L8o/dist-v2"],
+      "port": 8045
+    },
+    {
+      "name": "new-grass-life",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8057", "--directory", "state/prospects/sites/ChIJ8Xe_QAOhVogRTSHf6Zdvo-w/dist-v2"],
+      "port": 8057
+    },
+    {
+      "name": "el-rico-pan",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8046", "--directory", "state/prospects/sites/ChIJZVIYuUszjoARj_KcdjEBJDw/dist-v2"],
+      "port": 8046
+    },
+    {
+      "name": "anytime-notary",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8058", "--directory", "state/prospects/sites/ChIJa9F6crQn9YgRON2A-Zdaun0/dist-v2"],
+      "port": 8058
+    },
+    {
+      "name": "bui-phong",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8048", "--directory", "state/prospects/sites/ChIJERIBVTIzjoARlf74SIRNMR4/dist-v2"],
+      "port": 8048
+    },
+    {
+      "name": "brad-sullivan",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8059", "--directory", "state/prospects/sites/ChIJYWIwAK4QsocRDg0ReGUcj0k/dist-v2"],
+      "port": 8059
+    },
+    {
+      "name": "vegas-bakery",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8049", "--directory", "state/prospects/sites/ChIJ0aSv6JPDyIARWg9GHMtsQEo/dist-v2"],
+      "port": 8049
     }
   ]
 }
