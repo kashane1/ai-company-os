@@ -16,8 +16,18 @@ from pathlib import Path
 from typing import Callable, Iterable
 
 from packages.agency.outreach import recommended_channel
+from packages.agency.outreach_store import (
+    ALLOWED_CHANNELS,
+    OutreachStore,
+    normalize_channel,
+)
 from packages.agency.prospect_site import city_label
 from packages.config.settings import load_runtime_paths
+
+# Outcomes that mean a message was actually delivered through the channel, so
+# they mirror into the SQLite touch store the dashboard reads. Status-only
+# outcomes (replied/won/lost/...) update the ledger but are not new sends.
+SEND_OUTCOMES = {"sent", "left_voicemail"}
 
 
 class OutreachLaneStatus(str, Enum):
@@ -239,6 +249,7 @@ def log_manual_touch(
     occurred_at: str = "",
     next_follow_up_at: str = "",
     notes: str = "",
+    store: OutreachStore | None = None,
 ) -> OutreachClientRow:
     root = lane_root or default_outreach_lane_root()
     status_path = root / "client-status.json"
@@ -285,6 +296,15 @@ def log_manual_touch(
             "send_boundary": "manual_human_gated",
         },
     )
+    # Mirror delivered sends into the SQLite store the dashboard reads, so a CLI
+    # `log ... --outcome sent` and the dashboard's "Log sent" produce the same
+    # per-channel touch. Status-only outcomes are left to the ledger.
+    channel_norm = normalize_channel(channel)
+    if outcome in SEND_OUTCOMES and channel_norm in ALLOWED_CHANNELS:
+        touch_store = store or OutreachStore(sqlite_path=root / "outreach.sqlite3")
+        touch_store.append_touch(
+            place_id, channel_norm, via="cli", note=notes, sent_at=occurred_at
+        )
     write_client_status(sorted(updated_rows, key=_row_sort_key), lane_root=root)
     return updated_row
 

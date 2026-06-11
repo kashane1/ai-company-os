@@ -54,6 +54,31 @@ ALLOWED_OVERRIDE_FIELDS = (
     "contact_booking_url",
 )
 
+# Maps the various channel spellings used by the lane CLI, the recommended-channel
+# logic, and legacy JSONL onto the canonical ALLOWED_CHANNELS. ``sms_or_call``
+# (the phone-first recommendation) resolves to ``call`` — most of these SMB
+# numbers are landlines, so a logged phone touch is overwhelmingly a call.
+_CHANNEL_ALIASES = {
+    "email": "email",
+    "sms": "sms",
+    "text": "sms",
+    "sms_or_call": "call",
+    "phone": "call",
+    "call": "call",
+    "facebook": "facebook_dm",
+    "messenger": "facebook_dm",
+    "facebook_dm": "facebook_dm",
+    "instagram": "instagram_dm",
+    "instagram_dm": "instagram_dm",
+}
+
+
+def normalize_channel(channel: str) -> str:
+    """Canonicalize a channel label to one of ALLOWED_CHANNELS (or pass through
+    an unknown lower-cased value so the caller can reject it)."""
+    key = (channel or "").strip().lower()
+    return _CHANNEL_ALIASES.get(key, key)
+
 
 def _now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -301,17 +326,7 @@ class OutreachStore:
 
     @staticmethod
     def _normalize_legacy_channel(channel: str) -> str:
-        mapping = {
-            "instagram": "instagram_dm",
-            "instagram_dm": "instagram_dm",
-            "facebook": "facebook_dm",
-            "facebook_dm": "facebook_dm",
-            "phone": "call",
-            "call": "call",
-            "sms": "sms",
-            "email": "email",
-        }
-        return mapping.get(channel.strip().lower(), channel.strip().lower())
+        return normalize_channel(channel)
 
     @staticmethod
     def _row_to_dict(row: Any) -> dict[str, object]:
@@ -325,5 +340,6 @@ __all__ = [
     "OutreachStoreConfig",
     "ALLOWED_CHANNELS",
     "ALLOWED_OVERRIDE_FIELDS",
+    "normalize_channel",
     "default_outreach_db_path",
 ]

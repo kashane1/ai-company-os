@@ -72,5 +72,12 @@ default, Postgres via `AI_COMPANY_OS_DATABASE_URL`). The panel logs **touches**
 (append-only, multiple channels per prospect) and operator **contact overrides**
 there; `OutreachStore.import_legacy_jsonl` migrates the original
 `touches.jsonl`. The `client-status.json` ledger remains the single status
-rollup, advanced via `auto_bump_on_touch` / `set_row_status`. The CLI `log`
-path is unchanged for now; unifying it onto the store is a later cleanup.
+rollup, advanced via `auto_bump_on_touch` / `set_row_status`.
+
+The CLI `log` path is now unified onto the store too: `log_manual_touch`
+mirrors delivered-send outcomes (`sent`, `left_voicemail`) into the same
+SQLite store via `normalize_channel` (so a phone-first `sms_or_call` send
+records as a `call` touch), while status-only outcomes (`replied`/`won`/...)
+still just advance the ledger. The CLI and the dashboard's "Log sent" now
+produce identical per-channel touches; `touches.jsonl` continues as the
+richer human-readable audit log (outcome + notes + follow-up).

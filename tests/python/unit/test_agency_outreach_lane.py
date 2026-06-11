@@ -10,6 +10,7 @@ from packages.agency.outreach_lane import (
     log_manual_touch,
     refresh_client_status,
 )
+from packages.agency.outreach_store import OutreachStore
 
 
 def _record(
@@ -138,6 +139,32 @@ def test_log_manual_touch_appends_jsonl_and_updates_status(tmp_path: Path) -> No
     touches = (lane_root / "touches.jsonl").read_text().splitlines()
     assert len(touches) == 1
     assert json.loads(touches[0])["outcome"] == "sent"
+
+
+def test_log_manual_touch_mirrors_sends_into_store(tmp_path: Path) -> None:
+    records_root = tmp_path / "records"
+    records_root.mkdir()
+    (records_root / "p1.json").write_text(
+        json.dumps(_record("p1", "Finished Bakery", mockup_version="v2-bespoke"))
+    )
+    lane_root = tmp_path / "outreach-lane"
+    refresh_client_status(records_root=records_root, lane_root=lane_root)
+    store = OutreachStore(sqlite_path=lane_root / "outreach.sqlite3")
+
+    # A phone-first "sms_or_call" send normalizes to a 'call' touch in the store.
+    log_manual_touch(
+        "p1",
+        channel="sms_or_call",
+        outcome="sent",
+        lane_root=lane_root,
+        store=store,
+        occurred_at="2026-06-09T12:00:00",
+    )
+    assert store.touch_summary()["p1"]["call"]["count"] == 1
+
+    # A status-only outcome updates the ledger but adds no channel touch.
+    log_manual_touch("p1", channel="email", outcome="replied", lane_root=lane_root, store=store)
+    assert "email" not in store.touch_summary().get("p1", {})
 
 
 def test_default_outreach_lane_root_lives_under_runtime_state() -> None:
