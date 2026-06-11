@@ -48,6 +48,20 @@ def test_markdown_has_sections_and_budget() -> None:
     assert "[D7]" in md
 
 
+def test_markdown_can_include_conversion_lab_preflight() -> None:
+    md = draft_google_ads(
+        _intake(),
+        daily_budget=25,
+        monthly_budget=600,
+        preflight_summary="Lead with emergency trust and price clarity.",
+        conversion_lab_report_path="state/clients/joes/conversion_lab/run/REPORT.md",
+    ).to_markdown()
+
+    assert "## Conversion Lab Preflight" in md
+    assert "Lead with emergency trust and price clarity." in md
+    assert "state/clients/joes/conversion_lab/run/REPORT.md" in md
+
+
 def test_emit_writes_ads_md(tmp_path: Path) -> None:
     path = emit_ads_draft(_intake(), tmp_path / "joes-site", daily_budget=25, monthly_budget=600)
     assert path == tmp_path / "joes-site" / "ADS.md"
