@@ -23,6 +23,11 @@ def test_messages_mention_business_and_url_without_em_dash() -> None:
     assert "Joe's Auto" in m.email_subject
 
 
+def test_email_body_carries_opt_out_line() -> None:
+    m = msg.build_messages(_record())
+    assert 'Reply "no thanks" and I won\'t email again.' in m.email_body
+
+
 def test_gmail_compose_url_encodes_fields() -> None:
     url = msg.gmail_compose_url(to="a@b.com", subject="Hi there", body="line one\nline two")
     parsed = urlparse(url)

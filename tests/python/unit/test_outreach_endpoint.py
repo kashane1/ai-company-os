@@ -76,3 +76,32 @@ def test_contact_edit_then_touch_then_status(client: TestClient) -> None:
 def test_bad_channel_is_rejected(client: TestClient) -> None:
     res = client.post("/dashboard/outreach/touch", json={"place_id": "p1", "channel": "telegram"})
     assert res.status_code == 400
+
+
+def test_touch_accepts_variant(client: TestClient) -> None:
+    res = client.post(
+        "/dashboard/outreach/touch",
+        json={"place_id": "p1", "channel": "call", "variant": "social-proof"},
+    )
+    assert res.status_code == 200
+    assert res.json()["variant"] == "social-proof"
+
+
+def test_disqualify_suppresses_and_blocks_send(client: TestClient) -> None:
+    res = client.post(
+        "/dashboard/outreach/disqualify",
+        json={"place_id": "p1", "reason": "owner asked to stop"},
+    )
+    assert res.status_code == 200
+    assert res.json()["status"] == "do_not_contact"
+
+    data = client.get("/dashboard/outreach/data").json()
+    row = data["rows"][0]
+    assert row["suppressed"] is True
+    assert all(b["enabled"] is False for b in row["buttons"])
+
+    # logging a send against the suppressed prospect is rejected
+    blocked = client.post(
+        "/dashboard/outreach/touch", json={"place_id": "p1", "channel": "call"}
+    )
+    assert blocked.status_code == 400

@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from collections import Counter
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Callable, Iterable
@@ -28,6 +28,12 @@ from packages.config.settings import load_runtime_paths
 # they mirror into the SQLite touch store the dashboard reads. Status-only
 # outcomes (replied/won/lost/...) update the ledger but are not new sends.
 SEND_OUTCOMES = {"sent", "left_voicemail"}
+
+# Default days until a logged touch is "due" again. ``next_touch_at`` is the
+# auto-cadence the due-queue reads — distinct from ``next_follow_up_at``, the
+# date an operator explicitly sets via the CLI ``--next-follow-up`` flag. A real
+# per-step sequencer (item 6) can refine this; the cadence keeps the queue live.
+FOLLOWUP_CADENCE_DAYS = 3
 
 
 class OutreachLaneStatus(str, Enum):
@@ -68,6 +74,16 @@ STATUS_SORT = {
     OutreachLaneStatus.DO_NOT_CONTACT: 9,
 }
 
+# Statuses with no pending automated follow-up: clearing ``next_touch_at`` keeps
+# them out of the due-queue. (Replied is operator-driven from here; won/lost/DNC
+# are closed.)
+TERMINAL_STATUSES = {
+    OutreachLaneStatus.REPLIED,
+    OutreachLaneStatus.WON,
+    OutreachLaneStatus.LOST,
+    OutreachLaneStatus.DO_NOT_CONTACT,
+}
+
 
 @dataclass(frozen=True)
 class OutreachClientRow:
@@ -90,6 +106,7 @@ class OutreachClientRow:
     manual_channel: str = ""
     last_touch_at: str = ""
     next_follow_up_at: str = ""
+    next_touch_at: str = ""
     draft_path: str = ""
     notes: str = ""
 
@@ -114,6 +131,7 @@ class OutreachClientRow:
             "manual_channel": self.manual_channel,
             "last_touch_at": self.last_touch_at,
             "next_follow_up_at": self.next_follow_up_at,
+            "next_touch_at": self.next_touch_at,
             "draft_path": self.draft_path,
             "notes": self.notes,
         }
@@ -140,6 +158,7 @@ class OutreachClientRow:
             manual_channel=str(payload.get("manual_channel", "")),
             last_touch_at=str(payload.get("last_touch_at", "")),
             next_follow_up_at=str(payload.get("next_follow_up_at", "")),
+            next_touch_at=str(payload.get("next_touch_at", "")),
             draft_path=str(payload.get("draft_path", "")),
             notes=str(payload.get("notes", "")),
         )
@@ -171,12 +190,14 @@ def build_client_rows(
     *,
     existing_rows: dict[str, dict[str, object]] | None = None,
     repo_root: Path | None = None,
+    include_undeployed: bool = False,
 ) -> list[OutreachClientRow]:
     existing_rows = existing_rows or {}
+    keep = _is_agold if include_undeployed else _is_deployed_agold
     rows = [
         _row_for_record(record, existing_rows.get(str(record.get("place_id", ""))), repo_root=repo_root)
         for record in records
-        if _is_deployed_agold(record)
+        if keep(record)
     ]
     return sorted(rows, key=_row_sort_key)
 
@@ -186,13 +207,21 @@ def refresh_client_status(
     records_root: Path | None = None,
     lane_root: Path | None = None,
     repo_root: Path | None = None,
+    include_undeployed: bool = True,
 ) -> list[OutreachClientRow]:
+    """Materialize the client-status ledger.
+
+    ``include_undeployed`` defaults to True so the dashboard shows the full
+    A_gold roster (deployed demos *and* promising leads that still need one
+    built); pass False for the send-ready-only view.
+    """
     root = lane_root or default_outreach_lane_root(repo_root)
     existing = load_existing_rows(root)
     rows = build_client_rows(
         load_raw_records(records_root or default_records_root(repo_root)),
         existing_rows=existing,
         repo_root=repo_root,
+        include_undeployed=include_undeployed,
     )
     write_client_status(rows, lane_root=root)
     return rows
@@ -276,6 +305,7 @@ def log_manual_touch(
             "manual_channel": channel,
             "last_touch_at": occurred_at,
             "next_follow_up_at": next_follow_up_at,
+            "next_touch_at": _next_touch_for(new_status, occurred_at),
             "notes": merged_notes,
             "next_action": _next_action_for_status(new_status, channel),
         }
@@ -360,6 +390,9 @@ def set_row_status(
             "next_action": _next_action_for_status(
                 new_status, row.manual_channel or row.recommended_channel
             ),
+            # Closing a row (replied/won/lost/DNC) retires its pending follow-up;
+            # other dropdown changes leave the cadence untouched.
+            **({"next_touch_at": ""} if new_status in TERMINAL_STATUSES else {}),
         },
         lane_root=lane_root,
     )
@@ -385,14 +418,49 @@ def auto_bump_on_touch(
             "status": new_status.value,
             "manual_channel": channel,
             "last_touch_at": occurred_at,
+            "next_touch_at": _next_touch_for(new_status, occurred_at),
             "next_action": _next_action_for_status(new_status, channel),
         }
 
     return _mutate_row(place_id, apply, lane_root=lane_root)
 
 
+def _suppressed_place_ids(rows: list[OutreachClientRow]) -> set[str]:
+    """Place IDs in ``rows`` whose place_id or any contact handle is suppressed.
+
+    Read once from the registry; imported lazily so the ledger has no hard
+    dependency on the suppression store when it is empty/unavailable.
+    """
+    try:
+        from packages.agency import suppression
+
+        suppressed_keys = OutreachStore().suppressed_keys()
+    except Exception:
+        return set()
+    if not suppressed_keys:
+        return set()
+    flagged: set[str] = set()
+    for row in rows:
+        keys = {key for _kind, key in suppression.keys_for_record(_row_record(row))}
+        if keys & suppressed_keys:
+            flagged.add(row.place_id)
+    return flagged
+
+
+def _row_record(row: OutreachClientRow) -> dict[str, object]:
+    """A record-like dict carrying the identifiers suppression checks read."""
+    return {
+        "place_id": row.place_id,
+        "contact_email": row.contact_email,
+        "phone": row.phone,
+        "contact_instagram": row.contact_instagram,
+        "contact_facebook": row.contact_facebook,
+    }
+
+
 def render_client_status_markdown(rows: list[OutreachClientRow], *, updated_at: str) -> str:
     summary = summarize_rows(rows)
+    suppressed = _suppressed_place_ids(rows)
     lines = [
         "# Outreach Lane Client Status",
         "",
@@ -416,9 +484,12 @@ def render_client_status_markdown(rows: list[OutreachClientRow], *, updated_at: 
         "|---|---|---|---|---|---|---|---|",
     ]
     for row in rows:
+        status_cell = (
+            f"🚫 {row.status.value}" if row.place_id in suppressed else row.status.value
+        )
         lines.append(
             "| {status} | {business} | {city} | {genre} | {channel} | {action} | {url} | {draft} |".format(
-                status=row.status.value,
+                status=status_cell,
                 business=_md(row.business_name),
                 city=_md(row.city),
                 genre=_md(row.genre_id),
@@ -485,17 +556,26 @@ def _row_for_record(
         manual_channel=manual_channel,
         last_touch_at=str((existing or {}).get("last_touch_at", "")),
         next_follow_up_at=str((existing or {}).get("next_follow_up_at", "")),
+        next_touch_at=str((existing or {}).get("next_touch_at", "")),
         draft_path=_draft_path(place_id, repo_root),
         notes=str((existing or {}).get("notes", "")),
     )
 
 
-def _is_deployed_agold(record: dict[str, object]) -> bool:
+def _is_agold(record: dict[str, object]) -> bool:
+    """Any A_gold prospect — the full "semi-promising, through-the-process"
+    roster, whether or not a preview demo has been built yet. The dashboard
+    shows this so the operator can see the whole pipeline and direct what to
+    build next; undeployed rows land in NEEDS_BESPOKE."""
     return (
         record.get("composite_cohort") == "A_gold"
-        and bool(str(record.get("mockup_url", "")).strip())
         and bool(str(record.get("place_id", "")).strip())
     )
+
+
+def _is_deployed_agold(record: dict[str, object]) -> bool:
+    """A_gold that already has a live preview site — the send-ready subset."""
+    return _is_agold(record) and bool(str(record.get("mockup_url", "")).strip())
 
 
 def _preserved_status(
@@ -568,6 +648,31 @@ def _merge_notes(existing: str, new: str) -> str:
 
 def _now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _parse_iso(value: str) -> datetime | None:
+    text = (value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+def _default_next_touch_at(occurred_at: str) -> str:
+    base = _parse_iso(occurred_at) or datetime.now(UTC)
+    nxt = base + timedelta(days=FOLLOWUP_CADENCE_DAYS)
+    return nxt.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _next_touch_for(status: OutreachLaneStatus, occurred_at: str) -> str:
+    """The next-touch timestamp for a status: cleared for terminal states,
+    cadence-stamped otherwise."""
+    if status in TERMINAL_STATUSES:
+        return ""
+    return _default_next_touch_at(occurred_at)
 
 
 def _row_sort_key(row: OutreachClientRow) -> tuple[int, str, str]:

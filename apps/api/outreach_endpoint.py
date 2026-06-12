@@ -12,6 +12,12 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from packages.agency import outreach_actions as actions
+from packages.agency.funnel import (
+    FunnelCooldownError,
+    load_funnel_report_payload,
+    refresh_funnel_report,
+)
+from packages.agency.outreach_store import DEFAULT_VARIANT
 from packages.dashboard.outreach_panel import render_outreach_html
 
 router = APIRouter()
@@ -20,6 +26,7 @@ router = APIRouter()
 class TouchRequest(BaseModel):
     place_id: str
     channel: str
+    variant: str = DEFAULT_VARIANT
 
 
 class ContactRequest(BaseModel):
@@ -33,9 +40,18 @@ class StatusRequest(BaseModel):
     status: str
 
 
+class DisqualifyRequest(BaseModel):
+    place_id: str
+    reason: str = ""
+
+
 @router.get("/dashboard/outreach", response_class=HTMLResponse)
 def outreach_panel() -> HTMLResponse:
-    return HTMLResponse(content=render_outreach_html(actions.build_outreach_panel()))
+    return HTMLResponse(
+        content=render_outreach_html(
+            actions.build_outreach_panel(), funnel=load_funnel_report_payload()
+        )
+    )
 
 
 @router.get("/dashboard/outreach/data")
@@ -43,10 +59,26 @@ def outreach_panel_data() -> dict[str, object]:
     return actions.build_outreach_panel().to_dict()
 
 
+@router.post("/dashboard/outreach/funnel/refresh")
+def refresh_funnel() -> dict[str, object]:
+    """Recompute the funnel snapshot. Rate-limited by the report's own age, so
+    repeat clicks inside the cooldown return 429 with the seconds remaining."""
+    try:
+        return refresh_funnel_report()
+    except FunnelCooldownError as exc:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": str(exc), "remaining_seconds": exc.remaining_seconds},
+            headers={"Retry-After": str(exc.remaining_seconds)},
+        ) from exc
+
+
 @router.post("/dashboard/outreach/touch")
 def log_touch(request: TouchRequest) -> dict[str, object]:
     try:
-        return actions.record_touch(request.place_id, request.channel)
+        return actions.record_touch(
+            request.place_id, request.channel, variant=request.variant
+        )
     except (ValueError, KeyError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except FileNotFoundError as exc:
@@ -65,6 +97,16 @@ def save_contact(request: ContactRequest) -> dict[str, object]:
 def save_status(request: StatusRequest) -> dict[str, object]:
     try:
         return actions.set_status(request.place_id, request.status)
+    except (ValueError, KeyError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/dashboard/outreach/disqualify")
+def disqualify(request: DisqualifyRequest) -> dict[str, object]:
+    try:
+        return actions.disqualify(request.place_id, request.reason)
     except (ValueError, KeyError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except FileNotFoundError as exc:

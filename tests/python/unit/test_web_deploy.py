@@ -230,3 +230,33 @@ def test_http_error_becomes_deploy_error() -> None:
 
     with pytest.raises(DeployError):
         _make_target(handler).ensure_site("acme")
+
+
+def test_delete_deploy_issues_delete_and_is_idempotent_on_404() -> None:
+    seen: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["method"] = request.method
+        seen["path"] = request.url.path
+        if "gone" in request.url.path:
+            return httpx.Response(404, text="not found")
+        return httpx.Response(204)  # Netlify delete returns an empty body
+
+    target = _make_target(handler)
+    target.delete_deploy("dep_123")  # 204 → ok, no JSON parsing
+    assert seen["method"] == "DELETE"
+    assert seen["path"].endswith("/deploys/dep_123")
+    target.delete_deploy("dep_gone")  # 404 → already gone, must not raise
+
+
+def test_delete_deploy_requires_id() -> None:
+    with pytest.raises(DeployError):
+        NetlifyDeployTarget(token="t").delete_deploy("")
+
+
+def test_delete_deploy_raises_on_server_error() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="boom")
+
+    with pytest.raises(DeployError):
+        _make_target(handler).delete_deploy("dep_x")

@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from packages.agency import outreach_actions as actions
 from packages.agency.outreach_lane import refresh_client_status
 from packages.agency.outreach_store import OutreachStore
@@ -125,3 +127,63 @@ def test_touch_does_not_downgrade_manual_status(tmp_path: Path) -> None:
     actions.set_status("p1", "won", lane_root=lane_root)
     result = actions.record_touch("p1", "email", store=store, lane_root=lane_root)
     assert result["status"] == "won"  # past-SENT status preserved
+
+
+def test_record_touch_persists_variant(tmp_path: Path) -> None:
+    lane_root, store = _materialize(tmp_path, [_record("p1", "Joe Auto")])
+    result = actions.record_touch(
+        "p1", "email", variant="social-proof", store=store, lane_root=lane_root
+    )
+    assert result["variant"] == "social-proof"
+    assert store.list_touches("p1")[0]["variant"] == "social-proof"
+
+
+def test_suppressed_prospect_is_greyed_and_unlaunchable(tmp_path: Path) -> None:
+    lane_root, store = _materialize(
+        tmp_path, [_record("p1", "Joe Auto", contact_email="joe@example.com")]
+    )
+    actions.disqualify("p1", "owner asked to stop", store=store, lane_root=lane_root)
+
+    view = actions.build_outreach_panel(store=store, lane_root=lane_root)
+    row = next(r for r in view.rows if r.place_id == "p1")
+    assert row.suppressed is True
+    assert row.suppression_reason == "owner asked to stop"
+    assert row.status == "do_not_contact"
+    # every button disabled with its deep-link cleared, even though email exists
+    assert all(b.enabled is False and b.url == "" for b in row.buttons)
+
+    # and a send can no longer be logged
+    with pytest.raises(ValueError):
+        actions.record_touch("p1", "email", store=store, lane_root=lane_root)
+
+
+def test_due_queue_orders_oldest_first(tmp_path: Path) -> None:
+    lane_root, store = _materialize(
+        tmp_path,
+        [_record("p1", "Alpha"), _record("p2", "Bravo"), _record("p3", "Charlie")],
+    )
+    # p1 + p2 due (past next_touch_at), p3 not due yet (future).
+    _set_next_touch(lane_root, "p1", "2026-06-05T00:00:00Z")
+    _set_next_touch(lane_root, "p2", "2026-06-09T00:00:00Z")
+    _set_next_touch(lane_root, "p3", "2026-06-20T00:00:00Z")
+
+    view = actions.build_outreach_panel(
+        store=store, lane_root=lane_root, now="2026-06-10T00:00:00Z"
+    )
+    due = {r.place_id: r.due for r in view.rows}
+    assert due == {"p1": True, "p2": True, "p3": False}
+    assert view.due_count == 2
+
+    ordered = sorted(
+        (r for r in view.rows if r.due), key=lambda r: r.next_touch_at
+    )
+    assert [r.place_id for r in ordered] == ["p1", "p2"]
+
+
+def _set_next_touch(lane_root: Path, place_id: str, when: str) -> None:
+    status_path = lane_root / "client-status.json"
+    payload = json.loads(status_path.read_text())
+    for row in payload["rows"]:
+        if row["place_id"] == place_id:
+            row["next_touch_at"] = when
+    status_path.write_text(json.dumps(payload))
