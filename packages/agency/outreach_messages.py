@@ -209,7 +209,7 @@ def build_teaser_messages(
         else "a few specific things worth a look"
     )
 
-    email_subject = f"A quick read on {business}'s website"
+    email_subject = f"A quick read on the {business} website"
     email_body = (
         f"Hi there,\n\n"
         f"I run conversion audits for local businesses{where} and took an honest look "
@@ -226,12 +226,12 @@ def build_teaser_messages(
         email_body += f"\n\nref: {ref_token}"
 
     sms = (
-        f"Hi, this is {sender_name}. I did a quick conversion read on {business}'s "
+        f"Hi, this is {sender_name}. I did a quick conversion read on the {business} "
         f"website ({site_url}) with a buyer-persona panel and found {count} {things} "
         f"worth a look. Want the one-page teaser?"
     )
     dm = (
-        f"Hi there. I took an honest look at {business}'s website ({site_url}) and "
+        f"Hi there. I took an honest look at the {business} website ({site_url}) and "
         f"ran it past a panel of buyer personas, {count} {things} stood out that might "
         f"be costing you calls.\n\n"
         f"I can send a one-page teaser. If it's useful, I do a full {audit_name}"
