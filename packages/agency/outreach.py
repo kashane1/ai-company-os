@@ -19,9 +19,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from packages.agency.prospect_site import GENRE_PROFILES, city_label
+
+DEFAULT_SENDER_NAME = "Kashane Sakhakorn"
+DEFAULT_SENDER_COMPANY = "https://better-business-web.netlify.app/"
 
 # genre_id → snippet section key in genre-snippets.md (used for none_found leads).
 _GENRE_GAP_REF = {
@@ -53,12 +55,20 @@ _SEARCH_PHRASES = {
 # Short, SMS-friendly gap phrasing keyed by gap_ref (the long observed_gap is too
 # verbose for a text). Kept here (not in markdown) so it's testable.
 _SHORT_GAP = {
-    "auto_repair": "there's no website where someone can see your hours/services and just tap to call",
+    "auto_repair": (
+        "there's no website where someone can see your hours/services and just tap to call"
+    ),
     "salon_nails": "there's no website showing your work and an easy way to book or call",
-    "appointment_service": "there's no simple site that makes it easy for new clients to find and book you",
+    "appointment_service": (
+        "there's no clear site that makes it easy for new clients to find and book you"
+    ),
     "cafe": "there's no website with your menu, hours, and location",
-    "marketplace_only": "your main web presence looks like a booking or listing page, not a simple site you own",
-    "generic": "there's no website where a new customer can see what you offer and how to reach you",
+    "marketplace_only": (
+        "your main web presence looks like a booking or listing page, not a site you own"
+    ),
+    "generic": (
+        "there's no website where a new customer can see what you offer and how to reach you"
+    ),
 }
 
 FORBIDDEN_OUTREACH_MARKS = ("—",)
@@ -146,8 +156,8 @@ class OutreachContext:
     facebook: str = ""
     booking_url: str = ""
     owned_website: str = ""
-    sender_name: str = "[your name]"
-    sender_company: str = "[your company]"
+    sender_name: str = DEFAULT_SENDER_NAME
+    sender_company: str = DEFAULT_SENDER_COMPANY
 
     def as_placeholders(self) -> dict[str, str]:
         return {

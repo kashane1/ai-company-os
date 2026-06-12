@@ -1,10 +1,16 @@
-.PHONY: demo test test-python doctor audit handoff archive-plans doc-index tokens-check skills-sync premium
+.PHONY: demo dash test test-python doctor audit handoff archive-plans doc-index tokens-check skills-sync premium
 
 # Zero-dependency end-to-end demo: goal -> task -> execute -> validate
 # -> human approval gate -> structured audit artifact. No Postgres,
 # Redis, Codex, network, or Mac runtime required.
 demo:
 	./scripts/demo.sh
+
+# Start the local operator outreach dashboard (127.0.0.1:8765) and open it.
+#   make dash      (equivalent: ./start dash)
+DASH_PY ?= $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3)
+dash:
+	$(DASH_PY) scripts/start_dash.py
 
 test: test-python
 

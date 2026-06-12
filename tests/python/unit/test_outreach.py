@@ -87,7 +87,7 @@ def test_render_leaves_only_sender_placeholders() -> None:
     out = render_template(body, ctx)
     assert "Skyline Nails" in out and "Fort Worth" in out
     assert unfilled_placeholders(out) == []  # no {curly} placeholders left
-    assert "[your name]" in out  # sender slot filled with an operator-editable marker
+    assert "Kashane Sakhakorn" in out
 
 
 def test_recommended_channel_is_phone_when_present() -> None:

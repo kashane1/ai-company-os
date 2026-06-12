@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Project launcher. Usage:
+#   ./start dash    # start the local outreach dashboard and open it in the browser
+set -euo pipefail
+
+cd "$(dirname "$0")"
+PY="$( [ -x .venv/bin/python3 ] && echo .venv/bin/python3 || echo python3 )"
+
+cmd="${1:-}"
+case "$cmd" in
+  dash)
+    exec "$PY" scripts/start_dash.py
+    ;;
+  ""|-h|--help|help)
+    echo "Usage: ./start <command>"
+    echo
+    echo "Commands:"
+    echo "  dash    Start the local outreach dashboard (127.0.0.1:8765) and open it"
+    exit 0
+    ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    echo "Run './start' for usage." >&2
+    exit 1
+    ;;
+esac

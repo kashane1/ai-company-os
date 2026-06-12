@@ -46,6 +46,8 @@ def test_panel_html_renders(client: TestClient) -> None:
 
 def test_contact_edit_then_touch_then_status(client: TestClient) -> None:
     data = client.get("/dashboard/outreach/data").json()
+    assert "facets" in data
+    assert "facts" in data["rows"][0]
     email = next(b for b in data["rows"][0]["buttons"] if b["channel"] == "email")
     assert email["enabled"] is False  # no email scanned
 

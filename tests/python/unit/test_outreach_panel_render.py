@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from packages.agency.outreach_actions import ActionRow, ChannelButton, OutreachPanelView
+from packages.agency.outreach_actions import (
+    ActionRow,
+    ChannelButton,
+    FacetOption,
+    OutreachPanelView,
+    RowFacts,
+)
 from packages.dashboard.outreach_panel import render_outreach_html
 
 
@@ -13,6 +19,16 @@ def _view() -> OutreachPanelView:
         status="ready_to_send",
         next_action="Review draft, send manually",
         mockup_url="https://preview.example.test",
+        facts=RowFacts(
+            tags=[
+                "preview",
+                "email-not-sent",
+                "phone-present",
+                "any-contact",
+                "any-sent",
+            ],
+            total_sent_count=2,
+        ),
         buttons=[
             ChannelButton(
                 channel="email",
@@ -36,7 +52,14 @@ def _view() -> OutreachPanelView:
             ),
         ],
     )
-    return OutreachPanelView(rows=[row], statuses=["ready_to_send", "sent", "replied"])
+    return OutreachPanelView(
+        rows=[row],
+        statuses=["ready_to_send", "sent", "replied"],
+        facets=[
+            FacetOption(key="preview", label="Preview site", count=1),
+            FacetOption(key="email-not-sent", label="Email not sent", count=1),
+        ],
+    )
 
 
 def test_render_contains_core_elements() -> None:
@@ -51,6 +74,15 @@ def test_render_contains_core_elements() -> None:
     assert "sent &times;2" in html_out
     # status dropdown with current value selected
     assert "<option value='ready_to_send' selected>" in html_out
+
+
+def test_render_contains_filter_and_sort_controls() -> None:
+    html_out = render_outreach_html(_view())
+    assert "placeholder='Search businesses, cities, or types'" in html_out
+    assert "data-status-filter='sent'" in html_out
+    assert "data-facet-filter='preview'" in html_out
+    assert "data-sort='recent_touch'" in html_out
+    assert 'data-tags="preview email-not-sent phone-present any-contact any-sent"' in html_out
 
 
 def test_render_escapes_business_name() -> None:

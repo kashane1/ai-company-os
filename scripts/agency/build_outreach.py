@@ -135,16 +135,22 @@ def render_prospect(record: dict, snippets, templates: dict[str, str]) -> str:
 
 def _phone_script(ctx) -> str:
     return (
-        f"\"Hi, is this the owner? My name's {{sender_name}}. Quick one. "
-        f"I came across {ctx.business_name} while looking up {ctx.search_phrase} around {ctx.city}. "
-        f"I put together a private one-page website preview for you. "
+        f"\"Hi, is this the owner? My name is {{sender_name}}. "
+        f"I found {ctx.business_name} while looking up {ctx.search_phrase} in {ctx.city}. "
+        f"I made a website preview for you. "
         f"Can I text you the link? No obligation, I just thought it might be useful.\""
     )
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--verdict", help="restrict to one web_verify_verdict (e.g. marketplace_only, none_found)")
+    ap = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    ap.add_argument(
+        "--verdict",
+        help="restrict to one web_verify_verdict (e.g. marketplace_only, none_found)",
+    )
     args = ap.parse_args()
 
     missing = [k for k, p in TEMPLATES.items() if not p.exists()]

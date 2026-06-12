@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 from packages.agency import outreach_actions as actions
-from packages.agency.outreach_store import OutreachStore
 from packages.agency.outreach_lane import refresh_client_status
+from packages.agency.outreach_store import OutreachStore
 
 
 def _record(place_id: str, name: str, **over: object) -> dict[str, object]:
@@ -76,7 +76,40 @@ def test_record_touch_logs_and_bumps_status(tmp_path: Path) -> None:
 
     actions.record_touch("p1", "email", store=store, lane_root=lane_root)
     view = actions.build_outreach_panel(store=store, lane_root=lane_root)
+    assert [row.place_id for row in view.rows] == ["p1"]
     assert _buttons(view, "p1")["email"].sent_count == 2
+
+
+def test_panel_rows_include_filter_facts_and_facet_counts(tmp_path: Path) -> None:
+    lane_root, store = _materialize(
+        tmp_path,
+        [
+            _record("p1", "Joe Auto", contact_email="joe@example.com"),
+            _record("p2", "Mia Mobile", phone="+15035550000", contact_email=""),
+        ],
+    )
+    actions.record_touch("p1", "email", store=store, lane_root=lane_root)
+
+    view = actions.build_outreach_panel(store=store, lane_root=lane_root)
+    p1 = next(row for row in view.rows if row.place_id == "p1")
+    p2 = next(row for row in view.rows if row.place_id == "p2")
+
+    assert "preview" in p1.facts.tags
+    assert "email-present" in p1.facts.tags
+    assert "email-sent-once" in p1.facts.tags
+    assert "preview-email-sent-once" in p1.facts.tags
+    assert p1.facts.total_sent_count == 1
+
+    assert "phone-present" in p2.facts.tags
+    assert "no-sends" in p2.facts.tags
+    assert "email-not-sent" in p2.facts.tags
+    assert "preview-email-unsent" in p2.facts.tags
+
+    counts = {facet.key: facet.count for facet in view.facets}
+    assert counts["preview"] == 2
+    assert counts["email-present"] == 1
+    assert counts["no-sends"] == 1
+    assert counts["preview-email-sent-once"] == 1
 
 
 def test_set_status_persists_manual_choice(tmp_path: Path) -> None:

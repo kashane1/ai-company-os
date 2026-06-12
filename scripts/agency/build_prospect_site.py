@@ -93,7 +93,11 @@ def select_records(args: argparse.Namespace) -> list[dict]:
             if r.get("web_verify_verdict") == "none_found" and not _is_fixture(r)
         ]
     elif args.verdict:
-        pool = [r for r in records if r.get("web_verify_verdict") == args.verdict and not _is_fixture(r)]
+        pool = [
+            r
+            for r in records
+            if r.get("web_verify_verdict") == args.verdict and not _is_fixture(r)
+        ]
     else:
         sys.exit("specify --place-id, --confirmed, or --verdict <verdict>")
 
@@ -120,11 +124,13 @@ def render_outreach_draft(record: dict, mockup_url: str) -> str:
         "{neighborhood}": city_label(str(record.get("city_id", ""))),
         "{city}": city_label(str(record.get("city_id", ""))),
         "{genre_noun}": genre_noun,
-        "{observed_gap}": "I couldn't find an owned website for you — just a phone number / directory listings.",
+        "{observed_gap}": (
+            "I couldn't find an owned website for you, just a phone number / directory listings."
+        ),
         "{review_count}": f"{reviews}+" if reviews else "your",
         "{mockup_url}": mockup_url or "[preview URL after deploy]",
-        "{sender_name}": "[your name]",
-        "{sender_company}": "[your company]",
+        "{sender_name}": "Kashane Sakhakorn",
+        "{sender_company}": "https://better-business-web.netlify.app/",
     }
     body = OUTREACH_TEMPLATE.read_text()
     for k, v in repl.items():
@@ -183,7 +189,9 @@ def make_connector():
     return GooglePlacesConnector()
 
 
-def _legacy_build(record: dict, out_dir: Path, target, account, profile) -> tuple[object, str, list[str], dict | None]:
+def _legacy_build(
+    record: dict, out_dir: Path, target, account, profile
+) -> tuple[object, str, list[str], dict | None]:
     from packages.agency.demo_theme import theme_for_record
 
     theme = theme_for_record(record)
@@ -194,7 +202,9 @@ def _legacy_build(record: dict, out_dir: Path, target, account, profile) -> tupl
     return result, "legacy-token-fill", used, theme.to_dict()
 
 
-def _bespoke_deploy(record: dict, out_dir: Path, target, account) -> tuple[PreviewResult, str, list[str], None]:
+def _bespoke_deploy(
+    record: dict, out_dir: Path, target, account
+) -> tuple[PreviewResult, str, list[str], None]:
     dist_dir = resolve_prospect_dist_dir(out_dir)
     intake_from_record(record)  # validate early
     place_id = str(record.get("place_id", ""))
@@ -215,7 +225,10 @@ def _bespoke_deploy(record: dict, out_dir: Path, target, account) -> tuple[Previ
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     sel = ap.add_argument_group("selection")
     sel.add_argument("--place-id", help="deploy for one specific record")
     sel.add_argument("--confirmed", action="store_true", help="all none_found leads")
@@ -229,7 +242,11 @@ def main() -> None:
         help="selection order: 'city' (default) or 'reviews' (most Google reviews first)",
     )
     dep = ap.add_argument_group("deploy")
-    dep.add_argument("--deploy", action="store_true", help="publish to Netlify (needs $NETLIFY_AUTH_TOKEN)")
+    dep.add_argument(
+        "--deploy",
+        action="store_true",
+        help="publish to Netlify (needs $NETLIFY_AUTH_TOKEN)",
+    )
     dep.add_argument("--account", help="your Netlify team/account slug to own the sites")
     dep.add_argument(
         "--deploy-delay",
@@ -283,7 +300,9 @@ def main() -> None:
                     rec, out_dir, target, account, profile
                 )
             else:
-                result, build_kind, used, theme_dict = _bespoke_deploy(rec, out_dir, target, account)
+                result, build_kind, used, theme_dict = _bespoke_deploy(
+                    rec, out_dir, target, account
+                )
         except (ProspectBuildError, ValueError) as exc:
             print(f"  ✗ {name}: {exc}")
             summary.append((name, "error", str(exc)))
