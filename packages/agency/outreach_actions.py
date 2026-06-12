@@ -30,6 +30,12 @@ from packages.agency.outreach_lane import (
     default_outreach_lane_root,
     set_row_status,
 )
+from packages.agency.outreach_sequencer import (
+    default_sites_root,
+    next_step_for,
+    observation_for_step,
+    outbound_touch_count,
+)
 from packages.agency.outreach_store import (
     ALLOWED_CHANNELS,
     DEFAULT_VARIANT,
@@ -171,6 +177,7 @@ class OutreachPanelView:
 
 
 FACET_LABELS = [
+    ("teaser", "Teaser lane"),
     ("preview", "Preview site"),
     ("email-present", "Email present"),
     ("phone-present", "Phone present"),
@@ -230,15 +237,62 @@ def _context_for_row(row: OutreachClientRow):
     return ctx
 
 
+def _teaser_messages_for_row(
+    row: OutreachClientRow, sites_root: Path | None
+) -> "msg.ChannelMessages | None":
+    """Load the teaser findings sidecar and build the audit-pitch copy, or None.
+
+    The sidecar (``teaser.json``, written by the teaser build) holds the validated
+    findings + offer; reading it here keeps the copy in lockstep with the on-disk
+    teaser without re-running the persona panel.
+    """
+    if sites_root is None:
+        return None
+    sidecar = sites_root / row.place_id / "teaser.json"
+    if not sidecar.exists():
+        return None
+    try:
+        data = json.loads(sidecar.read_text())
+    except (OSError, ValueError):
+        return None
+    return msg.build_teaser_messages(
+        business_name=str(data.get("business_name") or row.business_name),
+        city=str(data.get("city") or row.city),
+        site_url=str(data.get("site_url") or ""),
+        findings=list(data.get("findings") or []),
+        offer=dict(data.get("offer") or {}),
+        ref_token=bbw_ref_token(row.place_id),
+    )
+
+
 def _buttons_for_row(
     row: OutreachClientRow,
     overrides: dict[str, str],
     touch_summary: dict[str, dict[str, object]],
     *,
     suppressed: bool = False,
+    sites_root: Path | None = None,
 ) -> list[ChannelButton]:
     ctx = _context_for_row(row)
-    messages = msg.build_messages_from_context(ctx)
+    # Teaser-lane rows pitch the paid Conversion Audit of the prospect's existing
+    # site (item 7), so their copy comes from the validated teaser findings sidecar,
+    # not the preview-link draft. Falls back to the demo copy if no sidecar exists.
+    teaser_messages = (
+        _teaser_messages_for_row(row, sites_root) if row.lane == "teaser" else None
+    )
+    if teaser_messages is not None:
+        messages = teaser_messages
+    else:
+        # The next touch's step number drives which draft the buttons surface: a
+        # prospect already sent once shows the touch-2 follow-up, not a duplicate.
+        prior_sends = sum(int(stats.get("count", 0) or 0) for stats in touch_summary.values())
+        step = next_step_for(prior_sends)
+        observation = (
+            observation_for_step(row.place_id, step, ctx, sites_root=sites_root)
+            if sites_root is not None
+            else ""
+        )
+        messages = msg.build_messages_from_context(ctx, step=step, observation=observation)
     email = _effective(row, overrides, "contact_email")
     phone = _effective(row, overrides, "phone")
     facebook = _effective(row, overrides, "contact_facebook")
@@ -320,6 +374,8 @@ def _facts_for_row(row: OutreachClientRow, buttons: list[ChannelButton]) -> RowF
     email_count = email_button.sent_count if email_button else 0
 
     tags: set[str] = set()
+    if row.lane == "teaser":
+        tags.add("teaser")
     tags.add("preview" if row.mockup_url else "no-preview")
 
     if email_button and email_button.enabled:
@@ -389,6 +445,7 @@ def build_outreach_panel(
     now: str | None = None,
 ) -> OutreachPanelView:
     root = lane_root or default_outreach_lane_root()
+    sites_root = default_sites_root(root)
     store = store or OutreachStore()
     overrides = store.all_overrides()
     touches = store.touch_summary()
@@ -410,6 +467,7 @@ def build_outreach_panel(
             overrides.get(row.place_id, {}),
             touches.get(row.place_id, {}),
             suppressed=suppressed,
+            sites_root=sites_root,
         )
         due = bool(row.next_touch_at) and row.next_touch_at <= now and not suppressed
         if due:
@@ -468,7 +526,9 @@ def record_touch(
         token = bbw_ref_token(place_id)
         if token:
             store.record_ref_token(token, place_id)
-    row = auto_bump_on_touch(place_id, channel, lane_root=lane_root)
+    # Total sends so far (this one included) drives the per-step follow-up cadence.
+    count = outbound_touch_count(store, place_id)
+    row = auto_bump_on_touch(place_id, channel, lane_root=lane_root, outbound_count=count)
     return {
         "touch": touch,
         "status": row.status.value,

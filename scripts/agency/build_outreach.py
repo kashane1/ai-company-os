@@ -39,6 +39,8 @@ from packages.agency.outreach import (  # noqa: E402
     sanitize_outreach_copy,
     unfilled_placeholders,
 )
+from packages.agency.outreach_messages import build_messages_from_context  # noqa: E402
+from packages.agency.outreach_sequencer import MAX_TOUCHES, observation_for_step  # noqa: E402
 
 RECORDS_DIR = REPO / "state" / "prospects" / "records"
 SITES_DIR = REPO / "state" / "prospects" / "sites"
@@ -129,8 +131,40 @@ def render_prospect(record: dict, snippets, templates: dict[str, str]) -> str:
         _strip_template_header(templates["facebook_dm"]),
         "",
     ]
+    parts += _follow_up_sequence(record, ctx)
     body = "\n".join(parts)
     return sanitize_outreach_copy(render_template(body, ctx))
+
+
+def _follow_up_sequence(record: dict, ctx) -> list[str]:
+    """Touch-2/touch-3 follow-up drafts, matching what the dashboard surfaces.
+
+    Same per-step cadence story as ``outreach_sequencer``: send these only if the
+    earlier touch got no reply (a reply/suppression retires the sequence)."""
+    place_id = str(record.get("place_id", ""))
+    lines = [
+        "## Follow-up sequence (only if no reply)",
+        "",
+        "_Touch 2 is due ~4 days after touch 1, touch 3 ~8 days after touch 2. "
+        "Stop after 3. A reply or suppression cancels these._",
+        "",
+    ]
+    for step in range(2, MAX_TOUCHES + 1):
+        observation = observation_for_step(place_id, step, ctx, sites_root=SITES_DIR)
+        messages = build_messages_from_context(ctx, step=step, observation=observation)
+        lines += [
+            f"### Touch {step}",
+            "",
+            f"**Email subject:** {messages.email_subject}",
+            "",
+            messages.email_body,
+            "",
+            "**SMS:**",
+            "",
+            messages.sms_body,
+            "",
+        ]
+    return lines
 
 
 def _phone_script(ctx) -> str:
