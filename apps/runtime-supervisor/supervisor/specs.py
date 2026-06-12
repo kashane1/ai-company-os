@@ -82,4 +82,14 @@ def default_worker_specs() -> list[WorkerProcessSpec]:
             script_path=paths.repo_root / "apps" / "worker-outreach" / "main.py",
             log_path=runtime_logs_root / "worker-outreach.log",
         ),
+        # Item 5 — reply-sync poller. Like billing-poller, a periodic loop (not a
+        # task-claiming worker): reads the BBW inbox read-only and records inbound
+        # replies to the lane/store. Lives here because launchd runs ONLY the
+        # supervisor.
+        WorkerProcessSpec(
+            lane="reply_sync",
+            worker_id="worker-reply-sync",
+            script_path=paths.repo_root / "apps" / "worker-reply-sync" / "main.py",
+            log_path=runtime_logs_root / "worker-reply-sync.log",
+        ),
     ]

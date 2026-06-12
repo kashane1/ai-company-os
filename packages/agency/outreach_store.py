@@ -40,6 +40,13 @@ except ImportError:  # pragma: no cover
 TOUCHES_TABLE = "outreach_touches"
 OVERRIDES_TABLE = "outreach_contact_overrides"
 SUPPRESSIONS_TABLE = "outreach_suppressions"
+REF_TOKENS_TABLE = "outreach_ref_tokens"
+
+# Direction of a logged touch. Outbound = a human-gated send; inbound = a reply
+# captured by reply-sync (item 5). Funnel "sent" counts outbound only, so an
+# inbound touch never inflates the sent metric.
+OUTBOUND = "outbound"
+INBOUND = "inbound"
 
 # The channels a button can record a send for. Kept here so the store rejects
 # typos instead of silently logging an unknown channel.
@@ -172,7 +179,8 @@ class OutreachStore:
                 sent_at TEXT NOT NULL,
                 via TEXT NOT NULL,
                 note TEXT NOT NULL DEFAULT '',
-                variant TEXT NOT NULL DEFAULT '{DEFAULT_VARIANT}'
+                variant TEXT NOT NULL DEFAULT '{DEFAULT_VARIANT}',
+                direction TEXT NOT NULL DEFAULT '{OUTBOUND}'
             )
             """
         )
@@ -201,6 +209,19 @@ class OutreachStore:
             )
             """
         )
+        # Outbound-token registry: which ``BBW-<6char>`` we actually stamped on a
+        # send, mapped to the prospect. Reply-sync matches inbound mail by token,
+        # so only tokens that were really sent are resolvable. Deterministic from
+        # place_id, but persisted as an audit trail + reverse lookup.
+        cursor.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS {REF_TOKENS_TABLE} (
+                token TEXT PRIMARY KEY,
+                place_id TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
         cursor.execute(
             f"CREATE INDEX IF NOT EXISTS idx_touches_place ON {TOUCHES_TABLE} (place_id)"
         )
@@ -209,6 +230,13 @@ class OutreachStore:
             cursor.execute(
                 f"ALTER TABLE {TOUCHES_TABLE} "
                 f"ADD COLUMN variant TEXT NOT NULL DEFAULT '{DEFAULT_VARIANT}'"
+            )
+        # Additive migration for DBs created before the direction column existed.
+        # Pre-existing rows are all human-gated sends, so 'outbound' is correct.
+        if not self._column_exists(connection, TOUCHES_TABLE, "direction"):
+            cursor.execute(
+                f"ALTER TABLE {TOUCHES_TABLE} "
+                f"ADD COLUMN direction TEXT NOT NULL DEFAULT '{OUTBOUND}'"
             )
 
     def _column_exists(self, connection: Any, table: str, column: str) -> bool:
@@ -233,6 +261,7 @@ class OutreachStore:
         note: str = "",
         sent_at: str | None = None,
         variant: str = DEFAULT_VARIANT,
+        direction: str = OUTBOUND,
     ) -> dict[str, object]:
         place_id = place_id.strip()
         if not place_id:
@@ -241,6 +270,11 @@ class OutreachStore:
             raise ValueError(
                 f"unsupported channel {channel!r}; allowed: {', '.join(ALLOWED_CHANNELS)}"
             )
+        direction = (direction or "").strip().lower() or OUTBOUND
+        if direction not in (OUTBOUND, INBOUND):
+            raise ValueError(
+                f"unsupported direction {direction!r}; allowed: {OUTBOUND}, {INBOUND}"
+            )
         row = {
             "place_id": place_id,
             "channel": channel,
@@ -248,20 +282,26 @@ class OutreachStore:
             "via": via,
             "note": note,
             "variant": (variant or "").strip() or DEFAULT_VARIANT,
+            "direction": direction,
         }
         query = (
-            f"INSERT INTO {TOUCHES_TABLE} (place_id, channel, sent_at, via, note, variant) VALUES "
+            f"INSERT INTO {TOUCHES_TABLE} "
+            f"(place_id, channel, sent_at, via, note, variant, direction) VALUES "
             f"({self.placeholder('place_id')}, {self.placeholder('channel')}, "
             f"{self.placeholder('sent_at')}, {self.placeholder('via')}, "
-            f"{self.placeholder('note')}, {self.placeholder('variant')})"
+            f"{self.placeholder('note')}, {self.placeholder('variant')}, "
+            f"{self.placeholder('direction')})"
         )
         with self.connection() as connection:
             connection.cursor().execute(query, row)
         return row
 
     def list_touches(self, place_id: str) -> list[dict[str, object]]:
+        # Full per-prospect history, both directions (outbound sends + inbound
+        # replies), so the dashboard/CLI can show the whole conversation.
         query = (
-            f"SELECT place_id, channel, sent_at, via, note, variant FROM {TOUCHES_TABLE} "
+            f"SELECT place_id, channel, sent_at, via, note, variant, direction "
+            f"FROM {TOUCHES_TABLE} "
             f"WHERE place_id = {self.placeholder('place_id')} ORDER BY sent_at ASC, id ASC"
         )
         with self.connection() as connection:
@@ -272,10 +312,11 @@ class OutreachStore:
     def variant_counts(self) -> dict[str, int]:
         """``{variant: touch_count}`` across all rows — the A/B arm tally the
         funnel report reads. Counts touches (not distinct places): a prospect
-        sent two arms contributes to both."""
+        sent two arms contributes to both. Outbound only — an inbound reply is
+        not a send and must not count toward an A/B arm."""
         query = (
             f"SELECT variant, COUNT(*) AS count FROM {TOUCHES_TABLE} "
-            f"GROUP BY variant"
+            f"WHERE direction = '{OUTBOUND}' GROUP BY variant"
         )
         counts: dict[str, int] = {}
         with self.connection() as connection:
@@ -287,10 +328,15 @@ class OutreachStore:
         return counts
 
     def touch_summary(self) -> dict[str, dict[str, dict[str, object]]]:
-        """``{place_id: {channel: {"count": n, "last_sent_at": iso}}}`` for all rows."""
+        """``{place_id: {channel: {"count": n, "last_sent_at": iso}}}`` for sends.
+
+        Outbound only — this is the "sent" view both the funnel scoreboard and the
+        dashboard's per-channel counts read; an inbound reply is tracked via the
+        lane's ``replied`` status, never as a send here.
+        """
         query = (
             f"SELECT place_id, channel, COUNT(*) AS count, MAX(sent_at) AS last_sent_at "
-            f"FROM {TOUCHES_TABLE} GROUP BY place_id, channel"
+            f"FROM {TOUCHES_TABLE} WHERE direction = '{OUTBOUND}' GROUP BY place_id, channel"
         )
         summary: dict[str, dict[str, dict[str, object]]] = {}
         with self.connection() as connection:
@@ -406,6 +452,39 @@ class OutreachStore:
             cursor.execute(query, {})
             return [self._row_to_dict(row) for row in cursor.fetchall()]
 
+    # ------------------------------------------------------------- ref tokens
+    def record_ref_token(self, token: str, place_id: str) -> dict[str, object]:
+        """Persist a ``token -> place_id`` mapping at send time. Idempotent: the
+        token is deterministic, so re-recording the same send is a no-op."""
+        token = (token or "").strip()
+        place_id = (place_id or "").strip()
+        if not token:
+            raise ValueError("ref token is required")
+        if not place_id:
+            raise ValueError("place_id is required")
+        row = {"token": token, "place_id": place_id, "created_at": _now_iso()}
+        query = (
+            f"INSERT INTO {REF_TOKENS_TABLE} (token, place_id, created_at) VALUES "
+            f"({self.placeholder('token')}, {self.placeholder('place_id')}, "
+            f"{self.placeholder('created_at')}) "
+            f"ON CONFLICT (token) DO NOTHING"
+        )
+        with self.connection() as connection:
+            connection.cursor().execute(query, row)
+        return row
+
+    def place_id_for_token(self, token: str) -> str | None:
+        """The prospect a sent token maps to, or ``None`` if we never sent it."""
+        query = (
+            f"SELECT place_id FROM {REF_TOKENS_TABLE} "
+            f"WHERE token = {self.placeholder('token')}"
+        )
+        with self.connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(query, {"token": (token or "").strip()})
+            row = cursor.fetchone()
+            return str(self._row_to_dict(row)["place_id"]) if row else None
+
     # ----------------------------------------------------------------- import
     def import_legacy_jsonl(self, path: Path) -> int:
         """One-time migration of pre-SQLite ``touches.jsonl`` rows. Idempotency is
@@ -454,6 +533,8 @@ __all__ = [
     "ALLOWED_OVERRIDE_FIELDS",
     "DEFAULT_VARIANT",
     "KNOWN_VARIANTS",
+    "OUTBOUND",
+    "INBOUND",
     "normalize_channel",
     "default_outreach_db_path",
 ]

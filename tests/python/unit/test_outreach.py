@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import re
+
 from packages.agency.outreach import (
+    bbw_ref_token,
     context_for,
     gap_ref_for,
     parse_snippets,
@@ -12,6 +15,26 @@ from packages.agency.outreach import (
     search_phrase,
     unfilled_placeholders,
 )
+
+
+def test_bbw_ref_token_is_deterministic_and_well_formed() -> None:
+    token = bbw_ref_token("ChIJ_some_place_id")
+    assert re.fullmatch(r"BBW-[A-Z2-7]{6}", token)
+    # Stable across calls — reply-sync relies on the same prospect yielding the
+    # same token across restarts and re-sends.
+    assert token == bbw_ref_token("ChIJ_some_place_id")
+    assert bbw_ref_token("other") != token
+
+
+def test_bbw_ref_token_blank_place_id_is_empty() -> None:
+    assert bbw_ref_token("") == ""
+    assert bbw_ref_token("   ") == ""
+
+
+def test_context_for_populates_place_id_and_ref_token() -> None:
+    ctx = context_for({"place_id": "ChIJ_abc", "display_name": "Joe"}, {})
+    assert ctx.place_id == "ChIJ_abc"
+    assert ctx.ref_token == bbw_ref_token("ChIJ_abc")
 
 SNIPPETS_MD = """# Genre Snippets
 
