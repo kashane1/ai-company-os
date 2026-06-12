@@ -17,7 +17,7 @@ read_first:                      # canonical order (mirror of REPO_MAP)
 
 zones:
   apps:      { path: apps/,      owns: "worker + API entrypoints", writes: state/ }
-  packages:  { path: packages/,  owns: "shared platform code (schemas, policies, db, queue, tools, config, agency, discovery, web)", writes: state/ }
+  packages:  { path: packages/,  owns: "shared platform code (schemas, policies, db, queue, tools, config, agency, discovery, prospecting, web, dashboard)", writes: state/ }
   products:  { path: products/,  owns: "managed iOS product source", scope: "iOS lane only — do not edit otherwise" }
   docs:      { path: docs/,      owns: "architecture docs + run/spec output", note: "per-dir INDEX.md; read the index not the dir" }
   state:     { path: state/,     owns: "runtime data only — never source", note: "mostly gitignored" }
@@ -34,6 +34,7 @@ write_targets:
   adr:              docs/adr/YYYY-MM-DD-<slug>.md
   product_spec:     docs/products/<product-id>/
   product_source:   products/<product-id>/
+  conversion_lab_run: state/clients/<product-id>/conversion_lab/<run-id>/  # written by scripts/agency/run_conversion_lab.py
 
 # Require explicit founder approval before editing.
 approval_required:

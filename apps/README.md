@@ -13,6 +13,10 @@ Shared logic lives in [packages/](../packages/), not here.
 | [worker-ios/](worker-ios/) | iOS | `main.py` | iOS bugfix/feature work, Xcode builds, simulator runs, release-candidate artifacts | App Store submission, metadata, public release | [docs/ios-lane.md](../docs/ios-lane.md) |
 | [worker-appstore/](worker-appstore/) | App Store | `main.py` | TestFlight prep, metadata, screenshots, App Store Connect interactions, release-state tracking | iOS implementation, code edits, build artifacts | [docs/appstore-lane.md](../docs/appstore-lane.md) |
 | [worker-gtm/](worker-gtm/) | GTM | `main.py` | Content factory, scheduling, niche research, GTM artifact refresh | Product code, App Store submission, approval policy | per-skill docs under `skills/canonical/` |
+| [worker-web/](worker-web/) | web build (WaaS) | `main.py` | Astro site builds for agency demos + client sites from templates | Deployment, DNS, billing, prospect data | [docs/agency/README.md](../docs/agency/README.md) |
+| [worker-webdeploy/](worker-webdeploy/) | web deploy (WaaS) | `main.py` | Netlify deploys + go-live readiness gating for built sites | Site authoring, billing, approval decisions | [docs/agency/README.md](../docs/agency/README.md), `packages/policies/deploy_readiness.py` |
+| [worker-outreach/](worker-outreach/) | outreach (WaaS) | `main.py` | Outreach client-status ledger, operator-ready outreach drafts, manual-touch logging | **Sending** email/SMS/Instagram/Facebook DMs (human-gated), CRM/inbox deliverability | [docs/agency/outreach-copy-rules.md](../docs/agency/outreach-copy-rules.md) |
+| [worker-billing-poller/](worker-billing-poller/) | billing poller (WaaS) | `main.py` | Draining BBW Stripe events (Netlify Blobs → local ledger), reconciling billing; run by the runtime-supervisor | Charging cards, webhook authorship, approval decisions | [docs/agency/client-lifecycle.md](../docs/agency/client-lifecycle.md) |
 | [worker-skill-evolution/](worker-skill-evolution/) | skill evolution | `main.py` | Skill-self-evolution worker (privilege-gated) | Direct skill edits without policy clearance | [docs/runbooks/skill-evolution-revert.md](../docs/runbooks/skill-evolution-revert.md) |
 | [api/](api/) | API / control plane | `server.py`, `main.py` | Goals, tasks, approvals, release state, health, magic-link approval endpoint | Worker execution, repo mutation, policy decisions | [docs/architecture.md](../docs/architecture.md) |
 | [runtime-supervisor/](runtime-supervisor/) | runtime supervisor | `cli.py`, `main.py` | Local launchd-friendly supervisor for worker loops; status + clean shutdown | Task creation, worker logic | [docs/local-dev.md](../docs/local-dev.md) |
@@ -37,8 +41,10 @@ The pattern: each worker app gets a short README documenting its lane
 boundary, entrypoint, task type, allowed boundaries, forbidden areas,
 and validation expectations. See
 [worker-engineering/README.md](worker-engineering/README.md) for the
-reference shape. Every app directory in the lane table above now has
-one.
+reference shape. Most app directories in the lane table above have one;
+the WaaS workers (`worker-web`, `worker-webdeploy`, `worker-billing-poller`)
+document their lane boundary in [docs/agency/README.md](../docs/agency/README.md)
+instead.
 
 ## When to add a new app
 

@@ -23,7 +23,7 @@ products. See [README.md](README.md) for the longer narrative and
 | Zone | What it owns | Where state lives |
 |---|---|---|
 | [apps/](apps/) | Worker + API entrypoints (engineering, iOS, App Store, GTM, supervisor, runtime-supervisor, approval-reviewer, skill-evolution) | reads/writes `state/` |
-| [packages/](packages/) | Shared platform code: `schemas`, `policies`, `db`, `queue`, `tools`, `config` | reads/writes `state/` |
+| [packages/](packages/) | Shared platform code: `schemas`, `policies`, `db`, `queue`, `tools`, `config`, plus the revenue lanes `discovery`, `prospecting`, `agency`, `web`, `dashboard` | reads/writes `state/` |
 | [products/](products/) | Managed iOS product source (one subdir per product) | reads/writes nothing outside its own tree |
 | [docs/](docs/) | Architecture docs **plus** run/spec output the system produced | the system writes here as it works |
 | [state/](state/) | Runtime-owned data only — never source. Glossary at [state/README.md](state/README.md) | every worker and skill writes here |
@@ -49,6 +49,7 @@ Two supporting zones:
 | a product brief / spec | `docs/products/<product-id>/` |
 | product source | `products/<product-id>/` |
 | a discovered opportunity | `state/checkpoints/platform/opportunities/` (via `OpportunityInbox`) |
+| a conversion lab run (synthetic-audience preflight) | `state/clients/<product-id>/conversion_lab/<run-id>/` — written by [scripts/agency/run_conversion_lab.py](scripts/agency/run_conversion_lab.py) |
 
 ## Where things must NOT go
 
@@ -116,9 +117,13 @@ If multiple trigger phrases match a user message, ASK rather than guess
 | iOS | [apps/worker-ios/](apps/worker-ios/) | [docs/ios-lane.md](docs/ios-lane.md) |
 | App Store | [apps/worker-appstore/](apps/worker-appstore/) | [docs/appstore-lane.md](docs/appstore-lane.md) |
 | GTM | [apps/worker-gtm/](apps/worker-gtm/) | (per-skill docs under `skills/canonical/`) |
-| Agency / Web (WaaS) | [packages/agency/](packages/agency/), [packages/web/](packages/web/), [scripts/agency/](scripts/agency/) | **[docs/agency/README.md](docs/agency/README.md)** — lane map: prospects, demo sites, client sites, the build paths · premium design engine (autonomous build→judge→revise): [docs/agency/design-studio-lane.md](docs/agency/design-studio-lane.md) |
-| Web build | [apps/worker-web/](apps/worker-web/) | [docs/agency/README.md](docs/agency/README.md) (lane map) · [docs/founder/operator-guide.md](docs/founder/operator-guide.md) |
-| Web deploy | [apps/worker-webdeploy/](apps/worker-webdeploy/) | [docs/agency/README.md](docs/agency/README.md) · `packages/policies/deploy_readiness.py` |
+| **Agency / Web (WaaS)** | [packages/agency/](packages/agency/), [packages/web/](packages/web/), [scripts/agency/](scripts/agency/) | **[docs/agency/README.md](docs/agency/README.md)** — lane map (prospects → demo sites → client sites) · full pipeline: [docs/agency/prospect-to-client-pipeline.md](docs/agency/prospect-to-client-pipeline.md). The rows below are sub-lanes of this cluster. |
+| ↳ Web build | [apps/worker-web/](apps/worker-web/) | [docs/agency/README.md](docs/agency/README.md) (lane map) · [docs/founder/operator-guide.md](docs/founder/operator-guide.md) |
+| ↳ Web deploy | [apps/worker-webdeploy/](apps/worker-webdeploy/) | [docs/agency/README.md](docs/agency/README.md) · `packages/policies/deploy_readiness.py` |
+| ↳ Outreach | [apps/worker-outreach/](apps/worker-outreach/) | [docs/agency/outreach-copy-rules.md](docs/agency/outreach-copy-rules.md) — cold-outreach ops for deployed demos; **sends are human-gated** (worker drafts + logs only, never sends) |
+| ↳ Billing poller | [apps/worker-billing-poller/](apps/worker-billing-poller/) | Drains BBW Stripe events (Netlify Blobs → local ledger) via [scripts/agency/reconcile_stripe_billing.py](scripts/agency/reconcile_stripe_billing.py); run by the runtime-supervisor · [docs/agency/client-lifecycle.md](docs/agency/client-lifecycle.md) |
+| ↳ Conversion Lab | [scripts/agency/run_conversion_lab.py](scripts/agency/run_conversion_lab.py), [packages/agency/conversion_lab.py](packages/agency/conversion_lab.py) | [docs/agency/conversion-lab.md](docs/agency/conversion-lab.md) — synthetic-audience **preflight** audit of a site/page/ad. 19-persona library ([packages/agency/conversion_personas/](packages/agency/conversion_personas/): 12 core + 7 med-spa + 10 vertical modifiers). Advisory conversion intelligence, **never** revenue prediction. |
+| ↳ Design Studio | [scripts/agency/design_studio.py](scripts/agency/design_studio.py) | [docs/agency/design-studio-lane.md](docs/agency/design-studio-lane.md) — opt-in premium autonomous build→judge→revise track (select builds only) |
 | Skill evolution | [apps/worker-skill-evolution/](apps/worker-skill-evolution/) | [docs/runbooks/skill-evolution-revert.md](docs/runbooks/skill-evolution-revert.md) |
 | API | [apps/api/](apps/api/) | `GET /dashboard`, `/discovery`; [docs/founder/operator-guide.md](docs/founder/operator-guide.md) |
 | Runtime supervisor | [apps/runtime-supervisor/](apps/runtime-supervisor/) | [docs/local-dev.md](docs/local-dev.md) |
