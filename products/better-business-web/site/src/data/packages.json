@@ -289,7 +289,7 @@
       "bill_type": "one_time",
       "setup_cents": 19900,
       "monthly_cents": 0,
-      "blurb": "Synthetic audience preflight for one page or ad",
+      "blurb": "Conversion Lab: quick page or ad audit before you spend",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""
@@ -301,7 +301,7 @@
       "bill_type": "one_time",
       "setup_cents": 75000,
       "monthly_cents": 0,
-      "blurb": "Synthetic audience report for one website or landing page",
+      "blurb": "Conversion Lab: full website or landing page audit with copy rewrites",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""
@@ -373,7 +373,7 @@
       "bill_type": "recurring",
       "setup_cents": 15000,
       "monthly_cents": 20000,
-      "blurb": "Monthly ad copy preflight",
+      "blurb": "Conversion Lab: monthly ad copy preflight before ads go live",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""

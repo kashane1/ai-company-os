@@ -61,6 +61,13 @@
   margin-bottom: var(--space-xs);
   padding: 0;
 }
+.byo-group-note {
+  margin: 0 0 var(--space-sm);
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+  max-width: 55ch;
+  line-height: 1.45;
+}
 
 .byo-cards {
   display: grid;

@@ -41,6 +41,9 @@ const TIER_LABELS: Record<string, string> = {
 
 const TIER_ORDER = ["tier_1", "tier_2", "tier_3"];
 
+/** Conversion Lab à-la-carte services — shown in their own group on /build. */
+const CONVERSION_LAB_IDS = ["conversion_snapshot", "conversion_audit", "ad_copy_lab"] as const;
+
 type Action =
   | { type: "set"; ids: Set<string> }
   | { type: "preset"; ids: string[] }
@@ -102,9 +105,20 @@ export default function BundleBuilder({
     () => Object.fromEntries(services.map((s) => [s.id, s])) as Record<string, Service>,
     [services],
   );
+  const conversionLab = useMemo(
+    () =>
+      CONVERSION_LAB_IDS.map((id) => byId[id]).filter(
+        (s): s is Service => Boolean(s?.self_serve),
+      ),
+    [byId],
+  );
   const grouped = useMemo(() => {
+    const lab = new Set<string>(CONVERSION_LAB_IDS);
     const map: Record<string, Service[]> = {};
-    for (const s of buyable) (map[s.tier] ??= []).push(s);
+    for (const s of buyable) {
+      if (lab.has(s.id)) continue;
+      (map[s.tier] ??= []).push(s);
+    }
     return map;
   }, [buyable]);
 
@@ -180,6 +194,38 @@ export default function BundleBuilder({
     }
   }
 
+  function renderServiceCard(s: Service) {
+    const on = selected.has(s.id);
+    const baseInCart =
+      !s.requires_group ||
+      [...selected].some((x) => byId[x]?.exclusive_group === s.requires_group);
+    const locked = !on && !baseInCart;
+    return (
+      <label className="byo-card" key={s.id} data-selected={on} data-locked={locked}>
+        <input
+          type="checkbox"
+          checked={on}
+          disabled={locked}
+          onChange={() => dispatch({ type: "set", ids: nextSelection(selected, s.id, byId) })}
+        />
+        <span className="byo-card-head">
+          <span className="byo-card-name">{s.name}</span>
+          <span className="byo-check" aria-hidden="true">
+            ✓
+          </span>
+        </span>
+        <span className="byo-card-blurb">{s.blurb}</span>
+        <span className="byo-card-price">
+          {s.exclusive_group && <span className="byo-pickone">pick one · </span>}
+          {locked && <span className="byo-pickone">needs a booking option · </span>}
+          {s.setup_cents > 0 && <>{dollars(s.setup_cents)} setup</>}
+          {s.setup_cents > 0 && s.monthly_cents > 0 && " · "}
+          {s.monthly_cents > 0 && <>{dollars(s.monthly_cents)}/mo</>}
+        </span>
+      </label>
+    );
+  }
+
   return (
     <div className="byo">
       <div className="byo-main">
@@ -207,49 +253,21 @@ export default function BundleBuilder({
           })}
         </div>
 
+        {conversionLab.length > 0 && (
+          <fieldset className="byo-group">
+            <legend>Conversion Lab</legend>
+            <p className="byo-group-note">
+              Pressure-test your page or ad copy before spend or a rebuild — add one
+              à-la-carte or pair with Package C.
+            </p>
+            <div className="byo-cards">{conversionLab.map(renderServiceCard)}</div>
+          </fieldset>
+        )}
+
         {TIER_ORDER.filter((t) => grouped[t]?.length).map((tier) => (
           <fieldset className="byo-group" key={tier}>
             <legend>{TIER_LABELS[tier] ?? tier}</legend>
-            <div className="byo-cards">
-              {grouped[tier].map((s) => {
-                const on = selected.has(s.id);
-                // A modifier is locked until a service from its required group is
-                // in the cart; an exclusive base shows a "pick one" hint.
-                const baseInCart =
-                  !s.requires_group ||
-                  [...selected].some((x) => byId[x]?.exclusive_group === s.requires_group);
-                const locked = !on && !baseInCart;
-                return (
-                  <label
-                    className="byo-card"
-                    key={s.id}
-                    data-selected={on}
-                    data-locked={locked}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={on}
-                      disabled={locked}
-                      onChange={() =>
-                        dispatch({ type: "set", ids: nextSelection(selected, s.id, byId) })
-                      }
-                    />
-                    <span className="byo-card-head">
-                      <span className="byo-card-name">{s.name}</span>
-                      <span className="byo-check" aria-hidden="true">✓</span>
-                    </span>
-                    <span className="byo-card-blurb">{s.blurb}</span>
-                    <span className="byo-card-price">
-                      {s.exclusive_group && <span className="byo-pickone">pick one · </span>}
-                      {locked && <span className="byo-pickone">needs a booking option · </span>}
-                      {s.setup_cents > 0 && <>{dollars(s.setup_cents)} setup</>}
-                      {s.setup_cents > 0 && s.monthly_cents > 0 && " · "}
-                      {s.monthly_cents > 0 && <>{dollars(s.monthly_cents)}/mo</>}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
+            <div className="byo-cards">{grouped[tier].map(renderServiceCard)}</div>
           </fieldset>
         ))}
       </div>

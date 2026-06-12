@@ -5,6 +5,14 @@ import packages from "../data/packages.json";
 
 const featuredId = "package_b";
 const fmt = (n) => n.toLocaleString("en-US");
+const conversionLabIds = ["conversion_snapshot", "conversion_audit", "ad_copy_lab"];
+const conversionLab = packages.services.filter((s) => conversionLabIds.includes(s.id));
+const priceLabel = (s) => {
+  const parts = [];
+  if (s.setup_cents > 0) parts.push(`$${fmt(s.setup_cents / 100)} setup`);
+  if (s.monthly_cents > 0) parts.push(`$${fmt(s.monthly_cents / 100)}/mo`);
+  return parts.join(" · ") || "—";
+};
 ---
 <Site
   title="Pricing — Better Business Web"
@@ -37,4 +45,63 @@ const fmt = (n) => n.toLocaleString("en-US");
       <p class="center muted" style="margin-top:var(--space-md)">Prefer to cherry-pick? <a href="/build">Build your own bundle →</a> and pay for exactly what you choose.</p>
     </div>
   </section>
+
+  <section class="section section--panel">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow">Conversion Lab</span>
+        <h2>Audit pages and ads before you spend.</h2>
+        <p class="muted measure">Add Conversion Lab to any bundle on the build page — a quick snapshot, a full audit, or monthly ad copy preflight for Package C clients.</p>
+      </div>
+      <ul class="addon-list">
+        {conversionLab.map((s) => (
+          <li class="addon-card">
+            <h3>{s.name}</h3>
+            <p>{s.blurb}</p>
+            <span class="addon-price">{priceLabel(s)}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="center" style="margin-top:var(--space-md)">
+        <a class="btn btn-primary" href="/build">Add Conversion Lab to your bundle <span class="arrow">→</span></a>
+      </p>
+    </div>
+  </section>
 </Site>
+
+<style>
+  .addon-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-sm);
+    max-width: 52rem;
+    margin-inline: auto;
+  }
+  @media (min-width: 640px) {
+    .addon-list { grid-template-columns: repeat(3, 1fr); }
+  }
+  .addon-card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: var(--space-sm);
+    background: var(--surface);
+  }
+  .addon-card h3 {
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    margin: 0 0 var(--space-2xs);
+  }
+  .addon-card p {
+    color: var(--ink-soft);
+    font-size: var(--step--1);
+    margin: 0 0 var(--space-xs);
+    line-height: 1.45;
+  }
+  .addon-price {
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+</style>
