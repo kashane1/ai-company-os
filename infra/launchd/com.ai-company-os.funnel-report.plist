@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Funnel scoreboard LaunchAgent. Runs daily: recomputes every prospect-to-client
+  funnel stage from its primary source and rewrites
+  state/prospects/funnel-report.{md,json}. The outreach dashboard reads the JSON
+  snapshot, so the operating metric is computed on a schedule, not by hand.
+
+  Installation (one-time, replace <REPO> with the absolute path on the Mac):
+
+    REPO=/Users/simons/ai-company-os
+    sed "s|/Users/simons/ai-company-os|$REPO|g" \
+      "$REPO/infra/launchd/com.ai-company-os.funnel-report.plist" \
+      > /tmp/com.ai-company-os.funnel-report.resolved.plist
+    cp /tmp/com.ai-company-os.funnel-report.resolved.plist \
+       ~/Library/LaunchAgents/com.ai-company-os.funnel-report.plist
+    launchctl bootstrap gui/$(id -u) \
+           ~/Library/LaunchAgents/com.ai-company-os.funnel-report.plist
+    launchctl kickstart -k gui/$(id -u)/com.ai-company-os.funnel-report
+
+  NOTE: Copy, do NOT symlink — symlinking causes the sed substitution to
+  clobber the source file.
+
+  Disable:
+
+    launchctl bootout gui/$(id -u)/com.ai-company-os.funnel-report
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ai-company-os.funnel-report</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/simons/ai-company-os/infra/scripts/funnel-report.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/simons/ai-company-os</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>AI_COMPANY_OS_ROOT</key>
+    <string>/Users/simons/ai-company-os</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/simons/ai-company-os/state/logs/funnel-report/launchd.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/simons/ai-company-os/state/logs/funnel-report/launchd.err.log</string>
+
+  <!-- Daily at 07:00 local, ahead of the 08:00 lead-health run. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>7</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>

@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
 
-from packages.agency.outreach_store import OutreachStore
+from packages.agency.outreach_store import (
+    DEFAULT_VARIANT,
+    SUPPRESSIONS_TABLE,
+    TOUCHES_TABLE,
+    OutreachStore,
+)
 
 
 def _store(tmp_path: Path) -> OutreachStore:
@@ -76,3 +82,53 @@ def test_import_legacy_jsonl_normalizes_channels(tmp_path: Path) -> None:
 def test_import_legacy_jsonl_missing_file_is_noop(tmp_path: Path) -> None:
     store = _store(tmp_path)
     assert store.import_legacy_jsonl(tmp_path / "absent.jsonl") == 0
+
+
+def test_touch_records_variant_and_defaults(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    store.append_touch("p1", "email", variant="social-proof")
+    store.append_touch("p1", "email")  # default
+    store.append_touch("p1", "sms", variant="   ")  # blank -> default
+
+    variants = [t["variant"] for t in store.list_touches("p1")]
+    assert variants == ["social-proof", DEFAULT_VARIANT, DEFAULT_VARIANT]
+
+
+def test_variant_column_added_to_legacy_db(tmp_path: Path) -> None:
+    # A DB created before the variant column existed: build the old shape by hand,
+    # then let ensure_schema migrate it additively.
+    db_path = tmp_path / "outreach.sqlite3"
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        f"CREATE TABLE {TOUCHES_TABLE} (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "place_id TEXT NOT NULL, channel TEXT NOT NULL, sent_at TEXT NOT NULL, "
+        "via TEXT NOT NULL, note TEXT NOT NULL DEFAULT '')"
+    )
+    conn.execute(
+        f"INSERT INTO {TOUCHES_TABLE} (place_id, channel, sent_at, via, note) "
+        "VALUES ('p1', 'email', '2026-06-01T00:00:00Z', 'legacy', '')"
+    )
+    conn.commit()
+    conn.close()
+
+    store = OutreachStore(sqlite_path=db_path)
+    rows = store.list_touches("p1")
+    assert rows[0]["variant"] == DEFAULT_VARIANT  # backfilled by the migration
+    store.append_touch("p1", "sms", variant="short")
+    assert store.list_touches("p1")[1]["variant"] == "short"
+
+
+def test_suppression_upsert_lookup_and_keys(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    store.suppress_key("place:p1", "place_id", "bounced", "operator")
+    # Re-suppressing the same key keeps the original reason/source (DO NOTHING).
+    store.suppress_key("place:p1", "place_id", "changed mind", "disqualified")
+    store.suppress_key("email:a@x.com", "email", "unsubscribed", "reply_stop")
+
+    assert store.is_key_suppressed("place:p1") is True
+    assert store.is_key_suppressed("place:absent") is False
+    assert store.suppressed_keys() == {"place:p1", "email:a@x.com"}
+
+    entries = {e["key"]: e for e in store.list_suppressions()}
+    assert entries["place:p1"]["reason"] == "bounced"  # first write wins
+    assert entries["email:a@x.com"]["source"] == "reply_stop"

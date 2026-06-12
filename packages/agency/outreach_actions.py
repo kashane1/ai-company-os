@@ -17,9 +17,11 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 
 from packages.agency import outreach_messages as msg
+from packages.agency import suppression
 from packages.agency.outreach import context_for
 from packages.agency.outreach_lane import (
     OutreachClientRow,
@@ -28,7 +30,27 @@ from packages.agency.outreach_lane import (
     default_outreach_lane_root,
     set_row_status,
 )
-from packages.agency.outreach_store import ALLOWED_CHANNELS, OutreachStore
+from packages.agency.outreach_store import (
+    ALLOWED_CHANNELS,
+    DEFAULT_VARIANT,
+    KNOWN_VARIANTS,
+    OutreachStore,
+)
+
+
+def _now_iso() -> str:
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _row_record(row: OutreachClientRow) -> dict[str, object]:
+    """A record-like dict carrying just the identifiers suppression reads."""
+    return {
+        "place_id": row.place_id,
+        "contact_email": row.contact_email,
+        "phone": row.phone,
+        "contact_instagram": row.contact_instagram,
+        "contact_facebook": row.contact_facebook,
+    }
 
 # channel -> the override/ledger field that enables it.
 CHANNEL_CONTACT_FIELD = {
@@ -105,6 +127,10 @@ class ActionRow:
     mockup_url: str
     facts: RowFacts = field(default_factory=RowFacts)
     buttons: list[ChannelButton] = field(default_factory=list)
+    suppressed: bool = False
+    suppression_reason: str = ""
+    next_touch_at: str = ""
+    due: bool = False
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -117,6 +143,10 @@ class ActionRow:
             "mockup_url": self.mockup_url,
             "facts": self.facts.to_dict(),
             "buttons": [b.to_dict() for b in self.buttons],
+            "suppressed": self.suppressed,
+            "suppression_reason": self.suppression_reason,
+            "next_touch_at": self.next_touch_at,
+            "due": self.due,
         }
 
 
@@ -125,12 +155,18 @@ class OutreachPanelView:
     rows: list[ActionRow] = field(default_factory=list)
     statuses: list[str] = field(default_factory=list)
     facets: list[FacetOption] = field(default_factory=list)
+    variants: list[str] = field(default_factory=list)
+    default_variant: str = DEFAULT_VARIANT
+    due_count: int = 0
 
     def to_dict(self) -> dict[str, object]:
         return {
             "rows": [r.to_dict() for r in self.rows],
             "statuses": self.statuses,
             "facets": [f.to_dict() for f in self.facets],
+            "variants": self.variants,
+            "default_variant": self.default_variant,
+            "due_count": self.due_count,
         }
 
 
@@ -197,6 +233,8 @@ def _buttons_for_row(
     row: OutreachClientRow,
     overrides: dict[str, str],
     touch_summary: dict[str, dict[str, object]],
+    *,
+    suppressed: bool = False,
 ) -> list[ChannelButton]:
     ctx = _context_for_row(row)
     messages = msg.build_messages_from_context(ctx)
@@ -250,14 +288,16 @@ def _buttons_for_row(
     buttons: list[ChannelButton] = []
     for channel, label, value, url, copy in specs:
         stats = touch_summary.get(channel, {})
+        # A suppressed prospect can never launch: every button is disabled and
+        # its deep-link cleared, even when contact data is present.
         buttons.append(
             ChannelButton(
                 channel=channel,
                 label=label,
                 contact_field=CHANNEL_CONTACT_FIELD[channel],
                 contact_value=value,
-                enabled=bool(value),
-                url=url,
+                enabled=bool(value) and not suppressed,
+                url="" if suppressed else url,
                 copy=copy,
                 sent_count=int(stats.get("count", 0) or 0),
                 last_sent_at=str(stats.get("last_sent_at", "")),
@@ -345,19 +385,34 @@ def build_outreach_panel(
     *,
     store: OutreachStore | None = None,
     lane_root: Path | None = None,
+    now: str | None = None,
 ) -> OutreachPanelView:
     root = lane_root or default_outreach_lane_root()
     store = store or OutreachStore()
     overrides = store.all_overrides()
     touches = store.touch_summary()
+    now = now or _now_iso()
+    suppressed_keys = store.suppressed_keys()
+    reason_by_key = {
+        str(entry.get("key")): str(entry.get("reason") or "")
+        for entry in (store.list_suppressions() if suppressed_keys else [])
+    }
     rows = _load_ledger_rows(root)
     action_rows: list[ActionRow] = []
+    due_count = 0
     for row in rows:
+        keys = [key for _kind, key in suppression.keys_for_record(_row_record(row))]
+        suppressed = bool(suppressed_keys) and any(key in suppressed_keys for key in keys)
+        reason = next((reason_by_key[k] for k in keys if k in reason_by_key), "") if suppressed else ""
         buttons = _buttons_for_row(
             row,
             overrides.get(row.place_id, {}),
             touches.get(row.place_id, {}),
+            suppressed=suppressed,
         )
+        due = bool(row.next_touch_at) and row.next_touch_at <= now and not suppressed
+        if due:
+            due_count += 1
         action_rows.append(
             ActionRow(
                 place_id=row.place_id,
@@ -369,12 +424,19 @@ def build_outreach_panel(
                 mockup_url=row.mockup_url,
                 facts=_facts_for_row(row, buttons),
                 buttons=buttons,
+                suppressed=suppressed,
+                suppression_reason=reason,
+                next_touch_at=row.next_touch_at,
+                due=due,
             )
         )
     return OutreachPanelView(
         rows=action_rows,
         statuses=[s.value for s in OutreachLaneStatus],
         facets=_facet_options(action_rows),
+        variants=list(KNOWN_VARIANTS),
+        default_variant=DEFAULT_VARIANT,
+        due_count=due_count,
     )
 
 
@@ -383,16 +445,46 @@ def record_touch(
     place_id: str,
     channel: str,
     *,
+    variant: str = DEFAULT_VARIANT,
     store: OutreachStore | None = None,
     lane_root: Path | None = None,
 ) -> dict[str, object]:
-    """Log a human-confirmed send: append to the store, advance the ledger."""
+    """Log a human-confirmed send: append to the store, advance the ledger.
+
+    Refuses to log against a suppressed prospect — the do-not-contact floor
+    holds even though the actual send is manual.
+    """
     if channel not in ALLOWED_CHANNELS:
         raise ValueError(f"unsupported channel {channel!r}")
     store = store or OutreachStore()
-    touch = store.append_touch(place_id, channel, via="dashboard")
+    if suppression.is_suppressed({"place_id": place_id}, store=store):
+        raise ValueError(f"prospect {place_id!r} is suppressed; cannot log a send")
+    touch = store.append_touch(place_id, channel, via="dashboard", variant=variant)
     row = auto_bump_on_touch(place_id, channel, lane_root=lane_root)
-    return {"touch": touch, "status": row.status.value, "place_id": place_id}
+    return {
+        "touch": touch,
+        "status": row.status.value,
+        "place_id": place_id,
+        "variant": touch["variant"],
+    }
+
+
+def disqualify(
+    place_id: str,
+    reason: str,
+    *,
+    store: OutreachStore | None = None,
+    lane_root: Path | None = None,
+) -> dict[str, object]:
+    """Operator "disqualify": suppress the prospect (by place_id and every
+    contact handle) and close the ledger row to do_not_contact."""
+    store = store or OutreachStore()
+    root = lane_root or default_outreach_lane_root()
+    row = next((r for r in _load_ledger_rows(root) if r.place_id == place_id), None)
+    record = _row_record(row) if row else {"place_id": place_id}
+    suppression.suppress(record, reason or "disqualified by operator", "disqualified", store=store)
+    updated = set_row_status(place_id, OutreachLaneStatus.DO_NOT_CONTACT, lane_root=lane_root)
+    return {"place_id": place_id, "status": updated.status.value, "suppressed": True}
 
 
 def set_contact(
@@ -427,4 +519,5 @@ __all__ = [
     "record_touch",
     "set_contact",
     "set_status",
+    "disqualify",
 ]

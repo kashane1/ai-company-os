@@ -39,10 +39,18 @@ except ImportError:  # pragma: no cover
 
 TOUCHES_TABLE = "outreach_touches"
 OVERRIDES_TABLE = "outreach_contact_overrides"
+SUPPRESSIONS_TABLE = "outreach_suppressions"
 
 # The channels a button can record a send for. Kept here so the store rejects
 # typos instead of silently logging an unknown channel.
 ALLOWED_CHANNELS = ("email", "sms", "call", "facebook_dm", "instagram_dm")
+
+# A/B "arm" recorded on every touch so sends can be compared in funnel
+# telemetry. ``demo-link`` is the current copy (the preview-link pitch). The
+# store accepts any non-empty variant string; KNOWN_VARIANTS just seeds the
+# dashboard's per-session selector — edit it to add real arms.
+DEFAULT_VARIANT = "demo-link"
+KNOWN_VARIANTS = ("demo-link", "short", "social-proof")
 
 # Contact fields an operator may edit inline. These mirror the keys the lane row
 # and the scanned record use, so the effective-contact merge is a plain lookup.
@@ -163,7 +171,8 @@ class OutreachStore:
                 channel TEXT NOT NULL,
                 sent_at TEXT NOT NULL,
                 via TEXT NOT NULL,
-                note TEXT NOT NULL DEFAULT ''
+                note TEXT NOT NULL DEFAULT '',
+                variant TEXT NOT NULL DEFAULT '{DEFAULT_VARIANT}'
             )
             """
         )
@@ -178,9 +187,41 @@ class OutreachStore:
             )
             """
         )
+        # Fail-closed do-not-contact registry. One row per suppressed *key*: a
+        # place_id ("place:<id>") or a normalized contact handle ("email:<addr>"
+        # etc.). Un-suppression is manual-edit only — there is no delete API.
+        cursor.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS {SUPPRESSIONS_TABLE} (
+                key TEXT PRIMARY KEY,
+                kind TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                source TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
         cursor.execute(
             f"CREATE INDEX IF NOT EXISTS idx_touches_place ON {TOUCHES_TABLE} (place_id)"
         )
+        # Additive migration for DBs created before the variant column existed.
+        if not self._column_exists(connection, TOUCHES_TABLE, "variant"):
+            cursor.execute(
+                f"ALTER TABLE {TOUCHES_TABLE} "
+                f"ADD COLUMN variant TEXT NOT NULL DEFAULT '{DEFAULT_VARIANT}'"
+            )
+
+    def _column_exists(self, connection: Any, table: str, column: str) -> bool:
+        cursor = connection.cursor()
+        if self.config.backend == "postgres":  # pragma: no cover - needs live postgres.
+            cursor.execute(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_name = %(table)s AND column_name = %(column)s",
+                {"table": table, "column": column},
+            )
+            return cursor.fetchone() is not None
+        cursor.execute(f"PRAGMA table_info({table})")
+        return any(row[1] == column for row in cursor.fetchall())
 
     # ------------------------------------------------------------------ touches
     def append_touch(
@@ -191,6 +232,7 @@ class OutreachStore:
         via: str = "dashboard",
         note: str = "",
         sent_at: str | None = None,
+        variant: str = DEFAULT_VARIANT,
     ) -> dict[str, object]:
         place_id = place_id.strip()
         if not place_id:
@@ -205,11 +247,13 @@ class OutreachStore:
             "sent_at": sent_at or _now_iso(),
             "via": via,
             "note": note,
+            "variant": (variant or "").strip() or DEFAULT_VARIANT,
         }
         query = (
-            f"INSERT INTO {TOUCHES_TABLE} (place_id, channel, sent_at, via, note) VALUES "
+            f"INSERT INTO {TOUCHES_TABLE} (place_id, channel, sent_at, via, note, variant) VALUES "
             f"({self.placeholder('place_id')}, {self.placeholder('channel')}, "
-            f"{self.placeholder('sent_at')}, {self.placeholder('via')}, {self.placeholder('note')})"
+            f"{self.placeholder('sent_at')}, {self.placeholder('via')}, "
+            f"{self.placeholder('note')}, {self.placeholder('variant')})"
         )
         with self.connection() as connection:
             connection.cursor().execute(query, row)
@@ -217,13 +261,30 @@ class OutreachStore:
 
     def list_touches(self, place_id: str) -> list[dict[str, object]]:
         query = (
-            f"SELECT place_id, channel, sent_at, via, note FROM {TOUCHES_TABLE} "
+            f"SELECT place_id, channel, sent_at, via, note, variant FROM {TOUCHES_TABLE} "
             f"WHERE place_id = {self.placeholder('place_id')} ORDER BY sent_at ASC, id ASC"
         )
         with self.connection() as connection:
             cursor = connection.cursor()
             cursor.execute(query, {"place_id": place_id})
             return [self._row_to_dict(row) for row in cursor.fetchall()]
+
+    def variant_counts(self) -> dict[str, int]:
+        """``{variant: touch_count}`` across all rows — the A/B arm tally the
+        funnel report reads. Counts touches (not distinct places): a prospect
+        sent two arms contributes to both."""
+        query = (
+            f"SELECT variant, COUNT(*) AS count FROM {TOUCHES_TABLE} "
+            f"GROUP BY variant"
+        )
+        counts: dict[str, int] = {}
+        with self.connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(query, {})
+            for row in cursor.fetchall():
+                data = self._row_to_dict(row)
+                counts[str(data["variant"] or DEFAULT_VARIANT)] = int(data["count"])
+        return counts
 
     def touch_summary(self) -> dict[str, dict[str, dict[str, object]]]:
         """``{place_id: {channel: {"count": n, "last_sent_at": iso}}}`` for all rows."""
@@ -294,6 +355,57 @@ class OutreachStore:
                 )
         return out
 
+    # ------------------------------------------------------------- suppression
+    def suppress_key(self, key: str, kind: str, reason: str, source: str) -> dict[str, object]:
+        """Record a do-not-contact key. Upsert keeps the *earliest* created_at
+        and the *first* reason/source so the original disqualification wins."""
+        key = (key or "").strip()
+        if not key:
+            raise ValueError("suppression key is required")
+        row = {
+            "key": key,
+            "kind": kind,
+            "reason": reason,
+            "source": source,
+            "created_at": _now_iso(),
+        }
+        query = (
+            f"INSERT INTO {SUPPRESSIONS_TABLE} (key, kind, reason, source, created_at) VALUES "
+            f"({self.placeholder('key')}, {self.placeholder('kind')}, "
+            f"{self.placeholder('reason')}, {self.placeholder('source')}, "
+            f"{self.placeholder('created_at')}) "
+            f"ON CONFLICT (key) DO NOTHING"
+        )
+        with self.connection() as connection:
+            connection.cursor().execute(query, row)
+        return row
+
+    def is_key_suppressed(self, key: str) -> bool:
+        query = (
+            f"SELECT 1 FROM {SUPPRESSIONS_TABLE} WHERE key = {self.placeholder('key')}"
+        )
+        with self.connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(query, {"key": (key or "").strip()})
+            return cursor.fetchone() is not None
+
+    def suppressed_keys(self) -> set[str]:
+        query = f"SELECT key FROM {SUPPRESSIONS_TABLE}"
+        with self.connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(query, {})
+            return {str(self._row_to_dict(row)["key"]) for row in cursor.fetchall()}
+
+    def list_suppressions(self) -> list[dict[str, object]]:
+        query = (
+            f"SELECT key, kind, reason, source, created_at FROM {SUPPRESSIONS_TABLE} "
+            f"ORDER BY created_at ASC, key ASC"
+        )
+        with self.connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(query, {})
+            return [self._row_to_dict(row) for row in cursor.fetchall()]
+
     # ----------------------------------------------------------------- import
     def import_legacy_jsonl(self, path: Path) -> int:
         """One-time migration of pre-SQLite ``touches.jsonl`` rows. Idempotency is
@@ -340,6 +452,8 @@ __all__ = [
     "OutreachStoreConfig",
     "ALLOWED_CHANNELS",
     "ALLOWED_OVERRIDE_FIELDS",
+    "DEFAULT_VARIANT",
+    "KNOWN_VARIANTS",
     "normalize_channel",
     "default_outreach_db_path",
 ]

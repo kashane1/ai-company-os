@@ -71,6 +71,7 @@ def build_messages_from_context(ctx: OutreachContext) -> ChannelMessages:
         "hours, and a clear way for customers to book or call:\n\n"
         f"{url}\n\n"
         "If you like it, I can make it yours. If it is not a fit, all good.\n\n"
+        'Reply "no thanks" and I won\'t email again.\n\n'
         f"Best,\n{ctx.sender_name}\n{ctx.sender_company}"
     )
     call_script = (

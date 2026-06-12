@@ -18,6 +18,16 @@ Draft-deploy to YOUR Netlify account (needs ``$NETLIFY_AUTH_TOKEN``):
     NETLIFY_AUTH_TOKEN=... python scripts/agency/build_prospect_site.py \
         --place-id ChIJ... --deploy --account <your-netlify-team-slug>
 
+Batch draft-deploy + URL backfill (idempotent; --force to re-deploy):
+
+    NETLIFY_AUTH_TOKEN=... python scripts/agency/build_prospect_site.py \
+        --batch '*'                          # every built dist-v2 site
+    ... --batch state/prospects/audited/cohortA-audited-2026-06-02.csv
+
+Retire lost/suppressed prospects' draft deploys (lists, then confirms):
+
+    NETLIFY_AUTH_TOKEN=... python scripts/agency/build_prospect_site.py --cleanup-drafts
+
 Legacy token-fill build (deprecated — bulk/internal only):
 
     python scripts/agency/build_prospect_site.py --place-id ChIJ... --legacy-build
@@ -35,9 +45,11 @@ Preview/draft deploys are ungated; this script NEVER does a production deploy.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import sys
 import time
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -115,6 +127,11 @@ def select_records(args: argparse.Namespace) -> list[dict]:
 def render_outreach_draft(record: dict, mockup_url: str) -> str:
     if not OUTREACH_TEMPLATE.exists():
         return ""
+    # Fail-closed: never draft outreach for a suppressed prospect.
+    from packages.agency.suppression import is_suppressed
+
+    if is_suppressed(record):
+        return ""
     profile = GENRE_PROFILES.get(str(record.get("genre_id", "")))
     genre_noun = profile.category if profile else "local business"
     reviews = record.get("user_ratings_total")
@@ -148,6 +165,116 @@ def write_record_mockup_fields(place_id: str, result) -> None:
     rec["mockup_deploy_id"] = result.deploy_id
     rec["mockup_built_at"] = datetime.now(timezone.utc).isoformat()
     path.write_text(json.dumps(rec, indent=2))
+
+
+def clear_record_mockup_fields(place_id: str) -> None:
+    """Drop the live-preview fields from a record (used by --cleanup-drafts).
+
+    Clearing ``mockup_url`` is what stops the funnel from counting the prospect
+    as deployed and the dashboard from surfacing a dead demo link."""
+    path = RECORDS_DIR / f"{place_id}.json"
+    if not path.exists():
+        return
+    rec = json.loads(path.read_text())
+    for key in ("mockup_url", "mockup_site_id", "mockup_deploy_id"):
+        rec.pop(key, None)
+    rec["mockup_cleaned_at"] = datetime.now(timezone.utc).isoformat()
+    path.write_text(json.dumps(rec, indent=2))
+
+
+def _batch_place_ids(value: str) -> list[str]:
+    """Resolve a --batch argument to an ordered, de-duplicated list of place_ids.
+
+    A path ending in ``.csv`` is read for its ``place_id`` column; anything else
+    is treated as a glob matched against site directories under
+    ``state/prospects/sites/`` (e.g. ``'*'`` for all built, ``'ChIJ*'``)."""
+    path = Path(value)
+    if path.suffix.lower() == ".csv":
+        if not path.exists():
+            sys.exit(f"--batch: CSV not found: {value}")
+        ids: list[str] = []
+        with path.open(newline="") as handle:
+            reader = csv.DictReader(handle)
+            if "place_id" not in (reader.fieldnames or []):
+                sys.exit(f"--batch: {value} has no place_id column")
+            for row in reader:
+                pid = (row.get("place_id") or "").strip()
+                if pid:
+                    ids.append(pid)
+        return list(dict.fromkeys(ids))
+    matches = sorted(d.name for d in SITES_DIR.glob(value) if d.is_dir())
+    if not matches:
+        sys.exit(f"--batch: not a .csv and no site dirs matched {value!r} under {SITES_DIR}")
+    return matches
+
+
+def select_batch_records(value: str) -> list[dict]:
+    place_ids = _batch_place_ids(value)
+    by_id = {str(r.get("place_id", "")): r for r in _load_records()}
+    chosen, missing = [], []
+    for pid in place_ids:
+        rec = by_id.get(pid)
+        (chosen if rec is not None else missing).append(rec if rec is not None else pid)
+    if missing:
+        print(f"  ({len(missing)} place_id(s) in batch have no warehouse record; skipped)")
+    return chosen
+
+
+def select_cleanup_targets(records: list[dict]) -> list[tuple[dict, str, str]]:
+    """Records that are lost or suppressed AND carry a draft deploy to retire.
+
+    Returns ``(record, deploy_id, reason)`` tuples. Pure (no I/O beyond the
+    suppression registry) so it is unit-testable."""
+    from packages.agency.suppression import is_suppressed
+
+    targets: list[tuple[dict, str, str]] = []
+    for rec in records:
+        deploy_id = str(rec.get("mockup_deploy_id", "")).strip()
+        if not deploy_id:
+            continue
+        lost = str(rec.get("engagement_status", "")).lower() == "lost"
+        suppressed = is_suppressed(rec)
+        if lost or suppressed:
+            targets.append((rec, deploy_id, "lost" if lost else "suppressed"))
+    return targets
+
+
+def _confirm(prompt: str) -> bool:
+    try:
+        answer = input(f"{prompt} [y/N] ").strip().lower()
+    except EOFError:
+        return False
+    return answer in ("y", "yes")
+
+
+def cleanup_drafts(args: argparse.Namespace) -> None:
+    """List, confirm, then delete draft deploys for lost/suppressed prospects and
+    clear their record URLs. Lists before deleting; requires explicit y/N."""
+    targets = select_cleanup_targets(_load_records())
+    if not targets:
+        print("No lost/suppressed prospects with a draft deploy to clean up.")
+        return
+    print(f"{len(targets)} draft deploy(s) eligible for cleanup:\n")
+    for rec, _deploy_id, reason in targets:
+        print(f"  - {rec.get('display_name', '?')}  [{reason}]  {rec.get('mockup_url', '')}")
+    print()
+    if not _confirm(f"Delete these {len(targets)} draft deploy(s) and clear their record URLs?"):
+        print("Aborted; nothing deleted.")
+        return
+    target, _account = make_target(args.account)
+    deleted = failed = 0
+    for rec, deploy_id, _reason in targets:
+        name = rec.get("display_name", "?")
+        try:
+            target.delete_deploy(deploy_id)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ✗ {name}: delete failed ({exc}); record left intact")
+            failed += 1
+            continue
+        clear_record_mockup_fields(str(rec.get("place_id", "")))
+        print(f"  ✓ {name}: draft deploy deleted, record URL cleared")
+        deleted += 1
+    print(f"\nDone. {deleted} cleaned, {failed} failed.")
 
 
 def make_target(account_slug: str | None):
@@ -254,6 +381,30 @@ def main() -> None:
         default=0.0,
         help="seconds to wait between deploys (Netlify rate-limits ~3/min; use 30 for big batches)",
     )
+    batch = ap.add_argument_group("batch")
+    batch.add_argument(
+        "--batch",
+        metavar="CSV_OR_GLOB",
+        help=(
+            "draft-deploy every place_id in a CSV (place_id column) or matching a "
+            "sites/* glob (e.g. '*', 'ChIJ*'). Implies --deploy; idempotent — skips "
+            "records that already have a mockup_url unless --force; continues past "
+            "per-site failures and prints a summary. Default delay 20s between deploys."
+        ),
+    )
+    batch.add_argument(
+        "--force",
+        action="store_true",
+        help="with --batch, re-deploy place_ids that already have a mockup_url",
+    )
+    batch.add_argument(
+        "--cleanup-drafts",
+        action="store_true",
+        help=(
+            "list, confirm, then delete draft deploys for lost/suppressed prospects "
+            "and clear their record URLs (lists before deleting; needs confirmation)"
+        ),
+    )
     leg = ap.add_argument_group("legacy (deprecated)")
     leg.add_argument(
         "--legacy-build",
@@ -273,7 +424,17 @@ def main() -> None:
     )
     args = ap.parse_args()
 
-    records = select_records(args)
+    if args.cleanup_drafts:
+        cleanup_drafts(args)
+        return
+
+    # --batch is a deploy command over a resolved place_id list; it implies
+    # --deploy and skips already-deployed records unless --force.
+    if args.batch:
+        args.deploy = True
+        records = select_batch_records(args.batch)
+    else:
+        records = select_records(args)
     if not records:
         print("no matching records.")
         return
@@ -282,9 +443,12 @@ def main() -> None:
     if args.deploy:
         target, account = make_target(args.account)
     connector = None if args.no_enrich else make_connector()
+    # Netlify rate-limits ~3 deploys/min; default a batch to a 20s spacing.
+    deploy_delay = args.deploy_delay or (20.0 if args.batch else 0.0)
 
     mode = "LEGACY BUILD" if args.legacy_build else "DEPLOY"
-    print(f"{mode}{' + NETLIFY' if args.deploy else ''} — {len(records)} prospect site(s)\n")
+    label = "BATCH " + mode if args.batch else mode
+    print(f"{label}{' + NETLIFY' if args.deploy else ''} — {len(records)} prospect site(s)\n")
     if not args.legacy_build:
         print("Requires dist-v2/ from docs/demo-site-build-playbook.md\n")
 
@@ -293,6 +457,14 @@ def main() -> None:
         place_id = str(rec.get("place_id", ""))
         name = rec.get("display_name", "?")
         out_dir = SITES_DIR / place_id
+
+        # Idempotent resume: a batch re-run is a no-op over already-deployed
+        # records unless --force. (Single/verdict selections deploy as before.)
+        if args.batch and not args.force and str(rec.get("mockup_url", "")).strip():
+            print(f"  ⤳ {name}: already deployed (skip; --force to redeploy)")
+            summary.append((name, "skipped", str(rec.get("mockup_url", ""))))
+            continue
+
         try:
             if args.legacy_build:
                 profile = None if args.no_enrich else get_profile(rec, connector)
@@ -303,11 +475,13 @@ def main() -> None:
                 result, build_kind, used, theme_dict = _bespoke_deploy(
                     rec, out_dir, target, account
                 )
-        except (ProspectBuildError, ValueError) as exc:
-            print(f"  ✗ {name}: {exc}")
-            summary.append((name, "error", str(exc)))
+        except ProspectBuildError as exc:
+            # No dist-v2 build yet — distinct from a hard failure so the batch
+            # summary can separate "not built yet" from "deploy errored".
+            print(f"  ⊘ {name}: {exc}")
+            summary.append((name, "no-build", str(exc)))
             continue
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001  (ValueError + transport/API errors)
             print(f"  ✗ {name}: {exc}")
             summary.append((name, "error", str(exc)))
             continue
@@ -350,13 +524,21 @@ def main() -> None:
             print(f"  ✓ {name}  →  {index}{tag}")
             summary.append((name, "ready", str(index)))
 
-        if result.deployed and args.deploy_delay and i < len(records) - 1:
-            time.sleep(args.deploy_delay)
+        if result.deployed and deploy_delay and i < len(records) - 1:
+            time.sleep(deploy_delay)
 
-    ok = sum(1 for _, s, _ in summary if s in ("ready", "deployed"))
-    print(f"\nDone. {ok}/{len(records)} ok.")
-    if not args.deploy and ok:
-        print("Tip: review on localhost (preview_site.py), then re-run with --deploy.")
+    counts = Counter(status for _, status, _ in summary)
+    print("\nSummary:")
+    for status in ("deployed", "ready", "skipped", "no-build", "error"):
+        if counts.get(status):
+            print(f"  {status:<9} {counts[status]}")
+    failures = [(n, d) for n, s, d in summary if s in ("error", "no-build")]
+    if failures:
+        print("\nNeeds attention:")
+        for name, detail in failures:
+            print(f"  - {name}: {detail}")
+    if not args.deploy and counts.get("ready"):
+        print("\nTip: review on localhost (preview_site.py), then re-run with --deploy.")
 
 
 if __name__ == "__main__":

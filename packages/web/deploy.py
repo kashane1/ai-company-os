@@ -299,6 +299,28 @@ class NetlifyDeployTarget:
         if resp.status_code >= 300:
             raise DeployError(f"netlify upload HTTP {resp.status_code}: {resp.text[:200]}")
 
+    def delete_deploy(self, deploy_id: str) -> None:
+        """Delete a single deploy by id (``DELETE /deploys/{id}``).
+
+        Prospect previews are draft deploys on one shared site, so retiring a
+        lost/suppressed prospect's preview means deleting its *deploy*, not a
+        site. A 404 is treated as already-gone (idempotent). The Netlify delete
+        returns an empty body, so this bypasses the JSON-parsing ``_request``.
+        """
+        deploy_id = (deploy_id or "").strip()
+        if not deploy_id:
+            raise DeployError("delete_deploy requires a deploy_id")
+        try:
+            resp = self._client.request(
+                "DELETE", f"{self._base_url}/deploys/{deploy_id}", headers=self._headers()
+            )
+        except httpx.HTTPError as exc:
+            raise DeployError(f"netlify delete failed: {exc}") from exc
+        if resp.status_code == 404:
+            return  # already gone — idempotent
+        if resp.status_code >= 300:
+            raise DeployError(f"netlify delete HTTP {resp.status_code}: {resp.text[:200]}")
+
     def set_custom_domain(self, site: SiteRef, domain: str) -> SiteRef:
         """Attach a custom domain (a gated action — DNS/domain change)."""
         updated = self._request(
