@@ -61,6 +61,7 @@ from packages.agency.prospect_site import (  # noqa: E402
     PREVIEW_SITE_NAME,
     PreviewResult,
     ProspectBuildError,
+    ScaffoldCopyError,
     build_preview_for_record,
     city_label,
     deploy_preview_dist,
@@ -475,6 +476,12 @@ def main() -> None:
                 result, build_kind, used, theme_dict = _bespoke_deploy(
                     rec, out_dir, target, account
                 )
+        except ScaffoldCopyError as exc:
+            # Built, but still carries scaffold/placeholder copy — blocked at the
+            # deploy gate. Distinct from no-build so the operator knows to rewrite.
+            print(f"  ⚑ {name}: scaffold copy — not deployed (rewrite per playbook)")
+            summary.append((name, "scaffold", str(exc)))
+            continue
         except ProspectBuildError as exc:
             # No dist-v2 build yet — distinct from a hard failure so the batch
             # summary can separate "not built yet" from "deploy errored".
@@ -529,10 +536,10 @@ def main() -> None:
 
     counts = Counter(status for _, status, _ in summary)
     print("\nSummary:")
-    for status in ("deployed", "ready", "skipped", "no-build", "error"):
+    for status in ("deployed", "ready", "skipped", "no-build", "scaffold", "error"):
         if counts.get(status):
             print(f"  {status:<9} {counts[status]}")
-    failures = [(n, d) for n, s, d in summary if s in ("error", "no-build")]
+    failures = [(n, d) for n, s, d in summary if s in ("error", "no-build", "scaffold")]
     if failures:
         print("\nNeeds attention:")
         for name, detail in failures:

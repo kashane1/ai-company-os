@@ -192,6 +192,28 @@ def test_batch_force_redeploys_existing(state, monkeypatch, capsys) -> None:
     assert json.loads((records / "p2.json").read_text())["mockup_url"] == "https://new/p2"
 
 
+def test_batch_categorizes_scaffold_copy(state, monkeypatch, capsys) -> None:
+    records, sites = state
+    _rec(records, "p1")
+    _built_site(sites, "p1")
+
+    from packages.agency.prospect_site import ScaffoldCopyError
+
+    def fake_bespoke(rec, out_dir, target, account):
+        raise ScaffoldCopyError("index.html: scaffold copy 'category-safe'")
+
+    monkeypatch.setattr(bps, "_bespoke_deploy", fake_bespoke)
+    monkeypatch.setattr(bps, "make_target", lambda slug: (object(), None))
+    monkeypatch.setattr(bps.time, "sleep", lambda *a, **k: None)
+    monkeypatch.setattr(bps.sys, "argv", ["build_prospect_site.py", "--batch", "*", "--no-enrich"])
+
+    bps.main()
+
+    out = capsys.readouterr().out
+    assert "scaffold  1" in out
+    assert "Needs attention" in out
+
+
 def test_batch_categorizes_missing_build_as_no_build(state, monkeypatch, capsys) -> None:
     records, sites = state
     _rec(records, "p1")
