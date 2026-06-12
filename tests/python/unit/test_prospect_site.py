@@ -6,7 +6,6 @@ through an ``httpx.MockTransport`` — no network, no token.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import httpx
@@ -165,3 +164,54 @@ def test_build_draft_deploys_to_shared_site(tmp_path: Path) -> None:
     assert created_names == [PREVIEW_SITE_NAME]
     assert len(f"dep_1--{PREVIEW_SITE_NAME}.netlify.app") <= 63
     assert any(m == "POST" and "/deploys" in p for m, p in calls)
+
+
+def test_scan_dist_for_scaffold_copy_flags_jargon(tmp_path: Path) -> None:
+    from packages.agency.prospect_site import scan_dist_for_scaffold_copy
+
+    dist = tmp_path / "dist-v2"
+    dist.mkdir()
+    (dist / "index.html").write_text(
+        "<h2>Beyond marketplace-only</h2>"
+        "<p>This prospect was verified as having marketplace or directory presence. "
+        "Included as a category-safe starting point.</p>"
+    )
+    findings = scan_dist_for_scaffold_copy(dist)
+    assert any("category-safe" in f for f in findings)
+    assert any("this prospect was verified" in f for f in findings)
+
+
+def test_scan_dist_clean_copy_has_no_findings(tmp_path: Path) -> None:
+    from packages.agency.prospect_site import scan_dist_for_scaffold_copy
+
+    dist = tmp_path / "dist-v2"
+    dist.mkdir()
+    (dist / "index.html").write_text(
+        "<h1>Frank's Auto Service</h1>"
+        "<p>Auto repair in Washington, DC. Call us today or get directions.</p>"
+    )
+    assert scan_dist_for_scaffold_copy(dist) == []
+
+
+def test_deploy_preview_dist_blocks_scaffold_copy(tmp_path: Path) -> None:
+    """The gate fails closed BEFORE touching the deploy target — an unfinished
+    page can never reach a prospect's URL."""
+    from packages.agency.prospect_site import ScaffoldCopyError, deploy_preview_dist
+
+    dist = tmp_path / "dist-v2"
+    dist.mkdir()
+    (dist / "index.html").write_text(
+        "<h2>A direct page for the basics.</h2>"
+        "<p>category-safe service framing</p>"
+    )
+
+    class _Boom:
+        def ensure_site(self, *a, **k):
+            raise AssertionError("must not create a site for scaffold copy")
+
+        def deploy(self, *a, **k):
+            raise AssertionError("must not deploy scaffold copy")
+
+    with pytest.raises(ScaffoldCopyError) as excinfo:
+        deploy_preview_dist({"place_id": "p1"}, dist, target=_Boom())
+    assert "scaffold copy" in str(excinfo.value)

@@ -27,6 +27,17 @@ https://skyline-nails-fortworth.netlify.app).
   *negative* reviews so we don't claim something customers dispute.
 - **No invented services.** Only services we can confirm (reviews, photos,
   booking menu, the business's own pages).
+- **No scaffold or sales/meta vocabulary in shipped copy — fail closed.** The
+  page speaks to the business's *customers, as the business* — never about our
+  build, our funnel, or the sales process. Banned anywhere a visitor can see:
+  "prospect", "preview", "category-safe", "marketplace-only signal", "verified
+  as having", "owned website/web page", "the pitch", and any placeholder/TODO
+  left in body copy ("confirm exact availability before using this as production
+  copy", "included as a … starting point"). No third-person framing of the
+  owner ("this business has…"). **If a section can't be filled with real,
+  sourced content, delete the section — never ship the placeholder.** (The
+  2026-06 bulk "marketplace-only" batch shipped exactly this; 473 of 586 built
+  pages were unsendable as a result — see the audit in the funnel work.)
 - **Don't claim "award-winning"** off low-tier directory badges (BusinessRate,
   etc.).
 - **Photos:** Google/owner photos are fine for a private preview shown to the

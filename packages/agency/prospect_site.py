@@ -20,6 +20,7 @@ domains, and hosting spend require approval.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -79,10 +80,14 @@ GENRE_PROFILES: dict[str, GenreProfile] = {
     "accountant": GenreProfile(
         "accounting services", ("Tax prep", "Bookkeeping", "Payroll")
     ),
-    "notary": GenreProfile("notary services", ("Mobile notary", "Loan signings", "Acknowledgments")),
+    "notary": GenreProfile(
+        "notary services", ("Mobile notary", "Loan signings", "Acknowledgments")
+    ),
 }
 
-_DEFAULT_PROFILE = GenreProfile("local services", ("Quality work", "Fair pricing", "Local & reliable"))
+_DEFAULT_PROFILE = GenreProfile(
+    "local services", ("Quality work", "Fair pricing", "Local & reliable")
+)
 
 # City ids that don't title-case cleanly.
 _CITY_OVERRIDES = {"washington_dc": "Washington, DC", "new_york": "New York", "el_paso": "El Paso"}
@@ -141,7 +146,10 @@ def apply_profile(context: dict[str, str], profile: dict, record: dict) -> dict[
     ctx = dict(context)
     summary = str((profile.get("editorialSummary") or {}).get("text", "")).strip()
     primary = str((profile.get("primaryTypeDisplayName") or {}).get("text", "")).strip()
-    hours = [str(h) for h in (profile.get("regularOpeningHours") or {}).get("weekdayDescriptions", [])]
+    hours = [
+        str(h)
+        for h in (profile.get("regularOpeningHours") or {}).get("weekdayDescriptions", [])
+    ]
     address = str(profile.get("formattedAddress") or record.get("formatted_address", "")).strip()
     phone = str(profile.get("nationalPhoneNumber") or record.get("phone", "")).strip()
     rating = profile.get("rating") or record.get("rating")
@@ -226,6 +234,62 @@ class ProspectBuildError(FileNotFoundError):
     """No customer-facing prospect build at the required path."""
 
 
+class ScaffoldCopyError(ProspectBuildError):
+    """A build still carries scaffold/placeholder copy and must not deploy."""
+
+
+# Scaffold/sales/meta copy that must never reach a customer-facing preview — the
+# deploy-time analog of ``assert_no_secret_leak``. These are high-precision
+# PHRASES, not bare words like "preview"/"prospect" (which appear in legitimate
+# copy), so the gate fails closed without blocking a finished build. The banned
+# list and rationale live in docs/demo-site-build-playbook.md (Hard rules).
+_SCAFFOLD_PHRASES: tuple[str, ...] = (
+    "category-safe",
+    "a direct page for the basics",
+    "beyond marketplace-only",
+    "marketplace-only signal",
+    "this prospect was verified",
+    "verified as having marketplace",
+    "marketplace or directory presence but no owned",
+    "owned web page could clarify",
+    "third-party listings can still exist",
+    "a local preview page",
+    "keeps the pitch simple",
+    "confirm exact availability before using this as production copy",
+    "as a category-safe starting point",
+)
+
+
+def scan_dist_for_scaffold_copy(dist_dir: Path) -> list[str]:
+    """Findings for any scaffold/placeholder phrase in a build's visible HTML.
+
+    Scans visible text only (scripts/styles/tags stripped) so a phrase buried in
+    inline JSON can't trip it. Empty list == clean."""
+    findings: list[str] = []
+    for path in sorted(dist_dir.rglob("*.html")):
+        if not path.is_file():
+            continue
+        raw = path.read_text(encoding="utf-8", errors="ignore")
+        visible = re.sub(r"<script.*?</script>|<style.*?</style>", " ", raw, flags=re.S | re.I)
+        visible = re.sub(r"<[^>]+>", " ", visible).lower()
+        rel = path.relative_to(dist_dir).as_posix()
+        for phrase in _SCAFFOLD_PHRASES:
+            if phrase in visible:
+                findings.append(f"{rel}: scaffold copy {phrase!r}")
+    return findings
+
+
+def assert_no_scaffold_copy(dist_dir: Path) -> None:
+    """Fail closed if a build still contains scaffold/placeholder copy."""
+    findings = scan_dist_for_scaffold_copy(dist_dir)
+    if findings:
+        raise ScaffoldCopyError(
+            "refusing to deploy — page still contains scaffold/placeholder copy "
+            "(rewrite per docs/demo-site-build-playbook.md, or delete the section):\n  "
+            + "\n  ".join(findings)
+        )
+
+
 @dataclass(frozen=True)
 class PreviewResult:
     place_id: str
@@ -263,6 +327,9 @@ def deploy_preview_dist(
     """Publish an existing ``dist`` directory as a Netlify draft preview."""
     if not (dist_dir / "index.html").is_file():
         raise ProspectBuildError(f"missing index.html under {dist_dir}")
+    # Fail closed before deploying if the build still carries scaffold/placeholder
+    # copy — the deploy-time guard that keeps an unfinished page off a prospect's URL.
+    assert_no_scaffold_copy(dist_dir)
     place_id = str(record.get("place_id", ""))
     site = target.ensure_site(site_name, account=account)
     result: DeployResult = target.deploy(site, dist_dir, production=False)
