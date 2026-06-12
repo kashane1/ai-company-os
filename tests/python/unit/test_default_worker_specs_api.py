@@ -24,7 +24,7 @@ def test_default_worker_specs_includes_api_worker() -> None:
     # Specs are appended in order so the launchd config stays stable for existing
     # workers. G1 appended the billing-event poller last (a supervised periodic
     # loop, not a task-claiming worker).
-    assert len(specs) == 7
+    assert len(specs) == 8
     lanes = [spec.lane for spec in specs]
     assert lanes == [
         "engineering",
@@ -34,6 +34,7 @@ def test_default_worker_specs_includes_api_worker() -> None:
         "skill_evolution",
         "billing_poller",
         "outreach",
+        "reply_sync",
     ]
 
     by_lane = {spec.lane: spec for spec in specs}
@@ -49,7 +50,12 @@ def test_default_worker_specs_includes_api_worker() -> None:
     assert poller.worker_id == "worker-billing-poller"
     assert str(poller.script_path).endswith("apps/worker-billing-poller/main.py")
 
-    outreach = specs[-1]
+    outreach = specs[-2]
     assert outreach.lane == "outreach"
     assert outreach.worker_id == "worker-outreach"
     assert str(outreach.script_path).endswith("apps/worker-outreach/main.py")
+
+    reply_sync = specs[-1]
+    assert reply_sync.lane == "reply_sync"
+    assert reply_sync.worker_id == "worker-reply-sync"
+    assert str(reply_sync.script_path).endswith("apps/worker-reply-sync/main.py")

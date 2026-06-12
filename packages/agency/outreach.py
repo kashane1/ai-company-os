@@ -17,6 +17,8 @@ The pipeline:
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import re
 from dataclasses import dataclass, field
 
@@ -24,6 +26,29 @@ from packages.agency.prospect_site import GENRE_PROFILES, city_label
 
 DEFAULT_SENDER_NAME = "Kashane Sakhakorn"
 DEFAULT_SENDER_COMPANY = "https://better-business-web.netlify.app/"
+
+# Per-prospect reference token stamped on outbound email (item 5, reply-sync).
+# Deterministic from place_id so the same prospect always yields the same token
+# across restarts and re-sends; reply-sync matches inbound mail back by it.
+BBW_REF_PREFIX = "BBW"
+# A token, including the ``BBW-`` prefix, e.g. ``BBW-3F9K2A``. Alphabet is base32
+# (A-Z, 2-7) so there are no ambiguous 0/1/8/9 glyphs to mistype.
+BBW_REF_RE = re.compile(r"BBW-[A-Z2-7]{6}")
+
+
+def bbw_ref_token(place_id: str) -> str:
+    """Deterministic ``BBW-<6char>`` reference token for a prospect.
+
+    base32 of ``sha256(place_id)`` truncated to 6 chars (~1.07e9 space, so
+    collisions are negligible at our prospect volume). Returns ``""`` for a
+    blank place_id — a tokenless record simply gets no footer.
+    """
+    place_id = (place_id or "").strip()
+    if not place_id:
+        return ""
+    digest = hashlib.sha256(place_id.encode("utf-8")).digest()
+    code = base64.b32encode(digest).decode("ascii")[:6]
+    return f"{BBW_REF_PREFIX}-{code}"
 
 # genre_id → snippet section key in genre-snippets.md (used for none_found leads).
 _GENRE_GAP_REF = {
@@ -158,6 +183,8 @@ class OutreachContext:
     owned_website: str = ""
     sender_name: str = DEFAULT_SENDER_NAME
     sender_company: str = DEFAULT_SENDER_COMPANY
+    place_id: str = ""
+    ref_token: str = ""
 
     def as_placeholders(self) -> dict[str, str]:
         return {
@@ -184,7 +211,10 @@ def context_for(record: dict, snippets: dict[str, dict[str, str]]) -> OutreachCo
     city = city_label(str(record.get("city_id", "")))
     reviews = record.get("user_ratings_total")
     review_count = int(reviews or 0)
+    place_id = str(record.get("place_id", "")).strip()
     ctx = OutreachContext(
+        place_id=place_id,
+        ref_token=bbw_ref_token(place_id),
         business_name=str(record.get("display_name", "")),
         owner_name="there",
         neighborhood=city,

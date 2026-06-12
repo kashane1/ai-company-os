@@ -225,3 +225,15 @@ def test_refresh_enforces_cooldown(tmp_path: Path) -> None:
     # A zero cooldown (e.g. the scheduled job's effective behavior) bypasses it.
     again = refresh_funnel_report(repo_root=tmp_path, cooldown_seconds=0)
     assert again["stage_counts"]["collected"] == 4
+
+
+def test_inbound_reply_touch_does_not_inflate_sent(tmp_path: Path) -> None:
+    store = _scaffold(tmp_path)
+    # A reply-sync inbound touch on a brand-new place_id must not count as a send.
+    store.append_touch("p9", "email", via="reply_sync", direction="inbound")
+
+    report = compute_funnel(repo_root=tmp_path, store=store, catalog=_catalog())
+    assert report.stage_counts["sent"] == 2  # still the two outbound sends
+    # by_channel counts distinct outbound prospects per channel — the inbound
+    # email reply does not bump it.
+    assert report.sent_by_channel.get("email") == 1

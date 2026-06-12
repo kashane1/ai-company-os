@@ -74,6 +74,11 @@ def build_messages_from_context(ctx: OutreachContext) -> ChannelMessages:
         'Reply "no thanks" and I won\'t email again.\n\n'
         f"Best,\n{ctx.sender_name}\n{ctx.sender_company}"
     )
+    # Quiet per-prospect reference token below the signature. Reply-sync (item 5)
+    # matches inbound mail back to this prospect by it; email only, since IG/FB
+    # replies are logged manually. Omitted when there is no place_id to derive it.
+    if ctx.ref_token:
+        email_body += f"\n\nref: {ctx.ref_token}"
     call_script = (
         f"- Hi, is this the owner of {business}?\n"
         f"- My name is {ctx.sender_name}. I found you while looking up {search_phrase} in {city}.\n"

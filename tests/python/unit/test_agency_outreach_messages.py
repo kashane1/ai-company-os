@@ -28,6 +28,27 @@ def test_email_body_carries_opt_out_line() -> None:
     assert 'Reply "no thanks" and I won\'t email again.' in m.email_body
 
 
+def test_ref_token_appears_below_signature_email_only() -> None:
+    from packages.agency.outreach import bbw_ref_token
+
+    record = {**_record(), "place_id": "ChIJ_msg_test"}
+    token = bbw_ref_token("ChIJ_msg_test")
+    m = msg.build_messages(record)
+    # Quiet ref line, last thing in the email, after the website signature.
+    assert m.email_body.rstrip().endswith(f"ref: {token}")
+    # Email only — SMS/DM/call stay clean (those replies are logged manually).
+    assert token not in m.sms_body
+    assert token not in m.dm_body
+    assert token not in m.call_script
+    # Survives the no-em-dash sanitizer untouched.
+    assert "—" not in m.email_body
+
+
+def test_no_ref_token_without_place_id() -> None:
+    m = msg.build_messages(_record())  # _record() has no place_id
+    assert "ref: BBW-" not in m.email_body
+
+
 def test_gmail_compose_url_encodes_fields() -> None:
     url = msg.gmail_compose_url(to="a@b.com", subject="Hi there", body="line one\nline two")
     parsed = urlparse(url)

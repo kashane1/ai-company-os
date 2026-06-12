@@ -22,7 +22,7 @@ from pathlib import Path
 
 from packages.agency import outreach_messages as msg
 from packages.agency import suppression
-from packages.agency.outreach import context_for
+from packages.agency.outreach import bbw_ref_token, context_for
 from packages.agency.outreach_lane import (
     OutreachClientRow,
     OutreachLaneStatus,
@@ -218,6 +218,7 @@ def _context_for_row(row: OutreachClientRow):
     city *label*, so we patch it back on afterwards.
     """
     pseudo_record = {
+        "place_id": row.place_id,
         "display_name": row.business_name,
         "genre_id": row.genre_id,
         "user_ratings_total": row.review_count,
@@ -460,6 +461,13 @@ def record_touch(
     if suppression.is_suppressed({"place_id": place_id}, store=store):
         raise ValueError(f"prospect {place_id!r} is suppressed; cannot log a send")
     touch = store.append_touch(place_id, channel, via="dashboard", variant=variant)
+    # Email is the channel reply-sync polls, so record the token we stamped on it
+    # (deterministic from place_id; recording is idempotent). Other channels carry
+    # no token, so there is nothing to map.
+    if channel == "email":
+        token = bbw_ref_token(place_id)
+        if token:
+            store.record_ref_token(token, place_id)
     row = auto_bump_on_touch(place_id, channel, lane_root=lane_root)
     return {
         "touch": touch,
