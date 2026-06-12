@@ -57,7 +57,9 @@ ALLOWED_CHANNELS = ("email", "sms", "call", "facebook_dm", "instagram_dm")
 # store accepts any non-empty variant string; KNOWN_VARIANTS just seeds the
 # dashboard's per-session selector — edit it to add real arms.
 DEFAULT_VARIANT = "demo-link"
-KNOWN_VARIANTS = ("demo-link", "short", "social-proof")
+# ``teaser`` is the owned-site teardown lane (item 7): the pitch is a paid
+# Conversion Audit of the prospect's existing homepage, not a preview-link rebuild.
+KNOWN_VARIANTS = ("demo-link", "short", "social-proof", "teaser")
 
 # Contact fields an operator may edit inline. These mirror the keys the lane row
 # and the scanned record use, so the effective-contact merge is a plain lookup.

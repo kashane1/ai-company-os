@@ -5,7 +5,6 @@ from pathlib import Path
 
 import yaml
 
-
 PACK_ROOT = Path(__file__).resolve().parent
 
 
@@ -98,6 +97,47 @@ def load_audience_panel(vertical: str, *, root: Path | None = None) -> AudienceP
         personas.extend(load_persona_pack(vertical, root=pack_root).personas)
     _validate_personas(personas)
     return AudiencePanel(vertical=vertical, modifier=modifier, personas=personas)
+
+
+# Default lightweight panel for a fast/preflight pass: a small, diverse core set
+# rather than the full 12-persona roster. Ordered most-to-least decisive so a
+# truncated panel still spans the urgent → skeptical → premium spread.
+SMALLEST_PANEL_PERSONA_IDS = (
+    "urgent-problem-solver",
+    "skeptical-researcher",
+    "premium-convenience-buyer",
+)
+
+
+def smallest_panel(panel: AudiencePanel, *, n: int = 3) -> AudiencePanel:
+    """Trim an :class:`AudiencePanel` to a light, diverse subset for a quick pass.
+
+    Prefers the named :data:`SMALLEST_PANEL_PERSONA_IDS` (in order), backfilling
+    from the panel's remaining personas to reach ``n``. Keeps the same vertical
+    and modifier so the trimmed panel scores identically to a full run, just over
+    fewer personas. ``n`` is clamped to ``[1, len(panel.personas)]``.
+    """
+    if n < 1:
+        n = 1
+    by_id = {persona.persona_id: persona for persona in panel.personas}
+    chosen: list[ConversionPersona] = []
+    seen: set[str] = set()
+    for persona_id in SMALLEST_PANEL_PERSONA_IDS:
+        persona = by_id.get(persona_id)
+        if persona is not None and persona_id not in seen:
+            chosen.append(persona)
+            seen.add(persona_id)
+    for persona in panel.personas:
+        if len(chosen) >= n:
+            break
+        if persona.persona_id not in seen:
+            chosen.append(persona)
+            seen.add(persona.persona_id)
+    return AudiencePanel(
+        vertical=panel.vertical,
+        modifier=panel.modifier,
+        personas=chosen[:n],
+    )
 
 
 def _modifier_for(vertical: str, *, root: Path) -> VerticalModifier:

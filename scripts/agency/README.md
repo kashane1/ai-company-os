@@ -21,6 +21,7 @@ don't bypass it.
 | `preview_site.py` | Serve a demo site's build locally to preview + iterate before deploying. |
 | `screenshot_demo.py` | Full-page screenshot of a demo build — the mandatory pre-Netlify review step. |
 | `build_outreach.py` | Generate per-prospect outreach copy for every lead with a live preview site. |
+| `build_teardown_teaser.py` | Owned-site flip (item 7): `prepare` captures a prospect's live homepage + writes Conversion Lab prompts; fill `teaser/reviews.json` + `teaser/findings.json`; `finish` validates findings and renders `teaser.md` + annotated card + a `variant=teaser` audit-pitch draft. |
 | `outreach_lane.py` | Refresh/list/log the human-gated outreach client-status ledger. |
 | `gen_gunstore_images.py` | Generate imagery for the Blue Ridge Gun & Ammo portfolio demo via Gemini. |
 
