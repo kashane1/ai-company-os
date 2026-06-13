@@ -102,6 +102,20 @@ def test_select_cohort_respects_limit_and_min_reviews():
     assert all(p.review_count >= 300 for p in select_cohort(records, min_reviews=300))
 
 
+def test_select_cohort_dedupes_by_site_url_keeping_highest_reviews():
+    # Two records share one homepage (modulo scheme/www/trailing slash); only the
+    # higher-review one should survive, plus the one distinct site.
+    records = [
+        _owned("dup_lo", "Chain Low", 200, web_verify_url="http://www.shared.com/"),
+        _owned("dup_hi", "Chain High", 5000, web_verify_url="https://shared.com"),
+        _owned("solo", "Other", 1000, web_verify_url="https://other.com"),
+    ]
+    cohort = select_cohort(records, min_reviews=1)
+    names = [p.business_name for p in cohort]
+    assert names == ["Chain High", "Other"]  # dup collapsed to the 5000-review record
+    assert sorted(p.site_url for p in cohort) == ["https://other.com", "https://shared.com"]
+
+
 # ------------------------------------------------------------------- prompts
 def test_prepare_prompts_uses_smallest_panel():
     prospect = select_cohort([_owned("p1", "Casa", 6000)])[0]
