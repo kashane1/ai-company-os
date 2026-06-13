@@ -76,6 +76,16 @@ def site_url_for(record: dict) -> str:
     return ""
 
 
+def normalize_site_url(url: str) -> str:
+    """Canonical key for "same homepage" dedupe: lowercase, no scheme/www, no
+    trailing slash. Source records often repeat one site across sibling records
+    (chains, dupes), and we only want one teaser per distinct homepage."""
+    value = (url or "").strip().lower()
+    value = re.sub(r"^[a-z]+://", "", value)
+    value = re.sub(r"^www\.", "", value)
+    return value.rstrip("/")
+
+
 @lru_cache(maxsize=256)
 def _has_panel(genre_id: str) -> bool:
     """Cached: can Conversion Lab build a panel for this genre? Cohort selection
@@ -140,7 +150,12 @@ def select_cohort(
     limit: int | None = None,
     min_reviews: int = DEFAULT_MIN_REVIEWS,
 ) -> list[TeaserProspect]:
-    """Owned-site prospects prioritized by review count (the eval-doc ordering)."""
+    """Owned-site prospects prioritized by review count (the eval-doc ordering).
+
+    Deduped by normalized homepage so sibling/duplicate records that share one
+    site (chains, dupes) don't each consume a teaser slot — the highest-review
+    record for a given homepage wins.
+    """
     prospects: list[TeaserProspect] = []
     for record in records:
         prospect = prospect_from_record(record)
@@ -148,7 +163,15 @@ def select_cohort(
             continue
         prospects.append(prospect)
     prospects.sort(key=lambda p: (-p.review_count, p.business_name.lower()))
-    return prospects[:limit] if limit else prospects
+    deduped: list[TeaserProspect] = []
+    seen_sites: set[str] = set()
+    for prospect in prospects:  # already review-sorted, so first seen per site is the top one
+        key = normalize_site_url(prospect.site_url)
+        if key in seen_sites:
+            continue
+        seen_sites.add(key)
+        deduped.append(prospect)
+    return deduped[:limit] if limit else deduped
 
 
 # ------------------------------------------------------------------- offer
