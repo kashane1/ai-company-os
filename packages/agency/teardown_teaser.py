@@ -144,28 +144,58 @@ def prospect_from_record(record: dict) -> TeaserProspect | None:
     )
 
 
+def has_digital_channel(prospect: TeaserProspect) -> bool:
+    """True if the prospect already carries a sendable *digital* channel — an
+    email or a social handle. Phone is excluded: it is not a channel the teaser
+    email/DM pitch can launch from, and SMS infra isn't wired."""
+    return bool(
+        prospect.contact_email.strip()
+        or prospect.contact_instagram.strip()
+        or prospect.contact_facebook.strip()
+    )
+
+
 def select_cohort(
     records: list[dict],
     *,
     limit: int | None = None,
     min_reviews: int = DEFAULT_MIN_REVIEWS,
+    prefer_contactable: bool = False,
+    allow_phone_only: bool = True,
 ) -> list[TeaserProspect]:
     """Owned-site prospects prioritized by review count (the eval-doc ordering).
 
     Deduped by normalized homepage so sibling/duplicate records that share one
     site (chains, dupes) don't each consume a teaser slot — the highest-review
     record for a given homepage wins.
+
+    ``prefer_contactable`` (additive; default off keeps the original ordering)
+    sorts prospects that already have a sendable digital channel (email / social)
+    ahead of the rest, with review count as the tiebreak.
+
+    ``allow_phone_only`` (default True, the historical behavior) keeps
+    phone-only-or-nothing prospects in the cohort. Set it False to *exclude* any
+    prospect with no digital channel — the harvester's "worth fetching" worklist
+    wants only the ones a harvested email/social could make launchable, but by
+    default nothing is dropped so existing callers are unaffected.
     """
     prospects: list[TeaserProspect] = []
     for record in records:
         prospect = prospect_from_record(record)
         if prospect is None or prospect.review_count < min_reviews:
             continue
+        if not allow_phone_only and not has_digital_channel(prospect):
+            continue
         prospects.append(prospect)
-    prospects.sort(key=lambda p: (-p.review_count, p.business_name.lower()))
+    if prefer_contactable:
+        prospects.sort(
+            key=lambda p: (not has_digital_channel(p), -p.review_count, p.business_name.lower())
+        )
+    else:
+        prospects.sort(key=lambda p: (-p.review_count, p.business_name.lower()))
     deduped: list[TeaserProspect] = []
     seen_sites: set[str] = set()
-    for prospect in prospects:  # already review-sorted, so first seen per site is the top one
+    for prospect in prospects:  # already sorted, so first seen per site is the top one
         key = normalize_site_url(prospect.site_url)
         if key in seen_sites:
             continue
