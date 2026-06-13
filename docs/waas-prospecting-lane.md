@@ -206,8 +206,8 @@ preview.json, outreach-with-mockup.md}`. On deploy, the record gains
 `mockup_url`, `mockup_site_id`, `mockup_deploy_id`, `mockup_built_at`.
 
 Each mockup is a **draft deploy to one shared preview site**
-(`PREVIEW_SITE_NAME`, default `bbw-previews`), so every prospect gets a private
-permalink `<deploy_id>--bbw-previews.netlify.app` without a new Netlify site per
+(`PREVIEW_SITE_NAME`, default `better-business-web-previews`), so every prospect gets a private
+permalink `<deploy_id>--better-business-web-previews.netlify.app` without a new Netlify site per
 prospect. Promoting to **production** (`packages/agency/launch.py`) and **custom
 domain / DNS** remain approval-gated. Tests:
 `tests/python/unit/test_prospect_site.py`.

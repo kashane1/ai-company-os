@@ -70,7 +70,7 @@ def test_deploy_preview_dist_draft(tmp_path: Path) -> None:
                 json={
                     "id": "dep_v2",
                     "state": "ready",
-                    "deploy_ssl_url": "https://dep_v2--bbw-previews.netlify.app",
+                    "deploy_ssl_url": "https://dep_v2--better-business-web-previews.netlify.app",
                 },
             )
         return httpx.Response(404)
@@ -79,5 +79,5 @@ def test_deploy_preview_dist_draft(tmp_path: Path) -> None:
     target = NetlifyDeployTarget(token="test-token", client=client)
     result = deploy_preview_dist(RECORD, dist, target=target)
     assert result.deployed is True
-    assert result.mockup_url == "https://dep_v2--bbw-previews.netlify.app"
+    assert result.mockup_url == "https://dep_v2--better-business-web-previews.netlify.app"
     assert result.dist_dir == dist
