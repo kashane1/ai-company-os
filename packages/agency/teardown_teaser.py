@@ -37,8 +37,8 @@ from packages.agency.outreach import bbw_ref_token
 from packages.agency.prospect_site import city_label
 from packages.schemas.conversion_lab import ConversionAction, ConversionLabInput, PersonaReview
 
-# Service ids in catalog.yaml the teaser pitches. Snapshot = the $199 quick audit,
-# Audit = the $750 full audit. Read from the catalog so copy tracks the price.
+# Service ids in catalog.yaml the teaser pitches. Snapshot = the $100 quick audit,
+# Audit = the $250 full audit. Read from the catalog so copy tracks the price.
 SNAPSHOT_SERVICE_ID = "conversion_snapshot"
 AUDIT_SERVICE_ID = "conversion_audit"
 
