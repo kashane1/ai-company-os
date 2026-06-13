@@ -186,6 +186,34 @@ def _lane_summary(lane_root: Path) -> dict[str, int]:
     return {str(k): int(v) for k, v in summary.items()} if isinstance(summary, dict) else {}
 
 
+# Definition of "sent" shared with the outreach lane (see ``outreach_lane`` /
+# F2): a prospect is sent iff it has >=1 outbound touch AND its ledger row is not
+# do_not_contact. The exclusion matters because a *disqualification call* is logged
+# as an outbound touch, but the prospect was never pitched — counting it would make
+# the funnel's sent overstate the ledger (the 11-vs-9 desync the 2026-06-12 audit
+# found). Touch-based tallies (channel/variant) intentionally stay raw.
+SENT_EXCLUDED_STATUSES = {"do_not_contact"}
+
+
+def _lane_excluded_place_ids(lane_root: Path) -> set[str]:
+    """Place IDs whose ledger row is do_not_contact — excluded from the sent count."""
+    path = lane_root / "client-status.json"
+    if not path.exists():
+        return set()
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return set()
+    rows = payload.get("rows", []) if isinstance(payload, dict) else []
+    return {
+        str(r.get("place_id", ""))
+        for r in rows
+        if isinstance(r, dict)
+        and str(r.get("status", "")) in SENT_EXCLUDED_STATUSES
+        and r.get("place_id")
+    }
+
+
 def _active_ledgers(billing_root: Path) -> list[BillingLedger]:
     if not billing_root.is_dir():
         return []
@@ -251,9 +279,15 @@ def compute_funnel(
     target_verdicts = sum(n for v, n in verdict_counts.items() if v in TARGET_VERDICTS)
 
     touch_summary = store.touch_summary()
-    sent_place_ids = set(touch_summary.keys())
+    # "Sent" = distinct place with an outbound touch, excluding do_not_contact
+    # (disqualification calls are touches but not real sends). Keeps the funnel's
+    # sent count in agreement with the ledger; see SENT_EXCLUDED_STATUSES.
+    excluded = _lane_excluded_place_ids(lane_root)
+    sent_place_ids = set(touch_summary.keys()) - excluded
     sent_by_channel: dict[str, int] = {}
-    for channels in touch_summary.values():
+    for place_id, channels in touch_summary.items():
+        if place_id in excluded:
+            continue
         for channel in channels:
             sent_by_channel[channel] = sent_by_channel.get(channel, 0) + 1
     sent_by_variant = store.variant_counts()
@@ -277,7 +311,7 @@ def compute_funnel(
         "audited": "state/prospects/audited/*.csv (web_verify_verdict)",
         "built": "state/prospects/sites/*/dist-v2/index.html",
         "deployed": "records with mockup_url",
-        "sent": "outreach_touches (distinct place_id)",
+        "sent": "outreach_touches (distinct place_id, excl. do_not_contact)",
         "replied": "outreach-lane client-status.json",
         "won": "outreach-lane client-status.json",
         "active_clients": "state/agency/billing/*.json (ACTIVE)",
