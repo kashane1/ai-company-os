@@ -16,6 +16,13 @@ under ``products/<slug>-site/``), not this module.
 Preview (draft) deploys are intentionally **ungated** per
 ``packages/policies/deploy_readiness.py`` — only production deploys, custom
 domains, and hosting spend require approval.
+
+For the handful of previews we actually *send*, :func:`deploy_named_site_dist`
+publishes to a per-business **named site** as a **production** deploy so the URL
+is a clean ``<business>-<city>.netlify.app`` root subdomain instead of the
+shared-draft ``<deploy_id>--bbw-previews.netlify.app`` permalink. That path is
+approval-gated (the production-deploy asymmetry above); the shared-draft path
+stays the default for staging/bulk.
 """
 
 from __future__ import annotations
@@ -29,7 +36,12 @@ from pathlib import Path
 # dist-v2 mockups. See demo_theme.py's deprecation note + docs/agency/README.md.
 from packages.agency.demo_theme import DemoTheme, apply_theme, theme_for_record
 from packages.agency.intake import ClientIntake
-from packages.web.deploy import DeployAccount, DeployResult, DeployTarget
+from packages.web.deploy import (
+    DeployAccount,
+    DeployResult,
+    DeployTarget,
+    assert_no_secret_leak,
+)
 from packages.web.scaffold import render_landing_html, unfilled_tokens
 
 # --- Genre → site framing -------------------------------------------------
@@ -218,10 +230,10 @@ def render_preview_html(
 # One shared Netlify site holds ALL prospect previews. Each preview is a
 # *draft* deploy to it, so every prospect gets a unique, private permalink
 # (``<deploy_id>--<PREVIEW_SITE_NAME>.netlify.app``) without creating a new site
-# or a production deploy per prospect. Keep this name short: the 24-char
-# deploy-id prefix + "--" + this name must stay within the 63-char DNS label
-# limit (24 + 2 + 12 = 38 here, comfortably under).
-PREVIEW_SITE_NAME = "bbw-previews"
+# or a production deploy per prospect. Keep this name within the 63-char DNS
+# label limit: the 24-char deploy-id prefix + "--" + this name must fit
+# (24 + 2 + 28 = 54 here, under the 63-char limit).
+PREVIEW_SITE_NAME = "better-business-web-previews"
 
 
 PLAYBOOK_FIRST_MSG = (
@@ -336,6 +348,107 @@ def deploy_preview_dist(
     return PreviewResult(
         place_id=place_id,
         site_name=site_name,
+        dist_dir=dist_dir,
+        deployed=True,
+        mockup_url=result.url,
+        site_id=site.site_id,
+        deploy_id=result.deploy_id,
+    )
+
+
+def named_site_name(record: dict) -> str:
+    """A clean per-business Netlify *site* name for a NAMED production deploy.
+
+    Unlike :func:`preview_site_name` (a draft-permalink slug on the shared site),
+    this is the actual Netlify site name; a **production** deploy to it then serves
+    at ``<name>.netlify.app`` — the clean root subdomain we send to a prospect
+    (e.g. ``skyline-nails-fortworth.netlify.app``), not the
+    ``<deploy_id>--bbw-previews.netlify.app`` draft permalink.
+
+    Slug is ``<business>-<city>``, sanitized to a single DNS label (<=63 chars).
+    De-dupes a repeated city token: if the business slug already contains the
+    city as a whole token-run (e.g. "Fort Worth Nails" in ``fort_worth``) the
+    city isn't appended twice. Netlify site names are globally unique, so a
+    collision with a name we don't own surfaces as a ``DeployError`` at
+    ``ensure_site`` — acceptable since this path is only for the handful being
+    sent, not bulk.
+    """
+    from packages.agency.templates import slugify
+
+    slug = slugify(str(record.get("display_name", "")))
+    city = str(record.get("city_id", "")).replace("_", "-").strip("-")
+    if city and not _contains_token_run(slug, city):
+        slug = f"{slug}-{city}" if slug else city
+    return slug[:63].strip("-") or "preview-site"
+
+
+def _contains_token_run(slug: str, city: str) -> bool:
+    """True if ``city``'s hyphen tokens appear as a contiguous run inside ``slug``.
+
+    Whole-token match (not substring) so "fort-worth" matches in
+    "fort-worth-nails" but "york" would not match inside "new-york-bakery"."""
+    tokens = [t for t in slug.split("-") if t]
+    city_tokens = [t for t in city.split("-") if t]
+    if not city_tokens:
+        return True
+    return any(
+        tokens[i : i + len(city_tokens)] == city_tokens
+        for i in range(len(tokens) - len(city_tokens) + 1)
+    )
+
+
+def deploy_named_site_dist(
+    record: dict,
+    dist_dir: Path,
+    *,
+    target: DeployTarget,
+    account: DeployAccount | None = None,
+    site_name: str | None = None,
+    approval_granted: bool,
+    preview_reviewed: bool = True,
+) -> PreviewResult:
+    """Publish a build to a PER-BUSINESS named site as a **production** deploy.
+
+    This is the "clean URL we actually send a prospect" path: a named site serves
+    its production deploy at ``<site_name>.netlify.app`` (a real root subdomain),
+    unlike the shared-site draft permalink from :func:`deploy_preview_dist`.
+
+    A production deploy is **approval-gated** — the asymmetry that
+    ``packages/policies/deploy_readiness.py`` enforces (the shared-draft path is
+    intentionally ungated). This fails closed via ``assert_deploy_ready`` unless
+    the operator has reviewed the preview and granted approval. The same
+    scaffold-copy and secret-leak gates as the draft path run first, so an
+    unfinished or secret-leaking page can never reach a live root subdomain.
+
+    Use sparingly: each call creates/uses one Netlify site (site-count limited),
+    so reserve it for the few previews going out — keep staging on the shared
+    draft site.
+    """
+    from packages.policies.deploy_readiness import assert_deploy_ready
+
+    if not (dist_dir / "index.html").is_file():
+        raise ProspectBuildError(f"missing index.html under {dist_dir}")
+    # Same fail-closed content/secret gates as the draft path, BEFORE we touch the
+    # deploy target or the approval gate (cheap refusal on an unfinished build).
+    assert_no_scaffold_copy(dist_dir)
+    assert_no_secret_leak(dist_dir)
+    # The build cleared our pre-deploy validation (index present + scaffold-clean +
+    # secret-clean) => gate_passed. A *production* deploy additionally requires a
+    # reviewed preview and a granted approval; this raises PolicyViolation if not.
+    assert_deploy_ready(
+        production=True,
+        gate_passed=True,
+        preview_reviewed=preview_reviewed,
+        approval_granted=approval_granted,
+    )
+    name = site_name or named_site_name(record)
+    place_id = str(record.get("place_id", ""))
+    site = target.ensure_site(name, account=account)
+    # production=True: the live root subdomain, not a draft permalink.
+    result: DeployResult = target.deploy(site, dist_dir, production=True)
+    return PreviewResult(
+        place_id=place_id,
+        site_name=name,
         dist_dir=dist_dir,
         deployed=True,
         mockup_url=result.url,

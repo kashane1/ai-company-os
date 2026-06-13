@@ -148,7 +148,7 @@ def test_batch_loop_skips_deployed_and_backfills(state, monkeypatch, capsys) -> 
     def fake_bespoke(rec, out_dir, target, account):
         pid = str(rec.get("place_id", ""))
         result = PreviewResult(
-            place_id=pid, site_name="bbw-previews", dist_dir=out_dir / "dist-v2",
+            place_id=pid, site_name="better-business-web-previews", dist_dir=out_dir / "dist-v2",
             deployed=True, mockup_url=f"https://x/{pid}", site_id="s", deploy_id=f"d-{pid}",
         )
         return result, "bespoke", [], None
@@ -174,8 +174,11 @@ def test_batch_force_redeploys_existing(state, monkeypatch, capsys) -> None:
 
     def fake_bespoke(rec, out_dir, target, account):
         return (
-            PreviewResult(place_id="p2", site_name="bbw-previews", dist_dir=out_dir / "dist-v2",
-                          deployed=True, mockup_url="https://new/p2", site_id="s", deploy_id="d2"),
+            PreviewResult(
+                place_id="p2", site_name="better-business-web-previews",
+                dist_dir=out_dir / "dist-v2", deployed=True,
+                mockup_url="https://new/p2", site_id="s", deploy_id="d2",
+            ),
             "bespoke", [], None,
         )
 
@@ -232,3 +235,82 @@ def test_batch_categorizes_missing_build_as_no_build(state, monkeypatch, capsys)
     out = capsys.readouterr().out
     assert "no-build  1" in out
     assert "Needs attention" in out
+
+
+# ----------------------------------------------------------- named-site mode
+class _FakeDeployTarget:
+    """DeployTarget double: records named-site creation + production deploys."""
+
+    def __init__(self) -> None:
+        self.ensured: list[str] = []
+        self.deploys: list[tuple[str, bool]] = []
+
+    def ensure_site(self, name: str, *, account=None):
+        from packages.web.deploy import SiteRef
+
+        self.ensured.append(name)
+        return SiteRef(site_id=f"site_{name}", name=name, url=f"https://{name}.netlify.app")
+
+    def deploy(self, site, dist_dir, *, production: bool = False):
+        from packages.web.deploy import DeployResult
+
+        self.deploys.append((site.name, production))
+        return DeployResult(
+            site=site,
+            deploy_id=f"dep_{site.name}",
+            url=f"https://{site.name}.netlify.app",
+            production=production,
+            state="ready",
+        )
+
+
+def test_named_site_creates_site_production_deploys_and_backfills(
+    state, monkeypatch, capsys
+) -> None:
+    records, sites = state
+    _rec(records, "p1", display_name="Skyline Nails", city_id="fort_worth")
+    _built_site(sites, "p1")  # writes a clean <html></html> dist-v2
+    fake = _FakeDeployTarget()
+    monkeypatch.setattr(bps, "make_target", lambda slug: (fake, None))
+    monkeypatch.setattr(bps.time, "sleep", lambda *a, **k: None)
+    monkeypatch.setattr(
+        bps.sys,
+        "argv",
+        ["build_prospect_site.py", "--place-id", "p1", "--named-site", "--approve", "--no-enrich"],
+    )
+
+    bps.main()
+
+    out = capsys.readouterr().out
+    assert "deployed  1" in out
+    # Named site created from <business>-<city>, deployed to PRODUCTION.
+    assert fake.ensured == ["skyline-nails-fort-worth"]
+    assert fake.deploys == [("skyline-nails-fort-worth", True)]
+    rec = json.loads((records / "p1.json").read_text())
+    assert rec["mockup_url"] == "https://skyline-nails-fort-worth.netlify.app"
+    assert rec["mockup_site_id"] == "site_skyline-nails-fort-worth"
+    assert rec["mockup_deploy_id"] == "dep_skyline-nails-fort-worth"
+
+
+def test_named_site_without_approve_is_gated_and_no_deploy(state, monkeypatch, capsys) -> None:
+    records, sites = state
+    _rec(records, "p1", display_name="Skyline Nails", city_id="fort_worth")
+    _built_site(sites, "p1")
+    fake = _FakeDeployTarget()
+    monkeypatch.setattr(bps, "make_target", lambda slug: (fake, None))
+    monkeypatch.setattr(bps.time, "sleep", lambda *a, **k: None)
+    monkeypatch.setattr(
+        bps.sys,
+        "argv",
+        ["build_prospect_site.py", "--place-id", "p1", "--named-site", "--no-enrich"],
+    )
+
+    bps.main()
+
+    out = capsys.readouterr().out
+    assert "gated     1" in out
+    assert "Needs attention" in out
+    # The gate fails closed before the target is touched and the record is untouched.
+    assert fake.ensured == [] and fake.deploys == []
+    rec = json.loads((records / "p1.json").read_text())
+    assert "mockup_url" not in rec

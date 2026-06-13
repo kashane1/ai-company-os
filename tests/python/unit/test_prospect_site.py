@@ -15,12 +15,15 @@ from packages.agency.prospect_site import (
     apply_profile,
     build_preview_for_record,
     city_label,
+    deploy_named_site_dist,
     intake_from_record,
+    named_site_name,
     preview_site_name,
     profile_fields_used,
     render_preview_html,
 )
-from packages.web.deploy import NetlifyDeployTarget
+from packages.policies.approvals import PolicyViolation
+from packages.web.deploy import DeployResult, NetlifyDeployTarget, SiteRef
 
 RECORD = {
     "place_id": "ChIJtest123",
@@ -145,8 +148,8 @@ def test_build_draft_deploys_to_shared_site(tmp_path: Path) -> None:
                 json={
                     "id": "dep_1",
                     "state": "ready",
-                    "deploy_ssl_url": "https://dep_1--bbw-previews.netlify.app",
-                    "ssl_url": "https://bbw-previews.netlify.app",
+                    "deploy_ssl_url": "https://dep_1--better-business-web-previews.netlify.app",
+                    "ssl_url": "https://better-business-web-previews.netlify.app",
                 },
             )
         return httpx.Response(404)
@@ -157,7 +160,7 @@ def test_build_draft_deploys_to_shared_site(tmp_path: Path) -> None:
     result = build_preview_for_record(RECORD, tmp_path, target=target)
     assert result.deployed is True
     # mockup_url is the per-deploy permalink, not the site's live URL
-    assert result.mockup_url == "https://dep_1--bbw-previews.netlify.app"
+    assert result.mockup_url == "https://dep_1--better-business-web-previews.netlify.app"
     assert result.site_id == "site_shared"
     assert result.deploy_id == "dep_1"
     # exactly the shared site name, kept short for the 63-char draft permalink
@@ -215,3 +218,100 @@ def test_deploy_preview_dist_blocks_scaffold_copy(tmp_path: Path) -> None:
     with pytest.raises(ScaffoldCopyError) as excinfo:
         deploy_preview_dist({"place_id": "p1"}, dist, target=_Boom())
     assert "scaffold copy" in str(excinfo.value)
+
+
+# --------------------------------------------------------------- named site
+def test_named_site_name_is_clean_and_deduped() -> None:
+    # <business>-<city>, sanitized to a single DNS label.
+    assert named_site_name(RECORD) == "joes-plumbing-oklahoma-city"
+    name = named_site_name(RECORD)
+    assert len(name) <= 63 and all(c.isalnum() or c == "-" for c in name)
+    # City already in the business name → not repeated.
+    assert (
+        named_site_name({"display_name": "Fort Worth Nails", "city_id": "fort_worth"})
+        == "fort-worth-nails"
+    )
+
+
+class _RecordingTarget:
+    """Minimal DeployTarget double recording ensure_site/deploy calls."""
+
+    def __init__(self) -> None:
+        self.ensured: list[str] = []
+        self.deploys: list[tuple[str, bool]] = []
+
+    def ensure_site(self, name, *, account=None) -> SiteRef:
+        self.ensured.append(name)
+        return SiteRef(site_id=f"site_{name}", name=name, url=f"https://{name}.netlify.app")
+
+    def deploy(self, site, dist_dir, *, production=False) -> DeployResult:
+        self.deploys.append((site.name, production))
+        return DeployResult(
+            site=site,
+            deploy_id=f"dep_{site.name}",
+            url=f"https://{site.name}.netlify.app",
+            production=production,
+            state="ready",
+        )
+
+
+def _clean_dist(tmp_path: Path) -> Path:
+    dist = tmp_path / "dist-v2"
+    dist.mkdir()
+    (dist / "index.html").write_text("<h1>Joe's Plumbing</h1><p>Plumbing in OKC.</p>")
+    return dist
+
+
+def test_named_site_production_deploy_when_approved(tmp_path: Path) -> None:
+    """A clean root-subdomain URL needs a PRODUCTION deploy to a per-business
+    named site — and the approval gate must be satisfied."""
+    dist = _clean_dist(tmp_path)
+    target = _RecordingTarget()
+
+    result = deploy_named_site_dist(RECORD, dist, target=target, approval_granted=True)
+
+    assert target.ensured == ["joes-plumbing-oklahoma-city"]  # named site created
+    assert target.deploys == [("joes-plumbing-oklahoma-city", True)]  # PRODUCTION
+    assert result.deployed is True
+    assert result.mockup_url == "https://joes-plumbing-oklahoma-city.netlify.app"
+    assert result.site_id == "site_joes-plumbing-oklahoma-city"
+    assert result.deploy_id == "dep_joes-plumbing-oklahoma-city"
+
+
+def test_named_site_blocks_when_approval_not_granted(tmp_path: Path) -> None:
+    """The production gate fails closed BEFORE the deploy target is touched."""
+    dist = _clean_dist(tmp_path)
+
+    class _Boom:
+        def ensure_site(self, *a, **k):
+            raise AssertionError("must not create a site without approval")
+
+        def deploy(self, *a, **k):
+            raise AssertionError("must not deploy without approval")
+
+    with pytest.raises(PolicyViolation) as excinfo:
+        deploy_named_site_dist(RECORD, dist, target=_Boom(), approval_granted=False)
+    assert excinfo.value.code == "deploy_approval_not_granted"
+
+
+def test_named_site_keeps_scaffold_and_secret_gates(tmp_path: Path) -> None:
+    """Scaffold-copy and secret-leak gates still run on the named path, before
+    the deploy target or the approval gate."""
+    from packages.agency.prospect_site import ScaffoldCopyError
+    from packages.web.deploy import SecretLeakError
+
+    target = _RecordingTarget()
+
+    scaffold = tmp_path / "scaffold" / "dist-v2"
+    scaffold.mkdir(parents=True)
+    (scaffold / "index.html").write_text("<p>category-safe starting point</p>")
+    with pytest.raises(ScaffoldCopyError):
+        deploy_named_site_dist(RECORD, scaffold, target=target, approval_granted=True)
+
+    leaky = tmp_path / "leaky" / "dist-v2"
+    leaky.mkdir(parents=True)
+    (leaky / "index.html").write_text("<script>const k='sk_live_abcdEFGH1234'</script>")
+    with pytest.raises(SecretLeakError):
+        deploy_named_site_dist(RECORD, leaky, target=target, approval_granted=True)
+
+    assert target.ensured == [] and target.deploys == []  # never reached the target

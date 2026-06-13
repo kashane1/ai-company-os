@@ -182,6 +182,23 @@ to the human — try the browser first, then escalate what's actually missing.
   photos `image/jpeg`.
 - The script writes `mockup_url` on the record and `outreach-with-mockup.md`.
 
+**Staging vs sending — two deploy modes:**
+
+| Mode | Command | URL | Gate | When |
+|---|---|---|---|---|
+| **Shared draft** (default) | `--deploy` / `--batch` | `<deploy_id>--bbw-previews.netlify.app` | ungated | staging, iteration, bulk — one Netlify site for unlimited previews |
+| **Named production** | `--named-site --approve` | `<business>-<city>.netlify.app` (clean root) | **approval-gated** | the handful you actually SEND a prospect |
+
+- The clean root-subdomain URL requires a **production** deploy to a per-business
+  named site, which is approval-gated by `packages/policies/deploy_readiness.py`.
+  Pass `--named-site --approve` only after the gallery PNG is reviewed and you've
+  decided to ship it live; without `--approve` the script refuses at the gate.
+  Both the scaffold-copy and secret-leak gates still run on this path.
+- **Don't bulk `--named-site`:** each business spends one Netlify site (accounts
+  are site-count capped). Keep staging on the shared draft; switch to
+  `--named-site` only for sends. Same `mockup_url`/`mockup_site_id`/
+  `mockup_deploy_id` backfill as the draft path.
+
 ## Artifact layout (per business)
 
 ```

@@ -24,6 +24,20 @@ Batch draft-deploy + URL backfill (idempotent; --force to re-deploy):
         --batch '*'                          # every built dist-v2 site
     ... --batch state/prospects/audited/cohortA-audited-2026-06-02.csv
 
+Named-site PRODUCTION deploy — the clean URL you actually SEND a prospect
+(``<business>-<city>.netlify.app`` root subdomain, not the shared-draft
+``<deploy_id>--bbw-previews.netlify.app`` permalink). This is approval-gated, so
+it needs ``--approve`` once the preview has been reviewed:
+
+    NETLIFY_AUTH_TOKEN=... python scripts/agency/build_prospect_site.py \
+        --place-id ChIJ... --named-site --approve --account <your-netlify-team>
+
+Tradeoff — **shared-draft for staging, named-production for sends.** The default
+(shared draft) is ungated and costs one Netlify site for unlimited previews, so
+it's right for iterating/bulk. ``--named-site`` spends one site per business and
+must clear the production-deploy approval gate, so reserve it for the handful
+going out (Netlify caps sites per account).
+
 Retire lost/suppressed prospects' draft deploys (lists, then confirms):
 
     NETLIFY_AUTH_TOKEN=... python scripts/agency/build_prospect_site.py --cleanup-drafts
@@ -39,7 +53,8 @@ Outputs per lead under ``state/prospects/sites/<place_id>/``:
 
 On deploy, the warehouse record gains ``mockup_url``, ``mockup_site_id``, etc.
 
-Preview/draft deploys are ungated; this script NEVER does a production deploy.
+Preview/draft deploys are ungated. The ONLY production path is ``--named-site``,
+which is approval-gated (``--approve``) per ``packages/policies/deploy_readiness``.
 """
 
 from __future__ import annotations
@@ -64,11 +79,14 @@ from packages.agency.prospect_site import (  # noqa: E402
     ScaffoldCopyError,
     build_preview_for_record,
     city_label,
+    deploy_named_site_dist,
     deploy_preview_dist,
     intake_from_record,
+    named_site_name,
     profile_fields_used,
     resolve_prospect_dist_dir,
 )
+from packages.policies.approvals import PolicyViolation  # noqa: E402
 
 RECORDS_DIR = REPO / "state" / "prospects" / "records"
 SITES_DIR = REPO / "state" / "prospects" / "sites"
@@ -352,6 +370,39 @@ def _bespoke_deploy(
     return result, "bespoke", [], None
 
 
+def _named_deploy(
+    record: dict, out_dir: Path, target, account, *, approved: bool
+) -> tuple[PreviewResult, str, list[str], None]:
+    """Production deploy to a per-business NAMED site (clean root-subdomain URL).
+
+    Unlike the shared-draft path this is an approval-gated PRODUCTION deploy;
+    ``deploy_named_site_dist`` raises ``PolicyViolation`` unless ``approved``."""
+    dist_dir = resolve_prospect_dist_dir(out_dir)
+    intake_from_record(record)  # validate early
+    place_id = str(record.get("place_id", ""))
+    if target is None:
+        return (
+            PreviewResult(
+                place_id=place_id,
+                site_name=named_site_name(record),
+                dist_dir=dist_dir,
+                deployed=False,
+            ),
+            "named-site",
+            [],
+            None,
+        )
+    result = deploy_named_site_dist(
+        record,
+        dist_dir,
+        target=target,
+        account=account,
+        approval_granted=approved,
+        preview_reviewed=approved,
+    )
+    return result, "named-site", [], None
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(
         description=__doc__,
@@ -376,6 +427,26 @@ def main() -> None:
         help="publish to Netlify (needs $NETLIFY_AUTH_TOKEN)",
     )
     dep.add_argument("--account", help="your Netlify team/account slug to own the sites")
+    dep.add_argument(
+        "--named-site",
+        action="store_true",
+        help=(
+            "deploy to a PER-BUSINESS named site as a PRODUCTION deploy so the URL "
+            "is a clean <business>-<city>.netlify.app root subdomain (the URL we "
+            "SEND a prospect) instead of the shared-draft permalink. Implies "
+            "--deploy. PRODUCTION deploys are approval-gated — pair with --approve. "
+            "Use only for the handful being sent (Netlify site-count limit), not bulk."
+        ),
+    )
+    dep.add_argument(
+        "--approve",
+        action="store_true",
+        help=(
+            "grant the production-deploy approval --named-site requires (asserts the "
+            "preview was reviewed and you approve shipping it live). Without it, "
+            "--named-site refuses per-record at the deploy-readiness gate."
+        ),
+    )
     dep.add_argument(
         "--deploy-delay",
         type=float,
@@ -430,7 +501,10 @@ def main() -> None:
         return
 
     # --batch is a deploy command over a resolved place_id list; it implies
-    # --deploy and skips already-deployed records unless --force.
+    # --deploy and skips already-deployed records unless --force. --named-site is a
+    # production deploy and likewise has to publish, so it implies --deploy too.
+    if args.named_site:
+        args.deploy = True
     if args.batch:
         args.deploy = True
         records = select_batch_records(args.batch)
@@ -447,11 +521,27 @@ def main() -> None:
     # Netlify rate-limits ~3 deploys/min; default a batch to a 20s spacing.
     deploy_delay = args.deploy_delay or (20.0 if args.batch else 0.0)
 
-    mode = "LEGACY BUILD" if args.legacy_build else "DEPLOY"
+    if args.legacy_build:
+        mode = "LEGACY BUILD"
+    elif args.named_site:
+        mode = "NAMED-SITE PRODUCTION DEPLOY"
+    else:
+        mode = "DEPLOY"
     label = "BATCH " + mode if args.batch else mode
     print(f"{label}{' + NETLIFY' if args.deploy else ''} — {len(records)} prospect site(s)\n")
     if not args.legacy_build:
         print("Requires dist-v2/ from docs/demo-site-build-playbook.md\n")
+    if args.named_site:
+        # Surface the gate before the loop: this is a live root-subdomain deploy,
+        # not the ungated shared-draft staging path.
+        print("⚠ --named-site = PRODUCTION deploy to a per-business <business>-<city>")
+        print("  .netlify.app site (the clean URL you SEND). Approval-gated; for the")
+        print("  handful being sent, NOT bulk.")
+        if args.approve:
+            print("  --approve set: preview reviewed + production deploy approved.\n")
+        else:
+            print("  NOT approved — refusing per-record at the deploy gate. Re-run with")
+            print("  --approve once the preview is reviewed and you approve going live.\n")
 
     summary = []
     for i, rec in enumerate(records):
@@ -472,10 +562,21 @@ def main() -> None:
                 result, build_kind, used, theme_dict = _legacy_build(
                     rec, out_dir, target, account, profile
                 )
+            elif args.named_site:
+                result, build_kind, used, theme_dict = _named_deploy(
+                    rec, out_dir, target, account, approved=args.approve
+                )
             else:
                 result, build_kind, used, theme_dict = _bespoke_deploy(
                     rec, out_dir, target, account
                 )
+        except PolicyViolation as exc:
+            # --named-site is a gated PRODUCTION deploy; an ungranted approval (or
+            # any deploy-readiness refusal) lands here. Distinct from a build error
+            # so the operator sees it's a gate, not a broken build.
+            print(f"  ⛔ {name}: blocked by deploy gate [{exc.code}] — {exc}")
+            summary.append((name, "gated", str(exc)))
+            continue
         except ScaffoldCopyError as exc:
             # Built, but still carries scaffold/placeholder copy — blocked at the
             # deploy gate. Distinct from no-build so the operator knows to rewrite.
@@ -510,7 +611,7 @@ def main() -> None:
         }
         if theme_dict:
             preview_payload["theme"] = theme_dict
-        if build_kind == "bespoke":
+        if build_kind in ("bespoke", "named-site"):
             try:
                 intake = intake_from_record(rec)
                 preview_payload["city"] = intake.city
@@ -536,10 +637,10 @@ def main() -> None:
 
     counts = Counter(status for _, status, _ in summary)
     print("\nSummary:")
-    for status in ("deployed", "ready", "skipped", "no-build", "scaffold", "error"):
+    for status in ("deployed", "ready", "skipped", "no-build", "scaffold", "gated", "error"):
         if counts.get(status):
             print(f"  {status:<9} {counts[status]}")
-    failures = [(n, d) for n, s, d in summary if s in ("error", "no-build", "scaffold")]
+    failures = [(n, d) for n, s, d in summary if s in ("error", "no-build", "scaffold", "gated")]
     if failures:
         print("\nNeeds attention:")
         for name, detail in failures:
