@@ -165,7 +165,7 @@ def test_teaser_markdown_has_methodology_and_audit_cta_no_revenue_claims():
     prospect = select_cohort([_owned("p1", "Casa", 6000)])[0]
     md = render_teaser_markdown(prospect, _good_findings(), load_offer())
     assert "synthetic" in md.lower()  # methodology disclosed
-    assert "$750" in md  # audit CTA
+    assert "$250" in md  # audit CTA
     assert "no rebuild" in md.lower() or "advisory" in md.lower()
     for banned in ("guarantee", "revenue", "% more", "double your"):
         assert banned not in md.lower()
@@ -181,14 +181,14 @@ def test_teaser_data_sidecar_records_provenance():
     prospect = select_cohort([_owned("p1", "Casa", 6000)])[0]
     data = build_teaser_data(prospect, _good_findings(), load_offer(), persona_ids=["a", "b"])
     assert data["findings"][0]["persona_id"] == "urgent-problem-solver"
-    assert data["offer"]["audit_fee"] == 750
+    assert data["offer"]["audit_fee"] == 250
     assert "synthetic" in data["methodology"].lower()
 
 
 def test_outreach_draft_pitches_paid_audit():
     prospect = select_cohort([_owned("p1", "Casa", 6000)])[0]
     draft = render_teaser_outreach_markdown(prospect, _good_findings(), load_offer())
-    assert "Conversion Audit" in draft and "$750" in draft
+    assert "Conversion Audit" in draft and "$250" in draft
     assert "preview" not in draft.lower()  # not the demo-link pitch
 
 
@@ -216,9 +216,9 @@ def test_teaser_row_surfaces_in_dashboard_with_audit_copy(tmp_path: Path):
                 ],
                 "offer": {
                     "snapshot_name": "Conversion Snapshot",
-                    "snapshot_fee": 199,
+                    "snapshot_fee": 100,
                     "audit_name": "Conversion Audit",
-                    "audit_fee": 750,
+                    "audit_fee": 250,
                 },
             }
         )
@@ -239,7 +239,7 @@ def test_teaser_row_surfaces_in_dashboard_with_audit_copy(tmp_path: Path):
     assert "teaser" in row.facts.tags
     assert any(f.key == "teaser" and f.count == 1 for f in view.facets)
     email = next(b for b in row.buttons if b.channel == "email")
-    assert "Conversion Audit" in email.copy and "$750" in email.copy
+    assert "Conversion Audit" in email.copy and "$250" in email.copy
     assert "preview" not in email.copy.lower()
 
 

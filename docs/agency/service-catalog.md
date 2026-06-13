@@ -31,8 +31,8 @@
 | Review Readiness System (`reviews`) | recurring | $80 | $40/mo |
 | Local SEO (`local_seo`) | recurring | $300 | $80/mo |
 | Analytics Dashboard & Monthly Report (`monthly_reporting`) | recurring | $120 | $40/mo |
-| Conversion Snapshot (`conversion_snapshot`) | one-time | $199 | — |
-| Conversion Audit (`conversion_audit`) | one-time | $750 | — |
+| Conversion Snapshot (`conversion_snapshot`) | one-time | $100 | — |
+| Conversion Audit (`conversion_audit`) | one-time | $250 | — |
 
 ### Tier 3 — Recurring-revenue goldmine
 

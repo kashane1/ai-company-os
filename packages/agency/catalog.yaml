@@ -207,7 +207,7 @@ services:
     name: Conversion Snapshot
     tier: tier_2
     bill_type: one_time
-    setup_fee: 199
+    setup_fee: 100
     monthly_fee: 0
     includes:
       - "Conversion Lab: quick page or ad audit before you spend"
@@ -219,7 +219,7 @@ services:
     name: Conversion Audit
     tier: tier_2
     bill_type: one_time
-    setup_fee: 750
+    setup_fee: 250
     monthly_fee: 0
     includes:
       - "Conversion Lab: full website or landing page audit with copy rewrites"
