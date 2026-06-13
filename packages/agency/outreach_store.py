@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Iterator
 from urllib.parse import urlparse
 
+from packages.agency.outreach import bbw_ref_token
 from packages.config.settings import DATABASE_URL_ENV_VAR, load_runtime_paths
 from packages.db.connection import open_platform_db
 
@@ -295,7 +296,21 @@ class OutreachStore:
             f"{self.placeholder('direction')})"
         )
         with self.connection() as connection:
-            connection.cursor().execute(query, row)
+            cursor = connection.cursor()
+            cursor.execute(query, row)
+            # Invariant (F3): an outbound EMAIL touch always carries its reply-sync
+            # token, recorded in the SAME transaction so no caller (dashboard, CLI,
+            # legacy import, future) can log an email send without a resolvable
+            # token. The token is deterministic from place_id, so this is idempotent.
+            if channel == "email" and direction == OUTBOUND:
+                token = bbw_ref_token(place_id)
+                if token:
+                    cursor.execute(
+                        f"INSERT INTO {REF_TOKENS_TABLE} (token, place_id, created_at) VALUES "
+                        f"({self.placeholder('token')}, {self.placeholder('place_id')}, "
+                        f"{self.placeholder('created_at')}) ON CONFLICT (token) DO NOTHING",
+                        {"token": token, "place_id": place_id, "created_at": row["sent_at"]},
+                    )
         return row
 
     def list_touches(self, place_id: str) -> list[dict[str, object]]:

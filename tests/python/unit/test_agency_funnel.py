@@ -118,6 +118,33 @@ def test_stage_counts_from_primary_sources(tmp_path: Path) -> None:
     assert counts["active_clients"] == 1
 
 
+def test_sent_excludes_do_not_contact_and_agrees_with_ledger(tmp_path: Path) -> None:
+    # F2: a disqualification call is an outbound touch but not a real send. The
+    # funnel's sent count must drop do_not_contact rows so it agrees with the
+    # ledger's "ever sent, non-DNC" notion (the 11-vs-9 desync the audit found).
+    lane = tmp_path / "state" / "prospects" / "outreach-lane"
+    lane.mkdir(parents=True)
+    store = OutreachStore(sqlite_path=lane / "outreach.sqlite3")
+    store.append_touch("good1", "email")  # real send
+    store.append_touch("good2", "sms")  # real send
+    store.append_touch("dq", "call")  # disqualification call -> later DNC
+    rows = [
+        {"place_id": "good1", "status": "sent"},
+        {"place_id": "good2", "status": "replied"},
+        {"place_id": "dq", "status": "do_not_contact"},
+    ]
+    (lane / "client-status.json").write_text(
+        json.dumps({"updated_at": "2026-06-13T00:00:00Z", "summary": {}, "rows": rows})
+    )
+
+    report = compute_funnel(repo_root=tmp_path, store=store, catalog=_catalog())
+    assert report.stage_counts["sent"] == 2  # dq excluded
+    assert "call" not in report.sent_by_channel  # the DNC touch's channel dropped
+
+    ledger_sent = sum(1 for r in rows if r["status"] != "do_not_contact")
+    assert report.stage_counts["sent"] == ledger_sent  # funnel and ledger agree
+
+
 def test_verdicts_and_targets(tmp_path: Path) -> None:
     store = _scaffold(tmp_path)
     report = compute_funnel(repo_root=tmp_path, store=store, catalog=_catalog())

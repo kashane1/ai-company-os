@@ -62,6 +62,9 @@ def _token_path() -> Path:
 
 
 def _state_path() -> Path:
+    override = os.environ.get("BBW_REPLY_SYNC_STATE")
+    if override:
+        return Path(override)
     return default_outreach_lane_root(ROOT) / "reply-sync-state.json"
 
 
@@ -102,6 +105,32 @@ def _import_gmail():
     return Credentials, build
 
 
+def _default_request_factory():
+    # Lazy: google.auth is only needed when a live refresh actually runs.
+    from google.auth.transport.requests import Request
+
+    return Request()
+
+
+def _refresh_if_needed(creds, token_path: Path, *, request_factory=_default_request_factory):
+    """Refresh an expired access token via the stored refresh token rather than
+    letting the poll die on a stale token, and persist the refreshed credentials.
+
+    Long-lived headless workers will always outlive the ~1h access token; the
+    refresh token does the renewal. A no-op when the token is still valid or when
+    there's nothing to refresh with.
+    """
+    if getattr(creds, "valid", False):
+        return creds
+    if getattr(creds, "expired", False) and getattr(creds, "refresh_token", None):
+        creds.refresh(request_factory())
+        try:
+            token_path.write_text(creds.to_json())
+        except OSError:  # pragma: no cover - persistence is best-effort
+            pass
+    return creds
+
+
 def _build_service():
     Credentials, build = _import_gmail()
     token_path = _token_path()
@@ -110,6 +139,7 @@ def _build_service():
             f"no Gmail token at {token_path}; run: python apps/worker-reply-sync/main.py --auth"
         )
     creds = Credentials.from_authorized_user_file(str(token_path), [GMAIL_READONLY_SCOPE])
+    creds = _refresh_if_needed(creds, token_path)
     return build("gmail", "v1", credentials=creds, cache_discovery=False)
 
 
