@@ -1,6 +1,6 @@
 ---
 import portfolio from "../data/portfolio.json";
-import { featuredDemoSlugs, packages, stats, storyPanels } from "../data/landing-v2.mjs";
+import { featuredDemoSlugs, stats, storyPanels } from "../data/landing-v2.mjs";
 
 type Demo = (typeof portfolio.demos)[number];
 const isDemo = (demo: Demo | undefined): demo is Demo => Boolean(demo);
@@ -89,60 +89,6 @@ const featuredDemos = featuredDemoSlugs
     </div>
   </section>
 
-  <section class="v2-lab" aria-labelledby="v2-lab-title">
-    <div class="v2-shell">
-      <div class="section-split">
-        <div>
-          <span class="v2-eyebrow">Ways to start</span>
-          <h2 id="v2-lab-title">Three easy ways to start.</h2>
-        </div>
-        <p>
-          Start with a quick review, a deeper audit, or a free preview of a new homepage.
-          Whichever you choose, you decide what happens next. There is no pressure to keep going.
-        </p>
-      </div>
-
-      <div class="package-grid">
-        {packages.map((pkg) => (
-          <article class="package-card">
-            <span>{pkg.name}</span>
-            <strong>{pkg.price}</strong>
-            <p>{pkg.description}</p>
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="v2-demos" aria-labelledby="v2-demos-title">
-    <div class="v2-shell">
-      <div class="section-split">
-        <div>
-          <span class="v2-eyebrow">Live examples</span>
-          <h2 id="v2-demos-title">See the kind of site you would get.</h2>
-        </div>
-        <a class="v2-btn v2-btn--ghost" href="/demos">Open all demos</a>
-      </div>
-
-      <div class="demo-strip">
-        {featuredDemos.map((demo) => (
-          <a class="demo-chip" href={demo.url} target="_blank" rel="noopener">
-            {demo.thumbnail ? <img src={demo.thumbnail} alt="" loading="lazy" decoding="async" /> : <span aria-hidden="true"></span>}
-            <strong>{demo.name}</strong>
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="v2-close" aria-labelledby="v2-close-title">
-    <div class="v2-shell v2-close__box">
-      <span class="v2-eyebrow">Start here</span>
-      <h2 id="v2-close-title">Send us your current site, and we'll show you what better looks like.</h2>
-      <p>Send your business name or your current site. We'll build a free preview and get back to you within two business days. Then you decide, with no charge and no obligation.</p>
-      <a class="v2-btn v2-btn--primary" href="/free-review">Request the free review <span aria-hidden="true">→</span></a>
-    </div>
-  </section>
 </article>
 
 <style>

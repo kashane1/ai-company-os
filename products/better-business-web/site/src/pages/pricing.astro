@@ -2,6 +2,9 @@
 import Site from "../layouts/Site.astro";
 import V2Page from "../components/V2Page.astro";
 import packages from "../data/packages.json";
+import "../components/BundleBuilder.css";
+import BundleBuilder from "../components/BundleBuilder.tsx";
+import type { BundleBuilderProps } from "../components/BundleBuilder.tsx";
 
 const featuredId = "package_b";
 const fmt = (n: number) => n.toLocaleString("en-US");
@@ -14,19 +17,16 @@ const addedServices = (index: number): string[] =>
     : bundleList[index].services.filter(
         (service) => !bundleList[index - 1].services.includes(service),
       );
-const conversionLabIds = ["conversion_snapshot", "conversion_audit", "ad_copy_lab"];
-const conversionLab = packages.services.filter((service) => conversionLabIds.includes(service.id));
-const priceLabel = (service: (typeof packages.services)[number]) => {
-  const parts = [];
-  if (service.setup_cents > 0) parts.push(`$${fmt(service.setup_cents / 100)} setup`);
-  if (service.monthly_cents > 0) parts.push(`$${fmt(service.monthly_cents / 100)}/mo`);
-  return parts.join(" + ") || "Included";
+const builderData = packages as unknown as {
+  services: BundleBuilderProps["services"];
+  bundles: BundleBuilderProps["bundles"];
+  discount_tiers: BundleBuilderProps["discountTiers"];
 };
 ---
 
 <Site
   title="Pricing — Better Business Web"
-  description="Straightforward pricing for preview-first small-business websites, bundles, and Conversion Lab add-ons."
+  description="Straightforward pricing for preview-first small-business websites. Pick a package, build your own bundle, or add a Conversion Lab audit."
   ogTitle="Straightforward pricing — Better Business Web"
   current="/pricing"
   hideHeader
@@ -36,12 +36,11 @@ const priceLabel = (service: (typeof packages.services)[number]) => {
     eyebrow="Pricing"
     title="Choose your plan."
     description="Pricing is simple. You pay once to get your site built, then a small monthly fee covers hosting, security, and updates. Buy now to get started, or get a free preview first and decide later. You can cancel the monthly part anytime."
-    footerKicker="Ready when you are"
-    footerTitle="Build your plan, or see it first."
-    footerText="Pick your services and check out whenever you're ready. Not sure yet? Start with a free preview so you can see the work before you spend anything."
+    footerKicker="Not sure yet?"
+    footerTitle="See it before you spend a thing."
+    footerText="Get a free preview of your new site first. Look it over, then come back and pick the plan that fits."
     footerActions={[
-      { href: "/build", label: "Build your bundle →" },
-      { href: "/free-review", label: "Start with a free review", variant: "ghost" },
+      { href: "/#review", label: "Get a free preview →" },
     ]}
   >
     <section class="v2-section">
@@ -60,32 +59,29 @@ const priceLabel = (service: (typeof packages.services)[number]) => {
               <ul class="v2-list">
                 {addedServices(index).map((service) => <li>{service}</li>)}
               </ul>
-              <a class="v2-btn" href={`/build?preset=${bundle.id}`}>Start this package</a>
+              <a class="v2-btn" href="#build" data-preset={bundle.id}>See this package</a>
             </article>
           ))}
         </div>
       </div>
     </section>
 
-    <section class="v2-section">
+    <section class="v2-section build-v2" id="build">
       <div class="v2-shell">
         <div class="v2-split">
           <div>
-            <span class="v2-eyebrow">Conversion Lab</span>
-            <h2>Audit before you spend more.</h2>
+            <span class="v2-eyebrow">Build your own</span>
+            <h2>Or build your own bundle.</h2>
           </div>
-          <p>Use these to check a page or your ad copy before you spend money on it. Pick a quick snapshot, a full review, or a monthly check on your ads.</p>
-        </div>
-        <div class="v2-grid">
-          {conversionLab.map((service) => (
-            <article class="v2-card v2-card-pad">
-              <span class="v2-card-kicker">{priceLabel(service)}</span>
-              <h3>{service.name}</h3>
-              <p>{service.blurb}</p>
-            </article>
-          ))}
+          <p>Start from a package and add only the pieces that fit. The setup and monthly price update as you go, you own your site and your data, and you can cancel any monthly service whenever you want.</p>
         </div>
       </div>
+      <BundleBuilder
+        services={builderData.services}
+        bundles={builderData.bundles}
+        discountTiers={builderData.discount_tiers}
+        client:load
+      />
     </section>
   </V2Page>
 </Site>
@@ -177,4 +173,63 @@ const priceLabel = (service: (typeof packages.services)[number]) => {
   @media (max-width: 920px) {
     .price-grid-v2 { grid-template-columns: 1fr; }
   }
+
+  /* Bundle builder (merged in from the former /build page) */
+  .build-v2 :global(.byo) {
+    width: min(100% - clamp(2rem, 6vw, 5rem), 1180px);
+    padding: 0;
+  }
+
+  .build-v2 :global(.byo-preset),
+  .build-v2 :global(.byo-card),
+  .build-v2 :global(.byo-cart) {
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(22, 22, 24, 0.42));
+    border-color: var(--line);
+    box-shadow: var(--shadow-md);
+  }
+
+  .build-v2 :global(.byo-cart h2.byo-cart-title) {
+    max-width: 100%;
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 1.8vw, 1.28rem) !important;
+    line-height: 1.08 !important;
+    overflow-wrap: anywhere;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+  }
+
+  .build-v2 :global(.byo-preset[data-active="true"]),
+  .build-v2 :global(.byo-card[data-selected="true"]) {
+    border-color: color-mix(in srgb, var(--accent) 72%, white);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(22, 22, 24, 0.58));
+  }
+
+  .build-v2 :global(.byo-buy) {
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 8px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, white), #ededef 42%, #d2d2d6 100%);
+    color: #0a0a0b;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -4px 9px rgba(0, 0, 0, 0.26);
+  }
+
+  .build-v2 :global(.byo-field input) {
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.065);
+  }
 </style>
+
+<script>
+  // "See this package" cards: smooth-scroll to the builder and preselect that
+  // package (via a custom event the builder listens for) — no reload / jump.
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const build = document.getElementById("build");
+  document.querySelectorAll<HTMLAnchorElement>("a[data-preset]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      const preset = el.dataset.preset;
+      if (preset) window.dispatchEvent(new CustomEvent("bbw:preset", { detail: preset }));
+      build?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    });
+  });
+</script>

@@ -7,3 +7,15 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+# /free-review merged into the intro page (v2.1). Keep old links/QRs working.
+[[redirects]]
+  from = "/free-review"
+  to = "/#review"
+  status = 301
+
+# /build merged into /pricing (one combined Pricing page). Keep old links working.
+[[redirects]]
+  from = "/build"
+  to = "/pricing#build"
+  status = 301

@@ -49,7 +49,7 @@ const PRESET_BADGES: Record<string, string> = {
   package_c: "Complete done-for-you stack",
 };
 
-/** Conversion Lab à-la-carte services — shown in their own group on /build. */
+/** Conversion Lab à-la-carte services — shown in their own group in the builder. */
 const CONVERSION_LAB_IDS = ["conversion_snapshot", "conversion_audit", "ad_copy_lab"] as const;
 
 type Action =
@@ -132,11 +132,23 @@ export default function BundleBuilder({
 
   const [selected, dispatch] = useReducer(reducer, new Set<string>());
 
-  // Preselect a package when arriving from a landing-page CTA (/build?preset=…).
+  // Preselect a package when arriving from a CTA (/pricing?preset=…#build).
   useEffect(() => {
     const presetId = new URLSearchParams(window.location.search).get("preset");
     const b = presetId ? bundles.find((x) => x.id === presetId) : null;
     if (b) dispatch({ type: "preset", ids: b.service_ids });
+  }, [bundles]);
+
+  // Preselect when a "See this package" card on the same page fires bbw:preset
+  // (smooth-scroll + preselect, no reload).
+  useEffect(() => {
+    const onPreset = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      const b = bundles.find((x) => x.id === id);
+      if (b) dispatch({ type: "preset", ids: b.service_ids });
+    };
+    window.addEventListener("bbw:preset", onPreset);
+    return () => window.removeEventListener("bbw:preset", onPreset);
   }, [bundles]);
 
   const [business, setBusiness] = useState("");
@@ -172,7 +184,10 @@ export default function BundleBuilder({
     return { need: upgrade.min - ids.length, pct: upgrade.pct };
   }, [matchedPreset, ids.length, discountTiers]);
 
-  const dueToday = quote.setupAfterCents + quote.monthlyCents; // setup + first month
+  // A cart that exactly matches a named package gets that package's promo monthly
+  // (what checkout charges via preset_id), not the à-la-carte component sum.
+  const monthlyCents = matchedPreset ? matchedPreset.monthly_cents : quote.monthlyCents;
+  const dueToday = quote.setupAfterCents + monthlyCents; // setup + first month
   const canBuy = ids.length > 0 && business.trim() && contact.trim();
 
   async function buy() {
@@ -247,7 +262,9 @@ export default function BundleBuilder({
                 className="byo-preset"
                 aria-pressed={active}
                 data-active={active}
-                onClick={() => dispatch({ type: "preset", ids: b.service_ids })}
+                onClick={() =>
+                  dispatch(active ? { type: "clear" } : { type: "preset", ids: b.service_ids })
+                }
               >
                 <span className="byo-preset-name">{b.name}</span>
                 <span className="byo-preset-price">
@@ -313,11 +330,11 @@ export default function BundleBuilder({
                 )}
                 <li>
                   <span>First month</span>
-                  <span>{dollars(quote.monthlyCents)}</span>
+                  <span>{dollars(monthlyCents)}</span>
                 </li>
               </ul>
               <div className="byo-then">
-                then <strong>{dollars(quote.monthlyCents)}/mo</strong>, billed monthly · cancel anytime
+                then <strong>{dollars(monthlyCents)}/mo</strong>, billed monthly · cancel anytime
               </div>
               {nextTier && (
                 <p className="byo-nudge">
@@ -338,7 +355,6 @@ export default function BundleBuilder({
                 value={business}
                 autoComplete="organization"
                 onChange={(e) => setBusiness(e.target.value)}
-                placeholder="Joe's Plumbing"
               />
             </label>
             <label className="byo-field">
@@ -348,7 +364,6 @@ export default function BundleBuilder({
                 value={contact}
                 autoComplete="email"
                 onChange={(e) => setContact(e.target.value)}
-                placeholder="you@business.com"
               />
             </label>
             {/* honeypot — must stay empty */}
@@ -367,7 +382,7 @@ export default function BundleBuilder({
               disabled={!canBuy || submitting}
               onClick={buy}
             >
-              {submitting ? "Starting…" : `Start for ${dollars(dueToday)} today`}
+              {submitting ? "Starting…" : `Start this package · ${dollars(dueToday)}`}
             </button>
             {error && <p className="byo-error">{error}</p>}
             <ol className="byo-next">

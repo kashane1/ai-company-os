@@ -1,9 +1,12 @@
+import portfolio from "./portfolio.json";
+
 export const featuredDemoSlugs = ["dog-grooming", "fish-tacos", "auto-repair", "gun-store"];
 
 export const stats = [
   { value: "2 days", label: "Until your first preview" },
   { value: "$0", label: "Due before you say yes" },
-  { value: "7+", label: "Sample sites to explore" },
+  // Reflects the real number of demos; updates automatically as more are added.
+  { value: String(portfolio.demos.length), label: "Sample sites to explore" },
 ];
 
 export const storyPanels = [

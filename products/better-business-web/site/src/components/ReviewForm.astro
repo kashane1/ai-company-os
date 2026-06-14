@@ -1,0 +1,352 @@
+---
+// The free-review block, merged onto the bottom of the intro page (v2.1).
+// Self-contained: defines its own monochrome palette + styles so it does not
+// depend on the V2Page wrapper. The form still POSTs to the same Netlify
+// function and keeps every field name, so the backend is unchanged.
+const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+
+const intents = [
+  { value: "preview", title: "Preview a new website", desc: "You need a fresh site or want to see a better direction first." },
+  { value: "review", title: "Review your current site", desc: "Get honest, plain-English feedback with no jargon and no judgment." },
+  { value: "both", title: "Do both", desc: "We'll review what you have, then show you what a better version could look like." },
+];
+
+const reviewPoints = [
+  ["First impression", "Does the site feel current, trustworthy, and easy to understand?"],
+  ["Mobile flow", "Can someone on a phone find the right next action quickly?"],
+  ["Clarity", "Is it obvious what you do, where you do it, and why it matters?"],
+  ["Trust", "Do reviews, photos, details, and policies make the business feel real?"],
+  ["Lead capture", "Is calling, booking, or messaging frictionless enough?"],
+  ["Local search", "Are the basics in place for people nearby to find you?"],
+];
+---
+
+<section class="review-block" id="review" aria-labelledby="review-title">
+  <div class="rb-shell">
+    <header class="rb-head">
+      <span class="rb-eyebrow">Free review</span>
+      <h2 id="review-title">Get a free preview of a better website.</h2>
+      <p>Send us your current site, or just tell us you're starting from scratch. We'll come back with honest, plain-English feedback and a preview of a better version. It's free, and there's no sales call and no obligation.</p>
+    </header>
+
+    <div class="rb-layout">
+      <aside class="rb-card">
+        <span class="rb-kicker">Review map</span>
+        <h3>What we look at first.</h3>
+        <ul class="rb-list">
+          {reviewPoints.map(([term, body]) => (
+            <li>
+              <strong>{term}</strong>
+              <span>{body}</span>
+            </li>
+          ))}
+        </ul>
+      </aside>
+
+      <div class="rb-card">
+        <form name="website-review" method="POST" action="/.netlify/functions/website-review" class="rb-form">
+          <p hidden><label>Don't fill this out if you're human: <input name="bot-field" aria-label="Leave this field empty" tabindex="-1" autocomplete="off" /></label></p>
+
+          <fieldset class="rb-intent">
+            <legend>How can we help?</legend>
+            {intents.map((opt, i) => (
+              <label class="rb-intent-option">
+                <input type="radio" name="interest" value={opt.value} required={i === 0 ? true : undefined} />
+                <span>
+                  <strong>{opt.title}</strong>
+                  <em>{opt.desc}</em>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+
+          <div class="rb-field"><label for="name">Your name</label><input id="name" name="name" type="text" autocomplete="name" required /></div>
+          <div class="rb-field"><label for="business">Business name</label><input id="business" name="business" type="text" autocomplete="organization" /></div>
+          <div class="rb-field-row">
+            <div class="rb-field"><label for="city">City</label><input id="city" name="city" type="text" autocomplete="address-level2" /></div>
+            <div class="rb-field"><label for="state">State</label>
+              <select id="state" name="state" autocomplete="address-level1">
+                <option value="" selected>Select...</option>
+                {US_STATES.map((state) => <option value={state}>{state}</option>)}
+              </select>
+            </div>
+          </div>
+          <div class="rb-field"><label for="website">Current website (or "none")</label><input id="website" name="website" type="text" inputmode="url" /></div>
+          <div class="rb-field"><label for="contact">Email or phone</label><input id="contact" name="contact" type="text" autocomplete="email" required /></div>
+          <button class="rb-btn" type="submit">Get my free review →</button>
+          <p class="rb-note">What happens next: we get back to you within two business days with honest feedback, plus a free preview if you want one. No charge and no sales call.</p>
+          <p class="rb-note">We only use your details to prepare your review. We never sell or share them, and you can ask us to delete them anytime.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .review-block {
+    --mist: #ededef;
+    --ink: #ffffff;
+    --ink-soft: color-mix(in srgb, var(--mist) 74%, transparent);
+    --ink-faint: color-mix(in srgb, var(--mist) 48%, transparent);
+    --line: color-mix(in srgb, var(--mist) 16%, transparent);
+    --line-strong: color-mix(in srgb, var(--mist) 26%, transparent);
+    --accent: #e6e6e8;
+    --ring: 0 0 0 3px rgba(255, 255, 255, 0.28);
+    color: var(--ink);
+    padding-block: clamp(4rem, 9vw, 8rem);
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 8.5rem 100%;
+  }
+
+  .rb-shell {
+    width: min(100% - clamp(2rem, 6vw, 5rem), 1180px);
+    margin-inline: auto;
+  }
+
+  .rb-head {
+    max-width: 46rem;
+    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .rb-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--accent);
+    font-size: 0.74rem;
+    font-weight: 760;
+    letter-spacing: 0.04em;
+    margin-bottom: 1rem;
+  }
+
+  .rb-eyebrow::before {
+    content: "";
+    width: 2.2rem;
+    height: 1px;
+    background: currentColor;
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .rb-head h2 {
+    max-width: 16ch;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.6vw, 3.2rem);
+    font-weight: 760;
+    letter-spacing: 0;
+    line-height: 0.96;
+    margin: 0 0 1rem;
+    text-transform: none;
+  }
+
+  .rb-head p {
+    color: var(--ink-soft);
+    font-size: clamp(1.02rem, 1.5vw, 1.2rem);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .rb-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(320px, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .rb-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(22, 22, 24, 0.42));
+    box-shadow: 0 34px 72px -34px rgba(0, 0, 0, 0.96), 0 14px 34px -18px rgba(255, 255, 255, 0.18);
+    padding: clamp(1.2rem, 2.2vw, 1.8rem);
+  }
+
+  .rb-kicker {
+    display: block;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 780;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.7rem;
+  }
+
+  .rb-card h3 {
+    max-width: 11ch;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 760;
+    line-height: 0.98;
+    margin: 0;
+    text-transform: none;
+  }
+
+  .rb-list {
+    list-style: none;
+    display: grid;
+    gap: 1.15rem;
+    margin: 1.3rem 0 0;
+    padding: 0;
+  }
+
+  .rb-list li {
+    position: relative;
+    display: grid;
+    gap: 0.25rem;
+    padding-left: 1.15rem;
+  }
+
+  .rb-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
+  }
+
+  .rb-list li strong {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.98rem;
+    line-height: 1.2;
+  }
+
+  .rb-list li span {
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .rb-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .rb-intent {
+    display: grid;
+    gap: 0.6rem;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .rb-intent legend {
+    color: var(--ink-soft);
+    font-size: var(--step--1);
+    font-weight: 650;
+    padding: 0;
+    margin-bottom: 0.2rem;
+  }
+
+  .rb-intent-option {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+  }
+
+  .rb-intent-option input {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: 0 0 auto;
+    margin-top: 0.18rem;
+    accent-color: var(--accent);
+  }
+
+  .rb-intent-option strong,
+  .rb-intent-option em {
+    display: block;
+  }
+
+  .rb-intent-option strong { color: #ffffff; line-height: 1.1; }
+  .rb-intent-option em { color: var(--ink-faint); font-style: normal; font-size: 0.88rem; margin-top: 0.2rem; }
+  .rb-intent-option:has(input:checked) {
+    border-color: color-mix(in srgb, var(--accent) 72%, white);
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .rb-field,
+  .rb-field-row {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .rb-field-row {
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+  }
+
+  .rb-field label {
+    color: var(--ink-soft);
+    font-size: var(--step--1);
+    font-weight: 650;
+  }
+
+  .rb-field input,
+  .rb-field select {
+    width: 100%;
+    font: inherit;
+    padding: 0.82rem 0.95rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.065);
+    color: var(--ink);
+  }
+
+  .rb-field input::placeholder { color: var(--ink-faint); }
+
+  .rb-field input:focus-visible,
+  .rb-field select:focus-visible {
+    outline: none;
+    border-color: #ffffff;
+    box-shadow: var(--ring);
+  }
+
+  .rb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.9rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 8px;
+    background: linear-gradient(180deg, #ffffff, #ededef 42%, #d2d2d6 100%);
+    color: #0a0a0b;
+    font: inherit;
+    font-weight: 780;
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -4px 9px rgba(0, 0, 0, 0.26),
+      0 22px 44px -22px rgba(255, 255, 255, 0.9);
+    transition: transform 0.18s ease;
+  }
+
+  .rb-btn:hover { transform: translateY(-2px); }
+
+  .rb-note {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: var(--step--1);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .rb-layout { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 760px) {
+    .rb-field-row { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rb-btn:hover { transform: none; }
+  }
+</style>
