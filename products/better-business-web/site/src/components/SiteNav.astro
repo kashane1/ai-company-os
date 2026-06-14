@@ -4,8 +4,8 @@
 // The brand "b" mark is a FIXED element owned by the layout (it never moves);
 // the nav just reserves an equal-width slot on the left so the centered links
 // stay clear of it. A faint shadow appears when stuck (one sentinel + IO). The
-// nav links share one style; the last item is an accent "Free preview" CTA. On
-// small screens items wrap inside the pill (no hamburger / disclosure menu).
+// links are styled identically (no accent CTA); on small screens they simply
+// wrap onto two lines inside the pill (no hamburger / disclosure menu).
 
 interface Props {
   current?: string;
@@ -16,7 +16,6 @@ const links = [
   { href: "/", label: "Intro" },
   { href: "/demos", label: "Demos" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/#review", label: "Free preview", cta: true },
 ];
 ---
 <nav class="site-nav" aria-label="Primary">
@@ -26,7 +25,7 @@ const links = [
         <li>
           <a
             href={l.href}
-            class:list={["site-nav__link", l.cta && "site-nav__cta", current === l.href && "is-current"]}
+            class:list={["site-nav__link", current === l.href && "is-current"]}
             aria-current={current === l.href ? "page" : undefined}
           >{l.label}</a>
         </li>
@@ -156,28 +155,6 @@ const links = [
     box-shadow:
       inset 1px 1px 0 rgba(255, 255, 255, 0.24),
       inset -1px -1px 0 rgba(0, 0, 0, 0.24);
-  }
-
-  /* Accent CTA: drop the "|" divider before it, give it the filled treatment. */
-  .site-nav__links li:has(.site-nav__cta)::before { display: none; }
-
-  /* Glass CTA — a brighter pour of the same glass so it reads as the action
-     without breaking the nav's translucent look. */
-  .site-nav__cta {
-    color: #ffffff;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08));
-    border-color: color-mix(in srgb, #ededef 42%, transparent);
-    font-weight: 740;
-    box-shadow:
-      inset 1px 1px 0 rgba(255, 255, 255, 0.3),
-      inset -1px -1px 0 rgba(0, 0, 0, 0.22);
-    margin-left: 0.18rem;
-  }
-
-  .site-nav__cta:hover {
-    color: #ffffff;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.13));
-    border-color: color-mix(in srgb, #ededef 58%, transparent);
   }
 
   /* ---- Small screens: the pill hugs its three links on a single row. ---- */
