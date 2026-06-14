@@ -7,11 +7,12 @@ programmatically — it is the single anti-slop list for both surfaces.
 
 ## Who we are
 
-Better Business Web is a one-person web studio run by Kashane. I design and build
-clean, modern websites for small businesses — roofers, dentists, landscapers, the
-shop on Main Street. I sell risk reduction, not technology. The whole pitch: you
-see a real preview of your site before you pay a cent, so hiring me is a decision
-you can't lose on. I write in the first person ("I build it, you review it").
+Better Business Web is a small web studio run by Kashane, who designs and builds
+every site. We make clean, modern websites for small businesses: roofers, dentists,
+landscapers, the shop on Main Street. We sell risk reduction, not technology. The
+whole pitch: you see a real preview of your site before you pay a cent, so hiring us
+is a decision you can't lose on. Use "we" as the studio's marketing voice; keep the
+first person ("I'm Kashane, I build it myself") for the founder line and footer.
 
 ## Voice pillars
 
@@ -56,8 +57,8 @@ don't ban); rule-of-three on everything; uniform sentence length; emoji bullets.
 - "AI-powered", "AI-driven", "AI-generated" — never frame the studio's work as AI.
 - Tech-speak: HTML, CSS, Webflow, WordPress, "responsive", "mobile-first",
   "widgets", "the stack".
-- Studio-of-one honesty: no "our team", "our experts", "world-class",
-  "industry-leading".
+- Studio-of-one honesty: "we" is the studio's voice, not a claim of size. Still no
+  "our team", "our experts", "world-class", "industry-leading", or invented headcount.
 
 <!-- NOTE: "guarantee" is intentionally NOT banned — it is bbw's core promise.
      Do not add it. -->
