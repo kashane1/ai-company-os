@@ -206,38 +206,48 @@ const {
     justify-content: center;
   }
 
+  /* Glass link buttons — match the glassmorphic nav pill. */
   .v2-page__btn,
   .v2-page__content :global(.v2-btn) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-height: 48px;
-    padding: 0.9rem 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.42);
+    padding: 0.82rem 1.4rem;
+    border: 1px solid color-mix(in srgb, var(--v2-mist) 42%, transparent);
     border-radius: 8px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--v2-seafoam) 78%, white), #ededef 42%, #d2d2d6 100%);
-    color: #0a0a0b;
-    font-weight: 780;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.19), rgba(255, 255, 255, 0.07)),
+      color-mix(in srgb, #0a0a0b 80%, transparent);
+    color: var(--v2-mist);
+    font-weight: 720;
+    -webkit-backdrop-filter: saturate(140%) blur(20px) brightness(0.92);
+    backdrop-filter: saturate(140%) blur(20px) brightness(0.92);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.55),
-      inset 0 -4px 9px rgba(0, 0, 0, 0.26),
-      0 22px 44px -22px rgba(255, 255, 255, 0.9);
-    transition: transform 0.18s ease, border-color 0.18s ease;
+      inset 1px 1px 0 rgba(255, 255, 255, 0.22),
+      inset -1px -1px 0 rgba(0, 0, 0, 0.3),
+      inset 0 0 22px rgba(255, 255, 255, 0.07),
+      -8px 10px 26px -18px rgba(0, 0, 0, 0.9);
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
   }
 
   .v2-page__btn:hover,
   .v2-page__content :global(.v2-btn:hover) {
-    color: #070708;
+    color: #ffffff;
+    border-color: color-mix(in srgb, var(--v2-mist) 56%, transparent);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.1)),
+      color-mix(in srgb, #0a0a0b 74%, transparent);
     transform: translateY(-2px);
   }
 
   .v2-page__btn.is-ghost,
   .v2-page__content :global(.v2-btn.is-ghost) {
-    background: rgba(255, 255, 255, 0.065);
+    border-color: color-mix(in srgb, var(--v2-mist) 26%, transparent);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035)),
+      color-mix(in srgb, #0a0a0b 88%, transparent);
     color: var(--v2-mist);
-    border-color: var(--line-strong);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
   }
 
   .v2-page__content {
