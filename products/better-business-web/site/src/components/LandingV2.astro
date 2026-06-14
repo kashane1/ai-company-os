@@ -1,12 +1,14 @@
 ---
 import portfolio from "../data/portfolio.json";
-import { featuredDemoSlugs, stats, storyPanels, riskBar, founder, pitch } from "../data/landing-v2.mjs";
+import { featuredDemoSlugs, storyPanels, trustChips, founder, pitch } from "../data/landing-v2.mjs";
 
 type Demo = (typeof portfolio.demos)[number];
 const isDemo = (demo: Demo | undefined): demo is Demo => Boolean(demo);
 const featuredDemos = featuredDemoSlugs
   .map((slug) => portfolio.demos.find((demo) => demo.slug === slug))
   .filter(isDemo);
+
+const chips = [...trustChips, `${portfolio.demos.length} sample sites to explore`];
 ---
 
 <article class="landing-v2">
@@ -33,9 +35,9 @@ const featuredDemos = featuredDemoSlugs
         </div>
       </div>
 
-      <div class="hero-stage" aria-hidden="true">
-        <span class="hero-stage__glow"></span>
-        <div class="device-wrap">
+      <div class="hero-stage">
+        <span class="hero-stage__glow" aria-hidden="true"></span>
+        <div class="device-wrap" aria-hidden="true">
           <div class="device" id="heroDevice">
             <div class="device__bar">
               <span class="device__dots"><i></i><i></i><i></i></span>
@@ -56,27 +58,14 @@ const featuredDemos = featuredDemoSlugs
           </div>
           <span class="device__label" id="heroLabel">{featuredDemos[0]?.name}</span>
         </div>
+        <a class="v2-btn v2-btn--ghost hero-demos-btn" href="/demos">See more demos →</a>
       </div>
     </div>
   </section>
 
-  <section class="v2-proof" aria-label="Landing page proof points">
-    <div class="v2-shell">
-      <div class="proof-grid">
-        {stats.map((stat) => (
-          <div class="proof-card">
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
-          </div>
-        ))}
-      </div>
-      <p class="proof-note">These are real sample sites we've built. <a href="/demos">See the work →</a></p>
-    </div>
-  </section>
-
-  <section class="v2-trust" aria-label="Why it is safe to start">
+  <section class="v2-trust" aria-label="What you can count on">
     <div class="v2-shell trust-bar">
-      {riskBar.map((item) => <span class="trust-chip">{item}</span>)}
+      {chips.map((item) => <span class="trust-chip">{item}</span>)}
     </div>
   </section>
 
@@ -314,8 +303,16 @@ const featuredDemos = featuredDemoSlugs
     min-height: 460px;
     display: grid;
     place-items: center;
+    gap: 1.6rem;
     perspective: 1500px;
     isolation: isolate;
+  }
+
+  .hero-demos-btn {
+    min-height: 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 720;
   }
 
   .hero-stage__glow {
@@ -412,10 +409,6 @@ const featuredDemos = featuredDemoSlugs
   .device__shot.is-active {
     opacity: 1;
     transform: none;
-  }
-
-  .hero-stage:hover .device {
-    transform: rotateX(4deg) rotateY(-7deg);
   }
 
   .device__label {
@@ -637,22 +630,8 @@ const featuredDemos = featuredDemoSlugs
     margin-bottom: 1.4rem;
   }
 
-  .v2-proof .proof-note {
-    margin: 1.4rem 0 0;
-    color: color-mix(in srgb, var(--v2-mist) 66%, transparent);
-    font-size: 0.95rem;
-  }
-
-  .v2-proof .proof-note a {
-    color: var(--v2-seafoam);
-    font-weight: 720;
-    white-space: nowrap;
-  }
-
-  .v2-proof .proof-note a:hover { color: #ffffff; }
-
   .v2-trust {
-    padding-block: clamp(1.4rem, 3vw, 2.4rem);
+    padding-block: clamp(2.2rem, 4vw, 3.6rem);
   }
 
   .trust-bar {
@@ -752,20 +731,7 @@ const featuredDemos = featuredDemoSlugs
 </style>
 
 <script>
-  const stage = document.querySelector(".hero-stage");
-  const device = document.getElementById("heroDevice");
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  if (stage && device && !reduce) {
-    stage.addEventListener("pointermove", (e) => {
-      const r = stage.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width - 0.5;
-      const py = (e.clientY - r.top) / r.height - 0.5;
-      device.style.transform =
-        "rotateX(" + (8 - py * 10).toFixed(2) + "deg) rotateY(" + (-15 + px * 18).toFixed(2) + "deg)";
-    });
-    stage.addEventListener("pointerleave", () => { device.style.transform = ""; });
-  }
 
   const shots = Array.from(document.querySelectorAll(".device__shot"));
   const label = document.getElementById("heroLabel");

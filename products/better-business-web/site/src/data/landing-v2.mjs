@@ -1,13 +1,4 @@
-import portfolio from "./portfolio.json";
-
 export const featuredDemoSlugs = ["dog-grooming", "fish-tacos", "auto-repair", "gun-store"];
-
-export const stats = [
-  { value: "2 days", label: "Until your first preview" },
-  { value: "$0", label: "Due before you say yes" },
-  // Reflects the real number of demos; updates automatically as more are added.
-  { value: String(portfolio.demos.length), label: "Sample sites to explore" },
-];
 
 export const storyPanels = [
   {
@@ -57,10 +48,12 @@ export const labItems = [
   "A real launch",
 ];
 
-// Risk-reversal chips — the strongest trust signal for a studio with no client
-// roster yet. Plain facts, no hype.
-export const riskBar = [
+// Trust/proof chips — merges the old proof stats and risk-reversal facts into one
+// bullet row. Plain facts, no hype. The live demo count is appended in the
+// component so it stays dynamic.
+export const trustChips = [
   "$0 before you say yes",
+  "2 days to your first preview",
   "Cancel the monthly anytime",
   "You own your site and everything on it",
 ];
