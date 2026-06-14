@@ -253,7 +253,7 @@
       "bill_type": "recurring",
       "setup_cents": 8000,
       "monthly_cents": 4000,
-      "blurb": "Automatic prompts that turn happy customers into Google reviews.",
+      "blurb": "A simple system for turning happy customers into Google reviews",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""

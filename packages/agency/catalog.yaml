@@ -176,10 +176,10 @@ services:
     setup_fee: 80
     monthly_fee: 40
     includes:
-      - Automatic prompts that turn happy customers into Google reviews.
-      - Review request template draft (email / in-person QR)
-      - Cadence management and compliance checklist
-      - "SMS review requests planned: require a signed consent addendum (not yet enabled)"
+      - A simple system for turning happy customers into Google reviews
+      - Your Google review link plus a ready-to-send request template (email and in-person QR)
+      - Cadence guidance and a compliance checklist
+      - "SMS review requests are planned but not yet enabled (they need a signed consent addendum first)"
 
   - service_id: local_seo
     name: Local SEO
