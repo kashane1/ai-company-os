@@ -177,11 +177,21 @@ def render_outreach_draft(record: dict, mockup_url: str) -> str:
 def write_record_mockup_fields(place_id: str, result) -> None:
     path = RECORDS_DIR / f"{place_id}.json"
     if not path.exists():
-        return
+        for candidate in RECORDS_DIR.glob("*.json"):
+            try:
+                payload = json.loads(candidate.read_text())
+            except (OSError, ValueError):
+                continue
+            if str(payload.get("place_id", "")) == place_id:
+                path = candidate
+                break
+        else:
+            return
     rec = json.loads(path.read_text())
     rec["mockup_url"] = result.mockup_url
     rec["mockup_site_id"] = result.site_id
     rec["mockup_deploy_id"] = result.deploy_id
+    rec["mockup_version"] = "v2-bespoke"
     rec["mockup_built_at"] = datetime.now(timezone.utc).isoformat()
     path.write_text(json.dumps(rec, indent=2))
 

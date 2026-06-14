@@ -1,0 +1,362 @@
+# Conversion Lab Report: better-business-web-site
+
+## Executive Summary
+
+Vertical: professional_services
+
+Confidence: medium
+
+## Scorecard
+
+| Area | Score |
+|---|---:|
+| Clarity | 7 |
+| Trust | 5 |
+| Offer strength | 7 |
+| Friction | 6 |
+| Local relevance | 3 |
+| Conversion action | 6 |
+
+## Top Conversion Blockers
+
+- No statement of what happens after you submit or how fast you'll hear back — the post-submit experience is a blank.
+- Zero proof on the page: no examples, testimonials, portfolio, or sample preview to back the offer.
+- The 'free' offer isn't defended against the obvious 'what's the catch' — no explicit 'no obligation, no sales call' line.
+- Long 'review map' copy sits in front of the form, slowing down time-poor owners who'd otherwise just submit.
+- No price/value context for the paid next step, leaving budget-minded owners unsure the funnel is affordable.
+- Hedged language ('when it fits, shape a preview direction') makes the core deliverable feel uncertain.
+
+## Top Trust Gaps
+
+- Weak privacy reassurance — one soft sentence, no 'never sold/shared,' no policy link tied to the form.
+- No legitimacy or location signals confirming this is a real, established business.
+- No testimonials, client names, or owner photo to humanize and vouch for the studio.
+- No response-time or availability commitment.
+- No examples of actual reviews/previews proving the 'preview before you pay' claim is real.
+
+## Persona Feedback
+
+### urgent-problem-solver
+
+Likely action: Submits the form if they already feel a deadline, but more likely emails directly because the form gives no sense of how fast a reply comes.
+
+Confidence: medium
+
+Clarity notes:
+- The page never states what happens AFTER you submit, which an urgency-driven buyer reads as 'slow'.
+
+Objections:
+- Nothing tells me how quickly I'll hear back — 'get back to you' could be a day or a month.
+- There's no phone number or direct-call option for an owner who wants to talk now.
+- I can't tell if a real preview comes fast or if this just starts a slow back-and-forth.
+
+Trust gaps:
+- No response-time commitment (e.g. 'reply within 1 business day').
+- No alternate fast channel — form is the only path shown.
+- No indication of current availability or how booked the studio is.
+
+Useful rewrites:
+- Add a turnaround promise near the button: 'You'll hear back within one business day.'
+- Offer a direct contact fallback: 'Prefer to talk? Email or text me directly.'
+- Set preview-speed expectation: 'Most first-look previews land within a few days.'
+
+### skeptical-researcher
+
+Likely action: Hesitates and leaves to verify the studio elsewhere; will not submit until the 'what's the catch with free' question is answered.
+
+Confidence: high
+
+Clarity notes:
+- 'When it fits' undercuts the offer — a researcher reads conditional language as a hidden downgrade.
+- Tone is modest to a fault; it reassures but never proves.
+
+Objections:
+- 'Free' with a preview before paying smells like a foot-in-the-door sales tactic.
+- No portfolio, examples, or proof on this page that the reviews are actually good.
+- 'When it fits, shape a preview direction' is hedged — so maybe I get nothing concrete.
+
+Trust gaps:
+- No examples of past reviews or before/after work linked from this page.
+- No credentials, years of experience, or client count.
+- No explicit 'no obligation, no sales call' statement to defuse the free-trap fear.
+
+Useful rewrites:
+- State the catch plainly: 'The review is genuinely free. No call required, no obligation to buy.'
+- Link proof inline: 'See real reviews I've done →' next to the form.
+- Replace the hedge with a guarantee: 'You'll get a written list of specific issues, every time.'
+
+### budget-constrained-shopper
+
+Likely action: Likely submits — 'free' is the magnet — but braces for an upsell and may give a throwaway email to test the pitch.
+
+Confidence: medium
+
+Clarity notes:
+- Free is believed mostly because it's repeated, but value-vs-cost of the paid step is invisible here.
+
+Objections:
+- If the review is free, the real cost of a build is hidden — I don't know if I can afford the next step.
+- I worry the 'preview before you pay' is engineered to make me want something pricey.
+- No price range anywhere on this page to anchor expectations.
+
+Trust gaps:
+- No price context or 'builds start at $X' to reassure the next step is in reach.
+- No 'no pressure / walk away anytime' reassurance after the free review.
+- Privacy line is thin — doesn't address being added to a sales sequence.
+
+Useful rewrites:
+- Anchor affordability: 'The review is free, and builds start at a price most small businesses can plan for.'
+- Add no-pressure language: 'If the preview isn't for you, no hard feelings and no follow-up pestering.'
+- Link to pricing from the form: 'Curious about cost first? See pricing →'
+
+### premium-convenience-buyer
+
+Likely action: May submit if the form feels effortless, but the plain styling and lack of process clarity make them wonder if the studio is polished enough.
+
+Confidence: medium
+
+Clarity notes:
+- The 'small studio, work directly with me' line is reassuring for some but reads as 'one person, limited capacity' to a premium buyer.
+
+Objections:
+- I can't see what the process looks like after I submit — feels improvised.
+- No scheduling or 'pick a time' option; I have to wait for a reply on someone else's clock.
+- The page reads as humble/handmade, not premium — will the work look high-end?
+
+Trust gaps:
+- No clear numbered process or timeline for the engagement.
+- No examples that signal premium, polished output.
+- No booking-a-slot convenience — only an open-ended form.
+
+Useful rewrites:
+- Add a 3-step process strip: 'Submit → I review → You get a preview + plan.'
+- Offer a calendar option: 'Want to talk it through? Book a 15-minute slot.'
+- Show one polished sample preview so the quality bar is visible.
+
+### safety-and-trust-seeker
+
+Likely action: Hesitant; the named owner helps, but the thin privacy line and lack of legitimacy proof may stop them from sharing business contact info.
+
+Confidence: high
+
+Clarity notes:
+- Having a named, real person is the page's strongest trust asset — but it's buried below the form instead of leading.
+
+Objections:
+- I'm handing over my business name, location, and contact — what exactly happens to it?
+- I can't verify this studio is a real, established business beyond a name.
+- No sign of whether my current-site details stay confidential.
+
+Trust gaps:
+- Privacy assurance is one soft sentence; no link to a real privacy policy near the form (footer link exists but isn't tied to the form).
+- No legitimacy signals — no business registration, location, established-since, or verifiable identity.
+- No statement that submissions won't be sold or used for marketing.
+
+Useful rewrites:
+- Strengthen the privacy line: 'Your details are used only to prepare your review. I never sell or share them, and you can ask me to delete them anytime.'
+- Add legitimacy: 'Better Business Web is a registered studio based in [city], run by Kashane Sakhakorn.'
+- Link the privacy policy right under the form: 'How I handle your info →'
+
+### relationship-referral-buyer
+
+Likely action: Leans positive because of the named owner, but without any testimonials or human face they may wait to ask around first.
+
+Confidence: medium
+
+Clarity notes:
+- The owner-direct message lands well for this persona — it just needs a human face and a single voucher to convert warmth into action.
+
+Objections:
+- I'd want to know someone who used him before I reach out.
+- There's a name but no face, story, or voucher from another business owner.
+- Feels like a solo operator I can't yet vouch for.
+
+Trust gaps:
+- No testimonials or client quotes on the page.
+- No photo of the owner or short personal story.
+- No 'businesses I've helped' or recognizable client logos.
+
+Useful rewrites:
+- Add a testimonial near the form: '“Kashane spotted three things on my site I never noticed.” — [Name], [Business].'
+- Add a one-line owner story with a photo: 'I'm Kashane. I build sites for small businesses that deserve to be found.'
+- Show a 'recently helped' strip of business names or types.
+
+### comparison-shopper
+
+Likely action: Keeps comparing; the free review is appealing but nothing here says why this studio beats the other tabs open.
+
+Confidence: high
+
+Clarity notes:
+- 'Previewed before you pay' is the real differentiator but it's tucked in the footer instead of headlined.
+
+Objections:
+- Lots of web people offer 'free site audits' — what makes this different?
+- No differentiation: speed, specialty, price, or proof.
+- 'Preview before you pay' is a nice hook but I'd want to see it actually delivered.
+
+Trust gaps:
+- No clear differentiator versus agencies or DIY builders.
+- No proof the preview is meaningfully better than a generic audit.
+- No comparison-friendly specifics (turnaround, scope, what's included).
+
+Useful rewrites:
+- Sharpen the differentiator: 'Unlike a generic audit, you get a real preview of a better site — before you spend a dollar.'
+- Add a specific deliverable list: 'You get: a trust-gap list, a mobile check, and a preview direction.'
+- Contrast the model: 'No account managers, no call center — you work directly with the designer.'
+
+### busy-owner-operator-buyer
+
+Likely action: Most likely to actually submit — the form is short — but may bounce off the long 'review map' section before reaching it.
+
+Confidence: high
+
+Clarity notes:
+- Form length itself is reasonable (6 fields); the friction is the wall of explanatory copy in front of it.
+- Several required-looking fields (name, business, city, state) may feel like more than a 'free' favor warrants.
+
+Objections:
+- The 'review map' is six items I don't need to read to fill a form — just let me submit.
+- I can't instantly tell if this person works with a business like mine.
+- The state dropdown is a 50-item scroll for something that could be a quick text field.
+
+Trust gaps:
+- No quick reassurance the studio handles my type/size of business.
+- No response-time so I know it's worth my 60 seconds.
+- No 'just send your URL' express path for the time-poor.
+
+Useful rewrites:
+- Move the form above the review map, or collapse the map into 'What I check →'.
+- Add an express line: 'Short on time? Just drop your website URL and I'll take it from there.'
+- Make state optional or auto-detect; six fields is fine, but trim friction where you can.
+
+### first-time-anxious-buyer
+
+Likely action: Cautiously positive — 'honest, useful feedback' and 'no pressure' tone help — but fear of a sales push may stop them at the button.
+
+Confidence: high
+
+Clarity notes:
+- The three-option chooser ('preview / review / both') is genuinely helpful for an unsure buyer — a strong point.
+- Tone is warm and low-pressure, which suits this persona better than any other.
+
+Objections:
+- If I submit, will I get a pushy sales pitch I don't know how to say no to?
+- I don't know web terms — will the review be over my head?
+- What if my current site is bad and I feel judged?
+
+Trust gaps:
+- No explicit 'no pressure, no sales call' reassurance at the point of submission.
+- No promise the feedback will be plain-language and kind.
+- No 'you don't need to know anything technical' welcome.
+
+Useful rewrites:
+- Reassure at the button: 'No pressure and no sales call — just useful feedback, in plain English.'
+- Lower the bar: 'You don't need to know any web jargon. Just show me what you have.'
+- Make it kind: 'I'll point out what's working too, not just the problems.'
+
+### repeat-maintenance-buyer
+
+Likely action: Submits only if exploring a one-off; sees nothing about ongoing care, so doesn't read this as a long-term relationship yet.
+
+Confidence: low
+
+Clarity notes:
+- This page is framed entirely as a first-touch review, so the recurring-relationship persona is underserved — acceptable for a lead form but a missed reassurance.
+
+Objections:
+- Nothing here tells me if they handle ongoing updates after launch.
+- Is this a one-and-done review, or the start of a maintained relationship?
+- No mention of support, retainers, or who keeps the site current.
+
+Trust gaps:
+- No ongoing-care or maintenance language.
+- No reassurance the studio stays available after the first job.
+- No hint of recurring support plans.
+
+Useful rewrites:
+- Hint at the relationship: 'A review is just the start — I also keep sites current after launch.'
+- Add reliability: 'You work directly with me, so the person who builds it is the person who maintains it.'
+- Mention support: 'Ask about ongoing care plans when we talk.'
+
+### family-household-decision-maker
+
+Likely action: Mixed — willing to gather info via the free review, but needs more substance before they could justify a paid build to a partner/co-owner.
+
+Confidence: medium
+
+Clarity notes:
+- The written/forwardable nature of the review is a selling point that isn't stated explicitly.
+
+Objections:
+- I'd have to explain this choice to a business partner and the page gives me little to point to.
+- No proof, pricing, or process I can forward to someone else.
+- Feels like a personal favor, not a documented service.
+
+Trust gaps:
+- No shareable proof (examples, testimonials, pricing).
+- No clear scope/process to present to a co-decider.
+- No guarantees or policies surfaced near the form.
+
+Useful rewrites:
+- Give them ammo: 'Get a written review you can share with your team or business partner.'
+- Add scope clarity: 'Here's exactly what the review covers and what a build would include.'
+- Surface a guarantee: 'You see the preview before you commit a dollar.'
+
+### local-loyalty-buyer
+
+Likely action: Interested in supporting a small studio, but the page has no location or community grounding, so they can't tell if it's 'local' to them.
+
+Confidence: medium
+
+Clarity notes:
+- Asking for the buyer's city/state while revealing none of the studio's own location creates a one-sided, slightly cold feel for a locality-minded buyer.
+
+Objections:
+- Where is this studio based? I can't tell if they're local or anywhere.
+- The state dropdown asks where I am, but says nothing about where THEY are.
+- No community language — this could be any web shop on the internet.
+
+Trust gaps:
+- No studio location or service-area context.
+- No community or local-business affinity signals.
+- No local proof or nearby-client examples.
+
+Useful rewrites:
+- Ground it: 'A small studio based in [city/region], working with small businesses across the U.S.'
+- Speak to the affinity: 'I'm a one-person studio — supporting me is supporting another small business.'
+- If serving nationally, say so honestly: 'I work with small businesses anywhere — you always deal with me directly.'
+
+## Recommended Rewrites
+
+### I will look for the obvious trust gaps and, when it fits, shape a preview direction you can inspect before paying.
+
+I'll send you a written list of the specific issues holding your site back, and a preview of a better version — all before you pay anything.
+
+### I only use these details to prepare your review and get back to you.
+
+Your details are used only to prepare your review. I never sell or share them, and you can ask me to delete them anytime. No sales call, no pressure.
+
+### Request my free review
+
+Get my free review (no obligation)
+
+### Show me what you have.
+
+Show me your site — I'll send back honest feedback and a preview within one business day.
+
+### Better Business Web is a small studio run by Kashane Sakhakorn. You work directly with the person designing and building your site, not an account manager or a call center.
+
+I'm Kashane Sakhakorn, a one-person studio based in [city]. You work directly with the person who designs and builds your site — no account managers, no call center. Here's a recent review I did →
+
+### Previewed before you pay.
+
+Always: you see a preview of the work before you spend a dollar.
+
+### Review your current site You have a site and want honest, useful feedback.
+
+Review your current site — get honest, plain-English feedback (no jargon, no judgment).
+
+## Confidence And Caveats
+
+This is a synthetic-audience preflight report. It can surface likely conversion issues, but it does not replace live analytics, real customer interviews, or controlled ad experiments.

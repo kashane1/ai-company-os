@@ -1,6 +1,6 @@
 # Funnel Report
 
-_Updated: 2026-06-12T22:37:53Z_
+_Updated: 2026-06-13T00:57:45Z_
 
 Stage counts measured from primary sources (records, audited CSVs, built sites, deploy URLs, the outreach touch store, the lane ledger, and billing). Conversion is each stage as a percent of the one before it; delta is the change since the previous run.
 
@@ -11,7 +11,7 @@ Stage counts measured from primary sources (records, audited CSVs, built sites, 
 | Collected | 29820 | — | — | state/prospects/records/*.json |
 | Audited | 2428 | — | 8.1% | state/prospects/audited/*.csv (web_verify_verdict) |
 | Built | 586 | — | 24.1% | state/prospects/sites/*/dist-v2/index.html |
-| Deployed | 18 | +3 | 3.1% | records with mockup_url |
+| Deployed | 18 | — | 3.1% | records with mockup_url |
 | Sent | 11 | — | 61.1% | outreach_touches (distinct place_id) |
 | Replied | 0 | — | 0% | outreach-lane client-status.json |
 | Won | 0 | — | — | outreach-lane client-status.json |

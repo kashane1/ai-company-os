@@ -78,12 +78,16 @@ def _status_controls(view: OutreachPanelView) -> str:
     for row in view.rows:
         counts[row.status] = counts.get(row.status, 0) + 1
     buttons = [
-        f"<button class='chip active' data-status-filter='all'>"
+        f"<button class='chip reset active' data-status-filter='all'>"
         f"All <b>{len(view.rows)}</b></button>",
-        f"<button class='chip due' data-due-filter='1'>Due now <b>{view.due_count}</b></button>",
+        "<button class='chip due' draggable='true' data-due-filter='1' "
+        "data-filter-type='due' data-filter-key='due' data-filter-label='Due now'>"
+        f"Due now <b>{view.due_count}</b></button>",
     ]
     buttons.extend(
-        f"<button class='chip' data-status-filter='{_e(status)}'>"
+        f"<button class='chip' draggable='true' data-status-filter='{_e(status)}' "
+        f"data-filter-type='status' data-filter-key='{_e(status)}' "
+        f"data-filter-label='{_e(_label(status))}'>"
         f"{_e(_label(status))} <b>{counts.get(status, 0)}</b></button>"
         for status in view.statuses
     )
@@ -104,7 +108,9 @@ def _variant_select(view: OutreachPanelView) -> str:
 
 def _facet_controls(view: OutreachPanelView) -> str:
     return "".join(
-        f"<button class='chip facet' data-facet-filter='{_e(facet.key)}'>"
+        f"<button class='chip facet' draggable='true' data-facet-filter='{_e(facet.key)}' "
+        f"data-filter-type='facet' data-filter-key='{_e(facet.key)}' "
+        f"data-filter-label='{_e(facet.label)}'>"
         f"{_e(facet.label)} <b>{facet.count}</b></button>"
         for facet in view.facets
     )
@@ -130,6 +136,24 @@ def _controls(view: OutreachPanelView) -> str:
     </div>
     <div class="chips statuschips">{_status_controls(view)}</div>
     <div class="chips facetchips">{_facet_controls(view)}</div>
+    <div class="filterbuilder" aria-label="Filter builder">
+      <section class="dropzone active" id="includeZone" data-zone="include" tabindex="0"
+               aria-label="include these filters">
+        <div class="zonehead">
+          <b>include these filters</b>
+          <span class="small muted">click filters or drop them here</span>
+        </div>
+        <div class="zonetokens empty" id="includeTokens">No include filters</div>
+      </section>
+      <section class="dropzone" id="excludeZone" data-zone="exclude" tabindex="0"
+               aria-label="exclude these filters">
+        <div class="zonehead">
+          <b>exclude these filters</b>
+          <span class="small muted">matches are hidden</span>
+        </div>
+        <div class="zonetokens empty" id="excludeTokens">No exclude filters</div>
+      </section>
+    </div>
   </section>"""
 
 
@@ -341,14 +365,50 @@ def render_outreach_html(view: OutreachPanelView, *, funnel: dict | None = None)
   .chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}
   .statuschips {{ margin-bottom: 7px; }}
   .chip {{ font: inherit; font-size: 12px; border: 1px solid #c9d0d7; border-radius: 999px;
-          background: white; color: #2f353b; padding: 4px 9px; cursor: pointer; }}
+          background: white; color: #2f353b; padding: 4px 9px; cursor: pointer;
+          transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease,
+                      transform 0.16s ease; }}
+  .chip[draggable="true"]:active {{ cursor: grabbing; transform: translateY(1px); }}
   .chip b {{ font-weight: 650; color: #697077; margin-left: 3px; }}
   .chip.active {{ background: #12343b; color: white; border-color: #12343b; }}
   .chip.active b {{ color: #d7f3ee; }}
   .chip.facet.active {{ background: #7a4d12; border-color: #7a4d12; }}
+  .chip.placed.include {{ background: #e7f3ed; border-color: #7ab493; color: #174f31; }}
+  .chip.placed.include b {{ color: #3f7558; }}
+  .chip.placed.exclude {{ background: #fff1e9; border-color: #e4a47d; color: #87410f; }}
+  .chip.placed.exclude b {{ color: #9d6033; }}
   .chip.due {{ border-color: #d99b2b; color: #8a5a00; }}
   .chip.due.active {{ background: #d99b2b; color: white; border-color: #d99b2b; }}
   .chip.due.active b {{ color: #fff3da; }}
+  .filterbuilder {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }}
+  .dropzone {{ min-height: 72px; border: 1px dashed #c4cad0; border-radius: 8px;
+              background: #fff; padding: 9px 10px; outline: none; cursor: pointer;
+              transition: border-color 0.16s ease, box-shadow 0.16s ease,
+                          background 0.16s ease; }}
+  .dropzone.active {{ border-style: solid; border-color: #1a73e8;
+                     box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12); }}
+  .dropzone.dragover {{ background: #eef5ff; border-color: #1a73e8; }}
+  .dropzone[data-zone="exclude"].active {{ border-color: #d97706;
+                     box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.13); }}
+  .dropzone[data-zone="exclude"].dragover {{ background: #fff7ed; border-color: #d97706; }}
+  .zonehead {{ display: flex; align-items: baseline; justify-content: space-between;
+              gap: 10px; margin-bottom: 8px; }}
+  .zonehead b {{ font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }}
+  .zonetokens {{ display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }}
+  .zonetokens.empty {{ color: #8a9097; font-size: 12px; }}
+  .token {{ display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+           border-radius: 999px; padding: 3px 6px 3px 9px; font-size: 12px;
+           border: 1px solid transparent; cursor: grab;
+           transition: opacity 0.16s ease, transform 0.16s ease; }}
+  .token:active {{ cursor: grabbing; transform: translateY(1px); }}
+  .dragging-token .token {{ opacity: 0.72; }}
+  .token.include {{ background: #e7f3ed; border-color: #b9dbc8; color: #174f31; }}
+  .token.exclude {{ background: #fff1e9; border-color: #efc2a7; color: #87410f; }}
+  .token span {{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+  .token button {{ width: 18px; height: 18px; border-radius: 50%; border: 0;
+                  background: rgba(0, 0, 0, 0.08); color: inherit; cursor: pointer;
+                  line-height: 18px; padding: 0; }}
+  .token button:hover {{ background: rgba(0, 0, 0, 0.16); }}
   .badge.due {{ color: #8a5a00; background: #fdf0d5; border-radius: 999px;
                padding: 2px 8px; }}
   .card {{ background: white; border: 1px solid #dde1e6; border-radius: 8px;
@@ -392,6 +452,7 @@ def render_outreach_html(view: OutreachPanelView, *, funnel: dict | None = None)
     main {{ padding: 12px 12px 44px; }}
     .controltop {{ grid-template-columns: 1fr 1fr; }}
     .search {{ grid-column: 1 / -1; }}
+    .filterbuilder {{ grid-template-columns: 1fr; }}
     .visible {{ text-align: left; }}
     .cardhead {{ display: block; }}
     .headright {{ margin-top: 6px; flex-wrap: wrap; }}
@@ -420,8 +481,11 @@ async function post(url, body) {{
     body: JSON.stringify(body),
   }});
   if (!res.ok) {{ alert('Action failed: ' + res.status); return; }}
-  const place = body.place_id ? '?updated=' + encodeURIComponent(body.place_id) : '';
-  location.href = location.pathname + place;
+  const params = new URLSearchParams(location.search);
+  writeStateParams(params);
+  if (body.place_id) {{ params.set('updated', body.place_id); }}
+  const query = params.toString();
+  location.href = location.pathname + (query ? '?' + query : '');
 }}
 const cards = Array.from(document.querySelectorAll('.card'));
 const search = document.getElementById('search');
@@ -429,10 +493,15 @@ const sort = document.getElementById('sort');
 const variantSelect = document.getElementById('variant');
 const visibleCount = document.getElementById('visibleCount');
 const clearFilters = document.getElementById('clearFilters');
-let statusFilter = 'all';
-let dueOnly = false;
+const includeZone = document.getElementById('includeZone');
+const excludeZone = document.getElementById('excludeZone');
+const includeTokens = document.getElementById('includeTokens');
+const excludeTokens = document.getElementById('excludeTokens');
 let activeVariant = variantSelect ? variantSelect.value : 'demo-link';
-const facetFilters = new Set();
+let activeZone = 'include';
+let draggingTokenId = '';
+const includeFilters = new Map();
+const excludeFilters = new Map();
 if (variantSelect) {{
   variantSelect.addEventListener('change', function () {{ activeVariant = variantSelect.value; }});
 }}
@@ -469,66 +538,265 @@ function sortCards() {{
   const main = document.querySelector('main');
   sorted.forEach(function (card) {{ main.appendChild(card); }});
 }}
+function filterId(filter) {{
+  return filter.type + ':' + filter.key;
+}}
+function filterFromElement(el) {{
+  if (!el.dataset.filterType || !el.dataset.filterKey) {{ return null; }}
+  return {{
+    type: el.dataset.filterType,
+    key: el.dataset.filterKey,
+    label: el.dataset.filterLabel || el.textContent.trim(),
+  }};
+}}
+function filterFromId(id) {{
+  const parts = id.split(':');
+  if (parts.length < 2) {{ return null; }}
+  const type = parts.shift();
+  const key = parts.join(':');
+  const el = document.querySelector(
+    '[data-filter-type="' + CSS.escape(type) + '"][data-filter-key="' + CSS.escape(key) + '"]'
+  );
+  return el ? filterFromElement(el) : {{ type: type, key: key, label: key }};
+}}
+function matchesFilter(card, filter) {{
+  if (filter.type === 'status') {{ return card.dataset.status === filter.key; }}
+  if (filter.type === 'due') {{ return card.dataset.due === '1'; }}
+  if (filter.type === 'facet') {{
+    const tags = new Set((card.dataset.tags || '').split(/\\s+/).filter(Boolean));
+    return tags.has(filter.key);
+  }}
+  return false;
+}}
+function setActiveZone(zone) {{
+  activeZone = zone === 'exclude' ? 'exclude' : 'include';
+  includeZone.classList.toggle('active', activeZone === 'include');
+  excludeZone.classList.toggle('active', activeZone === 'exclude');
+}}
+function renderToken(filter, zone) {{
+  const token = document.createElement('span');
+  token.className = 'token ' + zone;
+  token.dataset.filterId = filterId(filter);
+  token.draggable = true;
+  const label = document.createElement('span');
+  label.textContent = filter.label;
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.textContent = '\\u00d7';
+  remove.setAttribute('aria-label', 'Remove ' + filter.label);
+  remove.addEventListener('click', function (event) {{
+    event.stopPropagation();
+    removeFilter(filterId(filter));
+  }});
+  token.addEventListener('dragstart', function (event) {{
+    draggingTokenId = filterId(filter);
+    document.body.classList.add('dragging-token');
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('application/json', JSON.stringify(filter));
+    event.dataTransfer.setData('text/plain', draggingTokenId);
+  }});
+  token.addEventListener('dragend', function () {{
+    draggingTokenId = '';
+    document.body.classList.remove('dragging-token');
+    document.querySelectorAll('.dropzone').forEach(function (zoneEl) {{
+      zoneEl.classList.remove('dragover');
+    }});
+  }});
+  token.appendChild(label);
+  token.appendChild(remove);
+  return token;
+}}
+function writeStateParams(params) {{
+  const q = (search.value || '').trim();
+  if (q) {{ params.set('q', q); }} else {{ params.delete('q'); }}
+  if (sort.value && sort.value !== 'priority') {{ params.set('sort', sort.value); }}
+  else {{ params.delete('sort'); }}
+  const include = Array.from(includeFilters.keys()).join(',');
+  const exclude = Array.from(excludeFilters.keys()).join(',');
+  if (include) {{ params.set('include', include); }} else {{ params.delete('include'); }}
+  if (exclude) {{ params.set('exclude', exclude); }} else {{ params.delete('exclude'); }}
+  if (activeZone === 'exclude') {{ params.set('zone', 'exclude'); }}
+  else {{ params.delete('zone'); }}
+}}
+function persistState() {{
+  const params = new URLSearchParams(location.search);
+  writeStateParams(params);
+  const query = params.toString();
+  history.replaceState(null, '', location.pathname + (query ? '?' + query : ''));
+}}
+function restoreFilters(value, target) {{
+  (value || '').split(',').filter(Boolean).forEach(function (id) {{
+    const filter = filterFromId(id);
+    if (filter && filter.type && filter.key) {{ target.set(filterId(filter), filter); }}
+  }});
+}}
+function restoreStateFromUrl() {{
+  const params = new URLSearchParams(location.search);
+  const sortParam = params.get('sort');
+  search.value = params.get('q') || '';
+  if (sortParam && sort.querySelector('option[value="' + CSS.escape(sortParam) + '"]')) {{
+    sort.value = sortParam;
+  }}
+  restoreFilters(params.get('include'), includeFilters);
+  restoreFilters(params.get('exclude'), excludeFilters);
+  setActiveZone(params.get('zone') === 'exclude' ? 'exclude' : 'include');
+  renderFilterZones();
+}}
+function syncChipState() {{
+  document.querySelectorAll('[data-filter-type]').forEach(function (el) {{
+    const filter = filterFromElement(el);
+    const id = filterId(filter);
+    el.classList.remove('active', 'placed', 'include', 'exclude');
+    if (includeFilters.has(id)) {{
+      el.classList.add('active', 'placed', 'include');
+    }} else if (excludeFilters.has(id)) {{
+      el.classList.add('active', 'placed', 'exclude');
+    }}
+  }});
+  document.querySelector('[data-status-filter="all"]').classList.toggle(
+    'active',
+    includeFilters.size === 0 && excludeFilters.size === 0
+  );
+}}
+function renderFilterZones() {{
+  includeTokens.innerHTML = '';
+  excludeTokens.innerHTML = '';
+  includeTokens.classList.toggle('empty', includeFilters.size === 0);
+  excludeTokens.classList.toggle('empty', excludeFilters.size === 0);
+  if (includeFilters.size === 0) {{
+    includeTokens.textContent = 'No include filters';
+  }} else {{
+    includeFilters.forEach(function (filter) {{
+      includeTokens.appendChild(renderToken(filter, 'include'));
+    }});
+  }}
+  if (excludeFilters.size === 0) {{
+    excludeTokens.textContent = 'No exclude filters';
+  }} else {{
+    excludeFilters.forEach(function (filter) {{
+      excludeTokens.appendChild(renderToken(filter, 'exclude'));
+    }});
+  }}
+  syncChipState();
+}}
+function addFilter(filter, zone) {{
+  if (!filter) {{ return; }}
+  const id = filterId(filter);
+  if (zone === 'exclude') {{
+    includeFilters.delete(id);
+    excludeFilters.set(id, filter);
+  }} else {{
+    excludeFilters.delete(id);
+    includeFilters.set(id, filter);
+  }}
+  renderFilterZones();
+  persistState();
+  applyFilters();
+}}
+function removeFilter(id) {{
+  includeFilters.delete(id);
+  excludeFilters.delete(id);
+  renderFilterZones();
+  persistState();
+  applyFilters();
+}}
+function clearFilterBuilder() {{
+  includeFilters.clear();
+  excludeFilters.clear();
+  setActiveZone('include');
+  renderFilterZones();
+}}
 function applyFilters() {{
   const needle = (search.value || '').trim().toLowerCase();
   let shown = 0;
   cards.forEach(function (card) {{
-    const tags = new Set((card.dataset.tags || '').split(/\\s+/).filter(Boolean));
     const matchesSearch = !needle || (card.dataset.search || '').includes(needle);
-    const matchesStatus = statusFilter === 'all' || card.dataset.status === statusFilter;
-    const matchesFacets = Array.from(facetFilters).every(function (facet) {{
-      return tags.has(facet);
+    const matchesIncludes = Array.from(includeFilters.values()).every(function (filter) {{
+      return matchesFilter(card, filter);
     }});
-    const matchesDue = !dueOnly || card.dataset.due === '1';
-    const visible = matchesSearch && matchesStatus && matchesFacets && matchesDue;
+    const matchesExcludes = Array.from(excludeFilters.values()).some(function (filter) {{
+      return matchesFilter(card, filter);
+    }});
+    const visible = matchesSearch && matchesIncludes && !matchesExcludes;
     card.hidden = !visible;
     if (visible) {{ shown += 1; }}
   }});
   visibleCount.textContent = shown + ' shown';
   sortCards();
 }}
-document.querySelectorAll('[data-status-filter]').forEach(function (el) {{
+document.querySelectorAll('[data-filter-type]').forEach(function (el) {{
   el.addEventListener('click', function () {{
-    document.querySelectorAll('[data-status-filter]').forEach(function (button) {{
-      button.classList.remove('active');
-    }});
-    el.classList.add('active');
-    statusFilter = el.dataset.statusFilter;
+    const filter = filterFromElement(el);
+    addFilter(filter, activeZone);
+  }});
+  el.addEventListener('dragstart', function (event) {{
+    const filter = filterFromElement(el);
+    event.dataTransfer.effectAllowed = 'copyMove';
+    event.dataTransfer.setData('application/json', JSON.stringify(filter));
+    event.dataTransfer.setData('text/plain', filterId(filter));
+  }});
+}});
+document.querySelectorAll('[data-status-filter="all"]').forEach(function (el) {{
+  el.addEventListener('click', function () {{
+    clearFilterBuilder();
+    persistState();
     applyFilters();
   }});
 }});
-const dueChip = document.querySelector('[data-due-filter]');
-if (dueChip) {{
-  dueChip.addEventListener('click', function () {{
-    dueOnly = !dueOnly;
-    dueChip.classList.toggle('active', dueOnly);
-    if (dueOnly) {{ sort.value = 'due'; }}
-    applyFilters();
+document.querySelectorAll('.dropzone').forEach(function (zoneEl) {{
+  zoneEl.addEventListener('click', function () {{
+    setActiveZone(zoneEl.dataset.zone);
+    persistState();
   }});
-}}
-document.querySelectorAll('[data-facet-filter]').forEach(function (el) {{
-  el.addEventListener('click', function () {{
-    const facet = el.dataset.facetFilter;
-    if (facetFilters.has(facet)) {{
-      facetFilters.delete(facet);
-      el.classList.remove('active');
-    }} else {{
-      facetFilters.add(facet);
-      el.classList.add('active');
+  zoneEl.addEventListener('keydown', function (event) {{
+    if (event.key === 'Enter' || event.key === ' ') {{
+      event.preventDefault();
+      setActiveZone(zoneEl.dataset.zone);
+      persistState();
     }}
-    applyFilters();
+  }});
+  zoneEl.addEventListener('dragover', function (event) {{
+    event.preventDefault();
+    zoneEl.classList.add('dragover');
+  }});
+  zoneEl.addEventListener('dragleave', function () {{
+    zoneEl.classList.remove('dragover');
+  }});
+  zoneEl.addEventListener('drop', function (event) {{
+    event.preventDefault();
+    zoneEl.classList.remove('dragover');
+    setActiveZone(zoneEl.dataset.zone);
+    try {{
+      const filter = JSON.parse(event.dataTransfer.getData('application/json') || '{{}}');
+      if (filter.type && filter.key) {{ addFilter(filter, zoneEl.dataset.zone); }}
+    }} catch (err) {{
+      return;
+    }}
   }});
 }});
-search.addEventListener('input', applyFilters);
-sort.addEventListener('change', applyFilters);
+document.addEventListener('dragover', function (event) {{
+  if (draggingTokenId && !event.target.closest('.dropzone')) {{ event.preventDefault(); }}
+}});
+document.addEventListener('drop', function (event) {{
+  if (!draggingTokenId || event.target.closest('.dropzone')) {{ return; }}
+  event.preventDefault();
+  removeFilter(draggingTokenId);
+  draggingTokenId = '';
+  document.body.classList.remove('dragging-token');
+}});
+search.addEventListener('input', function () {{
+  persistState();
+  applyFilters();
+}});
+sort.addEventListener('change', function () {{
+  persistState();
+  applyFilters();
+}});
 clearFilters.addEventListener('click', function () {{
   search.value = '';
-  statusFilter = 'all';
-  dueOnly = false;
-  facetFilters.clear();
-  document.querySelectorAll('.chip').forEach(function (el) {{ el.classList.remove('active'); }});
-  document.querySelector('[data-status-filter="all"]').classList.add('active');
+  clearFilterBuilder();
   sort.value = 'priority';
+  persistState();
   applyFilters();
 }});
 document.querySelectorAll('.js-log').forEach(function (el) {{
@@ -620,6 +888,7 @@ if (updated) {{
   }});
   render();
 }})();
+restoreStateFromUrl();
 applyFilters();
 </script>
 </body>

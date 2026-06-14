@@ -1,0 +1,328 @@
+{
+  "product_id": "better-business-web-site",
+  "vertical": "professional_services",
+  "scorecard": {
+    "clarity": 6,
+    "trust": 4,
+    "offer_strength": 4,
+    "friction": 6,
+    "local_relevance": 3,
+    "conversion_action": 5
+  },
+  "persona_reviews": [
+    {
+      "persona_id": "urgent-problem-solver",
+      "likely_action": "Skims the four cards, maybe opens one demo, then leaves without filling the form because nothing signals how fast a site could actually be turned around.",
+      "objections": [
+        "I need a site up fast and this page tells me nothing about turnaround time.",
+        "The primary CTA is 'Request your preview' but I don't know how long a preview takes or what happens after.",
+        "No phone, no scheduling, no 'reply within X' — the next step feels slow and open-ended."
+      ],
+      "trust_gaps": [
+        "No timeline, availability, or response-time promise anywhere on the page.",
+        "No indication these demos were built quickly or that BBW can move fast for me.",
+        "No proof a real person responds — only a footer line saying it's one person, which could read as 'might be slow / one-man bottleneck.'"
+      ],
+      "useful_rewrites": [
+        "Add a turnaround line near the CTA: 'Most previews are ready within 2-3 days. Request yours and I'll reply personally within a day.'",
+        "Change 'Request your preview' to 'Get my free preview (usually 2-3 days)' so the speed is explicit.",
+        "Add a one-line 'what happens next' under the CTA so the urgent buyer can see the path is short."
+      ],
+      "clarity_notes": [
+        "'Request your preview' is ambiguous — is the preview free, paid, fast, slow? Urgent buyers won't infer it.",
+        "The page is a gallery with no time/availability cues, so an urgent buyer has no anchor to act on."
+      ],
+      "confidence": "medium"
+    },
+    {
+      "persona_id": "skeptical-researcher",
+      "likely_action": "Opens two or three demos to inspect quality, finds them generic with placeholder business names, and bounces to compare against named agencies with real case studies and testimonials.",
+      "objections": [
+        "These are made-up businesses (Ironside Auto Works, Pelican & Lime) — I can't verify any of this is real client work.",
+        "No testimonials, no named clients, no before/after, no results — just sample pages anyone could mock up.",
+        "The page tells me nothing about credentials, process, or what's actually included."
+      ],
+      "trust_gaps": [
+        "Demos are fictional concepts, not real shipped clients, and the page doesn't even claim a single real customer.",
+        "Zero third-party proof: no reviews, ratings, logos, or outcomes.",
+        "No detail on what BBW actually does, how, or to what standard — the copy is atmospheric ('restaurant energy') rather than evidentiary."
+      ],
+      "useful_rewrites": [
+        "Label honestly and add proof: 'These are concept demos I built. Want to see a real client site? [link]' — then show at least one real launched site.",
+        "Add a short 'What you get' list under the grid (pages, mobile, basic SEO, revisions) so the work is verifiable in scope.",
+        "Add 1-2 testimonials or a 'built for [real business]' credit even if just one exists."
+      ],
+      "clarity_notes": [
+        "'Four previews with real range' uses 'real' while every example is fictional — that word choice undercuts credibility for a careful reader.",
+        "Copy like 'restaurant energy' and 'real customer' is vibe, not evidence; a skeptic reads it as filler."
+      ],
+      "confidence": "high"
+    },
+    {
+      "persona_id": "budget-constrained-shopper",
+      "likely_action": "Clicks 'See pricing' to find numbers; if pricing is unclear there too, leaves. Unlikely to fill the form first because cost is the gating question and the demos page answers none of it.",
+      "objections": [
+        "I have no idea what a site like these costs — there's no price range anywhere on the demos page.",
+        "Requesting a preview feels like it could lead to a sales pitch or surprise quote.",
+        "No 'starting at' anchor means I assume it's expensive or negotiable, both of which scare me."
+      ],
+      "trust_gaps": [
+        "No price context, no 'starting at,' no scope-for-price framing on the page.",
+        "No no-pressure / no-obligation reassurance attached to the preview request.",
+        "'Previewed before you pay' (footer) hints at the model but is buried and vague."
+      ],
+      "useful_rewrites": [
+        "Add a price anchor near the grid: 'Sites like these typically start around $___ — see full pricing.'",
+        "Reassure on the CTA: 'Request your free preview — no cost, no obligation, no pushy follow-up.'",
+        "Pull 'Previewed before you pay' up next to the CTA as a trust line, not a footer afterthought."
+      ],
+      "clarity_notes": [
+        "The demos page has no money information at all, forcing a detour to /pricing and adding a drop-off point.",
+        "'Previewed before you pay' is the single most reassuring phrase on the page and it's hidden in the footer."
+      ],
+      "confidence": "high"
+    },
+    {
+      "persona_id": "premium-convenience-buyer",
+      "likely_action": "Appreciates the clean dark design, opens a demo, but is left unsure what the engagement actually looks like; may request a preview if the demo quality impresses, otherwise moves on.",
+      "objections": [
+        "The page looks polished but I can't tell what the process is or how hands-off it will be for me.",
+        "It says I work directly with one person — is that premium and attentive, or a single point of failure with no backup?",
+        "No clear 'here's how we work together' steps; I value predictability and this is just a gallery."
+      ],
+      "trust_gaps": [
+        "No process / what-happens-after-you-contact steps.",
+        "No signal of done-for-you handling (content, images, copy, hosting) — I don't want to do the work myself.",
+        "No premium proof points (polished real client outcomes, communication cadence)."
+      ],
+      "useful_rewrites": [
+        "Add a 3-step 'How it works' strip: 'Request preview → I build a custom mockup → you approve and I launch.'",
+        "Reframe the solo-studio line as a benefit: 'You work directly with the designer who builds your site — no handoffs, no account managers, fast decisions.'",
+        "Add a 'done-for-you' line: 'I handle design, copy, images, and launch — you just review.'"
+      ],
+      "clarity_notes": [
+        "The design quality is the page's strongest asset and partially carries the premium impression.",
+        "Process clarity is absent; a convenience buyer wants the path spelled out, not implied."
+      ],
+      "confidence": "medium"
+    },
+    {
+      "persona_id": "safety-and-trust-seeker",
+      "likely_action": "Hesitant; sees a named individual but no business legitimacy markers, so is reluctant to hand over their info via the form. Likely opens a demo, doesn't convert.",
+      "objections": [
+        "Who is this exactly? One name, no company info, no location, no track record.",
+        "If I submit the form, what happens to my details? No privacy reassurance near the form path.",
+        "There's a gun-store demo featured prominently — that's a flag I'd want to understand, not a default trust signal."
+      ],
+      "trust_gaps": [
+        "No business legitimacy markers (registered studio, location/region, years active, real clients).",
+        "Privacy/Terms exist in the footer but there's no privacy reassurance at the point of action.",
+        "No guarantee, refund mention (Refunds page is footer-only), or 'previewed before you pay' surfaced where it reduces risk."
+      ],
+      "useful_rewrites": [
+        "Add a credibility line: 'Better Business Web is a registered web studio based in [region], building sites for small businesses since [year].'",
+        "Surface the safety net at the CTA: 'You see the full preview before you pay anything.'",
+        "Add 'Your details stay private — I never share or sell them' near the request action."
+      ],
+      "clarity_notes": [
+        "The footer note humanizes but doesn't legitimize — name without verifiable context can increase, not lower, risk.",
+        "Risk-reducers (refunds, previewed-before-you-pay, privacy) all exist but are buried in the footer."
+      ],
+      "confidence": "medium"
+    },
+    {
+      "persona_id": "relationship-referral-buyer",
+      "likely_action": "Likes the personal 'one person' framing but finds no face, no story, no vouching proof, so doesn't feel confident enough to reach out unprompted.",
+      "objections": [
+        "I want to know who I'm dealing with — there's a name but no photo, no story, no human face.",
+        "No reviews or anyone vouching for the work; I can't tell if a friend would recommend this.",
+        "The demos are fictional brands, so there's no real person/business I could relate to or ask about."
+      ],
+      "trust_gaps": [
+        "No owner photo, bio, or origin story beyond a single footer sentence.",
+        "No testimonials, referrals, or 'who I've worked with.'",
+        "No human warmth in the demo copy itself — it's a product gallery, not a relationship."
+      ],
+      "useful_rewrites": [
+        "Add a short owner intro with a photo: 'Hi, I'm Kashane. I design and build every site myself.'",
+        "Add a testimonial or two from real owners ('Kashane rebuilt our site and bookings went up...').",
+        "Replace 'inspect the page like a real customer would' with a warmer 'see what your customers would see' framing."
+      ],
+      "clarity_notes": [
+        "The solo-studio line is the most human element but it's a footer afterthought, not a feature.",
+        "Nothing on the page is vouchable — a referral buyer needs a person and a proof point."
+      ],
+      "confidence": "high"
+    },
+    {
+      "persona_id": "comparison-shopper",
+      "likely_action": "Has Wix, Squarespace, and another agency open in other tabs; finds no clear differentiation or pricing here, so this tab loses the comparison and gets closed.",
+      "objections": [
+        "Why BBW over Squarespace, Wix, or another freelancer? The page gives no reason.",
+        "Every web shop shows demos — these are generic and don't tell me what's better here.",
+        "No pricing, no turnaround, no 'what's included' — I can't even line it up against alternatives."
+      ],
+      "trust_gaps": [
+        "No differentiation statement (vs DIY builders or other agencies).",
+        "No comparable specs (price, timeline, scope) to evaluate against competitors.",
+        "Demos are fictional, so they don't out-prove a competitor's real portfolio."
+      ],
+      "useful_rewrites": [
+        "Add a differentiator headline: 'A custom site built for you by one designer — not a template you have to wrangle yourself.'",
+        "Add a quick comparison line: 'Cheaper than an agency, far better than a DIY template — and you see it before you pay.'",
+        "Put a 'starts at $___ / ready in ___ days' spec band above the grid so I can compare instantly."
+      ],
+      "clarity_notes": [
+        "The 'real range / intentionally varied' framing answers a question (can they do my industry?) but not the comparison question (why you?).",
+        "'Previewed before you pay' is a genuine differentiator vs deposits-up-front agencies — surface it loudly."
+      ],
+      "confidence": "high"
+    },
+    {
+      "persona_id": "busy-owner-operator-buyer",
+      "likely_action": "Scans for 10 seconds, sees no price/timeline/what-I-get, decides it's not worth the back-and-forth, and leaves. May bookmark if a demo happens to match their industry.",
+      "objections": [
+        "I don't have time — just tell me what it costs, how long it takes, and what I get.",
+        "I can't quickly tell if they build sites for a business like mine; my exact industry may not be in the four.",
+        "Requesting a preview feels like opening a sales conversation, which is time I don't have."
+      ],
+      "trust_gaps": [
+        "No at-a-glance facts (price, timeline, deliverables).",
+        "Industry coverage looks limited to the shown examples — a busy owner won't assume 'any business.'",
+        "No reliability proof (real clients, repeat work)."
+      ],
+      "useful_rewrites": [
+        "Add a one-line summary band: 'Custom small-business sites. From $___. Ready in ___ days. You see it before you pay.'",
+        "Add 'Don't see your industry? I build for any small business — request a preview for yours.'",
+        "Make the CTA outcome-clear: 'Get a free preview of your site' rather than the abstract 'Request your preview.'"
+      ],
+      "clarity_notes": [
+        "The page is efficient visually but information-thin on the decisions a busy owner actually makes.",
+        "Listing only specific industries risks 'they don't do mine' — needs an explicit catch-all."
+      ],
+      "confidence": "high"
+    },
+    {
+      "persona_id": "first-time-anxious-buyer",
+      "likely_action": "Feels unsure what 'request a preview' commits them to, worries about cost and looking uninformed, and hesitates to submit the form. Opens a demo to feel safer but likely doesn't convert.",
+      "objections": [
+        "I've never hired a web person — what does 'request a preview' actually commit me to?",
+        "Is the preview free? Will I be charged or locked in?",
+        "I don't know what to ask for or what info I need to provide."
+      ],
+      "trust_gaps": [
+        "No plain-language explanation of the process for a beginner.",
+        "No explicit 'free / no obligation' reassurance at the CTA.",
+        "No FAQ answering basic first-timer questions (cost, time, what I need to give you)."
+      ],
+      "useful_rewrites": [
+        "Make it explicitly safe: 'Request a free preview — it's free, there's no obligation, and you don't pay until you love it.'",
+        "Add a beginner line: 'New to this? You don't need anything ready — just tell me about your business and I'll handle the rest.'",
+        "Add 3 mini-FAQ items (Is the preview free? How long does it take? What do I need to send you?)."
+      ],
+      "clarity_notes": [
+        "'Inspect the page like a real customer would' is a slightly insider framing that doesn't reassure a nervous first-timer.",
+        "The word 'preview' is unexplained — a first-timer doesn't know if it's free, binding, or how it works."
+      ],
+      "confidence": "high"
+    },
+    {
+      "persona_id": "repeat-maintenance-buyer",
+      "likely_action": "Wonders about ongoing support and updates after launch; finds nothing about maintenance, so files BBW as 'unknown on support' and looks for someone who clearly offers it.",
+      "objections": [
+        "What happens after the site launches — who maintains it, updates it, fixes it?",
+        "Is there ongoing support or a care plan, or am I on my own after handoff?",
+        "A solo studio worries me for continuity — what if I need changes in six months?"
+      ],
+      "trust_gaps": [
+        "No mention of post-launch support, maintenance, hosting, or updates.",
+        "No recurring/care-plan language.",
+        "Solo-operator framing raises continuity questions that go unanswered."
+      ],
+      "useful_rewrites": [
+        "Add an aftercare line: 'I don't disappear after launch — updates and support are part of the deal.'",
+        "Mention ongoing options: 'Need changes later? Simple monthly care plans keep your site fresh.'",
+        "Address continuity: 'Your site, your domain, your control — even if you ever move on.'"
+      ],
+      "clarity_notes": [
+        "The page is launch-focused with nothing about the relationship after the site ships.",
+        "Maintenance is a major decision driver for this persona and is entirely absent."
+      ],
+      "confidence": "medium"
+    },
+    {
+      "persona_id": "family-household-decision-maker",
+      "likely_action": "(Translated: a co-owner / partner deciding for the business.) Wants enough detail to justify the spend to a partner; finds no price, scope, or proof, so can't build the case and defers the decision.",
+      "objections": [
+        "I'd have to justify this to my business partner and the page gives me nothing concrete to show them.",
+        "No price, no scope, no proof of results — I can't make a responsible case.",
+        "Is this the safe, responsible choice for our business, or a gamble on a solo freelancer?"
+      ],
+      "trust_gaps": [
+        "No value/risk framing (what we get, what it costs, what protects us).",
+        "No proof from similar businesses to point a partner to.",
+        "Guarantee/refund and previewed-before-you-pay are buried, so the 'low-risk' case isn't visible."
+      ],
+      "useful_rewrites": [
+        "Add a value summary: 'Here's exactly what you get for [price], and you approve the full site before paying a cent.'",
+        "Surface the risk reversal prominently: 'No deposit required — see your finished preview first.'",
+        "Add a similar-business proof point to make the case shareable with a partner."
+      ],
+      "clarity_notes": [
+        "Decision-justifying facts (price, scope, proof, guarantee) are absent or buried.",
+        "The risk-reversal angle ('previewed before you pay') is the strongest justification tool and it's hidden."
+      ],
+      "confidence": "medium"
+    },
+    {
+      "persona_id": "local-loyalty-buyer",
+      "likely_action": "(Translated: an owner who'd love to support a local/independent designer.) Likes the indie 'one person' vibe but finds no location or local signal, can't confirm BBW is near or understands their market, and stays uncertain.",
+      "objections": [
+        "Where is this studio? No city, region, or service area anywhere.",
+        "The demos are placeholder brands with no real local roots I recognize.",
+        "I want to support an independent local designer, but I can't tell if this is local to me or anyone, anywhere."
+      ],
+      "trust_gaps": [
+        "No location, region, or service-area information.",
+        "No community/local signals or real local client work.",
+        "Demos 'could belong to any city' — exactly the persona's stated fear."
+      ],
+      "useful_rewrites": [
+        "Add location context: 'A small studio based in [city/region], working with small businesses across [area] (and remotely anywhere).'",
+        "If there's a real local client, name them: 'Built for [Local Business], [Town].'",
+        "Add a community line: 'I work with independent local businesses like yours.'"
+      ],
+      "clarity_notes": [
+        "The independent-studio framing supports this persona, but the total absence of place undercuts it.",
+        "Fictional demo brands give zero local anchoring."
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "top_blockers": [
+    "No pricing or price anchor on the page — budget, comparison, busy-owner, and partner-decision personas all stall and have to detour or leave.",
+    "Demos are fictional concept brands with no real client work, testimonials, or results — skeptics and comparison shoppers can't verify the work is real or any good.",
+    "The CTA 'Request your preview' is undefined — free or paid? fast or slow? binding or not? — so anxious, urgent, and first-time buyers hesitate.",
+    "No process / 'what happens next' — premium-convenience and first-time buyers can't see the path from interest to launch.",
+    "Risk-reducers that DO exist (previewed before you pay, refunds, privacy) are buried in the footer instead of at the point of action.",
+    "No location, owner face, or industry catch-all — local, referral, and busy-owner buyers can't place BBW or confirm it serves their kind of business."
+  ],
+  "top_trust_gaps": [
+    "Zero social proof: no testimonials, reviews, named real clients, or outcomes anywhere on the page.",
+    "Every featured demo is a made-up business, while the copy calls them 'real range' / 'real customer' — wording that actively undermines a skeptic.",
+    "No business legitimacy markers: no location, no years active, no registered-studio framing — just one name in the footer.",
+    "No owner photo or story to humanize a studio that sells itself on being personal and solo.",
+    "No 'free / no obligation / no pressure' reassurance attached to the form CTA.",
+    "No post-launch support, maintenance, or continuity answer for a one-person studio."
+  ],
+  "recommended_rewrites": {
+    "Four previews with real range.": "Real sites I've built — pick the kind of business that's closest to yours.",
+    "Request your preview": "Get a free preview of your site — no cost, no obligation",
+    "These concept demos show how different a preview can feel from one business type to the next. Open each one and inspect the page like a real customer would.": "These are sample sites I designed and built. Open any one to see the quality your own customers would experience — then get a free preview made for your business.",
+    "The current preview set is intentionally varied: service, appointment-based care, compliance-heavy retail, and restaurant energy.": "Don't see your industry? I build custom sites for any small business — these just show the range. Sites start around $___ and are ready in about ___ days.",
+    "These stay available for comparison while the main preview set focuses on the four highest-variety examples.": "More examples across common small-business types — open any one to judge the quality for yourself.",
+    "Better Business Web is a small studio run by Kashane Sakhakorn. You work directly with the person designing and building your site, not an account manager or a call center.": "Hi, I'm Kashane — I design and build every site myself, based in [region]. You work directly with the person making your site, and you see the full preview before you pay a cent.",
+    "Previewed before you pay.": "You see your finished site before you pay anything — no deposit, no risk."
+  },
+  "confidence_label": "high"
+}

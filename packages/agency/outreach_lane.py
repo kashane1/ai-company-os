@@ -207,9 +207,15 @@ def build_client_rows(
     # Teaser-lane prospects (item 7) are owned-site businesses that were *dropped*
     # from A_gold for already having a site, so they never match the A_gold gate;
     # include them whenever they've been flagged into the lane by the teaser build.
-    keep = lambda record: _is_teaser(record) or agold_keep(record)  # noqa: E731
+    keep = lambda record: (  # noqa: E731
+        _is_teaser(record) or agold_keep(record) or _is_deployed_send_candidate(record)
+    )
     rows = [
-        _row_for_record(record, existing_rows.get(str(record.get("place_id", ""))), repo_root=repo_root)
+        _row_for_record(
+            record,
+            existing_rows.get(str(record.get("place_id", ""))),
+            repo_root=repo_root,
+        )
         for record in records
         if keep(record)
     ]
@@ -275,6 +281,12 @@ def write_client_status(rows: list[OutreachClientRow], *, lane_root: Path) -> tu
 
 
 def summarize_rows(rows: Iterable[OutreachClientRow]) -> dict[str, int]:
+    # Per-status counts. NOTE on the shared "sent" definition (F2): the funnel
+    # (``packages/agency/funnel.py``) counts a prospect as *sent* when it has an
+    # outbound touch and its ledger row is NOT do_not_contact — a disqualification
+    # call is a touch but not a real send. The ``sent`` key here is the
+    # current-status tally; the funnel's "ever sent, non-DNC" count is the
+    # cross-module metric the two are reconciled against.
     row_list = list(rows)
     counts = Counter(row.status.value for row in row_list)
     summary = {"total": len(row_list)}
@@ -493,13 +505,19 @@ def render_client_status_markdown(rows: list[OutreachClientRow], *, updated_at: 
         "",
         f"_Updated: {updated_at}_",
         "",
-        "Human-gated outbound lane. This list drafts, tracks, and schedules next actions; it does not send email, SMS, Instagram, or Facebook messages.",
+        (
+            "Human-gated outbound lane. This list drafts, tracks, and schedules "
+            "next actions; it does not send email, SMS, Instagram, or Facebook messages."
+        ),
         "",
         "## Summary",
         "",
         f"- Total deployed Cohort A prospects: {summary['total']}",
         f"- Ready to send: {summary[OutreachLaneStatus.READY_TO_SEND.value]}",
-        f"- Needs bespoke rebuild before outreach: {summary[OutreachLaneStatus.NEEDS_BESPOKE.value]}",
+        (
+            "- Needs bespoke rebuild before outreach: "
+            f"{summary[OutreachLaneStatus.NEEDS_BESPOKE.value]}"
+        ),
         f"- Sent / waiting: {summary[OutreachLaneStatus.SENT.value]}",
         f"- Follow-up due: {summary[OutreachLaneStatus.FOLLOW_UP_DUE.value]}",
         f"- Replied: {summary[OutreachLaneStatus.REPLIED.value]}",
@@ -515,7 +533,10 @@ def render_client_status_markdown(rows: list[OutreachClientRow], *, updated_at: 
             f"🚫 {row.status.value}" if row.place_id in suppressed else row.status.value
         )
         lines.append(
-            "| {status} | {business} | {city} | {genre} | {channel} | {action} | {url} | {draft} |".format(
+            (
+                "| {status} | {business} | {city} | {genre} | {channel} | "
+                "{action} | {url} | {draft} |"
+            ).format(
                 status=status_cell,
                 business=_md(row.business_name),
                 city=_md(row.city),
@@ -534,7 +555,11 @@ def render_client_status_markdown(rows: list[OutreachClientRow], *, updated_at: 
             "After sending by hand, run:",
             "",
             "```bash",
-            "python scripts/agency/outreach_lane.py log --place-id <PLACE_ID> --channel email --outcome sent --next-follow-up 2026-06-12 --notes \"sent manually\"",
+            (
+                "python scripts/agency/outreach_lane.py log --place-id <PLACE_ID> "
+                "--channel email --outcome sent --next-follow-up 2026-06-12 "
+                '--notes "sent manually"'
+            ),
             "```",
             "",
             "Allowed outcomes: " + ", ".join(sorted(MANUAL_OUTCOMES_TO_STATUS)),
@@ -680,6 +705,27 @@ def _is_deployed_agold(record: dict[str, object]) -> bool:
     return _is_agold(record) and bool(str(record.get("mockup_url", "")).strip())
 
 
+def _is_deployed_send_candidate(record: dict[str, object]) -> bool:
+    """Non-A-gold prospect with a live demo and a contact channel.
+
+    The dashboard's default A_gold roster is the main queue, but a manually built
+    and deployed demo with a real contact should not disappear just because the
+    original cohort was ``C_potential_signal`` or similar. Keep the same safety
+    floor as the normal router: never include owned-site recheck rows.
+    """
+    if _is_agold(record):
+        return False
+    if str(record.get("contact_owned_website", "")).strip():
+        return False
+    if str(record.get("web_verify_verdict", "")) == "owned_site":
+        return False
+    if not str(record.get("contact_email", "")).strip():
+        return False
+    if not str(record.get("mockup_url", "")).strip():
+        return False
+    return recommended_channel(record) != "needs_contact"
+
+
 def _preserved_status(
     existing: dict[str, object] | None,
     default_status: OutreachLaneStatus,
@@ -693,7 +739,10 @@ def _preserved_status(
         OutreachLaneStatus.READY_TO_SEND,
     }:
         return default_status
-    if prior == OutreachLaneStatus.NEEDS_BESPOKE and default_status == OutreachLaneStatus.READY_TO_SEND:
+    if (
+        prior == OutreachLaneStatus.NEEDS_BESPOKE
+        and default_status == OutreachLaneStatus.READY_TO_SEND
+    ):
         return default_status
     return prior
 

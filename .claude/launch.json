@@ -16,7 +16,7 @@
     {
       "name": "bbw-site",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd products/better-business-web/site && npm run preview"],
+      "runtimeArgs": ["-c", "cd products/better-business-web/site && npm run preview -- --host 0.0.0.0"],
       "port": 4321
     },
     {

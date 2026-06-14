@@ -1,0 +1,352 @@
+# Conversion Lab Report: better-business-web-site
+
+## Executive Summary
+
+Vertical: professional_services
+
+Confidence: medium
+
+## Scorecard
+
+| Area | Score |
+|---|---:|
+| Clarity | 6 |
+| Trust | 4 |
+| Offer strength | 7 |
+| Friction | 7 |
+| Local relevance | 4 |
+| Conversion action | 6 |
+
+## Top Conversion Blockers
+
+- No price for the core product (a built website); only the $100/$250 review add-ons and a 'free preview' are priced, so cost-sensitive and investment-justifying buyers stall.
+- Thin proof: no testimonials, client names, results, or evidence the demos are real businesses, so skeptical and comparison buyers leave to verify elsewhere.
+- The strongest differentiator (preview-first, $0 upfront) is stated softly and buried under generic 'Better X' headers instead of leading hard.
+- No clear 'what happens after you submit' path, what the buyer provides, when they get a reply, and that there is no obligation.
+- Internal/jargon labels ('v2 system', 'Preview Lab', 'Offer lab', 'Conversion') leak operator language into buyer-facing copy and dilute clarity.
+- Repeated, three-times-restated value in the middle sections makes a fast-scanning owner work too hard to find the actual offer and next step.
+
+## Top Trust Gaps
+
+- Zero social proof, no testimonials, reviews, client logos, or named results anywhere on the page.
+- Demo sites are ambiguous, they may be spec/sample mockups rather than real launched client work, which undercuts their value as proof.
+- No operator face, photo, or short founder story to humanize the 'real person, not a call center' claim.
+- No location or local grounding for the studio, weakening any 'support a local independent' or 'fits my market' instinct.
+- No privacy/data assurance or guarantee surfaced at the moment of form submission (legal links are only in the footer).
+- No track record stated (years operating, number of sites launched) to establish legitimacy.
+
+## Persona Feedback
+
+### urgent-problem-solver
+
+Likely action: Skims for turnaround and next step; the '48h typical first preview window' catches the eye, but the soft 'Get a free review' CTA and lack of a guaranteed timeline make them hesitate rather than submit immediately.
+
+Confidence: medium
+
+Clarity notes:
+- It is unclear whether 48h is the preview or the live launch; an urgent buyer conflates the two and feels misled.
+- Three numbered steps (Preview/Conversion/Launch) read as process theory, not a promise of speed.
+
+Objections:
+- I need a working site soon, but '48h typical first preview' is the preview, not the finished, launched site, and there is no stated launch turnaround.
+- 'Typical' is a hedge word, I cannot tell if my project actually ships fast.
+- No way to reach a human quickly, no phone, no booking slot, no expected reply time on the form.
+
+Trust gaps:
+- No statement of how fast the operator replies to a free-review request.
+- No proof anyone has actually received a preview in 48h (no testimonial, no dated example).
+
+Useful rewrites:
+- Replace '48h Typical first preview window' with 'Your first preview link in 2 business days, or I tell you why it'll take longer.'
+- Add near the CTA: 'Submit before noon and I usually reply the same day.'
+
+### skeptical-researcher
+
+Likely action: Reads the whole page hunting for evidence, finds demos but zero testimonials, credentials, or named results; bookmarks and leaves to compare instead of submitting.
+
+Confidence: high
+
+Clarity notes:
+- 'Better signal / Better first impression / Better lead flow' are vague benefit headers with nothing measurable behind them.
+- 'The page has to say what you do, where you do it, why someone should trust you' is good advice but the BBW page itself does not fully do this (no 'where', no trust proof).
+
+Objections:
+- Every claim is self-asserted ('A sharper website', 'better lead flow') with no before/after data or client names.
+- The demo sites (Ironside Auto, Wagtail Grooming) look like sample/spec work, not real paying clients, so they prove styling, not outcomes.
+- No portfolio of live launched client sites, no reviews, no years-in-business or build count.
+
+Trust gaps:
+- Zero social proof: no testimonials, star ratings, or client logos.
+- No evidence the demos are real businesses vs. invented mockups.
+- No track record stated (how many sites built, how long operating).
+
+Useful rewrites:
+- Add a proof strip: '12 small-business sites launched in 2025' or one real testimonial with a name and town.
+- Label demos honestly: 'Sample previews built to show the approach' so they are not mistaken for client work, or swap in real launched client URLs.
+
+### budget-constrained-shopper
+
+Likely action: Appreciates that pricing exists ($100, $250, free preview) but cannot find the cost of an actual finished website, so stalls on the form fearing a big surprise quote.
+
+Confidence: high
+
+Clarity notes:
+- Two paid review tiers are clear, but they overshadow the main product (the website), whose price is absent.
+- It is unclear whether the free preview is genuinely free or a funnel into a costed upsell.
+
+Objections:
+- I see $100 and $250 for reviews, and a free preview, but nowhere does it say what building and launching the real site costs.
+- The 'pay only if the direction feels worth taking live' line implies a price I will only learn after I am invested.
+- Fear of a surprise quote after the free preview hooks me in.
+
+Trust gaps:
+- No starting price or 'from $X' for a built site.
+- No scope breakdown of what the build price includes (pages, revisions, hosting).
+
+Useful rewrites:
+- Add to the Preview Build card: 'Full builds typically start at $X. You see the exact price with the preview, before you owe anything.'
+- Replace 'Pay only if the direction feels worth taking live' with 'You get the price up front with the preview. No charge until you say go.'
+
+### premium-convenience-buyer
+
+Likely action: Likes the clean preview-first framing and the done-for-you tone, but wants done-for-you reassurance (you handle everything); the modest, understated copy makes them unsure it is premium enough to delegate to.
+
+Confidence: medium
+
+Clarity notes:
+- The Launch step lists 'copy, responsive layout, basic SEO, forms' which is reassuringly done-for-you, but it is buried in step 03.
+- Tone is modest to a fault; a convenience buyer reads understatement as 'might be a side hustle.'
+
+Objections:
+- It reads competent but small; I want to know I can hand this off and not manage it.
+- No description of communication cadence or what I have to provide vs. what is handled for me.
+- No scheduling/booking, just a form, which feels less white-glove.
+
+Trust gaps:
+- No statement of how hands-off the process is for the client.
+- No polished proof (premium testimonials, a marquee client) to justify paying for convenience.
+
+Useful rewrites:
+- Add: 'You send me what you have once. I handle the writing, design, build, SEO, and launch. You just approve.'
+- Offer a booking link alongside the form: 'Prefer to talk first? Grab a 15-minute call.'
+
+### safety-and-trust-seeker
+
+Likely action: Wants to know who they are handing business details and money to; finds a real name but no business legitimacy signals, so hesitates to fill in the form with their info.
+
+Confidence: medium
+
+Clarity notes:
+- The 'work directly with the person, not a call center' line humanizes it, but a face/photo and location would do more.
+- Footer legal links exist but are not connected to the moment of risk (form submission).
+
+Objections:
+- I am giving a stranger my business details and eventually payment, who is Kashane and is this a registered business?
+- No statement about what happens to the info I submit in the form.
+- No refund/guarantee visible above the fold, only a footer 'Refunds & Cancellation' link.
+
+Trust gaps:
+- No privacy assurance near the form (what data is collected, how it is used).
+- No business legitimacy markers (location, registered studio, photo of the operator).
+- Money-back / satisfaction guarantee is not surfaced where it reduces risk.
+
+Useful rewrites:
+- Add under the form: 'Your details are only used to build your preview. Never shared or sold.'
+- Add a guarantee line: 'Don't like the preview? You pay nothing and owe nothing.'
+
+### relationship-referral-buyer
+
+Likely action: Warms to the 'small studio run by Kashane' line, but with no face, no story, and no real client voices, it does not feel like something they could confidently recommend; likely leaves without submitting.
+
+Confidence: medium
+
+Clarity notes:
+- The owner mention is good but appears late and reads as fine print rather than an introduction.
+- The brand voice is competent but impersonal; a referral buyer wants warmth.
+
+Objections:
+- I cannot picture the person, no photo, no short story of why he does this.
+- No client voices I could relate to or repeat to a friend.
+- Feels like a clean template, not a person I would vouch for.
+
+Trust gaps:
+- No founder photo or personal story.
+- No testimonials or named happy clients.
+- No human, conversational moment beyond the one footer-ish paragraph.
+
+Useful rewrites:
+- Add a short founder line with a photo: 'Hi, I'm Kashane. I build sites for small businesses because most owners get overcharged for something they never get to see first.'
+- Add one real quote: '“He showed me the site before I paid a cent.” — [name], [business]'
+
+### comparison-shopper
+
+Likely action: Has Wix, Squarespace, and a Fiverr tab open; the 'preview before you pay' angle is a genuine differentiator, but weak proof and missing build price make it hard to rank BBW above the alternatives, so they keep comparing.
+
+Confidence: high
+
+Clarity notes:
+- The strongest differentiator (preview-first, $0 upfront) is present but under-amplified relative to generic 'Better X' headers.
+- 'Better signal / first impression / lead flow' could describe any web shop, undercutting differentiation.
+
+Objections:
+- Why you over Squarespace I can DIY, or a $500 freelancer, the page does not directly answer this.
+- 'Preview before you pay' is the hook but it is stated softly, not positioned as THE reason to choose BBW.
+- Without a build price I cannot compare value against competitors.
+
+Trust gaps:
+- No head-to-head differentiation vs. DIY builders or other agencies.
+- No proof the result beats a template (the demos look nice but template-like).
+
+Useful rewrites:
+- Lead with the wedge: 'Unlike Wix or a freelancer, you see your finished homepage as a live link before you spend anything.'
+- Add a one-line comparison: 'DIY builders make you do the work. Agencies make you pay first. I show you the result, then you decide.'
+
+### busy-owner-operator-buyer
+
+Likely action: Scans in 10 seconds; the hero is clear and the form is low-commitment, so this persona is among the most likely to submit, but the wordy middle sections and jargon risk losing them before the CTA.
+
+Confidence: high
+
+Clarity notes:
+- Hero promise is clear and strong; the problem is the 60% of page in the middle that restates it three ways.
+- 'The v2 system is built around reusable pieces...' is operator-facing build talk that means nothing to a buyer.
+
+Objections:
+- Too many sections of philosophy; just tell me what I get, how fast, and what it costs.
+- Jargon like 'v2 system', 'Conversion', 'Preview Lab', 'Offer lab' is noise to a busy owner.
+- I cannot instantly tell if you work with a business like mine.
+
+Trust gaps:
+- No quick reliability proof (response time, completed builds) for someone scanning fast.
+- No reassurance the inquiry will get a prompt human reply.
+
+Useful rewrites:
+- Tighten the hero to outcome + step: 'See a live preview of your new site in 2 days. Free. Pay only if you love it.'
+- Cut or rename internal-sounding labels ('Preview Lab', 'Offer lab', 'v2 system') to plain owner language.
+
+### first-time-anxious-buyer
+
+Likely action: Reassured by 'free', '$0 upfront', and 'no pressure', but anxious about what they need to provide and what happens after submitting; may submit if the next step is spelled out, otherwise freezes.
+
+Confidence: high
+
+Clarity notes:
+- 'No upfront payment. No mystery deliverable.' is exactly the reassurance this persona needs, keep and elevate it.
+- The numbered steps describe BBW's process, not the buyer's experience; reframe them as 'what you do' vs 'what I do'.
+
+Objections:
+- I have never hired a web person, what do I even need to give you?
+- After I send the form, then what, do I get charged, do I have to commit?
+- I am worried I will look like I do not know what I am doing.
+
+Trust gaps:
+- No plain explanation of what info the buyer must supply.
+- No FAQ addressing beginner fears (commitment, cost, what to expect).
+
+Useful rewrites:
+- Add a 'What happens next' mini-list under the form: '1) Send your current site or business name. 2) I build a free preview. 3) You look and decide. No obligation.'
+- Reassure on input: 'You don't need to prepare anything fancy, just tell me your business name and what you do.'
+
+### repeat-maintenance-buyer
+
+Likely action: Wonders what happens after launch, the page is entirely about getting to launch with nothing on ongoing support or updates, so this persona is left uncertain and unlikely to act on this page alone.
+
+Confidence: medium
+
+Clarity notes:
+- The page is launch-terminal; nothing signals an ongoing relationship.
+- 'Build Your Bundle' in the nav hints at packages but the home page does not explain recurring options.
+
+Objections:
+- Who maintains the site after launch, do I get updates, fixes, hosting?
+- Is this a one-and-done handoff, or is there ongoing support?
+- What if I need changes in six months?
+
+Trust gaps:
+- No mention of post-launch support, maintenance plans, or hosting.
+- 'Ready for handoff' implies the relationship ends at launch, which worries a recurring-needs buyer.
+
+Useful rewrites:
+- Add a line to Launch or a small card: 'After launch I offer optional care plans for updates, edits, and hosting, so the site doesn't go stale.'
+- Reframe 'Ready for handoff' to 'Launched and supported' if ongoing help is offered.
+
+### family-household-decision-maker
+
+Likely action: Treating the site as a considered investment they must justify (to a partner/co-owner); the low-risk free preview helps, but missing price and proof make it hard to build the case, so they gather more info before acting.
+
+Confidence: medium
+
+Clarity notes:
+- The free, no-commitment preview is a strong 'safe to explore' message for joint decisions, lean into it.
+- Lack of price means the persona cannot complete the basic 'is this worth it' calculation.
+
+Objections:
+- I need to justify this spend to my business partner/spouse, but I cannot see the real cost.
+- Is this the responsible choice vs. cheaper options, the page does not help me argue it.
+- Not enough concrete detail (price, scope, results) to present to someone else.
+
+Trust gaps:
+- No clear total cost or scope to evaluate the investment.
+- No outcome proof (e.g., 'led to X more inquiries') to justify the decision.
+
+Useful rewrites:
+- Add a value frame: 'A site that actually brings in customers, shown to you before you pay, so you can decide with eyes open.'
+- Provide a scope+price summary they can screenshot and share with a partner.
+
+### local-loyalty-buyer
+
+Likely action: Likes the 'small studio, real person' angle but finds nothing actually local, no city, no region, no local clients, so the 'support a nearby independent' instinct never engages; leaves neutral.
+
+Confidence: medium
+
+Clarity notes:
+- The page is geographically blank; it could belong to any city, which the persona explicitly distrusts.
+- 'Local search cues' and 'local trust' are mentioned as features BBW builds, but BBW's own page shows no local grounding.
+
+Objections:
+- Where is this person based, I cannot tell if they are local to me.
+- The demo businesses (Ironside Auto, Blue Ridge Gun & Ammo, Pelican & Lime) feel like generic samples from anywhere.
+- Nothing signals the operator understands my area or community.
+
+Trust gaps:
+- No location/region for the studio or the operator.
+- No local client examples or community ties.
+- '7+ demo markets' is abstract; it does not say which places or whether any are near the buyer.
+
+Useful rewrites:
+- State a home base and reach: 'A studio based in [city], building for small businesses across [region] and online.'
+- If clients are remote-friendly, say so plainly: 'I work with local businesses anywhere, you don't have to be down the street.'
+
+## Recommended Rewrites
+
+### A sharper website, previewed before you pay.
+
+See your new website as a live link before you spend a cent. Free preview in 2 days. Pay only if you love it.
+
+### Better signal Better first impression Better lead flow
+
+More inquiries, a stronger first impression, and a site that actually works on mobile, shown to you before you commit.
+
+### The v2 system is built around reusable pieces: message, proof, preview, pricing, and launch support. That makes future page versions easier to reshape.
+
+Every site is built from proven pieces, clear message, real proof, mobile-first design, and launch support, so nothing gets skipped and the result is ready to bring in customers.
+
+### 48h Typical first preview window
+
+Your first live preview link in 2 business days.
+
+### Preview Build Free first look A real homepage preview for qualified local businesses. Pay only if the direction feels worth taking live.
+
+Free homepage preview, a real, clickable page built for your business. You get the full build price up front, and you pay nothing until you say go.
+
+### Better Business Web is a small studio run by Kashane Sakhakorn. You work directly with the person designing and building your site, not an account manager or a call center.
+
+Hi, I'm Kashane. I run Better Business Web as a one-person studio, so you work directly with the person designing and building your site. I build the preview first because most owners get overcharged for a site they never get to see beforehand.
+
+### Just a real preview link and a clear next step.
+
+Here's what happens: 1) Send your business name or current site. 2) I build a free preview and reply within 1 business day. 3) You review it and decide, no charge, no obligation. Your details are only used to build your preview.
+
+## Confidence And Caveats
+
+This is a synthetic-audience preflight report. It can surface likely conversion issues, but it does not replace live analytics, real customer interviews, or controlled ad experiments.

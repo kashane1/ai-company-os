@@ -122,8 +122,35 @@ def test_render_contains_filter_and_sort_controls() -> None:
     assert "placeholder='Search businesses, cities, or types'" in html_out
     assert "data-status-filter='sent'" in html_out
     assert "data-facet-filter='preview'" in html_out
+    assert "data-filter-type='status'" in html_out
+    assert "data-filter-type='facet'" in html_out
+    assert "draggable='true'" in html_out
     assert "data-sort='recent_touch'" in html_out
     assert 'data-tags="preview email-not-sent phone-present any-contact any-sent"' in html_out
+
+
+def test_render_contains_include_exclude_filter_builder() -> None:
+    html_out = render_outreach_html(_view())
+    assert 'id="includeZone"' in html_out
+    assert 'id="excludeZone"' in html_out
+    assert 'id="includeTokens"' in html_out
+    assert 'id="excludeTokens"' in html_out
+    assert "include these filters" in html_out
+    assert "exclude these filters" in html_out
+    assert "const includeFilters = new Map()" in html_out
+    assert "const excludeFilters = new Map()" in html_out
+    assert "let activeZone = 'include'" in html_out
+    assert "function persistState()" in html_out
+    assert "function restoreStateFromUrl()" in html_out
+    assert "writeStateParams(params)" in html_out
+
+
+def test_render_filter_tokens_can_drag_out_to_remove() -> None:
+    html_out = render_outreach_html(_view())
+    assert "token.draggable = true" in html_out
+    assert "let draggingTokenId = ''" in html_out
+    assert "document.addEventListener('drop'" in html_out
+    assert "removeFilter(draggingTokenId)" in html_out
 
 
 def test_render_escapes_business_name() -> None:

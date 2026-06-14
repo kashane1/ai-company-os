@@ -55,6 +55,26 @@ def test_build_client_rows_seeds_finished_as_ready_and_template_as_needs_bespoke
     assert rows[1].next_action == "Rebuild bespoke demo before outreach"
 
 
+def test_build_client_rows_includes_deployed_non_agold_with_email() -> None:
+    rows = build_client_rows(
+        [
+            {
+                **_record("p1", "Built From Review", mockup_version="v2-bespoke"),
+                "composite_cohort": "C_potential_signal",
+                "contact_email": "owner@example.com",
+            },
+            {
+                **_record("p2", "Phone Only Review", mockup_version="v2-bespoke"),
+                "composite_cohort": "C_potential_signal",
+            },
+        ],
+    )
+
+    assert [row.place_id for row in rows] == ["p1"]
+    assert rows[0].status == OutreachLaneStatus.READY_TO_SEND
+    assert rows[0].recommended_channel == "email"
+
+
 def test_build_client_rows_blocks_owned_site_recheck_before_outreach() -> None:
     rows = build_client_rows(
         [
