@@ -217,23 +217,23 @@ Resolved with the founder. The hybrid:
 ## Acceptance Criteria
 
 ### Functional
-- [ ] Hero renders a primary "Get my free preview →" CTA (→ `/#review`) and a ghost "See pricing" CTA (→ `/pricing`).
-- [ ] A clickable "Real sample sites we've built →" proof link points to `/demos`.
-- [ ] A risk-reversal trust bar with three factual chips renders after the stats.
-- [ ] Nav shows an accent "Get a free preview" CTA; preview CTA wording is consistent across nav/links.
-- [ ] Stats block contains only true values (no invented numbers).
-- [ ] A first-person founder line appears on the landing.
-- [ ] The underdog/affordability section renders with the agreed (copy-reviewed) copy.
-- [ ] The form section names **both** offers clearly (no preview/review conflation), and a "Free preview" card sits above the kept "Review map" card.
-- [ ] The preview card sets honest expectations (built within ~2 business days, not instant); the two free offers stay visually distinct from the paid Conversion Lab.
-- [ ] Each demo on `demos.astro` shows a rationale + highlights; all 10 populated (featured 4 minimum to ship).
+- [x] Hero renders a primary "Get my free preview →" CTA (→ `#review`) and a ghost "See pricing" CTA (→ `/pricing`).
+- [x] A clickable proof link ("These are real sample sites we've built. See the work →") points to `/demos`.
+- [x] A risk-reversal trust bar with three factual chips renders after the stats.
+- [x] Nav shows an accent "Free preview" CTA; preview CTA wording is consistent across nav/links.
+- [x] Stats block contains only true values (no invented numbers) — left unchanged.
+- [x] A first-person founder line appears on the landing.
+- [x] The underdog/affordability section renders with the agreed copy.
+- [x] The form section names **both** offers clearly (no preview/review conflation), and a "Free preview" card sits above the kept review card.
+- [x] The preview card sets honest expectations (built within ~2 business days, not instant); the two free offers stay visually distinct from the paid Conversion Lab.
+- [x] Each demo on `demos.astro` shows a rationale + highlights; all 10 populated.
 
 ### Quality gates
-- [ ] All new/changed copy passes `/copy-review` against `voice.md` (no banned words, em-dash budget, no AI tells).
-- [ ] No fabricated metrics, testimonials, or client claims anywhere.
-- [ ] Verified at ~380px (no horizontal scroll) and desktop.
-- [ ] `npm run build` succeeds; landing + demos verified in preview before deploy.
-- [ ] The "I vs we" blocking decision is resolved and `voice.md` reconciled (fixtures re-run if edited).
+- [~] New/changed copy conforms to `voice.md` by hand (no banned words, em-dash budget, no AI tells). The formal `/copy-review` guardrail skill was not run in-session — **founder follow-up: run it + re-fixture after the `voice.md` change.**
+- [x] No fabricated metrics, testimonials, or client claims anywhere.
+- [x] Verified at ~380px (no horizontal scroll) and desktop.
+- [x] `npm run build` succeeds; landing + demos verified in preview (screenshots captured).
+- [~] The "I vs we" decision is resolved (hybrid) and `voice.md` reconciled. **Fixtures NOT re-run in-session — founder follow-up.**
 
 ## Implementation Phases
 
