@@ -6,7 +6,9 @@
       "genre": "auto-repair",
       "slug": "auto-repair",
       "url": "/work/auto-repair/",
-      "thumbnail": "/portfolio/auto-repair.webp"
+      "thumbnail": "/portfolio/auto-repair.webp",
+      "rationale": "Most auto shops bury their phone number. This one puts a tap-to-call button up top and a plain list of what they fix, so a driver with a warning light knows in seconds they can call now.",
+      "highlights": ["Tap-to-call up top", "Plain 'what we fix' list", "Reviews near the top", "Reads well on a phone"]
     },
     {
       "name": "Kingsway Barber Co.",
@@ -14,7 +16,9 @@
       "genre": "barbering",
       "slug": "barbering",
       "url": "/work/barbering/",
-      "thumbnail": "/portfolio/barbering.webp"
+      "thumbnail": "/portfolio/barbering.webp",
+      "rationale": "A barbershop lives or dies on easy booking. This site leads with a book button and shows the cuts, prices, and hours before a visitor has to dig for them.",
+      "highlights": ["Book button front and center", "Cuts and prices shown", "Hours easy to find", "Photos of real work"]
     },
     {
       "name": "Goldenrod Bakehouse",
@@ -22,7 +26,9 @@
       "genre": "baked-goods",
       "slug": "baked-goods",
       "url": "/work/baked-goods/",
-      "thumbnail": "/portfolio/baked-goods.webp"
+      "thumbnail": "/portfolio/baked-goods.webp",
+      "rationale": "People decide with their eyes here, so the site opens with the case and the day's menu, then makes it simple to find the shop or place an order.",
+      "highlights": ["Photo-first menu", "Today's specials clear", "Map and hours up top", "Order or visit in a tap"]
     },
     {
       "name": "Wagtail Grooming Studio",
@@ -30,7 +36,9 @@
       "genre": "dog-grooming",
       "slug": "dog-grooming",
       "url": "/work/dog-grooming/",
-      "thumbnail": "/portfolio/dog-grooming.webp"
+      "thumbnail": "/portfolio/dog-grooming.webp",
+      "rationale": "Owners want to know you'll treat their dog well. This site leads with friendly photos, the services and pricing, and a booking button that's never more than a tap away.",
+      "highlights": ["Warm, real photos", "Services and pricing clear", "Easy booking", "Built for a phone"]
     },
     {
       "name": "TrueLine Plumbing",
@@ -38,15 +46,19 @@
       "genre": "plumbing",
       "slug": "plumbing",
       "url": "/work/plumbing/",
-      "thumbnail": "/portfolio/plumbing.webp"
+      "thumbnail": "/portfolio/plumbing.webp",
+      "rationale": "Plumbing is urgent. The site puts the phone number and service area first, with the common jobs and trust signals right behind it.",
+      "highlights": ["Phone and service area first", "Common jobs listed", "Licensed and insured shown", "Tap-to-call everywhere"]
     },
     {
-      "name": "Lumi\u00e8re Nail Lounge",
+      "name": "Lumière Nail Lounge",
       "type": "Nail salon",
       "genre": "nails",
       "slug": "nails",
       "url": "/work/nails/",
-      "thumbnail": "/portfolio/nails.webp"
+      "thumbnail": "/portfolio/nails.webp",
+      "rationale": "A salon sells a feeling. Clean photos set the mood, then the services, prices, and a booking link make it easy to come in.",
+      "highlights": ["Mood-setting photos", "Service menu and prices", "Simple booking", "Looks right on mobile"]
     },
     {
       "name": "Northside Coffee Co.",
@@ -54,7 +66,9 @@
       "genre": "coffee",
       "slug": "coffee",
       "url": "/work/coffee/",
-      "thumbnail": "/portfolio/coffee.webp"
+      "thumbnail": "/portfolio/coffee.webp",
+      "rationale": "A coffee shop needs to feel like somewhere you'd want to sit. The site leads with the space and the menu, then hours and directions for the morning rush.",
+      "highlights": ["Inviting photos", "Menu easy to scan", "Hours and map clear", "Fast on a phone"]
     },
     {
       "name": "Blue Ridge Gun & Ammo",
@@ -62,7 +76,9 @@
       "genre": "gun-store",
       "slug": "gun-store",
       "url": "/work/gun-store/",
-      "thumbnail": "/portfolio/gun-store.webp"
+      "thumbnail": "/portfolio/gun-store.webp",
+      "rationale": "A firearms shop has to look trustworthy and buttoned-up. The site stays clean and plain, with hours, location, and what's in stock easy to find.",
+      "highlights": ["Clean, plain layout", "Hours and location clear", "Inventory easy to find", "Reads well on mobile"]
     },
     {
       "name": "Lumina Aesthetics",
@@ -70,7 +86,9 @@
       "genre": "med-spa",
       "slug": "med-spa",
       "url": "/work/med-spa/",
-      "thumbnail": "/portfolio/med-spa.webp"
+      "thumbnail": "/portfolio/med-spa.webp",
+      "rationale": "A med spa is a considered purchase. The site builds trust with calm design, clear treatments and pricing, and an easy way to book a consult.",
+      "highlights": ["Calm, trustworthy design", "Treatments and pricing clear", "Consult booking", "Looks right on a phone"]
     },
     {
       "name": "Pelican & Lime",
@@ -78,7 +96,9 @@
       "genre": "fish-tacos",
       "slug": "fish-tacos",
       "url": "/work/fish-tacos/",
-      "thumbnail": "/portfolio/fish-tacos.webp"
+      "thumbnail": "/portfolio/fish-tacos.webp",
+      "rationale": "A restaurant site has one job: make people hungry and tell them how to order. This one leads with the food, the menu, and a clear path to order or find the place.",
+      "highlights": ["Food-first photos", "Menu front and center", "Order and directions clear", "Built for mobile"]
     }
   ]
 }
