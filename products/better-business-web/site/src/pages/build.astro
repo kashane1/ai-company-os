@@ -1,54 +1,89 @@
 ---
-// Build-Your-Own-Bundle — interactive configurator + buy-now. Single React
-// island; the rest stays static Astro. Pricing data is the drift-guarded
-// packages.json (one source of truth, integer cents). Linked from /pricing;
-// not in the nav, so no active item.
 import Site from "../layouts/Site.astro";
+import V2Page from "../components/V2Page.astro";
 import "../components/BundleBuilder.css";
 import BundleBuilder from "../components/BundleBuilder.tsx";
+import type { BundleBuilderProps } from "../components/BundleBuilder.tsx";
 import packages from "../data/packages.json";
+
+const builderData = packages as unknown as {
+  services: BundleBuilderProps["services"];
+  bundles: BundleBuilderProps["bundles"];
+  discount_tiers: BundleBuilderProps["discountTiers"];
+};
 ---
+
 <Site
   title="Build your own bundle — Better Business Web"
-  description="Pick exactly the services you want, see the price update live, and start today. Cancel anytime."
+  description="Pick exactly the website services you want, see the price update live, and start from a v2-styled bundle builder."
   current="/build"
+  hideHeader
+  bg="v2"
 >
-  <div class="byo-page">
-    <header class="byo-hero">
-      <span class="eyebrow">Mix and match</span>
-      <h1>Build your own bundle</h1>
-      <p>
-        Pick exactly what you need and the price updates as you go. Setup is a
-        one-time cost and the monthly covers the ongoing work. Start from a package
-        or build from scratch — including Conversion Lab page and ad audits — and
-        cancel anytime.
-      </p>
-    </header>
-
-    <BundleBuilder
-      services={packages.services}
-      bundles={packages.bundles}
-      discountTiers={packages.discount_tiers}
-      client:load
-    />
-  </div>
+  <V2Page
+    eyebrow="Build your bundle"
+    title="Start with a plan, then add only what you want."
+    description="Pick a package below and add the pieces that fit your business. The setup and monthly price update as you go. You own your site and your data, and you can cancel any monthly service whenever you want."
+    footerKicker="Still deciding?"
+    footerTitle="Prefer to see it before you buy?"
+    footerText="Get a free preview of your new site first. Look it over, then come back and pick the plan that fits."
+    footerActions={[
+      { href: "/free-review", label: "Get a free preview first →" },
+      { href: "/pricing", label: "Compare packages", variant: "ghost" },
+    ]}
+  >
+    <section class="v2-section build-v2">
+      <BundleBuilder
+        services={builderData.services}
+        bundles={builderData.bundles}
+        discountTiers={builderData.discount_tiers}
+        client:load
+      />
+    </section>
+  </V2Page>
 </Site>
 
 <style>
-  .byo-page { padding: var(--page-top) 0 var(--space-xl); }
-  .byo-hero {
-    max-width: var(--container);
-    margin: 0 auto var(--space-lg);
-    padding: 0 var(--space-md);
+  .build-v2 :global(.byo) {
+    width: min(100% - clamp(2rem, 6vw, 5rem), 1180px);
+    padding: 0;
   }
-  .byo-hero h1 {
+
+  .build-v2 :global(.byo-preset),
+  .build-v2 :global(.byo-card),
+  .build-v2 :global(.byo-cart) {
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(22, 22, 24, 0.42));
+    border-color: var(--line);
+    box-shadow: var(--shadow-md);
+  }
+
+  .build-v2 :global(.byo-cart h2.byo-cart-title) {
+    max-width: 100%;
     font-family: var(--font-display);
-    font-size: var(--step-3);
-    margin: 0 0 var(--space-xs);
+    font-size: clamp(1rem, 1.8vw, 1.28rem) !important;
+    line-height: 1.08 !important;
+    overflow-wrap: anywhere;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
   }
-  .byo-hero p {
-    max-width: 60ch;
-    color: var(--ink-soft);
-    margin: 0;
+
+  .build-v2 :global(.byo-preset[data-active="true"]),
+  .build-v2 :global(.byo-card[data-selected="true"]) {
+    border-color: color-mix(in srgb, var(--accent) 72%, white);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(22, 22, 24, 0.58));
+  }
+
+  .build-v2 :global(.byo-buy) {
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 8px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, white), #ededef 42%, #d2d2d6 100%);
+    color: #0a0a0b;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -4px 9px rgba(0, 0, 0, 0.26);
+  }
+
+  .build-v2 :global(.byo-field input) {
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.065);
   }
 </style>

@@ -114,8 +114,9 @@ follow-ups" below for the source-signal mapping used.
 | [2026-06-10-feat-prospect-web-verification-providers-plan.md](2026-06-10-feat-prospect-web-verification-providers-plan.md) | 2026-06-10 | feat-prospect-web-verification-providers | open | platform / prospecting |
 | [2026-06-10-outreach-action-dashboard.md](2026-06-10-outreach-action-dashboard.md) | 2026-06-10 | outreach-action-dashboard | open | platform / outreach |
 | [2026-06-11-bbw-v2-strategic-build-list-plan.md](2026-06-11-bbw-v2-strategic-build-list-plan.md) | 2026-06-11 | bbw-v2-strategic-build-list | open | agency / strategy — v1→v2 review output: send sprint, new funnel arms, scale gates |
+| [2026-06-12-outreach-follow-up-sequencer-plan.md](2026-06-12-outreach-follow-up-sequencer-plan.md) | 2026-06-12 | outreach-follow-up-sequencer | open | platform / outreach — per-step cadence + draft variants (v2 item 6) |
 
-Totals: **50 open** plans (the live working set). Finished plans
+Totals: **51 open** plans (the live working set). Finished plans
 (`done` / `abandoned`) are moved out of this directory into
 [archive/](archive/INDEX.md), so this table lists open work only. This
 index is verified by `make plans-index-check` (drift gate; see below).

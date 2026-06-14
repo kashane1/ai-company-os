@@ -1,0 +1,68 @@
+---
+// Refund & Cancellation Policy. Consistent with the site's promises: "cancel
+// anytime" (build page) and "previewed before you pay" (footer/free-review).
+// Setup = one-time work; monthly = Stripe subscription.
+import LegalPage from "../components/LegalPage.astro";
+import { legal } from "../lib/legal.mjs";
+---
+<LegalPage
+  title="Refund & Cancellation Policy — Better Business Web"
+  description="How cancellations and refunds work at Better Business Web."
+  heading="Refund & Cancellation Policy"
+>
+  <p>
+    We want you to be happy with your site. Wherever possible we show you a
+    preview before you pay, so you know what you're getting. This page explains
+    how cancellations and refunds work.
+  </p>
+
+  <h2>Monthly services</h2>
+  <p>
+    You can <strong>cancel your monthly subscription at any time</strong>.
+    Cancelling stops future renewals — your services stay active through the end
+    of the month you've already paid for, and you won't be charged again after
+    that. We don't refund the current month's fee for a mid-month cancellation,
+    but you keep access for the rest of that period.
+  </p>
+
+  <h2>Setup and one-time fees</h2>
+  <p>
+    Setup fees pay for work we do for you — design, building, and configuration.
+  </p>
+  <ul>
+    <li>
+      <strong>Before we start:</strong> if you cancel before we've begun work,
+      we'll refund your setup fee in full.
+    </li>
+    <li>
+      <strong>After we start:</strong> once work is underway, setup fees are
+      generally non-refundable, because the work has been done. If we've started
+      but not yet delivered, we'll work out a fair partial refund with you.
+    </li>
+    <li>
+      <strong>One-time audits</strong> (such as a Conversion Snapshot or
+      Conversion Audit) are non-refundable once the report has been delivered.
+    </li>
+  </ul>
+
+  <h2>How to cancel</h2>
+  <p>
+    Email us at <a href={`mailto:${legal.contactEmail}`}>{legal.contactEmail}</a>
+    and we'll take care of it. If we've given you a link to Stripe's billing
+    portal, you can also manage or cancel your subscription there.
+  </p>
+
+  <h2>How refunds are paid</h2>
+  <p>
+    Approved refunds are issued through Stripe back to your original payment
+    method. Once we process a refund it usually appears within 5–10 business
+    days, depending on your bank or card provider.
+  </p>
+
+  <h2>Problems and disputes</h2>
+  <p>
+    If something isn't right, please email us first — most things are quick to
+    fix, and we'd always rather sort it out directly than have you raise a
+    chargeback with your bank.
+  </p>
+</LegalPage>

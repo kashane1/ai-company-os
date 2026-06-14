@@ -49,7 +49,7 @@
 
 ### Package A — Presence
 
-Look professional online. Website + the annoying tech handled.
+A professional website with all the annoying tech handled for you, including hosting, email, and Google setup. It makes you look credible the moment a customer finds you.
 
 **$600 setup ($700 − $100 bundle discount) + $50/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup.
 
@@ -61,6 +61,6 @@ Everything in A, plus turn visitors into booked customers.
 
 ### Package C — Presence + Capture + Growth
 
-Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.
+Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads. Your ad budget is separate and stays in your control.
 
 **$1,800 setup ($2,250 − $450 bundle discount) + $550/mo.** Includes: Professional Website, Hosting & Maintenance, Google Business Profile Setup, Business Email Setup, Review Readiness System, Booking — Done-for-you Setup, Local SEO, Promotional Landing Page, Analytics Dashboard & Monthly Report, Google Ads Management.

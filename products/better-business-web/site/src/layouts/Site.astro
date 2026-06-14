@@ -5,10 +5,10 @@
 // siblings of <body> (load-bearing for the sticky pin): the scroll-away brand
 // banner, a 1px sentinel that drives the nav's stuck state, the sticky <SiteNav>,
 // <main id="main"> (the skip-link target), and <SiteFooter>.
-import "@fontsource-variable/geist";
+import "@fontsource-variable/merriweather";
+import "@fontsource-variable/hanken-grotesk";
 import "../styles/global.css";
 import "../styles/theme-luminous.css";
-import BrandMark from "../components/BrandMark.astro";
 import SiteNav from "../components/SiteNav.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 
@@ -20,6 +20,11 @@ interface Props {
   current?: string;
   noindex?: boolean;
   compactBanner?: boolean;
+  hideHeader?: boolean;
+  /** "v2" paints the teal page background on <body> so it flows continuously
+   *  into the footer (content keeps the grid overlay; footer stays transparent).
+   *  Legacy/legal pages omit it and keep the indigo theme-luminous body. */
+  bg?: "default" | "v2";
 }
 const {
   title,
@@ -29,6 +34,8 @@ const {
   current,
   noindex = false,
   compactBanner = false,
+  hideHeader = false,
+  bg = "default",
 } = Astro.props;
 
 // Absolute URLs for social unfurls (Astro.site is set in astro.config). Without an
@@ -41,7 +48,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -61,18 +68,20 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={ogImageUrl} />
 </head>
-<body class="theme-luminous">
+<body class:list={["theme-luminous", bg === "v2" && "has-v2-bg"]}>
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- Brand header — one section (mark + wordmark) that simply scrolls away.
-       The nav below it is sticky and pins to the top once this scrolls past. -->
-  <header class:list={["brand-banner", compactBanner && "is-compact"]}>
-    <a class="brand-banner__link" href="/">
-      {/* icon hidden for a test — restore by uncommenting */}
-      {/* <BrandMark id="banner" size={compactBanner ? 30 : 40} /> */}
-      <span class="brand-banner__word">Better Business Web</span>
-    </a>
-  </header>
+  {!hideHeader && (
+    <!-- Brand header — one section (mark + wordmark) that simply scrolls away.
+         The nav below it is sticky and pins to the top once this scrolls past. -->
+    <header class:list={["brand-banner", compactBanner && "is-compact"]}>
+      <a class="brand-banner__link" href="/">
+        {/* icon hidden for a test — restore by uncommenting */}
+        {/* <BrandMark id="banner" size={compactBanner ? 30 : 40} /> */}
+        <span class="brand-banner__word">Better Business Web</span>
+      </a>
+    </header>
+  )}
 
   <div class="sticky-sentinel" aria-hidden="true"></div>
 

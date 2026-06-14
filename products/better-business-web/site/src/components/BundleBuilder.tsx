@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { dollars, quoteServices, tierPctFor } from "../lib/pricing.mjs";
 
-type Service = {
+export type Service = {
   id: string;
   name: string;
   tier: string;
@@ -15,7 +15,7 @@ type Service = {
   requires_group: string;
 };
 
-type Bundle = {
+export type Bundle = {
   id: string;
   name: string;
   description: string;
@@ -24,9 +24,9 @@ type Bundle = {
   service_ids: string[];
 };
 
-type Tier = { min: number; max: number | null; pct: number };
+export type Tier = { min: number; max: number | null; pct: number };
 
-type Props = {
+export type BundleBuilderProps = {
   services: Service[];
   bundles: Bundle[];
   discountTiers: Tier[];
@@ -40,6 +40,14 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const TIER_ORDER = ["tier_1", "tier_2", "tier_3"];
+
+/** Plain, distinct badge per package (replaces the unsubstantiated, thrice-repeated
+ *  "cheaper than building it yourself" claim). */
+const PRESET_BADGES: Record<string, string> = {
+  package_a: "Best value to start",
+  package_b: "Most popular",
+  package_c: "Complete done-for-you stack",
+};
 
 /** Conversion Lab à-la-carte services — shown in their own group on /build. */
 const CONVERSION_LAB_IDS = ["conversion_snapshot", "conversion_audit", "ad_copy_lab"] as const;
@@ -99,7 +107,7 @@ export default function BundleBuilder({
   bundles,
   discountTiers,
   checkoutEndpoint = "/.netlify/functions/create-checkout",
-}: Props) {
+}: BundleBuilderProps) {
   const buyable = useMemo(() => services.filter((s) => s.self_serve), [services]);
   const byId = useMemo(
     () => Object.fromEntries(services.map((s) => [s.id, s])) as Record<string, Service>,
@@ -189,7 +197,7 @@ export default function BundleBuilder({
       if (!data?.url) throw new Error("no checkout url returned");
       window.location.href = data.url;
     } catch (e) {
-      setError("Sorry — couldn't start checkout. Please try again.");
+      setError("Sorry, we couldn't start checkout. Please try again.");
       setSubmitting(false);
     }
   }
@@ -230,7 +238,7 @@ export default function BundleBuilder({
     <div className="byo">
       <div className="byo-main">
         <div className="byo-presets" role="group" aria-label="Start from a package">
-          {bundles.map((b, i) => {
+          {bundles.map((b) => {
             const active = sameSet(selected, b.service_ids);
             return (
               <button
@@ -245,9 +253,7 @@ export default function BundleBuilder({
                 <span className="byo-preset-price">
                   {dollars(b.setup_after_cents)} setup · {dollars(b.monthly_cents)}/mo
                 </span>
-                <span className="byo-preset-badge">
-                  {i === bundles.length - 1 ? "Most popular" : "Best value"} — cheaper than building it yourself
-                </span>
+                <span className="byo-preset-badge">{PRESET_BADGES[b.id] ?? ""}</span>
               </button>
             );
           })}
@@ -257,8 +263,8 @@ export default function BundleBuilder({
           <fieldset className="byo-group">
             <legend>Conversion Lab</legend>
             <p className="byo-group-note">
-              Pressure-test your page or ad copy before spend or a rebuild — add one
-              à-la-carte or pair with Package C.
+              Check your page or ad copy before you spend on it or rebuild. Add one on
+              its own, or pair it with Package C.
             </p>
             <div className="byo-cards">{conversionLab.map(renderServiceCard)}</div>
           </fieldset>
@@ -279,7 +285,7 @@ export default function BundleBuilder({
 
         <div className="byo-cart-totals" aria-live="polite" aria-atomic="true">
           {ids.length === 0 ? (
-            <p className="byo-empty">Select a service to get started.</p>
+            <p className="byo-empty">Not sure where to start? Pick a package above. You can change it before checkout, and cancel any monthly service later.</p>
           ) : (
             <>
               <div className="byo-due">
@@ -361,7 +367,7 @@ export default function BundleBuilder({
               disabled={!canBuy || submitting}
               onClick={buy}
             >
-              {submitting ? "Starting…" : `Start — ${dollars(dueToday)} today`}
+              {submitting ? "Starting…" : `Start for ${dollars(dueToday)} today`}
             </button>
             {error && <p className="byo-error">{error}</p>}
             <ol className="byo-next">
@@ -369,6 +375,9 @@ export default function BundleBuilder({
               <li>A real person emails you within 1 business day to kick off</li>
               <li>Your site & setup get underway that week</li>
             </ol>
+            <p className="byo-own" style={{ margin: "0.7rem 0 0", fontSize: "0.8rem", opacity: 0.72 }}>
+              You own your site, domain, and data, so they stay yours if you ever leave.
+            </p>
           </div>
         )}
       </aside>

@@ -1,0 +1,153 @@
+---
+// Free review — the focused conversion page. Speaks to three visitors: someone
+// who wants a preview of a brand-new site, someone who wants a review of their
+// existing site, and someone who wants both. The "What can I help with?" radio
+// captures which, and rides through to the operator (Netlify function → typed
+// WebsiteReviewRequest). The form posts to the function, which persists the lead
+// and 303-redirects to /thanks/.
+import Site from "../../layouts/Site.astro";
+
+// US states + DC (2-letter) for the State dropdown — normalized values make it
+// easy to look the business up by location later.
+const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+
+const intents = [
+  { value: "preview", title: "A preview of a new website", desc: "I don't have a site yet, or I want a fresh one." },
+  { value: "review", title: "A review of my current website", desc: "I have a site and want honest, useful feedback." },
+  { value: "both", title: "Both", desc: "Review my current site and preview a new one." },
+];
+
+const reviewPoints = [
+  ["First impression", "Does it look professional and current, or is it showing its age?"],
+  ["On a phone", "Most people see your site on mobile. Does it actually work well there?"],
+  ["Speed", "How fast it loads before a visitor gives up and leaves."],
+  ["Clarity", "Is it instantly obvious what you do, where you are, and how to reach you?"],
+  ["Getting in touch", "How easy it is for a customer to call, message, or book you."],
+  ["Found on Google", "The basics of whether people can actually find you in search."],
+  ["Trust", "Photos, reviews, and whether your hours and details are up to date."],
+];
+---
+<Site
+  title="Get a free website review or preview — Better Business Web"
+  description="Whether you're starting from scratch or already have a site, I can help. Get a free preview of a new website, a review of your current one, or both."
+  ogTitle="Get a free website review or preview — Better Business Web"
+  current="/free-review"
+  noindex
+>
+  <section class="section section--top">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow">Get started</span>
+        <h1>Get a free website review or preview.</h1>
+        <p class="muted measure">Whether you're starting from scratch or already have a site, I can help. Tell me a bit about your business and what you're after, and I'll get back to you.</p>
+      </div>
+
+      <div class="review-explainer">
+        <h2>What a website review covers</h2>
+        <ul class="review-points">
+          {reviewPoints.map(([term, body]) => (
+            <li><strong>{term}.</strong> {body}</li>
+          ))}
+        </ul>
+        <p class="muted closer">You'll get what's working, what's costing you customers, and a few specific things I'd fix first, whether you hire me or not.</p>
+      </div>
+
+      <div class="review-card">
+        <form name="website-review" method="POST" action="/.netlify/functions/website-review" class="review-form">
+          <p hidden><label>Don't fill this out if you're human: <input name="bot-field" aria-label="Leave this field empty" tabindex="-1" autocomplete="off" /></label></p>
+
+          <fieldset class="intent">
+            <legend>What can I help with?</legend>
+            {intents.map((opt, i) => (
+              <label class="intent-option">
+                <input type="radio" name="interest" value={opt.value} required={i === 0 ? true : undefined} />
+                <span class="intent-text">
+                  <span class="intent-title">{opt.title}</span>
+                  <span class="intent-desc">{opt.desc}</span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+
+          <div class="field"><label for="name">Your name</label><input id="name" name="name" type="text" autocomplete="name" required /></div>
+          <div class="field"><label for="business">Business name</label><input id="business" name="business" type="text" autocomplete="organization" /></div>
+          <div class="field-row">
+            <div class="field"><label for="city">City</label><input id="city" name="city" type="text" autocomplete="address-level2" placeholder="e.g. Dahlonega" /></div>
+            <div class="field"><label for="state">State</label>
+              <select id="state" name="state" autocomplete="address-level1">
+                <option value="" selected>Select…</option>
+                {US_STATES.map((s) => <option value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div class="field"><label for="website">Current website (or "none")</label><input id="website" name="website" type="text" inputmode="url" placeholder="example.com or none" /></div>
+          <div class="field"><label for="contact">Email or phone</label><input id="contact" name="contact" type="text" autocomplete="email" required /></div>
+          <button class="btn btn-accent btn-lg" type="submit">Request my free review <span class="arrow">→</span></button>
+          <p class="form-note">I'll only use these details to prepare your review and get back to you. I won't share them or send you spam.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</Site>
+
+<style>
+  .review-explainer {
+    max-width: 680px;
+    margin: 0 auto var(--space-lg);
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.3rem, 0.9rem + 2vw, 2.2rem);
+  }
+  .review-explainer h2 { font-size: var(--step-1); margin: 0 0 var(--space-xs); }
+  .review-points {
+    list-style: none;
+    margin: var(--space-sm) 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+  @media (min-width: 620px) { .review-points { grid-template-columns: 1fr 1fr; gap: 0.7rem var(--space-md); } }
+  .review-points li {
+    position: relative;
+    padding-left: 1.5rem;
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .review-points li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 800;
+  }
+  .review-points strong { color: var(--ink); font-weight: 650; }
+  .review-explainer .closer { margin: var(--space-sm) 0 0; font-size: var(--step--1); }
+
+  /* Intent radio group — a real fieldset/legend; each option is a selectable row
+     that highlights when its radio is checked. */
+  .intent { border: 0; margin: 0 0 var(--space-xs); padding: 0; }
+  .intent legend { font-weight: 600; font-size: var(--step--1); color: var(--ink-soft); padding: 0; margin-bottom: 0.5rem; }
+  .intent-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+  .intent-option + .intent-option { margin-top: 0.5rem; }
+  .intent-option input { margin-top: 0.25rem; accent-color: var(--accent); width: 1.05rem; height: 1.05rem; flex: none; }
+  .intent-text { display: grid; gap: 0.1rem; }
+  .intent-title { font-weight: 600; color: var(--ink); }
+  .intent-desc { font-size: var(--step--1); color: var(--ink-faint); }
+  .intent-option:hover { border-color: var(--accent); }
+  .intent-option:has(input:checked) {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .intent-option:has(input:focus-visible) { box-shadow: var(--ring); }
+</style>

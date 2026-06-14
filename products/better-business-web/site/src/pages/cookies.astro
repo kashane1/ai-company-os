@@ -1,0 +1,60 @@
+---
+// Cookie Policy. The marketing site is static Astro and sets no tracking or
+// advertising cookies; only Stripe (during checkout) and Netlify (hosting /
+// security) may set strictly-necessary cookies. Verified: no analytics/ad
+// scripts in the source.
+import LegalPage from "../components/LegalPage.astro";
+import { legal } from "../lib/legal.mjs";
+---
+<LegalPage
+  title="Cookie Policy — Better Business Web"
+  description="How Better Business Web uses cookies — in short, no tracking or advertising cookies."
+  heading="Cookie Policy"
+>
+  <p>
+    Cookies are small files a website can store in your browser. This page
+    explains how we use them. The short version: <strong>we don't use cookies to
+    track you or to advertise.</strong>
+  </p>
+
+  <h2>Cookies we use</h2>
+  <p>
+    Our website is a static site with <strong>no analytics, advertising, or
+    tracking cookies</strong>, and we don't build profiles of visitors. We don't
+    show a cookie banner because we don't set non-essential cookies.
+  </p>
+
+  <h2>Essential third-party cookies</h2>
+  <p>
+    A couple of trusted providers may set strictly-necessary cookies so the site
+    can work and stay secure:
+  </p>
+  <ul>
+    <li>
+      <strong>Stripe</strong> — when you go through checkout, Stripe may set
+      cookies needed for secure payment processing and fraud prevention.
+    </li>
+    <li>
+      <strong>Netlify</strong> — our host may use essential cookies and logs for
+      security and to serve the site reliably.
+    </li>
+  </ul>
+  <p>
+    These are essential to providing the service and aren't used to track you for
+    advertising.
+  </p>
+
+  <h2>Managing cookies</h2>
+  <p>
+    You can block or delete cookies in your browser settings at any time. Note
+    that blocking the essential cookies above may stop checkout from working
+    properly.
+  </p>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    If we ever add cookies — for example, analytics — we'll update this page and,
+    where required, ask for your consent first. Questions? Email
+    <a href={`mailto:${legal.contactEmail}`}>{legal.contactEmail}</a>.
+  </p>
+</LegalPage>

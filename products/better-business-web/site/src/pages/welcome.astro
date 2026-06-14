@@ -1,49 +1,42 @@
 ---
-// Post-PAYMENT success page — the Stripe Checkout success_url for paid bundles
-// (packages/agency/payments.py). Distinct from /thanks/, which is the free-review
-// request confirmation. A paying customer must never see "no payment until you're
-// happy" copy — they've just paid. This page confirms the charge and sets
-// onboarding expectations. Not in the nav (no active item); compact banner.
 import Site from "../layouts/Site.astro";
+import V2Page from "../components/V2Page.astro";
 ---
+
 <Site
   title="Welcome aboard — Better Business Web"
-  description="Payment received, and welcome aboard. Your plan is active and I'll be in touch to get things started."
+  description="Payment received, and welcome aboard. Your plan is active and we'll be in touch to get things started."
   noindex
-  compactBanner
+  hideHeader
+  bg="v2"
 >
-  <section class="section">
-    <div class="container center stack-lg">
-      <span class="eyebrow">Payment received</span>
-      <h1>You're all set.</h1>
-      <p class="muted measure">Your plan is active and a receipt is on its way to your email.
-        Thanks for trusting me with your website. Here's how we'll get started.</p>
-      <ol class="next-steps measure">
-        <li><strong>Within 1 business day.</strong> I'll email you a short kickoff note with the
-          handful of things I need from you: logo, photos, business hours, and account access.</li>
-        <li><strong>This week.</strong> I get your site and setup underway, then share a preview link
-          so you can watch it come together.</li>
-        <li><strong>Ongoing.</strong> Your monthly plan covers hosting, updates, and the services in
-          your package. Reply to any of my emails whenever you need something and it comes straight to me.</li>
-      </ol>
-      <p class="muted measure note">Need to change something or have a question right now? Reply
-        to your receipt email and it comes straight to me.</p>
-      <p><a class="btn btn-primary btn-lg" href="/">Back to home</a></p>
-    </div>
-  </section>
+  <V2Page
+    eyebrow="Payment received"
+    title="You're all set."
+    description="Your plan is active and a receipt is on its way. We'll follow up with the kickoff details, gather what we need, and start shaping your first working preview."
+    align="center"
+    actions={[{ href: "/", label: "Back to home" }]}
+  >
+    <section class="v2-section">
+      <div class="v2-shell">
+        <div class="v2-grid">
+          <article class="v2-card v2-card-pad">
+            <span class="v2-card-kicker">01</span>
+            <h3>Kickoff</h3>
+            <p>Within one business day, we'll email you a short list of what we need: your logo, a few photos, your hours, and account access.</p>
+          </article>
+          <article class="v2-card v2-card-pad">
+            <span class="v2-card-kicker">02</span>
+            <h3>Preview</h3>
+            <p>This week we get the site and setup underway, then share a preview link so you can watch it come together.</p>
+          </article>
+          <article class="v2-card v2-card-pad">
+            <span class="v2-card-kicker">03</span>
+            <h3>Ongoing</h3>
+            <p>Your monthly plan covers hosting, updates, and the services in your package. Reply whenever you need something.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </V2Page>
 </Site>
-
-<style>
-  .stack-lg > * + * { margin-top: var(--space-md); }
-  .next-steps {
-    text-align: left;
-    margin: var(--space-sm) auto 0;
-    padding-left: 1.25rem;
-    display: grid;
-    gap: 0.75rem;
-    color: var(--ink-soft);
-  }
-  .next-steps li { padding-left: 0.35rem; }
-  .next-steps strong { color: var(--ink); }
-  .note { font-size: var(--step--1); }
-</style>

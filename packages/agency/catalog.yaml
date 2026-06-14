@@ -176,7 +176,7 @@ services:
     setup_fee: 80
     monthly_fee: 40
     includes:
-      - Google review link
+      - Automatic prompts that turn happy customers into Google reviews.
       - Review request template draft (email / in-person QR)
       - Cadence management and compliance checklist
       - "SMS review requests planned: require a signed consent addendum (not yet enabled)"
@@ -222,7 +222,7 @@ services:
     setup_fee: 250
     monthly_fee: 0
     includes:
-      - "Conversion Lab: full website or landing page audit with copy rewrites"
+      - "Conversion Lab: full website or brand audit with copy rewrites"
       - Persona-by-persona objections
       - Trust and clarity audit
       - Priority implementation backlog
@@ -303,7 +303,7 @@ discount_tiers:
 bundles:
   - bundle_id: package_a
     name: "Package A — Presence"
-    description: Look professional online. Website + the annoying tech handled.
+    description: A professional website with all the annoying tech handled for you, including hosting, email, and Google setup. It makes you look credible the moment a customer finds you.
     setup_promo: 600
     service_ids:
       - website
@@ -325,7 +325,7 @@ bundles:
 
   - bundle_id: package_c
     name: "Package C — Presence + Capture + Growth"
-    description: Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.
+    description: Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads. Your ad budget is separate and stays in your control.
     setup_promo: 1800
     monthly_promo: 550
     service_ids:

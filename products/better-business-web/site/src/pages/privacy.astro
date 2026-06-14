@@ -1,0 +1,127 @@
+---
+// Privacy Policy. Content is grounded in what the site actually does:
+// free-review form + build/checkout → Netlify Blobs, Stripe Checkout for
+// payments, Resend for operator notifications. No analytics/ad trackers.
+import LegalPage from "../components/LegalPage.astro";
+import { legal, subProcessors } from "../lib/legal.mjs";
+---
+<LegalPage
+  title="Privacy Policy — Better Business Web"
+  description="How Better Business Web collects, uses, and protects your information."
+  heading="Privacy Policy"
+>
+  <p>
+    This policy explains what information {legal.businessName} ({legal.entityDescription})
+    collects when you use this website ({legal.domain}), how we use it, and the
+    choices you have. We keep it short and in plain English.
+  </p>
+  <p>
+    This policy covers <strong>our own website</strong>. Websites we design and
+    build for clients are separate and are covered by each client's own privacy
+    policy.
+  </p>
+
+  <h2>Information you give us</h2>
+  <ul>
+    <li>
+      <strong>Free website review or preview.</strong> When you submit the
+      review form, we collect your name, your email or phone number, and the
+      details you choose to share — business name, city and state, your current
+      website (or "none"), and what you're looking for.
+    </li>
+    <li>
+      <strong>Orders.</strong> When you buy a bundle, we collect your business
+      name, your contact email or phone, and the services you select.
+    </li>
+  </ul>
+
+  <h2>Payment information</h2>
+  <p>
+    Payments are processed by <strong>Stripe</strong>. Your card details are
+    entered on Stripe's secure checkout and go directly to Stripe — we never
+    receive or store full card numbers. We receive limited information from
+    Stripe needed to fulfil and manage your order, such as confirmation that a
+    payment succeeded, your billing contact, and your subscription status.
+  </p>
+
+  <h2>Information collected automatically</h2>
+  <p>
+    This site does <strong>not</strong> use advertising or analytics trackers,
+    and we don't build profiles of you across the web. To serve the site and
+    keep it secure, our host (Netlify) processes standard request logs, which
+    include your IP address. We also use your IP address briefly to rate-limit
+    the checkout form against abuse. See our <a href="/cookies">Cookie Policy</a>.
+  </p>
+
+  <h2>How we use your information</h2>
+  <ul>
+    <li>To prepare your website review or preview and get back to you.</li>
+    <li>To provide, set up, and bill for the services you order.</li>
+    <li>To respond to your questions and provide support.</li>
+    <li>To prevent fraud and abuse of our forms and checkout.</li>
+    <li>To meet our legal and accounting obligations.</li>
+  </ul>
+  <p>
+    We will only use your details for the reasons above. We don't send spam, and
+    we won't share your information for anyone else's marketing.
+  </p>
+
+  <h2>Who we share it with</h2>
+  <p>
+    We don't sell your personal information. We share it only with the service
+    providers that help us run the business, and only as needed:
+  </p>
+  <ul>
+    {subProcessors.map((p) => (
+      <li>
+        <strong>{p.name}.</strong> {p.role}{" "}
+        <a href={p.url} target="_blank" rel="noopener noreferrer">Privacy policy</a>.
+      </li>
+    ))}
+  </ul>
+  <p>
+    When you hire us to set up tools on your behalf — such as a Google Business
+    Profile, business email, a booking platform, or advertising — those run
+    under your own accounts and are governed by those providers' terms and
+    privacy policies. We may also disclose information if required by law.
+  </p>
+
+  <h2>How long we keep it</h2>
+  <p>
+    We keep review and order records for as long as needed to respond to you,
+    deliver and support your services, and meet legal or accounting
+    requirements. You can ask us to delete information we no longer need to keep.
+  </p>
+
+  <h2>Your rights and choices</h2>
+  <p>
+    You can ask us to access, correct, or delete the personal information we hold
+    about you, and you can opt out of any emails. Depending on where you live
+    (for example, under GDPR in the UK/EU or the CCPA in California), you may have
+    additional rights — including the right to a copy of your data and, in
+    California, to know that <strong>we do not sell or "share" personal
+    information</strong> for cross-context behavioural advertising. To exercise
+    any of these, email us at
+    <a href={`mailto:${legal.contactEmail}`}>{legal.contactEmail}</a>.
+  </p>
+
+  <h2>Security</h2>
+  <p>
+    We take reasonable measures to protect your information, including processing
+    payments through Stripe and applying spam and rate-limiting protections on
+    our forms. No method of transmission or storage is ever 100% secure, but we
+    work to keep your data safe.
+  </p>
+
+  <h2>Children</h2>
+  <p>
+    This site is meant for businesses and is not directed to children under 16.
+    We don't knowingly collect information from children.
+  </p>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    We may update this policy from time to time. When we do, we'll change the
+    "last updated" date at the top of this page.
+  </p>
+</LegalPage>

@@ -1,0 +1,75 @@
+---
+// Demos — live sample designs by business type. The "show me proof" page.
+import Site from "../../layouts/Site.astro";
+import portfolio from "../../data/portfolio.json";
+
+const pfThemes = [
+  "linear-gradient(150deg,#9a3412,#5c1a0a)",
+  "linear-gradient(150deg,#1f6f6b,#0f3d3a)",
+  "linear-gradient(150deg,#b5701f,#6e3f0e)",
+  "linear-gradient(150deg,#2563a8,#15315a)",
+  "linear-gradient(150deg,#5b6b3a,#33401f)",
+  "linear-gradient(150deg,#b03d73,#5e1c3b)",
+  "linear-gradient(150deg,#7c4a2d,#3d2517)",
+];
+---
+<Site
+  title="Live demo sites — Better Business Web"
+  description="Real sample website designs built for common local businesses. Click through to explore. The businesses are made up, but the design work is real."
+  ogTitle="Live demos by business type — Better Business Web"
+  current="/demos"
+  noindex
+>
+  <section class="section section--top">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow">Demo sites</span>
+        <h1>Live demos by business type.</h1>
+        <p class="muted measure">These are real sample designs built for common local businesses. Click through any of them to explore. The businesses are made up, but the design work is real.</p>
+      </div>
+      <div class="portfolio-grid">
+        {portfolio.demos.map((d, i) => (
+          <a class="pf-card pf-card-link" href={d.url} target="_blank" rel="noopener">
+            <div class="pf-top">
+              <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+              <span class="pf-url">{d.slug}.example.com</span>
+            </div>
+            <div class="pf-thumb">
+              {d.thumbnail ? (
+                <Fragment>
+                  <span class="pf-loader" aria-hidden="true"></span>
+                  <img src={d.thumbnail} alt={`${d.name} demo site screenshot`} loading="lazy" decoding="async" />
+                </Fragment>
+              ) : (
+                <div class="pf-thumb-fallback" style={`background:${pfThemes[i % pfThemes.length]}`}>
+                  <span class="pf-name">{d.name}</span>
+                  <span class="pf-kind">{d.type}</span>
+                </div>
+              )}
+            </div>
+            <div class="pf-body"><p class="type">{d.type}</p><span class="badge">Live demo</span></div>
+          </a>
+        ))}
+      </div>
+      <div class="center" style="margin-top: var(--space-lg)">
+        <a class="btn btn-accent btn-lg" href="/free-review">Get a free review of your site <span class="arrow">→</span></a>
+      </div>
+    </div>
+  </section>
+</Site>
+
+<script>
+  // Reveal each demo thumbnail once its image decodes; the .pf-loader skeleton +
+  // spinner shows until then (and on error, so it never spins forever).
+  document.querySelectorAll(".pf-thumb img").forEach((img) => {
+    const thumb = img.closest(".pf-thumb");
+    if (!thumb) return;
+    const reveal = () => thumb.classList.add("is-loaded");
+    const el = img as HTMLImageElement;
+    if (el.complete && el.naturalWidth > 0) reveal();
+    else {
+      el.addEventListener("load", reveal, { once: true });
+      el.addEventListener("error", reveal, { once: true });
+    }
+  });
+</script>

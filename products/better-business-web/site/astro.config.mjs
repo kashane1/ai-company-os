@@ -11,4 +11,19 @@ import react from "@astrojs/react";
 export default defineConfig({
   site: "https://better-business-web.netlify.app",
   integrations: [react()],
+  vite: {
+    plugins: [
+      {
+        name: "bbw-work-demo-directory-index",
+        configureServer(server) {
+          server.middlewares.use((req, _res, next) => {
+            if (req.url?.match(/^\/work\/[^/?#]+\/(?:[?#].*)?$/)) {
+              req.url = req.url.replace(/\/([?#].*)?$/, "/index.html$1");
+            }
+            next();
+          });
+        },
+      },
+    ],
+  },
 });

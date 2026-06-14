@@ -15,17 +15,24 @@ const links = [
   <div class="container">
     <div class="footer-top">
       <p class="footer-about measure">
-        Better Business Web is a small studio run by Kashane Sakhakorn. You work
-        directly with the person designing and building your site, not an account
-        manager or a call center.
+        Better Business Web is a small studio in California, run by Kashane Sakhakorn.
+        When you hire us you work straight with the person who designs and builds your
+        site. There is no account manager and no call center, and you get to see the
+        finished preview before you pay anything.
       </p>
       <nav class="footer-nav" aria-label="Footer">
         {links.map((l) => <a href={l.href}>{l.label}</a>)}
       </nav>
     </div>
     <div class="footer-word" aria-hidden="true">Better Business Web</div>
+    <nav class="footer-legal" aria-label="Legal">
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/refunds">Refunds &amp; Cancellation</a>
+      <a href="/cookies">Cookies</a>
+    </nav>
     <div class="footer-row">
-      <span>© {year} Better Business Web. A small web studio run by Kashane Sakhakorn.</span>
+      <span>© {year} Better Business Web. A California web studio run by Kashane Sakhakorn.</span>
       <span>Previewed before you pay.</span>
     </div>
   </div>
@@ -34,14 +41,22 @@ const links = [
 <style>
   .footer-top {
     display: grid;
-    gap: var(--space-md);
+    gap: clamp(1rem, 2vw, 1.5rem);
     grid-template-columns: 1fr;
-    margin-bottom: var(--space-lg);
+    margin-bottom: clamp(1.35rem, 3vw, 2.2rem);
   }
-  .footer-about { color: var(--ink-soft); margin: 0; font-size: var(--step--1); }
+  .footer-about { color: color-mix(in srgb, #ededef 72%, transparent); margin: 0; font-size: var(--step--1); }
+  .footer-legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    margin-bottom: clamp(0.75rem, 1.8vw, 1.15rem);
+  }
+  .footer-legal a { color: color-mix(in srgb, #ededef 70%, transparent); font-weight: 500; font-size: var(--step--1); }
+  .footer-legal a:hover { color: #e6e6e8; }
   .footer-nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; }
-  .footer-nav a { color: var(--ink-soft); font-weight: 500; font-size: var(--step--1); }
-  .footer-nav a:hover { color: var(--ink); }
+  .footer-nav a { color: color-mix(in srgb, #ededef 70%, transparent); font-weight: 500; font-size: var(--step--1); }
+  .footer-nav a:hover { color: #e6e6e8; }
   @media (min-width: 760px) {
     .footer-top { grid-template-columns: 1.4fr 1fr; align-items: center; }
     .footer-nav { justify-content: flex-end; }

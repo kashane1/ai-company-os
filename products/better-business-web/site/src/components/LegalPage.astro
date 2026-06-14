@@ -1,0 +1,117 @@
+---
+// Shared shell for the legal pages (Privacy, Terms, Refunds, Cookies). Keeps
+// them visually consistent and applies readable long-form "prose" styling that
+// the marketing-focused global.css doesn't provide (its h2/h3 are oversized
+// display serif). Each page passes its metadata + body via the default slot.
+import Site from "../layouts/Site.astro";
+import { legal } from "../lib/legal.mjs";
+
+interface Props {
+  title: string;
+  description: string;
+  heading: string;
+  updated?: string;
+}
+const { title, description, heading, updated = legal.effectiveDate } = Astro.props;
+---
+<Site title={title} description={description} compactBanner>
+  <section class="section section--top">
+    <div class="container">
+      <article class="legal">
+        <header class="legal-head">
+          <span class="eyebrow">Legal</span>
+          <h1>{heading}</h1>
+          <p class="legal-updated">Last updated {updated}</p>
+        </header>
+
+        <div class="legal-body">
+          <slot />
+        </div>
+
+        <footer class="legal-foot">
+          <p>
+            Questions about this page? Email
+            <a href={`mailto:${legal.contactEmail}`}>{legal.contactEmail}</a>.
+          </p>
+          <p class="legal-nav">
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/refunds">Refunds &amp; Cancellation</a>
+            <a href="/cookies">Cookies</a>
+          </p>
+        </footer>
+      </article>
+    </div>
+  </section>
+</Site>
+
+<style>
+  .legal {
+    max-width: 72ch;
+    margin-inline: auto;
+  }
+  .legal-head { margin-bottom: var(--space-lg); }
+  .legal-head h1 {
+    font-size: var(--step-3);
+    margin: 0 0 var(--space-xs);
+  }
+  .legal-updated {
+    color: var(--ink-faint);
+    font-size: var(--step--1);
+    margin: 0;
+  }
+
+  /* Long-form prose — smaller, readable headings (NOT the display-serif giants
+     global.css uses for marketing sections). Styled via :global so the slotted
+     page markup is reached. */
+  .legal-body :global(h2) {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 560;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: var(--space-lg) 0 var(--space-xs);
+  }
+  .legal-body :global(h2:first-child) { margin-top: 0; }
+  .legal-body :global(h3) {
+    font-family: var(--font-body);
+    font-size: var(--step-0);
+    font-weight: 700;
+    margin: var(--space-md) 0 var(--space-2xs);
+  }
+  .legal-body :global(p),
+  .legal-body :global(li) {
+    color: var(--ink-soft);
+    line-height: 1.65;
+  }
+  .legal-body :global(ul) {
+    margin: 0 0 var(--space-sm);
+    padding-left: 1.3rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .legal-body :global(li::marker) { color: var(--accent); }
+  .legal-body :global(strong) { color: var(--ink); font-weight: 650; }
+  .legal-body :global(a) { text-decoration: underline; text-underline-offset: 2px; }
+
+  /* Visible marker for a value a human still has to fill in (see legal.mjs). */
+  .legal-body :global(.needs-input) {
+    background: color-mix(in srgb, var(--gold) 26%, transparent);
+    color: var(--ink);
+    font-weight: 600;
+    padding: 0.05em 0.4em;
+    border-radius: 6px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  .legal-foot {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: var(--step--1);
+  }
+  .legal-foot p { margin: 0 0 var(--space-xs); }
+  .legal-nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; }
+</style>

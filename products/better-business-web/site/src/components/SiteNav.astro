@@ -4,8 +4,8 @@
 // The brand "b" mark is a FIXED element owned by the layout (it never moves);
 // the nav just reserves an equal-width slot on the left so the centered links
 // stay clear of it. A faint shadow appears when stuck (one sentinel + IO). The
-// four links are styled identically (no accent CTA); on phones they collapse to
-// a WAI-ARIA disclosure (button + dropdown panel, untabbable when closed).
+// links are styled identically (no accent CTA); on small screens they simply
+// wrap onto two lines inside the pill (no hamburger / disclosure menu).
 
 interface Props {
   current?: string;
@@ -23,149 +23,182 @@ const links = [
 <nav class="site-nav" aria-label="Primary">
   <div class="site-nav__inner">
     <ul class="site-nav__links" id="primary-menu">
-      {links.map((l) => (
-        <li>
-          <a
-            href={l.href}
-            class:list={["site-nav__link", current === l.href && "is-current"]}
-            aria-current={current === l.href ? "page" : undefined}
-          >{l.label}</a>
-        </li>
+      {links.map((l, i) => (
+        <Fragment>
+          {/* Forced wrap point: on small screens the links split 3 / 2 here so
+              "Build Your Bundle" drops to the second row with "Free Review",
+              instead of a lopsided 4 / 1 greedy wrap. */}
+          {i === 3 && <li class="site-nav__break" aria-hidden="true"></li>}
+          <li>
+            <a
+              href={l.href}
+              class:list={["site-nav__link", current === l.href && "is-current"]}
+              aria-current={current === l.href ? "page" : undefined}
+            >{l.label}</a>
+          </li>
+        </Fragment>
       ))}
     </ul>
-
-    <button
-      type="button"
-      class="site-nav__toggle"
-      aria-expanded="false"
-      aria-controls="primary-menu"
-      aria-label="Menu"
-    >
-      <svg class="icon-open" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-      <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
-    </button>
   </div>
 </nav>
 
 <style>
   .site-nav {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 40;
-    background: color-mix(in srgb, var(--paper) 72%, transparent);
-    -webkit-backdrop-filter: saturate(160%) blur(14px);
-    backdrop-filter: saturate(160%) blur(14px);
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    display: flex;
+    justify-content: center;
+    padding: 0.72rem max(clamp(1rem, 3vw, 2rem), env(safe-area-inset-right)) 0.72rem max(clamp(1rem, 3vw, 2rem), env(safe-area-inset-left));
+    background: transparent;
+    pointer-events: none;
+    transition: filter 0.18s ease;
   }
   /* Opaque fallback where backdrop-filter is unsupported (blur alone wouldn't
      give text contrast). */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .site-nav { background: color-mix(in srgb, var(--paper) 94%, transparent); }
+    .site-nav__inner { background: color-mix(in srgb, var(--paper) 82%, #0a0a0b); }
   }
   .site-nav.is-stuck {
-    border-bottom-color: var(--line);
-    box-shadow: 0 8px 28px -18px rgba(0, 0, 0, 0.85);
+    filter: drop-shadow(-8px 10px 24px rgba(0, 0, 0, 0.42));
   }
 
   .site-nav__inner {
     position: relative;
     display: flex;
     align-items: center;
-    gap: var(--space-md);
-    width: 100%;
-    max-width: var(--container);
+    gap: 0;
+    width: auto;
+    max-width: calc(100vw - 2rem);
     margin-inline: auto;
-    padding: 0 clamp(1.1rem, 0.4rem + 3vw, 2.2rem);
-    min-height: var(--nav-h);
+    min-height: 3rem;
+    padding: 0.28rem 0.36rem;
+    border: 1px solid color-mix(in srgb, #ededef 28%, transparent);
+    border-radius: 999px;
+    background:
+      var(--glass-sheen),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.045)),
+      color-mix(in srgb, #0a0a0b 90%, transparent);
+    -webkit-backdrop-filter: saturate(145%) blur(26px) brightness(0.82);
+    backdrop-filter: saturate(145%) blur(26px) brightness(0.82);
+    box-shadow:
+      inset 1px 1px 0 rgba(255, 255, 255, 0.28),
+      inset -1px -1px 0 rgba(0, 0, 0, 0.32),
+      inset 0 0 28px rgba(255, 255, 255, 0.11),
+      -12px 14px 34px -22px rgba(0, 0, 0, 0.95);
+    overflow: clip;
+    pointer-events: auto;
+  }
+
+  .site-nav__inner::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      radial-gradient(28rem 5rem at 86% 0%, rgba(255, 255, 255, 0.34), transparent 56%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(11, 4, 5, 0.08) 44%, transparent 72%);
+    mix-blend-mode: screen;
+  }
+
+  .site-nav__inner::after {
+    content: "";
+    position: absolute;
+    inset: auto 1.15rem 0.35rem;
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
+    pointer-events: none;
   }
 
   .site-nav__links {
     list-style: none;
     margin: 0;
     padding: 0;
-    flex: 1;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 0;
+    gap: 0.18rem;
+    position: relative;
+    z-index: 1;
   }
   /* "|" divider between items, with symmetric margins for even spacing. */
   .site-nav__links li + li::before {
-    content: "|";
-    color: var(--ink-faint);
-    font-size: var(--step-1);
-    font-weight: 300;
-    margin-inline: clamp(1.3rem, 0.5rem + 1.8vw, 2.8rem);
+    content: "";
+    display: inline-block;
+    width: 1px;
+    height: 1.1rem;
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, #ededef 30%, transparent), transparent);
+    margin-inline: 0.25rem;
     vertical-align: middle;
   }
   .site-nav__link {
     display: inline-block;
-    color: var(--ink-soft);
-    font-weight: 550;
-    font-size: var(--step-1);
+    color: color-mix(in srgb, #ededef 84%, transparent);
+    font-weight: 650;
+    font-size: clamp(0.88rem, 0.78rem + 0.34vw, 1.04rem);
     line-height: 1.1;
-    letter-spacing: -0.005em;
-    padding: 0.3rem 0.15rem;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s ease, border-color 0.2s ease;
+    letter-spacing: 0;
+    padding: 0.6rem clamp(0.5rem, 1vw, 0.85rem);
+    border-radius: 999px;
+    border: 1px solid transparent;
+    text-shadow: -1px 1px 2px rgba(0, 0, 0, 0.42);
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   }
-  .site-nav__link:hover { color: var(--ink); }
+  .site-nav__link:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: color-mix(in srgb, #ededef 18%, transparent);
+  }
   .site-nav__link.is-current {
-    color: var(--ink);
-    border-bottom-color: var(--ink);
+    color: #ffffff;
+    background:
+      radial-gradient(circle at var(--light-from-x) var(--light-from-y), rgba(255, 255, 255, 0.28), transparent 42%),
+      rgba(255, 255, 255, 0.09);
+    border-color: color-mix(in srgb, #ededef 26%, transparent);
+    box-shadow:
+      inset 1px 1px 0 rgba(255, 255, 255, 0.24),
+      inset -1px -1px 0 rgba(0, 0, 0, 0.24);
   }
 
-  .site-nav__toggle { display: none; }
+  /* Flex line-break spacer — off until the bar is narrow enough to need it. */
+  .site-nav__break { display: none; }
 
-  /* ---- Mobile: disclosure ---- */
-  @media (max-width: 759px) {
-    .site-nav__inner { gap: var(--space-sm); }
-
-    .site-nav__toggle {
-      display: grid;
-      place-items: center;
-      margin-left: auto;
-      width: 44px;
-      height: 44px;
-      flex: 0 0 44px;
-      padding: 0;
-      border: 1px solid var(--line-strong);
-      border-radius: 12px;
-      background: color-mix(in srgb, var(--ink) 7%, transparent);
-      color: var(--ink);
-      cursor: pointer;
-      touch-action: manipulation;
+  /* ---- Small screens: the pill keeps hugging its content (no full-width
+     sparse bar). Once the five links no longer fit one line, wrap them 3 / 2 —
+     "Build Your Bundle" + "Free Review" drop to a second row — rather than a
+     lopsided greedy 4 / 1 wrap. ---- */
+  @media (max-width: 600px) {
+    .site-nav {
+      padding: 0.5rem max(0.6rem, env(safe-area-inset-right)) 0.5rem max(0.6rem, env(safe-area-inset-left));
     }
-    .site-nav__toggle:focus-visible { outline: none; box-shadow: var(--ring); }
-    .site-nav__toggle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-    .site-nav__toggle .icon-close { display: none; }
-    .site-nav__toggle[aria-expanded="true"] .icon-open { display: none; }
-    .site-nav__toggle[aria-expanded="true"] .icon-close { display: block; }
-
-    .site-nav__links {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      display: none; /* closed → not tabbable / not announced */
-      flex-direction: column;
-      justify-content: flex-start;
-      gap: 0;
-      padding: 0.5rem clamp(1.1rem, 0.4rem + 3vw, 2.2rem) 1rem;
-      background: var(--paper);
-      border-bottom: 1px solid var(--line);
-      box-shadow: var(--shadow-lg);
+    .site-nav__inner {
+      /* Hug the wider of the two rows. Without this cap the flex line-break
+         below stretches the pill out to nearly the full viewport, leaving big
+         dead space on either side of the links. */
+      max-width: min(15.5rem, calc(100vw - 1.4rem));
+      /* Rounded rectangle reads better than a stadium pill once it's two rows. */
+      border-radius: 18px;
+      padding: 0.24rem 0.28rem;
     }
-    /* No "|" dividers in the stacked dropdown. */
+    .site-nav__inner::after { inset: auto 0.8rem 0.28rem; }
+    .site-nav__links { gap: 0.14rem 0.04rem; }
+    /* A "|" divider would land at the start of the wrapped row — drop them. */
     .site-nav__links li + li::before { display: none; }
-    .site-nav.is-open .site-nav__links { display: flex; }
-    .site-nav__link {
-      padding: 0.85rem 0.15rem;
-      border-bottom: 1px solid var(--line);
-      font-size: var(--step-0);
+    /* Force the 3 / 2 split at this break point. */
+    .site-nav__break {
+      display: block;
+      flex-basis: 100%;
+      width: 100%;
+      height: 0;
+      margin: 0;
+      padding: 0;
     }
-    .site-nav__link.is-current { border-bottom-color: var(--line); color: var(--accent-2); }
+    .site-nav__link { padding: 0.46rem 0.5rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -185,35 +218,5 @@ const links = [
       { threshold: 0 },
     );
     io.observe(sentinel);
-  }
-
-  // 2) Mobile disclosure — WAI-ARIA pattern (button + dropdown), not a menu,
-  //    not a modal. Untabbable when closed (display:none), Escape closes and
-  //    returns focus, link tap / outside click closes.
-  const toggle = document.querySelector<HTMLButtonElement>(".site-nav__toggle");
-  if (nav && toggle) {
-    const setOpen = (open: boolean) => {
-      nav.classList.toggle("is-open", open);
-      toggle.setAttribute("aria-expanded", String(open));
-    };
-    toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
-    nav.querySelectorAll(".site-nav__link").forEach((a) =>
-      a.addEventListener("click", () => setOpen(false)),
-    );
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
-        setOpen(false);
-        toggle.focus();
-      }
-    });
-    document.addEventListener("click", (e) => {
-      if (toggle.getAttribute("aria-expanded") === "true" && !nav.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    });
-    // Crossing to desktop: clear mobile state so the inline row is clean.
-    window.matchMedia("(min-width: 760px)").addEventListener("change", (m) => {
-      if (m.matches) setOpen(false);
-    });
   }
 </script>

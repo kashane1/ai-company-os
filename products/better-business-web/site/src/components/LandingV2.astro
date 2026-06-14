@@ -1,0 +1,753 @@
+---
+import portfolio from "../data/portfolio.json";
+import { featuredDemoSlugs, packages, stats, storyPanels } from "../data/landing-v2.mjs";
+
+type Demo = (typeof portfolio.demos)[number];
+const isDemo = (demo: Demo | undefined): demo is Demo => Boolean(demo);
+const featuredDemos = featuredDemoSlugs
+  .map((slug) => portfolio.demos.find((demo) => demo.slug === slug))
+  .filter(isDemo);
+---
+
+<article class="landing-v2">
+  <section class="v2-hero" aria-labelledby="v2-hero-title">
+    <div class="v2-shell v2-hero__grid">
+      <div class="v2-rail" aria-hidden="true">
+        <span></span>
+        <strong></strong>
+        <span></span>
+      </div>
+
+      <div class="v2-hero__copy">
+        <span class="v2-eyebrow">Better Business Web</span>
+        <h1 id="v2-hero-title">See your new website before you pay for it.</h1>
+        <p>
+          We build websites for small businesses, and we do it a little differently. You
+          get a free, clickable preview of your new site first. Look it over on your phone,
+          tell us what to change, and only pay if you love it.
+        </p>
+        <p class="v2-hero__note">Your finished site shows up as a real link you can click. There is no deposit, and nothing to pay until you say yes.</p>
+      </div>
+
+      <div class="hero-stage" aria-hidden="true">
+        <span class="hero-stage__glow"></span>
+        <div class="device-wrap">
+          <div class="device" id="heroDevice">
+            <div class="device__bar">
+              <span class="device__dots"><i></i><i></i><i></i></span>
+              <span class="device__url">betterbusinessweb.com/your-preview</span>
+            </div>
+            <div class="device__screen">
+              {featuredDemos.map((demo, i) => (
+                <img
+                  class:list={["device__shot", i === 0 && "is-active"]}
+                  src={demo.thumbnail}
+                  alt=""
+                  data-name={demo.name}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              ))}
+            </div>
+          </div>
+          <span class="device__label" id="heroLabel">{featuredDemos[0]?.name}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="v2-proof" aria-label="Landing page proof points">
+    <div class="v2-shell proof-grid">
+      {stats.map((stat) => (
+        <div class="proof-card">
+          <strong>{stat.value}</strong>
+          <span>{stat.label}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="v2-how" aria-labelledby="v2-how-title">
+    <div class="v2-shell">
+      <div class="section-split">
+        <div>
+          <span class="v2-eyebrow">How it works</span>
+          <h2 id="v2-how-title">From your details to a finished site.</h2>
+        </div>
+        <p>Three simple steps. You stay in control the whole way, and you only pay once you are happy with what you see.</p>
+      </div>
+
+      <div class="how-grid">
+        {storyPanels.map((panel) => (
+          <article class="how-card">
+            <span class="how-step">{panel.kicker}</span>
+            <h3>{panel.title}</h3>
+            <p>{panel.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="v2-lab" aria-labelledby="v2-lab-title">
+    <div class="v2-shell">
+      <div class="section-split">
+        <div>
+          <span class="v2-eyebrow">Ways to start</span>
+          <h2 id="v2-lab-title">Three easy ways to start.</h2>
+        </div>
+        <p>
+          Start with a quick review, a deeper audit, or a free preview of a new homepage.
+          Whichever you choose, you decide what happens next. There is no pressure to keep going.
+        </p>
+      </div>
+
+      <div class="package-grid">
+        {packages.map((pkg) => (
+          <article class="package-card">
+            <span>{pkg.name}</span>
+            <strong>{pkg.price}</strong>
+            <p>{pkg.description}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="v2-demos" aria-labelledby="v2-demos-title">
+    <div class="v2-shell">
+      <div class="section-split">
+        <div>
+          <span class="v2-eyebrow">Live examples</span>
+          <h2 id="v2-demos-title">See the kind of site you would get.</h2>
+        </div>
+        <a class="v2-btn v2-btn--ghost" href="/demos">Open all demos</a>
+      </div>
+
+      <div class="demo-strip">
+        {featuredDemos.map((demo) => (
+          <a class="demo-chip" href={demo.url} target="_blank" rel="noopener">
+            {demo.thumbnail ? <img src={demo.thumbnail} alt="" loading="lazy" decoding="async" /> : <span aria-hidden="true"></span>}
+            <strong>{demo.name}</strong>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="v2-close" aria-labelledby="v2-close-title">
+    <div class="v2-shell v2-close__box">
+      <span class="v2-eyebrow">Start here</span>
+      <h2 id="v2-close-title">Send us your current site, and we'll show you what better looks like.</h2>
+      <p>Send your business name or your current site. We'll build a free preview and get back to you within two business days. Then you decide, with no charge and no obligation.</p>
+      <a class="v2-btn v2-btn--primary" href="/free-review">Request the free review <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</article>
+
+<style>
+  .landing-v2 {
+    --v2-black: #0a0a0b;
+    --v2-abyss: #161618;
+    --v2-cyan: #202024;
+    --v2-mist: #ededef;
+    --v2-seafoam: #e6e6e8;
+    --v2-coral: #d4d4d8;
+    --v2-gold: #d4d4d8;
+    --v2-panel: color-mix(in srgb, var(--v2-abyss) 54%, var(--v2-black));
+    --v2-panel-2: color-mix(in srgb, var(--v2-cyan) 50%, #1d1717);
+    --v2-line: color-mix(in srgb, var(--v2-mist) 18%, transparent);
+    --v2-shadow: 0 34px 70px -32px rgba(0, 0, 0, 0.95), 0 14px 34px -18px rgba(255, 255, 255, 0.32);
+    --v2-radius: 8px;
+    /* Grid overlay only — the dark gradient + glows now live on <body>
+       (Site bg="v2") so they flow continuously into the footer. */
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px) 0 0 / 8.5rem 100%;
+    color: var(--v2-mist);
+    margin-top: calc(var(--nav-h) * -0.05);
+    overflow: clip;
+  }
+
+  .v2-shell {
+    width: min(100% - clamp(2rem, 6vw, 5rem), 1180px);
+    margin-inline: auto;
+  }
+
+  .v2-hero {
+    min-height: clamp(720px, 92vh, 940px);
+    display: grid;
+    align-items: center;
+    position: relative;
+    isolation: isolate;
+    padding-block: clamp(5rem, 7vw, 8rem);
+  }
+
+  .v2-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(112deg, transparent 0 50%, rgba(255, 255, 255, 0.05) 50% 63%, transparent 63%),
+      linear-gradient(101deg, transparent 0 66%, rgba(22, 22, 24, 0.52) 66% 78%, transparent 78%);
+    opacity: 0.9;
+  }
+
+  .v2-hero__grid {
+    display: grid;
+    grid-template-columns: 2.8rem minmax(0, 0.92fr) minmax(360px, 0.94fr);
+    gap: clamp(1.4rem, 3vw, 3.6rem);
+    align-items: center;
+  }
+
+  .v2-rail {
+    align-self: stretch;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 1.1rem;
+    opacity: 0.85;
+  }
+
+  .v2-rail::before,
+  .v2-rail::after {
+    content: "";
+    width: 1px;
+    height: 11rem;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.48), transparent);
+  }
+
+  .v2-rail span {
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at var(--light-from-x) var(--light-from-y), var(--light-specular), transparent 36%),
+      linear-gradient(135deg, #ededef, #e6e6e8 58%, #161618);
+    box-shadow:
+      inset 1px -1px 2px rgba(255, 255, 255, 0.32),
+      inset -1px 1px 2px rgba(0, 0, 0, 0.34),
+      var(--light-cast-x) var(--light-cast-y) 7px var(--light-shadow),
+      0 0 20px rgba(255, 255, 255, 0.8);
+  }
+
+  .v2-rail strong {
+    width: 1.4rem;
+    height: 1px;
+    background: var(--v2-mist);
+    box-shadow: 0 6px 0 var(--v2-mist), 0 -6px 0 var(--v2-mist);
+  }
+
+  .v2-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--v2-seafoam);
+    font-size: 0.74rem;
+    font-weight: 720;
+    letter-spacing: 0.04em;
+    margin-bottom: 1.1rem;
+    text-transform: none;
+  }
+
+  .v2-eyebrow::before {
+    content: "";
+    width: 2.2rem;
+    height: 1px;
+    background: currentColor;
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .v2-hero h1,
+  .landing-v2 h2 {
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-weight: 720;
+    letter-spacing: 0;
+    line-height: 0.95;
+    text-transform: none;
+  }
+
+  .v2-hero h1 {
+    max-width: 8.4ch;
+    font-size: clamp(2.7rem, 4.8vw, 4.2rem);
+    margin: 0 0 1.4rem;
+    text-shadow: 0 24px 52px rgba(0, 0, 0, 0.72);
+  }
+
+  .v2-hero__copy p {
+    max-width: 35rem;
+    color: color-mix(in srgb, var(--v2-mist) 76%, transparent);
+    font-size: clamp(1.05rem, 1.6vw, 1.34rem);
+    line-height: 1.55;
+  }
+
+  .v2-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 2.2rem;
+  }
+
+  .v2-hero__note {
+    margin: 1.1rem 0 0;
+    max-width: 34rem;
+    color: color-mix(in srgb, var(--v2-mist) 70%, transparent);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .v2-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 48px;
+    padding: 0.88rem 1.3rem;
+    border: 1px solid var(--v2-line);
+    border-radius: var(--v2-radius);
+    color: var(--v2-mist);
+    font-weight: 780;
+    line-height: 1;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 18px 36px -24px rgba(0, 0, 0, 0.8);
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .v2-btn:hover {
+    color: #ffffff;
+    border-color: color-mix(in srgb, var(--v2-seafoam) 78%, white);
+    transform: translateY(-2px);
+  }
+
+  .v2-btn--primary {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--v2-seafoam) 78%, white), #ededef 42%, #d2d2d6 100%);
+    color: #0a0a0b;
+    border-color: rgba(255, 255, 255, 0.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -4px 9px rgba(0, 0, 0, 0.26),
+      0 22px 44px -22px rgba(255, 255, 255, 0.9);
+  }
+
+  .v2-btn--primary:hover { color: #070708; }
+
+  .v2-btn--ghost {
+    background: rgba(255, 255, 255, 0.065);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-stage {
+    position: relative;
+    min-height: 460px;
+    display: grid;
+    place-items: center;
+    perspective: 1500px;
+    isolation: isolate;
+  }
+
+  .hero-stage__glow {
+    position: absolute;
+    inset: 4% 2%;
+    z-index: -1;
+    border-radius: 999px;
+    background: radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.05) 38%, transparent 70%);
+    filter: blur(30px);
+    animation: heroDrift 9s ease-in-out infinite alternate;
+  }
+
+  @keyframes heroDrift {
+    from { transform: translate3d(-4%, -2%, 0) scale(1); opacity: 0.78; }
+    to   { transform: translate3d(5%, 3%, 0) scale(1.1); opacity: 1; }
+  }
+
+  .device-wrap {
+    position: relative;
+    width: min(100%, 460px);
+  }
+
+  .device {
+    position: relative;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(22, 22, 24, 0.6));
+    box-shadow:
+      0 50px 90px -40px rgba(0, 0, 0, 0.95),
+      0 18px 44px -22px rgba(0, 0, 0, 0.8),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    transform: rotateX(8deg) rotateY(-15deg) rotateZ(0.4deg);
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
+    will-change: transform;
+  }
+
+  .device__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.62rem 0.82rem;
+    background: rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .device__dots {
+    display: inline-flex;
+    gap: 0.36rem;
+    flex: none;
+  }
+
+  .device__dots i {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.32);
+  }
+
+  .device__url {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+    padding: 0.24rem 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .device__screen {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #0a0a0b;
+  }
+
+  .device__shot {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    filter: grayscale(1) contrast(1.04);
+    opacity: 0;
+    transform: scale(1.04);
+    transition: opacity 0.9s ease, transform 0.9s ease, filter 0.5s ease;
+  }
+
+  .device__shot.is-active {
+    opacity: 1;
+    transform: none;
+  }
+
+  .hero-stage:hover .device {
+    transform: rotateX(4deg) rotateY(-7deg);
+  }
+
+  .hero-stage:hover .device__shot.is-active {
+    filter: grayscale(0) contrast(1.02);
+  }
+
+  .device__label {
+    position: absolute;
+    right: -0.5rem;
+    bottom: -0.85rem;
+    z-index: 2;
+    background: #fafafa;
+    color: #0a0a0b;
+    font-size: 0.72rem;
+    font-weight: 780;
+    padding: 0.46rem 0.82rem;
+    border-radius: 999px;
+    box-shadow: 0 16px 32px -16px rgba(0, 0, 0, 0.95);
+  }
+
+  .v2-proof,
+  .v2-lab,
+  .v2-demos,
+  .v2-close {
+    padding-block: clamp(4rem, 9vw, 8rem);
+  }
+
+  .proof-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .proof-card,
+  .how-card,
+  .package-card,
+  .v2-close__box,
+  .demo-chip {
+    border: 1px solid var(--v2-line);
+    border-radius: var(--v2-radius);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(22, 22, 24, 0.42));
+    box-shadow: var(--v2-shadow);
+  }
+
+  .proof-card {
+    min-height: 9.2rem;
+    padding: 1.1rem;
+    display: grid;
+    align-content: end;
+  }
+
+  .proof-card strong {
+    color: #ffffff;
+    font-size: clamp(1.9rem, 3vw, 2.9rem);
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+  }
+
+  .proof-card span {
+    color: color-mix(in srgb, var(--v2-mist) 68%, transparent);
+    font-size: 0.9rem;
+    line-height: 1.25;
+    margin-top: 0.6rem;
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .how-card {
+    padding: clamp(1.3rem, 2.2vw, 1.8rem);
+    display: grid;
+    align-content: start;
+    gap: 0.7rem;
+  }
+
+  .how-step {
+    color: var(--v2-seafoam);
+    font-size: 0.8rem;
+    font-weight: 780;
+    letter-spacing: 0.12em;
+  }
+
+  .how-card h3 {
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: clamp(1.3rem, 2vw, 1.65rem);
+    font-weight: 720;
+    line-height: 1.04;
+    margin: 0;
+    text-transform: none;
+  }
+
+  .how-card p {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .section-split h2,
+  .v2-close h2 {
+    max-width: 14ch;
+    margin: 0 0 1rem;
+    font-size: clamp(1.7rem, 2.8vw, 2.7rem);
+  }
+
+  .section-split p,
+  .v2-close p,
+  .package-card p,
+  .how-card p {
+    color: color-mix(in srgb, var(--v2-mist) 72%, transparent);
+    line-height: 1.58;
+  }
+
+  .section-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.52fr);
+    gap: clamp(1.5rem, 5vw, 5rem);
+    align-items: end;
+    margin-bottom: clamp(2rem, 5vw, 4rem);
+  }
+
+  .section-split p {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  .package-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .package-card {
+    min-height: 18rem;
+    padding: clamp(1.1rem, 2vw, 1.55rem);
+    display: grid;
+    align-content: space-between;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+
+  .package-card:hover {
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, var(--v2-seafoam) 70%, white);
+  }
+
+  .package-card span {
+    color: var(--v2-seafoam);
+    font-size: 0.8rem;
+    font-weight: 780;
+    letter-spacing: 0.12em;
+    text-transform: none;
+  }
+
+  .package-card strong {
+    color: #ffffff;
+    font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+  }
+
+  .demo-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .demo-chip {
+    overflow: hidden;
+    color: var(--v2-mist);
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+
+  .demo-chip:hover {
+    color: #ffffff;
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--v2-seafoam) 70%, white);
+  }
+
+  .demo-chip img,
+  .demo-chip > span {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: linear-gradient(145deg, var(--v2-cyan), var(--v2-black));
+    filter: grayscale(1) contrast(1.03);
+  }
+
+  .demo-chip:hover img { filter: none; }
+
+  .demo-chip strong {
+    display: block;
+    padding: 0.9rem;
+    font-size: 0.94rem;
+  }
+
+  .v2-close__box {
+    padding: clamp(2rem, 6vw, 5rem);
+    text-align: center;
+    background:
+      radial-gradient(68% 120% at 50% 0%, rgba(255, 255, 255, 0.24), transparent 68%),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(22, 22, 24, 0.42));
+  }
+
+  .v2-close__box .v2-eyebrow,
+  .v2-close__box h2,
+  .v2-close__box p {
+    margin-inline: auto;
+  }
+
+  .v2-close__box .v2-eyebrow::after {
+    content: "";
+    width: 2.2rem;
+    height: 1px;
+    background: currentColor;
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .v2-close__box h2 {
+    max-width: 17ch;
+  }
+
+  .v2-close__box p {
+    max-width: 42rem;
+    margin-bottom: 1.4rem;
+  }
+
+  @media (max-width: 980px) {
+    .v2-hero__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .v2-rail { display: none; }
+    .v2-hero h1 { max-width: 9ch; }
+
+    .hero-stage { min-height: 340px; margin-top: 1.5rem; }
+
+    .proof-grid,
+    .demo-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .section-split,
+    .package-grid,
+    .how-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .landing-v2 {
+      /* Drop the grid on phones; <body> still supplies the gradient + glows. */
+      background: none;
+    }
+
+    .v2-shell { width: min(100% - 2rem, 1180px); }
+    .v2-hero { min-height: auto; padding-block: 5.5rem 3.5rem; }
+    .v2-hero h1 { font-size: clamp(2.4rem, 9vw, 3.3rem); }
+    .proof-grid,
+    .demo-strip { grid-template-columns: 1fr; }
+    .section-split h2,
+    .v2-close h2 { font-size: clamp(1.6rem, 6vw, 2.3rem); }
+  }
+
+  /* Extra top room so the wrapped two-line nav never overlaps the hero. */
+  @media (max-width: 600px) {
+    .v2-hero { padding-top: 7rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .v2-btn,
+    .package-card,
+    .demo-chip { transition: none; }
+    .v2-btn:hover,
+    .package-card:hover,
+    .demo-chip:hover { transform: none; }
+    .device { transform: none; }
+    .hero-stage__glow { animation: none; }
+  }
+</style>
+
+<script>
+  const stage = document.querySelector(".hero-stage");
+  const device = document.getElementById("heroDevice");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (stage && device && !reduce) {
+    stage.addEventListener("pointermove", (e) => {
+      const r = stage.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      device.style.transform =
+        "rotateX(" + (8 - py * 10).toFixed(2) + "deg) rotateY(" + (-15 + px * 18).toFixed(2) + "deg)";
+    });
+    stage.addEventListener("pointerleave", () => { device.style.transform = ""; });
+  }
+
+  const shots = Array.from(document.querySelectorAll(".device__shot"));
+  const label = document.getElementById("heroLabel");
+  if (shots.length > 1 && !reduce) {
+    let i = 0;
+    setInterval(() => {
+      shots[i].classList.remove("is-active");
+      i = (i + 1) % shots.length;
+      shots[i].classList.add("is-active");
+      if (label && shots[i].dataset.name) label.textContent = shots[i].dataset.name;
+    }, 3600);
+  }
+</script>

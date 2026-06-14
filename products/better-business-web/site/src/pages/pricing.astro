@@ -1,107 +1,180 @@
 ---
-// Pricing — the three packages for ready buyers, plus the build-your-own path.
 import Site from "../layouts/Site.astro";
+import V2Page from "../components/V2Page.astro";
 import packages from "../data/packages.json";
 
 const featuredId = "package_b";
-const fmt = (n) => n.toLocaleString("en-US");
+const fmt = (n: number) => n.toLocaleString("en-US");
+const bundleList = packages.bundles;
+// B and C already say "Everything in A/B, plus…" at the top, so each card lists
+// only the services it ADDS over the package before it — no repeated bullets.
+const addedServices = (index: number): string[] =>
+  index === 0
+    ? bundleList[index].services
+    : bundleList[index].services.filter(
+        (service) => !bundleList[index - 1].services.includes(service),
+      );
 const conversionLabIds = ["conversion_snapshot", "conversion_audit", "ad_copy_lab"];
-const conversionLab = packages.services.filter((s) => conversionLabIds.includes(s.id));
-const priceLabel = (s) => {
+const conversionLab = packages.services.filter((service) => conversionLabIds.includes(service.id));
+const priceLabel = (service: (typeof packages.services)[number]) => {
   const parts = [];
-  if (s.setup_cents > 0) parts.push(`$${fmt(s.setup_cents / 100)} setup`);
-  if (s.monthly_cents > 0) parts.push(`$${fmt(s.monthly_cents / 100)}/mo`);
-  return parts.join(" · ") || "—";
+  if (service.setup_cents > 0) parts.push(`$${fmt(service.setup_cents / 100)} setup`);
+  if (service.monthly_cents > 0) parts.push(`$${fmt(service.monthly_cents / 100)}/mo`);
+  return parts.join(" + ") || "Included";
 };
 ---
+
 <Site
   title="Pricing — Better Business Web"
-  description="Straightforward pricing for small-business websites. Pick a package or build your own bundle and pay online. Setup is a one-time cost and the monthly covers the ongoing work."
+  description="Straightforward pricing for preview-first small-business websites, bundles, and Conversion Lab add-ons."
   ogTitle="Straightforward pricing — Better Business Web"
   current="/pricing"
+  hideHeader
+  bg="v2"
 >
-  <section class="section section--top">
-    <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow">Packages</span>
-        <h1>Straightforward pricing.</h1>
-        <p class="muted measure">Ready to go? Pick a package or build your own bundle and pay online. Just browsing? <a href="/free-review">Get a free preview</a> of your site first, with no card needed to start.</p>
+  <V2Page
+    eyebrow="Pricing"
+    title="Choose your plan."
+    description="Pricing is simple. You pay once to get your site built, then a small monthly fee covers hosting, security, and updates. Buy now to get started, or get a free preview first and decide later. You can cancel the monthly part anytime."
+    footerKicker="Ready when you are"
+    footerTitle="Build your plan, or see it first."
+    footerText="Pick your services and check out whenever you're ready. Not sure yet? Start with a free preview so you can see the work before you spend anything."
+    footerActions={[
+      { href: "/build", label: "Build your bundle →" },
+      { href: "/free-review", label: "Start with a free review", variant: "ghost" },
+    ]}
+  >
+    <section class="v2-section">
+      <div class="v2-shell">
+        <div class="price-grid-v2">
+          {packages.bundles.map((bundle, index) => (
+            <article class:list={["price-card-v2", "v2-card", bundle.id === featuredId && "is-featured"]}>
+              {bundle.id === featuredId && <span class="price-flag">Most popular</span>}
+              <span class="v2-card-kicker">{bundle.name}</span>
+              <p>{bundle.description}</p>
+              <div class="price-number">
+                <strong>${fmt(bundle.setup)}</strong>
+                <span>setup + ${fmt(bundle.monthly)}/mo</span>
+              </div>
+              <p class="price-note">The monthly fee covers hosting, security, and small edits. No contract, so you can cancel anytime.</p>
+              <ul class="v2-list">
+                {addedServices(index).map((service) => <li>{service}</li>)}
+              </ul>
+              <a class="v2-btn" href={`/build?preset=${bundle.id}`}>Start this package</a>
+            </article>
+          ))}
+        </div>
       </div>
-      <div class="price-grid">
-        {packages.bundles.map((b) => (
-          <article class={b.id === featuredId ? "price-card is-featured" : "price-card"}>
-            {b.id === featuredId && <span class="price-badge">Most popular</span>}
-            <h2>{b.name}</h2>
-            <p class="blurb">{b.description}</p>
-            <div class="price">
-              <span class="amount">${fmt(b.setup)}</span>
-              <span class="per">setup + ${fmt(b.monthly)}/mo</span>
-            </div>
-            <ul>{b.services.map((s) => <li>{s}</li>)}</ul>
-            <a class={b.id === featuredId ? "btn btn-accent" : "btn btn-primary"} href={`/build?preset=${b.id}`}>Start this package <span class="arrow">→</span></a>
-          </article>
-        ))}
-      </div>
-      <p class="center muted" style="margin-top:var(--space-md)">Prefer to cherry-pick? <a href="/build">Build your own bundle →</a> and pay for exactly what you choose.</p>
-    </div>
-  </section>
+    </section>
 
-  <section class="section section--panel">
-    <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow">Conversion Lab</span>
-        <h2>Audit pages and ads before you spend.</h2>
-        <p class="muted measure">Add Conversion Lab to any bundle on the build page — a quick snapshot, a full audit, or monthly ad copy preflight for Package C clients.</p>
+    <section class="v2-section">
+      <div class="v2-shell">
+        <div class="v2-split">
+          <div>
+            <span class="v2-eyebrow">Conversion Lab</span>
+            <h2>Audit before you spend more.</h2>
+          </div>
+          <p>Use these to check a page or your ad copy before you spend money on it. Pick a quick snapshot, a full review, or a monthly check on your ads.</p>
+        </div>
+        <div class="v2-grid">
+          {conversionLab.map((service) => (
+            <article class="v2-card v2-card-pad">
+              <span class="v2-card-kicker">{priceLabel(service)}</span>
+              <h3>{service.name}</h3>
+              <p>{service.blurb}</p>
+            </article>
+          ))}
+        </div>
       </div>
-      <ul class="addon-list">
-        {conversionLab.map((s) => (
-          <li class="addon-card">
-            <h3>{s.name}</h3>
-            <p>{s.blurb}</p>
-            <span class="addon-price">{priceLabel(s)}</span>
-          </li>
-        ))}
-      </ul>
-      <p class="center" style="margin-top:var(--space-md)">
-        <a class="btn btn-primary" href="/build">Add Conversion Lab to your bundle <span class="arrow">→</span></a>
-      </p>
-    </div>
-  </section>
+    </section>
+  </V2Page>
 </Site>
 
 <style>
-  .addon-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .price-grid-v2 {
     display: grid;
-    gap: var(--space-sm);
-    max-width: 52rem;
-    margin-inline: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    padding-top: 0.9rem;
   }
-  @media (min-width: 640px) {
-    .addon-list { grid-template-columns: repeat(3, 1fr); }
+
+  .price-card-v2 {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    align-content: stretch;
+    gap: 1rem;
+    min-height: 100%;
+    padding: clamp(1.35rem, 2.2vw, 1.8rem) clamp(1.1rem, 2vw, 1.55rem) clamp(1.1rem, 2vw, 1.55rem);
+    overflow: visible;
   }
-  .addon-card {
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: var(--space-sm);
-    background: var(--surface);
+
+  .price-card-v2.is-featured {
+    border-color: color-mix(in srgb, var(--accent) 72%, white);
+    background:
+      radial-gradient(90% 80% at 50% 0%, rgba(255, 255, 255, 0.18), transparent 62%),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(22, 22, 24, 0.5));
   }
-  .addon-card h3 {
-    font-family: var(--font-display);
-    font-size: var(--step-0);
-    margin: 0 0 var(--space-2xs);
+
+  /* The shared .v2-card sets overflow:hidden (for image corners) with higher
+     specificity than a bare .price-card-v2, which clipped the flag. Re-show it. */
+  .price-card-v2.v2-card.is-featured {
+    overflow: visible;
   }
-  .addon-card p {
-    color: var(--ink-soft);
-    font-size: var(--step--1);
-    margin: 0 0 var(--space-xs);
-    line-height: 1.45;
+
+  .price-flag {
+    position: absolute;
+    top: -0.72rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.34rem 0.85rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #0a0a0b;
+    font-size: 0.7rem;
+    font-weight: 820;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    white-space: nowrap;
+    z-index: 2;
+    box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.7);
   }
-  .addon-price {
-    font-size: var(--step--1);
+
+  .price-number {
+    padding-block: 0.6rem 1rem;
+    border-block: 1px solid var(--line);
+  }
+
+  .price-number strong,
+  .price-number span {
+    display: block;
+  }
+
+  .price-number strong {
+    color: #ffffff;
+    font-size: clamp(3.1rem, 7vw, 5.4rem);
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+  }
+
+  .price-number span {
     color: var(--ink-faint);
-    font-weight: 600;
+    margin-top: 0.45rem;
+  }
+
+  .price-note {
+    color: var(--ink-faint);
+    font-size: var(--step--1);
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  .price-card-v2 .v2-btn {
+    align-self: end;
+    width: 100%;
+  }
+
+  @media (max-width: 920px) {
+    .price-grid-v2 { grid-template-columns: 1fr; }
   }
 </style>

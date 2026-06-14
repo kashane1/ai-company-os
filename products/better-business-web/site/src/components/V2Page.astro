@@ -1,0 +1,467 @@
+---
+interface Action {
+  href: string;
+  label: string;
+  variant?: "primary" | "ghost";
+}
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  actions?: Action[];
+  footerActions?: Action[];
+  footerKicker?: string;
+  footerTitle?: string;
+  footerText?: string;
+  align?: "left" | "center";
+}
+
+const {
+  eyebrow,
+  title,
+  description,
+  actions = [],
+  footerActions = [],
+  footerKicker,
+  footerTitle,
+  footerText,
+  align = "left",
+} = Astro.props;
+---
+
+<article class:list={["v2-page", align === "center" && "is-centered"]}>
+  <section class="v2-page__hero">
+    <div class="v2-page__shell">
+      <span class="v2-page__eyebrow">{eyebrow}</span>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      {actions.length > 0 && (
+        <div class="v2-page__actions">
+          {actions.map((action) => (
+            <a class:list={["v2-page__btn", action.variant === "ghost" && "is-ghost"]} href={action.href}>
+              {action.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <div class="v2-page__content">
+    <slot />
+
+    {footerActions.length > 0 && (
+      <section class="v2-page__close">
+        <div class="v2-page__shell">
+          {footerKicker && <span class="v2-page__eyebrow">{footerKicker}</span>}
+          {footerTitle && <h2 class="v2-page__close-title">{footerTitle}</h2>}
+          {footerText && <p class="v2-page__close-text">{footerText}</p>}
+          <div class="v2-page__actions">
+            {footerActions.map((action) => (
+              <a class:list={["v2-page__btn", action.variant === "ghost" && "is-ghost"]} href={action.href}>
+                {action.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+  </div>
+</article>
+
+<style>
+  .v2-page {
+    --v2-black: #0a0a0b;
+    --v2-abyss: #161618;
+    --v2-cyan: #202024;
+    --v2-mist: #ededef;
+    --v2-seafoam: #e6e6e8;
+    --v2-coral: #d4d4d8;
+    --v2-gold: #d4d4d8;
+    --paper: #0a0a0b;
+    --paper-2: #141416;
+    --surface: color-mix(in srgb, var(--v2-abyss) 54%, var(--v2-black));
+    --ink: #ffffff;
+    --ink-soft: color-mix(in srgb, var(--v2-mist) 74%, transparent);
+    --ink-faint: color-mix(in srgb, var(--v2-mist) 48%, transparent);
+    --line: color-mix(in srgb, var(--v2-mist) 16%, transparent);
+    --line-strong: color-mix(in srgb, var(--v2-mist) 26%, transparent);
+    --accent: var(--v2-seafoam);
+    --accent-2: var(--v2-mist);
+    --accent-tint: color-mix(in srgb, var(--v2-seafoam) 13%, transparent);
+    --gold: var(--v2-gold);
+    --radius: 8px;
+    --radius-lg: 8px;
+    --radius-xl: 8px;
+    --shadow-sm: 0 12px 28px -22px rgba(0, 0, 0, 0.85);
+    --shadow-md: 0 22px 48px -30px rgba(0, 0, 0, 0.92), 0 8px 20px -16px rgba(255, 255, 255, 0.28);
+    --shadow-lg: 0 34px 72px -34px rgba(0, 0, 0, 0.96), 0 14px 34px -18px rgba(255, 255, 255, 0.3);
+    --ring: 0 0 0 3px rgba(255, 255, 255, 0.28);
+    color: var(--ink);
+    /* Grid overlay only — the dark gradient + glows now live on <body>
+       (Site bg="v2") so they flow continuously into the footer. */
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 8.5rem 100%;
+    overflow: clip;
+  }
+
+  .v2-page__shell,
+  .v2-page__content :global(.v2-shell) {
+    width: min(100% - clamp(2rem, 6vw, 5rem), 1180px);
+    margin-inline: auto;
+  }
+
+  .v2-page__hero {
+    min-height: clamp(430px, 56vh, 660px);
+    display: grid;
+    align-items: end;
+    padding-block: clamp(5rem, 9vw, 8rem) clamp(3rem, 7vw, 5rem);
+    position: relative;
+    isolation: isolate;
+  }
+
+  .v2-page__hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(108deg, transparent 0 55%, rgba(255, 255, 255, 0.14) 55% 65%, transparent 65%),
+      radial-gradient(38% 62% at 22% 38%, rgba(255, 255, 255, 0.09), transparent 70%);
+  }
+
+  .v2-page.is-centered .v2-page__shell {
+    text-align: center;
+  }
+
+  .v2-page__eyebrow,
+  .v2-page__content :global(.v2-eyebrow) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--v2-seafoam);
+    font-size: 0.74rem;
+    font-weight: 760;
+    letter-spacing: 0.04em;
+    margin-bottom: 1rem;
+    text-transform: none;
+  }
+
+  .v2-page__eyebrow::before,
+  .v2-page__content :global(.v2-eyebrow)::before {
+    content: "";
+    width: 2.2rem;
+    height: 1px;
+    background: currentColor;
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .v2-page.is-centered .v2-page__eyebrow::after {
+    content: "";
+    width: 2.2rem;
+    height: 1px;
+    background: currentColor;
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .v2-page h1,
+  .v2-page__content :global(.v2-title) {
+    max-width: 12ch;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 5.5vw, 4.4rem);
+    font-weight: 760;
+    letter-spacing: 0;
+    line-height: 0.92;
+    margin: 0 0 1rem;
+    text-transform: none;
+    text-shadow: 0 26px 54px rgba(0, 0, 0, 0.72);
+  }
+
+  .v2-page.is-centered h1 {
+    margin-inline: auto;
+  }
+
+  .v2-page__hero p {
+    max-width: 44rem;
+    color: var(--ink-soft);
+    font-size: clamp(1.05rem, 1.6vw, 1.28rem);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .v2-page.is-centered .v2-page__hero p {
+    margin-inline: auto;
+  }
+
+  .v2-page__actions,
+  .v2-page__content :global(.v2-actions) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 1.6rem;
+  }
+
+  .v2-page.is-centered .v2-page__actions {
+    justify-content: center;
+  }
+
+  .v2-page__btn,
+  .v2-page__content :global(.v2-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.9rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 8px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--v2-seafoam) 78%, white), #ededef 42%, #d2d2d6 100%);
+    color: #0a0a0b;
+    font-weight: 780;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -4px 9px rgba(0, 0, 0, 0.26),
+      0 22px 44px -22px rgba(255, 255, 255, 0.9);
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+
+  .v2-page__btn:hover,
+  .v2-page__content :global(.v2-btn:hover) {
+    color: #070708;
+    transform: translateY(-2px);
+  }
+
+  .v2-page__btn.is-ghost,
+  .v2-page__content :global(.v2-btn.is-ghost) {
+    background: rgba(255, 255, 255, 0.065);
+    color: var(--v2-mist);
+    border-color: var(--line-strong);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .v2-page__content {
+    padding-bottom: clamp(4rem, 9vw, 8rem);
+  }
+
+  .v2-page__close {
+    margin-top: clamp(3.5rem, 8vw, 7rem);
+    padding-top: clamp(3.5rem, 8vw, 7rem);
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    text-align: center;
+  }
+
+  .v2-page__close .v2-page__shell {
+    display: grid;
+    justify-items: center;
+  }
+
+  .v2-page__close .v2-page__eyebrow::after {
+    content: "";
+    width: 2.2rem;
+    height: 1px;
+    background: currentColor;
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .v2-page__close-title {
+    max-width: 20ch;
+    margin: 0 0 1rem;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: clamp(1.7rem, 3vw, 2.6rem);
+    font-weight: 760;
+    line-height: 0.95;
+    text-transform: none;
+  }
+
+  .v2-page__close-text {
+    max-width: 42rem;
+    margin: 0 0 1.6rem;
+    color: var(--ink-soft);
+    line-height: 1.58;
+  }
+
+  .v2-page__close .v2-page__actions {
+    justify-content: center;
+    margin-top: 0;
+  }
+
+  .v2-page__content :global(.v2-section) {
+    padding-block: clamp(3.5rem, 8vw, 7rem);
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  .v2-page__content :global(.v2-split) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.52fr);
+    gap: clamp(1.5rem, 5vw, 5rem);
+    align-items: end;
+    margin-bottom: clamp(2rem, 5vw, 4rem);
+  }
+
+  .v2-page__content :global(.v2-split h2),
+  .v2-page__content :global(.v2-section h2) {
+    max-width: 14ch;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: clamp(1.7rem, 2.8vw, 2.6rem);
+    font-weight: 760;
+    letter-spacing: 0;
+    line-height: 0.94;
+    margin: 0;
+    text-transform: none;
+  }
+
+  .v2-page__content :global(.v2-split p),
+  .v2-page__content :global(.v2-card p),
+  .v2-page__content :global(.v2-muted) {
+    color: var(--ink-soft);
+    line-height: 1.58;
+  }
+
+  .v2-page__content :global(.v2-grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 1rem;
+  }
+
+  .v2-page__content :global(.v2-card) {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(22, 22, 24, 0.42));
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+
+  .v2-page__content :global(.v2-card-pad) {
+    padding: clamp(1.1rem, 2vw, 1.55rem);
+  }
+
+  .v2-page__content :global(.v2-card h2),
+  .v2-page__content :global(.v2-card h3) {
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .v2-page__content :global(.v2-card-kicker) {
+    display: block;
+    color: var(--v2-seafoam);
+    font-size: 0.78rem;
+    font-weight: 780;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.7rem;
+    text-transform: none;
+  }
+
+  .v2-page__content :global(.v2-list) {
+    list-style: none;
+    display: grid;
+    gap: 0.55rem;
+    margin: 1rem 0 0;
+    padding: 0;
+  }
+
+  .v2-page__content :global(.v2-list li) {
+    display: flex;
+    gap: 0.55rem;
+    color: var(--ink-soft);
+    line-height: 1.42;
+  }
+
+  .v2-page__content :global(.v2-list li::before) {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at var(--light-from-x) var(--light-from-y), var(--light-specular), transparent 36%),
+      linear-gradient(135deg, #ededef, var(--v2-seafoam) 58%, var(--v2-abyss));
+    box-shadow:
+      inset 1px -1px 2px rgba(255, 255, 255, 0.32),
+      inset -1px 1px 2px rgba(0, 0, 0, 0.34),
+      var(--light-cast-x) var(--light-cast-y) 7px var(--light-shadow),
+      0 0 14px var(--v2-seafoam);
+    flex: 0 0 auto;
+    margin-top: 0.5rem;
+  }
+
+  .v2-page__content :global(.v2-form) {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .v2-page__content :global(.v2-field),
+  .v2-page__content :global(.v2-field-row) {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .v2-page__content :global(.v2-field-row) {
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+  }
+
+  .v2-page__content :global(.v2-field label),
+  .v2-page__content :global(.v2-form legend) {
+    color: var(--ink-soft);
+    font-size: var(--step--1);
+    font-weight: 650;
+  }
+
+  .v2-page__content :global(.v2-field input),
+  .v2-page__content :global(.v2-field select) {
+    width: 100%;
+    font: inherit;
+    padding: 0.82rem 0.95rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.065);
+    color: var(--ink);
+  }
+
+  .v2-page__content :global(.v2-field input:focus-visible),
+  .v2-page__content :global(.v2-field select:focus-visible) {
+    border-color: var(--v2-seafoam);
+    box-shadow: var(--ring);
+  }
+
+  @media (max-width: 760px) {
+    .v2-page__shell,
+    .v2-page__content :global(.v2-shell) {
+      width: min(100% - 2rem, 1180px);
+    }
+
+    .v2-page h1,
+    .v2-page__content :global(.v2-title) {
+      font-size: clamp(2.3rem, 9vw, 3.4rem);
+    }
+
+    .v2-page__content :global(.v2-split),
+    .v2-page__content :global(.v2-field-row) {
+      grid-template-columns: 1fr;
+    }
+
+    .v2-page__actions .v2-page__btn,
+    .v2-page__content :global(.v2-actions .v2-btn) {
+      width: 100%;
+    }
+  }
+
+  /* Extra top room so the wrapped two-line nav never overlaps the hero. */
+  @media (max-width: 600px) {
+    .v2-page__hero { padding-top: 7rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .v2-page__btn,
+    .v2-page__content :global(.v2-btn) {
+      transition: none;
+    }
+
+    .v2-page__btn:hover,
+    .v2-page__content :global(.v2-btn:hover) {
+      transform: none;
+    }
+  }
+</style>

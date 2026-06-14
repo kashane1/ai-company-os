@@ -3,7 +3,7 @@
     {
       "id": "package_a",
       "name": "Package A \u2014 Presence",
-      "description": "Look professional online. Website + the annoying tech handled.",
+      "description": "A professional website with all the annoying tech handled for you, including hosting, email, and Google setup. It makes you look credible the moment a customer finds you.",
       "setup": 600,
       "monthly": 50,
       "setup_gross_cents": 70000,
@@ -55,7 +55,7 @@
     {
       "id": "package_c",
       "name": "Package C \u2014 Presence + Capture + Growth",
-      "description": "Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads.",
+      "description": "Everything in B, plus local SEO, landing pages, monthly reporting, and Google Search ads. Your ad budget is separate and stays in your control.",
       "setup": 1800,
       "monthly": 550,
       "setup_gross_cents": 225000,
@@ -253,7 +253,7 @@
       "bill_type": "recurring",
       "setup_cents": 8000,
       "monthly_cents": 4000,
-      "blurb": "Google review link",
+      "blurb": "Automatic prompts that turn happy customers into Google reviews.",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""
@@ -301,7 +301,7 @@
       "bill_type": "one_time",
       "setup_cents": 25000,
       "monthly_cents": 0,
-      "blurb": "Conversion Lab: full website or landing page audit with copy rewrites",
+      "blurb": "Conversion Lab: full website or brand audit with copy rewrites",
       "self_serve": true,
       "exclusive_group": "",
       "requires_group": ""
