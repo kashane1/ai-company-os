@@ -81,6 +81,11 @@ const reviewPoints = [
           </div>
           <div class="rb-field"><label for="website">Current website (or "none")</label><input id="website" name="website" type="text" inputmode="url" /></div>
           <div class="rb-field"><label for="contact">Email or phone</label><input id="contact" name="contact" type="text" autocomplete="email" required /></div>
+          <div class="rb-field">
+            <label for="notes">Anything else? (optional)</label>
+            <textarea id="notes" name="notes" rows="3" maxlength="500" placeholder="Tell us anything that helps, like a link to your current site or a deadline."></textarea>
+            <p class="rb-charcount"><span id="notes-count">0</span>/500</p>
+          </div>
           <button class="rb-btn" type="submit">Get my free review →</button>
           <p class="rb-note">What happens next: we get back to you within two business days with honest feedback, plus a free preview if you want one. No charge and no sales call.</p>
           <p class="rb-note">We only use your details to prepare your review. We never sell or share them, and you can ask us to delete them anytime.</p>
@@ -101,7 +106,7 @@ const reviewPoints = [
     --accent: #e6e6e8;
     --ring: 0 0 0 3px rgba(255, 255, 255, 0.28);
     color: var(--ink);
-    padding-block: clamp(4rem, 9vw, 8rem);
+    padding-block: clamp(2.6rem, 5vw, 4.5rem);
     border-top: 1px solid rgba(255, 255, 255, 0.09);
     background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 8.5rem 100%;
   }
@@ -113,7 +118,7 @@ const reviewPoints = [
 
   .rb-head {
     max-width: 46rem;
-    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: clamp(1.4rem, 3vw, 2.2rem);
   }
 
   .rb-eyebrow {
@@ -244,12 +249,12 @@ const reviewPoints = [
 
   .rb-form {
     display: grid;
-    gap: 1rem;
+    gap: 0.7rem;
   }
 
   .rb-intent {
     display: grid;
-    gap: 0.6rem;
+    gap: 0.45rem;
     border: 0;
     margin: 0;
     padding: 0;
@@ -266,7 +271,7 @@ const reviewPoints = [
   .rb-intent-option {
     display: flex;
     gap: 0.75rem;
-    padding: 0.85rem;
+    padding: 0.68rem 0.85rem;
     border: 1px solid var(--line-strong);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.05);
@@ -296,7 +301,7 @@ const reviewPoints = [
   .rb-field,
   .rb-field-row {
     display: grid;
-    gap: 0.45rem;
+    gap: 0.3rem;
   }
 
   .rb-field-row {
@@ -311,23 +316,39 @@ const reviewPoints = [
   }
 
   .rb-field input,
-  .rb-field select {
+  .rb-field select,
+  .rb-field textarea {
     width: 100%;
     font: inherit;
-    padding: 0.82rem 0.95rem;
+    padding: 0.55rem 0.8rem;
     border: 1px solid var(--line-strong);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.065);
     color: var(--ink);
   }
 
-  .rb-field input::placeholder { color: var(--ink-faint); }
+  .rb-field textarea {
+    min-height: 4.2rem;
+    line-height: 1.45;
+    resize: vertical;
+  }
+
+  .rb-field input::placeholder,
+  .rb-field textarea::placeholder { color: var(--ink-faint); }
 
   .rb-field input:focus-visible,
-  .rb-field select:focus-visible {
+  .rb-field select:focus-visible,
+  .rb-field textarea:focus-visible {
     outline: none;
     border-color: #ffffff;
     box-shadow: var(--ring);
+  }
+
+  .rb-charcount {
+    margin: 0.15rem 0 0;
+    text-align: right;
+    color: var(--ink-faint);
+    font-size: 0.76rem;
   }
 
   .rb-btn {
@@ -335,7 +356,7 @@ const reviewPoints = [
     align-items: center;
     justify-content: center;
     min-height: 48px;
-    padding: 0.9rem 1.25rem;
+    padding: 0.78rem 1.25rem;
     border: 1px solid rgba(255, 255, 255, 0.42);
     border-radius: 8px;
     background: linear-gradient(180deg, #ffffff, #ededef 42%, #d2d2d6 100%);
@@ -371,3 +392,14 @@ const reviewPoints = [
     .rb-btn:hover { transform: none; }
   }
 </style>
+
+<script>
+  // Live character count for the optional notes field (maxlength enforces the cap).
+  const notes = document.getElementById("notes") as HTMLTextAreaElement | null;
+  const count = document.getElementById("notes-count");
+  if (notes && count) {
+    const update = () => { count.textContent = String(notes.value.length); };
+    notes.addEventListener("input", update);
+    update();
+  }
+</script>

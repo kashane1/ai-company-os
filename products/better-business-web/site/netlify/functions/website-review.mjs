@@ -39,7 +39,7 @@ async function notifyLead(submission) {
     return null;
   }
 
-  const { submission_id, name, contact, business, website, city, state, interest, received_at } = submission;
+  const { submission_id, name, contact, business, website, city, state, interest, notes, received_at } = submission;
   const looksEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact || "");
   // "City, ST" — feeds the operator's lookup + the process command's --city.
   const location = [city, state].map((s) => (s || "").trim()).filter(Boolean).join(", ");
@@ -73,6 +73,7 @@ async function notifyLead(submission) {
           `<p><strong>Location:</strong> ${esc(location) || "—"}</p>`,
           `<p><strong>Looking for:</strong> ${esc(interestLabel)}</p>`,
           `<p><strong>Current site:</strong> ${esc(website) || "none"}</p>`,
+          `<p><strong>Notes:</strong> ${esc(notes) || "—"}</p>`,
           `<p><strong>Received:</strong> ${esc(received_at)}</p>`,
           `<p><strong>Submission ID:</strong> <code>${esc(submission_id)}</code></p>`,
           "<hr>",
@@ -122,6 +123,7 @@ export default async (req) => {
     city: field("city"),
     state: field("state").toUpperCase().slice(0, 2),
     interest: field("interest"), // preview | review | both
+    notes: field("notes").slice(0, 1000), // optional free-text; capped as a guard
     received_at: new Date().toISOString(),
     source: "netlify-function",
     notified_at: null,
