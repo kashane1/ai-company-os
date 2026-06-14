@@ -7,6 +7,15 @@ import BundleBuilder from "../components/BundleBuilder.tsx";
 import type { BundleBuilderProps } from "../components/BundleBuilder.tsx";
 
 const featuredId = "package_b";
+// Per-package monthly explanation; package A keeps the base wording.
+const monthlyNote = (id: string): string =>
+  ({
+    package_b:
+      "The monthly fee covers hosting, security, edits and booking updates. No contract, so you can cancel anytime.",
+    package_c:
+      "The monthly fee covers hosting, security, edits, booking updates, analytics and ad management. No contract, so you can cancel anytime.",
+  })[id] ||
+  "The monthly fee covers hosting, security, and small edits. No contract, so you can cancel anytime.";
 const fmt = (n: number) => n.toLocaleString("en-US");
 const bundleList = packages.bundles;
 // B and C already say "Everything in A/B, plus…" at the top, so each card lists
@@ -55,7 +64,7 @@ const builderData = packages as unknown as {
                 <strong>${fmt(bundle.setup)}</strong>
                 <span>setup + ${fmt(bundle.monthly)}/mo</span>
               </div>
-              <p class="price-note">The monthly fee covers hosting, security, and small edits. No contract, so you can cancel anytime.</p>
+              <p class="price-note">{monthlyNote(bundle.id)}</p>
               <ul class="v2-list">
                 {addedServices(index).map((service) => <li>{service}</li>)}
               </ul>
