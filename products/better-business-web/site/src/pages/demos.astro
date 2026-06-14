@@ -2,19 +2,13 @@
 import Site from "../layouts/Site.astro";
 import V2Page from "../components/V2Page.astro";
 import portfolio from "../data/portfolio.json";
-import { featuredDemoSlugs } from "../data/landing-v2.mjs";
 
-type Demo = (typeof portfolio.demos)[number];
-const isDemo = (demo: Demo | undefined): demo is Demo => Boolean(demo);
-const featuredDemos = featuredDemoSlugs
-  .map((slug) => portfolio.demos.find((demo) => demo.slug === slug))
-  .filter(isDemo);
-const otherDemos = portfolio.demos.filter((demo) => !featuredDemoSlugs.includes(demo.slug));
+const demos = portfolio.demos;
 ---
 
 <Site
   title="Live demo sites — Better Business Web"
-  description="Explore preview website concepts for local businesses, including auto repair, dog grooming, firearm retail, and a taco restaurant."
+  description="Browse our growing portfolio of preview website concepts for local businesses, from auto repair and barbershops to coffee shops, med spas, and restaurants."
   ogTitle="Live demos by business type — Better Business Web"
   current="/demos"
   hideHeader
@@ -36,14 +30,14 @@ const otherDemos = portfolio.demos.filter((demo) => !featuredDemoSlugs.includes(
       <div class="v2-shell">
         <div class="v2-split">
           <div>
-            <span class="v2-eyebrow">A few favorites</span>
-            <h2>Four very different businesses.</h2>
+            <span class="v2-eyebrow">The work</span>
+            <h2>A growing portfolio.</h2>
           </div>
-          <p>Don't see your line of work here? We build for any kind of small business. These four are just a quick way to show the range. Sites start at $600 to set up plus $50 a month, and you always get to preview yours before paying.</p>
+          <p>We add new builds here as we finish them. Every one is a real, working site you can click through, so judge the quality for yourself.</p>
         </div>
 
         <div class="demo-grid">
-          {featuredDemos.map((demo) => (
+          {demos.map((demo) => (
             <a class="demo-card v2-card" href={demo.url} target="_blank" rel="noopener">
               <span class="demo-card__top">
                 <span class="demo-card__dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -59,27 +53,6 @@ const otherDemos = portfolio.demos.filter((demo) => !featuredDemoSlugs.includes(
                 </span>
                 <b>Open</b>
               </span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section class="v2-section">
-      <div class="v2-shell">
-        <div class="v2-split">
-          <div>
-            <span class="v2-eyebrow">More concepts</span>
-            <h2>A few more to look through.</h2>
-          </div>
-          <p>These cover other common types of small business. Open any of them and judge the quality for yourself.</p>
-        </div>
-        <div class="v2-grid">
-          {otherDemos.map((demo) => (
-            <a class="mini-demo v2-card v2-card-pad" href={demo.url} target="_blank" rel="noopener">
-              <span class="v2-card-kicker">{demo.type}</span>
-              <h3>{demo.name}</h3>
-              <p>{demo.slug}.preview</p>
             </a>
           ))}
         </div>
@@ -102,8 +75,7 @@ const otherDemos = portfolio.demos.filter((demo) => !featuredDemoSlugs.includes(
     transition: transform 0.18s ease, border-color 0.18s ease;
   }
 
-  .demo-card:hover,
-  .mini-demo:hover {
+  .demo-card:hover {
     color: #ffffff;
     transform: translateY(-4px);
     border-color: color-mix(in srgb, var(--accent) 70%, white);
@@ -144,7 +116,7 @@ const otherDemos = portfolio.demos.filter((demo) => !featuredDemoSlugs.includes(
     display: block;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    background: linear-gradient(145deg, var(--v2-cyan), var(--v2-black));
+    background: #161618;
   }
 
   .demo-card__image img {
@@ -152,11 +124,10 @@ const otherDemos = portfolio.demos.filter((demo) => !featuredDemoSlugs.includes(
     height: 100%;
     object-fit: cover;
     object-position: top center;
-    filter: grayscale(1) contrast(1.03);
-    transition: transform 0.24s ease, filter 0.4s ease;
+    transition: transform 0.24s ease;
   }
 
-  .demo-card:hover img { transform: scale(1.04); filter: none; }
+  .demo-card:hover img { transform: scale(1.04); }
 
   .demo-card__body {
     display: flex;
@@ -174,16 +145,6 @@ const otherDemos = portfolio.demos.filter((demo) => !featuredDemoSlugs.includes(
   .demo-card__body strong { color: #ffffff; line-height: 1.1; }
   .demo-card__body em { color: var(--ink-faint); font-style: normal; font-size: 0.85rem; margin-top: 0.2rem; }
   .demo-card__body b { color: var(--accent); font-size: 0.85rem; text-transform: none; letter-spacing: 0.02em; }
-
-  .mini-demo {
-    color: var(--ink);
-    transition: transform 0.18s ease, border-color 0.18s ease;
-  }
-
-  .mini-demo h3 {
-    font-size: clamp(1.25rem, 2.4vw, 1.8rem);
-    line-height: 1;
-  }
 
   @media (max-width: 980px) {
     .demo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
