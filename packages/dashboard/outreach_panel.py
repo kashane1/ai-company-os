@@ -481,6 +481,7 @@ async function post(url, body) {{
     body: JSON.stringify(body),
   }});
   if (!res.ok) {{ alert('Action failed: ' + res.status); return; }}
+  try {{ sessionStorage.setItem('outreachScrollY', String(window.scrollY)); }} catch (err) {{}}
   const params = new URLSearchParams(location.search);
   writeStateParams(params);
   if (body.place_id) {{ params.set('updated', body.place_id); }}
@@ -842,7 +843,6 @@ if (updated) {{
   const card = document.querySelector('[data-place="' + CSS.escape(updated) + '"]');
   if (card) {{
     card.classList.add('flash');
-    card.scrollIntoView({{ block: 'center' }});
   }}
 }}
 (function () {{
@@ -890,6 +890,18 @@ if (updated) {{
 }})();
 restoreStateFromUrl();
 applyFilters();
+(function () {{
+  // After an action reload the list re-sorts (a logged card drops in priority).
+  // Restore the operator's prior scroll position instead of jumping to the
+  // moved card, so working from the top stays at the top and the middle stays
+  // put. One-shot: cleared after use so a manual refresh keeps native behavior.
+  let savedY = null;
+  try {{ savedY = sessionStorage.getItem('outreachScrollY'); }} catch (err) {{}}
+  if (savedY !== null) {{
+    try {{ sessionStorage.removeItem('outreachScrollY'); }} catch (err) {{}}
+    window.scrollTo(0, Number(savedY) || 0);
+  }}
+}}());
 </script>
 </body>
 </html>
