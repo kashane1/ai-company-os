@@ -146,10 +146,13 @@ def select_records(args: argparse.Namespace) -> list[dict]:
 def render_outreach_draft(record: dict, mockup_url: str) -> str:
     if not OUTREACH_TEMPLATE.exists():
         return ""
-    # Fail-closed: never draft outreach for a suppressed prospect.
+    # Fail-closed: never draft outreach for a suppressed prospect, or one the
+    # immigration-paperwork integrity gate would exclude (a low-rated notario-
+    # fraud-zone prospect not yet swept into the suppression registry).
     from packages.agency.suppression import is_suppressed
+    from packages.prospecting.integrity_gates import evaluate_record_for_exclusion
 
-    if is_suppressed(record):
+    if is_suppressed(record) or evaluate_record_for_exclusion(record).matched:
         return ""
     profile = GENRE_PROFILES.get(str(record.get("genre_id", "")))
     genre_noun = profile.category if profile else "local business"
