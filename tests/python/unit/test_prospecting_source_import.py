@@ -208,6 +208,116 @@ def test_source_collection_keeps_marketplace_website_candidates(tmp_path: Path) 
     assert created.maps_website_class is MapsWebsiteClass.MARKETPLACE
 
 
+def test_source_collection_backfills_demand_on_recollect(tmp_path: Path) -> None:
+    repo = ProspectRepository(tmp_path / "records")
+    source_runs = SourceRunStore(tmp_path / "source-runs")
+    # A dataforseo record collected earlier with no demand signal (S_source_candidate).
+    existing = ProspectRecord(
+        place_id="source/dataforseo:biz-1",
+        display_name="Fade Masters",
+        formatted_address="20 Pine St, Seattle, WA",
+        phone="206-555-0150",
+        types=["dataforseo", "nail_salon"],
+        city_id="seattle",
+        genre_id="nail_salon",
+        grid_cell_id="seattle:nail_salon",
+        maps_website_class=MapsWebsiteClass.ABSENT,
+        source_name="dataforseo",
+        source_record_id="biz-1",
+        user_ratings_total=0,
+        composite_cohort="S_source_candidate",
+    )
+    repo.save(existing)
+
+    connector = FakeSourceConnector(
+        [
+            ProspectCandidate(
+                source="dataforseo",
+                source_id="biz-1",
+                display_name="Fade Masters",
+                formatted_address="20 Pine St, Seattle, WA",
+                phone="206-555-0150",
+                city_id="seattle",
+                genre_id="nail_salon",
+                review_count=200,
+                rating=4.8,
+            )
+        ]
+    )
+    connector.source = "dataforseo"
+
+    report = run_source_collection(
+        cities=[_city()],
+        genres=[_genre()],
+        records=repo,
+        source_runs=source_runs,
+        connector=connector,
+        candidates_per_cell=50,
+        now=lambda: datetime(2026, 6, 16, tzinfo=timezone.utc),
+    )
+
+    assert report.records_created == 0
+    assert report.duplicates_skipped == 0
+    assert report.records_updated == 1
+
+    updated = repo.get("source/dataforseo:biz-1")
+    assert updated.user_ratings_total == 200
+    assert updated.rating == 4.8
+    # A no-site business with real demand should no longer sit in the raw queue.
+    assert updated.composite_cohort != "S_source_candidate"
+
+
+def test_source_collection_does_not_backfill_verified_record(tmp_path: Path) -> None:
+    repo = ProspectRepository(tmp_path / "records")
+    source_runs = SourceRunStore(tmp_path / "source-runs")
+    verified = ProspectRecord(
+        place_id="source/dataforseo:biz-2",
+        display_name="Settled Salon",
+        formatted_address="40 Pine St, Seattle, WA",
+        phone="206-555-0177",
+        types=["dataforseo", "nail_salon"],
+        city_id="seattle",
+        genre_id="nail_salon",
+        grid_cell_id="seattle:nail_salon",
+        maps_website_class=MapsWebsiteClass.ABSENT,
+        source_name="dataforseo",
+        source_record_id="biz-2",
+        web_verify_verdict=WebVerifyVerdict.MARKETPLACE_ONLY,
+    )
+    repo.save(verified)
+
+    connector = FakeSourceConnector(
+        [
+            ProspectCandidate(
+                source="dataforseo",
+                source_id="biz-2",
+                display_name="Settled Salon",
+                formatted_address="40 Pine St, Seattle, WA",
+                phone="206-555-0177",
+                city_id="seattle",
+                genre_id="nail_salon",
+                review_count=300,
+                rating=4.9,
+            )
+        ]
+    )
+    connector.source = "dataforseo"
+
+    report = run_source_collection(
+        cities=[_city()],
+        genres=[_genre()],
+        records=repo,
+        source_runs=source_runs,
+        connector=connector,
+        candidates_per_cell=50,
+    )
+
+    # An already-verified record is left untouched (duplicate-skip, no update).
+    assert report.records_updated == 0
+    assert report.duplicates_skipped == 1
+    assert repo.get("source/dataforseo:biz-2").user_ratings_total == 0
+
+
 def test_source_collection_report_summarizes_cells_and_counts() -> None:
     rendered = render_source_collection_report(
         source="overture",

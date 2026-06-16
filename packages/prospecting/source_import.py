@@ -15,10 +15,15 @@ from packages.prospecting.connectors.google_places import (
     SOCIAL_HOSTS,
     normalized_host,
 )
-from packages.prospecting.identity import IdentityIndex, ProspectCandidate
+from packages.prospecting.identity import IdentityIndex, IdentityMatch, ProspectCandidate
 from packages.prospecting.source_runs import SourceRunRecord, SourceRunStore, slug
 from packages.prospecting.storage import ProspectRepository
-from packages.schemas.prospect import MapsWebsiteClass, ProspectRecord, ProspectStatus
+from packages.schemas.prospect import (
+    MapsWebsiteClass,
+    ProspectRecord,
+    ProspectStatus,
+    WebVerifyVerdict,
+)
 
 
 @runtime_checkable
@@ -171,8 +176,15 @@ def run_source_collection(
 
                 match = index.match(candidate)
                 if match is not None:
-                    run_duplicates += 1
-                    duplicates_skipped += 1
+                    enriched = _backfill_demand(
+                        records, match, candidate, collected_at=clock().isoformat()
+                    )
+                    if enriched:
+                        run_updated += 1
+                        records_updated += 1
+                    else:
+                        run_duplicates += 1
+                        duplicates_skipped += 1
                     continue
 
                 record = source_candidate_to_record(
@@ -256,6 +268,8 @@ def source_candidate_to_record(
         maps_website_uri=website,
         maps_website_host=host,
         maps_website_class=website_class,
+        rating=candidate.rating,
+        user_ratings_total=candidate.review_count,
         source_name=candidate.source,
         source_record_id=candidate.source_id,
         source_run_key=run_key,
@@ -274,6 +288,59 @@ def source_candidate_to_record(
             "priority_score": priority_score(record, cohort),
         }
     )
+
+
+def _backfill_demand(
+    records: ProspectRepository,
+    match: "IdentityMatch",
+    candidate: ProspectCandidate,
+    *,
+    collected_at: str,
+) -> bool:
+    """Enrich an existing record with the candidate's demand signal on re-collect.
+
+    Only the SAME source record being re-collected is touched, and only when the
+    candidate carries a review count/rating the record is missing or that differs.
+    Recomputes the cohort + priority so a fresh review count can promote a record
+    out of ``S_source_candidate``. Never disturbs an already-verified record.
+    Returns True when a record was updated. Cross-source duplicates fall through
+    to the normal duplicate-skip path (returns False).
+    """
+    if match.place_id != source_place_id(candidate.source, candidate.source_id):
+        return False
+    if candidate.review_count <= 0 and candidate.rating is None:
+        return False
+    try:
+        existing = records.get(match.place_id)
+    except (KeyError, FileNotFoundError):
+        return False
+    if existing.web_verify_verdict != WebVerifyVerdict.UNVERIFIED:
+        return False
+    if (
+        existing.user_ratings_total == candidate.review_count
+        and existing.rating == candidate.rating
+    ):
+        return False
+
+    updated = ProspectRecord.from_dict(
+        {
+            **existing.to_dict(),
+            "rating": candidate.rating,
+            "user_ratings_total": candidate.review_count,
+            "updated_at": collected_at,
+        }
+    )
+    cohort = derive_composite_cohort(updated)
+    records.save(
+        ProspectRecord.from_dict(
+            {
+                **updated.to_dict(),
+                "composite_cohort": cohort,
+                "priority_score": priority_score(updated, cohort),
+            }
+        )
+    )
+    return True
 
 
 def website_class_for_candidate(candidate: ProspectCandidate) -> MapsWebsiteClass:

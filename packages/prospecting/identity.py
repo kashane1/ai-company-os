@@ -50,6 +50,8 @@ class ProspectCandidate:
     social_urls: list[str] = field(default_factory=list)
     marketplace_urls: list[str] = field(default_factory=list)
     source_confidence: float = 0.0
+    rating: float | None = None
+    review_count: int = 0
 
 
 @dataclass(frozen=True)

@@ -106,12 +106,18 @@ def test_fetch_candidates_posts_categories_and_maps_items() -> None:
     assert first.city_id == "seattle"
     assert first.genre_id == "barber_shop"
     assert first.source_confidence == pytest.approx(0.85)
+    # Demand signal captured from the API payload (no browsing needed).
+    assert first.rating == pytest.approx(4.8)
+    assert first.review_count == 210
 
     # No `url`, no full `address` -> falls back to domain + composed address_info.
     assert second.source_id == "cid_corner"
     assert second.website_uri == "https://cornercuts.example"
     assert second.formatted_address == "55 Pine St, Seattle, WA 98101"
     assert second.source_confidence == pytest.approx(0.55)
+    # No rating object on this listing -> sensible empties.
+    assert second.rating is None
+    assert second.review_count == 0
 
 
 def test_fetch_candidates_clamps_default_and_max_limit() -> None:

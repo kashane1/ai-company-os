@@ -167,6 +167,7 @@ def _listing_items(payload: dict[str, object]) -> list[dict[str, object]]:
 def candidate_from_listing(
     item: dict[str, object], *, city: CityConfig, genre: GenreConfig
 ) -> ProspectCandidate:
+    rating, review_count = _rating(item)
     return ProspectCandidate(
         source="dataforseo",
         source_id=_source_id(item),
@@ -179,6 +180,23 @@ def candidate_from_listing(
         social_urls=[],
         marketplace_urls=[],
         source_confidence=0.85 if item.get("is_claimed") else 0.55,
+        rating=rating,
+        review_count=review_count,
+    )
+
+
+def _rating(item: dict[str, object]) -> tuple[float | None, int]:
+    """Extract (rating value, votes_count) from a listing's `rating` object.
+
+    DataForSEO returns the Google review score + count we'd otherwise have to
+    browse Google Maps for, so capture it as the demand signal at discovery time.
+    """
+    rating = _as_mapping(item.get("rating"))
+    value = rating.get("value")
+    votes = rating.get("votes_count")
+    return (
+        float(value) if isinstance(value, (int, float)) else None,
+        int(votes) if isinstance(votes, (int, float)) else 0,
     )
 
 
