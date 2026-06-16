@@ -91,7 +91,22 @@ python scripts/prospect_scan.py collect-source \
 # Expanded Overture discovery across the remaining enabled genres.
 python scripts/prospect_scan.py collect-source \
   --tranche tranche4 --source overture --candidates-per-cell 50
+
+# DataForSEO Business Listings — a PAID discovery source (~$0.01/request +
+# $0.0003/business). Needs $DATAFORSEO_LOGIN / $DATAFORSEO_PASSWORD. Genres map
+# to DataForSEO category slugs (reusing the Overture taxonomy); a genre with no
+# mapping falls back to its own id. Always estimate cost first, then run a pilot.
+python scripts/prospect_scan.py collect-source \
+  --tranche tranche1 --source dataforseo --candidates-per-cell 50 --estimate-only
+python scripts/prospect_scan.py collect-source \
+  --tranche tranche1 --source dataforseo --candidates-per-cell 50
 ```
+
+DataForSEO is the only *paid* discovery source — unlike Overture/FSQ (open data),
+it reintroduces per-call spend, so it prints a cost ceiling before any request and
+supports `--estimate-only` for a dry run. Use it to reach businesses the
+open-source catalogs miss. (Distinct from `verify-web --provider dataforseo`,
+which only *verifies* a known prospect's website.)
 
 2026-06-10 Overture execution: all 240 tranche-3 source/city/genre cells are
 completed in `state/prospects/source-runs/overture/`: 8,496 candidates seen,

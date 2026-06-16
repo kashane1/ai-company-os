@@ -24,6 +24,10 @@ from packages.prospecting.config import (  # noqa: E402
     load_http_config,
     load_weekly_caps,
 )
+from packages.prospecting.connectors.dataforseo import (  # noqa: E402
+    DataForSEOBusinessConnector,
+    estimate_cost,
+)
 from packages.prospecting.connectors.fsq_os import (  # noqa: E402
     FSQOSConfigError,
     FSQOSPlacesConnector,
@@ -76,6 +80,7 @@ from packages.prospecting.verification import (  # noqa: E402
 from packages.prospecting.web_presence import (  # noqa: E402
     BraveSearchVerifier,
     DataForSEOSearchVerifier,
+    ProviderConfigError,
     SearchResult,
     verify_record_web_presence,
 )
@@ -353,9 +358,23 @@ def _cmd_collect_source(args: argparse.Namespace) -> int:
         source=source,
         candidates_per_cell=args.candidates_per_cell,
     )
+
+    # Cost guardrail for the paid DataForSEO source: print the ceiling cost
+    # (one request per city/genre cell, each returning up to candidates_per_cell
+    # rows) before any spend, and exit early when --estimate-only is passed.
+    if source == "dataforseo":
+        cells = len(plan.cities) * len(plan.genres)
+        ceiling = estimate_cost(requests=cells, items=cells * plan.candidates_per_cell)
+        print(
+            f"DataForSEO cost ceiling: ~${ceiling:.2f} "
+            f"({cells} cells x up to {plan.candidates_per_cell} rows)"
+        )
+        if args.estimate_only:
+            return 0
+
     try:
         connector = _build_source_connector(args, source=source)
-    except FSQOSConfigError as exc:
+    except (FSQOSConfigError, ProviderConfigError) as exc:
         print(f"Source collection unavailable: {exc}", file=sys.stderr)
         return 1
 
@@ -379,6 +398,9 @@ def _cmd_collect_source(args: argparse.Namespace) -> int:
         f"created={report.records_created}, duplicates={report.duplicates_skipped}, "
         f"present_site_skipped={report.present_site_skipped}"
     )
+    if source == "dataforseo":
+        spent = estimate_cost(requests=report.cells_processed, items=report.candidates_seen)
+        print(f"DataForSEO actual spend: ~${spent:.2f}")
     print(f"Report: {report_path}")
     if report.errors:
         print("Errors:", "; ".join(report.errors), file=sys.stderr)
@@ -391,6 +413,8 @@ def _build_source_connector(args: argparse.Namespace, *, source: str):
         return OverturePlacesConnector(release=args.overture_release)
     if source == "fsq_os":
         return FSQOSPlacesConnector(source_path=args.fsq_path)
+    if source == "dataforseo":
+        return DataForSEOBusinessConnector(radius_km=args.radius_km)
     raise ValueError(f"unknown source connector: {source}")
 
 
@@ -598,7 +622,7 @@ def main(argv: list[str] | None = None) -> int:
     collect_source.add_argument(
         "--source",
         default="",
-        choices=["", "fsq_os", "overture"],
+        choices=["", "fsq_os", "overture", "dataforseo"],
         help="source connector; defaults to FSQ for tranches 1/2 and Overture for tranche 3",
     )
     collect_source.add_argument(
@@ -626,6 +650,17 @@ def main(argv: list[str] | None = None) -> int:
         "--overture-release",
         default=DEFAULT_OVERTURE_RELEASE,
         help="Overture release id to query from public S3",
+    )
+    collect_source.add_argument(
+        "--radius-km",
+        type=float,
+        default=12.0,
+        help="DataForSEO search radius in km around each city centre",
+    )
+    collect_source.add_argument(
+        "--estimate-only",
+        action="store_true",
+        help="DataForSEO: print the cost ceiling and exit without calling the paid API",
     )
     collect_source.add_argument("--report-path", type=Path, default=None)
     collect_source.set_defaults(func=_cmd_collect_source)
