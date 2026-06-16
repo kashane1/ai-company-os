@@ -1,16 +1,20 @@
 # Plan: DataForSEO as a prospect discovery source
 
 **Date:** 2026-06-15
-**Status:** Built (Parts 1 & 3) — Part 2 (live credentials + smoke run) pending founder
+**Status:** ✅ Built and live-validated (Parts 1–3 done). Account verified; pilot run remains.
 **Owner:** kashane1
 
-> **Build note (2026-06-15):** during implementation we confirmed the Business
-> Listings endpoint has **no general free-text keyword search** — it filters by
-> `categories` / `title` / `description` only. So discovery must use `categories`,
-> which makes category mapping required (not the optional "Option B"). We reuse the
-> Google-derived taxonomy already maintained in `OVERTURE_GENRE_CATEGORIES` (zero
-> new catalog, honoring the Option-A intent); unmapped genres fall back to their id
-> (only `garage_door` is currently unmapped). The live pilot run validates the slugs.
+> **Build note (2026-06-15):** the Business Listings endpoint has **no general
+> free-text keyword search** — it filters by `categories` / `title` /
+> `description` only, so discovery must use `categories`. The live smoke test
+> proved DataForSEO's category taxonomy differs from Overture's (e.g.
+> `barber_shop` not `barber`, `plumber` not `plumbing`, `roofing_contractor` not
+> `roofing`), so the initial Overture-borrowed map returned **0 results**. Fixed
+> by adding a dedicated `DATAFORSEO_GENRE_CATEGORIES` map built from the free
+> `business_listings/categories` endpoint and validated live: `barber_shop` in
+> Seattle returned 289 businesses (10 fetched, correctly classified into
+> present / marketplace / absent). All 20 catalog genres are now mapped; a guard
+> test fails if a genre is added without a slug. Live spend to validate: ~$0.05.
 
 ## TL;DR
 

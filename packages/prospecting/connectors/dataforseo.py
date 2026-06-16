@@ -8,9 +8,10 @@ Listings Search** database for businesses of that category in that area and emit
 Endpoint: ``POST /v3/business_data/business_listings/search/live`` (synchronous;
 no task-queue polling). The endpoint filters by ``categories`` /
 ``location_coordinate`` — it has no general free-text keyword search, so genres
-are mapped to category slugs. We reuse the Google-derived taxonomy the Overture
-connector already maintains (``OVERTURE_GENRE_CATEGORIES``); the live pilot run
-validates the slugs and we add a dedicated map only if a genre comes back empty.
+are mapped to DataForSEO category slugs in ``DATAFORSEO_GENRE_CATEGORIES`` below.
+Those slugs are the ``category_name`` values from the (free)
+``business_listings/categories`` endpoint and were validated live on
+2026-06-15. Unmapped genres fall back to their own id.
 
 Pricing (PAYG): ``$0.01`` per request + ``$0.0003`` per returned business.
 """
@@ -26,7 +27,6 @@ from packages.config.settings import (
 )
 from packages.discovery.connectors.rate_limiter import RateLimiter
 from packages.prospecting.config import CityConfig, GenreConfig
-from packages.prospecting.connectors.overture import OVERTURE_GENRE_CATEGORIES
 from packages.prospecting.identity import ProspectCandidate
 from packages.prospecting.web_presence import ProviderConfigError, SearchProviderError
 
@@ -35,6 +35,34 @@ BUSINESS_LISTINGS_PATH = "/v3/business_data/business_listings/search/live"
 DEFAULT_RADIUS_KM = 12.0
 DEFAULT_LIMIT = 100
 MAX_LIMIT = 1000
+
+# Genre id -> DataForSEO category slugs (`category_name` values from the free
+# business_listings/categories endpoint, validated live 2026-06-15). DataForSEO
+# uses Google-My-Business slugs, which differ from Overture's taxonomy — e.g.
+# `barber_shop` not `barber`, `plumber` not `plumbing`, `roofing_contractor` not
+# `roofing`. Keep keys aligned with packages/prospecting/config/genres.yaml.
+DATAFORSEO_GENRE_CATEGORIES: dict[str, tuple[str, ...]] = {
+    "accountant": ("accountant", "certified_public_accountant", "tax_preparation_service"),
+    "auto_repair": ("auto_repair_shop", "car_repair", "auto_body_shop", "mechanic"),
+    "bakery": ("bakery", "donut_shop"),
+    "barber_shop": ("barber_shop",),
+    "beauty_salon": ("beauty_salon", "hair_salon"),
+    "coffee_shop": ("coffee_shop", "cafe", "coffee_roasters"),
+    "dog_groomer": ("pet_groomer",),
+    "electrician": ("electrician",),
+    "garage_door": ("garage_door_supplier",),
+    "house_cleaning": ("house_cleaning_service", "cleaning_service"),
+    "landscaper": ("landscaper", "landscape_designer"),
+    "massage_therapy": ("massage_therapist", "massage_spa", "massage"),
+    "music_lessons": ("music_school",),
+    "nail_salon": ("nail_salon",),
+    "notary": ("notary_public",),
+    "plumber": ("plumber",),
+    "restaurant": ("restaurant",),
+    "roofer": ("roofing_contractor",),
+    "tutoring": ("tutoring_service", "private_tutor"),
+    "yoga_studio": ("yoga_studio",),
+}
 
 # Pay-as-you-go price points (USD), used for pre-spend cost estimates.
 COST_PER_REQUEST = 0.01
@@ -48,7 +76,7 @@ def estimate_cost(*, requests: int, items: int) -> float:
 
 def categories_for_genre(genre: GenreConfig) -> list[str]:
     """DataForSEO category slugs for a genre, falling back to the genre id."""
-    return list(OVERTURE_GENRE_CATEGORIES.get(genre.id, (genre.id,)))
+    return list(DATAFORSEO_GENRE_CATEGORIES.get(genre.id, (genre.id,)))
 
 
 class DataForSEOBusinessConnector:

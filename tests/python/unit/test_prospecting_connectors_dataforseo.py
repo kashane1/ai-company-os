@@ -76,7 +76,7 @@ def test_fetch_candidates_posts_categories_and_maps_items() -> None:
         body = json.loads(request.content.decode())
         assert body == [
             {
-                "categories": ["barber"],
+                "categories": ["barber_shop"],
                 "location_coordinate": "47.6062,-122.3321,10",
                 "limit": 50,
             }
@@ -184,7 +184,7 @@ def test_query_for_is_deterministic_and_includes_geo() -> None:
     connector = DataForSEOBusinessConnector(login="x", password="y", radius_km=8)
     query = connector.query_for(CITY, GENRE)
     assert query == connector.query_for(CITY, GENRE)
-    assert "categories=barber" in query
+    assert "categories=barber_shop" in query
     assert "47.60620,-122.33210,8km" in query
 
 
@@ -198,6 +198,14 @@ def test_candidate_from_listing_pure_mapping() -> None:
     assert candidate.source_id == "feat_1"
     assert candidate.website_uri == ""
     assert candidate.source_confidence == pytest.approx(0.55)
+
+
+def test_every_catalog_genre_has_a_dataforseo_category() -> None:
+    from packages.prospecting.config import load_genres
+    from packages.prospecting.connectors.dataforseo import DATAFORSEO_GENRE_CATEGORIES
+
+    unmapped = [g.id for g in load_genres() if g.id not in DATAFORSEO_GENRE_CATEGORIES]
+    assert unmapped == [], f"genres missing a DataForSEO category slug: {unmapped}"
 
 
 def test_estimate_cost() -> None:
