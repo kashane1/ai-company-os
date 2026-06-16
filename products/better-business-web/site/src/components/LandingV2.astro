@@ -48,7 +48,7 @@ const chips = [...trustChips, `${portfolio.demos.length} sample sites to explore
                 <img
                   class:list={["device__shot", i === 0 && "is-active"]}
                   src={demo.thumbnail}
-                  alt=""
+                  alt={`${demo.name} demo site preview`}
                   data-name={demo.name}
                   loading={i === 0 ? "eager" : "lazy"}
                   decoding="async"

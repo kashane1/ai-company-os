@@ -1,15 +1,15 @@
 # Outreach Lane Client Status
 
-_Updated: 2026-06-14T23:46:00Z_
+_Updated: 2026-06-16T00:43:02Z_
 
 Human-gated outbound lane. This list drafts, tracks, and schedules next actions; it does not send email, SMS, Instagram, or Facebook messages.
 
 ## Summary
 
 - Total deployed Cohort A prospects: 1724
-- Ready to send: 617
+- Ready to send: 610
 - Needs bespoke rebuild before outreach: 1001
-- Sent / waiting: 57
+- Sent / waiting: 64
 - Follow-up due: 0
 - Replied: 0
 - Blocked / recheck needed: 49
@@ -31,16 +31,10 @@ Human-gated outbound lane. This list drafts, tracks, and schedules next actions;
 | ready_to_send | Pet Groomery | Albuquerque | dog_groomer | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/ChIJkaMXsaoKIocREPijSfjwEt0/outreach-teaser.md) |
 | ready_to_send | The Artichoke Cafe | Albuquerque | restaurant | facebook_dm | Review teaser, send paid Conversion Audit pitch via facebook_dm |  | [draft](state/prospects/sites/ChIJozuc4LwMIocR86lRyrIg4bU/outreach-teaser.md) |
 | ready_to_send | The Brew Coffee Bar | Albuquerque | coffee_shop | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/ChIJjQ66N78MIocRyNzAiRJw32A/outreach-teaser.md) |
-| ready_to_send | Amazon Cleaning | Atlanta | house_cleaning | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/ChIJS19HPAUa9YgR86_7_fGkv80/outreach-teaser.md) |
 | ready_to_send | Ammazza Edgewood | Atlanta | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:07057137-80c1-4e8f-8c27-352b80a94d62/outreach-teaser.md) |
 | ready_to_send | Arnette's Chop Shop | Atlanta | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:fe63a253-0cda-4e58-83f6-13f9a59221c0/outreach-teaser.md) |
 | ready_to_send | Aviva by Kameel | Atlanta | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:f8ebd360-46b0-4207-8734-09ffc449885c/outreach-teaser.md) |
-| ready_to_send | Big Sky Buckhead | Atlanta | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:459dd674-b264-40ba-9ff5-fca76724eb1d/outreach-teaser.md) |
-| ready_to_send | Blossom Tree | Atlanta | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:0bb4858c-54cc-4d4f-8654-cbe2e09ebce0/outreach-teaser.md) |
 | ready_to_send | Botiwalla by Chai Pani | Atlanta | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:7e63b527-1a98-4331-8287-626ce6d60f2f/outreach-teaser.md) |
-| ready_to_send | Cafe Bartique | Atlanta | coffee_shop | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:f7479522-61a3-4e8a-9443-4498d8cae0d9/outreach-teaser.md) |
-| ready_to_send | Cakes and Treats Of Atlanta | Atlanta | bakery | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:54b99d8e-b48e-4b92-9437-709f23fdab2e/outreach-teaser.md) |
-| ready_to_send | Chillz Restaurant and Bar | Atlanta | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:bbc8d78b-6b5b-4b51-a3dc-42a50c585c56/outreach-teaser.md) |
 | ready_to_send | Cuevacía | Atlanta | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:6cde0dd2-1e39-46ef-b428-2b0cad84e139/outreach-teaser.md) |
 | ready_to_send | Fade Factory ATL | Atlanta | barber_shop | instagram_dm | Review draft, personalize one line, send manually via instagram_dm | [site](https://fade-factory-atl.netlify.app) | [draft](state/prospects/sites/ChIJf7r9agAF9YgRd7ObV7mwRpE/outreach.md) |
 | ready_to_send | Kelby’s Mobile Servicing | Atlanta | auto_repair | sms_or_call | Review draft, personalize one line, send manually via sms_or_call | [site](https://kelbys-mobile-atlanta.netlify.app) | [draft](state/prospects/sites/ChIJZ28uCZwF9YgRZIvNLyMvRVA/outreach.md) |
@@ -560,7 +554,6 @@ Human-gated outbound lane. This list drafts, tracks, and schedules next actions;
 | ready_to_send | Culichi Town | San Diego | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:829fa1a7-0a5a-4ce5-a674-333197aa4df8/outreach-teaser.md) |
 | ready_to_send | Elite Rooter Plumbers | San Diego | plumber | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/ChIJE1wFeYxV2YAR5N3NvdyYvcE/outreach-teaser.md) |
 | ready_to_send | Hillcrest Auto Repair | San Diego | auto_repair | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/ChIJrTiN-NBU2YARaQw7CEpq79A/outreach-teaser.md) |
-| ready_to_send | HINAR Dessert Bar & Café | San Diego | bakery | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/ChIJYaG37oZT2YARfs0h8903VlQ/outreach-teaser.md) |
 | ready_to_send | Monarch Barbershop | San Diego | barber_shop | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/ChIJAS-hD1xT2YARGqietkaCek4/outreach-teaser.md) |
 | ready_to_send | All Star Cafe | San Francisco | coffee_shop | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/ChIJm_LMkZ6AhYARGsjCux6jhmA/outreach-teaser.md) |
 | ready_to_send | Antigua Guatemala Restaurant | San Francisco | restaurant | sms_or_call | Review teaser, send paid Conversion Audit pitch via sms_or_call |  | [draft](state/prospects/sites/source/overture:0523cfc2-fb8f-4f36-a175-74e63c42e5d6/outreach-teaser.md) |
@@ -638,6 +631,12 @@ Human-gated outbound lane. This list drafts, tracks, and schedules next actions;
 | sent | Afghan Kebab House | Albuquerque | restaurant | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:dd366639-26f9-42ed-8d1f-f89596ffd58f/outreach-teaser.md) |
 | sent | Barbacoa El Primo | Albuquerque | restaurant | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:70deb783-6760-43ae-8855-28b9b8e2b266/outreach-teaser.md) |
 | sent | Legends Barbershop | Albuquerque | barber_shop | email | Wait for reply or log follow-up when due | [site](https://legends-barbershop-abq.netlify.app) | [draft](state/prospects/sites/ChIJT0nDIDkLIocRZbWz7aqzURM/outreach.md) |
+| sent | Amazon Cleaning | Atlanta | house_cleaning | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/ChIJS19HPAUa9YgR86_7_fGkv80/outreach-teaser.md) |
+| sent | Big Sky Buckhead | Atlanta | restaurant | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:459dd674-b264-40ba-9ff5-fca76724eb1d/outreach-teaser.md) |
+| sent | Blossom Tree | Atlanta | restaurant | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:0bb4858c-54cc-4d4f-8654-cbe2e09ebce0/outreach-teaser.md) |
+| sent | Cafe Bartique | Atlanta | coffee_shop | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:f7479522-61a3-4e8a-9443-4498d8cae0d9/outreach-teaser.md) |
+| sent | Cakes and Treats Of Atlanta | Atlanta | bakery | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:54b99d8e-b48e-4b92-9437-709f23fdab2e/outreach-teaser.md) |
+| sent | Chillz Restaurant and Bar | Atlanta | restaurant | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:bbc8d78b-6b5b-4b51-a3dc-42a50c585c56/outreach-teaser.md) |
 | sent | Immediate Roofing MA | Boston | roofer | email | Wait for reply or log follow-up when due | [site](https://immediate-roofing-ma-boston.netlify.app) | [draft](state/prospects/sites/ChIJGQFd2hxx44kR6_aDcD9IDOE/outreach-with-mockup.md) |
 | sent | King Auto Repair | Charlotte | auto_repair | email | Wait for reply or log follow-up when due | [site](https://king-auto-repair-charlotte.netlify.app) | [draft](state/prospects/sites/ChIJT1ZBJ8MfVIgRLQIVz8_sNNA/outreach-with-mockup.md) |
 | sent | Addis Cafe In Oak Park | Chicago | coffee_shop | email | Wait for reply or log follow-up when due | [site](https://6a2ceea9fdbd7b1a131dc6ef--better-business-web-previews.netlify.app) | [draft](state/prospects/sites/source/overture:e6e1077a-2005-409e-baac-48a35a6f340d/outreach-with-mockup.md) |
@@ -659,6 +658,7 @@ Human-gated outbound lane. This list drafts, tracks, and schedules next actions;
 | sent | Andrew J Goldschmidt Inc | Philadelphia | plumber | email | Wait for reply or log follow-up when due | [site](https://andrew-j-goldschmidt-inc-philadelphia.netlify.app) | [draft](state/prospects/sites/source/overture:bcf3edb4-751b-4f04-aed3-dfd4f6196de3/outreach-with-mockup.md) |
 | sent | Tavella Electric LLC | Philadelphia | electrician | email | Wait for reply or log follow-up when due | [site](https://tavella-electric-llc-philadelphia.netlify.app) | [draft](state/prospects/sites/ChIJJ_bQvD_HxokRp5-PtQoMEMY/outreach-with-mockup.md) |
 | sent | Joelbap notary | Sacramento | notary | email | Wait for reply or log follow-up when due | [site](https://joelbap-notary-sacramento.netlify.app) | [draft](state/prospects/sites/ChIJ9XcjhVQpm4ARMjKyZdIQ1ng/outreach-with-mockup.md) |
+| sent | HINAR Dessert Bar & Café | San Diego | bakery | instagram_dm | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/ChIJYaG37oZT2YARfs0h8903VlQ/outreach-teaser.md) |
 | sent | T P Auto Repair | San Diego | auto_repair | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/ChIJf-3USvtU2YART2bIqzTlc78/outreach-teaser.md) |
 | sent | Alushe coffee bar | San Francisco | coffee_shop | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:cb03f336-6d5e-4e86-968c-943dc1066cf4/outreach-teaser.md) |
 | sent | Arepas Latin Cuisine | San Francisco | restaurant | email | Wait for reply or log follow-up when due |  | [draft](state/prospects/sites/source/overture:43ca634b-e4ab-459c-bfef-97db815af8f4/outreach-teaser.md) |

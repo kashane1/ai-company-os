@@ -331,6 +331,49 @@
     .reveal.d3{transition-delay:.24s;}
     .bleed img,.diptych img{transition:transform 1.4s cubic-bezier(.2,.7,.2,1);}
   }
+
+  /* ---------- legibility plate (soft, see-through box behind text over imagery) ---------- */
+  .plate{
+    background:rgba(18,12,8,.24);
+    backdrop-filter:blur(7px) saturate(1.05);
+    -webkit-backdrop-filter:blur(7px) saturate(1.05);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:16px;
+  }
+
+  /* hero copy sits inside the plate, sized to its content */
+  .hero-plate{
+    align-self:flex-start;
+    max-width:min(760px,100%);
+    padding:clamp(1.1rem,2.6vw,1.8rem) clamp(1.3rem,3vw,2.1rem);
+  }
+
+  /* full-bleed captions become soft cards */
+  .bleed figcaption{
+    padding:clamp(.9rem,2vw,1.15rem) clamp(1.1rem,2.4vw,1.5rem);
+    border-radius:14px;
+    text-shadow:0 1px 10px rgba(0,0,0,.3);
+  }
+
+  /* diptych captions move onto the photos as overlays */
+  .diptych figure{position:relative;}
+  .diptych figcaption{
+    position:absolute;
+    left:clamp(.8rem,2vw,1.1rem);
+    right:clamp(.8rem,2vw,1.1rem);
+    bottom:clamp(.8rem,2vw,1.1rem);
+    margin-top:0;
+    max-width:32ch;
+    color:var(--paper);
+    font-family:var(--serif);
+    font-weight:300;
+    font-size:clamp(1rem,2vw,1.3rem);
+    line-height:1.18;
+    letter-spacing:0;
+    padding:clamp(.75rem,1.8vw,1rem) clamp(.95rem,2.2vw,1.25rem);
+    border-radius:13px;
+    text-shadow:0 1px 10px rgba(0,0,0,.3);
+  }
 </style>
 <meta property="og:title" content="Northside Coffee Co. — A room you linger in · Riverside, WA"><meta property="og:description" content="Northside Coffee Co. is a neighborhood third-wave café on Main Street in Riverside, WA. Locally roasted espresso, 18-hour cold brew, and pastries delivered each morning. Open daily from 6am."><meta property="og:type" content="website"><meta property="og:url" content="https://better-business-web.netlify.app/work/coffee/"><meta property="og:image" content="https://better-business-web.netlify.app/portfolio/coffee.webp"><meta name="twitter:card" content="summary_large_image">
 <style>/* a11y: never hide content from reduced-motion users */@media (prefers-reduced-motion: reduce){.reveal,[data-reveal],.reveal-up,.fade,.fade-in,.will-reveal,.animate,.in-view{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important;}}</style>
@@ -370,14 +413,16 @@
       <img src="assets/interior-wide.webp" alt="Interior of Northside Coffee Co.: high wood-paneled walls hung with folk-art paintings, a tiled counter, and a hand-painted café table with mismatched wooden chairs." />
     </div>
     <div class="hero-inner">
-      <p class="kick">Riverside, Washington · Est. on Main Street</p>
-      <h1 id="hero-title">A room you<br><em>linger in.</em></h1>
-      <div class="hero-foot">
-        <p class="hero-lede">A neighborhood third-wave café where the coffee is roasted close to home, the pastries arrive each morning, and the staff already know how you take it.</p>
-        <div class="hero-meta">
-          <div><span>Open</span><b>Daily from 6am</b></div>
-          <div><span>Counter</span><b>Locally roasted</b></div>
-          <div><span>Always</span><b>Free wifi</b></div>
+      <div class="hero-plate plate">
+        <p class="kick">Riverside, Washington · Est. on Main Street</p>
+        <h1 id="hero-title">A room you<br><em>linger in.</em></h1>
+        <div class="hero-foot">
+          <p class="hero-lede">A neighborhood third-wave café where the coffee is roasted close to home, the pastries arrive each morning, and the staff already know how you take it.</p>
+          <div class="hero-meta">
+            <div><span>Open</span><b>Daily from 6am</b></div>
+            <div><span>Counter</span><b>Locally roasted</b></div>
+            <div><span>Always</span><b>Free wifi</b></div>
+          </div>
         </div>
       </div>
     </div>
@@ -403,7 +448,7 @@
   <!-- FULL BLEED BREAK -->
   <figure class="bleed tall reveal" role="group" aria-label="Espresso bar counter">
     <img src="assets/counter-talavera.webp" alt="A café counter clad in vivid hand-painted talavera tiles, with a chalkboard menu and small potted plants framing the service window." />
-    <figcaption>
+    <figcaption class="plate">
       <span class="ec">At the counter</span>
       <span class="ct">Every cup, made by hand and to order.</span>
     </figcaption>
@@ -445,12 +490,12 @@
   <section class="diptych pad" aria-label="The bar in detail" style="padding-top:0;">
     <div class="wrap">
       <figure class="a reveal">
-        <img src="assets/coffee-flight.webp" alt="A wooden flight paddle holding four small labeled coffees in the window light, beside two small vases of greenery." />
-        <figcaption>A tasting flight by the window — four ways to find your cup.</figcaption>
+        <img src="assets/coffee-flight.webp" alt="A tall iced coffee with a creamy head resting on a weathered wooden table with iron hardware." />
+        <figcaption class="plate">The cold brew, eighteen hours in the making.</figcaption>
       </figure>
       <figure class="b reveal d1">
-        <img src="assets/iced-drink.webp" alt="A tall iced coffee with a creamy head resting on a weathered wooden table with iron hardware." />
-        <figcaption>The cold brew, eighteen hours in the making.</figcaption>
+        <img src="assets/iced-drink.webp" alt="A wooden flight paddle holding four small labeled coffees in the window light, beside two small vases of greenery." />
+        <figcaption class="plate">A tasting flight by the window — four ways to find your cup.</figcaption>
       </figure>
     </div>
   </section>
@@ -484,7 +529,7 @@
   <!-- FULL BLEED — OFRENDA / CHARACTER -->
   <figure class="bleed reveal" role="group" aria-label="A seasonal altar in the café window">
     <img src="assets/ofrenda.webp" alt="A window-side ofrenda dressed with bright marigolds, candles, and a small figurine, looking out toward Main Street." />
-    <figcaption>
+    <figcaption class="plate">
       <span class="ec">The little details</span>
       <span class="ct">A room with a memory, and a point of view.</span>
     </figcaption>
