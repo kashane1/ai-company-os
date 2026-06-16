@@ -247,6 +247,54 @@
       "requires_group": "booking_base"
     },
     {
+      "id": "ordering_connect",
+      "name": "Online Ordering \u2014 Connect (your POS)",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 20000,
+      "monthly_cents": 0,
+      "blurb": "Order buttons on your site that open your Square or Clover ordering page, styled to match your brand",
+      "self_serve": true,
+      "exclusive_group": "ordering_base",
+      "requires_group": ""
+    },
+    {
+      "id": "ordering_setup",
+      "name": "Online Ordering \u2014 Done-for-you Setup",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 60000,
+      "monthly_cents": 0,
+      "blurb": "We set up branded online ordering and checkout on your own POS (Square or Clover)",
+      "self_serve": true,
+      "exclusive_group": "ordering_base",
+      "requires_group": ""
+    },
+    {
+      "id": "ordering_menu_entry",
+      "name": "Menu Build",
+      "tier": "tier_2",
+      "bill_type": "one_time",
+      "setup_cents": 25000,
+      "monthly_cents": 0,
+      "blurb": "We enter your full menu into your POS \u2014 items, prices, options, and photos",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": "ordering_base"
+    },
+    {
+      "id": "ordering_management",
+      "name": "Menu Management",
+      "tier": "tier_2",
+      "bill_type": "recurring",
+      "setup_cents": 0,
+      "monthly_cents": 4000,
+      "blurb": "Ongoing menu edits \u2014 specials, price changes, 86'd items, seasonal menus",
+      "self_serve": true,
+      "exclusive_group": "",
+      "requires_group": "ordering_base"
+    },
+    {
       "id": "reviews",
       "name": "Review Readiness System",
       "tier": "tier_2",

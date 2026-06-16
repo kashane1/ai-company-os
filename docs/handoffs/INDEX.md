@@ -46,8 +46,10 @@ snapshot. See its top-of-file banner.
 
 | File | Date | Slug | Scope summary |
 |---|---|---|---|
+| [2026-06-15-bbw-online-ordering-line.md](2026-06-15-bbw-online-ordering-line.md) | 2026-06-15 | bbw-online-ordering-line | New à-la-carte Online Ordering catalog line (Square/Clover, hosted-only, Toast gated); 4 SKUs + builder fix + routing doc; uncommitted |
 | [2026-05-30-discovery-layer.md](2026-05-30-discovery-layer.md) | 2026-05-30 | discovery-layer | New discovery layer (find → score → validate), tests + docs; uncommitted, commit plan included |
 | [round-2-worker-runtime-fix.md](round-2-worker-runtime-fix.md) | (undated filename — content references 2026) | round-2-worker-runtime-fix | Codex Cloud-driven worker-runtime fixes; staging → main fast-forward |
+| [2026-06-15-bbw-batch-b-demo-builds.md](2026-06-15-bbw-batch-b-demo-builds.md) | 2026-06-15 | bbw-batch-b-demo-builds | Bespoke demo builds for Batch B; 10/101 done (9 email + Jakes), 91 IG/FB remain — full pipeline + gotchas to finish |
 
 When a new handoff is written, append a row above this one (newest at top).
 

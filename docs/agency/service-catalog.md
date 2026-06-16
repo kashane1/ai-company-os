@@ -28,6 +28,10 @@
 | Class & Group Scheduling (`booking_classes`) | one-time | $200 | — |
 | Booking Intake Forms (`booking_intake`) | one-time | $90 | — |
 | Booking Management (`booking_management`) | recurring | — | $50/mo |
+| Online Ordering — Connect (your POS) (`ordering_connect`) | one-time | $200 | — |
+| Online Ordering — Done-for-you Setup (`ordering_setup`) | one-time | $600 | — |
+| Menu Build (`ordering_menu_entry`) | one-time | $250 | — |
+| Menu Management (`ordering_management`) | recurring | — | $40/mo |
 | Review Readiness System (`reviews`) | recurring | $80 | $40/mo |
 | Local SEO (`local_seo`) | recurring | $300 | $80/mo |
 | Analytics Dashboard & Monthly Report (`monthly_reporting`) | recurring | $120 | $40/mo |

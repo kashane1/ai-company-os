@@ -52,6 +52,12 @@ const PRESET_BADGES: Record<string, string> = {
 /** Conversion Lab à-la-carte services — shown in their own group in the builder. */
 const CONVERSION_LAB_IDS = ["conversion_snapshot", "conversion_audit", "ad_copy_lab"] as const;
 
+/** Per-group prompt shown on a modifier card that's locked until its base is in the cart. */
+const GROUP_NEEDS_LABEL: Record<string, string> = {
+  booking_base: "needs a booking option",
+  ordering_base: "needs an ordering option",
+};
+
 type Action =
   | { type: "set"; ids: Set<string> }
   | { type: "preset"; ids: string[] }
@@ -240,7 +246,9 @@ export default function BundleBuilder({
         <span className="byo-card-blurb">{s.blurb}</span>
         <span className="byo-card-price">
           {s.exclusive_group && <span className="byo-pickone">pick one · </span>}
-          {locked && <span className="byo-pickone">needs a booking option · </span>}
+          {locked && (
+            <span className="byo-pickone">{GROUP_NEEDS_LABEL[s.requires_group] ?? "needs a base option"} · </span>
+          )}
           {s.setup_cents > 0 && <>{dollars(s.setup_cents)} setup</>}
           {s.setup_cents > 0 && s.monthly_cents > 0 && " · "}
           {s.monthly_cents > 0 && <>{dollars(s.monthly_cents)}/mo</>}

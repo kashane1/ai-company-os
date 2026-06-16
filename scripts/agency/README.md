@@ -63,6 +63,7 @@ operator-facing entrypoints. Contract + gates: [docs/agency/design-studio-lane.m
 | `verify_domain.py` | Verify a domain points at Netlify **without breaking the client's email**. |
 | `setup_business_email.py` | Emit the business-email (Google Workspace) runbook — G5. |
 | `inject_booking.py` | Inject a booking provider's embed into a client site file (idempotent) — G6. |
+| `inject_ordering.py` | Inject a POS "Order Online" button (Square/Clover; Toast gated) into a client site file (idempotent). |
 
 ## Retainer ops & growth drafts
 

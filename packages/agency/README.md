@@ -65,6 +65,8 @@ client onboarding, and monthly retainer ops. Runnable entrypoints live in
 - `ad_creative.py` — ad images at all placements + promo overlays; **real client
   photos first, AI (Gemini) fallback**; drafts only (go-live stays gated).
 - `booking.py`, `promo_page.py` — booking embeds, promo pages.
+- `ordering.py` — online-ordering "Order Online" button injection + platform gate
+  (Square/Clover supported, Toast gated); hosted/embedded only, client's own POS.
 
 **Money**
 - `billing.py`, `payments.py`, `stripe_receiver.py` — invoicing + Stripe events.

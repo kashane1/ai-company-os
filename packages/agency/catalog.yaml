@@ -169,6 +169,61 @@ services:
       - Ongoing availability / service / staff edits, seasonal hours
       - No-show monitoring (for Connect / Done-for-you; Fully Managed includes this)
 
+  # --- Online Ordering: pick ONE base, then stack optional modifiers. ---
+  # Hosted/embedded only — money flows through the client's own POS merchant
+  # account; the agency is never a payment facilitator. Supported platforms:
+  # Square + Clover. Toast is assessed case-by-case (gated partner API) and is
+  # never advertised as supported. See docs/agency/ordering-platform-routing.md.
+  - service_id: ordering_connect
+    name: "Online Ordering — Connect (your POS)"
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 200
+    monthly_fee: 0
+    exclusive_group: ordering_base
+    includes:
+      - Order buttons on your site that open your Square or Clover ordering page, styled to match your brand
+      - Menu items mapped to your live POS catalog
+      - Pickup / curbside flow confirmed and tested
+      - You keep + pay your POS; orders land in your existing POS workflow
+
+  - service_id: ordering_setup
+    name: "Online Ordering — Done-for-you Setup"
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 600
+    monthly_fee: 0
+    exclusive_group: ordering_base
+    includes:
+      - We set up branded online ordering and checkout on your own POS (Square or Clover)
+      - Menu, prices, item options, tax, and pickup hours configured
+      - Customers order and pay on your site; the money goes straight to your account
+      - Tested end-to-end; account stays in your name, you keep + pay the POS
+      - "Keep more of every sale instead of handing 15–30% to delivery apps"
+
+  - service_id: ordering_menu_entry
+    name: Menu Build
+    tier: tier_2
+    bill_type: one_time
+    setup_fee: 250
+    monthly_fee: 0
+    requires_group: ordering_base
+    includes:
+      - We enter your full menu into your POS — items, prices, options, and photos
+      - Categories and modifier groups (sizes, add-ons, choices) built out
+
+  - service_id: ordering_management
+    name: Menu Management
+    tier: tier_2
+    bill_type: recurring
+    setup_fee: 0
+    monthly_fee: 40
+    requires_group: ordering_base
+    includes:
+      - Ongoing menu edits — specials, price changes, 86'd items, seasonal menus
+      - "~2 change requests / month included"
+    edit_limit: "~2 change requests / month included (see client-sla.md)"
+
   - service_id: reviews
     name: Review Readiness System
     tier: tier_2
