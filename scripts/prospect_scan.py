@@ -18,6 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from packages.config.settings import get_api_key  # noqa: E402
+from packages.prospecting.census import build_census, render_census  # noqa: E402
 from packages.prospecting.config import (  # noqa: E402
     load_cities,
     load_genres,
@@ -187,6 +188,22 @@ def _cmd_status(_: argparse.Namespace) -> int:
         f"  cap headroom: {report.cap_headroom}\n"
         f"  started: {report.started_at}  finished: {report.finished_at or '(running)'}"
     )
+    return 0
+
+
+def _cmd_census(args: argparse.Namespace) -> int:
+    census = build_census(ProspectRepository().list())
+    if args.json:
+        import dataclasses
+
+        print(json.dumps(dataclasses.asdict(census), indent=2))
+        return 0
+    report = render_census(census)
+    print(report)
+    if args.out is not None:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(report)
+        print(f"Wrote {args.out}")
     return 0
 
 
@@ -484,6 +501,12 @@ def main(argv: list[str] | None = None) -> int:
     start.set_defaults(func=_cmd_start)
 
     sub.add_parser("status", help="show latest prospecting run").set_defaults(func=_cmd_status)
+    census = sub.add_parser(
+        "census", help="audit ALL prospects grouped by source/cohort/verification state"
+    )
+    census.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    census.add_argument("--out", type=Path, default=None, help="also write the report to a file")
+    census.set_defaults(func=_cmd_census)
     sub.add_parser("stop", help="request a running scan stop").set_defaults(func=_cmd_stop)
     sub.add_parser(
         "backfill-priority", help="recompute cohorts and priority scores for existing records"
