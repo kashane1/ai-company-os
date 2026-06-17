@@ -290,8 +290,10 @@ def _cmd_verify_web_export(args: argparse.Namespace) -> int:
             limit=args.limit,
             shard=args.shard,
             shard_count=args.shard_count,
+            email_or_social_only=args.email_or_social,
         )
-        label = f"contacts-only (ids={len(ids) if ids else 'all-targets'})"
+        mode = "email-or-social recheck" if args.email_or_social else "contacts-only"
+        label = f"{mode} (ids={len(ids) if ids else 'all-targets'})"
     else:
         worklist = export_manual_worklist(
             repo.list(),
@@ -598,6 +600,12 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=None,
         help="restrict --contacts-only to these place_ids (newline- or JSON-list file)",
+    )
+    verify_export.add_argument(
+        "--email-or-social",
+        action="store_true",
+        help="contacts-only: re-check targets lacking email/IG/FB even if they have a "
+        "booking URL (a booking page does not count as email/social)",
     )
     verify_export.set_defaults(func=_cmd_verify_web_export)
 

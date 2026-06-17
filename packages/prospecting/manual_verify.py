@@ -80,6 +80,17 @@ def _has_digital_contact(record: ProspectRecord) -> bool:
     )
 
 
+def _has_email_or_social(record: ProspectRecord) -> bool:
+    """Stricter than ``_has_digital_contact``: a booking URL does NOT count.
+
+    Used when re-checking booking-only marketplace targets for a hidden
+    email/Instagram/Facebook channel the verdict pass didn't capture.
+    """
+    return any(
+        [record.contact_email, record.contact_instagram, record.contact_facebook]
+    )
+
+
 def _shard_of(place_id: str, shard_count: int) -> int:
     digest = hashlib.sha1(place_id.encode("utf-8")).hexdigest()
     return int(digest, 16) % shard_count
@@ -229,6 +240,7 @@ def export_contact_worklist(
     limit: int,
     shard: int = 0,
     shard_count: int = 1,
+    email_or_social_only: bool = False,
 ) -> list[dict[str, object]]:
     """Worklist for the lighter CONTACTS-ONLY pass (verdict already settled).
 
@@ -241,18 +253,24 @@ def export_contact_worklist(
     businesses). Each row carries the business's known ``web_verify_url`` (their
     Yelp/social page) and phone as the agent's starting point — no verdict work
     needed, just grab the best email/IG/FB/booking.
+
+    ``email_or_social_only`` redefines "has a contact" as email/Instagram/Facebook
+    only — a booking URL does NOT count. Use it to re-check booking-only
+    marketplace targets for a hidden email/social channel (the default check would
+    skip them because their booking URL already counts as a contact).
     """
     if shard_count < 1:
         raise ValueError("shard_count must be >= 1")
     if not 0 <= shard < shard_count:
         raise ValueError(f"shard must be in [0, {shard_count}); got {shard}")
 
+    has_contact = _has_email_or_social if email_or_social_only else _has_digital_contact
     candidates = [
         record
         for record in records
         if (ids is None or record.place_id in ids)
         and record.web_verify_verdict in TARGET_VERDICTS
-        and not _has_digital_contact(record)
+        and not has_contact(record)
         and not record.contact_checked_at
         and _shard_of(record.place_id, shard_count) == shard
     ]
