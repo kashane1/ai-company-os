@@ -29,8 +29,9 @@
 | Env var | Used by | Where set |
 |---|---|---|
 | `RESEND_API_KEY`, `LEAD_NOTIFY_EMAIL`, `LEAD_FROM_EMAIL` | G2 lead email | Netlify (BBW site) |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MAP` | G1 checkout + reconcile | `.env` / API host |
-| `AGENCY_STRIPE_EVENT_FORWARD_URL`, `AGENCY_STRIPE_EVENT_FORWARD_SECRET` | forwarder → receiver | Netlify + API host |
+| `STRIPE_SECRET_KEY`, `STRIPE_PRICE_MAP` | G1 checkout (CLI) | `.env` / API host |
+| `STRIPE_WEBHOOK_SECRET_TEST`, `STRIPE_WEBHOOK_SECRET_LIVE` | webhook signature verify | **Netlify** (BBW site) |
+| `NETLIFY_AUTH_TOKEN`, `BBW_SITE_ID` (optional) | Blobs poller (`pull-stripe-events.mjs`) | `.env` |
 | `PLAUSIBLE_API_KEY`, `PLAUSIBLE_BASE_URL` | G10 reporting | `.env` / API host |
 | `NETLIFY_AUTH_TOKEN` | deploys | `.env` |
 
@@ -57,40 +58,64 @@ redeploy the prior `website-review.mjs`.
 
 ## 2. G1 — Payments (real money; test mode → live)
 
-### 2a. Stand up the receiver
-The control-plane API hosts `POST /stripe/forward` on `127.0.0.1:8765`.
-- [ ] Start it: `python apps/api/server.py`.
-- [ ] Expose it to Netlify with a secure tunnel (e.g. `cloudflared tunnel`) — the
-      receiver binds localhost, so Netlify reaches it via the tunnel URL.
-- [ ] Set `AGENCY_STRIPE_EVENT_FORWARD_URL` (the tunnel URL + `/stripe/forward`)
-      and a strong `AGENCY_STRIPE_EVENT_FORWARD_SECRET` in **both** Netlify and
-      the API host env.
+### 2a. Webhook architecture (no tunnel — Blobs + poller)
+The deployed webhook is a **stable Netlify Function** that verifies the Stripe
+signature and writes each event to a Netlify **Blobs** store (`stripe-events`); a
+local poller drains it when the Mac is up. There is **no** localhost tunnel and no
+`/stripe/forward` receiver in this path (`AGENCY_STRIPE_EVENT_FORWARD_*` are the
+deprecated forward design — leave unset). The flow:
+
+```
+Stripe → https://better-business-web.netlify.app/.netlify/functions/stripe-webhook
+       → (verify sig, write Blobs "stripe-events")
+       → node scripts/web/pull-stripe-events.mjs   (drain Blobs → state/agency/stripe-events/)
+       → python scripts/agency/reconcile_stripe_billing.py   (apply → ledger)
+```
+
+- [ ] The function ships with every `netlify deploy --prod` (it's in `netlify.toml`'s
+      functions dir). It returns `503 payments not configured` until a webhook secret
+      is set — that's step 2b/2c.
+- [ ] Poller auth: `NETLIFY_AUTH_TOKEN` in `.env` (the script also reads it from `.env`
+      directly). `BBW_SITE_ID` defaults to the BBW site; override only if it changes.
 
 ### 2b. Test mode (mandatory dry run)
 - [ ] Create the bundle's **setup (one-time)** + **monthly (recurring)** prices in
       Stripe **test** mode; put their ids in `STRIPE_PRICE_MAP` under `"test"`.
+- [ ] Register a **test** webhook endpoint (URL above) and set its `whsec_…` as
+      `STRIPE_WEBHOOK_SECRET_TEST` in **Netlify** env; redeploy.
 - [ ] `python scripts/agency/create_checkout.py --product-id <id> --bundle package_c`
       → open the URL, pay with test card `4242 4242 4242 4242`.
-- [ ] Confirm the webhook → forwarder → receiver flips the ledger:
-      `cat state/agency/billing/<id>.json` shows `billing_status: active`, and the
+- [ ] Drain + reconcile, then confirm the ledger flips:
+      `node scripts/web/pull-stripe-events.mjs && python scripts/agency/reconcile_stripe_billing.py`
+      → `cat state/agency/billing/<id>.json` shows `billing_status: active`, and the
       registry `client.billing_status` matches with `accepted_at`/`accepted_by` stamped.
 
 ### 2c. Go live
 - [ ] **Recreate** the prices in Stripe **live** mode (ids differ) → add a `"live"`
       block to `STRIPE_PRICE_MAP`.
-- [ ] Set `STRIPE_SECRET_KEY=sk_live_…` and register a **live** webhook endpoint;
-      copy its `whsec_…` into `STRIPE_WEBHOOK_SECRET`. Subscribe to: `invoice.paid`,
+- [ ] Set `STRIPE_SECRET_KEY=sk_live_…` and register a **live** webhook endpoint
+      (URL: `https://better-business-web.netlify.app/.netlify/functions/stripe-webhook`);
+      copy its `whsec_…` into **Netlify** env as `STRIPE_WEBHOOK_SECRET_LIVE` (NOT the
+      local `.env` — the function runs on Netlify), then redeploy. Test and live secrets
+      coexist; the function tries each until one verifies. Subscribe to: `invoice.paid`,
       `invoice.payment_failed`, `customer.subscription.updated`,
       `customer.subscription.deleted`, `charge.dispute.created`,
       `charge.dispute.closed`, `charge.refunded`, `checkout.session.completed`.
+- [ ] **Free plumbing test (do before any charge):** in the Stripe endpoint page click
+      **Send test webhook** → `checkout.session.completed` (expect `200`), then
+      `node scripts/web/pull-stripe-events.mjs && python scripts/agency/reconcile_stripe_billing.py`.
+      It dead-letters (no real client metadata) — that's success: it proves signature
+      verify + Blobs + poller + reconcile end to end for **$0**.
+- [ ] **$1 money smoke:** create a $1 Payment Link in **Live**, pay with your own card,
+      drain + reconcile, then **refund it** and re-drain — confirm `charge.refunded`
+      processes (the refund reconciles itself).
 - [ ] Grant the `stripe_live_subscription` approval for the first client.
 - [ ] `create_checkout.py --mode live` (refuses without the approval + an `sk_live_` key).
-- [ ] **Live smoke:** pay with a real card you control → ledger `active` → then
-      **refund it** and confirm the ledger flips to `refunded`.
+- [ ] **Full activation smoke:** pay a real bundle checkout (carries client metadata) →
+      ledger `active` → then **refund it** and confirm the ledger flips to `refunded`.
 
-**Rollback:** disable the live webhook endpoint in Stripe + unset
-`AGENCY_STRIPE_EVENT_FORWARD_URL`; revoke the approval; refund any erroneous charge
-(the refund reconciles itself).
+**Rollback:** disable the live webhook endpoint in Stripe; revoke the approval; refund
+any erroneous charge (the refund reconciles itself).
 
 ---
 
