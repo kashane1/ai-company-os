@@ -18,6 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from packages.config.settings import get_api_key  # noqa: E402
+from packages.prospecting.census import build_census, render_census  # noqa: E402
 from packages.prospecting.config import (  # noqa: E402
     load_cities,
     load_genres,
@@ -190,6 +191,22 @@ def _cmd_status(_: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_census(args: argparse.Namespace) -> int:
+    census = build_census(ProspectRepository().list())
+    if args.json:
+        import dataclasses
+
+        print(json.dumps(dataclasses.asdict(census), indent=2))
+        return 0
+    report = render_census(census)
+    print(report)
+    if args.out is not None:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(report)
+        print(f"Wrote {args.out}")
+    return 0
+
+
 def _cmd_stop(_: argparse.Namespace) -> int:
     FileStopSignal().request()
     print("Stop requested. A running prospect scan will halt after its current unit.")
@@ -273,8 +290,10 @@ def _cmd_verify_web_export(args: argparse.Namespace) -> int:
             limit=args.limit,
             shard=args.shard,
             shard_count=args.shard_count,
+            email_or_social_only=args.email_or_social,
         )
-        label = f"contacts-only (ids={len(ids) if ids else 'all-targets'})"
+        mode = "email-or-social recheck" if args.email_or_social else "contacts-only"
+        label = f"{mode} (ids={len(ids) if ids else 'all-targets'})"
     else:
         worklist = export_manual_worklist(
             repo.list(),
@@ -484,6 +503,12 @@ def main(argv: list[str] | None = None) -> int:
     start.set_defaults(func=_cmd_start)
 
     sub.add_parser("status", help="show latest prospecting run").set_defaults(func=_cmd_status)
+    census = sub.add_parser(
+        "census", help="audit ALL prospects grouped by source/cohort/verification state"
+    )
+    census.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    census.add_argument("--out", type=Path, default=None, help="also write the report to a file")
+    census.set_defaults(func=_cmd_census)
     sub.add_parser("stop", help="request a running scan stop").set_defaults(func=_cmd_stop)
     sub.add_parser(
         "backfill-priority", help="recompute cohorts and priority scores for existing records"
@@ -575,6 +600,12 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=None,
         help="restrict --contacts-only to these place_ids (newline- or JSON-list file)",
+    )
+    verify_export.add_argument(
+        "--email-or-social",
+        action="store_true",
+        help="contacts-only: re-check targets lacking email/IG/FB even if they have a "
+        "booking URL (a booking page does not count as email/social)",
     )
     verify_export.set_defaults(func=_cmd_verify_web_export)
 

@@ -264,6 +264,21 @@ def test_contact_export_can_restrict_to_an_id_set() -> None:
     assert [r["place_id"] for r in rows] == ["places/b"]
 
 
+def test_contact_export_email_or_social_rechecks_booking_only_marketplace() -> None:
+    booking_only = ProspectRecord.from_dict(
+        {
+            **_verified_target("places/booking", verdict="marketplace_only").to_dict(),
+            "contact_instagram": "",
+            "contact_booking_url": "https://booksy.com/x",
+        }
+    )
+    # Default: a booking URL counts as a contact, so this row is excluded.
+    assert export_contact_worklist([booking_only], limit=10) == []
+    # email_or_social_only: a booking URL does NOT count, so it is re-selected.
+    rows = export_contact_worklist([booking_only], limit=10, email_or_social_only=True)
+    assert [r["place_id"] for r in rows] == ["places/booking"]
+
+
 def test_ingest_contacts_only_writes_contacts_and_preserves_verdict(tmp_path: Path) -> None:
     repo = ProspectRepository(tmp_path / "records")
     repo.save(_verified_target("places/keep", verdict="marketplace_only", name="Keep Verdict"))

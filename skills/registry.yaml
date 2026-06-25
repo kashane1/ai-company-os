@@ -633,6 +633,23 @@ skills:
       claude: adapters/claude/repo-onboarding.md
     project_skill: .claude/skills/repo-onboarding.md
 
+  - id: prospect-census
+    name: Prospect Census
+    path: canonical/prospect-census/skill.md
+    owner_agent: supervisor
+    target_runtimes: [claude]
+    stage: active
+    kind: agentic
+    # Reporting wrapper around `prospect_scan.py census` (pure functions in
+    # packages/prospecting/census.py, covered by
+    # tests/python/unit/test_prospecting_census.py). No agentic fixtures yet.
+    fixture_status: missing
+    self_evolvable: false
+    source: internal
+    adapters:
+      claude: adapters/claude/prospect-census.md
+    project_skill: .claude/skills/prospect-census.md
+
   # ----- ECC Gap Recommendations Phase 2 — skill-estate hygiene -----
 
   - id: skill-stocktake
