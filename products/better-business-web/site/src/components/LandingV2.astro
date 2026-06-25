@@ -745,7 +745,7 @@ const chips = [...trustChips, `${portfolio.demos.length} sample sites to explore
 <script>
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const shots = Array.from(document.querySelectorAll(".device__shot"));
+  const shots = Array.from(document.querySelectorAll<HTMLElement>(".device__shot"));
   const label = document.getElementById("heroLabel");
   if (shots.length > 1 && !reduce) {
     let i = 0;
@@ -753,7 +753,8 @@ const chips = [...trustChips, `${portfolio.demos.length} sample sites to explore
       shots[i].classList.remove("is-active");
       i = (i + 1) % shots.length;
       shots[i].classList.add("is-active");
-      if (label && shots[i].dataset.name) label.textContent = shots[i].dataset.name;
+      const name = shots[i].dataset.name;
+      if (label && name) label.textContent = name;
     }, 3600);
   }
 </script>

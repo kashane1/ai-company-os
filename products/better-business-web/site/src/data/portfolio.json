@@ -1,6 +1,16 @@
 {
   "demos": [
     {
+      "name": "SynapseX",
+      "type": "Neural intelligence app",
+      "genre": "neural-intelligence",
+      "slug": "synapsex",
+      "url": "/work/synapsex/",
+      "thumbnail": "/portfolio/synapsex.webp",
+      "rationale": "A cinematic app launch page can make a technical product feel tangible fast. This demo uses scroll-scrubbed video, precise motion, and mono typography to give SynapseX a premium neural-interface feel.",
+      "highlights": ["Fullscreen video hero", "Scroll-scrubbed motion", "Text scramble effects", "Desktop smooth scroll"]
+    },
+    {
       "name": "Ironside Auto Works",
       "type": "Auto repair",
       "genre": "auto-repair",
