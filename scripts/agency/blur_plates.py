@@ -21,6 +21,15 @@ SITES_ROOT = Path("/Users/kashane/dev/ai-company-os/state/prospects/sites")
 
 # place_id -> { filename: [ (x0,y0,x1,y1) fractional boxes ] }
 SITES: dict[str, dict[str, list[tuple[float, float, float, float]]]] = {
+    # Polished Nails & Spa (Fort Worth) — storefront has two parked cars with
+    # readable Texas plates: a white Hyundai Palisade (center) and a dark Nissan
+    # Rogue (left). Blur both into the asset.
+    "ChIJ0-6Zbk9zToYRKcXbkYXF6qY": {
+        "storefront.jpg": [
+            (0.625, 0.645, 0.705, 0.695),  # Hyundai Palisade rear plate (center)
+            (0.088, 0.590, 0.168, 0.642),  # Nissan Rogue rear plate (left)
+        ],
+    },
     # Integrity A/C Auto Climas (Phoenix) — shop-interior shot has a silver Nissan
     # Sentra with a readable Arizona plate (CPB9735) on the rear bumper.
     "ChIJFY_WoIMTK4cRhaOaKJkRNA4": {
@@ -423,6 +432,23 @@ SITES: dict[str, dict[str, list[tuple[float, float, float, float]]]] = {
     "ChIJLzyBIRko9ocRhyMW3-Q8WZg": {
         "work-fade.jpg": [
             (0.815, 0.555, 0.965, 0.640),  # blue Ford rear MN plate "AVG 007" (center-right, through glass)
+        ],
+    },
+    # Oohs & Ahs (Columbus, OH) — full-service barber/hair shop. storefront.jpg looks
+    # out the front window onto the strip-mall lot: a silver Chevy TrailBlazer carries a
+    # readable front plate (center-left) and a black Mercedes S-class shows a rear plate
+    # (center). Bake an irreversible pixelate over both. work-cut.jpg (a fresh back-of-head
+    # cut) has a CHILD lying on the couch in the background (right) whose face is
+    # identifiable; pixelate the face region. (Other kept photos are no-face interior/work
+    # or the logo wall; verified by high-res crops.)
+    "ChIJ7cfkGDR9OIgR3br_B8I-R40": {
+        "storefront.jpg": [
+            (0.000, 0.595, 0.040, 0.620),  # white Acura front plate (far-left, clipped by window frame)
+            (0.180, 0.548, 0.275, 0.585),  # silver Chevy front plate (center-left, through glass)
+            (0.490, 0.556, 0.560, 0.585),  # black Mercedes rear plate (center)
+        ],
+        "work-cut.jpg": [
+            (0.930, 0.415, 0.995, 0.540),  # background child's face on couch (far right)
         ],
     },
 }
