@@ -36,7 +36,7 @@ for refinement. Record every initial and follow-up call in the contract's
 
 ## Files and validation
 
-For every run, non-destructively copy or move every generated initial concept,
+For every run, non-destructively copy every generated initial concept,
 correction, and rejected preview from the generator's default location to:
 
 `state/home-from-working/artwork/<design-slug>/<run-id>/`

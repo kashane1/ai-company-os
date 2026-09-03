@@ -292,7 +292,7 @@ skills:
   - id: pod-artwork-generator
     name: POD Artwork Generator
     path: canonical/pod-artwork-generator/skill.md
-    owner_agent: codex
+    owner_agent: engineering
     target_runtimes: [codex]
     stage: active
     kind: agentic

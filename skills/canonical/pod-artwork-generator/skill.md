@@ -2,7 +2,7 @@
 id: pod-artwork-generator
 name: POD Artwork Generator
 purpose: Propose founder-cleared visual directions, then generate and inspect original transparent print-on-demand artwork.
-owner_agent: codex
+owner_agent: engineering
 target_runtimes: [codex]
 stage: active
 kind: agentic
