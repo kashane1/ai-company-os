@@ -25,8 +25,9 @@ For every call, label the prompt inputs by role: `idea`, `exact wording`,
 `approved direction`, `target product/layout`, `print constraints`, and, where
 applicable, `reference traits`. Require a genuinely transparent PNG master:
 isolated artwork only, no backdrop, scene rectangle, gradient background,
-checkerboard, mockup, or product photo. Show each resulting concept to the
-founder with its direction ID and an absolute local path.
+checkerboard, mockup, or product photo. Render and attach every resulting
+concept image inline in the founder response, labeled with its direction ID and
+absolute local artifact path; a text-only path is insufficient.
 
 Corrections and refinements are separate image-generation calls. Make them only
 after validation identifies a defect or the founder selects a concept and asks
