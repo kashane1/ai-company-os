@@ -289,6 +289,18 @@ skills:
       codex: adapters/codex/codex-task-packet-library.md
     templates: canonical/shared/codex-packet-patterns/
 
+  - id: pod-artwork-generator
+    name: POD Artwork Generator
+    path: canonical/pod-artwork-generator/skill.md
+    owner_agent: codex
+    target_runtimes: [codex]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    source: internal
+    adapters:
+      codex: adapters/codex/pod-artwork-generator.md
+
   - id: app-store-positioning-pack
     name: App Store Positioning Pack
     path: canonical/shared/app-store-positioning-pack.md
