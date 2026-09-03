@@ -1,0 +1,87 @@
+- name: happy_path_founder_clearance_then_generation
+  description: |
+    Reusable baseline for a shirt idea where no explicit styles are given.
+    The agent must propose 3-5 style directions (default four), force a
+    founder clearance pause, and avoid generation before clearance.
+  input:
+    design_request: |
+      Design a fun vintage-style shirt graphic with the exact phrase "CATNIP ADVENTURE".
+      Keep the palette retro and keep all elements readable on a front-chest print.
+    product_type: shirt
+    requested_style_count: 4
+    exact_text:
+      - "CATNIP ADVENTURE"
+  expected:
+    stage: awaiting_clearance
+    direction_count: 4
+    requires_clearance: true
+    generation_call_count: 0
+    operation_trace:
+      - action: propose_style_directions
+        status: completed
+      - action: require_founder_clearance
+        status: blocked
+    artifact_output_dir: "state/home-from-working/artwork/"
+    validation_summary:
+      has_transparent_pixels: false
+      has_visible_content: false
+      exact_text_matches: false
+      distinct_directions: true
+      artifact_count_matches_approved_ids: false
+    no_printify_etsy_mutations: true
+    printify_api_calls: 0
+    etsy_api_calls: 0
+    warnings: []
+
+- name: happy_path_refined_styles_single_run_generation
+  description: |
+    After two style IDs are approved, the skill must run one generation call
+    per cleared direction and record per-artwork validation outcomes.
+  input:
+    design_request: |
+      Create a cozy "hanging with one ear up" cat charm shirt graphic using
+      exact text "SALT LAMP".
+    product_type: shirt
+    approved_direction_ids:
+      - style-1
+      - style-3
+    exact_text:
+      - "SALT LAMP"
+  expected:
+    stage: generated
+    direction_count: 2
+    requires_clearance: false
+    generation_call_count: 2
+    artifact_output_dir: "state/home-from-working/artwork/"
+    generation_plans:
+      - direction_id: style-1
+      - direction_id: style-3
+    generated_artifacts:
+      - direction_id: style-1
+        alpha_validation_passed: true
+        transparent_pixel_check_method: alpha_histogram
+        exact_text_preserved: true
+        product_layout_applied: true
+      - direction_id: style-3
+        alpha_validation_passed: true
+        transparent_pixel_check_method: alpha_histogram
+        exact_text_preserved: true
+        product_layout_applied: true
+    validation_summary:
+      has_transparent_pixels: true
+      has_visible_content: true
+      exact_text_matches: true
+      distinct_directions: true
+      artifact_count_matches_approved_ids: true
+    no_printify_etsy_mutations: true
+    printify_api_calls: 0
+    etsy_api_calls: 0
+    operation_trace:
+      - action: propose_style_directions
+        status: completed
+      - action: approve_founder_style
+        status: passed
+      - action: generate_artwork
+        status: completed
+      - action: validate_transparency
+        status: passed

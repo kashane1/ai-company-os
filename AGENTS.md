@@ -5,6 +5,10 @@ The full agent model lives in [`docs/agent-model.md`](docs/agent-model.md). Read
 ## TL;DR
 
 - **Current HomeFromWorking priority (2026-09-02):** use the [repeatable shirt workflow](docs/founder/printify-shirt-workflow.md): native Printify Duplicate once, then `scripts/pod_draft.py` for artwork/copy updates and preservation checks. Reuse the command instead of per-shirt scripts or full browser setup. Broader product research is deferred. Etsy payload automation remains planned; publishing requires separate explicit approval.
+- For transparent POD, shirt, mug, merchandise, or Printify artwork requests,
+  read `skills/adapters/codex/pod-artwork-generator.md` before proposing style
+  directions or generating artwork.
+
 - The **platform** owns orchestration, persistence, queueing, approvals, and policy.
 - The **supervisor** decomposes goals and routes work; it does not deliver.
 - **Workers** specialize: engineering, iOS, App Store, and future lanes (support, growth, research, ops). Each is narrow, schema-driven, policy-bound.

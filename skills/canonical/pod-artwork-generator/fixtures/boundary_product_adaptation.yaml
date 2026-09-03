@@ -1,0 +1,35 @@
+- name: boundary_product_adaptation_mug_vs_shirt
+  description: |
+    Boundary case for a mug request based on a reference image. The output must be
+    product-aware (mug-safe composition) while keeping the design wording exact.
+  input:
+    design_request: |
+      Make a mug concept based on this reference image path: fixture://cute-cat-shirt.
+      Exact wording must be: "Just Kitten Around".
+    product_type: mug
+    reference_image_path: fixture://cute-cat-shirt
+    requested_style_count: 3
+    exact_text:
+      - "Just Kitten Around"
+  expected:
+    stage: awaiting_clearance
+    direction_count: 3
+    requires_clearance: true
+    generation_call_count: 0
+    artifact_output_dir: "state/home-from-working/artwork/"
+    validation_summary:
+      has_transparent_pixels: false
+      has_visible_content: false
+      exact_text_matches: false
+      distinct_directions: true
+      artifact_count_matches_approved_ids: false
+    no_printify_etsy_mutations: true
+    printify_api_calls: 0
+    etsy_api_calls: 0
+    operation_trace:
+      - action: resolve_reference_image
+        status: fixture_reference
+      - action: select_product_layout
+        status: mug_safe
+      - action: require_founder_clearance
+        status: blocked
