@@ -1,0 +1,16 @@
+{
+  "id": "95e47aef-534b-4468-9f50-17d1f83846fe",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a98e8d3cb00cd3a4d009ff8: A Day on Venus Heavy Cotton T-Shirt, Space Science Fact Tee, Astronomy Lover Gift",
+  "created_at": "2026-09-03T03:26:37.714522+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-2/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "b14ed185c061215a934dad9247e699f1ee56efcd47e7568f36276a2072e774ac",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

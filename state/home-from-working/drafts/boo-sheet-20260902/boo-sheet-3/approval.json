@@ -1,0 +1,16 @@
+{
+  "id": "9eafd814-86b1-4cbe-a282-ae2a3a2f6888",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a98c516c141de8ffa023217: Boo Sheet Shirt, Funny Ghost With Tangled Sheet Halloween Tee, Orange Ghost Graphic T-Shirt",
+  "created_at": "2026-09-03T00:54:28.073857+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-3/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "354c2771c9fa04c0e6adc60f386bb3ba117e960c00efc12de88839edcb69a0a6",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T00:54:28.075952+00:00",
+  "decision_notes": "User requested: \"i have 3 photos im attaching i want you to use the new process to create 3 different printify drafts.\" This record covers boo-sheet-3.png on native copy 6a98c516c141de8ffa023217, its prepared copy and standard template placement, revision 354c2771c9fa04c0e6adc60f386bb3ba117e960c00efc12de88839edcb69a0a6. Draft preparation only; no publication authorized."
+}

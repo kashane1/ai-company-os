@@ -1,0 +1,16 @@
+{
+  "id": "c91958d8-f4e1-47bc-b20c-6fcb4a49c306",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a99a017420d45a6370baf38: Lightning and Sun Heavy Cotton T-Shirt, Retro Science Graphic Tee, Weather Lover Gift",
+  "created_at": "2026-09-03T16:30:36.209965+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/science-humor-20260903/lightning-sun-2/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "3efc6c52092b5e9afbb54262b2906b67b8616308d250c2a66e37793f29f71946",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T16:30:36.212881+00:00",
+  "decision_notes": "Owner supplied six PNGs and requested new Printify drafts with larger placement around305%/98DPI. This authorizes lightning-sun-2.png on native copy 6a99a017420d45a6370baf38, exact review 3efc6c52092b5e9afbb54262b2906b67b8616308d250c2a66e37793f29f71946, with prepared title/description/tags and centered placement at305% or reduced uniformly to fit print-area bounds. All six attachments were included in the stated interpretation. Draft only; no publication."
+}

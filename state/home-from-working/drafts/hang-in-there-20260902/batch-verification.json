@@ -1,0 +1,63 @@
+{
+  "status": "verified",
+  "items": [
+    {
+      "file": "hang-in-there-1.png",
+      "url": "https://printify.com/app/product-details/6a98e25860dba9e21d04dc5e",
+      "title": "Hang in There Heavy Cotton T-Shirt, Cute Calico Kitten Tee, Encouraging Cat Lover Gift",
+      "dpi": 156.8,
+      "prices": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "complete"
+    },
+    {
+      "file": "hang-in-there-2.png",
+      "url": "https://printify.com/app/product-details/6a98e2a9cb00cd3a4d009989",
+      "title": "Hang in There Heavy Cotton T-Shirt, Retro Orange Kitten Tee, Encouraging Cat Lover Gift",
+      "dpi": 128.0,
+      "prices": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "complete"
+    },
+    {
+      "file": "hang-in-there-3.png",
+      "url": "https://printify.com/app/product-details/6a98e2c98775f2fc0e01752d",
+      "title": "Hang in There Heavy Cotton T-Shirt, Cute Gray Kitten Tee, Encouraging Cat Lover Gift",
+      "dpi": 128.0,
+      "prices": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "complete"
+    }
+  ],
+  "native_duplicate_actions": 3,
+  "publish_calls": 0,
+  "mockup_reselection_actions": 0,
+  "browser_recovery": "After the first duplicate, the template moved beyond the first 12-product page. One subsequent click found no matches and performed no action. Filtering My Products by Resting Witch Face restored the exact template; all three created IDs were reconciled. Use the template title search for future batches to avoid pagination."
+}

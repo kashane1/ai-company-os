@@ -354,6 +354,19 @@ This system is successful when:
 
 ## Discovery layer (front of the loop)
 
+**Current HomeFromWorking direction (2026-09-02):** start from owner-approved
+shirt artwork and automate listing preparation and a Printify draft. The
+[POD design](plans/2026-09-02-home-from-working-pod-design.md) supersedes the
+research-first commerce proposal. Its first milestone requires no discovery
+opportunity, research worker, or autonomous concept selection. The bounded
+[operated draft command](founder/printify-shirt-workflow.md) now prepares and updates
+a native Printify duplicate using the API. It consumes revision-bound shared
+approval records and writes runtime snapshots under `state/home-from-working/`;
+it cannot create, publish, delete, or change prices. The owner retains creative
+decisions, and publication requires separate explicit approval. Etsy payload
+automation remains planned. Existing
+discovery policy remains in force for workflows that use discovery handoffs.
+
 The roles above cover *building and shipping* a product. The **discovery layer**
 (`packages/discovery/`) covers the step before that — deciding *what* to build —
 and follows the same platform/worker split:

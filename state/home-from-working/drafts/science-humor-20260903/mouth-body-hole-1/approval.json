@@ -1,0 +1,16 @@
+{
+  "id": "3ef69ef9-5054-4908-91e5-ebbdb1619b78",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a999e72df99c3801205b10a: Your Mouth Is a Body Hole Heavy Cotton T-Shirt, Funny Shower Thought Tee, Anatomy Humor Gift",
+  "created_at": "2026-09-03T16:30:18.119720+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/science-humor-20260903/mouth-body-hole-1/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "e586c70fbce0d7c10803db3385e3c2db8846cafcad12428714af449d2fbed5dd",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T16:30:18.122857+00:00",
+  "decision_notes": "Owner supplied six PNGs and requested new Printify drafts with larger placement around305%/98DPI. This authorizes mouth-body-hole-1.png on native copy 6a999e72df99c3801205b10a, exact review e586c70fbce0d7c10803db3385e3c2db8846cafcad12428714af449d2fbed5dd, with prepared title/description/tags and centered placement at305% or reduced uniformly to fit print-area bounds. All six attachments were included in the stated interpretation. Draft only; no publication."
+}

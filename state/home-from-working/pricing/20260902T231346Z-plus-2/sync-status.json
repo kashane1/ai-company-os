@@ -1,0 +1,62 @@
+[
+  {
+    "id": "6a989820c07f91a2ff0aa2b8",
+    "visible": true,
+    "is_locked": false,
+    "external": {
+      "id": "4567628531",
+      "handle": "https://www.etsy.com/listing/4567628531/currently-avoiding-something-shirt-dry",
+      "shipping_template_id": "314722398172",
+      "type": 4
+    },
+    "prices_verified": true
+  },
+  {
+    "id": "6a988f0a00aa8684080e906c",
+    "visible": true,
+    "is_locked": false,
+    "external": {
+      "id": "4567628456",
+      "handle": "https://www.etsy.com/listing/4567628456/list-of-lists-shirt-funny-clipboard",
+      "shipping_template_id": "314722398172",
+      "type": 4
+    },
+    "prices_verified": true
+  },
+  {
+    "id": "6a98877e4ac00e7da5019a50",
+    "visible": true,
+    "is_locked": false,
+    "external": {
+      "id": "4567593986",
+      "handle": "https://www.etsy.com/listing/4567593986/funny-astronomy-shirt-its-nice-being",
+      "shipping_template_id": "314722398172",
+      "type": 4
+    },
+    "prices_verified": true
+  },
+  {
+    "id": "6a9880c14ac00e7da501950b",
+    "visible": true,
+    "is_locked": false,
+    "external": {
+      "id": "4567588636",
+      "handle": "https://www.etsy.com/listing/4567588636/shrimp-fried-this-rice-shirt-funny-food",
+      "shipping_template_id": "314722398172",
+      "type": 4
+    },
+    "prices_verified": true
+  },
+  {
+    "id": "6a9860cc0bf15ba9490bfe3a",
+    "visible": true,
+    "is_locked": false,
+    "external": {
+      "id": "4567549394",
+      "handle": "https://www.etsy.com/listing/4567549394/funny-earth-heavy-cotton-t-shirt-its",
+      "shipping_template_id": "314722398172",
+      "type": 4
+    },
+    "prices_verified": true
+  }
+]

@@ -19,6 +19,16 @@ This system is not a single all-powerful agent. It is a platform with orchestrat
 
 ## Core Philosophy
 
+**Current HomeFromWorking scope (2026-09-02):** the
+[approved-design-to-listing design](plans/2026-09-02-home-from-working-pod-design.md)
+starts with one shirt, one review package, and one approved Printify draft plus
+an Etsy payload preview. Research-led commerce expansion is deferred. The
+[operated draft workflow](founder/printify-shirt-workflow.md) implements native UI
+duplication followed by API updates through `packages/pod/` and `scripts/pod_draft.py`.
+Shared approval records authorize exact draft revisions through `packages/policies/pod.py`;
+runtime snapshots and receipts live under `state/home-from-working/`. Etsy payload
+automation remains planned. This adds no worker, discovery dependency, or queue.
+
 The architecture is built around a few key principles:
 
 - the platform is the brain

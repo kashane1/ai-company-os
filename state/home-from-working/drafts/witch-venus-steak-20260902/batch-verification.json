@@ -1,0 +1,116 @@
+{
+  "status": "verified",
+  "verified_at": "2026-09-03T03:37:51.895803+00:00",
+  "source_template": "6a98ae4aaa543bfeff0f8735",
+  "native_duplicate_actions": 6,
+  "unused_copy_deleted": "6a98e9038c9207769700ae9e",
+  "publish_calls": 0,
+  "mockup_reselection_actions": 0,
+  "items": [
+    {
+      "design": "resting-witch-face-2",
+      "product_id": "6a98e87760dba9e21d04e30a",
+      "url": "https://printify.com/app/product-details/6a98e87760dba9e21d04e30a",
+      "title": "Resting Witch Face Heavy Cotton T-Shirt, Gothic Purple Witch Tee, Funny Halloween Gift",
+      "published": false,
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "dpi": 128.0,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "resting-witch-face-3",
+      "product_id": "6a98e898cb00cd3a4d009f7c",
+      "url": "https://printify.com/app/product-details/6a98e898cb00cd3a4d009f7c",
+      "title": "Resting Witch Face Heavy Cotton T-Shirt, Witch With Glasses Tee, Funny Halloween Gift",
+      "published": false,
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "dpi": 128.0,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "venus-day-1",
+      "product_id": "6a98e8b4aa543bfeff0fc482",
+      "url": "https://printify.com/app/product-details/6a98e8b4aa543bfeff0fc482",
+      "title": "A Day on Venus Heavy Cotton T-Shirt, Golden Planet Graphic Tee, Astronomy Lover Gift",
+      "published": false,
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "dpi": 128.0,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "venus-day-2",
+      "product_id": "6a98e8d3cb00cd3a4d009ff8",
+      "url": "https://printify.com/app/product-details/6a98e8d3cb00cd3a4d009ff8",
+      "title": "A Day on Venus Heavy Cotton T-Shirt, Space Science Fact Tee, Astronomy Lover Gift",
+      "published": false,
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "dpi": 128.0,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "chicken-fried-steak-1",
+      "product_id": "6a98e9a5e61a73014907ac75",
+      "url": "https://printify.com/app/product-details/6a98e9a5e61a73014907ac75",
+      "title": "Chicken Fried This Steak Heavy Cotton T-Shirt, Funny Food Pun Tee, Southern Food Lover Gift",
+      "published": false,
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "dpi": 128.0,
+      "visual_review": "reviewed"
+    }
+  ]
+}

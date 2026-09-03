@@ -1,0 +1,16 @@
+{
+  "id": "eb04b8a3-52e7-4679-a718-86051af90841",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a999fe087fe2ca5920f1476: Lightning and Sun Heavy Cotton T-Shirt, Science Fact Graphic Tee, Weather Lover Gift",
+  "created_at": "2026-09-03T16:29:06.550275+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/science-humor-20260903/lightning-sun-1/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "94a16cf41517214f57140a5d83481f9a169ef4adb88493a6d53b3b822d1b79f6",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

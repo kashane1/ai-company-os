@@ -1,0 +1,15 @@
+{
+  "id": "6a988f0a00aa8684080e906c",
+  "etsy_listing_id": "4567628456",
+  "requested": true,
+  "response": {},
+  "fields": {
+    "title": false,
+    "description": false,
+    "images": false,
+    "variants": true,
+    "tags": false,
+    "keyFeatures": false,
+    "shipping_template": false
+  }
+}

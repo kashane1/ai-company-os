@@ -1,0 +1,16 @@
+{
+  "id": "b5fe2e26-5f5b-48f5-8fb9-dd3b67250025",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a98ec418c9207769700b224: Bananas Are Berries Heavy Cotton T-Shirt, Funny Fruit Fact Tee, Botany Lover Gift",
+  "created_at": "2026-09-03T03:41:38.826576+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/banana-berries-20260902/banana-berries-1/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "5f678110cd36048335becfe06fce3e1b6f4b25393c24497b9e6bfda50bd279b8",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

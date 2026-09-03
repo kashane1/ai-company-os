@@ -1,0 +1,22 @@
+{
+  "status": "awaiting_clarification_about_disappeared_drafts",
+  "checked_at": "2026-09-03T03:44:55.813899+00:00",
+  "drafts": {
+    "banana-berries-1": "6a98ec418c9207769700b224",
+    "banana-berries-2": "6a98ec57aa543bfeff0fc913"
+  },
+  "evidence": [
+    "Both native copies were observed as unpublished and successfully read by prepare.",
+    "The first design upload succeeded and its receipt is saved.",
+    "The first apply returned HTTP 404. Subsequent API GET calls return HTTP 404 for both draft IDs while the template GET succeeds.",
+    "A refreshed My Products list no longer contains either temporary copy."
+  ],
+  "completed_uploads": [
+    {
+      "design": "banana-berries-1",
+      "id": "6a98eca918399361b7e6e4f6"
+    }
+  ],
+  "publish_calls": 0,
+  "next_step": "Clarify whether the owner removed the temporary copies before recreating products; retain the saved upload and reviews."
+}

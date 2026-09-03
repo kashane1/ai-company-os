@@ -1,0 +1,16 @@
+{
+  "id": "46c017dc-df38-472a-be5d-367db48b320b",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a98d0d762114ff80f0f354f: I Was Told There Would Be Snacks Heavy Cotton T-Shirt, Funny Raccoon Tee, Snack Lover Gift",
+  "created_at": "2026-09-03T01:44:13.468071+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/snacks-kittens-20260902/snacks-2/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "8cb4338bd3ef18c6a5c61fbba79f3255ff8c1cbdef3696a32820aedde03bc374",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

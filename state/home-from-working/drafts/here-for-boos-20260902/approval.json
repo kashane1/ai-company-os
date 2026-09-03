@@ -1,0 +1,16 @@
+{
+  "id": "b52c8958-bdc8-466f-8654-e2c24540b720",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a98c75f60dba9e21d04bf20: Here for the Boos Heavy Cotton T-Shirt, Funny Drinking Ghost Halloween Tee, Spooky Season Graphic",
+  "created_at": "2026-09-03T01:04:19.269309+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/here-for-boos-20260902/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "a0286f2f1e8f42cbbc987a127f1944bc6606124e64940845c1d27c0ed283743b",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T01:04:19.274392+00:00",
+  "decision_notes": "The owner asked: \"create this with the reusable procedure\" and attached /Users/kashane/Downloads/here-for-boos.png, with Heavy Cotton T-Shirt immediately after the design name in the title. This records that explicit authorization for unpublished draft 6a98c75f60dba9e21d04bf20, revision a0286f2f1e8f42cbbc987a127f1944bc6606124e64940845c1d27c0ed283743b. Preserve the native template settings and prices. No publication or updates to existing listings are authorized by this record."
+}

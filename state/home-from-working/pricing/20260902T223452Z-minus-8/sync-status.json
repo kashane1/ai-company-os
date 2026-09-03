@@ -1,0 +1,42 @@
+[
+  {
+    "id": "6a989820c07f91a2ff0aa2b8",
+    "is_locked": false,
+    "visible": true,
+    "etsy_listing_id": "4567628531",
+    "updated_at": "2026-09-02 22:38:47+00:00",
+    "prices_verified": true
+  },
+  {
+    "id": "6a988f0a00aa8684080e906c",
+    "is_locked": false,
+    "visible": true,
+    "etsy_listing_id": "4567628456",
+    "updated_at": "2026-09-02 22:38:50+00:00",
+    "prices_verified": true
+  },
+  {
+    "id": "6a98877e4ac00e7da5019a50",
+    "is_locked": false,
+    "visible": true,
+    "etsy_listing_id": "4567593986",
+    "updated_at": "2026-09-02 22:38:55+00:00",
+    "prices_verified": true
+  },
+  {
+    "id": "6a9880c14ac00e7da501950b",
+    "is_locked": false,
+    "visible": true,
+    "etsy_listing_id": "4567588636",
+    "updated_at": "2026-09-02 22:38:57+00:00",
+    "prices_verified": true
+  },
+  {
+    "id": "6a9860cc0bf15ba9490bfe3a",
+    "is_locked": false,
+    "visible": true,
+    "etsy_listing_id": "4567549394",
+    "updated_at": "2026-09-02 22:39:00+00:00",
+    "prices_verified": true
+  }
+]

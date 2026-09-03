@@ -1,0 +1,16 @@
+{
+  "id": "ef9967b0-dcd7-41c1-9911-e033368043d2",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a98e9a5e61a73014907ac75: Chicken Fried This Steak Heavy Cotton T-Shirt, Funny Food Pun Tee, Southern Food Lover Gift",
+  "created_at": "2026-09-03T03:30:33.721412+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/witch-venus-steak-20260902/chicken-fried-steak-1/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "755706b8569d70288eac00ac9bee04ca303a26fdbe967e97df2be93e1b72494d",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T03:30:33.723315+00:00",
+  "decision_notes": "Owner explicitly requested \"5 more designs to do\", attaching two Resting Witch Face versions, two Venus designs, and Chicken Fried Steak, and identifying the existing Witch and Shrimp shirts as references. This records that authorization for chicken-fried-steak-1.png on unpublished draft 6a98e9a5e61a73014907ac75, revision 755706b8569d70288eac00ac9bee04ca303a26fdbe967e97df2be93e1b72494d. Use the established front-only Witch template, title format, provider, variants, prices, and selected mockups. The unsupported Shrimp source copy was removed before any upload/update; food-pun copy was adapted from that reference. No publication or updates to existing listings."
+}

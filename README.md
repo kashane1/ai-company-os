@@ -202,6 +202,14 @@ Framework choices should stay lightweight until the architecture proves itself.
 
 ## Current Priorities
 
+**HomeFromWorking — updated September 2, 2026:** Start with an approved shirt
+design and automate its preparation into a reviewed Printify draft and Etsy
+payload preview. The [current design](docs/plans/2026-09-02-home-from-working-pod-design.md)
+replaces the research-first commerce plans. The [operated shirt workflow](docs/founder/printify-shirt-workflow.md)
+now uses native Printify Duplicate plus a reusable API command for artwork/copy
+updates and preservation checks. Broader product research is deferred; Etsy
+payload automation remains planned and live publication remains separately approved.
+
 Working local-first control-plane slice with real product output.
 
 The immediate priorities are:

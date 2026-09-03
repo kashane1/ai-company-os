@@ -1,0 +1,16 @@
+{
+  "id": "c49056f8-b524-4a7e-b8f2-7e02f4f97a1a",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a98d103e61a730149079185: Just Kitten Around Heavy Cotton T-Shirt, Playful Orange Kitten Tee, Funny Cat Lover Gift",
+  "created_at": "2026-09-03T01:45:01.513314+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-2/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "372232842289e660d9d09449d3d4206a69f2ec7b373e9c8aefefe4afeccc37a2",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

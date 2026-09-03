@@ -1,0 +1,16 @@
+{
+  "id": "a5ae6967-e2cf-4aa1-a571-d538a249fab5",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a98e2a9cb00cd3a4d009989: Hang in There Heavy Cotton T-Shirt, Retro Orange Kitten Tee, Encouraging Cat Lover Gift",
+  "created_at": "2026-09-03T03:01:32.692448+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-2/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "fbf8605d9dd38d514e5c6ceef709cab77d13104d436a803b5ce8f27704a371e3",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T03:01:32.694731+00:00",
+  "decision_notes": "Owner explicitly requested \"3 more designs to do\" with attached hang-in-there-1.png, hang-in-there-2.png, and hang-in-there-3.png, continuing the reusable unpublished Printify draft process. This records that authorization for hang-in-there-2.png on draft 6a98e2a9cb00cd3a4d009989, revision fbf8605d9dd38d514e5c6ceef709cab77d13104d436a803b5ce8f27704a371e3. Retain template provider, variants, prices, and mockups; title begins Hang in There Heavy Cotton T-Shirt. No publication or changes to existing listings."
+}

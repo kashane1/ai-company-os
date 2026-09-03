@@ -1,0 +1,197 @@
+{
+  "status": "verified",
+  "verified_at": "2026-09-03T16:34:55.253679+00:00",
+  "native_duplicate_actions": 6,
+  "api_uploads": 6,
+  "publish_calls": 0,
+  "mockup_reselection_actions": 0,
+  "items": [
+    {
+      "design": "breathing-manually-1",
+      "product_id": "6a999ae187fe2ca5920f0f24",
+      "url": "https://printify.com/app/product-details/6a999ae187fe2ca5920f0f24",
+      "title": "You Are Now Breathing Manually Heavy Cotton T-Shirt, Funny Typography Tee, Internet Humor Gift",
+      "placement": {
+        "requested_scale_percent": 305.0,
+        "applied_scale_percent": 305.0,
+        "width_inches": 10.410666666666666,
+        "height_inches": 15.615999999999998,
+        "dpi": 98.4,
+        "x": 0.5,
+        "y": 0.5,
+        "scale": 0.7904834219185016,
+        "angle": 0
+      },
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "breathing-manually-2",
+      "product_id": "6a999e2e00b0eaf5a40f468e",
+      "url": "https://printify.com/app/product-details/6a999e2e00b0eaf5a40f468e",
+      "title": "You Are Now Breathing Manually Heavy Cotton T-Shirt, Funny Breath Graphic Tee, Internet Humor Gift",
+      "placement": {
+        "requested_scale_percent": 305.0,
+        "applied_scale_percent": 305.0,
+        "width_inches": 10.410666666666666,
+        "height_inches": 15.615999999999998,
+        "dpi": 98.4,
+        "x": 0.5,
+        "y": 0.5,
+        "scale": 0.7904834219185016,
+        "angle": 0
+      },
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "mouth-body-hole-1",
+      "product_id": "6a999e72df99c3801205b10a",
+      "url": "https://printify.com/app/product-details/6a999e72df99c3801205b10a",
+      "title": "Your Mouth Is a Body Hole Heavy Cotton T-Shirt, Funny Shower Thought Tee, Anatomy Humor Gift",
+      "placement": {
+        "requested_scale_percent": 305.0,
+        "applied_scale_percent": 305.0,
+        "width_inches": 12.189833333333333,
+        "height_inches": 13.338666666666667,
+        "dpi": 98.4,
+        "x": 0.5,
+        "y": 0.5,
+        "scale": 0.9255758035940268,
+        "angle": 0
+      },
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "its-nice-being-third-anime",
+      "product_id": "6a999fa11919ef90ea02f333",
+      "url": "https://printify.com/app/product-details/6a999fa11919ef90ea02f333",
+      "title": "Its Nice Being Third Heavy Cotton T-Shirt, Anime Style Solar System Tee, Funny Astronomy Gift",
+      "placement": {
+        "requested_scale_percent": 305.0,
+        "applied_scale_percent": 257.2265625,
+        "width_inches": 13.17,
+        "height_inches": 8.78,
+        "dpi": 116.6,
+        "x": 0.5,
+        "y": 0.5,
+        "scale": 1.0,
+        "angle": 0
+      },
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "lightning-sun-1",
+      "product_id": "6a999fe087fe2ca5920f1476",
+      "url": "https://printify.com/app/product-details/6a999fe087fe2ca5920f1476",
+      "title": "Lightning and Sun Heavy Cotton T-Shirt, Science Fact Graphic Tee, Weather Lover Gift",
+      "placement": {
+        "requested_scale_percent": 305.0,
+        "applied_scale_percent": 305.0,
+        "width_inches": 10.410666666666666,
+        "height_inches": 15.615999999999998,
+        "dpi": 98.4,
+        "x": 0.5,
+        "y": 0.5,
+        "scale": 0.7904834219185016,
+        "angle": 0
+      },
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "reviewed"
+    },
+    {
+      "design": "lightning-sun-2",
+      "product_id": "6a99a017420d45a6370baf38",
+      "url": "https://printify.com/app/product-details/6a99a017420d45a6370baf38",
+      "title": "Lightning and Sun Heavy Cotton T-Shirt, Retro Science Graphic Tee, Weather Lover Gift",
+      "placement": {
+        "requested_scale_percent": 305.0,
+        "applied_scale_percent": 305.0,
+        "width_inches": 10.410666666666666,
+        "height_inches": 15.615999999999998,
+        "dpi": 98.4,
+        "x": 0.5,
+        "y": 0.5,
+        "scale": 0.7904834219185016,
+        "angle": 0
+      },
+      "selected_mockups": 14,
+      "enabled_variants": 8,
+      "prices_usd": {
+        "White / S": 17.99,
+        "White / XL": 17.99,
+        "White / L": 17.99,
+        "White / M": 17.99,
+        "White / 2XL": 19.99,
+        "White / 3XL": 20.99,
+        "White / 4XL": 21.99,
+        "White / 5XL": 21.99
+      },
+      "published": false,
+      "visual_review": "reviewed"
+    }
+  ],
+  "placement_trial": "Requested305%, centered, uniformly capped to fit full printable area. First editor observed304.97%,98DPI enhanced to300DPI."
+}

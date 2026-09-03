@@ -46,6 +46,8 @@ snapshot. See its top-of-file banner.
 
 | File | Date | Slug | Scope summary |
 |---|---|---|---|
+| [2026-09-02-list-of-lists-printify-draft.md](2026-09-02-list-of-lists-printify-draft.md) | 2026-09-02 | list-of-lists-printify-draft | Two Etsy listings corrected; List of Lists artwork and 14 mockups saved in an unpublished Printify draft, ready for founder review |
+| [2026-09-02-home-from-working-pod-reset.md](2026-09-02-home-from-working-pod-reset.md) | 2026-09-02 | home-from-working-pod-reset | Approved-artwork-to-Printify-draft direction; old research-first commerce plans superseded; source preserved, static audit, implementation pending |
 | [2026-06-15-bbw-online-ordering-line.md](2026-06-15-bbw-online-ordering-line.md) | 2026-06-15 | bbw-online-ordering-line | New à-la-carte Online Ordering catalog line (Square/Clover, hosted-only, Toast gated); 4 SKUs + builder fix + routing doc; uncommitted |
 | [2026-05-30-discovery-layer.md](2026-05-30-discovery-layer.md) | 2026-05-30 | discovery-layer | New discovery layer (find → score → validate), tests + docs; uncommitted, commit plan included |
 | [round-2-worker-runtime-fix.md](round-2-worker-runtime-fix.md) | (undated filename — content references 2026) | round-2-worker-runtime-fix | Codex Cloud-driven worker-runtime fixes; staging → main fast-forward |

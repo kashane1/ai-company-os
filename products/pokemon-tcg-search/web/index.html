@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TCG Highs and Lows — Pokémon card price screener</title>
+<meta name="description" content="Screen Pokémon singles trading below their 52-week, 6-month and 3-month highs.">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>📉</text></svg>">
+</head>
+<body>
+
+<!-- Icon sprite. Icons come from Lucide (https://lucide.dev, ISC licence): a
+     2px-stroke geometric set that matches the terminal-ish feel of the grid, and
+     whose 24x24 box and round caps make every glyph line up without fiddling.
+     The paths are inlined rather than pulled from the package, because the front
+     end has no build step and no dependencies and two glyphs is not a reason to
+     start. Add further icons here, from that set, at the same stroke width.
+
+     Only arrow-up is defined: Lucide's arrow-down is its exact 180° rotation, so
+     the descending state is a CSS transform on this one symbol. -->
+<svg class="sprite" aria-hidden="true" width="0" height="0">
+  <symbol id="icon-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19V5"/>
+    <path d="m5 12 7-7 7 7"/>
+  </symbol>
+</svg>
+
+<header class="masthead">
+  <div class="masthead__brand">
+    <span class="masthead__mark" aria-hidden="true">◪</span>
+    <div>
+      <h1>TCG Highs and Lows</h1>
+      <p class="masthead__tagline">We all know the highs are high and the lows are low.</p>
+    </div>
+  </div>
+  <dl class="coverage" id="coverage">
+    <div><dt>Cards</dt><dd data-coverage="screener_rows">—</dd></div>
+    <div><dt>Priced through</dt><dd data-coverage="latest_price_date">—</dd></div>
+    <div><dt>History from</dt><dd data-coverage="history_start">—</dd></div>
+    <div><dt>Observations</dt><dd data-coverage="observation_count">—</dd></div>
+  </dl>
+</header>
+
+<!-- role="alert" so the message is announced when it appears, not only when the
+     eye happens to be at the top of the page. -->
+<div class="notice" id="notice" role="alert" hidden>
+  <span id="notice-text"></span>
+  <button type="button" class="notice__close" id="notice-close" aria-label="Dismiss message">×</button>
+  <span class="notice__life" id="notice-life" aria-hidden="true"></span>
+</div>
+
+<main class="layout">
+
+  <!-- ------------------------------------------------------------------ -->
+  <aside class="filters" id="filters">
+    <!-- A disclosure so the filter stack does not push every result off a phone
+         screen. Forced open above 900px, where it is a persistent side rail. -->
+    <details class="filters__panel" id="filters-panel" open>
+      <summary class="filters__summary">Filters</summary>
+    <form id="filter-form" autocomplete="off">
+
+      <section class="filters__group filters__group--headline">
+        <label class="field">
+          <span class="field__label">Discount measured against</span>
+          <select name="benchmark" id="benchmark">
+            <option value="52w" selected>52-week high</option>
+            <option value="26w">6-month high</option>
+            <option value="13w">3-month high</option>
+            <option value="peak">Recorded peak</option>
+          </select>
+        </label>
+        <p class="field__hint" id="benchmark-hint"></p>
+
+        <label class="field">
+          <span class="field__label">
+            At least <output id="discount-output">25</output>% below it
+          </span>
+          <input type="range" name="min_discount_pct" id="min-discount"
+                 min="0" max="95" step="5" value="25">
+        </label>
+
+        <div class="field field--pair">
+          <label>
+            <span class="field__label">Max discount %</span>
+            <input type="number" name="max_discount_pct" min="0" max="100" step="1"
+                   placeholder="any">
+          </label>
+        </div>
+      </section>
+
+      <section class="filters__group">
+        <h2 class="filters__title">Search</h2>
+        <label class="field">
+          <span class="field__label visually-hidden">Card or set name</span>
+          <input type="search" name="search" id="search" placeholder="Charizard, Evolving Skies…">
+        </label>
+      </section>
+
+      <section class="filters__group">
+        <h2 class="filters__title">Price</h2>
+        <div class="field field--pair">
+          <label>
+            <span class="field__label">Min $</span>
+            <input type="number" name="min_price" min="0" step="1" value="1">
+          </label>
+          <label>
+            <span class="field__label">Max $</span>
+            <input type="number" name="max_price" min="0" step="1" placeholder="any">
+          </label>
+        </div>
+      </section>
+
+      <section class="filters__group">
+        <h2 class="filters__title">Momentum</h2>
+        <label class="field">
+          <span class="field__label">7-day change</span>
+          <select name="momentum" id="momentum">
+            <option value="">Any</option>
+            <option value="stabilised">Stopped falling (7d ≥ 0%)</option>
+            <option value="falling">Still falling (7d &lt; 0%)</option>
+            <option value="capitulating">Falling hard (7d ≤ -5%)</option>
+          </select>
+        </label>
+        <p class="field__hint">
+          A deep discount that is still dropping is a falling knife. One that has
+          flattened out is a base.
+        </p>
+      </section>
+
+      <section class="filters__group">
+        <h2 class="filters__title">Position in 52-week range</h2>
+        <div class="field field--pair">
+          <label>
+            <span class="field__label">Min %</span>
+            <input type="number" name="min_range_position_pct" min="0" max="100" placeholder="0">
+          </label>
+          <label>
+            <span class="field__label">Max %</span>
+            <input type="number" name="max_range_position_pct" min="0" max="100" placeholder="100">
+          </label>
+        </div>
+        <p class="field__hint">0% sits at the 52-week low, 100% at the high.</p>
+      </section>
+
+      <section class="filters__group">
+        <!-- The include/exclude switch sits on the section's own heading line, so
+             what it governs is the thing it is attached to. See .segmented in the
+             stylesheet for why the inputs come before the labels. -->
+        <div class="filters__heading">
+          <h2 class="filters__title">Card type</h2>
+          <div class="segmented" role="radiogroup" aria-label="Ticked card types are">
+            <input type="radio" name="card_class_mode" value="include" id="card-class-mode-include" checked>
+            <input type="radio" name="card_class_mode" value="exclude" id="card-class-mode-exclude">
+            <span class="segmented__thumb" aria-hidden="true"></span>
+            <label for="card-class-mode-include" title="Show only the card types ticked below.">Include</label>
+            <label for="card-class-mode-exclude" title="Hide the card types ticked below.">Exclude</label>
+          </div>
+        </div>
+        <div class="checklist checklist--short" id="card-class-list"
+             role="group" aria-label="Card types"></div>
+        <p class="field__hint">
+          Check nothing to leave every type in. Item, Supporter, Stadium and Tool
+          are all Trainers — narrow to one below.
+        </p>
+
+        <label class="field">
+          <span class="field__label">Trainer kind</span>
+        </label>
+        <div class="checklist checklist--short" id="trainer-kind-list"
+             role="group" aria-label="Trainer kinds"></div>
+        <p class="field__hint" id="trainer-kind-hint"></p>
+      </section>
+
+      <section class="filters__group">
+        <h2 class="filters__title">Release year</h2>
+        <div class="field field--pair">
+          <label>
+            <span class="field__label">From</span>
+            <input type="number" name="min_release_year" id="min-release-year"
+                   min="1996" max="2100" step="1" placeholder="earliest">
+          </label>
+          <label>
+            <span class="field__label">To</span>
+            <input type="number" name="max_release_year" id="max-release-year"
+                   min="1996" max="2100" step="1" placeholder="latest">
+          </label>
+        </div>
+        <p class="field__hint" id="release-year-hint">
+          The year the card's set was released.
+        </p>
+      </section>
+
+      <section class="filters__group">
+        <div class="filters__heading">
+          <h2 class="filters__title">Set</h2>
+          <div class="segmented" role="radiogroup" aria-label="Ticked sets are">
+            <input type="radio" name="set_mode" value="include" id="set-mode-include" checked>
+            <input type="radio" name="set_mode" value="exclude" id="set-mode-exclude">
+            <span class="segmented__thumb" aria-hidden="true"></span>
+            <label for="set-mode-include" title="Show only the sets ticked below.">Include</label>
+            <label for="set-mode-exclude" title="Hide the sets ticked below.">Exclude</label>
+          </div>
+        </div>
+        <label class="field">
+          <span class="field__label visually-hidden">Filter sets</span>
+          <input type="search" id="set-search" placeholder="Filter sets…">
+        </label>
+        <div class="checklist" id="set-list" role="group" aria-label="Sets"></div>
+      </section>
+
+      <section class="filters__group">
+        <div class="filters__heading">
+          <h2 class="filters__title">Rarity</h2>
+          <div class="segmented" role="radiogroup" aria-label="Ticked rarities are">
+            <input type="radio" name="rarity_mode" value="include" id="rarity-mode-include" checked>
+            <input type="radio" name="rarity_mode" value="exclude" id="rarity-mode-exclude">
+            <span class="segmented__thumb" aria-hidden="true"></span>
+            <label for="rarity-mode-include" title="Show only the rarities ticked below.">Include</label>
+            <label for="rarity-mode-exclude" title="Hide the rarities ticked below.">Exclude</label>
+          </div>
+        </div>
+        <div class="checklist checklist--short" id="rarity-list" role="group" aria-label="Rarities"></div>
+      </section>
+
+      <section class="filters__group">
+        <div class="filters__heading">
+          <h2 class="filters__title">Finish</h2>
+          <div class="segmented" role="radiogroup" aria-label="Ticked finishes are">
+            <input type="radio" name="sub_type_mode" value="include" id="subtype-mode-include" checked>
+            <input type="radio" name="sub_type_mode" value="exclude" id="subtype-mode-exclude">
+            <span class="segmented__thumb" aria-hidden="true"></span>
+            <label for="subtype-mode-include" title="Show only the finishes ticked below.">Include</label>
+            <label for="subtype-mode-exclude" title="Hide the finishes ticked below.">Exclude</label>
+          </div>
+        </div>
+        <div class="checklist checklist--short" id="subtype-list" role="group" aria-label="Finishes"></div>
+      </section>
+
+      <section class="filters__group">
+        <h2 class="filters__title">Data quality</h2>
+        <label class="switch">
+          <input type="checkbox" name="exclude_price_outliers" checked>
+          <span>Exclude implausible current prices</span>
+        </label>
+        <p class="field__hint">
+          The feed occasionally quotes a $600 card at $0.99. Left in, that fake
+          99% discount tops the list. This drops cards priced under 25% of their
+          own 90-day median — a real decline drags its median down with it, a
+          data error does not.
+        </p>
+        <label class="switch">
+          <input type="checkbox" name="exclude_release_spikes" checked>
+          <span>Exclude release-week peaks</span>
+        </label>
+        <p class="field__hint">
+          Many modern cards spike in release week and never return. Being 90%
+          below that spike is normal, not a bargain.
+        </p>
+        <label class="switch">
+          <input type="checkbox" name="exclude_truncated_peaks">
+          <span>Exclude peaks at the edge of our history</span>
+        </label>
+        <label class="field">
+          <span class="field__label">
+            Min days of history <output id="history-output">180</output>
+          </span>
+          <input type="range" name="min_history_days" id="min-history"
+                 min="0" max="700" step="30" value="180">
+        </label>
+        <label class="field">
+          <span class="field__label">
+            Min priced days in last 30 <output id="liquidity-output">10</output>
+          </span>
+          <input type="range" name="min_observations_30d" id="min-observations"
+                 min="0" max="30" step="1" value="10">
+        </label>
+        <label class="field">
+          <span class="field__label">Max listing spread %</span>
+          <input type="number" name="max_spread_pct" min="0" step="5" placeholder="any">
+        </label>
+        <label class="field">
+          <span class="field__label">
+            Min distinct prices in 90 days <output id="movement-output">5</output>
+          </span>
+          <input type="range" name="min_distinct_prices_90d" id="min-movement"
+                 min="0" max="40" step="1" value="5">
+        </label>
+        <p class="field__hint">
+          TCGplayer holds the last price when nothing sells, so an illiquid card can
+          quote one value for months and then step down hard. A price that never
+          moves is a stale quote, not a stable market — and the high it is measured
+          against may never have traded.
+        </p>
+      </section>
+
+      <div class="filters__actions">
+        <button type="button" class="button button--ghost" id="export-filters">Export filters</button>
+        <button type="reset" class="button button--ghost" id="reset">Reset filters</button>
+      </div>
+      <p class="field__hint" id="export-hint">
+        Copies a link to your clipboard that reopens this page with exactly
+        these filters.
+      </p>
+    </form>
+    </details>
+  </aside>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section class="results">
+    <div class="results__bar">
+      <p class="results__count" id="result-count" aria-live="polite">Loading…</p>
+      <label class="results__sort">
+        <span class="visually-hidden">Sort by</span>
+        <select id="sort">
+          <option value="discount:desc" selected>Deepest discount</option>
+          <option value="discount:asc">Shallowest discount</option>
+          <option value="price:asc">Cheapest</option>
+          <option value="price:desc">Most expensive</option>
+          <option value="range_position:asc">Closest to 52w low</option>
+          <option value="change_7d:asc">Worst 7-day</option>
+          <option value="change_7d:desc">Best 7-day</option>
+          <option value="change_30d:desc">Best 30-day</option>
+          <option value="days_since_peak:desc">Longest since peak</option>
+          <option value="released:desc">Newest set</option>
+          <option value="name:asc">Name A–Z</option>
+          <!-- The headings can express every column in both directions; this list
+               is the shortlist worth naming. When a heading click lands on a
+               combination with no name here, this option is relabelled to describe
+               it so the select never contradicts the grid. -->
+          <option value="" id="sort-custom" hidden></option>
+        </select>
+      </label>
+    </div>
+
+    <div class="table-scroll">
+      <table class="grid" id="results-table">
+        <!-- Every heading is a sort button. `data-sort` is the API's sort key, and
+             `aria-sort` on the th is what a screen reader announces; both are kept
+             in step by syncSortHeadings(). The arrow ships in the markup so it can
+             be styled and measured even before a sort is applied. -->
+        <thead>
+          <tr>
+            <th scope="col" class="grid__card" aria-sort="none">
+              <button type="button" class="grid__sort" data-sort="name">
+                <span class="grid__sort-label">Card</span>
+                <svg class="grid__sort-arrow"><use href="#icon-arrow-up"/></svg>
+              </button>
+            </th>
+            <th scope="col" class="numeric" aria-sort="none">
+              <button type="button" class="grid__sort" data-sort="price">
+                <span class="grid__sort-label">Price</span>
+                <svg class="grid__sort-arrow"><use href="#icon-arrow-up"/></svg>
+              </button>
+            </th>
+            <th scope="col" class="numeric" aria-sort="none">
+              <button type="button" class="grid__sort" data-sort="reference">
+                <!-- Renamed to match the benchmark, so the id sits on the label
+                     rather than the cell: writing to the cell would drop the arrow. -->
+                <span class="grid__sort-label" id="reference-heading">52w high</span>
+                <svg class="grid__sort-arrow"><use href="#icon-arrow-up"/></svg>
+              </button>
+            </th>
+            <th scope="col" class="numeric" aria-sort="none">
+              <button type="button" class="grid__sort" data-sort="discount">
+                <span class="grid__sort-label">Discount</span>
+                <svg class="grid__sort-arrow"><use href="#icon-arrow-up"/></svg>
+              </button>
+            </th>
+            <th scope="col" aria-sort="none">
+              <button type="button" class="grid__sort" data-sort="range_position">
+                <span class="grid__sort-label">52w range</span>
+                <svg class="grid__sort-arrow"><use href="#icon-arrow-up"/></svg>
+              </button>
+            </th>
+            <th scope="col" class="numeric" aria-sort="none">
+              <button type="button" class="grid__sort" data-sort="change_7d">
+                <span class="grid__sort-label">7d</span>
+                <svg class="grid__sort-arrow"><use href="#icon-arrow-up"/></svg>
+              </button>
+            </th>
+            <th scope="col" class="numeric" aria-sort="none">
+              <button type="button" class="grid__sort" data-sort="change_30d">
+                <span class="grid__sort-label">30d</span>
+                <svg class="grid__sort-arrow"><use href="#icon-arrow-up"/></svg>
+              </button>
+            </th>
+            <th scope="col" class="numeric" aria-sort="none">
+              <button type="button" class="grid__sort" data-sort="days_since_peak">
+                <span class="grid__sort-label">Since peak</span>
+                <svg class="grid__sort-arrow"><use href="#icon-arrow-up"/></svg>
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+
+    <div class="results__empty" id="empty" hidden>
+      <p><strong>No cards match these filters.</strong></p>
+      <p>Try lowering the minimum discount, or relaxing the data-quality floors.</p>
+    </div>
+
+    <div class="results__more">
+      <button type="button" class="button" id="load-more" hidden>Load more</button>
+    </div>
+  </section>
+</main>
+
+<!-- Hover preview of the card art. It lives outside the table because the
+     results scroller would clip it, and is positioned by app.js. -->
+<div class="card-peek" id="card-peek" aria-hidden="true" hidden>
+  <!-- The caret is drawn first so the artwork paints over its inner half,
+       leaving a triangle rather than a diamond. -->
+  <span class="card-peek__arrow"></span>
+  <img class="card-peek__img" id="card-peek-img" alt="">
+</div>
+
+<!-- Card detail -->
+<dialog class="detail" id="detail">
+  <button type="button" class="detail__close" id="detail-close" aria-label="Close">×</button>
+  <div id="detail-body"></div>
+</dialog>
+
+<footer class="footer">
+  <h2>How to read this</h2>
+  <ul id="caveats" class="footer__caveats"></ul>
+  <p class="footer__basis" id="price-basis"></p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

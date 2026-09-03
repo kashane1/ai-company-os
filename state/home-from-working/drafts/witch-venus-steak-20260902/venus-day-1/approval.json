@@ -1,0 +1,16 @@
+{
+  "id": "aea25094-1b82-4485-bee0-cb4da10f4f70",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a98e8b4aa543bfeff0fc482: A Day on Venus Heavy Cotton T-Shirt, Golden Planet Graphic Tee, Astronomy Lover Gift",
+  "created_at": "2026-09-03T03:30:33.706798+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-1/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "5754f3ebb39a6249523215e47530a8d84123e81072b5ddb2ae1ca2a0ce081363",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T03:30:33.708675+00:00",
+  "decision_notes": "Owner explicitly requested \"5 more designs to do\", attaching two Resting Witch Face versions, two Venus designs, and Chicken Fried Steak, and identifying the existing Witch and Shrimp shirts as references. This records that authorization for venus-day-1.png on unpublished draft 6a98e8b4aa543bfeff0fc482, revision 5754f3ebb39a6249523215e47530a8d84123e81072b5ddb2ae1ca2a0ce081363. Use the established front-only Witch template, title format, provider, variants, prices, and selected mockups. The unsupported Shrimp source copy was removed before any upload/update; food-pun copy was adapted from that reference. No publication or updates to existing listings."
+}

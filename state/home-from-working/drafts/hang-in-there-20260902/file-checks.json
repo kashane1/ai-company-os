@@ -1,0 +1,35 @@
+[
+  {
+    "file": "hang-in-there-1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1244378,
+    "alpha": [
+      0,
+      255
+    ],
+    "dpi": 156.8
+  },
+  {
+    "file": "hang-in-there-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2674257,
+    "alpha": [
+      0,
+      254
+    ],
+    "dpi": 128.0
+  },
+  {
+    "file": "hang-in-there-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1893872,
+    "alpha": [
+      0,
+      254
+    ],
+    "dpi": 128.0
+  }
+]

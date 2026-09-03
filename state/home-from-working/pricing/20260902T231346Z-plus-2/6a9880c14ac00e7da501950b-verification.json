@@ -1,0 +1,16 @@
+{
+  "id": "6a9880c14ac00e7da501950b",
+  "verified": true,
+  "enabled_variants": 8,
+  "prices": {
+    "White / S": 1799,
+    "White / XL": 1799,
+    "White / L": 1799,
+    "White / M": 1799,
+    "White / 2XL": 1999,
+    "White / 3XL": 2099,
+    "White / 4XL": 2199,
+    "White / 5XL": 2199
+  },
+  "non_price_fields_unchanged": true
+}

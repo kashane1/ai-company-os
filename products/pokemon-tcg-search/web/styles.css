@@ -1,0 +1,930 @@
+/* TCG Highs and Lows — Pokemon card price screener.
+   A data-dense screener, styled closer to a trading terminal than a card shop:
+   the numbers are the product, so they get the contrast and the tabular figures. */
+
+:root {
+  color-scheme: dark;
+
+  --ink:          #e9edf5;
+  --ink-soft:     #9aa4b8;
+  --ink-faint:    #626c80;
+
+  --bg:           #0b0e14;
+  --surface:      #121721;
+  --surface-high: #1a2130;
+  --line:         #232c3d;
+  --line-soft:    #1b2230;
+
+  --accent:       #6ea8ff;
+  --accent-dim:   #2a3f63;
+  --down:         #ff6b6b;
+  --down-dim:     #4a2430;
+  --up:           #43d17c;
+  --warn:         #f0b849;
+  --era:          #c39bf7;
+  --era-dim:      #382a5e;
+
+  --radius:       10px;
+  --radius-sm:    6px;
+
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+/* Holds the <symbol> definitions that <use> references. Kept in flow at zero size
+   rather than display:none, which stops some browsers resolving the reference. */
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------- masthead */
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #131926, var(--surface));
+}
+
+.masthead__brand { display: flex; align-items: center; gap: 14px; }
+
+.masthead__mark {
+  display: grid;
+  place-items: center;
+  width: 40px; height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 22px;
+}
+
+.masthead h1 { font-size: 20px; }
+
+.masthead__tagline {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.coverage {
+  display: flex;
+  gap: 28px;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.coverage dt {
+  color: var(--ink-faint);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.coverage dd {
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------------- notice */
+
+.notice {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin: 0;
+  padding: 10px 16px 10px 24px;
+  background: #2a2313;
+  border-bottom: 1px solid #453a1c;
+  color: var(--warn);
+  font-size: 13px;
+}
+
+/* `display` here outranks the browser's own [hidden] rule, so the notice needs
+   to opt back out by hand or it sits there empty and the close button looks dead. */
+.notice[hidden] { display: none; }
+
+.notice__close {
+  flex: none;
+  width: 22px; height: 22px;
+  margin: -3px 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.65;
+  cursor: pointer;
+}
+
+.notice__close:hover { background: #453a1c; opacity: 1; }
+
+.notice__close:focus-visible {
+  outline: 2px solid var(--warn);
+  outline-offset: 1px;
+  opacity: 1;
+}
+
+/* The message dismisses itself, so it shows how long is left rather than just
+   disappearing. Sitting on the bottom border, it reads as the message draining
+   away instead of as another thing to look at. */
+.notice__life {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--warn);
+  opacity: 0.5;
+  /* Duration is overwritten from NOTICE_LIFETIME_MS in app.js, which owns it. */
+  animation: notice-drain 10s linear forwards;
+}
+
+@keyframes notice-drain {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* The drain is the one thing here that is purely motion, so it goes rather than
+   being frozen at full width where it would read as a static rule. The message
+   still times out, and the close button is still the direct way to be rid of it. */
+@media (prefers-reduced-motion: reduce) {
+  .notice__life { display: none; }
+}
+
+/* ----------------------------------------------------------------- layout */
+
+.layout {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  align-items: start;
+  gap: 0;
+}
+
+/* ---------------------------------------------------------------- filters */
+
+.filters {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 18px;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  scrollbar-width: thin;
+}
+
+/* Desktop: the disclosure is always open and its toggle is irrelevant. */
+.filters__summary { display: none; }
+
+.filters__group {
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.filters__group:last-of-type { border-bottom: none; }
+
+.filters__group--headline {
+  padding: 14px;
+  margin-bottom: 18px;
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  background: #101827;
+}
+
+.filters__title {
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* A section title and the switch that governs that section, on one line. Sharing
+   the baseline is what says the switch belongs to this group and not to the page. */
+.filters__heading {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.filters__heading .filters__title { margin-bottom: 0; }
+
+/* Include / Exclude, as one two-part control rather than two buttons that happen
+   to be adjacent: a single track, a single border, and a thumb that slides
+   between the halves so the choice reads as a position, not as a pressed state.
+
+   The inputs are first in the DOM and hidden in place, because the thumb and the
+   labels are styled from them with `~`, which only reaches forwards. They stay
+   focusable, so the control is a real radio group to the keyboard and to a screen
+   reader; only its skin is custom. */
+.segmented {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: none;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+}
+
+.segmented input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label {
+  position: relative;   /* lifts the text above the thumb */
+  z-index: 1;
+  padding: 3px 11px;
+  border-radius: 999px;
+  color: var(--ink-faint);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+.segmented label:hover { color: var(--ink-soft); }
+
+.segmented__thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 999px;
+  /* Travelling by its own width lands it exactly on the other half, so the two
+     ends stay symmetrical whatever the control is sized to. */
+  transition: transform 190ms cubic-bezier(0.17, 0.87, 0.32, 1), background-color 140ms ease;
+}
+
+/* Include is the resting state and takes the accent; exclude is the one that
+   removes rows, and says so in the same red the grid uses for a drop. */
+.segmented input:nth-of-type(1):checked ~ .segmented__thumb {
+  transform: translateX(0);
+  background: var(--accent-dim);
+}
+
+.segmented input:nth-of-type(2):checked ~ .segmented__thumb {
+  transform: translateX(100%);
+  background: var(--down-dim);
+}
+
+.segmented input:nth-of-type(1):checked ~ label:nth-of-type(1) { color: var(--accent); }
+.segmented input:nth-of-type(2):checked ~ label:nth-of-type(2) { color: var(--down); }
+
+/* The ring goes on the label, since the input it belongs to has no size. */
+.segmented input:nth-of-type(1):focus-visible ~ label:nth-of-type(1),
+.segmented input:nth-of-type(2):focus-visible ~ label:nth-of-type(2) {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segmented__thumb,
+  .segmented label { transition: none; }
+}
+
+.field { display: block; margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+
+.field__label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.field__hint {
+  margin: 6px 0 0;
+  color: var(--ink-faint);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.field--pair { display: flex; gap: 8px; }
+.field--pair > label { flex: 1; }
+
+/* The benchmark caveat sits between two controls, so it needs its own breathing
+   room or it reads as a label for the slider below it. */
+.filters__group--headline .field__hint {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.field__hint--warn { color: var(--warn); }
+
+input[type="search"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+
+input[type="number"] { font-family: var(--mono); }
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+output {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.switch {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.switch input { margin: 2px 0 0; accent-color: var(--accent); }
+
+.checklist {
+  max-height: 190px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+
+.checklist--short { max-height: 150px; }
+
+.checklist label {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 0;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+/* The set search hides non-matching rows with the `hidden` property, which the
+   browser styles as `display: none` at a specificity the rule above outranks.
+   Without this the attribute is set and nothing moves. */
+.checklist label[hidden] { display: none; }
+
+.checklist input { accent-color: var(--accent); }
+.checklist__name { flex: 1; }
+
+.checklist__count {
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.button {
+  padding: 8px 14px;
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.button:hover { background: #33507d; }
+
+.button--ghost {
+  width: 100%;
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+.button--ghost:hover { background: var(--surface-high); color: var(--ink); }
+
+.filters__actions {
+  display: grid;
+  gap: 8px;
+}
+
+/* Held for the moment the export button reports back, so the confirmation is
+   the same shape as the button it replaces and the rail does not reflow. */
+.button--done {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------- results */
+
+.results { padding: 18px 24px 40px; min-width: 0; }
+
+.results__bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.results__count { margin: 0; color: var(--ink-soft); font-size: 13px; }
+.results__count strong { color: var(--ink); font-family: var(--mono); }
+
+.results__sort select { width: auto; min-width: 190px; }
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  /* The padding moves to the button inside, so the whole heading is a hit target
+     rather than a label with a small button next to it. */
+  padding: 0;
+  background: var(--surface-high);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.grid td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+
+.grid tbody tr { cursor: pointer; }
+.grid tbody tr:hover { background: var(--surface-high); }
+.grid tbody tr:last-child td { border-bottom: none; }
+
+.numeric {
+  text-align: right;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.grid__card { min-width: 260px; }
+
+/* Sortable headings. The button inherits everything the th styled so the grid
+   reads as a table of labels, not a toolbar of buttons — the only thing that
+   marks it as pressable is that it responds. */
+.grid__sort {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+/* Right-aligned columns put the arrow on the label's left, so the heading text
+   stays flush with the figures underneath it. */
+.numeric .grid__sort {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.grid__sort:hover { color: var(--ink); }
+
+.grid__sort:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.grid__sort--active { color: var(--accent); }
+
+.grid__sort-arrow {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  /* Hidden rather than absent: the arrow always occupies its space, so a heading
+     does not shift sideways when it becomes the sorted one. */
+  opacity: 0;
+  transition: opacity 120ms ease, transform 160ms cubic-bezier(0.17, 0.87, 0.32, 1);
+}
+
+/* A hovered heading shows where its arrow would land, at a weight that cannot be
+   mistaken for the column actually being sorted. */
+.grid__sort:hover .grid__sort-arrow { opacity: 0.4; }
+.grid__sort--active .grid__sort-arrow { opacity: 1; }
+
+/* Lucide's arrow-down is arrow-up turned through 180°, so descending is a
+   rotation of the one symbol and the flip animates between the two states. */
+.grid__sort--desc .grid__sort-arrow { transform: rotate(180deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .grid__sort-arrow { transition: none; }
+}
+
+.card-cell { display: flex; gap: 10px; align-items: center; }
+
+.card-cell__thumb {
+  width: 32px; height: 44px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  background: var(--surface-high);
+  object-fit: cover;
+}
+
+/* The preview grows out of the row thumbnail: app.js sets --peek-from to the
+   thumbnail's share of the full width and pins transform-origin to its centre,
+   so the first frame lands exactly on the thumb and scales up from there.
+   Leaving the class off runs the same transition backwards, collapsing it. */
+.card-peek {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(var(--peek-from, 0.12));
+  transition: opacity 90ms ease-in, transform 110ms ease-in;
+  /* A filter, not a box-shadow on the artwork: this traces the silhouette, so
+     the caret casts its own shadow instead of being painted over by the
+     artwork's. */
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.6));
+}
+
+.card-peek--in {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 110ms ease-out,
+    transform 200ms cubic-bezier(0.17, 0.87, 0.32, 1);
+}
+
+.card-peek__img {
+  /* Positioned so it paints over the caret's inner half: an absolutely
+     positioned sibling would otherwise sit above a static one whatever the
+     DOM order. */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Near-white: the darker line tokens are all close to a hovered row's tone,
+     which loses the frame against exactly the background it sits on. */
+  border: 1px solid var(--ink);
+  border-radius: 14px;
+  background: var(--surface-high);
+}
+
+/* A square turned 45 degrees with half of it tucked behind the artwork, which
+   leaves a triangle in the frame's own colour. */
+.card-peek__arrow {
+  position: absolute;
+  top: var(--peek-arrow-y, 50%);
+  width: 10px; height: 10px;
+  margin-top: -5px;
+  background: var(--ink);
+  transform: rotate(45deg);
+}
+
+.card-peek--points-left .card-peek__arrow { left: -5px; }
+.card-peek--points-right .card-peek__arrow { right: -5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-peek,
+  .card-peek--in {
+    transform: none;
+    transition: opacity 100ms ease;
+  }
+}
+
+.card-cell__name {
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.card-cell__meta {
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-size: 11.5px;
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: 1px;
+}
+
+.tag--warn { background: #3a3115; color: var(--warn); }
+
+/* The year is digits, so it gets tabular figures to stop 2011 sitting narrower
+   than 2024 down a column of rows. */
+.tag--year {
+  background: var(--era-dim);
+  color: var(--era);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.discount {
+  font-weight: 600;
+  color: var(--down);
+}
+
+.change--up   { color: var(--up); }
+.change--down { color: var(--down); }
+.change--flat { color: var(--ink-faint); }
+
+/* 52-week range position: a track with a marker where price sits. */
+.range { min-width: 96px; }
+
+.range__track {
+  position: relative;
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2b4a38, #3a3a2a 50%, #4a2f34);
+}
+
+.range__marker {
+  position: absolute;
+  top: -3px;
+  width: 3px; height: 11px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+
+.range__value {
+  margin-top: 3px;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.results__empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.results__empty p { margin: 4px 0; }
+
+.results__more { margin-top: 14px; text-align: center; }
+
+/* ----------------------------------------------------------------- detail */
+
+.detail {
+  width: min(720px, 94vw);
+  /* The stats block plus a chart overflows a short viewport, so the dialog
+     scrolls internally instead of running off the screen. */
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.detail::backdrop { background: rgba(4, 6, 11, 0.75); }
+
+.detail__close {
+  position: sticky;
+  float: right;
+  top: 10px; right: 12px;
+  z-index: 2;
+  width: 30px; height: 30px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.detail__close:hover { background: var(--surface-high); color: var(--ink); }
+
+.detail__head {
+  display: flex;
+  gap: 16px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail__image {
+  width: 96px;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  border-radius: var(--radius-sm);
+  background: var(--surface-high);
+}
+
+/* Flex items size to content by default, which left the stats grid at ~350px
+   and forced it down to two columns. min-width:0 lets it actually shrink-to-fit
+   the row rather than overflowing. */
+.detail__headtext { flex: 1; min-width: 0; }
+
+.detail__title { font-size: 17px; }
+
+.detail__sub { margin: 4px 0 0; color: var(--ink-soft); font-size: 13px; }
+
+.detail__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 12px 16px;
+  margin: 14px 0 0;
+}
+
+.detail__stats dt {
+  color: var(--ink-faint);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.detail__stats dd {
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+}
+
+.detail__chart { padding: 16px 20px; }
+
+.detail__chart h3 {
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.chart { width: 100%; height: auto; display: block; }
+.chart__line  { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.chart__area  { fill: url(#chart-fade); }
+.chart__peak  { stroke: var(--down); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart__axis  { fill: var(--ink-faint); font-size: 9px; font-family: var(--mono); }
+.chart__grid  { stroke: var(--line); stroke-width: 1; }
+
+.detail__actions {
+  display: flex;
+  gap: 10px;
+  padding: 0 20px 20px;
+}
+
+.detail__note {
+  padding: 0 20px 18px;
+  color: var(--ink-faint);
+  font-size: 11.5px;
+}
+
+/* ----------------------------------------------------------------- footer */
+
+.footer {
+  padding: 24px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 12.5px;
+}
+
+.footer h2 {
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.footer__caveats {
+  max-width: 78ch;
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+
+.footer__caveats li { margin-bottom: 6px; line-height: 1.5; }
+
+.footer__basis { margin: 0; color: var(--ink-faint); font-family: var(--mono); font-size: 11.5px; }
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+
+  .filters {
+    position: static;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .results { padding: 16px; }
+  .coverage { gap: 18px; }
+
+  .filters { padding: 0; }
+
+  .filters__summary {
+    display: block;
+    padding: 14px 16px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+  }
+
+  .filters__summary::after {
+    content: ' ▾';
+    color: var(--accent);
+  }
+
+  .filters__panel[open] .filters__summary::after { content: ' ▴'; }
+  .filters__panel > form { padding: 0 16px 16px; }
+}
+
+@media (max-width: 620px) {
+  /* Side by side, the 96px thumbnail leaves too little room for the stats grid
+     and it collapses to one very tall column. Stacking gives it the full width. */
+  .detail__head { flex-direction: column; }
+  .detail__image { width: 120px; }
+  .detail__stats { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "aea25094-1b82-4485-bee0-cb4da10f4f70",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a98e8b4aa543bfeff0fc482: A Day on Venus Heavy Cotton T-Shirt, Golden Planet Graphic Tee, Astronomy Lover Gift",
+  "created_at": "2026-09-03T03:26:11.112218+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-1/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "5754f3ebb39a6249523215e47530a8d84123e81072b5ddb2ae1ca2a0ce081363",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

@@ -1,0 +1,16 @@
+{
+  "id": "6161c172-b956-4a22-8e98-7d73884a356d",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a98e2c98775f2fc0e01752d: Hang in There Heavy Cotton T-Shirt, Cute Gray Kitten Tee, Encouraging Cat Lover Gift",
+  "created_at": "2026-09-03T03:01:01.170939+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-3/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "4cacc6a31a98c93c677ca0d73e50d70375b0b3aca530f14954f0433eda0eb938",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

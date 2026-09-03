@@ -1,0 +1,16 @@
+{
+  "id": "f0070284-7973-4a79-9e8b-fd5576055cae",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a98c4fed3066316a403bfa4: Boo Sheet Shirt, Spooky Sheet Ghost Halloween Tee, Distressed Ghost Graphic T-Shirt",
+  "created_at": "2026-09-03T00:54:28.068784+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-2/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "f931bc19084bc65c77e2282a8b115415fd3749b3b08fbe16a66e2ea8e2c68c3f",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T00:54:28.070642+00:00",
+  "decision_notes": "User requested: \"i have 3 photos im attaching i want you to use the new process to create 3 different printify drafts.\" This record covers boo-sheet-2.png on native copy 6a98c4fed3066316a403bfa4, its prepared copy and standard template placement, revision f931bc19084bc65c77e2282a8b115415fd3749b3b08fbe16a66e2ea8e2c68c3f. Draft preparation only; no publication authorized."
+}

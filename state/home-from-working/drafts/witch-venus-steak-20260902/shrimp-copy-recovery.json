@@ -1,0 +1,10 @@
+{
+  "unused_draft_id": "6a98e9038c9207769700ae9e",
+  "source_id": "6a9880c14ac00e7da501950b",
+  "preflight_error": "only front artwork may be printed",
+  "reason": "Source contains a neck text_layer.svg placeholder as well as front artwork; current runner intentionally supports only front artwork.",
+  "artwork_uploads_to_unused_copy": 0,
+  "api_updates_to_unused_copy": 0,
+  "cleanup": "Deleted only the native draft created in this run through its exact UI row. Etsy deletion checkbox was explicitly unchecked. UI then showed only the original Shrimp source.",
+  "replacement_template_id": "6a98ae4aaa543bfeff0f8735"
+}

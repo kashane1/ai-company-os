@@ -1,0 +1,16 @@
+{
+  "id": "fa2f3ebc-292e-4977-8831-5ca988c23e2c",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a98d0edd3066316a403cb1c: Just Kitten Around Heavy Cotton T-Shirt, Cute Kitten With Pink Yarn Tee, Funny Cat Lover Gift",
+  "created_at": "2026-09-03T01:45:56.588713+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-1/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "139cabcf703199d4d7f86e03820c6204fe0dbabd6c20dc596206b87d48422288",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T01:45:56.590727+00:00",
+  "decision_notes": "Owner explicitly requested \"5 more ideas to make drafts of\" with the attached PNGs, authorizing shared raccoon listing copy and shared kitten descriptions/tags. This records that request for kitten-arround-1.png on unpublished Printify draft 6a98d0edd3066316a403cb1c, revision 139cabcf703199d4d7f86e03820c6204fe0dbabd6c20dc596206b87d48422288. Use the existing native Duplicate/API procedure with Heavy Cotton T-Shirt after the design name. Retain template prices, provider, variants, and mockups. No publication or changes to existing listings."
+}

@@ -1,0 +1,9 @@
+{
+  "native_copy_check": "passed",
+  "artwork_update_check": "passed",
+  "prepare_check": "passed",
+  "account_writes": 0,
+  "dpi": 128.0,
+  "revision": "981a4244be9280304065e845a8e07a551e8b35583822a72a4e4e4940e99579d7",
+  "source": "saved live-test snapshots"
+}

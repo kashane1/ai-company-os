@@ -1,0 +1,16 @@
+{
+  "id": "41510221-c91a-490e-81b8-e47e1a751096",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a98d0be8c92077697009433: I Was Told There Would Be Snacks Heavy Cotton T-Shirt, Funny Raccoon Tee, Snack Lover Gift",
+  "created_at": "2026-09-03T01:45:56.570295+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/snacks-kittens-20260902/snacks-1/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "44b3d762aceb5d718c8c5cb6fff454f13ebef6d3aed6ea15a10a825b5ce96a62",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T01:45:56.576051+00:00",
+  "decision_notes": "Owner explicitly requested \"5 more ideas to make drafts of\" with the attached PNGs, authorizing shared raccoon listing copy and shared kitten descriptions/tags. This records that request for snacks-1.png on unpublished Printify draft 6a98d0be8c92077697009433, revision 44b3d762aceb5d718c8c5cb6fff454f13ebef6d3aed6ea15a10a825b5ce96a62. Use the existing native Duplicate/API procedure with Heavy Cotton T-Shirt after the design name. Retain template prices, provider, variants, and mockups. No publication or changes to existing listings."
+}

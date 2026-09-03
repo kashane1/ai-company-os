@@ -1,0 +1,16 @@
+{
+  "id": "a53236c5-6b71-418e-8400-ac183e2a8fdb",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a999fa11919ef90ea02f333: Its Nice Being Third Heavy Cotton T-Shirt, Anime Style Solar System Tee, Funny Astronomy Gift",
+  "created_at": "2026-09-03T16:30:23.898191+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/science-humor-20260903/its-nice-being-third-anime/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "7ccbba91fbad461ac819d8d3427b070aeeb49d97372fbde1d7e504a2402c3f6e",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T16:30:23.901127+00:00",
+  "decision_notes": "Owner supplied six PNGs and requested new Printify drafts with larger placement around305%/98DPI. This authorizes its-nice-being-third-anime.png on native copy 6a999fa11919ef90ea02f333, exact review 7ccbba91fbad461ac819d8d3427b070aeeb49d97372fbde1d7e504a2402c3f6e, with prepared title/description/tags and centered placement at305% or reduced uniformly to fit print-area bounds. All six attachments were included in the stated interpretation. Draft only; no publication."
+}

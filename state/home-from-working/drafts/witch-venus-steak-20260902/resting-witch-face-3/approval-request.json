@@ -1,0 +1,16 @@
+{
+  "id": "c9212ed5-d9e1-4509-94fb-a9b73f051d8b",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a98e898cb00cd3a4d009f7c: Resting Witch Face Heavy Cotton T-Shirt, Witch With Glasses Tee, Funny Halloween Gift",
+  "created_at": "2026-09-03T03:25:40.427752+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-3/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "fbc0917dda2f0e3efdbcea97640bd283f8d42a1899868bc9ad0a0b02634d9b93",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "pokemon-tcg-search",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd products/pokemon-tcg-search && ./.venv/bin/uvicorn api.main:app --reload --port 8787"],
+      "port": 8787
+    },
+    {
       "name": "robot-monster",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8031", "--directory", "state/prospects/sites/ChIJ7QI8xGFfXIYR2LLRk8PAAuA/dist-v2"],

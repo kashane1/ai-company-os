@@ -1,0 +1,61 @@
+{
+  "drafts": [
+    {
+      "design": "boo-sheet-1.png",
+      "title": "Boo Sheet Shirt, Cute Ghost Halloween Tee, Funny Spooky Season Graphic T-Shirt",
+      "product_id": "6a98c4e8e61a7301490785d4",
+      "url": "https://printify.com/app/product-details/6a98c4e8e61a7301490785d4",
+      "unpublished": true,
+      "mockups": 14,
+      "variants": 8,
+      "prices": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "dpi": 128.0
+    },
+    {
+      "design": "boo-sheet-2.png",
+      "title": "Boo Sheet Shirt, Spooky Sheet Ghost Halloween Tee, Distressed Ghost Graphic T-Shirt",
+      "product_id": "6a98c4fed3066316a403bfa4",
+      "url": "https://printify.com/app/product-details/6a98c4fed3066316a403bfa4",
+      "unpublished": true,
+      "mockups": 14,
+      "variants": 8,
+      "prices": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "dpi": 128.0
+    },
+    {
+      "design": "boo-sheet-3.png",
+      "title": "Boo Sheet Shirt, Funny Ghost With Tangled Sheet Halloween Tee, Orange Ghost Graphic T-Shirt",
+      "product_id": "6a98c516c141de8ffa023217",
+      "url": "https://printify.com/app/product-details/6a98c516c141de8ffa023217",
+      "unpublished": true,
+      "mockups": 14,
+      "variants": 8,
+      "prices": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "dpi": 128.0
+    }
+  ],
+  "template_unchanged": true,
+  "native_duplicate_actions": 3,
+  "publish_calls": 0,
+  "visual_review": {
+    "boo-sheet-1.png": "Passed: cartoon ghost and Boo Sheet lettering visible on front and lifestyle mockups; 14 selected.",
+    "boo-sheet-2.png": "Passed: tattered sheet ghost and Boo Sheet lettering visible on front and lifestyle mockups; 14 selected.",
+    "boo-sheet-3.png": "Passed: orange tangled-sheet ghost and Boo Sheet lettering visible on front and lifestyle mockups; 14 selected."
+  },
+  "mockup_reselection_actions": 0
+}

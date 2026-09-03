@@ -1,0 +1,7 @@
+{
+  "status": "reviewed",
+  "product_id": "6a999e2e00b0eaf5a40f468e",
+  "method": "Read-only screenshot of Printify product-detail primary image and full mockup grid",
+  "observations": "Correct breath graphic and dark block lettering. Visible artwork is smaller than version1 at the same percent because of transparent padding in the source PNG. Fourteen mockups selected with the front image marked Primary.",
+  "ui_edits": 0
+}

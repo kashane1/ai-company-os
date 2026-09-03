@@ -1,0 +1,338 @@
+{
+  "summary": {
+    "live_products_checked": 5,
+    "live_variants_checked": 40,
+    "regular_profit_range": [
+      6.15,
+      7.06
+    ],
+    "with_15pct_offsite_ad_profit_range": [
+      2.8,
+      3.76
+    ],
+    "all_positive": true,
+    "assumptions": "Single full-price US shirt; customer pays $4.95 shipping, which covers $4.95 fulfillment shipping; 6.5% transaction fee; US processing 3% + $0.25; $0.20 renewal; excludes processing on buyer sales tax, sales/promos, other ads, subscriptions, refunds and income tax."
+  },
+  "variants": [
+    {
+      "product_id": "6a989820c07f91a2ff0aa2b8",
+      "size": "White / S",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a989820c07f91a2ff0aa2b8",
+      "size": "White / XL",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a989820c07f91a2ff0aa2b8",
+      "size": "White / L",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a989820c07f91a2ff0aa2b8",
+      "size": "White / M",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a989820c07f91a2ff0aa2b8",
+      "size": "White / 2XL",
+      "retail": "17.99",
+      "production": "8.94",
+      "regular_profit": "6.42",
+      "with_15pct_offsite_ad_profit": "2.98"
+    },
+    {
+      "product_id": "6a989820c07f91a2ff0aa2b8",
+      "size": "White / 3XL",
+      "retail": "18.99",
+      "production": "9.87",
+      "regular_profit": "6.40",
+      "with_15pct_offsite_ad_profit": "2.80"
+    },
+    {
+      "product_id": "6a989820c07f91a2ff0aa2b8",
+      "size": "White / 4XL",
+      "retail": "19.99",
+      "production": "10.34",
+      "regular_profit": "6.83",
+      "with_15pct_offsite_ad_profit": "3.09"
+    },
+    {
+      "product_id": "6a989820c07f91a2ff0aa2b8",
+      "size": "White / 5XL",
+      "retail": "19.99",
+      "production": "10.31",
+      "regular_profit": "6.86",
+      "with_15pct_offsite_ad_profit": "3.12"
+    },
+    {
+      "product_id": "6a988f0a00aa8684080e906c",
+      "size": "White / S",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a988f0a00aa8684080e906c",
+      "size": "White / XL",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a988f0a00aa8684080e906c",
+      "size": "White / L",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a988f0a00aa8684080e906c",
+      "size": "White / M",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a988f0a00aa8684080e906c",
+      "size": "White / 2XL",
+      "retail": "17.99",
+      "production": "8.94",
+      "regular_profit": "6.42",
+      "with_15pct_offsite_ad_profit": "2.98"
+    },
+    {
+      "product_id": "6a988f0a00aa8684080e906c",
+      "size": "White / 3XL",
+      "retail": "18.99",
+      "production": "9.87",
+      "regular_profit": "6.40",
+      "with_15pct_offsite_ad_profit": "2.80"
+    },
+    {
+      "product_id": "6a988f0a00aa8684080e906c",
+      "size": "White / 4XL",
+      "retail": "19.99",
+      "production": "10.34",
+      "regular_profit": "6.83",
+      "with_15pct_offsite_ad_profit": "3.09"
+    },
+    {
+      "product_id": "6a988f0a00aa8684080e906c",
+      "size": "White / 5XL",
+      "retail": "19.99",
+      "production": "10.31",
+      "regular_profit": "6.86",
+      "with_15pct_offsite_ad_profit": "3.12"
+    },
+    {
+      "product_id": "6a98877e4ac00e7da5019a50",
+      "size": "White / S",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a98877e4ac00e7da5019a50",
+      "size": "White / XL",
+      "retail": "16.99",
+      "production": "7.4",
+      "regular_profit": "7.06",
+      "with_15pct_offsite_ad_profit": "3.76"
+    },
+    {
+      "product_id": "6a98877e4ac00e7da5019a50",
+      "size": "White / L",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a98877e4ac00e7da5019a50",
+      "size": "White / M",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a98877e4ac00e7da5019a50",
+      "size": "White / 2XL",
+      "retail": "17.99",
+      "production": "8.94",
+      "regular_profit": "6.42",
+      "with_15pct_offsite_ad_profit": "2.98"
+    },
+    {
+      "product_id": "6a98877e4ac00e7da5019a50",
+      "size": "White / 3XL",
+      "retail": "18.99",
+      "production": "9.87",
+      "regular_profit": "6.40",
+      "with_15pct_offsite_ad_profit": "2.80"
+    },
+    {
+      "product_id": "6a98877e4ac00e7da5019a50",
+      "size": "White / 4XL",
+      "retail": "19.99",
+      "production": "10.34",
+      "regular_profit": "6.83",
+      "with_15pct_offsite_ad_profit": "3.09"
+    },
+    {
+      "product_id": "6a98877e4ac00e7da5019a50",
+      "size": "White / 5XL",
+      "retail": "19.99",
+      "production": "10.31",
+      "regular_profit": "6.86",
+      "with_15pct_offsite_ad_profit": "3.12"
+    },
+    {
+      "product_id": "6a9880c14ac00e7da501950b",
+      "size": "White / S",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a9880c14ac00e7da501950b",
+      "size": "White / XL",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a9880c14ac00e7da501950b",
+      "size": "White / L",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a9880c14ac00e7da501950b",
+      "size": "White / M",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a9880c14ac00e7da501950b",
+      "size": "White / 2XL",
+      "retail": "17.99",
+      "production": "8.94",
+      "regular_profit": "6.42",
+      "with_15pct_offsite_ad_profit": "2.98"
+    },
+    {
+      "product_id": "6a9880c14ac00e7da501950b",
+      "size": "White / 3XL",
+      "retail": "18.99",
+      "production": "9.87",
+      "regular_profit": "6.40",
+      "with_15pct_offsite_ad_profit": "2.80"
+    },
+    {
+      "product_id": "6a9880c14ac00e7da501950b",
+      "size": "White / 4XL",
+      "retail": "19.99",
+      "production": "10.34",
+      "regular_profit": "6.83",
+      "with_15pct_offsite_ad_profit": "3.09"
+    },
+    {
+      "product_id": "6a9880c14ac00e7da501950b",
+      "size": "White / 5XL",
+      "retail": "19.99",
+      "production": "10.31",
+      "regular_profit": "6.86",
+      "with_15pct_offsite_ad_profit": "3.12"
+    },
+    {
+      "product_id": "6a9860cc0bf15ba9490bfe3a",
+      "size": "White / S",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a9860cc0bf15ba9490bfe3a",
+      "size": "White / XL",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a9860cc0bf15ba9490bfe3a",
+      "size": "White / L",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a9860cc0bf15ba9490bfe3a",
+      "size": "White / M",
+      "retail": "15.99",
+      "production": "7.4",
+      "regular_profit": "6.15",
+      "with_15pct_offsite_ad_profit": "3.01"
+    },
+    {
+      "product_id": "6a9860cc0bf15ba9490bfe3a",
+      "size": "White / 2XL",
+      "retail": "17.99",
+      "production": "8.94",
+      "regular_profit": "6.42",
+      "with_15pct_offsite_ad_profit": "2.98"
+    },
+    {
+      "product_id": "6a9860cc0bf15ba9490bfe3a",
+      "size": "White / 3XL",
+      "retail": "18.99",
+      "production": "9.87",
+      "regular_profit": "6.40",
+      "with_15pct_offsite_ad_profit": "2.80"
+    },
+    {
+      "product_id": "6a9860cc0bf15ba9490bfe3a",
+      "size": "White / 4XL",
+      "retail": "19.99",
+      "production": "10.34",
+      "regular_profit": "6.83",
+      "with_15pct_offsite_ad_profit": "3.09"
+    },
+    {
+      "product_id": "6a9860cc0bf15ba9490bfe3a",
+      "size": "White / 5XL",
+      "retail": "19.99",
+      "production": "10.31",
+      "regular_profit": "6.86",
+      "with_15pct_offsite_ad_profit": "3.12"
+    }
+  ]
+}

@@ -1,0 +1,2530 @@
+{
+  "schema_version": 1,
+  "generated_from": "state/home-from-working/drafts",
+  "records": [
+    {
+      "key": "banana-berries-20260902/banana-berries-1",
+      "design": "banana-berries-20260902",
+      "variant": "banana-berries-1",
+      "status": "unresolved",
+      "status_note": "Recovery notes say the saved draft target disappeared; retained snapshots are historical evidence.",
+      "product_id": "6a98ec418c9207769700b224",
+      "draft_id": "6a98ec418c9207769700b224",
+      "printify_url": null,
+      "copy": {
+        "title": "Bananas Are Berries Heavy Cotton T-Shirt, Funny Fruit Fact Tee, Botany Lover Gift",
+        "description": "A medal-winning banana celebrates while a surprised strawberry checks its reflection. Bright cartoon characters and the message Bananas Are Berries. Strawberries Are Not. turn a surprising plant fact into a cheerful conversation starter for science fans, biology teachers, and fruit lovers.\n\nTHE FACT BEHIND THE DESIGN\nIn botany, bananas are classified as berries. Strawberries are aggregate accessory fruits, so they do not meet the botanical definition of a berry.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "bananas are berries",
+          "banana shirt",
+          "strawberry shirt",
+          "funny fruit shirt",
+          "botany shirt",
+          "biology teacher gift",
+          "science fact shirt",
+          "science lover gift",
+          "fruit lover gift",
+          "plant nerd shirt",
+          "botanical humor",
+          "food humor tee",
+          "unisex graphic tee"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/banana-berries-1.png",
+        "sha256": "0156c25dc1cf6a4fc1354a5538a03356316cb0933501e6bffb8cab0758a3ce1e",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": null,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": null,
+        "variant_count": 0,
+        "enabled_variant_count": 0
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": null,
+            "images": [
+              {
+                "id": "PENDING_UPLOAD",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [],
+      "costs_usd": [],
+      "sources": {
+        "review": "state/home-from-working/drafts/banana-berries-20260902/banana-berries-1/review.json",
+        "copy": "state/home-from-working/drafts/banana-berries-20260902/banana-berries-1/copy.json",
+        "recovery": "state/home-from-working/drafts/banana-berries-20260902/recovery-status.json"
+      }
+    },
+    {
+      "key": "banana-berries-20260902/banana-berries-2",
+      "design": "banana-berries-20260902",
+      "variant": "banana-berries-2",
+      "status": "unresolved",
+      "status_note": "Recovery notes say the saved draft target disappeared; retained snapshots are historical evidence.",
+      "product_id": "6a98ec57aa543bfeff0fc913",
+      "draft_id": "6a98ec57aa543bfeff0fc913",
+      "printify_url": null,
+      "copy": {
+        "title": "Bananas Are Berries Heavy Cotton T-Shirt, Retro Fruit Graphic Tee, Funny Botany Gift",
+        "description": "A confident banana in sunglasses and a shocked strawberry bring a surprising plant fact to life. Retro flowers, warm colors, and bold Bananas Are Berries. Strawberries Are Not. lettering make this a playful design for science fans, biology teachers, and fruit lovers.\n\nTHE FACT BEHIND THE DESIGN\nIn botany, bananas are classified as berries. Strawberries are aggregate accessory fruits, so they do not meet the botanical definition of a berry.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "bananas are berries",
+          "banana shirt",
+          "strawberry shirt",
+          "funny fruit shirt",
+          "botany shirt",
+          "biology teacher gift",
+          "science fact shirt",
+          "science lover gift",
+          "fruit lover gift",
+          "plant nerd shirt",
+          "botanical humor",
+          "food humor tee",
+          "unisex graphic tee"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/banana-berries-2.png",
+        "sha256": "d4964c6656040f34d22225aeca55ab4b335d671770d6f6bfefaa6c8f8470060e",
+        "width": 1312,
+        "height": 1199,
+        "dpi": 164.0,
+        "alpha_range": [
+          0,
+          255
+        ]
+      },
+      "garment": {
+        "blueprint_id": null,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": null,
+        "variant_count": 0,
+        "enabled_variant_count": 0
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": null,
+            "images": [
+              {
+                "id": "PENDING_UPLOAD",
+                "x": 0.5,
+                "y": 0.2729409110517208,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.2729409110517208,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [],
+      "costs_usd": [],
+      "sources": {
+        "review": "state/home-from-working/drafts/banana-berries-20260902/banana-berries-2/review.json",
+        "copy": "state/home-from-working/drafts/banana-berries-20260902/banana-berries-2/copy.json",
+        "recovery": "state/home-from-working/drafts/banana-berries-20260902/recovery-status.json"
+      }
+    },
+    {
+      "key": "boo-sheet-20260902/boo-sheet-1",
+      "design": "boo-sheet-20260902",
+      "variant": "boo-sheet-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98c4e8e61a7301490785d4",
+      "draft_id": "6a98c4e8e61a7301490785d4",
+      "printify_url": "https://printify.com/app/product-details/6a98c4e8e61a7301490785d4",
+      "copy": {
+        "title": "Boo Sheet Shirt, Cute Ghost Halloween Tee, Funny Spooky Season Graphic T-Shirt",
+        "description": "A cheerful cartoon ghost floats above playful Boo Sheet lettering in this black-and-white Halloween design. A lighthearted pick for spooky season, fall outings, and anyone who enjoys a good ghost pun.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "boo sheet shirt",
+          "cute ghost shirt",
+          "halloween shirt",
+          "funny ghost tee",
+          "spooky season",
+          "ghost pun shirt",
+          "halloween pun",
+          "cartoon ghost",
+          "cute halloween tee",
+          "unisex graphic tee",
+          "fall graphic shirt",
+          "ghost lover gift",
+          "halloween gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/boo-sheet-1.png",
+        "sha256": "654b63252a6ccd6ae649b59e76e27710152b5fb3a19cd85271ed89481a36ddc1",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98c54e31aacf19a20b225f",
+                "imageId": "6a98c54e31aacf19a20b225f_9c80c0d5-9bf4-a50e-8085-49866e945eac",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-1/review.json",
+        "copy": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-1/copy.json",
+        "after": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-1/after.json",
+        "receipt": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-1/receipt.json"
+      }
+    },
+    {
+      "key": "boo-sheet-20260902/boo-sheet-2",
+      "design": "boo-sheet-20260902",
+      "variant": "boo-sheet-2",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98c4fed3066316a403bfa4",
+      "draft_id": "6a98c4fed3066316a403bfa4",
+      "printify_url": "https://printify.com/app/product-details/6a98c4fed3066316a403bfa4",
+      "copy": {
+        "title": "Boo Sheet Shirt, Spooky Sheet Ghost Halloween Tee, Distressed Ghost Graphic T-Shirt",
+        "description": "A floating, tattered sheet ghost and distressed Boo Sheet lettering give this black-and-white design a spooky twist. Made for Halloween fans who enjoy eerie ghost artwork with a little wordplay.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "boo sheet shirt",
+          "spooky ghost shirt",
+          "halloween shirt",
+          "sheet ghost tee",
+          "distressed ghost",
+          "ghost pun shirt",
+          "halloween pun",
+          "spooky season",
+          "eerie ghost shirt",
+          "unisex graphic tee",
+          "fall graphic shirt",
+          "ghost lover gift",
+          "halloween gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/boo-sheet-2.png",
+        "sha256": "a44becf5e3fc7ad07fb867ec9165b0ce5cd8d3bb5bd7abd2c916037df6bc493f",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98c56d65a1778cff699dd2",
+                "imageId": "6a98c56d65a1778cff699dd2_e54b5928-7a00-5e9a-4ff0-44e65e2798e8",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-2/review.json",
+        "copy": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-2/copy.json",
+        "after": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-2/after.json",
+        "receipt": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-2/receipt.json"
+      }
+    },
+    {
+      "key": "boo-sheet-20260902/boo-sheet-3",
+      "design": "boo-sheet-20260902",
+      "variant": "boo-sheet-3",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98c516c141de8ffa023217",
+      "draft_id": "6a98c516c141de8ffa023217",
+      "printify_url": "https://printify.com/app/product-details/6a98c516c141de8ffa023217",
+      "copy": {
+        "title": "Boo Sheet Shirt, Funny Ghost With Tangled Sheet Halloween Tee, Orange Ghost Graphic T-Shirt",
+        "description": "A flustered ghost wrestles with a tangled orange sheet above bold Boo Sheet lettering. The orange-and-cream artwork brings a playful vintage look to Halloween gatherings and everyday spooky-season outfits.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "boo sheet shirt",
+          "funny ghost shirt",
+          "halloween shirt",
+          "orange ghost tee",
+          "tangled sheet ghost",
+          "ghost pun shirt",
+          "halloween pun",
+          "spooky season",
+          "retro ghost shirt",
+          "unisex graphic tee",
+          "fall graphic shirt",
+          "ghost lover gift",
+          "halloween gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/boo-sheet-3.png",
+        "sha256": "f10a8c4192e9889fbc044858730a2a31d5f713824942c9d0a79995251168ec23",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98c590d699129b84997d0d",
+                "imageId": "6a98c590d699129b84997d0d_e0e3b631-b2cd-c438-347a-3a7fa7d7e757",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-3/review.json",
+        "copy": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-3/copy.json",
+        "after": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-3/after.json",
+        "receipt": "state/home-from-working/drafts/boo-sheet-20260902/boo-sheet-3/receipt.json"
+      }
+    },
+    {
+      "key": "hang-in-there-20260902/hang-in-there-1",
+      "design": "hang-in-there-20260902",
+      "variant": "hang-in-there-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98e25860dba9e21d04dc5e",
+      "draft_id": "6a98e25860dba9e21d04dc5e",
+      "printify_url": "https://printify.com/app/product-details/6a98e25860dba9e21d04dc5e",
+      "copy": {
+        "title": "Hang in There Heavy Cotton T-Shirt, Cute Calico Kitten Tee, Encouraging Cat Lover Gift",
+        "description": "A cheerful calico kitten hangs from a leafy branch above bold Hang in There lettering. Colorful leaves and a playful cartoon style turn a familiar message of encouragement into an everyday design for cat lovers.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "hang in there shirt",
+          "motivational shirt",
+          "encouragement gift",
+          "kitten shirt",
+          "cat lover gift",
+          "cute cat shirt",
+          "hanging cat shirt",
+          "positive message tee",
+          "inspirational tee",
+          "animal lover gift",
+          "unisex graphic tee",
+          "cat mom gift",
+          "cat dad gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/hang-in-there-1.png",
+        "sha256": "118bbf9186c270a31d521b6843c94fe0d66d72c11424c3125b74f84462e86df1",
+        "width": 1254,
+        "height": 1254,
+        "dpi": 156.8,
+        "alpha_range": [
+          0,
+          255
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98e31b305826bd5bcbb56c",
+                "imageId": "6a98e31b305826bd5bcbb56c_d4d4a9d2-ac97-4547-d562-a5d36725b1cf",
+                "x": 0.5,
+                "y": 0.29395202276885546,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.29395202276885546,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-1/review.json",
+        "copy": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-1/copy.json",
+        "after": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-1/after.json",
+        "receipt": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-1/receipt.json"
+      }
+    },
+    {
+      "key": "hang-in-there-20260902/hang-in-there-2",
+      "design": "hang-in-there-20260902",
+      "variant": "hang-in-there-2",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98e2a9cb00cd3a4d009989",
+      "draft_id": "6a98e2a9cb00cd3a4d009989",
+      "printify_url": "https://printify.com/app/product-details/6a98e2a9cb00cd3a4d009989",
+      "copy": {
+        "title": "Hang in There Heavy Cotton T-Shirt, Retro Orange Kitten Tee, Encouraging Cat Lover Gift",
+        "description": "An orange tabby kitten hangs from a leafy branch above colorful Hang in There lettering and flowers. Warm tones and a retro illustration style give this encouraging cat design a nostalgic touch for everyday outfits.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "hang in there shirt",
+          "motivational shirt",
+          "encouragement gift",
+          "kitten shirt",
+          "cat lover gift",
+          "cute cat shirt",
+          "hanging cat shirt",
+          "positive message tee",
+          "inspirational tee",
+          "animal lover gift",
+          "unisex graphic tee",
+          "cat mom gift",
+          "cat dad gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/hang-in-there-2.png",
+        "sha256": "75d3e9d7124f66359df56e043afb6627293b1cbf9905d93ee3cb34925c6b1189",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98e3200419fcf86659b6e3",
+                "imageId": "6a98e3200419fcf86659b6e3_7fc283c4-bf4f-ee26-e99d-7ab1aaf92279",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-2/review.json",
+        "copy": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-2/copy.json",
+        "after": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-2/after.json",
+        "receipt": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-2/receipt.json"
+      }
+    },
+    {
+      "key": "hang-in-there-20260902/hang-in-there-3",
+      "design": "hang-in-there-20260902",
+      "variant": "hang-in-there-3",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98e2c98775f2fc0e01752d",
+      "draft_id": "6a98e2c98775f2fc0e01752d",
+      "printify_url": "https://printify.com/app/product-details/6a98e2c98775f2fc0e01752d",
+      "copy": {
+        "title": "Hang in There Heavy Cotton T-Shirt, Cute Gray Kitten Tee, Encouraging Cat Lover Gift",
+        "description": "A fluffy gray-and-white kitten with bright blue eyes hangs from a leafy branch above Hang in There lettering. A sweet, playful design for cat lovers and anyone who could use a little everyday encouragement.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "hang in there shirt",
+          "motivational shirt",
+          "encouragement gift",
+          "kitten shirt",
+          "cat lover gift",
+          "cute cat shirt",
+          "hanging cat shirt",
+          "positive message tee",
+          "inspirational tee",
+          "animal lover gift",
+          "unisex graphic tee",
+          "cat mom gift",
+          "cat dad gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/hang-in-there-3.png",
+        "sha256": "35df11f4bb6703996353e55c6141cb3c1151513ed3d0a8c2ccc6369c305c3b95",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98e3253f7d255d58fbffe1",
+                "imageId": "6a98e3253f7d255d58fbffe1_4f7157be-93b2-688e-ac12-eb549184670a",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-3/review.json",
+        "copy": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-3/copy.json",
+        "after": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-3/after.json",
+        "receipt": "state/home-from-working/drafts/hang-in-there-20260902/hang-in-there-3/receipt.json"
+      }
+    },
+    {
+      "key": "here-for-boos-20260902",
+      "design": "here-for-boos-20260902",
+      "variant": null,
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98c75f60dba9e21d04bf20",
+      "draft_id": "6a98c75f60dba9e21d04bf20",
+      "printify_url": "https://printify.com/app/product-details/6a98c75f60dba9e21d04bf20",
+      "copy": {
+        "title": "Here for the Boos Heavy Cotton T-Shirt, Funny Drinking Ghost Halloween Tee, Spooky Season Graphic",
+        "description": "A sheet ghost raises a bottle above distressed Here for the Boos lettering in this black-and-white Halloween design. A playful choice for costume parties, fall gatherings, and anyone who enjoys a spirited ghost pun.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "here for the boos",
+          "drinking ghost shirt",
+          "halloween shirt",
+          "funny ghost tee",
+          "ghost pun shirt",
+          "halloween party tee",
+          "spooky season",
+          "sheet ghost shirt",
+          "boos shirt",
+          "halloween humor",
+          "unisex graphic tee",
+          "fall graphic shirt",
+          "halloween gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/here-for-boos.png",
+        "sha256": "4b7b43ff3b5b87bed85e4fef1e05eb159270b7d8ea82e15008551a62f7b2018f",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98c7a10419fcf86659a2fc",
+                "imageId": "6a98c7a10419fcf86659a2fc_c5b31351-6a55-880c-511c-cb32685173a3",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/here-for-boos-20260902/review.json",
+        "copy": "state/home-from-working/drafts/here-for-boos-20260902/copy.json",
+        "after": "state/home-from-working/drafts/here-for-boos-20260902/after.json",
+        "receipt": "state/home-from-working/drafts/here-for-boos-20260902/receipt.json"
+      }
+    },
+    {
+      "key": "science-humor-20260903/breathing-manually-1",
+      "design": "science-humor-20260903",
+      "variant": "breathing-manually-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a999ae187fe2ca5920f0f24",
+      "draft_id": "6a999ae187fe2ca5920f0f24",
+      "printify_url": "https://printify.com/app/product-details/6a999ae187fe2ca5920f0f24",
+      "copy": {
+        "title": "You Are Now Breathing Manually Heavy Cotton T-Shirt, Funny Typography Tee, Internet Humor Gift",
+        "description": "You are now breathing manually.\n\nBold dark lettering and flowing blue accents deliver an internet joke that makes the reader suddenly notice their own breathing. A playful conversation starter for meme fans and anyone who enjoys a harmless mind trick.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "breathing manually",
+          "manual breathing",
+          "funny saying shirt",
+          "internet humor tee",
+          "mind trick shirt",
+          "funny quote tee",
+          "sarcastic tshirt",
+          "typography shirt",
+          "breathing joke",
+          "meme graphic tee",
+          "humor lover gift",
+          "unisex graphic tee",
+          "conversation shirt"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/breathing-manually-1.png",
+        "sha256": "c8c958fa50a83b0d33bc363362ad8069cf3213ced44d32eea59cec52d5921985",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 98.4,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a999d294d4f03cc5462e9aa",
+                "imageId": "6a999d294d4f03cc5462e9aa_b7a5226c-4c9f-e053-af6e-1de99cc15895",
+                "x": 0.5,
+                "y": 0.5,
+                "scale": 0.7904834219185016,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.5,
+                    "scale": 0.7904834219185016,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/science-humor-20260903/breathing-manually-1/review.json",
+        "copy": "state/home-from-working/drafts/science-humor-20260903/breathing-manually-1/copy.json",
+        "after": "state/home-from-working/drafts/science-humor-20260903/breathing-manually-1/after.json",
+        "receipt": "state/home-from-working/drafts/science-humor-20260903/breathing-manually-1/receipt.json"
+      }
+    },
+    {
+      "key": "science-humor-20260903/breathing-manually-2",
+      "design": "science-humor-20260903",
+      "variant": "breathing-manually-2",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a999e2e00b0eaf5a40f468e",
+      "draft_id": "6a999e2e00b0eaf5a40f468e",
+      "printify_url": "https://printify.com/app/product-details/6a999e2e00b0eaf5a40f468e",
+      "copy": {
+        "title": "You Are Now Breathing Manually Heavy Cotton T-Shirt, Funny Breath Graphic Tee, Internet Humor Gift",
+        "description": "You are now breathing manually.\n\nDark lettering and a simple breath graphic with teal accents put a visual twist on the familiar internet joke. Made for meme fans and anyone who likes a shirt that gets people thinking about something they usually do automatically.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "breathing manually",
+          "manual breathing",
+          "funny saying shirt",
+          "internet humor tee",
+          "mind trick shirt",
+          "funny quote tee",
+          "sarcastic tshirt",
+          "typography shirt",
+          "breathing joke",
+          "meme graphic tee",
+          "humor lover gift",
+          "unisex graphic tee",
+          "conversation shirt"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/breathing-manually-2.png",
+        "sha256": "e32648c98a846d40dc41401b924a581481da0c4ad7e4b3fbafad81c33767b0dc",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 98.4,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a99a09670bd6c373b27f50e",
+                "imageId": "6a99a09670bd6c373b27f50e_36eec352-b282-c0c4-bc63-a05484f3af37",
+                "x": 0.5,
+                "y": 0.5,
+                "scale": 0.7904834219185016,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.5,
+                    "scale": 0.7904834219185016,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/science-humor-20260903/breathing-manually-2/review.json",
+        "copy": "state/home-from-working/drafts/science-humor-20260903/breathing-manually-2/copy.json",
+        "after": "state/home-from-working/drafts/science-humor-20260903/breathing-manually-2/after.json",
+        "receipt": "state/home-from-working/drafts/science-humor-20260903/breathing-manually-2/receipt.json"
+      }
+    },
+    {
+      "key": "science-humor-20260903/its-nice-being-third-anime",
+      "design": "science-humor-20260903",
+      "variant": "its-nice-being-third-anime",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a999fa11919ef90ea02f333",
+      "draft_id": "6a999fa11919ef90ea02f333",
+      "printify_url": "https://printify.com/app/product-details/6a999fa11919ef90ea02f333",
+      "copy": {
+        "title": "Its Nice Being Third Heavy Cotton T-Shirt, Anime Style Solar System Tee, Funny Astronomy Gift",
+        "description": "It’s nice being third.\n\nThe Sun, Mercury, Venus, and Earth appear in a colorful anime-style lineup, with a quiet joke about Earth’s place as the third planet from the Sun. Bold lettering and richly illustrated planets give this astronomy design a playful look.\n\nA fun conversation starter for astronomy lovers, science teachers, STEM students, and anyone who enjoys an understated space joke.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "funny astronomy",
+          "solar system shirt",
+          "third planet shirt",
+          "space lover gift",
+          "science teacher tee",
+          "anime space shirt",
+          "planet graphic tee",
+          "earth humor shirt",
+          "astronomer gift",
+          "science nerd shirt",
+          "space pun shirt",
+          "universe t shirt",
+          "STEM teacher gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/its-nice-being-third-anime.png",
+        "sha256": "bd00c63af654a54b3aebe0fd3c4a005c2c8401ba6c6ab5f685a712f365e7919f",
+        "width": 1536,
+        "height": 1024,
+        "dpi": 116.6,
+        "alpha_range": [
+          0,
+          255
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a99a0a27ebebcf8c7c5761b",
+                "imageId": "6a99a0a27ebebcf8c7c5761b_7d194a3e-f1d6-57cf-7431-da393c498692",
+                "x": 0.5,
+                "y": 0.5,
+                "scale": 1,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.5,
+                    "scale": 1.0,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/science-humor-20260903/its-nice-being-third-anime/review.json",
+        "copy": "state/home-from-working/drafts/science-humor-20260903/its-nice-being-third-anime/copy.json",
+        "after": "state/home-from-working/drafts/science-humor-20260903/its-nice-being-third-anime/after.json",
+        "receipt": "state/home-from-working/drafts/science-humor-20260903/its-nice-being-third-anime/receipt.json"
+      }
+    },
+    {
+      "key": "science-humor-20260903/lightning-sun-1",
+      "design": "science-humor-20260903",
+      "variant": "lightning-sun-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a999fe087fe2ca5920f1476",
+      "draft_id": "6a999fe087fe2ca5920f1476",
+      "printify_url": "https://printify.com/app/product-details/6a999fe087fe2ca5920f1476",
+      "copy": {
+        "title": "Lightning and Sun Heavy Cotton T-Shirt, Science Fact Graphic Tee, Weather Lover Gift",
+        "description": "Brilliant blue lightning crosses a blazing orange Sun above bold lettering: Lightning Is Hotter Than the Surface of the Sun. Dramatic space artwork turns a surprising science fact into a vivid conversation starter for weather fans, physics enthusiasts, and science teachers.\n\nTHE FACT BEHIND THE DESIGN\nThe slogan compares lightning with the Sun’s visible surface. Lightning can heat the air around it to around 50,000°F, exceeding the temperature of the Sun’s surface.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "lightning shirt",
+          "sun graphic tee",
+          "science fact shirt",
+          "weather lover gift",
+          "physics shirt",
+          "science teacher gift",
+          "storm lover shirt",
+          "science nerd tee",
+          "astronomy shirt",
+          "lightning bolt tee",
+          "solar graphic shirt",
+          "weather geek gift",
+          "unisex graphic tee"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/lightning-sun-1.png",
+        "sha256": "2f9d43a42a7d7a3ffba89cb3a9fbf7a68f6a7620b64534061d547799a03116e7",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 98.4,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a99a0a7cb30d3bce3d127b7",
+                "imageId": "6a99a0a7cb30d3bce3d127b7_aa31b520-5c92-9e73-ceef-fa91775ae7d5",
+                "x": 0.5,
+                "y": 0.5,
+                "scale": 0.7904834219185016,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.5,
+                    "scale": 0.7904834219185016,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/science-humor-20260903/lightning-sun-1/review.json",
+        "copy": "state/home-from-working/drafts/science-humor-20260903/lightning-sun-1/copy.json",
+        "after": "state/home-from-working/drafts/science-humor-20260903/lightning-sun-1/after.json",
+        "receipt": "state/home-from-working/drafts/science-humor-20260903/lightning-sun-1/receipt.json"
+      }
+    },
+    {
+      "key": "science-humor-20260903/lightning-sun-2",
+      "design": "science-humor-20260903",
+      "variant": "lightning-sun-2",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a99a017420d45a6370baf38",
+      "draft_id": "6a99a017420d45a6370baf38",
+      "printify_url": "https://printify.com/app/product-details/6a99a017420d45a6370baf38",
+      "copy": {
+        "title": "Lightning and Sun Heavy Cotton T-Shirt, Retro Science Graphic Tee, Weather Lover Gift",
+        "description": "A fiery Sun, electric-blue lightning bolt, and distressed lettering give this science design a retro poster feel. Lightning Is Hotter Than the Surface of the Sun makes a bold statement for weather fans, physics enthusiasts, and science teachers.\n\nTHE FACT BEHIND THE DESIGN\nThe slogan compares lightning with the Sun’s visible surface. Lightning can heat the air around it to around 50,000°F, exceeding the temperature of the Sun’s surface.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "lightning shirt",
+          "sun graphic tee",
+          "science fact shirt",
+          "weather lover gift",
+          "physics shirt",
+          "science teacher gift",
+          "storm lover shirt",
+          "science nerd tee",
+          "astronomy shirt",
+          "lightning bolt tee",
+          "solar graphic shirt",
+          "weather geek gift",
+          "unisex graphic tee"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/lightning-sun-2.png",
+        "sha256": "02c789dd1d41306acdd6315885c7133405dd10cc5dedf020fb6a27b49c9a2b20",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 98.4,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a99a0ad4d4f03cc5462ec4b",
+                "imageId": "6a99a0ad4d4f03cc5462ec4b_94055ae9-f2bd-7e63-7831-b6b7951a6b02",
+                "x": 0.5,
+                "y": 0.5,
+                "scale": 0.7904834219185016,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.5,
+                    "scale": 0.7904834219185016,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/science-humor-20260903/lightning-sun-2/review.json",
+        "copy": "state/home-from-working/drafts/science-humor-20260903/lightning-sun-2/copy.json",
+        "after": "state/home-from-working/drafts/science-humor-20260903/lightning-sun-2/after.json",
+        "receipt": "state/home-from-working/drafts/science-humor-20260903/lightning-sun-2/receipt.json"
+      }
+    },
+    {
+      "key": "science-humor-20260903/mouth-body-hole-1",
+      "design": "science-humor-20260903",
+      "variant": "mouth-body-hole-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a999e72df99c3801205b10a",
+      "draft_id": "6a999e72df99c3801205b10a",
+      "printify_url": "https://printify.com/app/product-details/6a999e72df99c3801205b10a",
+      "copy": {
+        "title": "Your Mouth Is a Body Hole Heavy Cotton T-Shirt, Funny Shower Thought Tee, Anatomy Humor Gift",
+        "description": "Your mouth is technically the beginning of a hole that goes through your entire body.\n\nBold cream lettering puts a wonderfully strange shower thought front and center. A quirky conversation starter for fans of anatomy jokes, odd observations, and humor that makes people pause for a second.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "shower thought shirt",
+          "anatomy humor",
+          "funny anatomy shirt",
+          "weird fact shirt",
+          "mouth joke shirt",
+          "biology humor tee",
+          "funny quote tee",
+          "odd humor gift",
+          "nerdy humor shirt",
+          "science nerd tee",
+          "statement shirt",
+          "unisex graphic tee",
+          "conversation shirt"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/mouth-body-hole-1.png",
+        "sha256": "ed48599e8cf3cb9dbc10cd43b5cc857dfb752456003464f2096bd7d8dd93d37c",
+        "width": 1199,
+        "height": 1312,
+        "dpi": 98.4,
+        "alpha_range": [
+          0,
+          255
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a99a09b030c58d5fbe32857",
+                "imageId": "6a99a09b030c58d5fbe32857_b1f8bc9f-dfd3-19a4-425a-f3153c012e5b",
+                "x": 0.5,
+                "y": 0.5,
+                "scale": 0.9255758035940268,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.5,
+                    "scale": 0.9255758035940268,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/science-humor-20260903/mouth-body-hole-1/review.json",
+        "copy": "state/home-from-working/drafts/science-humor-20260903/mouth-body-hole-1/copy.json",
+        "after": "state/home-from-working/drafts/science-humor-20260903/mouth-body-hole-1/after.json",
+        "receipt": "state/home-from-working/drafts/science-humor-20260903/mouth-body-hole-1/receipt.json"
+      }
+    },
+    {
+      "key": "snacks-kittens-20260902/kitten-arround-1",
+      "design": "snacks-kittens-20260902",
+      "variant": "kitten-arround-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98d0edd3066316a403cb1c",
+      "draft_id": "6a98d0edd3066316a403cb1c",
+      "printify_url": "https://printify.com/app/product-details/6a98d0edd3066316a403cb1c",
+      "copy": {
+        "title": "Just Kitten Around Heavy Cotton T-Shirt, Cute Kitten With Pink Yarn Tee, Funny Cat Lover Gift",
+        "description": "Playful kitten artwork and Just Kitten Around lettering bring a cheerful cat pun to this everyday graphic tee. A lighthearted design for cat lovers, kitten fans, and anyone who appreciates cute animals and a little wordplay.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "just kitten around",
+          "kitten shirt",
+          "cat lover gift",
+          "funny cat shirt",
+          "cute kitten tee",
+          "cat pun shirt",
+          "playful cat shirt",
+          "cat mom gift",
+          "cat dad gift",
+          "animal lover gift",
+          "unisex graphic tee",
+          "cat humor tee",
+          "cute cat shirt"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/kitten-arround-1.png",
+        "sha256": "1346aff4972ba7d646fc4097b76300d20cda882d0e60b4de8c53ebda5cb1dde2",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98d16cfd6ac1eb3ebcb351",
+                "imageId": "6a98d16cfd6ac1eb3ebcb351_f86845c8-c0eb-41b3-6f7f-754c205e2d40",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-1/review.json",
+        "copy": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-1/copy.json",
+        "after": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-1/after.json",
+        "receipt": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-1/receipt.json"
+      }
+    },
+    {
+      "key": "snacks-kittens-20260902/kitten-arround-2",
+      "design": "snacks-kittens-20260902",
+      "variant": "kitten-arround-2",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98d103e61a730149079185",
+      "draft_id": "6a98d103e61a730149079185",
+      "printify_url": "https://printify.com/app/product-details/6a98d103e61a730149079185",
+      "copy": {
+        "title": "Just Kitten Around Heavy Cotton T-Shirt, Playful Orange Kitten Tee, Funny Cat Lover Gift",
+        "description": "Playful kitten artwork and Just Kitten Around lettering bring a cheerful cat pun to this everyday graphic tee. A lighthearted design for cat lovers, kitten fans, and anyone who appreciates cute animals and a little wordplay.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "just kitten around",
+          "kitten shirt",
+          "cat lover gift",
+          "funny cat shirt",
+          "cute kitten tee",
+          "cat pun shirt",
+          "playful cat shirt",
+          "cat mom gift",
+          "cat dad gift",
+          "animal lover gift",
+          "unisex graphic tee",
+          "cat humor tee",
+          "cute cat shirt"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/kitten-arround-2.png",
+        "sha256": "b09ee8a2310b8ff7ecca6450e8ddb267a7e3a518a4a17c2848464dc445eb0acf",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98d17227d22415b91896c6",
+                "imageId": "6a98d17227d22415b91896c6_90efc201-71ef-be9a-b41c-a484699f1fd6",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-2/review.json",
+        "copy": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-2/copy.json",
+        "after": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-2/after.json",
+        "receipt": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-2/receipt.json"
+      }
+    },
+    {
+      "key": "snacks-kittens-20260902/kitten-arround-3",
+      "design": "snacks-kittens-20260902",
+      "variant": "kitten-arround-3",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98d11ee61a730149079197",
+      "draft_id": "6a98d11ee61a730149079197",
+      "printify_url": "https://printify.com/app/product-details/6a98d11ee61a730149079197",
+      "copy": {
+        "title": "Just Kitten Around Heavy Cotton T-Shirt, Cute Playing Kittens Tee, Funny Cat Lover Gift",
+        "description": "Playful kitten artwork and Just Kitten Around lettering bring a cheerful cat pun to this everyday graphic tee. A lighthearted design for cat lovers, kitten fans, and anyone who appreciates cute animals and a little wordplay.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "just kitten around",
+          "kitten shirt",
+          "cat lover gift",
+          "funny cat shirt",
+          "cute kitten tee",
+          "cat pun shirt",
+          "playful cat shirt",
+          "cat mom gift",
+          "cat dad gift",
+          "animal lover gift",
+          "unisex graphic tee",
+          "cat humor tee",
+          "cute cat shirt"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/kitten-arround-3.png",
+        "sha256": "7079633de8aa6a827656b6f5a3d0ed92eb1b6d793647efb3c475b6cb63e0dbd6",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98d177d699129b8499865b",
+                "imageId": "6a98d177d699129b8499865b_5c5ffe22-7403-97db-8d1e-fb0fb191304d",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-3/review.json",
+        "copy": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-3/copy.json",
+        "after": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-3/after.json",
+        "receipt": "state/home-from-working/drafts/snacks-kittens-20260902/kitten-arround-3/receipt.json"
+      }
+    },
+    {
+      "key": "snacks-kittens-20260902/snacks-1",
+      "design": "snacks-kittens-20260902",
+      "variant": "snacks-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98d0be8c92077697009433",
+      "draft_id": "6a98d0be8c92077697009433",
+      "printify_url": "https://printify.com/app/product-details/6a98d0be8c92077697009433",
+      "copy": {
+        "title": "I Was Told There Would Be Snacks Heavy Cotton T-Shirt, Funny Raccoon Tee, Snack Lover Gift",
+        "description": "A disappointed raccoon sits at an empty plate, paired with I Was Told There Would Be Snacks lettering. This playful cartoon design combines a familiar snack-time letdown with dry humor for raccoon fans, food lovers, and anyone who came for the refreshments.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "raccoon shirt",
+          "funny raccoon tee",
+          "snacks shirt",
+          "snack lover gift",
+          "food humor shirt",
+          "cute raccoon shirt",
+          "funny animal tee",
+          "sarcastic shirt",
+          "snack time shirt",
+          "raccoon lover gift",
+          "unisex graphic tee",
+          "foodie gift",
+          "snack humor"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/snacks-1.png",
+        "sha256": "51298040226d0daf9b2264ac52eb089efcb7e25f6273c7a7ecd8d286d7d17a38",
+        "width": 1237,
+        "height": 1271,
+        "dpi": 154.6,
+        "alpha_range": [
+          0,
+          255
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98d1617a117c4f8b8d3756",
+                "imageId": "6a98d1617a117c4f8b8d3756_11dfa3b9-4328-6366-4340-e4b9a2f0a6b1",
+                "x": 0.5,
+                "y": 0.3006572521739816,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.3006572521739816,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/snacks-kittens-20260902/snacks-1/review.json",
+        "copy": "state/home-from-working/drafts/snacks-kittens-20260902/snacks-1/copy.json",
+        "after": "state/home-from-working/drafts/snacks-kittens-20260902/snacks-1/after.json",
+        "receipt": "state/home-from-working/drafts/snacks-kittens-20260902/snacks-1/receipt.json"
+      }
+    },
+    {
+      "key": "snacks-kittens-20260902/snacks-2",
+      "design": "snacks-kittens-20260902",
+      "variant": "snacks-2",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98d0d762114ff80f0f354f",
+      "draft_id": "6a98d0d762114ff80f0f354f",
+      "printify_url": "https://printify.com/app/product-details/6a98d0d762114ff80f0f354f",
+      "copy": {
+        "title": "I Was Told There Would Be Snacks Heavy Cotton T-Shirt, Funny Raccoon Tee, Snack Lover Gift",
+        "description": "A disappointed raccoon sits at an empty plate, paired with I Was Told There Would Be Snacks lettering. This playful cartoon design combines a familiar snack-time letdown with dry humor for raccoon fans, food lovers, and anyone who came for the refreshments.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "raccoon shirt",
+          "funny raccoon tee",
+          "snacks shirt",
+          "snack lover gift",
+          "food humor shirt",
+          "cute raccoon shirt",
+          "funny animal tee",
+          "sarcastic shirt",
+          "snack time shirt",
+          "raccoon lover gift",
+          "unisex graphic tee",
+          "foodie gift",
+          "snack humor"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/snacks-2.png",
+        "sha256": "c6da9878a057b939ff8f97f7f88274b439fef8992071998723762b804b13063f",
+        "width": 1214,
+        "height": 1295,
+        "dpi": 151.8,
+        "alpha_range": [
+          0,
+          255
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98d166fd6ac1eb3ebcb350",
+                "imageId": "6a98d166fd6ac1eb3ebcb350_106975c7-fbed-89e7-68e8-2e34f646fabf",
+                "x": 0.5,
+                "y": 0.31022888754997346,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.31022888754997346,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/snacks-kittens-20260902/snacks-2/review.json",
+        "copy": "state/home-from-working/drafts/snacks-kittens-20260902/snacks-2/copy.json",
+        "after": "state/home-from-working/drafts/snacks-kittens-20260902/snacks-2/after.json",
+        "receipt": "state/home-from-working/drafts/snacks-kittens-20260902/snacks-2/receipt.json"
+      }
+    },
+    {
+      "key": "witch-venus-steak-20260902/chicken-fried-steak-1",
+      "design": "witch-venus-steak-20260902",
+      "variant": "chicken-fried-steak-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98e9a5e61a73014907ac75",
+      "draft_id": "6a98e9a5e61a73014907ac75",
+      "printify_url": "https://printify.com/app/product-details/6a98e9a5e61a73014907ac75",
+      "copy": {
+        "title": "Chicken Fried This Steak Heavy Cotton T-Shirt, Funny Food Pun Tee, Southern Food Lover Gift",
+        "description": "You’re telling me chicken fried this steak?\n\nA plate of crispy chicken-fried steak, creamy gravy, mashed potatoes, and green beans brings a wonderfully ridiculous food pun to life. Bold diner-style lettering makes this a fun design for comfort-food fans, home cooks, chefs, and dad-joke collectors.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "chicken fried steak",
+          "chicken pun shirt",
+          "funny food shirt",
+          "funny foodie tee",
+          "food pun tee",
+          "steak lover gift",
+          "southern food shirt",
+          "comfort food tee",
+          "chef humor shirt",
+          "cooking joke tee",
+          "meme graphic tee",
+          "dad joke tshirt",
+          "restaurant humor"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/chicken-fried-steak-1.png",
+        "sha256": "395c8cc604bf6dc9bedd813bb21d8ca56caad74588cb905aa6cb53f7b91266d7",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98e9fd2ffe509f505c53cd",
+                "imageId": "6a98e9fd2ffe509f505c53cd_e0e3d4c3-2a6d-9474-4601-c8da87b9bb7e",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/witch-venus-steak-20260902/chicken-fried-steak-1/review.json",
+        "copy": "state/home-from-working/drafts/witch-venus-steak-20260902/chicken-fried-steak-1/copy.json",
+        "after": "state/home-from-working/drafts/witch-venus-steak-20260902/chicken-fried-steak-1/after.json",
+        "receipt": "state/home-from-working/drafts/witch-venus-steak-20260902/chicken-fried-steak-1/receipt.json"
+      }
+    },
+    {
+      "key": "witch-venus-steak-20260902/resting-witch-face-2",
+      "design": "witch-venus-steak-20260902",
+      "variant": "resting-witch-face-2",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98e87760dba9e21d04e30a",
+      "draft_id": "6a98e87760dba9e21d04e30a",
+      "printify_url": "https://printify.com/app/product-details/6a98e87760dba9e21d04e30a",
+      "copy": {
+        "title": "Resting Witch Face Heavy Cotton T-Shirt, Gothic Purple Witch Tee, Funny Halloween Gift",
+        "description": "A stern witch in an ornate purple-and-black hat is framed by ravens, roses, candles, and gold Resting Witch Face lettering. Rich gothic details give this Halloween design a dramatic look with a dry sense of humor.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "resting witch face",
+          "witch face shirt",
+          "funny witch shirt",
+          "halloween shirt",
+          "witch graphic tee",
+          "spooky season shirt",
+          "witchy gift",
+          "halloween humor",
+          "sarcastic shirt",
+          "vintage witch art",
+          "fall graphic tee",
+          "gothic witch shirt",
+          "halloween gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/resting-witch-face-2.png",
+        "sha256": "766873f3742c7259d1de465678b21cc4b08fb302796d06b25884046c92a063ee",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          255
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98e9e73e04863c8ee7a18d",
+                "imageId": "6a98e9e73e04863c8ee7a18d_f167f7cd-3b12-31a5-8126-e35470c6a4a0",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-2/review.json",
+        "copy": "state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-2/copy.json",
+        "after": "state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-2/after.json",
+        "receipt": "state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-2/receipt.json"
+      }
+    },
+    {
+      "key": "witch-venus-steak-20260902/resting-witch-face-3",
+      "design": "witch-venus-steak-20260902",
+      "variant": "resting-witch-face-3",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98e898cb00cd3a4d009f7c",
+      "draft_id": "6a98e898cb00cd3a4d009f7c",
+      "printify_url": "https://printify.com/app/product-details/6a98e898cb00cd3a4d009f7c",
+      "copy": {
+        "title": "Resting Witch Face Heavy Cotton T-Shirt, Witch With Glasses Tee, Funny Halloween Gift",
+        "description": "An unimpressed witch with round glasses, crossed arms, and an orange cardigan gives Resting Witch Face a cozy autumn twist. Bold lettering, a broom, and crescent-moon details make this a playful design for Halloween and everyday witchy style.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "resting witch face",
+          "witch face shirt",
+          "funny witch shirt",
+          "halloween shirt",
+          "witch graphic tee",
+          "spooky season shirt",
+          "witchy gift",
+          "halloween humor",
+          "sarcastic shirt",
+          "vintage witch art",
+          "fall graphic tee",
+          "gothic witch shirt",
+          "halloween gift"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/resting-witch-face-3.png",
+        "sha256": "b9e6d2735b72349815b929e01a5200c337fdb7e30f678a7a10ecfe255c001e75",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          255
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98e9ed7c9190db1477ba54",
+                "imageId": "6a98e9ed7c9190db1477ba54_e25c6c96-1137-5a75-157f-5e30dfd2eb55",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-3/review.json",
+        "copy": "state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-3/copy.json",
+        "after": "state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-3/after.json",
+        "receipt": "state/home-from-working/drafts/witch-venus-steak-20260902/resting-witch-face-3/receipt.json"
+      }
+    },
+    {
+      "key": "witch-venus-steak-20260902/venus-day-1",
+      "design": "witch-venus-steak-20260902",
+      "variant": "venus-day-1",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98e8b4aa543bfeff0fc482",
+      "draft_id": "6a98e8b4aa543bfeff0fc482",
+      "printify_url": "https://printify.com/app/product-details/6a98e8b4aa543bfeff0fc482",
+      "copy": {
+        "title": "A Day on Venus Heavy Cotton T-Shirt, Golden Planet Graphic Tee, Astronomy Lover Gift",
+        "description": "Golden Venus artwork pairs with the surprising message A Day on Venus Is Longer Than a Year on Venus. A conversation-starting design for astronomy fans, science teachers, and anyone fascinated by our solar system.\n\nTHE FACT BEHIND THE DESIGN\nThe slogan refers to one full rotation of Venus, its sidereal day, which takes about 243 Earth days. A Venus year takes about 225 Earth days. Sunrise to sunrise is a different measure, about 117 Earth days.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "venus shirt",
+          "a day on venus",
+          "astronomy shirt",
+          "space fact shirt",
+          "planet shirt",
+          "science lover gift",
+          "astronomy lover",
+          "space lover gift",
+          "solar system tee",
+          "science teacher gift",
+          "stargazer gift",
+          "unisex graphic tee",
+          "space science tee"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/venus-day-1.png",
+        "sha256": "77acff14f8b3b8285d85fd9fa56baca8ac28d0760f1a01fbcd96cfaaf25fec56",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98e9f22ffe509f505c53c2",
+                "imageId": "6a98e9f22ffe509f505c53c2_c1f4a557-8c7a-805b-185a-738333988555",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-1/review.json",
+        "copy": "state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-1/copy.json",
+        "after": "state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-1/after.json",
+        "receipt": "state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-1/receipt.json"
+      }
+    },
+    {
+      "key": "witch-venus-steak-20260902/venus-day-2",
+      "design": "witch-venus-steak-20260902",
+      "variant": "venus-day-2",
+      "status": "saved_verified",
+      "status_note": "A verified receipt and post-save product snapshot are present.",
+      "product_id": "6a98e8d3cb00cd3a4d009ff8",
+      "draft_id": "6a98e8d3cb00cd3a4d009ff8",
+      "printify_url": "https://printify.com/app/product-details/6a98e8d3cb00cd3a4d009ff8",
+      "copy": {
+        "title": "A Day on Venus Heavy Cotton T-Shirt, Space Science Fact Tee, Astronomy Lover Gift",
+        "description": "Golden Venus artwork pairs with the surprising message A Day on Venus Is Longer Than a Year on Venus. A conversation-starting design for astronomy fans, science teachers, and anyone fascinated by our solar system.\n\nTHE FACT BEHIND THE DESIGN\nThe slogan refers to one full rotation of Venus, its sidereal day, which takes about 243 Earth days. A Venus year takes about 225 Earth days. Sunrise to sunrise is a different measure, about 117 Earth days.\n\nPRODUCT FEATURES\n• Gildan 5000 Heavy Cotton T-shirt\n• Classic unisex fit\n• White, 100% cotton\n• Medium-weight 180 g/m² fabric\n• Tubular construction with no side seams\n• Ribbed knit collar and shoulder tape\n• Tear-away label\n• Sizes S–5XL\n\nFIT AND SIZING\nThis is a classic-fit shirt, not an oversized or boxy-fit tee. Please review the size chart before ordering. For a roomier fit, consider sizing up one size.\n\nCARE INSTRUCTIONS\n• Machine wash cold, maximum 30°C or 90°F\n• Tumble dry on low heat\n• Use non-chlorine bleach only when needed\n• Do not iron\n• Do not dry clean\n\nPRODUCTION\nEach shirt is printed to order. Slight variations in color and print placement may occur between the images shown and the finished garment. Designed by HomeFromWorking and professionally printed and shipped by a production partner.\n\nArtwork for this design was created with the assistance of an AI image-generation tool and arranged into the finished shirt design by HomeFromWorking.",
+        "tags": [
+          "venus shirt",
+          "a day on venus",
+          "astronomy shirt",
+          "space fact shirt",
+          "planet shirt",
+          "science lover gift",
+          "astronomy lover",
+          "space lover gift",
+          "solar system tee",
+          "science teacher gift",
+          "stargazer gift",
+          "unisex graphic tee",
+          "space science tee"
+        ]
+      },
+      "artwork": {
+        "path": "/Users/kashane/Downloads/venus-day-2.png",
+        "sha256": "3845523f4fc186a163b15a299f8461ee3d5d090f7074f0ce26ee57070abfba7f",
+        "width": 1024,
+        "height": 1536,
+        "dpi": 128.0,
+        "alpha_range": [
+          0,
+          254
+        ]
+      },
+      "garment": {
+        "blueprint_id": 6,
+        "template_id": "6a98ae4aaa543bfeff0f8735",
+        "print_provider_id": 99,
+        "variant_count": 560,
+        "enabled_variant_count": 8
+      },
+      "placement": {
+        "saved": [
+          {
+            "position": "front",
+            "decoration_method": "dtg",
+            "images": [
+              {
+                "id": "6a98e9f8e767265c4e3ed876",
+                "imageId": "6a98e9f8e767265c4e3ed876_6ddaf574-f9bd-fa2f-a46a-88e512f497a2",
+                "x": 0.5,
+                "y": 0.41592803415328317,
+                "scale": 0.6074411541381929,
+                "angle": 0
+              }
+            ]
+          }
+        ],
+        "review": [
+          {
+            "placeholders": [
+              {
+                "position": "front",
+                "images": [
+                  {
+                    "id": "PENDING_UPLOAD",
+                    "x": 0.5,
+                    "y": 0.41592803415328317,
+                    "scale": 0.6074411541381929,
+                    "angle": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "prices_usd": [
+        17.99,
+        19.99,
+        20.99,
+        21.99
+      ],
+      "costs_usd": [
+        7.4,
+        8.94,
+        9.87,
+        10.31,
+        10.34
+      ],
+      "sources": {
+        "review": "state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-2/review.json",
+        "copy": "state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-2/copy.json",
+        "after": "state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-2/after.json",
+        "receipt": "state/home-from-working/drafts/witch-venus-steak-20260902/venus-day-2/receipt.json"
+      }
+    }
+  ]
+}

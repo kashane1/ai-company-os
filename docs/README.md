@@ -7,6 +7,8 @@ the engineering, do not read top-to-bottom — use the map below.
 
 ## For agents resuming work
 
+- [founder/printify-shirt-workflow.md](founder/printify-shirt-workflow.md) — next-shirt procedure and reusable CLI: native Duplicate once, API artwork/copy update, preserve mockups and prices, one visual review.
+- [plans/2026-09-02-home-from-working-pod-design.md](plans/2026-09-02-home-from-working-pod-design.md) — broader HomeFromWorking direction; operated draft CLI available, Etsy payload automation remains planned.
 - [../REPO_MAP.md](../REPO_MAP.md) — 60-second orientation across the five zones
 - [preflight-for-agents.md](preflight-for-agents.md) — boundaries for this session
 - [handoffs/INDEX.md](handoffs/INDEX.md) — append-only dated session handoffs

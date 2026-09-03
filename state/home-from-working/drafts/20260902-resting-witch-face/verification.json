@@ -1,0 +1,27 @@
+{
+  "id": "6a98ae4aaa543bfeff0f8735",
+  "url": "https://printify.com/app/product-details/6a98ae4aaa543bfeff0f8735",
+  "enabled_variants": 8,
+  "prices": {
+    "White / S": 1799,
+    "White / XL": 1799,
+    "White / L": 1799,
+    "White / M": 1799,
+    "White / 2XL": 1999,
+    "White / 3XL": 2099,
+    "White / 4XL": 2199,
+    "White / 5XL": 2199
+  },
+  "unique_new_skus": true,
+  "only_supplied_artwork_on_front": true,
+  "dimensions_inches": [
+    8,
+    12
+  ],
+  "dpi": 128,
+  "selected_mockups": 14,
+  "tags": 13,
+  "shipping_profile_preserved": true,
+  "etsy_listing_id": null,
+  "all_checks_passed": true
+}

@@ -1,0 +1,10 @@
+{
+  "status": "reviewed",
+  "observed_scale_percent": 304.97,
+  "observed_width_inches": 10.41,
+  "observed_height_inches": 15.61,
+  "observed_dpi": 98,
+  "enhancement_message": "Resolution will be enhanced (98 DPI \u2192 300 DPI)",
+  "artwork": "Correct dark lettering and blue accents visible on white shirt, within print-area bounds.",
+  "ui_edits": 0
+}

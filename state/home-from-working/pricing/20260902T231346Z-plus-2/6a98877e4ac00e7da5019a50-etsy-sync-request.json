@@ -1,0 +1,9 @@
+{
+  "title": false,
+  "description": false,
+  "images": false,
+  "variants": true,
+  "tags": false,
+  "keyFeatures": false,
+  "shipping_template": false
+}

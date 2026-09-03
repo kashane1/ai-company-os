@@ -1,0 +1,16 @@
+{
+  "id": "1219d5ec-478a-4202-882a-5907478cddaf",
+  "status": "approved",
+  "summary": "Update unpublished Printify draft 6a999e2e00b0eaf5a40f468e: You Are Now Breathing Manually Heavy Cotton T-Shirt, Funny Breath Graphic Tee, Internet Humor Gift",
+  "created_at": "2026-09-03T16:30:13.261653+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/science-humor-20260903/breathing-manually-2/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "3139ecd2c66b2327115a7f36ccabeb90e700ae117d11376d680fb9572153e200",
+  "action": "update_printify_draft",
+  "decided_by": "kashane \u2014 explicit chat request recorded by Codex",
+  "decided_at": "2026-09-03T16:30:13.267266+00:00",
+  "decision_notes": "Owner supplied six PNGs and requested new Printify drafts with larger placement around305%/98DPI. This authorizes breathing-manually-2.png on native copy 6a999e2e00b0eaf5a40f468e, exact review 3139ecd2c66b2327115a7f36ccabeb90e700ae117d11376d680fb9572153e200, with prepared title/description/tags and centered placement at305% or reduced uniformly to fit print-area bounds. All six attachments were included in the stated interpretation. Draft only; no publication."
+}

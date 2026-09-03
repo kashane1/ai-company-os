@@ -1,0 +1,57 @@
+[
+  {
+    "file": "resting-witch-face-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2315511,
+    "alpha": [
+      0,
+      255
+    ],
+    "dpi": 128.0
+  },
+  {
+    "file": "resting-witch-face-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1674471,
+    "alpha": [
+      0,
+      255
+    ],
+    "dpi": 128.0
+  },
+  {
+    "file": "venus-day-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2112685,
+    "alpha": [
+      0,
+      254
+    ],
+    "dpi": 128.0
+  },
+  {
+    "file": "venus-day-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2065841,
+    "alpha": [
+      0,
+      254
+    ],
+    "dpi": 128.0
+  },
+  {
+    "file": "chicken-fried-steak-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 3145726,
+    "alpha": [
+      0,
+      254
+    ],
+    "dpi": 128.0
+  }
+]

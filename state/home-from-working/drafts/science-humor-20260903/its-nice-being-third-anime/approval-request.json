@@ -1,0 +1,16 @@
+{
+  "id": "a53236c5-6b71-418e-8400-ac183e2a8fdb",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a999fa11919ef90ea02f333: Its Nice Being Third Heavy Cotton T-Shirt, Anime Style Solar System Tee, Funny Astronomy Gift",
+  "created_at": "2026-09-03T16:29:05.081550+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/drafts/science-humor-20260903/its-nice-being-third-anime/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "7ccbba91fbad461ac819d8d3427b070aeeb49d97372fbde1d7e504a2402c3f6e",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

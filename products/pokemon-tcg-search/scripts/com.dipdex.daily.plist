@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Daily price refresh for the Pokemon TCG screener.
+
+  Install:
+    cp scripts/com.dipdex.daily.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.dipdex.daily.plist
+
+  Run once by hand to check it:
+    launchctl start com.dipdex.daily && tail -f data/daily.log
+
+  Uninstall:
+    launchctl unload ~/Library/LaunchAgents/com.dipdex.daily.plist
+
+  Edit the two absolute paths below if the product moves. launchd does not
+  expand ~ or shell variables in these keys.
+
+  06:30 local is chosen because tcgcsv publishes the previous day's archive
+  overnight, so by then both yesterday's archive and today's live prices exist.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.dipdex.daily</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/kashane/dev/ai-company-os/products/pokemon-tcg-search/.venv/bin/python</string>
+        <string>-m</string>
+        <string>ingest</string>
+        <string>daily</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/kashane/dev/ai-company-os/products/pokemon-tcg-search</string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>6</integer>
+        <key>Minute</key><integer>30</integer>
+    </dict>
+
+    <!-- Catch up if the Mac was asleep at 06:30. -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/kashane/dev/ai-company-os/products/pokemon-tcg-search/data/daily.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/kashane/dev/ai-company-os/products/pokemon-tcg-search/data/daily.log</string>
+</dict>
+</plist>

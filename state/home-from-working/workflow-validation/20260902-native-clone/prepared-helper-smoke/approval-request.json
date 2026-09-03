@@ -1,0 +1,16 @@
+{
+  "id": "bf053b4b-e524-4bbb-8912-947416c667f7",
+  "status": "pending",
+  "summary": "Update unpublished Printify draft 6a98b0ed662bca859a0542d1: Offline workflow check",
+  "created_at": "2026-09-02T23:44:09.979235+00:00",
+  "task_id": null,
+  "task_run_id": null,
+  "approval_type": "pod_draft_update",
+  "review_artifact_path": "/Users/kashane/dev/ai-company-os/state/home-from-working/workflow-validation/20260902-native-clone/prepared-helper-smoke/review.json",
+  "subject_type": "pod_manifest",
+  "subject_id": "981a4244be9280304065e845a8e07a551e8b35583822a72a4e4e4940e99579d7",
+  "action": "update_printify_draft",
+  "decided_by": null,
+  "decided_at": null,
+  "decision_notes": null
+}

@@ -1,5 +1,11 @@
 # Operator Guide
 
+> **HomeFromWorking starting point — 2026-09-02:** follow the
+> [repeatable shirt workflow](printify-shirt-workflow.md): native Printify Duplicate,
+> then `scripts/pod_draft.py` for approved artwork/copy updates and verification.
+> Etsy payload automation remains planned. Discovery remains available below,
+> but broader product research is deferred for this business.
+
 A brief command reference for running `ai-company-os` work streams from your Mac.
 Use this when you want to **kick off discovery, validate a niche, or route work to
 agents** — not when you need architecture deep-dives (see links at the bottom).
