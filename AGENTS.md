@@ -4,6 +4,10 @@ The full agent model lives in [`docs/agent-model.md`](docs/agent-model.md). Read
 
 ## TL;DR
 
+- For transparent POD, shirt, mug, merchandise, or Printify artwork requests,
+  read `skills/adapters/codex/pod-artwork-generator.md` before proposing style
+  directions or generating artwork.
+
 - The **platform** owns orchestration, persistence, queueing, approvals, and policy.
 - The **supervisor** decomposes goals and routes work; it does not deliver.
 - **Workers** specialize: engineering, iOS, App Store, and future lanes (support, growth, research, ops). Each is narrow, schema-driven, policy-bound.
