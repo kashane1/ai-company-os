@@ -17,9 +17,9 @@ clearance. Do not use image generation before clearance.
 ## Generation
 
 After clearance, use the available `imagegen` skill and Codex's built-in
-image-generation mode. Stay in that mode unless the founder explicitly chooses
-a CLI/API fallback. Make exactly one built-in image-generation call for each
-approved direction's initial concept.
+image-generation mode. Built-in generation is required for this skill: do not
+substitute a CLI/API fallback. Make exactly one built-in image-generation call
+for each approved direction's initial concept.
 
 For every call, label the prompt inputs by role: `idea`, `exact wording`,
 `approved direction`, `target product/layout`, `print constraints`, and, where
@@ -36,17 +36,20 @@ for refinement. Record every initial and follow-up call in the contract's
 
 ## Files and validation
 
-For a project-bound output, non-destructively copy or move the generated asset
-from the generator's default location to:
+For every run, non-destructively copy or move every generated initial concept,
+correction, and rejected preview from the generator's default location to:
 
 `state/home-from-working/artwork/<design-slug>/<run-id>/`
 
 Never overwrite a prior artifact or final without explicit replacement
-instructions. Use local image inspection and Pillow/read-only analysis as
-needed to verify actual alpha pixels, dimensions, and file size. Create light,
-dark, and neutral composites in that runtime directory and inspect them for
-wording accuracy, clipping, accidental backgrounds, edge halos, and composition
-problems. A generated mockup is never a substitute for the transparent master.
+instructions. Before making composites or handing off an artifact, use
+Pillow/read-only analysis to run an alpha histogram that proves both at least
+one transparent pixel (`alpha < 255`) and at least one visible-artwork pixel
+(`alpha > 0`), then record the result. Also inspect dimensions and file size.
+Create light, dark, and neutral composites in that runtime directory and inspect
+them for wording accuracy, clipping, accidental backgrounds, edge halos, and
+composition problems. A generated mockup is never a substitute for the
+transparent master.
 
 Apply product-native safe areas and layouts; do not stretch a shirt composition
 onto a mug. Keep checking and correction limits from the canonical skill.
