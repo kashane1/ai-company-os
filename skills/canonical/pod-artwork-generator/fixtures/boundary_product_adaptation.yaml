@@ -4,22 +4,32 @@
     product-aware (mug-safe composition) while keeping the design wording exact.
   input:
     design_request: |
-      Make a mug concept based on this reference image path: /Users/kashane/Downloads/kitten-arround-1.png.
+      Make a mug concept based on this reference image path: fixture://cute-cat-shirt.
       Exact wording must be: "Just Kitten Around".
     product_type: mug
-    reference_image_path: /Users/kashane/Downloads/kitten-arround-1.png
+    reference_image_path: fixture://cute-cat-shirt
     requested_style_count: 3
     exact_text:
       - "Just Kitten Around"
   expected:
-    stage_after_first_pass: directions_ready
-    direction_count_min: 3
-    direction_count_max: 5
-    direction_cards_distinct: true
-    requires_clearance_before_generation: true
-    product_adaptation_required: true
-    production_layout_hint: mug_safe
-    disallow_stretch_to_shirt_wrap: true
-    no_printify_or_etsy_mutation: true
-    artifact_output_root: "state/home-from-working/artwork/"
-    exact_text_required: true
+    stage: awaiting_clearance
+    direction_count: 3
+    requires_clearance: true
+    generation_call_count: 0
+    artifact_output_dir: "state/home-from-working/artwork/"
+    validation_summary:
+      has_transparent_pixels: false
+      has_visible_content: false
+      exact_text_matches: false
+      distinct_directions: true
+      artifact_count_matches_approved_ids: false
+    no_printify_etsy_mutations: true
+    printify_api_calls: 0
+    etsy_api_calls: 0
+    operation_trace:
+      - action: resolve_reference_image
+        status: fixture_reference
+      - action: select_product_layout
+        status: mug_safe
+      - action: require_founder_clearance
+        status: blocked

@@ -6,8 +6,8 @@ inputs:
   - name: product_type
     type: enum
     values: [shirt, mug, other]
-    required: true
-    validation: must_be_known_product_type
+    required: false
+    validation: must_be_known_product_type_or_inferable
     default: other
   - name: requested_style_count
     type: integer
@@ -22,7 +22,10 @@ inputs:
   - name: reference_image_path
     type: string
     required: false
-    description: Optional path/URL to a reference image to influence composition.
+    description: |
+      Optional image locator for composition reference. Accepts local attachment path,
+      absolute/relative filesystem path, URL, or fixture identifier (for example:
+      fixture://cute-cat-shirt).
   - name: exact_text
     type: list
     required: false
@@ -37,14 +40,25 @@ inputs:
 outputs:
   - name: stage
     type: enum
-    values: [directions_ready, awaiting_clearance, generated, blocked]
+    values: [awaiting_clearance, generated, blocked]
     description: Current stage after processing.
+  - name: direction_count
+    type: integer
+  - name: requires_clearance
+    type: bool
+    description: True when style directions are proposed and founder approval is required.
+  - name: approved_direction_ids
+    type: list
+    item_type: string
+    description: Cleared style IDs used for generation.
   - name: direction_cards
     type: list
     item_shape:
       - name: direction_id
         type: string
       - name: title
+        type: string
+      - name: typography
         type: string
       - name: mood
         type: string
@@ -54,15 +68,12 @@ outputs:
         type: string
       - name: composition
         type: string
+      - name: product_fit
+        type: string
       - name: why_fit
         type: string
-  - name: requires_clearance
-    type: bool
-    description: True when artist directions were generated and founder signoff is pending.
-  - name: approved_direction_ids
-    type: list
-    item_type: string
-    description: Cleared style IDs used for generation.
+  - name: generation_call_count
+    type: integer
   - name: generation_plans
     type: list
     item_shape:
@@ -71,6 +82,15 @@ outputs:
       - name: output_path
         type: string
       - name: product_canvas_profile
+        type: string
+  - name: operation_trace
+    type: list
+    item_shape:
+      - name: action
+        type: string
+      - name: status
+        type: string
+      - name: detail
         type: string
   - name: generated_artifacts
     type: list
@@ -91,11 +111,16 @@ outputs:
   - name: validation_summary
     type: object
     fields:
-      - has_transparent_pixels
-      - has_visible_content
-      - exact_text_matches
-      - distinct_directions
-      - artifact_count_matches_approved_ids
+      - name: has_transparent_pixels
+        type: bool
+      - name: has_visible_content
+        type: bool
+      - name: exact_text_matches
+        type: bool
+      - name: distinct_directions
+        type: bool
+      - name: artifact_count_matches_approved_ids
+        type: bool
   - name: warnings
     type: list
   - name: artifact_output_dir
@@ -104,6 +129,12 @@ outputs:
   - name: no_printify_etsy_mutations
     type: bool
     description: True when no publish/upload side effects occurred.
+  - name: printify_api_calls
+    type: integer
+    default: 0
+  - name: etsy_api_calls
+    type: integer
+    default: 0
 
 violations:
   - code: STYLE_CLEARANCE_REQUIRED
