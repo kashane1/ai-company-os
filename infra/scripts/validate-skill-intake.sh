@@ -63,7 +63,7 @@ fi
 
 # 6. gitleaks secret scan
 if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks detect --no-banner --redact --source "${SKILL_DIR}" \
+  gitleaks detect --no-banner --redact --no-git --source "${SKILL_DIR}" \
     || fail "gitleaks found a potential secret in ${SKILL_DIR}"
   pass "6/10 gitleaks clean"
 else
