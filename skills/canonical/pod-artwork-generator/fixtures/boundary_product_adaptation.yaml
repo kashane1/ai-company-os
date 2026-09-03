@@ -1,0 +1,25 @@
+- name: boundary_product_adaptation_mug_vs_shirt
+  description: |
+    Boundary case for a mug request based on a reference image. The output must be
+    product-aware (mug-safe composition) while keeping the design wording exact.
+  input:
+    design_request: |
+      Make a mug concept based on this reference image path: /Users/kashane/Downloads/kitten-arround-1.png.
+      Exact wording must be: "COZY CAT CAFE".
+    product_type: mug
+    reference_image_path: /Users/kashane/Downloads/kitten-arround-1.png
+    requested_style_count: 3
+    exact_text:
+      - "COZY CAT CAFE"
+  expected:
+    stage_after_first_pass: directions_ready
+    direction_count_min: 3
+    direction_count_max: 5
+    direction_cards_distinct: true
+    requires_clearance_before_generation: true
+    product_adaptation_required: true
+    production_layout_hint: mug_safe
+    disallow_stretch_to_shirt_wrap: true
+    no_printify_or_etsy_mutation: true
+    artifact_output_root: "state/home-from-working/artwork/"
+    exact_text_required: true

@@ -1,0 +1,51 @@
+- name: happy_path_founder_clearance_then_generation
+  description: |
+    Reusable baseline for a shirt idea where no explicit styles are given.
+    The agent must propose 3-5 style directions (default four), force a
+    founder clearance pause, then allow one generation per cleared direction.
+  input:
+    design_request: |
+      Design a fun vintage-style shirt graphic with the exact phrase "CATNIP ADVENTURE".
+      Keep the palette retro and keep all elements readable on a front-chest print.
+    product_type: shirt
+    requested_style_count: 4
+    exact_text:
+      - "CATNIP ADVENTURE"
+  expected:
+    stage_after_first_pass: directions_ready
+    direction_count_min: 3
+    direction_count_max: 5
+    direction_cards_distinct: true
+    must_request_founder_clearance: true
+    generation_blocked_before_clearance: true
+    generation_calls_per_approved_direction: 1
+    exact_text_preservation_enforced: true
+    real_alpha_validation_required: true
+    artifact_output_root: "state/home-from-working/artwork/"
+    no_printify_or_etsy_mutation: true
+
+- name: happy_path_refined_styles_single_run_generation
+  description: |
+    After two style IDs are approved, the skill must run generation once per
+    approved direction and record per-artwork validation outcomes.
+  input:
+    design_request: |
+      Create a cozy “hanging with one ear up” cat charm shirt graphic using
+      exact text "SALT LAMP".
+    product_type: shirt
+    approved_direction_ids:
+      - style-1
+      - style-3
+    exact_text:
+      - "SALT LAMP"
+  expected:
+    stage: generated
+    requested_style_count: 4
+    generation_plans_created: 2
+    generation_calls_per_approved_direction: 1
+    generated_artifacts_count: 2
+    artifact_output_root: "state/home-from-working/artwork/"
+    alpha_validation_method: alpha_histogram
+    exact_text_preserved: true
+    product_layout_mode: apparel
+    no_printify_or_etsy_mutation: true

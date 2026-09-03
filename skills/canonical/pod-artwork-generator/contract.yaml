@@ -1,0 +1,120 @@
+inputs:
+  - name: design_request
+    type: string
+    required: true
+    description: User-provided design brief, raw idea, constraints, and product intent.
+  - name: product_type
+    type: enum
+    values: [shirt, mug, other]
+    required: true
+    validation: must_be_known_product_type
+    default: other
+  - name: requested_style_count
+    type: integer
+    required: false
+    default: 4
+    validation: 3 <= value <= 5
+  - name: style_hints
+    type: list
+    required: false
+    description: Optional explicit style IDs/names requested by the founder.
+    item_type: string
+  - name: reference_image_path
+    type: string
+    required: false
+    description: Optional path/URL to a reference image to influence composition.
+  - name: exact_text
+    type: list
+    required: false
+    description: Exact text strings that must remain unchanged in generated artwork.
+    item_type: string
+  - name: approved_direction_ids
+    type: list
+    required: false
+    description: Direction identifiers that passed founder clearance.
+    item_type: string
+
+outputs:
+  - name: stage
+    type: enum
+    values: [directions_ready, awaiting_clearance, generated, blocked]
+    description: Current stage after processing.
+  - name: direction_cards
+    type: list
+    item_shape:
+      - name: direction_id
+        type: string
+      - name: title
+        type: string
+      - name: mood
+        type: string
+      - name: style_family
+        type: string
+      - name: palette
+        type: string
+      - name: composition
+        type: string
+      - name: why_fit
+        type: string
+  - name: requires_clearance
+    type: bool
+    description: True when artist directions were generated and founder signoff is pending.
+  - name: approved_direction_ids
+    type: list
+    item_type: string
+    description: Cleared style IDs used for generation.
+  - name: generation_plans
+    type: list
+    item_shape:
+      - name: direction_id
+        type: string
+      - name: output_path
+        type: string
+      - name: product_canvas_profile
+        type: string
+  - name: generated_artifacts
+    type: list
+    item_shape:
+      - name: path
+        type: string
+      - name: direction_id
+        type: string
+      - name: alpha_validation_passed
+        type: bool
+      - name: transparent_pixel_check_method
+        type: enum
+        values: [alpha_histogram]
+      - name: exact_text_preserved
+        type: bool
+      - name: product_layout_applied
+        type: bool
+  - name: validation_summary
+    type: object
+    fields:
+      - has_transparent_pixels
+      - has_visible_content
+      - exact_text_matches
+      - distinct_directions
+      - artifact_count_matches_approved_ids
+  - name: warnings
+    type: list
+  - name: artifact_output_dir
+    type: string
+    description: Must start with state/home-from-working/artwork/
+  - name: no_printify_etsy_mutations
+    type: bool
+    description: True when no publish/upload side effects occurred.
+
+violations:
+  - code: STYLE_CLEARANCE_REQUIRED
+    raised_when: generation is requested but approved_direction_ids is empty
+  - code: STYLE_COUNT_INVALID
+    raised_when: requested_style_count is outside 3..5
+  - code: REAL_ALPHA_CHECK_FAILED
+    raised_when: generated artifact has no transparent pixels
+  - code: EXACT_TEXT_MISMATCH
+    raised_when: any exact_text string differs in generated output
+  - code: PRODUCT_ADAPTATION_MISSING
+    raised_when: output is generated with generic composition despite mug/apparel context
+  - code: PRINTIFY_ETSY_SIDE_EFFECT
+    raised_when: any upload/publish action is attempted
