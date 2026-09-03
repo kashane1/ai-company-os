@@ -5,12 +5,12 @@
   input:
     design_request: |
       Make a mug concept based on this reference image path: /Users/kashane/Downloads/kitten-arround-1.png.
-      Exact wording must be: "COZY CAT CAFE".
+      Exact wording must be: "Just Kitten Around".
     product_type: mug
     reference_image_path: /Users/kashane/Downloads/kitten-arround-1.png
     requested_style_count: 3
     exact_text:
-      - "COZY CAT CAFE"
+      - "Just Kitten Around"
   expected:
     stage_after_first_pass: directions_ready
     direction_count_min: 3
