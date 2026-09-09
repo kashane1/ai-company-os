@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PRODUCT="catchbook"
 SIMULATOR_ID="${IOS_SIMULATOR_ID:-}"
+SIMULATOR_BOOT_TIMEOUT_SECONDS="${IOS_SIMULATOR_BOOT_TIMEOUT_SECONDS:-420}"
 
 usage() {
   cat <<'USAGE'
@@ -96,6 +97,10 @@ if ! xcrun simctl list devices available -j | jq -e --arg id "$SIMULATOR_ID" '
   echo "IOS_SIMULATOR_ID is not an available simulator: $SIMULATOR_ID" >&2
   exit 1
 fi
+
+python3 "$ROOT/scripts/ci/boot_ios_simulator.py" \
+  "$SIMULATOR_ID" \
+  --timeout-seconds "$SIMULATOR_BOOT_TIMEOUT_SECONDS"
 
 echo "Testing $PRODUCT ($SCHEME_NAME) on simulator $SIMULATOR_ID"
 xcodebuild test \
