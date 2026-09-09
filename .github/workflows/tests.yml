@@ -5,16 +5,24 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
-  PYTHON_COVERAGE_MIN: "55"
-  # iOS coverage threshold intentionally not enforced: the iOS lane is
-  # UI-heavy and snapshot/e2e coverage is deferred (see README "Testing").
-  # check_ios_coverage.sh still reports the number; it just does not gate.
+  PYTHON_COVERAGE_MIN: "85"
+  # iOS coverage is reported per product without a percentage gate. UI suites
+  # run where present; product READMEs record their remaining test boundaries.
 
 jobs:
   tests-with-code:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     env:
       PR_BODY: ${{ github.event.pull_request.body || '' }}
     steps:
@@ -28,12 +36,24 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             RANGE="${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
           elif [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
-            RANGE="${{ github.sha }}"
+            RANGE=""
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            RANGE="HEAD^...HEAD"
           else
             RANGE="${{ github.event.before }}...${{ github.sha }}"
           fi
-          git diff --name-status "$RANGE" > build/ci/changed-files.txt
-          printf '%s' "$PR_BODY" > build/ci/testing-metadata.md
+          if [[ -n "$RANGE" ]]; then
+            git diff --name-status "$RANGE" > build/ci/changed-files.txt
+          else
+            git diff-tree --root --no-commit-id --name-status -r HEAD > build/ci/changed-files.txt
+          fi
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            printf '%s' "$PR_BODY" > build/ci/testing-metadata.md
+          else
+            # Main's merge commit retains the reviewed PR body, including any
+            # explicit no-test exception. Direct pushes still need matching tests.
+            git log -1 --format=%B > build/ci/testing-metadata.md
+          fi
 
       - name: Enforce tests-with-code policy
         run: |
@@ -42,22 +62,29 @@ jobs:
             --metadata-file build/ci/testing-metadata.md \
             --event-name "${{ github.event_name }}"
 
-  python-tests:
+  python-matrix:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.12"
+          version: "0.9.22"
+          python-version: ${{ matrix.python }}
 
       - name: Verify employer path without third-party packages
         run: ./scripts/evaluator_check.sh
 
       - name: Install Python test dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[test]"
+        run: uv sync --frozen --extra test --group quality
+
+      - name: Install isolated Redis test server
+        run: sudo apt-get update && sudo apt-get install --yes redis-server
 
       - name: Run Python tests and coverage
         run: ./scripts/test_python.sh
@@ -66,35 +93,97 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: python-test-artifacts
+          name: python-${{ matrix.python }}-test-artifacts
           path: |
             build/test-results/python-junit.xml
             build/coverage/python-coverage.xml
 
-  ios-tests:
+  python-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: python-matrix
+    if: always()
+    steps:
+      - name: Require every Python version
+        env:
+          MATRIX_RESULT: ${{ needs.python-matrix.result }}
+        run: test "$MATRIX_RESULT" = success
+
+  ios-matrix:
     runs-on: macos-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [catchbook, life-clock, after-plans]
     steps:
       - uses: actions/checkout@v4
 
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: |
+          brew install xcodegen
+          xcodegen --version
+          xcodebuild -version
 
       - name: Run iOS tests and coverage
-        run: ./scripts/test_ios.sh
+        run: ./scripts/test_ios.sh --product "${{ matrix.product }}"
 
       - name: Upload iOS test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-test-artifacts
+          name: ios-${{ matrix.product }}-test-artifacts
           path: |
-            build/ios/Catchbook.xcresult
+            build/ios/${{ matrix.product }}.xcresult
+
+  ios-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: ios-matrix
+    if: always()
+    steps:
+      - name: Require every iOS product
+        env:
+          MATRIX_RESULT: ${{ needs.ios-matrix.result }}
+        run: test "$MATRIX_RESULT" = success
+
+  python-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.22"
+          python-version: "3.12"
+      - run: uv sync --frozen --extra test --group quality
+      - run: .venv/bin/ruff check apps packages scripts tests
+      - name: Audit locked dependencies including optional adapters and tools
+        run: |
+          mkdir -p build
+          uv export --frozen --all-extras --group quality --no-emit-project \
+            --output-file build/audit-requirements.txt > /dev/null
+          .venv/bin/pip-audit --requirement build/audit-requirements.txt --no-deps --disable-pip
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan reachable history with value-redacted diagnostics
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -v "$PWD:/repo:ro" -w /repo ghcr.io/gitleaks/gitleaks:v8.30.1 \
+            git --redact=100 --log-opts=HEAD --gitleaks-ignore-path=/repo/.gitleaksignore /repo
 
   doc-path-check:
     # Required — a non-zero exit from check_doc_paths.sh fails the
     # workflow. Promoted from advisory after a sustained run of green
     # doc-path checks across PRs #51–#57.
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
@@ -109,6 +198,7 @@ jobs:
     #     in scripts/ci/token_efficiency_baseline.txt — a ratchet, not a wall)
     #   * generated docs INDEX.md files are up to date
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 

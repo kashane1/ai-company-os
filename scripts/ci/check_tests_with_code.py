@@ -15,7 +15,6 @@ from packages.policies.testing import (  # noqa: E402
     logic_paths_for_lane,
     parse_name_status_lines,
     parse_testing_metadata,
-    relevant_test_paths_for_lane,
 )
 from packages.schemas.testing import TestLane, ValidationFailureCode  # noqa: E402
 
@@ -68,21 +67,20 @@ def main() -> int:
             not pr_context
             and result.failure_code is ValidationFailureCode.MISSING_TESTING_METADATA
         ):
-            # No PR body on this event. Report what the diff alone shows
-            # (matching test files present?) and do not fail — the
-            # `## Testing` gate ran when this change merged as a PR.
-            test_paths = relevant_test_paths_for_lane(changes, lane)
-            if test_paths:
+            # Non-PR events do not have a review body, so waive only that
+            # metadata requirement. The diff still must prove every affected
+            # source area changed a matching test.
+            if result.relevant_tests_changed:
                 print(
                     f"{lane.value}: logic change shipped with "
-                    f"{len(test_paths)} matching test file(s) in the diff; "
+                    "matching tests in every affected area; "
                     f"PR-body metadata check is pull_request-only"
                 )
             else:
-                print(
-                    f"{lane.value}: PR-body `## Testing` metadata check is "
-                    f"pull_request-only; not enforced on {args.event_name!r} "
-                    f"events (enforced when this change merged as a PR)"
+                failures.append(
+                    f"{lane.value}: {ValidationFailureCode.MISSING_TESTS_FOR_LOGIC_CHANGE.value} "
+                    f"(No PR-body metadata is available on {args.event_name!r}; "
+                    f"{result.details})"
                 )
             continue
 

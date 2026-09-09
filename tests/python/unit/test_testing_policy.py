@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from packages.db.task_store import TaskStore
 from packages.policies import testing
 from packages.schemas.task_packet import TaskStatus, WorkerLane
@@ -618,12 +620,10 @@ def _run_check_script(
     )
 
 
-def test_check_tests_with_code_push_logic_change_without_pr_body_passes(
+def test_check_tests_with_code_push_logic_change_without_pr_body_requires_matching_tests(
     tmp_path: Path,
 ) -> None:
-    """Regression: a `push` event carries no PR body, so a logic change
-    must not fail solely for missing `## Testing` metadata — that gate was
-    already enforced when the change merged as a pull request."""
+    """A push lacks a review body but cannot bypass matching-test evidence."""
     result = _run_check_script(
         tmp_path,
         ["M\tpackages/policies/testing.py"],
@@ -631,8 +631,8 @@ def test_check_tests_with_code_push_logic_change_without_pr_body_passes(
         event_name="push",
     )
 
-    assert result.returncode == 0, result.stdout
-    assert "pull_request-only" in result.stdout
+    assert result.returncode == 1
+    assert "python: missing_tests_for_logic_change" in result.stdout
 
 
 def test_check_tests_with_code_push_reports_matching_tests_in_diff(
@@ -651,7 +651,40 @@ def test_check_tests_with_code_push_reports_matching_tests_in_diff(
     )
 
     assert result.returncode == 0, result.stdout
-    assert "matching test file(s)" in result.stdout
+    assert "matching tests in every affected area" in result.stdout
+
+
+def test_check_tests_with_code_push_requires_tests_for_each_affected_ios_product(
+    tmp_path: Path,
+) -> None:
+    result = _run_check_script(
+        tmp_path,
+        [
+            "M\tproducts/life-clock-ios/Sources/App/LifeClockApp.swift",
+            "M\tproducts/catchbook-ios/Tests/App/CatchbookAppTests.swift",
+        ],
+        "",
+        event_name="push",
+    )
+
+    assert result.returncode == 1
+    assert "ios: missing_tests_for_logic_change" in result.stdout
+
+
+@pytest.mark.parametrize("reason", ["comments_only", "config_no_behavior_change"])
+def test_check_tests_with_code_push_honors_explicit_reviewed_exception(
+    tmp_path: Path,
+    reason: str,
+) -> None:
+    result = _run_check_script(
+        tmp_path,
+        ["M\tpackages/policies/testing.py"],
+        f"## Testing\n\nno_test_reason_code={reason}\n- reviewed exception\n",
+        event_name="push",
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "python: pass" in result.stdout
 
 
 def test_check_tests_with_code_push_docs_only_passes(tmp_path: Path) -> None:
