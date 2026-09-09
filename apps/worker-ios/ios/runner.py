@@ -1,7 +1,7 @@
+import sys
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from pathlib import Path
-import sys
 from typing import Callable
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -13,17 +13,18 @@ for entry in (ROOT, ENGINEERING_APP):
 from engineering.git_state import capture_git_state
 from engineering.repo_manager import prepare_repo
 from engineering.worktree_manager import prepare_worktree
+
+from ios.codex_runner import execute_codex, render_task_packet
+from ios.review import build_summary, classify_result, create_approval_record, write_review_artifact
+from ios.validator import capture_diff, validate_run
 from packages.config.repositories import load_repo_configs
 from packages.db.task_run_store import TaskRunStore
 from packages.db.task_store import TaskStore
 from packages.db.worktree_store import WorktreeStore
 from packages.schemas.approval import ApprovalRecord
 from packages.schemas.task_packet import TaskResult, TaskStatus
-from packages.schemas.task_run import TaskRun, TaskRunStatus
-
-from ios.codex_runner import execute_codex, render_task_packet
-from ios.review import build_summary, classify_result, create_approval_record, write_review_artifact
-from ios.validator import capture_diff, validate_run
+from packages.schemas.task_run import EngineeringResultClassification, TaskRun, TaskRunStatus
+from packages.tools.worktrees import finalize_worktree
 
 
 def execute_task(
@@ -133,6 +134,10 @@ def execute_task(
         ],
     )
     TaskRunStore().save(task_run)
+
+    worktree = finalize_worktree(
+        worktree, classification=classification, validated_at=finished_at,
+    )
 
     final_status = (
         TaskStatus.COMPLETED
