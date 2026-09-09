@@ -65,7 +65,7 @@ The worker demonstration uses the **actual outreach worker**, database queue,
 control plane, and post-run validator with one synthetic prospect. It injects
 a ledger-write failure, records the failed task and goal, then runs a new task
 to completion. The original failure remains in the evidence. Inspect
-`report.json` in the directory printed by the command for task IDs, events,
+`execution-report.json` in the directory printed by the command for task IDs, events,
 artifact paths, and validation results. Each run creates a fresh isolated root;
 network connections and child processes are blocked. This proves one local
 execution and recovery path, without invoking a model or sending outreach.

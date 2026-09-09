@@ -67,6 +67,14 @@ Logic-bearing changes ship with lane-matching tests.
 Run the narrowest relevant test while working, then run `./scripts/test_python.sh`
 before handing off platform changes.
 
+## Publication
+
+Publish through a pull request and wait for all required checks, including
+maintenance and security. Main's protection applies to routine owner/admin
+changes too. Keep the `## Testing` section in the PR body: merge and squash
+commits retain that reviewed metadata so post-merge checks can evaluate explicit
+test exceptions. Rebase merging is disabled because it would discard that body.
+
 ## Runtime State
 
 Do not commit runtime output from `state/`, `.codex/`, `.claude/worktrees/`,
