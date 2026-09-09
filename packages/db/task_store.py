@@ -5,12 +5,20 @@ from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.schemas.task import Task
 from packages.schemas.task_packet import TaskStatus
 
+_ALLOWED_TRANSITIONS = {
+    TaskStatus.PENDING: {TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED, TaskStatus.FAILED},
+    TaskStatus.IN_PROGRESS: {TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.BLOCKED},
+    TaskStatus.BLOCKED: {TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED, TaskStatus.FAILED},
+    TaskStatus.COMPLETED: set(),
+    TaskStatus.FAILED: set(),
+}
+
 
 class TaskStore:
     def __init__(self) -> None:
         self.db = ControlPlaneDatabase()
 
-    def save(self, task: Task) -> str:
+    def save(self, task: Task, *, create_only: bool = False) -> str:
         query = f"""
             INSERT INTO {TASKS_TABLE} (
                 id, goal_id, repo_id, lane, title, summary, task_type, product_id,
@@ -41,6 +49,9 @@ class TaskStore:
                 {self.db.placeholder("created_at")},
                 {self.db.placeholder("updated_at")}
             )
+        """
+        insert_query = query
+        query += """
             ON CONFLICT(id) DO UPDATE SET
                 goal_id = excluded.goal_id,
                 repo_id = excluded.repo_id,
@@ -68,7 +79,14 @@ class TaskStore:
         payload["requires_approval"] = 1 if task.requires_approval else 0
         payload["constraints_json"] = self.db.dump_json(task.constraints)
         payload.pop("constraints")
-        self.db.execute(query, payload)
+        if create_only:
+            inserted = self.db.fetch_one(
+                insert_query + " ON CONFLICT(id) DO NOTHING RETURNING id", payload
+            )
+            if inserted is None:
+                raise ValueError(f"task '{task.id}' already exists")
+        else:
+            self.db.execute(query, payload)
         return task.id
 
     def load(self, task_id: str) -> Task:
@@ -78,6 +96,17 @@ class TaskStore:
             WHERE id = {self.db.placeholder("id")}
         """
         payload = self.db.fetch_one(query, {"id": task_id})
+        if payload is None:
+            raise FileNotFoundError(task_id)
+        return self._from_row(payload)
+
+    def load_for_update(self, task_id: str) -> Task:
+        """Read within a transaction, locking this task on Postgres."""
+        suffix = " FOR UPDATE" if self.db.config.backend == "postgres" else ""
+        payload = self.db.fetch_one(
+            f"SELECT * FROM {TASKS_TABLE} WHERE id = {self.db.placeholder('id')}{suffix}",
+            {"id": task_id},
+        )
         if payload is None:
             raise FileNotFoundError(task_id)
         return self._from_row(payload)
@@ -138,23 +167,28 @@ class TaskStore:
         return [self._from_row(payload) for payload in self.db.fetch_all(query, {"lane": lane})]
 
     def set_status(self, task_id: str, status: TaskStatus, updated_at: str) -> Task:
-        current = self.load(task_id)
-        updated = replace(current, status=status, updated_at=updated_at)
-        self.save(updated)
-        return updated
+        return self._transition(task_id, status, updated_at=updated_at)
 
-    def claim(self, task_id: str, *, worker_id: str, claimed_at: str) -> Task:
-        current = self.load(task_id)
-        updated = replace(
-            current,
-            status=TaskStatus.IN_PROGRESS,
-            claimed_by=worker_id,
-            claimed_at=claimed_at,
-            started_at=claimed_at,
-            updated_at=claimed_at,
-        )
-        self.save(updated)
-        return updated
+    def _transition(self, task_id: str, status: TaskStatus, **fields) -> Task:
+        with self.db.transaction():
+            current = self.load_for_update(task_id)
+            if status is not current.status and status not in _ALLOWED_TRANSITIONS[current.status]:
+                raise ValueError(f"illegal task transition: {current.status.value} -> {status.value}")
+            updated = replace(current, status=status, **fields)
+            self.save(updated)
+            return updated
+
+    def claim(self, task_id: str, *, worker_id: str, claimed_at: str,
+              allow_reclaim: bool = False) -> Task:
+        with self.db.transaction():
+            current = self.load_for_update(task_id)
+            if current.status is TaskStatus.IN_PROGRESS and not allow_reclaim:
+                raise ValueError("task already has an active claim")
+            return self._transition(
+                task_id, TaskStatus.IN_PROGRESS, claimed_by=worker_id,
+                claimed_at=claimed_at, started_at=current.started_at or claimed_at,
+                updated_at=claimed_at,
+            )
 
     def complete(
         self,
@@ -164,29 +198,21 @@ class TaskStore:
         completed_at: str,
         approval_id: str | None = None,
     ) -> Task:
-        current = self.load(task_id)
-        updated = replace(
-            current,
-            status=TaskStatus.COMPLETED,
+        return self._transition(
+            task_id, TaskStatus.COMPLETED,
             completed_at=completed_at,
             result_summary=summary,
             approval_id=approval_id,
             updated_at=completed_at,
         )
-        self.save(updated)
-        return updated
 
     def fail(self, task_id: str, *, error_summary: str, failed_at: str) -> Task:
-        current = self.load(task_id)
-        updated = replace(
-            current,
-            status=TaskStatus.FAILED,
+        return self._transition(
+            task_id, TaskStatus.FAILED,
             failed_at=failed_at,
             error_summary=error_summary,
             updated_at=failed_at,
         )
-        self.save(updated)
-        return updated
 
     def _from_row(self, payload: dict[str, object]) -> Task:
         payload = dict(payload)

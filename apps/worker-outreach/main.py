@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from threading import Event
 
@@ -22,8 +22,9 @@ APP_ROOT = Path(__file__).resolve().parent
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from apps.api.control_plane import ControlPlaneService  # noqa: E402
 from outreach.runner import execute_task  # noqa: E402
+
+from apps.api.control_plane import ControlPlaneService  # noqa: E402
 from packages.config.settings import load_runtime_paths  # noqa: E402
 from packages.schemas.task_packet import TaskResult, TaskStatus, WorkerLane  # noqa: E402
 
@@ -55,13 +56,22 @@ def execute_claimed_task(
         )
         raise
 
-    control_plane.submit_task_result(
+    submitted = control_plane.submit_task_result(
         task_id=task.id,
         status=result.status,
         summary=result.summary,
         worker_id=worker_id,
         approval_id=result.approval_id,
+        artifacts=result.artifacts,
+        events=["task_claimed"] if result.status is TaskStatus.COMPLETED else [],
     )
+    if submitted.status is not result.status:
+        return replace(
+            result,
+            status=submitted.status,
+            summary=submitted.error_summary or result.summary,
+            failure_codes=[*result.failure_codes, "post_run_validation_failed"],
+        )
     return result
 
 

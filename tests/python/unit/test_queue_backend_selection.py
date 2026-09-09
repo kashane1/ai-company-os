@@ -24,6 +24,31 @@ def test_queue_backend_rejects_unknown_name(monkeypatch: pytest.MonkeyPatch) -> 
         build_queue_backend()
 
 
+def test_database_queue_metrics_include_claimed_rows(isolated_repo_root) -> None:
+    backend = DatabaseQueueBackend()
+    for task_id in ("task-queued", "task-claimed"):
+        backend.enqueue(
+            Task(
+                id=task_id,
+                repo_id="ai-company-os",
+                lane=WorkerLane.ENGINEERING,
+                title="Work",
+                summary="Do work.",
+                task_type="engineering_change",
+                risk_level=RiskLevel.LOW,
+                created_at="2026-06-01T00:00:00+00:00",
+                updated_at="2026-06-01T00:00:00+00:00",
+            )
+        )
+
+    assert backend.claim_next(lanes=[WorkerLane.ENGINEERING], worker_id="worker-1")
+
+    assert backend.counts_by_lane() == {WorkerLane.ENGINEERING.value: 1}
+    assert backend.metrics_by_lane() == {
+        WorkerLane.ENGINEERING.value: {"queued": 1, "inflight": 1, "total": 2}
+    }
+
+
 def test_redis_stream_backend_enqueues_claims_and_acknowledges(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -52,13 +77,22 @@ def test_redis_stream_backend_enqueues_claims_and_acknowledges(
     )
 
     backend.enqueue(task)
+    assert backend.size(WorkerLane.ENGINEERING) == 1
+    assert backend.counts_by_lane() == {WorkerLane.ENGINEERING.value: 1}
+    assert backend.metrics_by_lane() == {
+        WorkerLane.ENGINEERING.value: {"queued": 1, "inflight": 0, "total": 1}
+    }
     claimed = backend.claim_next(lanes=[WorkerLane.ENGINEERING], worker_id="worker-1")
     assert claimed is not None
     assert claimed.task_id == task.id
     assert claimed.lane is WorkerLane.ENGINEERING
-    assert backend.counts_by_lane() == {WorkerLane.ENGINEERING.value: 1}
+    assert backend.size(WorkerLane.ENGINEERING) == 1
+    assert backend.counts_by_lane() == {}
+    assert backend.metrics_by_lane() == {
+        WorkerLane.ENGINEERING.value: {"queued": 0, "inflight": 1, "total": 1}
+    }
 
-    backend.acknowledge(task.id)
+    assert backend.acknowledge(task.id, worker_id="worker-1")
 
     assert backend.counts_by_lane() == {}
 
@@ -97,6 +131,17 @@ class _FakeRedisClient:
                 return [(stream, [messages[0]])]
         return []
 
+    def xautoclaim(
+        self,
+        stream: str,
+        group: str,
+        consumer: str,
+        min_idle_time: int,
+        start_id: str,
+        count: int,
+    ):
+        return "0-0", [], []
+
     def hset(self, name: str, key: str, value: str) -> None:
         self.hashes.setdefault(name, {})[key] = value
 
@@ -105,6 +150,58 @@ class _FakeRedisClient:
 
     def hdel(self, name: str, key: str) -> None:
         self.hashes.get(name, {}).pop(key, None)
+
+    def xpending_range(
+        self,
+        stream: str,
+        group: str,
+        *,
+        min: str,
+        max: str,
+        count: int,
+    ):
+        for claim in self.hashes.get("ai-company-os:queue:claims", {}).values():
+            claim_stream, message_id, worker_id = claim.split("|", 2)
+            if claim_stream == stream and message_id == min:
+                return [{"message_id": message_id, "consumer": worker_id}]
+        return []
+
+    def xpending(self, stream: str, group: str) -> dict[str, int]:
+        pending = sum(
+            claim.split("|", 2)[0] == stream
+            for claim in self.hashes.get("ai-company-os:queue:claims", {}).values()
+        )
+        return {"pending": pending}
+
+    def exists(self, stream: str) -> bool:
+        return stream in self.streams
+
+    def xinfo_groups(self, stream: str) -> list[dict[str, str]]:
+        if stream not in self.streams:
+            raise Exception("no such key")
+        return [
+            {"name": group}
+            for candidate_stream, group in self.groups
+            if candidate_stream == stream
+        ]
+
+    def eval(
+        self,
+        script: str,
+        keys: int,
+        claim_hash: str,
+        stream: str,
+        task_id: str,
+        expected_claim: str,
+        group: str,
+        message_id: str,
+        worker_id: str,
+    ) -> int:
+        if self.hget(claim_hash, task_id) != expected_claim:
+            return 0
+        self.xdel(stream, message_id)
+        self.hdel(claim_hash, task_id)
+        return 1
 
     def xack(self, stream: str, group: str, message_id: str) -> None:
         return None

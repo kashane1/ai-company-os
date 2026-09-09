@@ -1,0 +1,8 @@
+lane: outreach
+required_artifacts:
+  - path: state/prospects/outreach-lane/client-status.json
+  - path: state/prospects/outreach-lane/client-status.md
+required_events:
+  - task_claimed
+forbidden_failure_codes:
+  - outreach_send_forbidden

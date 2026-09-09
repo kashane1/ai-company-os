@@ -7,7 +7,7 @@ class ApprovalStore:
     def __init__(self) -> None:
         self.db = ControlPlaneDatabase()
 
-    def save(self, approval: ApprovalRecord) -> str:
+    def save(self, approval: ApprovalRecord, *, create_only: bool = False) -> str:
         query = f"""
             INSERT INTO {APPROVALS_TABLE} (
                 id, status, summary, created_at, task_id, task_run_id, approval_type,
@@ -30,6 +30,9 @@ class ApprovalStore:
                 {self.db.placeholder("decided_at")},
                 {self.db.placeholder("decision_notes")}
             )
+        """
+        insert_query = query
+        query += """
             ON CONFLICT(id) DO UPDATE SET
                 status = excluded.status,
                 summary = excluded.summary,
@@ -46,7 +49,14 @@ class ApprovalStore:
                 decided_at = excluded.decided_at,
                 decision_notes = excluded.decision_notes
         """
-        self.db.execute(query, approval.to_dict())
+        if create_only:
+            inserted = self.db.fetch_one(
+                insert_query + " ON CONFLICT(id) DO NOTHING RETURNING id", approval.to_dict()
+            )
+            if inserted is None:
+                raise ValueError(f"approval '{approval.id}' already exists")
+        else:
+            self.db.execute(query, approval.to_dict())
         return approval.id
 
     def load(self, approval_id: str) -> ApprovalRecord:

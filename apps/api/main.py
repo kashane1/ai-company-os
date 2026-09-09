@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
+import secrets
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,6 +18,9 @@ from apps.api.dashboard_endpoint import router as dashboard_router  # noqa: E402
 from apps.api.discovery_endpoint import router as discovery_router  # noqa: E402
 from apps.api.outreach_endpoint import router as outreach_router  # noqa: E402
 from apps.api.stripe_endpoint import router as stripe_router  # noqa: E402
+from packages.policies.approval_tokens import P0_ACTIONS  # noqa: E402
+from packages.policies.worker_capabilities import LaneCapabilityError  # noqa: E402
+from packages.queue import QueueClaimOwnershipError  # noqa: E402
 from packages.schemas.approval import ApprovalStatus  # noqa: E402
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane  # noqa: E402
 
@@ -30,6 +35,9 @@ app.include_router(dashboard_router)
 app.include_router(outreach_router)
 # G1 — local receiver for Stripe events forwarded by the Netlify webhook.
 app.include_router(stripe_router)
+
+
+LOCAL_OPERATOR_BEARER_TOKEN_ENV_VAR = "AI_COMPANY_OS_LOCAL_OPERATOR_BEARER_TOKEN"
 
 
 class CreateGoalRequest(BaseModel):
@@ -61,6 +69,8 @@ class SubmitTaskResultRequest(BaseModel):
     summary: str
     worker_id: str
     approval_id: str | None = None
+    artifacts: list[str] = Field(default_factory=list)
+    events: list[str] = Field(default_factory=list)
 
 
 class RequestApprovalBody(BaseModel):
@@ -72,6 +82,7 @@ class RequestApprovalBody(BaseModel):
     task_id: str | None = None
     task_run_id: str | None = None
     review_artifact_path: str | None = None
+    reviewed_revision: str = ""
 
 
 class DecideApprovalBody(BaseModel):
@@ -84,6 +95,19 @@ def get_service() -> ControlPlaneService:
     return ControlPlaneService()
 
 
+def require_local_operator(authorization: str | None = Header(default=None)) -> None:
+    """Require the locally configured bearer capability for approval decisions."""
+    expected = os.environ.get(LOCAL_OPERATOR_BEARER_TOKEN_ENV_VAR)
+    if not expected:
+        raise HTTPException(
+            status_code=503,
+            detail="Local operator capability is not configured.",
+        )
+    scheme, _, token = (authorization or "").partition(" ")
+    if scheme != "Bearer" or not token or not secrets.compare_digest(token, expected):
+        raise HTTPException(status_code=401, detail="Local operator authorization is required.")
+
+
 @app.get("/health")
 def health() -> dict[str, object]:
     return get_service().health()
@@ -91,7 +115,10 @@ def health() -> dict[str, object]:
 
 @app.post("/goals")
 def create_goal(body: CreateGoalRequest) -> dict[str, object]:
-    goal = get_service().create_goal(**body.model_dump())
+    try:
+        goal = get_service().create_goal(**body.model_dump())
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Parent goal not found.") from exc
     return as_payload(goal)
 
 
@@ -106,6 +133,8 @@ def create_task(goal_id: str, body: CreateTaskRequest) -> dict[str, object]:
         task = get_service().create_task_for_goal(goal_id=goal_id, **body.model_dump())
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=f"Goal not found: {goal_id}") from exc
+    except LaneCapabilityError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return as_payload(task)
 
 
@@ -135,6 +164,8 @@ def submit_task_result(task_id: str, body: SubmitTaskResultRequest) -> dict[str,
         task = get_service().submit_task_result(task_id=task_id, **body.model_dump())
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=f"Task not found: {task_id}") from exc
+    except QueueClaimOwnershipError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return as_payload(task)
@@ -147,8 +178,20 @@ def request_approval(body: RequestApprovalBody) -> dict[str, object]:
 
 
 @app.post("/approvals/{approval_id}/decision")
-def decide_approval(approval_id: str, body: DecideApprovalBody) -> dict[str, object]:
+def decide_approval(
+    approval_id: str,
+    body: DecideApprovalBody,
+    _: None = Depends(require_local_operator),
+) -> dict[str, object]:
     try:
+        existing = get_service().approvals.load(approval_id)
+        if body.status is ApprovalStatus.PENDING:
+            raise HTTPException(status_code=422, detail="Approval decisions must be terminal.")
+        if body.status is ApprovalStatus.APPROVED and existing.action in P0_ACTIONS:
+            raise HTTPException(
+                status_code=409,
+                detail="P0 approvals require the signed confirmation route.",
+            )
         approval = get_service().decide_approval(approval_id=approval_id, **body.model_dump())
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=f"Approval not found: {approval_id}") from exc

@@ -1,7 +1,7 @@
-from pathlib import Path
-import time
 import sys
-from dataclasses import asdict, dataclass
+import time
+from dataclasses import asdict, dataclass, replace
+from pathlib import Path
 from threading import Event
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,11 +12,11 @@ APP_ROOT = Path(__file__).resolve().parent
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from apps.api.control_plane import ControlPlaneService
 from engineering.runner import execute_task
-from packages.schemas.task_packet import TaskResult
+
+from apps.api.control_plane import ControlPlaneService
 from packages.schemas.approval import ApprovalRecord
-from packages.schemas.task_packet import TaskStatus, WorkerLane
+from packages.schemas.task_packet import TaskResult, TaskStatus, WorkerLane
 
 
 @dataclass(frozen=True)
@@ -80,8 +80,16 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
     }
     if result_artifacts:
         submit_kwargs["artifacts"] = result_artifacts
-        submit_kwargs["events"] = ["task_completed"]
-    control_plane.submit_task_result(**submit_kwargs)
+    if result.status is TaskStatus.COMPLETED:
+        submit_kwargs["events"] = ["task_claimed"]
+    submitted = control_plane.submit_task_result(**submit_kwargs)
+    if submitted.status is not result.status:
+        return replace(
+            result,
+            status=submitted.status,
+            summary=submitted.error_summary or result.summary,
+            failure_codes=[*result.failure_codes, "post_run_validation_failed"],
+        )
     return result
 
 

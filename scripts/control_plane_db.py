@@ -4,13 +4,16 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sqlite3
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from apps.api.control_plane import ControlPlaneService  # noqa: E402
 from packages.config.settings import DATABASE_URL_ENV_VAR, load_runtime_paths  # noqa: E402
 from packages.db.contracts import (  # noqa: E402
     APPROVALS_TABLE,
@@ -23,6 +26,8 @@ from packages.db.contracts import (  # noqa: E402
     TASKS_TABLE,
 )
 from packages.db.control_plane_db import ControlPlaneDatabase  # noqa: E402
+from packages.schemas.task import Task  # noqa: E402
+from packages.schemas.task_packet import TaskStatus, WorkerLane  # noqa: E402
 
 TABLES = (
     GOALS_TABLE,
@@ -81,6 +86,87 @@ def _cmd_migrate_sqlite(args: argparse.Namespace) -> int:
     return 0
 
 
+def _all_canonical_tasks(service: ControlPlaneService) -> list[Task]:
+    """Read every lane without the dashboard's bounded recent-task query."""
+    return [
+        task
+        for lane in WorkerLane
+        for task in service.tasks.list_for_lane(lane.value)
+    ]
+
+
+def _cmd_reconcile_queue(args: argparse.Namespace) -> int:
+    if args.apply and not args.workers_stopped:
+        print("--apply requires --workers-stopped", file=sys.stderr)
+        return 2
+    service = ControlPlaneService()
+    with service.tasks.db.transaction():
+        report = service.queue.reconcile_pending(
+            _all_canonical_tasks(service),
+            dry_run=not args.apply,
+            workers_stopped=args.workers_stopped,
+        )
+    print(json.dumps(asdict(report), sort_keys=True))
+    return 0
+
+
+def _cmd_recover_task(args: argparse.Namespace) -> int:
+    if not args.reason.strip():
+        print("--reason must not be empty", file=sys.stderr)
+        return 2
+    service = ControlPlaneService()
+    try:
+        task = service.tasks.load(args.task_id)
+    except FileNotFoundError:
+        print(f"task not found: {args.task_id}", file=sys.stderr)
+        return 1
+    if task.status not in {TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED}:
+        print("only in-progress or blocked tasks can be recovered", file=sys.stderr)
+        return 1
+    if not task.goal_id:
+        print("task recovery requires a parent goal", file=sys.stderr)
+        return 1
+    if not args.apply:
+        print(
+            json.dumps(
+                {
+                    "dry_run": True,
+                    "task_id": task.id,
+                    "status": task.status.value,
+                    "reason": args.reason,
+                    "action": "fail old task and create a pending replacement under a child goal",
+                },
+                sort_keys=True,
+            )
+        )
+        return 0
+    if not args.workers_stopped:
+        print("--apply requires --workers-stopped", file=sys.stderr)
+        return 2
+    try:
+        failed, recovery_goal, replacement = service.abandon_task(
+            task_id=task.id,
+            reason=args.reason,
+            workers_stopped=args.workers_stopped,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(
+        json.dumps(
+            {
+                "dry_run": False,
+                "abandoned_task_id": failed.id,
+                "recovery_goal_id": recovery_goal.id,
+                "replacement_task_id": replacement.id,
+                "replacement_status": replacement.status.value,
+            },
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
 def _sqlite_table_exists(connection: sqlite3.Connection, table: str) -> bool:
     row = connection.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
@@ -117,6 +203,24 @@ def main() -> int:
     migrate = sub.add_parser("migrate-sqlite")
     migrate.add_argument("--source", help="source sqlite path (default: runtime control plane)")
     migrate.set_defaults(func=_cmd_migrate_sqlite)
+    reconcile = sub.add_parser("reconcile-queue", help="reconcile Redis dispatch from canonical tasks")
+    reconcile.add_argument("--apply", action="store_true", help="apply the reviewed repair plan")
+    reconcile.add_argument(
+        "--workers-stopped",
+        action="store_true",
+        help="confirm every worker is stopped before applying repairs",
+    )
+    reconcile.set_defaults(func=_cmd_reconcile_queue)
+    recover = sub.add_parser("recover-task", help="replace an abandoned stopped-worker task")
+    recover.add_argument("task_id")
+    recover.add_argument("--reason", required=True)
+    recover.add_argument("--apply", action="store_true", help="fail the old task and create replacement")
+    recover.add_argument(
+        "--workers-stopped",
+        action="store_true",
+        help="confirm every worker is stopped before applying recovery",
+    )
+    recover.set_defaults(func=_cmd_recover_task)
     args = parser.parse_args()
     return int(args.func(args))
 

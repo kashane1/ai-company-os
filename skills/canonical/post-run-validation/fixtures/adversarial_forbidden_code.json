@@ -10,7 +10,7 @@
       "artifacts": [
         "state/artifacts/gtm/task-advers-003/run_summary.json"
       ],
-      "events": ["task_completed"]
+      "events": ["task_claimed"]
     },
     "repo_root": "."
   },

@@ -10,7 +10,7 @@
       "artifacts": [
         "state/artifacts/engineering/task-happy-001/review_summary.json"
       ],
-      "events": ["task_completed"]
+      "events": ["task_claimed"]
     },
     "repo_root": "."
   },

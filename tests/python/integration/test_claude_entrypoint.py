@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from apps.api.control_plane import ControlPlaneService
@@ -44,11 +46,23 @@ def test_open_enqueue_close_cycle(isolated_repo_root) -> None:
     # until the worker completes. We simulate a worker completion here to
     # prove the cross-session read path.
     service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="w1")
+    artifact = (
+        Path(isolated_repo_root)
+        / "state"
+        / "artifacts"
+        / "engineering"
+        / task.id
+        / "review_summary.json"
+    )
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text("{}", encoding="utf-8")
     service.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,
         summary="ok",
         worker_id="w1",
+        artifacts=[str(artifact)],
+        events=["task_claimed"],
     )
 
     next_session = SupervisorSession("claude-test-2", service=service)
@@ -93,7 +107,7 @@ def test_strategic_task_validated_on_close(isolated_repo_root) -> None:
                 title="refresh metadata",
                 summary="refresh",
                 task_type=task_type,
-                lane=WorkerLane.SUPERVISOR,
+                lane=WorkerLane.ENGINEERING,
             )
         )
         assert strategic.task_type == task_type
@@ -101,9 +115,32 @@ def test_strategic_task_validated_on_close(isolated_repo_root) -> None:
         assert summary.strategic_task_ids == (strategic.id,)
 
 
-def test_request_approval_threads_through_service(isolated_repo_root) -> None:
+def test_supervisor_lane_task_is_rejected_before_enqueue(isolated_repo_root) -> None:
     service = ControlPlaneService()
     goal = _goal(service)
+
+    with SupervisorSession("claude-test-no-supervisor-queue", service=service) as handle:
+        with pytest.raises(ValueError, match="no registered consumer") as exc:
+            handle.create_strategic_task(
+                task_def=StrategicTaskDef(
+                    goal_id=goal.id,
+                    repo_id="ai-company-os",
+                    title="Refresh product brief",
+                    summary="Update the strategic artifact.",
+                    task_type="PRODUCT_BRIEF_UPDATE",
+                    lane=WorkerLane.SUPERVISOR,
+                )
+            )
+        assert "record_strategic_artifact" in str(exc.value)
+        handle.close(summary_md="Rejected an unconsumed supervisor task")
+
+    assert service.list_tasks_for_goal(goal.id) == []
+    assert service.queue.size() == 0
+
+
+def test_request_approval_threads_through_service(isolated_repo_root) -> None:
+    service = ControlPlaneService()
+    _goal(service)
 
     with SupervisorSession("claude-test-5", service=service) as handle:
         approval = handle.request_approval(

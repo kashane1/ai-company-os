@@ -1,9 +1,9 @@
-from datetime import UTC, datetime
-from dataclasses import asdict, dataclass, replace
 import json
-from pathlib import Path
-import time
 import sys
+import time
+from dataclasses import asdict, dataclass, replace
+from datetime import UTC, datetime
+from pathlib import Path
 from threading import Event
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,17 +12,22 @@ if str(ROOT) not in sys.path:
 
 from apps.api.control_plane import ControlPlaneService
 from packages.config.settings import load_runtime_paths
-from packages.db.task_store import TaskStore
 from packages.db.approval_store import ApprovalStore
 from packages.db.release_store import ReleaseStore
+from packages.db.task_store import TaskStore
 from packages.policies.approvals import (
     APPROVAL_REQUIRED_RELEASE_ACTIONS,
     SAFE_RELEASE_ACTIONS,
+    PolicyViolation,
     requires_release_action_approval,
 )
-from packages.schemas.approval import ApprovalRecord, ApprovalStatus
+from packages.policies.release_readiness import (
+    APP_STORE_SUBMISSION_APPROVAL_TYPE,
+    approve_app_store_submission,
+)
+from packages.schemas.approval import ApprovalStatus
 from packages.schemas.release import ReleaseRecord, ReleaseStatus, StoreChannelStatus
-from packages.schemas.task_packet import RiskLevel, TaskPacket, TaskResult, TaskStatus, WorkerLane
+from packages.schemas.task_packet import TaskPacket, TaskResult, TaskStatus, WorkerLane
 
 
 @dataclass(frozen=True)
@@ -35,6 +40,12 @@ class WorkerLoopStats:
 
 def inspect_release(release_id: str) -> ReleaseRecord:
     return ReleaseStore().load_release_record(release_id)
+
+
+def _approval_type_for_action(action: str) -> str:
+    if action == "submit_appstore":
+        return APP_STORE_SUBMISSION_APPROVAL_TYPE
+    return "release_action"
 
 
 def execute_release_action(release_id: str, action: str, approval_id: str | None = None) -> TaskResult:
@@ -75,7 +86,7 @@ def execute_release_action(release_id: str, action: str, approval_id: str | None
             )
         if (
             approval.status is not ApprovalStatus.APPROVED
-            or approval.approval_type != "release_action"
+            or approval.approval_type != _approval_type_for_action(action)
             or approval.subject_type != "release"
             or approval.subject_id != release_id
             or approval.action != action
@@ -86,6 +97,29 @@ def execute_release_action(release_id: str, action: str, approval_id: str | None
                 summary=f"Release action {action} is blocked because its approval does not match.",
                 next_actions=["Approve the matching release action before retrying."],
             )
+
+    validation_checks: list[str] = []
+    if action == "submit_appstore":
+        assert approval_id is not None  # guarded by the approval-required branch above
+        try:
+            approve_app_store_submission(
+                release_id,
+                approval_id,
+                product_id=release.product_id,
+                expected_action=action,
+            )
+        except PolicyViolation as exc:
+            return TaskResult(
+                task_id=release_id,
+                status=TaskStatus.BLOCKED,
+                summary=f"Release action {action} is blocked by release readiness: {exc.code}: {exc}",
+                next_actions=[
+                    "Complete the local submission checklist and signed P0 approval flow.",
+                    "Retry the local state transition after readiness passes.",
+                ],
+                failure_codes=[exc.code],
+            )
+        validation_checks.append("release_readiness:passed")
 
     updated = release
     if action == "prepare_testflight":
@@ -119,6 +153,7 @@ def execute_release_action(release_id: str, action: str, approval_id: str | None
         status=TaskStatus.COMPLETED,
         summary=f"Prepared release state for action {action}.",
         approval_id=approval_id if needs_approval else None,
+        validation_checks=validation_checks,
         next_actions=[
             "Inspect the updated release record.",
             "Keep App Store Connect submission manual for now.",
@@ -141,12 +176,16 @@ def execute(task: TaskPacket) -> TaskResult:
     if not release_id:
         return TaskResult(
             task_id=task.id,
-            status=TaskStatus.PENDING,
-            summary="App Store worker requires a release_id constraint to inspect or prepare release state.",
+            status=TaskStatus.BLOCKED,
+            summary=(
+                "App Store worker is blocked because the task has no release_id "
+                "constraint to inspect or prepare release state."
+            ),
             next_actions=[
                 "Create a release record first.",
                 "Pass release_id and release_action constraints to the App Store worker.",
             ],
+            failure_codes=["missing_release_id"],
         )
 
     return execute_release_action(release_id, release_action, approval_id=approval_id)
@@ -184,7 +223,7 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
                 subject_type="release",
                 subject_id=release_id,
                 action=release_action,
-                approval_type="release_action",
+                approval_type=_approval_type_for_action(release_action),
                 task_id=task.id,
             )
             result = TaskResult(
@@ -227,21 +266,30 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
                 "action": release_action,
                 "status": result.status.value,
                 "summary": result.summary,
+                "validation_checks": result.validation_checks,
+                "failure_codes": result.failure_codes,
                 "written_at": datetime.now(UTC).isoformat(),
             }
         ),
         encoding="utf-8",
     )
 
-    control_plane.submit_task_result(
+    submitted = control_plane.submit_task_result(
         task_id=task.id,
         status=result.status,
         summary=result.summary,
         worker_id=worker_id,
         approval_id=result.approval_id,
         artifacts=[artifact_path],
-        events=["task_completed"] if result.status is TaskStatus.COMPLETED else [],
+        events=["task_claimed"] if result.status is TaskStatus.COMPLETED else [],
     )
+    if submitted.status is not result.status:
+        return replace(
+            result,
+            status=submitted.status,
+            summary=submitted.error_summary or result.summary,
+            failure_codes=[*result.failure_codes, "post_run_validation_failed"],
+        )
     return result
 
 

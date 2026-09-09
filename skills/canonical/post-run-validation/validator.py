@@ -21,7 +21,14 @@ except Exception:  # pragma: no cover - exercised on stripped envs
 
 
 _CONTRACT_DIR = Path(__file__).parent / "contracts"
-_SUPPORTED_LANES = {"engineering", "ios", "appstore", "gtm"}
+_SUPPORTED_LANES = {
+    "engineering",
+    "ios",
+    "appstore",
+    "gtm",
+    "outreach",
+    "skill_evolution",
+}
 
 
 def _load_contract(lane: str) -> dict[str, Any] | None:
@@ -37,7 +44,6 @@ def _load_contract(lane: str) -> dict[str, Any] | None:
 
 def _tiny_yaml(raw: str) -> dict[str, Any]:
     out: dict[str, Any] = {}
-    current_list_key: str | None = None
     current_list: list[Any] | None = None
     pending_dict: dict[str, Any] | None = None
     for line in raw.splitlines():
@@ -63,13 +69,11 @@ def _tiny_yaml(raw: str) -> dict[str, Any]:
             key = key.strip()
             rest = rest.strip()
             if rest == "":
-                current_list_key = key
                 current_list = []
                 out[key] = current_list
                 pending_dict = None
             else:
                 out[key] = rest
-                current_list_key = None
                 current_list = None
                 pending_dict = None
     return out
@@ -78,7 +82,6 @@ def _tiny_yaml(raw: str) -> dict[str, Any]:
 def run(payload: dict) -> dict:
     try:
         lane = payload["lane"]
-        task_type = payload.get("task_type", "")
         result: dict[str, Any] = payload.get("result") or {}
         repo_root = Path(payload.get("repo_root") or ".")
         task_id = result.get("task_id") or payload.get("task_id") or ""
@@ -92,13 +95,40 @@ def run(payload: dict) -> dict:
 
         required_artifacts = contract.get("required_artifacts") or []
         for entry in required_artifacts:
-            rel = entry["path"] if isinstance(entry, dict) else str(entry)
+            rel = entry.get("path") if isinstance(entry, dict) else str(entry)
+            rel_glob = entry.get("path_glob") if isinstance(entry, dict) else None
+            if rel_glob:
+                rel_glob = str(rel_glob).replace("{task_id}", task_id)
+                matches = [path.resolve() for path in repo_root.glob(rel_glob) if path.is_file()]
+                listed_paths = {
+                    _resolve_artifact_path(repo_root, artifact)
+                    for artifact in (result.get("artifacts") or [])
+                }
+                if not any(match in listed_paths for match in matches):
+                    return _fail(
+                        lane,
+                        "required_artifact_missing",
+                        f"missing artifact matching {rel_glob}",
+                    )
+                continue
+            if not rel:
+                return _fail(
+                    lane,
+                    "contract_invalid",
+                    "required artifact entry needs path or path_glob",
+                )
+            rel = str(rel)
             rel = rel.replace("{task_id}", task_id)
-            # Consider the artifact "present" if the worker listed it OR
-            # if the file exists at repo_root/rel.
-            listed = rel in (result.get("artifacts") or [])
-            on_disk = (repo_root / rel).exists()
-            if not (listed or on_disk):
+            expected = (repo_root / rel).resolve()
+            listed = any(
+                _resolve_artifact_path(repo_root, artifact) == expected
+                for artifact in (result.get("artifacts") or [])
+            )
+            # A worker cannot satisfy the gate by naming a future or stale
+            # path. The required evidence must both be declared in its result
+            # and exist on disk at validation time.
+            on_disk = expected.is_file()
+            if not listed or not on_disk:
                 return _fail(
                     lane,
                     "required_artifact_missing",
@@ -147,3 +177,12 @@ def _fail(lane: str, failure_code: str, reason: str) -> dict:
         "reason": reason,
         "lane": lane,
     }
+
+
+def _resolve_artifact_path(repo_root: Path, artifact: object) -> Path | None:
+    if not isinstance(artifact, str) or not artifact:
+        return None
+    candidate = Path(artifact)
+    if not candidate.is_absolute():
+        candidate = repo_root / candidate
+    return candidate.resolve()
