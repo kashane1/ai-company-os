@@ -6,6 +6,7 @@ __pycache__/
 .mypy_cache/
 build/
 .coverage
+.coverage.*
 *.egg-info/
 
 # Secrets — never commit actual .env files

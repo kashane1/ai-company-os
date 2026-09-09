@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-
 
 REPO = Path(__file__).resolve().parents[3]
 
@@ -41,8 +41,18 @@ def _evaluator_fixture(tmp_path: Path) -> Path:
     """Build an isolated, runnable evaluator view without rewriting docs."""
     root = tmp_path / "repo with spaces"
     root.mkdir()
+    (root / "state").mkdir()
+    shutil.copy2(REPO / "state/README.md", root / "state/README.md")
     shutil.copytree(REPO / "scripts", root / "scripts")
-    shutil.copytree(REPO / "docs", root / "docs")
+    # Only generated examples are mutable. Share the other read-only inputs
+    # instead of copying the entire screenshot archive for every smoke check.
+    (root / "docs").mkdir()
+    for source in (REPO / "docs").iterdir():
+        target = root / "docs" / source.name
+        if source.name == "examples":
+            shutil.copytree(source, target)
+        else:
+            target.symlink_to(source, target_is_directory=source.is_dir())
     for relative in (
         "packages",
         "apps",
@@ -51,6 +61,18 @@ def _evaluator_fixture(tmp_path: Path) -> Path:
         "tests",
         ".github",
         "LICENSE",
+        "README.md",
+        "CONTRIBUTING.md",
+        "REPO_MAP.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "infra",
+        "uv.lock",
+        "Makefile",
+        "start",
+        "repo-manifest.yaml",
+        "SECURITY.md",
+        "todos",
     ):
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -62,7 +84,12 @@ def _evaluator_fixture(tmp_path: Path) -> Path:
 def test_evaluator_fast_check_runs_from_another_working_directory(tmp_path: Path) -> None:
     root = _evaluator_fixture(tmp_path)
     python_with_spaces = tmp_path / "python with spaces"
-    python_with_spaces.symlink_to(sys.executable)
+    # A new symlink can lose the interpreter's pyvenv.cfg association (notably
+    # with uv-managed Python). A launcher preserves the selected environment.
+    python_with_spaces.write_text(
+        f'#!/bin/sh\nexec {shlex.quote(sys.executable)} "$@"\n', encoding="utf-8"
+    )
+    python_with_spaces.chmod(0o755)
     env = _evaluator_subprocess_env(PYTHON_BIN=str(python_with_spaces))
 
     result = subprocess.run(
