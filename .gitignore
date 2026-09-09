@@ -13,27 +13,12 @@ build/
 .env.local
 .env.*.local
 
-state/repos/*
-state/worktrees/*
-state/artifacts/*
-state/checkpoints/*
-state/logs/*
-state/prospects/*
-state/handshake/
-state/postmortems/
-state/agency/
-# OAuth client secrets + minted tokens (reply-sync Gmail poller). Never source.
-state/secrets/
-# One-off research/report output — runtime-owned, never source (token-efficiency: keeps
-# multi-thousand-line JSON out of agent grep/glob). Move keepers to docs/examples/ instead.
-state/last30days_social_report/
-
-!state/repos/.gitkeep
-!state/worktrees/.gitkeep
-!state/artifacts/.gitkeep
-!state/checkpoints/.gitkeep
-!state/logs/.gitkeep
-!state/prospects/.gitkeep
+# Runtime records, reports, assets, tokens, and local worktrees stay private.
+# Only the contract and empty directory markers belong in a clean checkout.
+state/**
+!state/**/
+!state/README.md
+!state/**/.gitkeep
 
 # Claude Code agent worktrees — each one is its own checkout of the repo,
 # must never be committed back into the parent tree.

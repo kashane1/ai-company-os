@@ -10,8 +10,8 @@ Checks
 ------
 A. Plans archived         — no finished plan (status: completed/shipped/...) is
                             still in the docs/plans/ working set.
-B. No heavy tracked state — tracked files under state/ stay small; runtime junk
-                            belongs in gitignored state/, not in git.
+B. No tracked runtime data — only the state contract and empty directory markers
+                             belong in git; even small receipts stay private.
 C. Large-doc TL;DR        — every tracked doc over TLDR_THRESHOLD lines opens
                             with a TL;DR (frontmatter summary/tldr, a blockquote,
                             or a Summary/TL;DR heading near the top). Existing
@@ -37,8 +37,7 @@ REPO = Path(__file__).resolve().parents[2]
 BASELINE = Path(__file__).resolve().parent / "token_efficiency_baseline.txt"
 
 TLDR_THRESHOLD = 400          # lines; docs longer than this need a TL;DR
-STATE_MAX_LINES = 200         # tracked files under state/ should stay small
-STATE_ALLOW_SUFFIXES = {".gitkeep", ".md"}  # README/glossary prose is fine
+STATE_README_MAX_BYTES = 64 * 1024
 
 
 def tracked(*globs: str) -> list[Path]:
@@ -92,16 +91,23 @@ def check_plans_archived() -> list[str]:
 # --- Check B: no heavy tracked state ----------------------------------------
 
 def check_state_weight() -> list[str]:
+    """Enforce the public state boundary by path and bytes, never binary lines."""
     problems = []
     for path in tracked("state"):
-        if path.suffix in STATE_ALLOW_SUFFIXES or path.name == ".gitkeep":
+        relative = path.relative_to(REPO).as_posix()
+        if not path.exists() and not path.is_symlink():
+            # A deletion already made in the working tree is not new content.
             continue
-        n = line_count(path)
-        if n > STATE_MAX_LINES:
-            problems.append(
-                f"{path.relative_to(REPO)} is {n} lines tracked under state/ "
-                f"(> {STATE_MAX_LINES}); runtime data belongs in gitignored state/"
-            )
+        if not path.is_symlink() and path.is_file():
+            size = path.stat().st_size
+            if relative == "state/README.md" and size <= STATE_README_MAX_BYTES:
+                continue
+            if path.name == ".gitkeep" and size == 0:
+                continue
+        problems.append(
+            f"{relative} is tracked runtime content; keep it local and publish "
+            "reviewed, sanitized examples under docs/examples/ instead"
+        )
     return problems
 
 
@@ -199,7 +205,7 @@ def main(argv: list[str]) -> int:
 
     checks = [
         ("Plans archived", check_plans_archived),
-        ("No heavy tracked state", check_state_weight),
+        ("No tracked runtime data", check_state_weight),
         ("Large-doc TL;DR", check_large_doc_tldr),
     ]
     failed = False
