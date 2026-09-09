@@ -14,7 +14,7 @@
       "task_demo_0001"
     ],
     "command_display": "codex exec --task task_demo_0001",
-    "cwd": "state/worktrees/wt_demo_0001",
+    "cwd": "state/worktrees/ai-company-os/task_demo_0001",
     "exit_code": 0,
     "finished_at": "2026-05-17T18:02:30Z",
     "session_id": "sess_demo",
@@ -30,11 +30,13 @@
   "packet_path": "state/artifacts/run_demo_0001/packet.json",
   "post_run_git_state": {
     "changed_files": [
-      "products/catchbook-ios/Sources/LogEntry.swift"
+      "products/catchbook-ios/Sources/LogEntry.swift",
+      "products/catchbook-ios/Tests/LogEntryTests.swift"
     ],
-    "diff_summary": "1 file changed, 12 insertions(+), 3 deletions(-)",
+    "diff_summary": "2 files changed, 19 insertions(+), 3 deletions(-)",
     "status_lines": [
-      " M products/catchbook-ios/Sources/LogEntry.swift"
+      " M products/catchbook-ios/Sources/LogEntry.swift",
+      " M products/catchbook-ios/Tests/LogEntryTests.swift"
     ]
   },
   "pre_run_git_state": {
@@ -42,22 +44,49 @@
     "diff_summary": "clean worktree",
     "status_lines": []
   },
-  "repo_id": "repo_demo",
+  "repo_id": "ai-company-os",
   "review_artifact_path": "state/artifacts/run_demo_0001/review.json",
   "started_at": "2026-05-17T18:00:00Z",
   "status": "succeeded",
   "summary": "Fixed catch-log timestamp rounding in LogEntry; tests added.",
   "task_id": "task_demo_0001",
-  "testing_policy": null,
+  "testing_policy": {
+    "details": "Catchbook source and lane-matching unit-test changes are recorded.",
+    "failure_code": null,
+    "followup_task_id": null,
+    "no_test_reason_code": null,
+    "relevant_tests_changed": true,
+    "test_lane": "ios",
+    "tests_required": true
+  },
   "validation_checks": [
     {
       "code": null,
-      "details": "Tests modified under products/catchbook-ios/Tests/",
-      "name": "tests_present_for_logic_change",
+      "details": "Catchbook source and lane-matching unit-test changes are recorded.",
+      "name": "testing_policy",
       "passed": true
     }
   ],
-  "worker_lane": "engineering",
+  "verification_results": [
+    {
+      "command": [
+        "xcodebuild",
+        "test",
+        "-scheme",
+        "Catchbook"
+      ],
+      "cwd": "state/worktrees/ai-company-os/task_demo_0001/products/catchbook-ios",
+      "diff_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "exit_code": 0,
+      "finished_at": "2026-05-17T18:02:30Z",
+      "revision": "0000000000000000000000000000000000000000",
+      "started_at": "2026-05-17T18:00:00Z",
+      "stderr_path": "state/artifacts/run_demo_0001/verification.stderr.log",
+      "stdout_path": "state/artifacts/run_demo_0001/verification.stdout.log",
+      "timed_out": false
+    }
+  ],
+  "worker_lane": "ios",
   "worktree_id": "wt_demo_0001",
-  "worktree_path": "state/worktrees/wt_demo_0001"
+  "worktree_path": "state/worktrees/ai-company-os/task_demo_0001"
 }

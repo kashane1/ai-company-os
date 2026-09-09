@@ -258,8 +258,8 @@ Worker task packets and task runs should carry structured testing fields such as
 
 Lane matching matters:
 
-- changes under `apps/` or `packages/` require created or modified Python tests under `tests/python/`
-- changes under `products/catchbook-ios/Sources/` require created or modified iOS tests under `products/catchbook-ios/Tests/`
+- changes under `apps/`, `packages/`, or `scripts/` require created or modified Python tests under `tests/python/`
+- changes under a managed iOS product's `Sources/` root require created or modified tests in that same product's `Tests/` or `UITests/` root; standalone checkouts use the trusted repository registry's `source_path` to apply the same mapping
 
 One unrelated test edit must not satisfy another lane.
 
@@ -333,6 +333,10 @@ This includes:
 - temporary outputs
 
 Do not store runtime-generated state in source directories unless there is a very specific reason.
+
+The installed local `launchd` agent runs the foreground runtime supervisor from
+the repository virtualenv. It preserves a failed supervisor state for operator
+inspection; recovery requires an explicit restart after affected work is reviewed.
 
 ## Product Workspace Rules
 

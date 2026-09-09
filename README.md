@@ -34,6 +34,11 @@ is checked, and where an agent's authority stops.
 | How is approval enforced? | [Approval policies](packages/policies/approvals.py), [local endpoint](apps/api/approval_endpoint.py), and [token tests](tests/python/integration/test_approval_tokens.py) |
 | How did this shape a product? | [Life Clock case study](docs/flagship-simulator-driven-polish.md) |
 
+Engineering and iOS workers execute operator-configured verification commands and
+retain their exit status, redacted logs, and reviewed diff hashes. See the
+[verification contract](docs/engineering-flow.md#validation-flow) for configuration
+and failure behavior.
+
 Engineering and iOS workers prepare isolated Git worktrees, execute through
 Codex, validate changes, and persist review artifacts. The local control plane
 owns task and approval records. The App Store lane prepares local release work;

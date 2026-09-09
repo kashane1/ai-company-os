@@ -9,9 +9,13 @@ import sys
 from collections.abc import Callable, Iterable
 from html import unescape
 from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.parse import unquote, urlsplit
 
 _MARKDOWN_LINK_RE = re.compile(r"!?\[[^]]*\]\((<[^>]+>|(?:[^()]|\([^)]*\))*)\)")
+
+if TYPE_CHECKING:
+    from packages.schemas.task_run import TaskRun
 
 
 def _without_fences(text: str) -> str:
@@ -101,10 +105,49 @@ def validate_sample_artifacts(root: Path) -> list[str]:
             restored = deserialize(payload)
             if restored.to_dict() != payload:  # type: ignore[attr-defined]
                 raise ValueError("schema round trip changed the artifact")
+            if isinstance(restored, TaskRun):
+                validate_task_run_semantics(restored)
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise ValueError(f"{name} does not match its schema: {exc}") from exc
         passed.append(f"docs/examples/{name}")
     return passed
+
+
+def validate_task_run_semantics(task_run: "TaskRun") -> None:
+    """Require the checked-in iOS fixture to contain the evidence it claims.
+
+    This deliberately validates fixture relationships without importing worker
+    policy modules, so `scripts/evaluator_validation.py` remains runnable with
+    the repository's standard Python dependencies only.
+    """
+    from packages.schemas.task_packet import WorkerLane
+    from packages.schemas.testing import TestLane
+
+    changed_files = task_run.post_run_git_state.changed_files
+    source_roots = {
+        path.split("/Sources/", maxsplit=1)[0]
+        for path in changed_files
+        if "/Sources/" in path
+    }
+    if not source_roots:
+        return
+
+    if task_run.worker_lane is not WorkerLane.IOS:
+        raise ValueError("iOS source change must use the iOS worker lane")
+    if task_run.testing_policy is None:
+        raise ValueError("iOS source change is missing testing-policy evidence")
+    if task_run.testing_policy.test_lane is not TestLane.IOS:
+        raise ValueError("iOS source change must declare the iOS test lane")
+    if not task_run.testing_policy.tests_required:
+        raise ValueError("iOS source change must require lane-matching tests")
+    has_matching_test = any(
+        path.startswith(f"{source_root}/Tests/")
+        or path.startswith(f"{source_root}/UITests/")
+        for source_root in source_roots
+        for path in changed_files
+    )
+    if not has_matching_test or not task_run.testing_policy.relevant_tests_changed:
+        raise ValueError("iOS source change is missing a lane-matching iOS test")
 
 
 def validate_markdown_links(root: Path, pages: Iterable[Path]) -> list[str]:
