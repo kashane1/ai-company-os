@@ -51,6 +51,17 @@
                ReferencedContainer = "container:Catchbook.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C24F8DD0F8676EEB0FA4FA3A"
+               BuildableName = "CatchbookUITests.xctest"
+               BlueprintName = "CatchbookUITests"
+               ReferencedContainer = "container:Catchbook.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

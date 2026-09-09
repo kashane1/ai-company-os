@@ -289,7 +289,7 @@ struct TodayView: View {
     }
 
     private var headline: some View {
-        Group {
+        VStack(alignment: .leading, spacing: 0) {
             if let estimate = store.todayEstimate, canJustifyTodayHeadline {
                 // Final-value sign drives the prefix and color; mid-sweep
                 // would otherwise read "+0 min" in green for a negative
@@ -365,6 +365,7 @@ struct TodayView: View {
                     .accessibilityIdentifier("today.headline.loading")
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("today.headline")
     }
 

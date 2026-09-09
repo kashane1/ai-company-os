@@ -772,6 +772,7 @@ struct SensitiveConsentView: View {
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
         .onAppear { telemetry.value.screenAppeared("sensitiveConsent") }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.sensitiveConsent")
     }
 }

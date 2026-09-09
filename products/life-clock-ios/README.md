@@ -1,14 +1,19 @@
 # Life Clock iOS
 
-Managed iOS source tree for the Life Clock app. Working title — final brand name not yet resolved (see [docs/products/life-clock/archive/founder-pack-2026-04-27/14_OPEN_QUESTIONS.md](../../docs/products/life-clock/archive/founder-pack-2026-04-27/14_OPEN_QUESTIONS.md) Q1).
+Managed iOS source tree for **Life Clock: habits earn time**. The current
+product boundary is [pre-TestFlight](../../docs/products/life-clock/PHASE_STATUS.md):
+source and local validation exist, while App Store Connect setup, archive upload,
+TestFlight validation, submission, and release remain unverified here.
 
 ## Status
 
 - iOS 17+, iPhone-first, iPad renders natively (`TARGETED_DEVICE_FAMILY = "1,2"`).
 - Local-first SwiftUI + SwiftData. No backend.
-- Three tabs: **Today**, **History**, **Profile** (post tab-consolidation).
+- Four tabs: **Today**, **History**, **Future**, **Profile**.
 - Live HealthKit reads via `LiveHealthKitService`; mock service is selected by `LIFECLOCK_USE_MOCK_HEALTH=1` in DEBUG builds for tests and audits.
-- StoreKit live with three product IDs (`com.lifeclock.pro.{monthly,annual,lifetime}`); Pro entitlement gates the override flow and full 90-day History.
+- StoreKit 2 code and local StoreKit configuration define three product IDs
+  (`com.lifeclock.pro.{monthly,annual,lifetime}`); provisioning and validation of
+  corresponding App Store Connect products remain a pre-TestFlight blocker.
 - Three tone modes: `gentle`, `coach`, `firmDirect` (Coach default).
 - Three palettes: `defaultNavy`, `auroraCool`, `sunsetWarm`.
 - North star: [docs/products/life-clock/vision.md](../../docs/products/life-clock/vision.md). Read this before any vision-driven polish session.
@@ -52,18 +57,33 @@ xcodegen generate
 open LifeClock.xcodeproj
 ```
 
-The generated `.xcodeproj` is gitignored — regenerate locally.
+The generated `.xcodeproj` is gitignored — regenerate locally. Simulator
+builds do not require signing. Before an archive, copy
+`LifeClock.local.xcconfig.example` to ignored `LifeClock.local.xcconfig` and
+set `DEVELOPMENT_TEAM` for the operator’s Apple account.
 
 ## Tests
 
+From the repository root, use the shared script. It generates the project and
+selects an available iPhone simulator:
+
 ```bash
-xcodebuild test \
-  -project LifeClock.xcodeproj \
-  -scheme LifeClock \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+./scripts/test_ios.sh --product life-clock
 ```
 
-Test targets: `LifeClockTests` (unit tests covering engines, store, telemetry, schema migrations, snapshot overrides, subscription flow) and `LifeClockUITests` (`LifeClockUITests.swift`).
+To use a specific installed simulator, set `IOS_SIMULATOR_ID` to its UDID. Test
+targets: `LifeClockTests` (unit tests covering engines, store, telemetry, schema
+migrations, snapshot overrides, subscription flow) and `LifeClockUITests`
+(`LifeClockUITests.swift`).
+
+Verified 2026-09-09 with Xcode 26.6 and an iPhone 17 Pro Max simulator on iOS
+26.5: **453 total, 450 passed, 0 failed, 3 skipped** (445 unit tests and 8 UI
+tests). The three skips are StoreKit purchase, restore, and refund tests guarded
+for the known `SKTestSession.buyProduct` failure on the installed iOS 26.5
+runtime. The UI suite covers onboarding through the paywall, offline and denied
+Health access, retained History, core check-in and plan actions, tab
+destinations, paywall dismissal, and key accessibility values. The result
+bundle is written to `build/ios/life-clock.xcresult`.
 
 ## Layout
 

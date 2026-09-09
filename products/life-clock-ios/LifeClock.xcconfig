@@ -1,0 +1,4 @@
+// Shared signing configuration. Simulator builds need no developer team.
+// A developer preparing an archive may create the ignored
+// LifeClock.local.xcconfig from LifeClock.local.xcconfig.example.
+#include? "LifeClock.local.xcconfig"

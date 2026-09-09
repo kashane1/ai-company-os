@@ -1,0 +1,13 @@
+# Live-integration overlay. Generate this spec directly; it imports the
+# portable default and adds only the networked adapter dependency.
+include: project.yml
+name: AfterPlansSupabase
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    exactVersion: 2.44.1
+targets:
+  AfterPlans:
+    dependencies:
+      - package: Supabase
+        product: Supabase

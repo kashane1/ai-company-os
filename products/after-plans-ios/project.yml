@@ -9,17 +9,10 @@ settings:
     SWIFT_VERSION: 5.0
     CURRENT_PROJECT_VERSION: 1
     MARKETING_VERSION: 0.1.0
-packages:
-  Supabase:
-    url: https://github.com/supabase/supabase-swift
-    from: 2.5.0
 targets:
   AfterPlans:
     type: application
     platform: iOS
-    dependencies:
-      - package: Supabase
-        product: Supabase
     sources:
       - path: Sources
     info:
@@ -38,7 +31,6 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.afterplans
         PRODUCT_NAME: AfterPlans
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: 3YCTPY88Y4
         TARGETED_DEVICE_FAMILY: 1
         SUPPORTS_MACCATALYST: NO
         DEVELOPMENT_ASSET_PATHS: "\"\""
@@ -50,22 +42,6 @@ targets:
         - AfterPlans
       testTargets:
         - AfterPlansTests
-      # Local-dev Supabase wiring. The anon key is the well-known default JWT
-      # (iss=supabase-demo) shipped by every local `supabase start` install —
-      # not a secret. The integration test reads URL+KEY directly. The app
-      # reads AFTERPLANS_BACKEND to decide between InMemory and Supabase;
-      # leave it disabled for in-memory (default), enable to point the app at
-      # the local stack.
-      environmentVariables:
-        - variable: AFTERPLANS_SUPABASE_URL
-          value: http://127.0.0.1:54321
-          isEnabled: true
-        - variable: AFTERPLANS_SUPABASE_KEY
-          value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-          isEnabled: true
-        - variable: AFTERPLANS_BACKEND
-          value: supabase
-          isEnabled: false
   AfterPlansTests:
     type: bundle.unit-test
     platform: iOS
@@ -77,7 +53,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.afterplansTests
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: 3YCTPY88Y4
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AfterPlans.app/AfterPlans"

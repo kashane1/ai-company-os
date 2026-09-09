@@ -85,6 +85,7 @@
 		D61415EB78EECCFF68F621DA /* TripsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08637E8DB2DF04C1C7D14136 /* TripsView.swift */; };
 		D6CDAED31E6BBEC7A05A5841 /* FishingStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281C22F5F86E684C1516DD39 /* FishingStatsView.swift */; };
 		D93D2F9DA542703F19197254 /* LocaleDecimalParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC18BB4615399658E886C27 /* LocaleDecimalParserTests.swift */; };
+		DF2217E21AE91694776A1E91 /* CatchbookUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B5FE56C8225B1D119B8DBE /* CatchbookUITests.swift */; };
 		E828DC30676368CABD77A45C /* CatchPhotoComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17103AF7932F818FBF29FC3F /* CatchPhotoComponents.swift */; };
 		E983DB9DDF26DBF7B3958968 /* LogbookBackupExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57EAFD44335BF6CECA163FB /* LogbookBackupExporterTests.swift */; };
 		ECD268FEA7E4DBB314986E1F /* CatchLoggingPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2751F318FCBA18767BEC4F57 /* CatchLoggingPreferencesTests.swift */; };
@@ -100,6 +101,13 @@
 
 /* Begin PBXContainerItemProxy section */
 		8072DD648B129CFA6F35061B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 539CB586698AA448BE738643 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C47F1CFCBE7F477AF73E7B3B;
+			remoteInfo = Catchbook;
+		};
+		BF668294460D751C1015EB55 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 539CB586698AA448BE738643 /* Project object */;
 			proxyType = 1;
@@ -129,8 +137,10 @@
 		28DB79487E090886F0A61563 /* SavedLuresLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedLuresLogic.swift; sourceTree = "<group>"; };
 		28F7254FE545B06B9B68EA6C /* MoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreView.swift; sourceTree = "<group>"; };
 		2F6374E0B23088A443B6C3A1 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
+		30B5FE56C8225B1D119B8DBE /* CatchbookUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchbookUITests.swift; sourceTree = "<group>"; };
 		328FA7C829560A62009D26A5 /* FishingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishingModels.swift; sourceTree = "<group>"; };
 		335AA2E89AD46D515F534B2A /* HomeDashboardLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDashboardLogic.swift; sourceTree = "<group>"; };
+		34ED0353C742E650101A35CA /* CatchbookUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = CatchbookUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		38C1A77A8E4FC782F6E3F39E /* ActiveTripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveTripView.swift; sourceTree = "<group>"; };
 		3EFD0333240582147554BC1C /* CatchbookMapStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatchbookMapStyle.swift; sourceTree = "<group>"; };
 		3F09914CE71EECBE06CF679B /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
@@ -270,6 +280,7 @@
 				9258292991AD1BCD7D8E5707 /* PrivacyInfo.xcprivacy */,
 				CAB04EEEF888BD350D0D7602 /* Sources */,
 				BCB1AAA1C9CF8D0972C0E75F /* Tests */,
+				AA6584378C0B3CE0D61B2758 /* UITests */,
 				CDDED51D76028CC7BB4A324E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -454,6 +465,14 @@
 			path = More;
 			sourceTree = "<group>";
 		};
+		AA6584378C0B3CE0D61B2758 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				30B5FE56C8225B1D119B8DBE /* CatchbookUITests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
 		BB5E5938D1375EDB37FF17D0 /* Features */ = {
 			isa = PBXGroup;
 			children = (
@@ -500,6 +519,7 @@
 			children = (
 				621AAF4A0ADB6DD97CE1A7D6 /* Catchbook.app */,
 				E3D1ED14008494055376B16B /* CatchbookTests.xctest */,
+				34ED0353C742E650101A35CA /* CatchbookUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -561,6 +581,24 @@
 			productReference = E3D1ED14008494055376B16B /* CatchbookTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		C24F8DD0F8676EEB0FA4FA3A /* CatchbookUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB6066AB05324B686673A8B8 /* Build configuration list for PBXNativeTarget "CatchbookUITests" */;
+			buildPhases = (
+				E6C0B02099DC60B1654A0ED0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A72AF6EF40E99BAF428D670D /* PBXTargetDependency */,
+			);
+			name = CatchbookUITests;
+			packageProductDependencies = (
+			);
+			productName = CatchbookUITests;
+			productReference = 34ED0353C742E650101A35CA /* CatchbookUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		C47F1CFCBE7F477AF73E7B3B /* Catchbook */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2BA9828F3A7869506424AAF6 /* Build configuration list for PBXNativeTarget "Catchbook" */;
@@ -588,6 +626,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					C24F8DD0F8676EEB0FA4FA3A = {
+						TestTargetID = C47F1CFCBE7F477AF73E7B3B;
+					};
 				};
 			};
 			buildConfigurationList = 365C4D4217B46501317D4092 /* Build configuration list for PBXProject "Catchbook" */;
@@ -606,6 +647,7 @@
 			targets = (
 				C47F1CFCBE7F477AF73E7B3B /* Catchbook */,
 				5EEC90E57469B8E5F67CBF05 /* CatchbookTests */,
+				C24F8DD0F8676EEB0FA4FA3A /* CatchbookUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -724,9 +766,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E6C0B02099DC60B1654A0ED0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF2217E21AE91694776A1E91 /* CatchbookUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A72AF6EF40E99BAF428D670D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C47F1CFCBE7F477AF73E7B3B /* Catchbook */;
+			targetProxy = BF668294460D751C1015EB55 /* PBXContainerItemProxy */;
+		};
 		C32CE70AF2D4364729578932 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C47F1CFCBE7F477AF73E7B3B /* Catchbook */;
@@ -735,6 +790,23 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		61265C8A9FA21B959352948A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.aicompanyos.products.fishinglogbookUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Catchbook;
+			};
+			name = Debug;
+		};
 		75B2E7BE2A11139A21158468 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -895,6 +967,23 @@
 			};
 			name = Debug;
 		};
+		CF99316F2644932D029A6A0F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.aicompanyos.products.fishinglogbookUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Catchbook;
+			};
+			name = Release;
+		};
 		E51C433B7F1C63E4F983CE00 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -958,6 +1047,15 @@
 			buildConfigurations = (
 				E51C433B7F1C63E4F983CE00 /* Debug */,
 				9B8F1E26878CC9918C4083B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BB6066AB05324B686673A8B8 /* Build configuration list for PBXNativeTarget "CatchbookUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				61265C8A9FA21B959352948A /* Debug */,
+				CF99316F2644932D029A6A0F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

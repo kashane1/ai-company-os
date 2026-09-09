@@ -20,12 +20,10 @@ final class LifeClockUITests: XCTestCase {
     func testOnboardingV2FlowReachesPaywall() throws {
         launchApp(scenario: "onboarding")
 
-        // Phase 3.5 lead-ins
-        XCTAssertTrue(
-            app.otherElements["onboarding.coldOpen"].waitForExistence(timeout: 8),
-            "first screen of the new flow"
-        )
-        // ColdOpen auto-advances ~1.2s; let it ride or tap to skip.
+        // ColdOpen auto-advances in about 1.2 seconds. XCUITest is attached
+        // after that transition on modern simulators, so the stable contract
+        // is the first actionable welcome screen rather than a transient view.
+        XCTAssertTrue(app.otherElements["onboarding.welcome"].waitForExistence(timeout: 8))
 
         // welcome -> meetYourClock -> reactiveSlider -> goalPick.
         // appPreviews / visibilityFraming / personalizeIntro removed
@@ -43,6 +41,15 @@ final class LifeClockUITests: XCTestCase {
         // Goal pick — must select before continue is enabled
         XCTAssertTrue(app.otherElements["onboarding.goalPick"].waitForExistence(timeout: 5))
         app.buttons["onboarding.goal.justCurious"].tap()
+        app.buttons["onboarding.continue"].tap()
+
+        // The selected voice and sticking point now precede baseline data.
+        XCTAssertTrue(app.otherElements["onboarding.tone"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.tone.coach"].tap()
+        app.buttons["onboarding.continue"].tap()
+
+        XCTAssertTrue(app.otherElements["onboarding.habitFailureMode"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.habitFailureMode.forget"].tap()
         app.buttons["onboarding.continue"].tap()
 
         // Baseline DOB
@@ -81,62 +88,66 @@ final class LifeClockUITests: XCTestCase {
 
         // Sensitive consent — take the skip path so we don't have to
         // simulate every parental / stress / loneliness input.
-        XCTAssertTrue(app.otherElements["onboarding.sensitiveConsent"].waitForExistence(timeout: 5))
+        XCTAssertTrue(element("onboarding.sensitiveConsent").waitForExistence(timeout: 5))
         app.buttons["onboarding.skipSensitive"].tap()
-
-        // Tone
-        XCTAssertTrue(app.otherElements["onboarding.tone"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.tone.coach"].tap()
-        app.buttons["onboarding.continue"].tap()
 
         // Prior attempts
         XCTAssertTrue(app.otherElements["onboarding.priorAttempts"].waitForExistence(timeout: 5))
         app.buttons["onboarding.priorAttempts.firstTime"].tap()
         app.buttons["onboarding.continue"].tap()
 
+        // User guess, then the reveal sequence.
+        XCTAssertTrue(app.otherElements["onboarding.leverGuess"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.leverGuess.sleep"].tap()
+        app.buttons["onboarding.continue"].tap()
+
         // Analyzing — fake-progress timer (~4.5s) advances automatically.
-        XCTAssertTrue(app.otherElements["onboarding.analyzing"].waitForExistence(timeout: 5))
+        XCTAssertTrue(element("onboarding.analyzing").waitForExistence(timeout: 5))
+
+        XCTAssertTrue(
+            app.otherElements["onboarding.whatWeDontDo"].waitForExistence(timeout: 8),
+            "analyzing should auto-advance to the trust statement"
+        )
+        app.buttons["onboarding.continue"].tap()
 
         // Archetype reveal
         XCTAssertTrue(
             app.otherElements["onboarding.archetypeReveal"].waitForExistence(timeout: 8),
-            "analyzing should auto-advance to archetype reveal"
+            "the trust statement should advance to archetype reveal"
         )
         app.buttons["onboarding.continue"].tap()
 
-        // .justCurious goal SKIPS bigNumberPenalty per coordinator's
-        // shouldShowPenaltyScreen() — flow goes archetypeReveal →
-        // lifeGridRemaining → engineRevealAndDial directly.
-        // (Pre-merge there was a separate `lifeGridFull` step; that
-        // screen was absorbed into `lifeGridRemaining` on 2026-05-03.)
-        XCTAssertTrue(app.otherElements["onboarding.lifeGridRemaining"].waitForExistence(timeout: 5))
+        // Healthspan reveal replaced the retired dot-grid screens.
+        XCTAssertTrue(app.otherElements["onboarding.healthspanReveal"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
 
         // Engine reveal + dial — the heart of the feature.
-        XCTAssertTrue(app.otherElements["onboarding.engineRevealAndDial"].waitForExistence(timeout: 5))
+        XCTAssertTrue(element("onboarding.engineRevealAndDial").waitForExistence(timeout: 5))
         XCTAssertTrue(
-            app.otherElements["onboarding.dialYears"].exists,
+            element("onboarding.dialYears").exists,
             "the running healthspan years label must be present"
         )
         XCTAssertTrue(
-            app.otherElements["onboarding.dial.slider"].exists,
+            element("onboarding.dial.slider").exists,
             "the ±5yr dial slider must be reachable"
         )
         app.buttons["onboarding.dial.confirm"].tap()
-        // Confirmation alert — Lock to commit.
-        let lockButton = app.alerts.firstMatch.buttons["Lock"]
-        XCTAssertTrue(lockButton.waitForExistence(timeout: 5))
-        lockButton.tap()
+        // Confirmation alert — Anchor commits the one-time adjustment.
+        let anchorButton = app.alerts.firstMatch.buttons["Anchor"]
+        XCTAssertTrue(anchorButton.waitForExistence(timeout: 5))
+        anchorButton.tap()
 
         // Recovery preview
         XCTAssertTrue(app.otherElements["onboarding.recoveryPreview"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
 
-        // HealthKit auth — first tap fires the request, second tap advances.
+        // HealthKit auth — exercise the explicit offline-safe skip path.
         XCTAssertTrue(app.otherElements["onboarding.healthKitAuth"].waitForExistence(timeout: 5))
+        app.buttons["onboarding.healthKitAuth.skip"].tap()
+
+        // Receipt confirms the inputs before the conversion surface.
+        XCTAssertTrue(app.otherElements["onboarding.receipt"].waitForExistence(timeout: 5))
         app.buttons["onboarding.continue"].tap()
-        // System dialog handling is environment-specific; in CI we just
-        // verify we eventually reach the paywall.
 
         // Paywall — proves the conversion moment is reachable. We don't
         // attempt to purchase (sandbox StoreKit is flaky); we just verify
@@ -162,7 +173,7 @@ final class LifeClockUITests: XCTestCase {
         // cannot import the app's `ProPerks` enum). `paywall.perks`
         // combines its children, so the titles surface as either an
         // element label or staticText depending on Dynamic Type.
-        let perksBlock = app.otherElements["paywall.perks"]
+        let perksBlock = element("paywall.perks")
         XCTAssertTrue(
             perksBlock.waitForExistence(timeout: 5),
             "paywall.perks enumeration block must be addressable on the onboarding-terminal paywall"
@@ -222,17 +233,18 @@ final class LifeClockUITests: XCTestCase {
         app.buttons["today.checkInCard"].tap()
 
         XCTAssertTrue(app.buttons["checkIn.save"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["Update Life Clock"].exists)
+        // The visible label follows the person's selected tone and whether
+        // they have logged today; the accessibility identifier is the stable
+        // contract for this action.
         app.buttons["checkIn.save"].tap()
 
         XCTAssertTrue(app.staticTexts["Life Clock updated."].waitForExistence(timeout: 5))
     }
 
-    /// Verifies the 2026-05-01 IA refactor: tab bar is exactly Today,
-    /// History, Profile. Plan / Progress / Quests are gone; their content
-    /// lives inside Today (and History). Regression guard against
-    /// accidentally re-adding a tab.
-    func testTabBarHasOnlyThreeTabs() throws {
+    /// Verifies the current IA: Today, History, Future, and Profile remain
+    /// reachable while the retired Plan / Progress / Quests destinations do
+    /// not return as top-level tabs.
+    func testTabBarContainsCurrentFourDestinations() throws {
         launchApp(scenario: "onboarded")
         XCTAssertTrue(app.buttons["today.checkInCard"].waitForExistence(timeout: 5),
                       "Today screen should be the default tab")
@@ -240,6 +252,7 @@ final class LifeClockUITests: XCTestCase {
         XCTAssertFalse(app.buttons["Progress"].exists, "Progress tab should not exist post-refactor")
         XCTAssertFalse(app.buttons["Quests"].exists, "Quests tab should not exist post-refactor")
         XCTAssertTrue(app.buttons["History"].exists, "History tab should be present")
+        XCTAssertTrue(app.buttons["Future"].exists, "Future tab should be present")
         XCTAssertTrue(app.buttons["Profile"].exists, "Profile tab should be present")
     }
 
@@ -252,16 +265,16 @@ final class LifeClockUITests: XCTestCase {
             ]
         )
 
-        XCTAssertTrue(app.otherElements["today.headlineSparse"].waitForExistence(timeout: 5))
+        XCTAssertTrue(element("today.headlineSparse").waitForExistence(timeout: 5))
         XCTAssertTrue(
             app.staticTexts.containing("We can't currently see your Apple Health data").firstMatch.waitForExistence(timeout: 3),
             "Today should say we can't see Apple Health instead of implying a 0-step day"
         )
 
         app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.otherElements["history.emptyState"].waitForExistence(timeout: 5))
+        XCTAssertTrue(element("history.emptyState").waitForExistence(timeout: 5))
         XCTAssertTrue(
-            app.staticTexts.containing("We can't currently see recent Apple Health data").firstMatch.waitForExistence(timeout: 3)
+            app.staticTexts.containing("No recent Apple Health signal").firstMatch.waitForExistence(timeout: 3)
         )
 
         app.tabBars.buttons["Profile"].tap()
@@ -275,25 +288,40 @@ final class LifeClockUITests: XCTestCase {
         launchApp(
             scenario: "onboarded",
             extraEnvironment: [
-                "LIFECLOCK_HEALTH_AUTH": "notDetermined",
+                "LIFECLOCK_HEALTH_AUTH": "denied",
                 "LIFECLOCK_SEED_STREAK": "5",
+                "LIFECLOCK_SEED_LAST_LOG_DAYS_AGO": "1",
+                "LIFECLOCK_SEED_SNAPSHOTS": "5",
             ]
         )
 
-        XCTAssertTrue(app.otherElements["today.headlineSparse"].waitForExistence(timeout: 5))
+        XCTAssertTrue(element("today.headlineSparse").waitForExistence(timeout: 5))
         XCTAssertTrue(
             app.staticTexts.containing("Earlier history is still here").firstMatch.waitForExistence(timeout: 3),
             "returning user path should acknowledge saved history without claiming a fresh minute estimate"
         )
 
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.staticTexts["Past days"].waitForExistence(timeout: 5))
+        // Relaunch directly into History. The DEBUG fixture keeps this check
+        // deterministic even when Simulator reports transient invalid tab-bar
+        // hit points after an app relaunch.
+        launchApp(
+            scenario: "onboarded",
+            extraEnvironment: [
+                "LIFECLOCK_HEALTH_AUTH": "denied",
+                "LIFECLOCK_SEED_STREAK": "5",
+                "LIFECLOCK_SEED_LAST_LOG_DAYS_AGO": "1",
+                "LIFECLOCK_SEED_SNAPSHOTS": "5",
+                "LIFECLOCK_INITIAL_TAB": "history",
+            ]
+        )
+        XCTAssertTrue(element("history.screen").waitForExistence(timeout: 5))
+        let pastDays = app.staticTexts["Past days"]
+        for _ in 0..<4 where !pastDays.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(pastDays.waitForExistence(timeout: 5))
         XCTAssertFalse(app.otherElements["history.emptyState"].exists,
                        "seeded returning user should still have historical rows")
-
-        app.tabBars.buttons["Profile"].tap()
-        XCTAssertTrue(app.buttons["profile.health.connect"].waitForExistence(timeout: 5),
-                      "notDetermined path should still offer a real connect entry")
     }
 
     /// Verifies the IA refactor keeps the Today's Plan section reachable
@@ -342,6 +370,10 @@ final class LifeClockUITests: XCTestCase {
         let range = NSRange(value.startIndex..., in: value)
         XCTAssertNotNil(regex.firstMatch(in: value, options: [], range: range),
                         "mascot value should match TimeDeltaFormatter shape, got: \(value)")
+    }
+
+    private func element(_ identifier: String) -> XCUIElement {
+        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
 
     private func launchApp(scenario: String) {

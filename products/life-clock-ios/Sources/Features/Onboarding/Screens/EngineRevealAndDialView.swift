@@ -47,6 +47,7 @@ struct EngineRevealAndDialView: View {
 
     var body: some View {
         engineDialBody
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("onboarding.engineRevealAndDial")
             .onAppear {
                 telemetry.value.screenAppeared("engineRevealAndDial")

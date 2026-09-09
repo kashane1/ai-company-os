@@ -5,8 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from packages.schemas.product import ProductConfig, ProductPhase, ProductPlatform
 from packages.tools.product_artifacts.projection import (
     projection_path,
@@ -64,4 +62,26 @@ def test_infra_products_json_parses_phase():
     entries = _json.loads(infra.read_text())
     phases = {e["id"]: e.get("phase") for e in entries}
     assert phases["catchbook"] == "app-store-submission"
-    assert phases["after-plans"] == "discovery"
+    assert phases["life-clock"] == "app-store-submission"
+    assert phases["after-plans"] == "mvp-build"
+
+
+def test_ios_registry_sources_match_managed_product_trees():
+    repo_root = Path(__file__).parents[3]
+    entries = json.loads((repo_root / "infra" / "products.json").read_text())
+
+    ios_entries = {
+        entry["id"]: entry
+        for entry in entries
+        if entry["platform"] == ProductPlatform.IOS.value
+    }
+    assert set(ios_entries) == {"catchbook", "life-clock", "after-plans"}
+
+    for product_id, entry in ios_entries.items():
+        source_root = repo_root / entry["source_path"]
+        docs_root = repo_root / entry["docs_root"]
+
+        assert source_root == repo_root / "products" / f"{product_id}-ios"
+        assert (source_root / "project.yml").is_file()
+        assert docs_root == repo_root / "docs" / "products" / product_id
+        assert docs_root.is_dir()

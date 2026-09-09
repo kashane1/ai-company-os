@@ -2,12 +2,14 @@
 
 This directory contains the managed iOS source tree for After Plans.
 
-Current status:
+Current status (source and local-development evidence, reconciled 2026-09-08):
 
+- registry phase is `mvp-build`; the Phase 7 local-Supabase slice is in progress
 - product registry entry exists
 - product docs are the source of truth for scope
 - `project.yml` defines the managed XcodeGen project
-- the app defaults to in-memory state for offline development; an optional Supabase adapter is implemented
+- the app defaults to in-memory state for offline development; an optional
+  Supabase adapter has a local integration path
 - the shell covers onboarding, discovery, create plan, plan detail, confirmation, profile, activity, invite/share, and safety entrypoints
 
 For a code review, start with [backend selection](Sources/Services/AfterPlansConfiguration.swift),
@@ -36,3 +38,40 @@ Current contents:
 - a single SwiftUI iPhone app target
 - a continuation loop with an offline in-memory backend and optional Supabase adapter
 - unit tests for lifecycle, visibility, create-plan validation, and shell state mutations
+
+## Tests
+
+From the repository root, run the offline/hermetic scheme with an available
+simulator:
+
+```bash
+./scripts/test_ios.sh --product after-plans
+```
+
+The default project deliberately omits the remote `supabase-swift` package, so
+the shared command can build and test without network access. The adapter source
+remains present behind `canImport(Supabase)` and falls back to the in-memory
+backend when the package is absent.
+
+Simulator builds are unsigned and require no Apple development team or local
+signing configuration. Verified 2026-09-09 with Xcode 26.6 and an iPhone 17 Pro
+simulator on iOS 26.5: **90 total, 87 passed, 0 failed, 3 skipped**. The three
+skips are live Supabase integration tests, which require the explicit local
+endpoint and key shown below. This product does not yet define a UI-test target.
+The result bundle is written to `build/ios/after-plans.xcresult`.
+
+To run `SupabaseBackendIntegrationTests`, start the local Supabase stack, generate
+the separately named integration project, and pass its URL and anon key explicitly:
+
+```bash
+cd products/after-plans-ios
+xcodegen --spec project-supabase.yml
+AFTERPLANS_SUPABASE_URL=http://127.0.0.1:54321 \
+AFTERPLANS_SUPABASE_KEY="$LOCAL_SUPABASE_ANON_KEY" \
+xcodebuild test \
+  -project AfterPlansSupabase.xcodeproj \
+  -scheme AfterPlans \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
+
+No Supabase endpoint or key is enabled in the shared scheme.
