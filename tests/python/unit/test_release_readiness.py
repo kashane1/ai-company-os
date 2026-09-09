@@ -8,10 +8,13 @@ from pathlib import Path
 import pytest
 
 from apps.api.control_plane import ControlPlaneService
-from packages.db.approval_store import ApprovalStore
 from packages.db.approval_token_store import ApprovalTokenStore
 from packages.db.release_store import ReleaseStore
-from packages.policies.approval_tokens import issue_token, verify_and_burn_token, record_second_factor
+from packages.policies.approval_tokens import (
+    issue_token,
+    record_second_factor,
+    verify_and_burn_token,
+)
 from packages.policies.approvals import (
     PolicyViolation,
     is_approval_granted,
@@ -32,7 +35,6 @@ from packages.schemas.release import (
     ScreenshotStatus,
     StoreChannelStatus,
 )
-
 
 SECRET = b"test-release-readiness-secret"
 

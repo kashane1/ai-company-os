@@ -73,7 +73,6 @@ def _call(method: str, path: str, secret: str, form: dict[str, object] | None = 
     if form is not None:
         data = urllib.parse.urlencode(form, doseq=True).encode()
     req = urllib.request.Request(url, data=data, method=method)
-    token = urllib.parse.quote(secret)
     import base64
 
     req.add_header("Authorization", "Basic " + base64.b64encode(f"{secret}:".encode()).decode())

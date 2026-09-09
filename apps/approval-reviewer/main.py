@@ -59,17 +59,14 @@ Deliberately NOT here (all follow-up):
 from __future__ import annotations
 
 import argparse
-import json
 import socket
 import sys
-from dataclasses import asdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from packages.config.settings import load_runtime_paths
 from packages.db.approval_store import ApprovalStore
 from packages.db.approval_token_store import ApprovalTokenStore
 from packages.schemas.approval import ApprovalStatus

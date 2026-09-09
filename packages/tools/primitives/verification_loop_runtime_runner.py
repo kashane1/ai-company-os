@@ -30,7 +30,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-
 Severity = Literal["info", "warn", "fail", "error", "skipped"]
 Verdict = Literal["pass", "soft_fail", "hard_fail"]
 
@@ -83,8 +82,8 @@ def _stale_postmortems_check(
     """
     from packages.db.postmortem_store import PostMortemStore
     from packages.policies.postmortem_retention import (
-        STALE_THRESHOLD_DAYS,
         CRITICAL_AGE_DAYS,
+        STALE_THRESHOLD_DAYS,
         _age_days,
         is_stale,
         now_utc_iso,

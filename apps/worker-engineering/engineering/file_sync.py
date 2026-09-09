@@ -1,7 +1,6 @@
 import shutil
 from pathlib import Path
 
-
 EXCLUDED_NAMES = {
     ".DS_Store",
     ".git",

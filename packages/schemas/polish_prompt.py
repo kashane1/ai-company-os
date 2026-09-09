@@ -19,7 +19,6 @@ deepening review §6 for the architecture rationale.
 
 from __future__ import annotations
 
-
 #: Ordered tuple of the nine binding field names every emitted polish
 #: prompt must carry. Order matches the canonical per-prompt template in
 #: ``skills/canonical/shared/recon-scaffolding.md``.

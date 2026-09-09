@@ -23,7 +23,7 @@ from packages.db.task_store import TaskStore
 from packages.db.worktree_store import WorktreeStore
 from packages.schemas.approval import ApprovalRecord
 from packages.schemas.task_packet import TaskResult, TaskStatus
-from packages.schemas.task_run import EngineeringResultClassification, TaskRun, TaskRunStatus
+from packages.schemas.task_run import TaskRun, TaskRunStatus
 from packages.tools.worktrees import finalize_worktree
 
 

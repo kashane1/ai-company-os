@@ -1,6 +1,6 @@
-from pathlib import Path
 import sqlite3
 import threading
+from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories, load_runtime_paths
 from packages.db.approval_store import ApprovalStore

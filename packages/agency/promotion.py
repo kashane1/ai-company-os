@@ -28,8 +28,8 @@ from packages.agency.registry import load_registry, write_registry
 from packages.agency.templates import scaffold_client_workspace, slugify
 from packages.config.settings import load_runtime_paths
 from packages.db.approval_store import ApprovalStore
-from packages.policies.approval_bindings import promotion_revision
 from packages.policies.agency_gates import assert_promotion_allowed
+from packages.policies.approval_bindings import promotion_revision
 from packages.prospecting.storage import ProspectRepository
 from packages.schemas.offer import CatalogError
 from packages.schemas.prospect import HumanVerified, ProspectRecord

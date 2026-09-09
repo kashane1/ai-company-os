@@ -28,9 +28,10 @@ APP_ROOT = Path(__file__).resolve().parent
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from apps.api.control_plane import ControlPlaneService
-from gtm.runner import execute_task, GtmFrozenError
+from gtm.runner import GtmFrozenError, execute_task
 from gtm.validator import check_threat_model_drift, is_gtm_frozen
+
+from apps.api.control_plane import ControlPlaneService
 from packages.schemas.task_packet import TaskResult, TaskStatus, WorkerLane
 
 

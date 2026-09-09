@@ -61,7 +61,6 @@ from typing import Any
 
 from packages.db.control_plane_db import ControlPlaneDatabase
 
-
 SKILL_EVOLUTION_LOCKS_TABLE = "skill_evolution_locks"
 
 # 60 s cadence; holder extends every interval. Three missed heartbeats

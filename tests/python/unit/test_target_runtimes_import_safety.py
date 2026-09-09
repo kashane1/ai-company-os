@@ -16,7 +16,6 @@ import importlib
 import importlib.util
 import sys
 
-
 ALLOWED_NON_STDLIB = set()  # empty — target_runtimes must be pure stdlib
 
 

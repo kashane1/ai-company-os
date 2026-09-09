@@ -11,7 +11,6 @@ from packages.policies.approvals import PolicyViolation
 from packages.policies.pod import require_draft_approval
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 
-
 SHOP = 28779955
 SOURCE = 'a' * 24
 DRAFT = 'b' * 24

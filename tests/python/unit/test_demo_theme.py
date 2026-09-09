@@ -7,12 +7,9 @@ from __future__ import annotations
 
 import re
 
-import pytest
-
 from packages.agency.demo_theme import (
     LAYOUTS,
     STYLE_PROFILES,
-    DemoTheme,
     _contrast_for,
     _hsl_to_rgb,
     _relative_luminance,

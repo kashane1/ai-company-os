@@ -1,6 +1,5 @@
 import subprocess
 from datetime import UTC, datetime
-from pathlib import Path
 
 from engineering.file_sync import clear_directory
 from packages.db.worktree_store import WorktreeStore

@@ -13,8 +13,10 @@ One entry per site in SITES (keyed by place_id → assets dir + per-file boxes).
 Edit/extend SITES below, then: python scripts/agency/blur_plates.py
 """
 from __future__ import annotations
+
 import shutil
 from pathlib import Path
+
 from PIL import Image, ImageFilter
 
 SITES_ROOT = Path("/Users/kashane/dev/ai-company-os/state/prospects/sites")

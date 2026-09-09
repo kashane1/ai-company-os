@@ -17,7 +17,6 @@ from packages.config.settings import (
     ensure_runtime_directories,
 )
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ENGINEERING_APP = REPO_ROOT / "apps" / "worker-engineering"
 IOS_APP = REPO_ROOT / "apps" / "worker-ios"

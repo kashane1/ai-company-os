@@ -9,15 +9,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import pytest
-
 from packages.tools.observability.redaction import REDACTED, redact
 from packages.tools.observability.rollup import (
     LANE_LOG_DIRS,
     _extract_failure_codes,
     build_rollup,
 )
-
 
 PLANTED_SECRETS = {
     "openai": "sk-abcdefghij0123456789ABCDEF",
@@ -117,9 +114,9 @@ def test_build_rollup_redacts_planted_credentials(tmp_path: Path):
     assert rollup.failed_by_lane["gtm"] == 1
     assert rollup.redaction_hits, "expected at least one redaction hit"
 
-    eng_lane = next(l for l in rollup.lanes if l.lane == "engineering")
+    eng_lane = next(lane for lane in rollup.lanes if lane.lane == "engineering")
     assert eng_lane.preflight_status == "green"
-    ios_lane = next(l for l in rollup.lanes if l.lane == "ios")
+    ios_lane = next(lane for lane in rollup.lanes if lane.lane == "ios")
     assert ios_lane.preflight_status == "blocked"
 
 

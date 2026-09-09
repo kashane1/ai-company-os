@@ -20,7 +20,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -301,7 +300,6 @@ def latest_screenshot(place_id: str) -> Path | None:
     shots = SITES / place_id / "screenshots"
     if not shots.is_dir():
         return None
-    latest = shots / "*-latest.png"
     matches = sorted(shots.glob("*-latest.png"))
     return matches[0] if matches else None
 

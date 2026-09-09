@@ -16,8 +16,8 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 from packages.config.settings import POSTIZ_API_KEY_ENV_VAR, get_api_key
 

@@ -66,13 +66,12 @@ from __future__ import annotations
 
 import fnmatch
 from dataclasses import dataclass, field
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Sequence
 
 from packages.db.locks.skill_evolution import SkillEvolutionLockStore
 from packages.policies.approvals import PolicyViolation, PolicyViolationCode
 from packages.tools.skills.loader import SkillNotFound, SkillSpec, load_registry
-
 
 # ---------------------------------------------------------------------- #
 # Types                                                                   #

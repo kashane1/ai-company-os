@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 
 from packages.schemas.postmortem import PostMortem, PostMortemSeverity, PostMortemStatus
 
-
 VISIBILITY_WINDOW_DAYS = 90
 STALE_THRESHOLD_DAYS = 14
 CRITICAL_AGE_DAYS = 30

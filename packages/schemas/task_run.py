@@ -1,8 +1,8 @@
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 
-from packages.schemas.testing import TestingPolicyResult
 from packages.schemas.task_packet import WorkerLane
+from packages.schemas.testing import TestingPolicyResult
 
 
 class TaskRunStatus(str, Enum):

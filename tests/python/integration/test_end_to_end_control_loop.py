@@ -7,11 +7,10 @@ runtime, human decision, or irreversible action runs here.
 
 from __future__ import annotations
 
-from scripts.demo.run_demo import build_demo_run
-
 from packages.schemas.approval import ApprovalStatus
 from packages.schemas.goal import GoalStatus
 from packages.schemas.task_run import EngineeringResultClassification, TaskRun, TaskRunStatus
+from scripts.demo.run_demo import build_demo_run
 
 
 def test_approved_fixture_has_linked_audit_record():

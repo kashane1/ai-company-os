@@ -1,6 +1,6 @@
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
-import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 ENGINEERING_APP = ROOT / "apps" / "worker-engineering"
@@ -9,6 +9,7 @@ for entry in (ROOT, ENGINEERING_APP):
         sys.path.insert(0, str(entry))
 
 from engineering.runner import execute_task, result_as_dict
+
 from apps.api.control_plane import ControlPlaneService
 from packages.config.products import load_product_configs
 from packages.config.settings import ensure_runtime_directories, load_runtime_paths

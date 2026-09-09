@@ -74,7 +74,7 @@ def line_count(path: Path) -> int:
 def check_plans_archived() -> list[str]:
     sys.path.insert(0, str(REPO / "scripts" / "docs"))
     try:
-        import archive_plans  # noqa: WPS433
+        import archive_plans
     except Exception as exc:  # pragma: no cover
         return [f"could not import archive_plans: {exc}"]
     cwd = Path.cwd()

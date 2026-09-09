@@ -27,7 +27,7 @@ v2 TODO documented in the report.
 from __future__ import annotations
 
 import functools
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
 
@@ -35,7 +35,6 @@ import yaml
 
 from packages.tools.primitives._safe_paths import UnsafePathError, safe_join
 from packages.tools.primitives._serialization import json_safe_factory
-
 
 Tokenizer = Literal["tiktoken:o200k_base", "char_count_fallback"]
 # Tightness of the char-count fallback heuristic. Matches the

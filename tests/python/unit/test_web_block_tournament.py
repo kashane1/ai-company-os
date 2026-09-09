@@ -8,7 +8,7 @@ Render + judge are injected, so this runs with no npm / Chromium / API key.
 
 from __future__ import annotations
 
-from packages.web.block_library import BlockLibrary, TIER_FLEET
+from packages.web.block_library import TIER_FLEET, BlockLibrary
 from packages.web.block_tournament import (
     BlockCandidate,
     admit,

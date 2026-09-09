@@ -2,6 +2,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from engineering import validator
+
 from packages.schemas.testing import ValidationFailureCode
 from tests.python.factories import build_worktree_metadata
 from tests.python.factories.task_data import build_task

@@ -6,13 +6,13 @@ from pathlib import Path
 
 from packages.prospecting.storage import ProspectRepository
 from packages.prospecting.verification import (
-    recompute_cohorts_and_priority_scores,
     export_cohort_a_verification_csv,
     import_verifications_csv,
+    recompute_cohorts_and_priority_scores,
 )
 from packages.schemas.prospect import (
-    HumanVerified,
     HttpCheckClass,
+    HumanVerified,
     MapsWebsiteClass,
     ProspectRecord,
 )

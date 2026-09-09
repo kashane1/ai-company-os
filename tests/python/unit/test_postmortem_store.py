@@ -9,9 +9,7 @@ import pytest
 from packages.db.postmortem_store import PostMortemStore
 from packages.schemas.postmortem import (
     PostMortem,
-    PostMortemSeverity,
     PostMortemStatus,
-    RootCauseCategory,
 )
 
 

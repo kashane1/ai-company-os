@@ -11,7 +11,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from packages.config.secrets import require_secret  # noqa: E402
 from packages.db.approval_store import ApprovalStore  # noqa: E402
 from packages.pod.runner import (  # noqa: E402
-    TEMPLATE_ID, PrintifyClient, apply_run, prepare_run, read_json,
+    TEMPLATE_ID,
+    PrintifyClient,
+    apply_run,
+    prepare_run,
+    read_json,
 )
 from packages.pod.template import mockup_signature  # noqa: E402
 

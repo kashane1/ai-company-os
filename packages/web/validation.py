@@ -29,10 +29,10 @@ review/approval surface the engineering and iOS lanes use):
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
-import re
 from urllib.parse import urldefrag, urlparse
 
 from packages.schemas.task_run import ValidationCheck

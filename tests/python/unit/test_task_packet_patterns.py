@@ -3,8 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from packages.schemas.task_packet import WorkerLane
-from packages.schemas.testing import NoTestReasonCode, TestLane as PacketTestLane
-from packages.tools.codex_tools.task_packet import PacketPattern, build_task_packet, render_markdown, select_packet_pattern
+from packages.schemas.testing import NoTestReasonCode
+from packages.schemas.testing import TestLane as PacketTestLane
+from packages.tools.codex_tools.task_packet import (
+    PacketPattern,
+    build_task_packet,
+    render_markdown,
+    select_packet_pattern,
+)
 from tests.python.factories.task_data import build_task
 
 

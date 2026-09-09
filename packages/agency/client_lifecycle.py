@@ -23,7 +23,7 @@ from packages.agency.registry import (
     get_registry_record,
     set_client_phase,
 )
-from packages.agency.templates import scaffold_client_workspace, slugify
+from packages.agency.templates import scaffold_client_workspace
 from packages.config.settings import load_runtime_paths
 from packages.prospecting.storage import ProspectRepository
 from packages.schemas.product import ProductPhase
@@ -54,7 +54,6 @@ def apply_client_intake(
     docs_root.mkdir(parents=True, exist_ok=True)
     (docs_root / "reports").mkdir(exist_ok=True)
 
-    from packages.agency.templates import render_offer
 
     paths = scaffold_client_workspace(
         docs_root,

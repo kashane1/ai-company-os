@@ -26,7 +26,6 @@ from packages.tools.primitives import (
     registry_drift,
 )
 
-
 # --- _safe_paths ---
 
 

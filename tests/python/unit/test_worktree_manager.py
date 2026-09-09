@@ -4,8 +4,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from engineering import worktree_manager
+
 from packages.db.worktree_store import WorktreeStore
 from packages.tools.worktrees import task_worktree_path
 from tests.python.factories.task_data import build_repo_record, build_task

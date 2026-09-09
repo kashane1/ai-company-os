@@ -31,10 +31,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from packages.schemas.task_packet import WorkerLane
 from packages.schemas.task_run import EngineeringResultClassification
 from packages.schemas.testing import ValidationFailureCode
-
 
 SIGNAL_INJECTION_DISABLED_ENV_VAR = "AI_COMPANY_OS_DISABLE_SIGNAL_INJECTION"
 _MEMOIZATION_TTL_SECONDS = 60

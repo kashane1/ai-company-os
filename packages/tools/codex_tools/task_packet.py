@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-import re
 
 from packages.schemas.task import Task
 from packages.schemas.testing import NoTestReasonCode, TestLane

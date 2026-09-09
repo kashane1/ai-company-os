@@ -1,7 +1,7 @@
-from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.repo import RepoConfig, RepoRecord, RepoSyncStatus
 from packages.schemas.task import Task
 from packages.schemas.task_packet import RiskLevel, TaskPacket, TaskStatus, WorkerLane
+from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.worktree import WorktreeMetadata, WorktreeStatus
 
 

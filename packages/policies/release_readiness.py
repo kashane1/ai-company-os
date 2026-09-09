@@ -25,11 +25,10 @@ from packages.config.settings import load_runtime_paths
 from packages.db.approval_store import ApprovalStore
 from packages.db.approval_token_store import ApprovalTokenStore
 from packages.db.release_store import ReleaseStore
-from packages.policies.approvals import PolicyViolation, is_approval_granted
 from packages.policies.approval_tokens import ApprovalToken
+from packages.policies.approvals import PolicyViolation, is_approval_granted
 from packages.schemas.release import ReleaseRecord, ReleaseStatus
 from packages.tools.skills.loader import load_validator
-
 
 APP_STORE_SUBMISSION_APPROVAL_TYPE = "app_store_submission"
 PROTECTED_BRANCH_MERGE_APPROVAL_TYPE = "protected_branch_merge"

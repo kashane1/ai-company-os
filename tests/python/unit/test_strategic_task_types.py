@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from packages.schemas.task_packet import STRATEGIC_TASK_TYPES
 
-
 EXPECTED = {
     "PRODUCT_BRIEF_UPDATE",
     "MVP_SPEC_UPDATE",

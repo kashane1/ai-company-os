@@ -28,7 +28,6 @@ from packages.db.connection import (
     open_platform_db,
 )
 
-
 N_WRITERS = 8
 CYCLES_PER_WRITER = 100
 

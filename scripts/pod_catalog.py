@@ -9,7 +9,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DRAFTS = DEFAULT_ROOT / "state/home-from-working/drafts"
 DEFAULT_OUTPUT = DEFAULT_ROOT / "state/home-from-working/catalog"

@@ -35,6 +35,7 @@ from packages.schemas.postmortem import (
     PostMortemStatus,
     RootCauseCategory,
 )
+from packages.schemas.task_packet import WorkerLane
 from packages.schemas.task_run import (
     CodexExecutionRecord,
     EngineeringResultClassification,
@@ -43,7 +44,6 @@ from packages.schemas.task_run import (
     TaskRunStatus,
     ValidationCheck,
 )
-from packages.schemas.task_packet import WorkerLane
 
 _T0 = "2026-05-17T18:00:00Z"
 _T1 = "2026-05-17T18:02:30Z"
