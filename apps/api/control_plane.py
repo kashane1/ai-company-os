@@ -10,6 +10,10 @@ from packages.db.approval_store import ApprovalStore
 from packages.db.event_store import EventStore
 from packages.db.goal_store import GoalStore
 from packages.db.task_store import TaskStore
+from packages.policies.completion_evidence import (
+    SUPPORTED_LANES,
+    validate_completion_evidence,
+)
 from packages.policies.worker_capabilities import ensure_task_lane_is_consumed
 from packages.queue import TaskQueue
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
@@ -451,6 +455,26 @@ class ControlPlaneService:
                 "reason": str(exc),
                 "lane": "",
             }
+        if task.lane in SUPPORTED_LANES:
+            evidence = validate_completion_evidence(task)
+            if not evidence.ok:
+                return {
+                    "verdict": "fail",
+                    "failure_code": evidence.failure_code,
+                    "reason": evidence.reason,
+                    "lane": task.lane.value,
+                }
+            # The submission body is worker-supplied prose. Build the skill
+            # input from the persisted TaskRun and event log instead.
+            summary = evidence.summary
+            artifacts = list(evidence.artifacts)
+            events = [
+                event.event_type
+                for event in self.events.list_for_subject("task", task_id)
+            ]
+            failure_codes = list(evidence.failure_codes)
+        else:
+            failure_codes = []
         try:
             validator = load_validator("post-run-validation")
         except (SkillNotFound, SkillNotEvaluated, SkillLoadError) as exc:
@@ -492,6 +516,7 @@ class ControlPlaneService:
                         "status": "completed",
                         "artifacts": artifacts,
                         "events": events,
+                        "failure_codes": failure_codes,
                     },
                     "repo_root": str(paths.repo_root),
                 }

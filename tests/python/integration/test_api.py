@@ -1,10 +1,63 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import LOCAL_OPERATOR_BEARER_TOKEN_ENV_VAR, app
 from packages.config.settings import load_runtime_paths
+from packages.db.task_run_store import TaskRunStore
+
+
+def _persist_completion_evidence(task: dict[str, object]) -> None:
+    paths = load_runtime_paths()
+    task_id = str(task["id"])
+    lane = str(task["lane"])
+    worktree = paths.worktrees_root / "evidence-worktree"
+    worktree.mkdir(parents=True, exist_ok=True)
+    files = {
+        "packet": worktree / "TASK_PACKET.md",
+        "execution": worktree / "execution.json",
+        "stdout": worktree / "stdout.log",
+        "stderr": worktree / "stderr.log",
+        "diff": worktree / "review.diff",
+        "verification_stdout": worktree / "verification.stdout.log",
+        "verification_stderr": worktree / "verification.stderr.log",
+    }
+    for name, path in files.items():
+        path.write_text("diff --git a/a b/a\n" if name == "diff" else "evidence")
+    review = paths.artifacts_root / lane / task_id / "review_summary.json"
+    review.parent.mkdir(parents=True)
+    testing_policy = {"tests_required": True, "test_lane": "python" if lane == "engineering" else "ios", "relevant_tests_changed": True, "failure_code": None}
+    checks = [{"name": name, "passed": True, "details": "ok"} for name in ("verification_commands_passed", "tests_with_code_policy")]
+    review.write_text(json.dumps({
+        "task_id": task_id,
+        "worktree_path": str(worktree),
+        "stdout_path": str(files["stdout"]),
+        "stderr_path": str(files["stderr"]),
+        "diff_path": str(files["diff"]),
+        "changed_files": ["source.py"],
+        "validator_results": checks,
+        "testing_policy": testing_policy,
+        "failure_codes": [],
+    }))
+    artifact_paths = [str(path) for path in files.values()] + [str(review)]
+    TaskRunStore().store.save(f"run-{task_id}", {
+        "id": f"run-{task_id}", "task_id": task_id, "worker_lane": lane,
+        "repo_id": task["repo_id"], "worktree_id": "evidence-worktree", "worktree_path": str(worktree),
+        "packet_path": str(files["packet"]), "execution_result_path": str(files["execution"]),
+        "execution": {"command": ["codex", "exec"], "command_display": "codex exec", "cwd": str(worktree), "stdout_path": str(files["stdout"]), "stderr_path": str(files["stderr"]), "exit_code": 0, "started_at": "2026-01-01T00:00:00+00:00", "finished_at": "2026-01-01T00:01:00+00:00", "timed_out": False},
+        "pre_run_git_state": {"status_lines": [], "changed_files": [], "diff_summary": ""},
+        "post_run_git_state": {"status_lines": [" M source.py"], "changed_files": ["source.py"], "diff_summary": ""},
+        "diff_path": str(files["diff"]), "classification": "safe_for_review", "review_artifact_path": str(review),
+        "approval_id": None, "status": "succeeded", "summary": "persisted summary",
+        "started_at": "2026-01-01T00:00:00+00:00", "finished_at": "2026-01-01T00:01:00+00:00",
+        "validation_checks": checks, "testing_policy": testing_policy,
+        "failure_codes": [], "artifacts": artifact_paths,
+        "verification_results": [{"command": ["pytest", "-q"], "cwd": str(worktree), "revision": "a" * 40, "exit_code": 0, "stdout_path": str(files["verification_stdout"]), "stderr_path": str(files["verification_stderr"]), "started_at": "2026-01-01T00:00:00+00:00", "finished_at": "2026-01-01T00:01:00+00:00", "timed_out": False, "diff_sha256": hashlib.sha256(files["diff"].read_bytes()).hexdigest()}],
+    })
 
 
 def test_api_supports_goal_task_claim_and_approval_flow(isolated_repo_root, monkeypatch) -> None:
@@ -86,7 +139,9 @@ def test_api_supports_goal_task_claim_and_approval_flow(isolated_repo_root, monk
         },
     )
     assert result_response.status_code == 200
-    assert result_response.json()["status"] == "completed"
+    # A listed, zero-byte-shaped review artifact is request prose, not the
+    # persisted TaskRun evidence required to complete an engineering task.
+    assert result_response.json()["status"] == "failed"
 
     decision_response = client.post(
         f"/approvals/{approval['id']}/decision",
@@ -108,7 +163,7 @@ def test_api_supports_goal_task_claim_and_approval_flow(isolated_repo_root, monk
         "task_created",
         "task_claimed",
         "approval_requested",
-        "task_completed",
+        "task_result_rejected",
         "approval_decided",
     ]
 
@@ -137,6 +192,26 @@ def test_api_rejects_completed_result_when_evidence_is_omitted(isolated_repo_roo
 
     assert response.status_code == 200
     assert response.json()["status"] == "failed"
+
+
+@pytest.mark.parametrize("lane", ["engineering", "ios"])
+def test_api_uses_bound_persisted_run_not_result_prose(isolated_repo_root, lane: str) -> None:
+    client = TestClient(app)
+    goal = client.post("/goals", json={"title": "Evidence", "summary": "Require it."}).json()
+    task = client.post(
+        f"/goals/{goal['id']}/tasks",
+        json={"repo_id": "ai-company-os", "lane": lane, "title": "Evidence task", "summary": "Must be validated.", "task_type": "change"},
+    ).json()
+    assert client.post("/tasks/claim", json={"lane": lane, "worker_id": f"worker-{lane}"}).status_code == 200
+    _persist_completion_evidence(task)
+
+    response = client.post(
+        f"/tasks/{task['id']}/result",
+        json={"status": "completed", "summary": "untrusted prose", "worker_id": f"worker-{lane}", "artifacts": [], "events": []},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "completed"
 
 
 @pytest.mark.parametrize("lane", ["gtm", "web", "webdeploy"])

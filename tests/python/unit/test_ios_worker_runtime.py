@@ -9,6 +9,7 @@ from packages.db.event_store import EventStore
 from packages.db.goal_store import GoalStore
 from packages.db.task_store import TaskStore
 from packages.schemas.task_packet import RiskLevel, TaskResult, TaskStatus, WorkerLane
+from tests.python.factories.completion_evidence import persist_completion_evidence
 
 
 def completed_ios_result(
@@ -18,23 +19,14 @@ def completed_ios_result(
     summary: str,
     approval_id: str | None = None,
 ) -> TaskResult:
-    artifact = (
-        repo_root
-        / "state"
-        / "artifacts"
-        / "ios"
-        / task_id
-        / "build_summary.json"
-    )
-    artifact.parent.mkdir(parents=True, exist_ok=True)
-    artifact.write_text("{}", encoding="utf-8")
+    artifact = persist_completion_evidence(TaskStore().load(task_id))
     return TaskResult(
         task_id=task_id,
         status=TaskStatus.COMPLETED,
         summary=summary,
         run_id=f"run-{task_id}",
         approval_id=approval_id,
-        artifacts=[str(artifact)],
+        artifacts=[artifact],
     )
 
 
@@ -194,7 +186,7 @@ def test_ios_worker_does_not_return_completed_when_evidence_is_missing(
 
     assert result is not None
     assert result.status is TaskStatus.FAILED
-    assert "required_artifact_missing" in result.summary
+    assert "task_run_missing" in result.summary
     assert TaskStore().load(task.id).status is TaskStatus.FAILED
 
 

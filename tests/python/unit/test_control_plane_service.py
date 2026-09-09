@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from apps.api.control_plane import ControlPlaneService
-from packages.config.settings import load_runtime_paths
 from packages.db.event_store import EventStore
 from packages.db.goal_store import GoalStore
 from packages.db.task_store import TaskStore
@@ -12,6 +11,7 @@ from packages.queue import QueueClaimOwnershipError
 from packages.schemas.approval import ApprovalStatus
 from packages.schemas.goal import GoalStatus
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
+from tests.python.factories.completion_evidence import persist_completion_evidence
 
 
 def test_control_plane_service_persists_goal_task_claim_result_and_events(
@@ -34,20 +34,13 @@ def test_control_plane_service_persists_goal_task_claim_result_and_events(
         risk_level=RiskLevel.MEDIUM,
     )
     claimed = service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="worker-eng-1")
-    artifact = (
-        load_runtime_paths().artifacts_root
-        / "engineering"
-        / task.id
-        / "review_summary.json"
-    )
-    artifact.parent.mkdir(parents=True)
-    artifact.write_text("{}", encoding="utf-8")
+    artifact = persist_completion_evidence(task)
     completed = service.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,
         summary="Implemented and validated.",
         worker_id="worker-eng-1",
-        artifacts=[str(artifact)],
+        artifacts=[artifact],
         events=["task_claimed"],
     )
 
@@ -137,7 +130,7 @@ def test_control_plane_rejects_completed_result_without_actual_evidence(
 
     assert rejected.status is TaskStatus.FAILED
     assert rejected.error_summary is not None
-    assert "required_artifact_missing" in rejected.error_summary
+    assert "task_run_missing" in rejected.error_summary
     assert EventStore().list()[-1].event_type == "task_result_rejected"
 
 
@@ -158,14 +151,7 @@ def test_control_plane_rejects_completed_result_when_validator_is_unavailable(
         task_type="engineering_change",
     )
     service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="worker-eng-1")
-    artifact = (
-        load_runtime_paths().artifacts_root
-        / "engineering"
-        / task.id
-        / "review_summary.json"
-    )
-    artifact.parent.mkdir(parents=True)
-    artifact.write_text("{}", encoding="utf-8")
+    artifact = persist_completion_evidence(task)
     monkeypatch.setattr(
         control_plane_module,
         "load_validator",
@@ -177,7 +163,7 @@ def test_control_plane_rejects_completed_result_when_validator_is_unavailable(
         status=TaskStatus.COMPLETED,
         summary="Completion evidence exists.",
         worker_id="worker-eng-1",
-        artifacts=[str(artifact)],
+        artifacts=[artifact],
         events=["task_completed"],
     )
 
@@ -201,6 +187,7 @@ def test_control_plane_rejects_completed_result_when_validator_has_no_runner(
         task_type="engineering_change",
     )
     service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="worker-eng-1")
+    artifact = persist_completion_evidence(task)
     monkeypatch.setattr(control_plane_module, "load_validator", lambda _: None)
 
     rejected = service.submit_task_result(
@@ -208,6 +195,7 @@ def test_control_plane_rejects_completed_result_when_validator_has_no_runner(
         status=TaskStatus.COMPLETED,
         summary="The validator loader returned no runner.",
         worker_id="worker-eng-1",
+        artifacts=[artifact],
         events=["task_claimed"],
     )
 
@@ -215,7 +203,7 @@ def test_control_plane_rejects_completed_result_when_validator_has_no_runner(
     assert "validator_unavailable" in (rejected.error_summary or "")
 
 
-def test_control_plane_rejects_unpersisted_event_evidence(isolated_repo_root) -> None:
+def test_control_plane_uses_persisted_events_instead_of_submission_events(isolated_repo_root) -> None:
     service = ControlPlaneService()
     goal = service.create_goal(title="Verify events", summary="Use durable evidence.")
     task = service.create_task_for_goal(
@@ -227,26 +215,18 @@ def test_control_plane_rejects_unpersisted_event_evidence(isolated_repo_root) ->
         task_type="engineering_change",
     )
     service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="worker-eng-1")
-    artifact = (
-        load_runtime_paths().artifacts_root
-        / "engineering"
-        / task.id
-        / "review_summary.json"
-    )
-    artifact.parent.mkdir(parents=True)
-    artifact.write_text("{}", encoding="utf-8")
+    artifact = persist_completion_evidence(task)
 
-    rejected = service.submit_task_result(
+    completed = service.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,
         summary="Named an event that was never persisted.",
         worker_id="worker-eng-1",
-        artifacts=[str(artifact)],
+        artifacts=[artifact],
         events=["task_completed"],
     )
 
-    assert rejected.status is TaskStatus.FAILED
-    assert "event_evidence_not_persisted" in (rejected.error_summary or "")
+    assert completed.status is TaskStatus.COMPLETED
 
 
 def test_control_plane_rejects_result_from_non_claiming_worker(isolated_repo_root) -> None:

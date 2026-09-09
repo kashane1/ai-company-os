@@ -87,8 +87,8 @@ def test_runner_requires_real_passing_test_command(isolated_repo_root, tmp_path,
     import importlib
     from dataclasses import replace
 
+    from apps.api.control_plane import ControlPlaneService
     from packages.db.task_run_store import TaskRunStore
-    from packages.db.task_store import TaskStore
     from packages.schemas.repo import VerificationCommand
     from packages.schemas.task_packet import TaskStatus, WorkerLane
     from tests.python.factories.task_data import (
@@ -99,8 +99,13 @@ def test_runner_requires_real_passing_test_command(isolated_repo_root, tmp_path,
     from tests.python.unit.test_runner import build_execution_record
     runner = importlib.import_module(lane_name + '.runner')
     root = git_repo(tmp_path / 'repo')
-    task = build_task(lane=WorkerLane(lane_name))
-    TaskStore().save(task)
+    service = ControlPlaneService()
+    goal = service.create_goal(title="Verify a synthetic change", summary="Exercise real completion")
+    task = service.create_task_for_goal(
+        goal_id=goal.id, repo_id="repo-123", lane=WorkerLane(lane_name),
+        title="Synthetic change", summary="Use real verification", task_type="code_change",
+    )
+    assert service.claim_task(lane=task.lane, worker_id="test-worker").id == task.id
     config = replace(build_repo_config(source_path=str(root)), verification={lane_name: [VerificationCommand(['{python}', '-m', 'pytest', 'tests/python', '-q'])]})
     monkeypatch.setattr(runner, 'load_repo_configs', lambda: {task.repo_id: config})
     monkeypatch.setattr(runner, 'prepare_repo', lambda _: build_repo_record())
@@ -115,9 +120,19 @@ def test_runner_requires_real_passing_test_command(isolated_repo_root, tmp_path,
         (tests / 'test_answer.py').write_text('def test_answer():\n    assert %s\n' % test_passes)
         result = root / 'result.md'
         result.write_text('## Testing\nAdded a regression test.')
-        return str(result), build_execution_record(), str(result), str(result)
+        stdout = root / "codex.stdout.log"
+        stderr = root / "codex.stderr.log"
+        stdout.write_text("synthetic coding engine finished")
+        stderr.write_text("")
+        execution = replace(build_execution_record(), cwd=str(root), stdout_path=str(stdout), stderr_path=str(stderr))
+        return str(result), execution, str(result), str(result)
     monkeypatch.setattr(runner, 'execute_codex', code_change)
-    result = runner.execute_task(task.id)
+    result = runner.execute_task(task.id, update_task_status=False)
+    completed = service.submit_task_result(
+        task_id=task.id, status=result.status, summary=result.summary, worker_id="test-worker",
+        artifacts=result.artifacts, events=["task_claimed"],
+    )
+    assert completed.status is result.status, completed.error_summary
     run = TaskRunStore().load('run-' + task.id)
     assert result.status is (TaskStatus.COMPLETED if test_passes else TaskStatus.FAILED)
     assert result.classification == ('safe_for_review' if test_passes else 'validation_failed')
