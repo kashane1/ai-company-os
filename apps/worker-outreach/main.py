@@ -14,9 +14,9 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from threading import Event
 
-ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+SOURCE_ROOT = Path(__file__).resolve().parents[2]
+if str(SOURCE_ROOT) not in sys.path:
+    sys.path.insert(0, str(SOURCE_ROOT))
 
 APP_ROOT = Path(__file__).resolve().parent
 if str(APP_ROOT) not in sys.path:
@@ -24,6 +24,7 @@ if str(APP_ROOT) not in sys.path:
 
 from apps.api.control_plane import ControlPlaneService  # noqa: E402
 from outreach.runner import execute_task  # noqa: E402
+from packages.config.settings import load_runtime_paths  # noqa: E402
 from packages.schemas.task_packet import TaskResult, TaskStatus, WorkerLane  # noqa: E402
 
 
@@ -44,7 +45,7 @@ def execute_claimed_task(
         return None
 
     try:
-        result = execute_task(task, repo_root=ROOT)
+        result = execute_task(task, repo_root=load_runtime_paths().repo_root)
     except Exception as exc:
         control_plane.submit_task_result(
             task_id=task.id,
