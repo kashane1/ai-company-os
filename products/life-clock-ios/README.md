@@ -1,33 +1,36 @@
 # Life Clock iOS
 
-Managed iOS source tree for the Life Clock app. Working title — final brand name not yet resolved (see `docs/products/life-clock/14_OPEN_QUESTIONS.md` Q1).
+Managed iOS source tree for the Life Clock app. Working title — final brand name not yet resolved (see [docs/products/life-clock/archive/founder-pack-2026-04-27/14_OPEN_QUESTIONS.md](../../docs/products/life-clock/archive/founder-pack-2026-04-27/14_OPEN_QUESTIONS.md) Q1).
 
 ## Status
 
 - iOS 17+, iPhone-first, iPad renders natively (`TARGETED_DEVICE_FAMILY = "1,2"`).
 - Local-first SwiftUI + SwiftData. No backend.
 - Three tabs: **Today**, **History**, **Profile** (post tab-consolidation).
-- Live HealthKit reads via `LiveHealthKitService`; mock service still ships behind `LIFECLOCK_USE_MOCK_HEALTH=1` for tests and audits.
+- Live HealthKit reads via `LiveHealthKitService`; mock service is selected by `LIFECLOCK_USE_MOCK_HEALTH=1` in DEBUG builds for tests and audits.
 - StoreKit live with three product IDs (`com.lifeclock.pro.{monthly,annual,lifetime}`); Pro entitlement gates the override flow and full 90-day History.
 - Three tone modes: `gentle`, `coach`, `firmDirect` (Coach default).
 - Three palettes: `defaultNavy`, `auroraCool`, `sunsetWarm`.
-- North star: `docs/products/life-clock/vision.md`. Read this before any vision-driven polish session.
+- North star: [docs/products/life-clock/vision.md](../../docs/products/life-clock/vision.md). Read this before any vision-driven polish session.
 
 ## Read first
 
-Order matters. Start at the top.
+For a code review, start with [Engines](Sources/Engines/),
+[launch configuration](Sources/App/LifeClockLaunchConfiguration.swift), and
+[tests](Tests/). The original founder-pack documents below are archived design
+context and may differ from current implementation.
 
-- `docs/products/life-clock/vision.md` — soul, core daily experience, decided constraints, open questions
-- `docs/products/life-clock/02_PRODUCT_STRATEGY.md` — positioning + product principles
-- `docs/products/life-clock/03_PRD.md` — original spec (some screens consolidated since; cross-reference the actual code)
-- `docs/products/life-clock/05_CLOCK_MODEL.md` — what moves the clock
-- `docs/products/life-clock/04_HEALTH_DATA_STRATEGY.md` — HealthKit boundaries
-- `docs/products/life-clock/09_PRIVACY_COMPLIANCE.md` — emotional safety + crisis affordances (live in `SafetyNetView`)
-- `docs/products/life-clock/12_TECHNICAL_ARCHITECTURE.md` — engines, store, services
-- `docs/products/life-clock/ux-audit-2026-04-30.md` — most recent UX audit
-- `docs/products/life-clock/MVP_VS_FOUNDER_PACK_AUDIT_2026-04-28.md` — what was shipped vs. founder pack as of late April
+- [docs/products/life-clock/vision.md](../../docs/products/life-clock/vision.md) — soul, core daily experience, decided constraints, open questions
+- [docs/products/life-clock/archive/founder-pack-2026-04-27/02_PRODUCT_STRATEGY.md](../../docs/products/life-clock/archive/founder-pack-2026-04-27/02_PRODUCT_STRATEGY.md) — positioning + product principles
+- [docs/products/life-clock/archive/founder-pack-2026-04-27/03_PRD.md](../../docs/products/life-clock/archive/founder-pack-2026-04-27/03_PRD.md) — original spec (some screens consolidated since; cross-reference the actual code)
+- [docs/products/life-clock/archive/founder-pack-2026-04-27/05_CLOCK_MODEL.md](../../docs/products/life-clock/archive/founder-pack-2026-04-27/05_CLOCK_MODEL.md) — what moves the clock
+- [docs/products/life-clock/archive/founder-pack-2026-04-27/04_HEALTH_DATA_STRATEGY.md](../../docs/products/life-clock/archive/founder-pack-2026-04-27/04_HEALTH_DATA_STRATEGY.md) — HealthKit boundaries
+- [docs/products/life-clock/archive/founder-pack-2026-04-27/09_PRIVACY_COMPLIANCE.md](../../docs/products/life-clock/archive/founder-pack-2026-04-27/09_PRIVACY_COMPLIANCE.md) — emotional safety + crisis affordances (live in `SafetyNetView`)
+- [docs/products/life-clock/archive/founder-pack-2026-04-27/12_TECHNICAL_ARCHITECTURE.md](../../docs/products/life-clock/archive/founder-pack-2026-04-27/12_TECHNICAL_ARCHITECTURE.md) — engines, store, services
+- [docs/products/life-clock/ux-audit-2026-04-30.md](../../docs/products/life-clock/ux-audit-2026-04-30.md) — dated UX audit
+- [docs/products/life-clock/MVP_VS_FOUNDER_PACK_AUDIT_2026-04-28.md](../../docs/products/life-clock/MVP_VS_FOUNDER_PACK_AUDIT_2026-04-28.md) — what was shipped vs. founder pack as of late April
 
-For polish sessions, also see `docs/skills/simulator-driven-polish-guide.md`.
+For polish sessions, also see [docs/skills/simulator-driven-polish-guide.md](../../docs/skills/simulator-driven-polish-guide.md).
 
 ## Scope guardrails
 
@@ -60,7 +63,7 @@ xcodebuild test \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-Test targets: `LifeClockTests` (unit, ~30 files covering engines, store, telemetry, schema migrations, snapshot overrides, subscription flow) and `LifeClockUITests` (`LifeClockUITests.swift`).
+Test targets: `LifeClockTests` (unit tests covering engines, store, telemetry, schema migrations, snapshot overrides, subscription flow) and `LifeClockUITests` (`LifeClockUITests.swift`).
 
 ## Layout
 
@@ -86,11 +89,11 @@ Sources/
 │   └── WrapUp/       # WrapUpSheet (yesterday + weekly ceremony), ClockHandView
 └── Shared/      # Disclaimer banner, confidence badge, palette, design tokens, mascot,
                  #   life-grid dot, formatters, reflection prompts, support-moment cards
-Tests/           # ~30 unit-test files
+Tests/           # Unit-test files
 UITests/         # LifeClockUITests
 ```
 
-## Hard rules (verified by CI greps + tests)
+## Product rules
 
 - Engines never call `Date()`, `Date.now`, `Calendar.current`, or `TimeZone.current` — all injected via `EngineClock`.
 - Production code constructs `HKHealthStore` only inside `LiveHealthKitService`. Test code uses `MockHealthKitService`.

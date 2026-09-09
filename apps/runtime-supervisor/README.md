@@ -8,7 +8,9 @@ operator flow, not a full orchestration system.
 
 - starting, stopping, and reporting status of the local runtime
   supervisor
-- managing the engineering, iOS, and App Store worker loop lifecycles
+- managing the engineering, iOS, App Store, API, skill-evolution, billing-poller,
+  outreach, and reply-sync process lifecycles; see the
+  [default process specs](supervisor/specs.py) for the current list
 - clean shutdown: a stop-request file is watched and honored by the
   running supervisor loop
 

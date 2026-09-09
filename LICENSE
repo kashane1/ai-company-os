@@ -8,8 +8,14 @@ You MAY:
 
   - View and read the Software for the purpose of evaluating the author's
     skills and experience.
+  - If you are a prospective employer, make a local clone and run the
+    documented evaluator, demo, and tests solely to evaluate the author's
+    skills and experience. You may install the required dependencies and
+    generate the local fixtures and test reports produced by those commands.
+    Keep this copyright and license notice with the local copy.
 
-You MAY NOT, without the prior written permission of the copyright holder:
+Except for the limited evaluation permissions expressly granted above, you
+MAY NOT, without the prior written permission of the copyright holder:
 
   - Use, run, or deploy the Software or any part of it for any purpose,
     personal or commercial.
@@ -20,7 +26,7 @@ You MAY NOT, without the prior written permission of the copyright holder:
   - Remove or alter this notice.
 
 No license or right is granted by implication, estoppel, or otherwise,
-except the limited viewing right expressly stated above. All rights not
+except the limited evaluation rights expressly stated above. All rights not
 expressly granted are reserved by the copyright holder.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR

@@ -1,79 +1,70 @@
-# What building an unattended agent system taught me about reliability
+# Reliability decisions and their limits
 
-I direct a fleet of AI coding agents that build and ship real apps. The
-interesting engineering was never the model calls. It was everything
-required to *leave the thing running and still trust the result*. A few
-lessons, each tied to something concrete in this repo.
+The useful part of building this system has been deciding how to inspect
+agent output and recover when a step fails. These examples distinguish code
+and tests from procedures that still depend on an operator or agent following
+them.
 
-## 1. "It produced output" is not "it succeeded"
+## Preserve the previous record when a write fails
 
-An agent will happily report success while leaving a half-written file
-behind. So writes that matter are atomic: `PostMortemStore.save`
-(`packages/db/postmortem_store.py`) writes to a temp file and `os.replace`s
-it into place, cleaning the temp file on any exception. A transient failure
-mid-write leaves the *previous* good record intact — never a corrupt one.
-This is proven, not asserted:
-`tests/python/integration/test_audit_artifact_crash_safety.py`.
+[PostMortemStore.save](../packages/db/postmortem_store.py) writes a temporary
+file and replaces the destination with `os.replace`. The
+[failure-injection test](../tests/python/integration/test_audit_artifact_crash_safety.py)
+checks that a serialization error preserves the previous record and removes
+the temporary file. This is evidence for that failure case, not a blanket
+power-loss or concurrent-writer durability guarantee.
 
-The general lesson: durability boundaries belong at the lowest layer that
-writes, and they need a test that actually injects the failure.
+## Validate the fields that cross a parsing boundary
 
-## 2. Reject bad state at the boundary, not three steps later
+[TaskRun.from_dict](../packages/schemas/task_run.py) converts worker lane,
+classification, and status through enums. The
+[typed-surface tests](../tests/python/unit/test_typed_tool_surface.py) cover
+unknown enum values and missing required fields. Direct dataclass construction
+and type annotations do not provide complete runtime validation; several
+fields are coerced and some policy values remain strings.
 
-A malformed task contract that fails deep in a run is expensive to debug
-and easy to misattribute. The domain schemas in `packages/schemas/` are
-enum-constrained typed records: an unknown worker lane or an invalid
-classification *cannot construct*. The failure happens at parse time with a
-clear error, not after an agent has done half a unit of irreversible work.
-See `tests/python/unit/test_typed_tool_surface.py`.
+## Test the approval mechanism independently of its illustration
 
-## 3. Autonomy has to be explicit and tiered, or it is just hope
+The [offline demo](../scripts/demo/run_demo.py) constructs sample approval
+records. It does not demonstrate authorization. The
+[token integration tests](../tests/python/integration/test_approval_tokens.py)
+exercise signature rejection, expiry, single-use tokens, and local endpoint
+state changes instead.
 
-The simulator-driven-polish loop
-(`skills/canonical/simulator-driven-polish/skill.md`) classifies every
-finding into Polish / Stretch / Feature / Vision-question, and only the
-first two are auto-applied. Irreversible product decisions are always
-escalated, and asks are batched so the human reviews a coherent set, not a
-stream of interruptions. "The agent decides when to ask" fails; "the system
-encodes what class of thing always requires a human" holds.
+The API assumes a trusted local environment. P0 actions require a second
+confirmation with the same token/device; the name “second factor” in code does
+not imply independent MFA. This is a bounded local mechanism, not a complete
+security boundary for an internet-facing service.
 
-## 4. Loops need a stop condition that isn't success
+## Define when an iteration should stop
 
-Most agent failure in practice is not a crash — it is thrashing. Two rules
-do most of the work: the **two-recurrence rule** (same finding survives two
-fix attempts → stop and escalate) and the **build-fail gate** (two
-consecutive build failures → stop). Cheap to implement, and they convert
-"ran forever producing noise" into "stopped and asked a human."
+The [simulator polish skill](../skills/canonical/simulator-driven-polish/skill.md)
+sets decision tiers, recurrence limits, and a build-failure stop condition.
+These make operator expectations explicit. They are agent instructions; the
+skill itself does not prove automatic enforcement or successful golden-image
+comparison on every run. Review a
+[recorded session](products/life-clock/polish-2026-05-05.md) alongside the procedure.
 
-## 5. Regression detection has to be automatic, because attention isn't
+## Keep development fixtures behind a build boundary
 
-When an agent fixes screen A it can quietly break screen B. Golden
-screenshots (`products/<product>-ios/.polish/goldens/`) mean a diff on an
-untouched screen is *flagged*, not noticed-if-lucky. The reliability win is
-removing the human from the detection path and keeping them only in the
-decision path.
+[LifeClockLaunchConfiguration.swift](../products/life-clock-ios/Sources/App/LifeClockLaunchConfiguration.swift)
+uses `#if DEBUG` for its environment-based fixtures and supplies production
+defaults in Release. The
+[configuration tests](../products/life-clock-ios/Tests/LifeClockLaunchConfigurationTests.swift)
+show expected fixture behavior. This is evidence about this configuration
+surface, not a claim that every test hook throughout the product was audited.
 
-## 6. Safety surfaces must not exist in the artifact you ship
+## Scope redaction and retention precisely
 
-The deterministic seed harness
-(`products/life-clock-ios/Sources/App/LifeClockLaunchConfiguration.swift`)
-lets the loop jump to any UI state — and every probe is `#if DEBUG`. The
-fixture surface is physically absent from the App Store binary. A test hook
-that ships is a vulnerability; the boundary belongs in the build, not in a
-code review checklist.
+[PostMortem](../packages/schemas/postmortem.py) applies redaction to selected
+fields, including notes, excerpts, remediation text, and fixture paths. Other
+fields and raw worker stdout/stderr are not covered by that statement; this
+is not proof that all artifacts or Git history are free of secrets.
 
-## 7. Redact at the schema, not at the log line
+[Postmortem retention policy](../packages/policies/postmortem_retention.py)
+controls visibility and stale-record checks. Its time window is not automatic
+deletion of all runtime artifacts. Likewise, loading a serialized task-run
+record is not the same as replaying the original agent execution.
 
-`PostMortem.__post_init__` (`packages/schemas/postmortem.py`) redacts every
-free-text field on construction, and path fields strip `/Users/<name>/`.
-Redaction at the call site is something you forget once; redaction at the
-type is something you cannot forget.
-
-## The through-line
-
-Every one of these is the same move: take a property you would otherwise
-have to *remember to check*, and make it structurally true — atomic writes,
-boundary validation, tiered autonomy, hard stop conditions, automatic
-regression flags, build-time safety boundaries, redaction at the type. That
-is what made it safe to stop watching it run, and it is the same discipline
-that makes any production system trustworthy.
+For runnable verification and the scope of each check, use the
+[evaluator walkthrough](EVALUATOR-WALKTHROUGH.md).

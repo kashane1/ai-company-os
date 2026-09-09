@@ -5,6 +5,13 @@ specs, run plans, session handoffs, postmortems. The volume is the system
 documenting its own output, not hand-written prose. If you are evaluating
 the engineering, do not read top-to-bottom — use the map below.
 
+## For employers
+
+Start with [For employers](FOR-EMPLOYERS.md) for the project, my role, and
+product status. Then follow the [evaluator walkthrough](EVALUATOR-WALKTHROUGH.md)
+for a five-minute code review or optional local demo and tests. You do not need
+to read the operator instructions or generated plans below.
+
 ## For agents resuming work
 
 - [founder/printify-shirt-workflow.md](founder/printify-shirt-workflow.md) — next-shirt procedure and reusable CLI: native Duplicate once, API artwork/copy update, preserve mockups and prices, one visual review.

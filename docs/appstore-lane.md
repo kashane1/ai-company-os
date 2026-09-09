@@ -1,5 +1,12 @@
 # App Store Worker Lane
 
+> **Implementation status:** The current [worker](../apps/worker-appstore/main.py)
+> models local release state and leaves App Store Connect submission manual.
+> It does not call the [release-readiness policy](../packages/policies/release_readiness.py).
+> Checklist validation and external delivery described below are intended lane
+> responsibilities, not an end-to-end integration demonstrated by this worker.
+
+
 This document defines the operational scope, inputs, outputs, and workflow of the App Store worker.
 
 It complements `ios-lane.md`, which covers the iOS implementation side. The two lanes are intentionally separate per `AGENTS.md`.

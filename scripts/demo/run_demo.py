@@ -1,10 +1,10 @@
-"""Zero-dependency end-to-end demo of the ai-company-os control loop.
+"""Zero-dependency fixture walkthrough of the ai-company-os control loop.
 
 Runs entirely in-process with no Postgres, Redis, Codex, network, or Mac
-runtime. It builds the real domain schema objects (`GoalRecord`,
+runtime. It builds real domain schema objects (`GoalRecord`,
 `TaskRun`, `ApprovalRecord`, `PostMortem`) so the emitted artifacts are
-faithful to production by construction, not hand-written JSON that can
-drift from the schema.
+schema-valid fixtures rather than hand-written JSON. It does not invoke an
+agent, make a human approval decision, or perform an irreversible action.
 
 Flow demonstrated:
 
@@ -12,7 +12,7 @@ Flow demonstrated:
          -> human approval gate -> structured audit artifact
 
 `build_demo_run()` is imported by the end-to-end test; running this file
-prints a narrated transcript and writes sample artifacts under
+prints a fixture walkthrough and writes sample artifacts under
 `docs/examples/`.
 """
 
@@ -124,7 +124,7 @@ def _engineering_task_run(*, approval_id: str, succeeded: bool) -> TaskRun:
 
 
 def build_demo_run(*, succeeded: bool = True) -> DemoRun:
-    """Build a faithful end-to-end run using the real schema classes.
+    """Build a schema-valid fixture for an end-to-end control-loop record.
 
     `succeeded=False` exercises the failure path: no approval is granted
     and a PostMortem audit record is emitted instead.
@@ -182,22 +182,23 @@ def build_demo_run(*, succeeded: bool = True) -> DemoRun:
 
 def _narrate(run: DemoRun) -> None:
     g, tr, ap = run.goal, run.task_run, run.approval
-    print("ai-company-os — end-to-end demo (zero external dependencies)")
+    print("ai-company-os — control-loop fixture walkthrough (zero external dependencies)")
     print("=" * 64)
     print(f"1. GOAL       {g.id}: {g.title}")
     print(f"               status={g.status.value}")
-    print(f"2. TASK        routed to lane={tr.worker_lane.value}")
-    print(f"3. EXECUTE     {tr.execution.command_display}")
-    print(f"               exit={tr.execution.exit_code} classification={tr.classification.value}")
+    print(f"2. TASK        fixture route: lane={tr.worker_lane.value}")
+    print(f"3. EXECUTE     recorded command (not run): {tr.execution.command_display}")
+    print(f"               recorded exit={tr.execution.exit_code} classification={tr.classification.value}")
     checks = ", ".join(f"{c.name}={'pass' if c.passed else 'FAIL'}" for c in tr.validation_checks)
     print(f"4. VALIDATE    {checks}")
-    print(f"5. APPROVAL    gate {ap.id}: status={ap.status.value} action={ap.action}")
+    print(f"5. APPROVAL    fixture gate {ap.id}: status={ap.status.value} action={ap.action}")
     if ap.status is ApprovalStatus.APPROVED:
-        print(f"               decided_by={ap.decided_by}: {ap.decision_notes}")
+        print(f"               recorded decider={ap.decided_by}: {ap.decision_notes}")
+        print("               no approval is requested or performed by this walkthrough")
     else:
         print("               PAUSED — awaiting human decision (no irreversible action taken)")
-    print(f"6. AUDIT       task_run {tr.id}: status={tr.status.value}")
-    print("               full structured artifact written to docs/examples/")
+    print(f"6. AUDIT       fixture task_run {tr.id}: status={tr.status.value}")
+    print("               deterministic sample artifacts written to docs/examples/")
     print("=" * 64)
 
 

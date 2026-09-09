@@ -4,11 +4,19 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
-**An AI-first engineering system: I direct a fleet of AI coding agents to discover product niches, build apps, and ship them — inside a control plane with typed tool boundaries, human approval gates, and a replayable audit trail, so it can run unattended without me losing track of what it did or why.**
+A personal engineering system for coordinating AI coding agents, with Python
+workers, explicit task state, validation, and human approval policies.
 
-> **Evaluating this as a hiring signal?** Start with **[docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)**, then follow **[docs/EVALUATOR-WALKTHROUGH.md](docs/EVALUATOR-WALKTHROUGH.md)** or run `./scripts/evaluator_check.sh`.
+> **Reviewing my work?** Start with **[For employers](docs/FOR-EMPLOYERS.md)**
+> for a two-minute overview of the project and my role, then use the
+> **[evaluator walkthrough](docs/EVALUATOR-WALKTHROUGH.md)** for code and optional
+> local checks. Both can be read entirely on GitHub.
 
-It is not a prompt bundle and not a single mega-agent. The platform owns orchestration; agents only execute within boundaries the platform defines. Built intensively over roughly two months (~565 commits, CI on every change); it has already produced three real iOS products (`products/`) and has recurring operator workflows designed around explicit approval gates. The high commit and branch count is the output of the parallel-agent pipeline working as designed — the velocity is the thesis, not noise. Everything here is checkable from `git log` in under a minute; nothing in this README claims a tenure or production soak it can't back.
+I choose the product direction and system boundaries, direct AI agents, and
+review their output. Agents contribute code, tests, and documentation. The repo
+contains platform code alongside three managed iOS source trees at different
+stages of development. It began in March 2026; the commit history is available
+for review, without treating commit volume as a measure of engineering quality.
 
 ## Overview
 
@@ -38,18 +46,21 @@ flowchart LR
     WI --> WT
     WT --> V[Validation +<br/>testing policy]
     V --> AP{Human approval gate<br/>irreversible actions}
-    AP -- approved --> DL[GitHub delivery /<br/>App Store release]
+    AP -- approved --> DL[Review / delivery handoff]
     AP -- rejected --> PM[(PostMortem<br/>audit record)]
     V --> TR[(TaskRun<br/>audit artifact)]
-    DL --> PR[[Shipped iOS products]]
+    DL --> PR[[Managed product source /<br/>local release state]]
 
     classDef gate fill:#fde,stroke:#b36;
     class AP gate;
 ```
 
-The platform owns orchestration; workers only execute within typed
-boundaries; nothing irreversible happens without passing the human
-approval gate; every run leaves a replayable audit artifact.
+This diagram describes the intended workflow. Engineering and iOS workers
+persist structured task-run records. Approval behavior is implemented in shared
+policies and local API endpoints; the App Store lane currently models local
+release state and leaves external submission manual. See the
+[employer guide](docs/FOR-EMPLOYERS.md#scope-and-limitations) for the limits of
+what the repository demonstrates.
 
 ## Repository orientation
 
@@ -59,39 +70,40 @@ approval gate; every run leaves a replayable audit artifact.
 | `packages/` | Shared platform code: `schemas` (typed contracts), `policies` (approval rules), `db`, `queue`, `tools`, `config`, `discovery` (opportunity find → score → validate), `agency` (Better Business Web fulfillment and advisory artifacts) |
 | `products/` | Source roots for the iOS apps the system has produced |
 | `docs/` | Platform docs **plus** the system's own run/spec output — read [`docs/README.md`](docs/README.md) first |
-| `state/` | Runtime-owned data only (worktrees, artifacts, checkpoints, logs) — never source |
+| `state/` | Runtime paths plus currently tracked operator artifacts; these are not needed for the employer review path |
 | `todos/` | Per-task working tickets agents pick up; the system's backlog, not hand-maintained docs |
 | `skills/` | Reusable, versioned agent capability definitions (`registry.yaml` + adapters) the workers compose |
 | `infra/`, `scripts/` | Local infra notes and operator/CI scripts |
 
-## Fast Evaluation Path
+## Fast evaluation path
 
-For a skeptical engineer, the shortest honest path is:
+1. Read [For employers](docs/FOR-EMPLOYERS.md) for my role, implementation evidence,
+   and product status.
+2. Follow the [five-minute code path](docs/EVALUATOR-WALKTHROUGH.md#five-minutes-on-github).
+3. Optionally run the offline fixture check below, then install dependencies
+   for tests of actual approval behavior using the walkthrough.
 
-1. Read [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md).
-2. Run `./scripts/evaluator_check.sh` or `make demo`.
-3. Inspect `packages/schemas/`, `packages/policies/approvals.py`, and `apps/api/approval_endpoint.py`.
-4. Inspect the product roots under `products/`.
-5. Run `./scripts/test_python.sh`.
+## Offline fixture demo
 
-## Demo (zero setup)
+Requires Bash and Python 3.10+; CI uses Python 3.12.
 
 ```bash
 ./scripts/evaluator_check.sh
-make demo        # or: ./scripts/demo.sh
 ```
 
-Runs the control loop end to end — goal → typed task → worker execution →
-validation → human approval gate → structured audit artifact — entirely
-in-process. No Postgres, Redis, Codex, network, or Mac runtime required.
-It writes schema-faithful sample artifacts to [`docs/examples/`](docs/examples/).
+The demo constructs synthetic task-run, approval, and failure records using
+real schema classes. It prints an illustration and rewrites three JSON samples
+in [docs/examples/](docs/examples/). It does not invoke Codex, execute workers,
+obtain a human decision, or perform a release. No external services, API keys,
+network calls, or third-party Python packages are needed for this check.
 
-`./scripts/evaluator_check.sh` wraps that demo, verifies the key files and
-sample artifacts exist, and can optionally run a fast Python test subset.
+For just the illustration, run `./scripts/demo.sh` or `make demo`. For dependency
+setup and the optional policy/endpoint tests, use the
+[evaluator walkthrough](docs/EVALUATOR-WALKTHROUGH.md#fifteen-to-twenty-minutes-tests-and-one-design-decision).
 
 ## Architectural Rules
 
-These rules are non-negotiable:
+These are the design rules the platform aims to enforce:
 
 1. The platform owns orchestration.
 2. Codex writes code but does not own business logic or policy.
@@ -139,9 +151,9 @@ The repo has moved past a paper scaffold. The current useful surface is:
 - `state`
 - `docs`
 
-Two deliberate choices are still true:
+Current integration boundaries:
 
-- The dashboard is described architecturally but not scaffolded yet. The API and runtime supervisor are enough to establish platform boundaries without adding speculative frontend code.
+- The API includes dashboard endpoints, and operator tooling includes a local outreach dashboard. These are different surfaces from a complete platform-wide management UI.
 - OpenClaw is documented as an optional future bridge, but there is no integration code yet. That keeps orchestration owned by this repo.
 
 ## End-to-End Shape
@@ -155,15 +167,18 @@ A healthy v1 should support this flow:
 5. The App Store worker prepares metadata and release state, then pauses at human approval before irreversible submission steps.
 6. The API exposes health, task state, approvals, and worker status.
 
+This is the target flow; individual lane implementations and operator procedures
+are at different stages. The App Store worker does not call App Store Connect.
+
 ## Managed Products
 
-The system has produced three iOS products, each with a managed source root under `products/`:
+The repo contains three managed iOS source trees. Their presence does not establish a public release:
 
-- `products/catchbook-ios/` — a private fishing logbook (the first managed product)
-- `products/life-clock-ios/` — a health/longevity app
-- `products/after-plans-ios/`
+- [Catchbook](products/catchbook-ios/README.md) — a private fishing logbook (the first managed product)
+- [Life Clock](products/life-clock-ios/README.md) — a health app with SwiftUI/SwiftData and HealthKit integration
+- [After Plans](products/after-plans-ios/README.md) — a SwiftUI app with in-memory defaults and an optional Supabase adapter
 
-Each managed product has a product registry entry in `infra/products.json`, durable product artifacts under `docs/products/`, checkpoint-backed product and release records under `state/checkpoints/platform/`, and an iOS worker path that mirrors the engineering lane.
+Product registration lives in `infra/products.json`; development documents live in `docs/products/`. Runtime checkpoint paths are local state, not prerequisites for reviewing a clean checkout.
 
 ## What Each Layer Owns
 
@@ -187,7 +202,10 @@ Local infrastructure notes and future deployment helpers for Postgres, Redis, la
 
 ### State
 
-Runtime-owned data only: repos, worktrees, artifacts, checkpoints, and logs.
+Runtime paths include repos, worktrees, artifacts, checkpoints, and logs. The
+current tree also tracks selected operator artifacts, especially under
+`state/home-from-working/`; that legacy mixture remains a cleanup task. The
+employer review path uses source, tests, and explicitly labeled fixtures.
 
 ## Python-First V1
 
@@ -220,6 +238,7 @@ The immediate priorities are:
 - keep iOS and App Store responsibilities separate
 - keep runtime state out of source-controlled product and platform code
 - keep expanding the real control-plane runtime only where daily use proves the need
+
 
 ## Testing
 
@@ -288,7 +307,7 @@ Current runtime truth:
 - `start` launches the local runtime supervisor in the background
 - `status` reads the persisted supervisor status file
 - `stop` writes a stop-request file that the running supervisor honors for clean shutdown
-- the runtime supervisor manages the existing engineering, iOS, and App Store worker loops only
+- the runtime supervisor manages engineering, iOS, App Store, API, skill-evolution, billing-poller, outreach, and reply-sync processes; [the default specs](apps/runtime-supervisor/supervisor/specs.py) define the current list
 - discovery runs are separate, operator-triggered CLIs: `scripts/discovery_run.py`, `scripts/discovery_score.py`
 
 Operator command reference (discovery, validation, build lanes, agent prompts):
@@ -303,17 +322,18 @@ Likely next platform expansions:
 
 ## License
 
-Proprietary — all rights reserved. Publicly viewable for evaluation only.
-See [LICENSE](LICENSE).
+Proprietary. Prospective employers may clone the repository and run the
+documented evaluator, demo, and tests locally to evaluate my work. Deployment,
+redistribution, and product reuse are not included. See [LICENSE](LICENSE).
 
 ## Read Next
 
-- [docs/founder/operator-guide.md](docs/founder/operator-guide.md) — **start here**: commands to run discovery, scoring, runtime, and agent work streams
-- [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md)
-- [docs/EVALUATOR-WALKTHROUGH.md](docs/EVALUATOR-WALKTHROUGH.md)
+- [docs/FOR-EMPLOYERS.md](docs/FOR-EMPLOYERS.md) — **employers: start here**
+- [docs/EVALUATOR-WALKTHROUGH.md](docs/EVALUATOR-WALKTHROUGH.md) — code and optional local checks
+- [docs/founder/operator-guide.md](docs/founder/operator-guide.md) — operator commands for discovery, runtime, and agent work
 - [docs/founder/discovery-guide.md](docs/founder/discovery-guide.md) — the discovery layer deep dive (find → score → validate)
 - [docs/example_prompts.md](docs/example_prompts.md) — a menu of prompts to run in this repo + what each one activates
-- [docs/flagship-simulator-driven-polish.md](docs/flagship-simulator-driven-polish.md) — one workflow traced end to end
+- [docs/flagship-simulator-driven-polish.md](docs/flagship-simulator-driven-polish.md) — a product-development case study with implementation limits
 - [docs/recurring-approval-sweep.md](docs/recurring-approval-sweep.md) — recurring operator workflow traced against approval code
 - [docs/reliability-lessons.md](docs/reliability-lessons.md) — reliability decisions + the tests behind them
 - [CONTRIBUTING.md](CONTRIBUTING.md)

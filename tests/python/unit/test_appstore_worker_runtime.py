@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 from threading import Event
 
+from apps.api import platform
 from apps.api.control_plane import ControlPlaneService
+from packages.db.approval_store import ApprovalStore
 from packages.db.event_store import EventStore
 from packages.db.goal_store import GoalStore
 from packages.db.release_store import ReleaseStore
 from packages.db.task_store import TaskStore
+from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.release import (
     BuildCandidate,
     BuildStatus,
@@ -163,7 +167,9 @@ def test_appstore_worker_requests_approval_and_blocks_when_action_is_gated(
 
     stored_task = TaskStore().load(task.id)
     stored_goal = GoalStore().load(goal.id)
-    approval_events = [event for event in EventStore().list() if event.event_type == "approval_requested"]
+    approval_events = [
+        event for event in EventStore().list() if event.event_type == "approval_requested"
+    ]
 
     assert result is not None
     assert result.status is TaskStatus.BLOCKED
@@ -173,6 +179,151 @@ def test_appstore_worker_requests_approval_and_blocks_when_action_is_gated(
     assert len(approval_events) == 1
     assert approval_events[0].task_id == task.id
     assert approval_events[0].payload["action"] == "submit_appstore"
+    artifact = (
+        isolated_repo_root
+        / "state"
+        / "artifacts"
+        / "appstore"
+        / task.id
+        / "submission_summary.json"
+    )
+    assert artifact.exists()
+    assert json.loads(artifact.read_text(encoding="utf-8"))["status"] == "blocked"
+    assert [event.event_type for event in EventStore().list()][-1] == "task_blocked"
+
+
+def test_appstore_worker_blocks_missing_or_mismatched_release_approval(
+    isolated_repo_root: Path,
+) -> None:
+    worker_appstore_main = load_appstore_worker_main()
+    create_release_record("release-approval-1")
+    approvals = ApprovalStore()
+    for approval_id, approval_type, subject_type, subject_id, action in (
+        (
+            "approval-wrong-release",
+            "release_action",
+            "release",
+            "release-other",
+            "submit_appstore",
+        ),
+        (
+            "approval-wrong-type",
+            "app_store_submission",
+            "release",
+            "release-approval-1",
+            "submit_appstore",
+        ),
+        (
+            "approval-wrong-subject",
+            "release_action",
+            "task",
+            "release-approval-1",
+            "submit_appstore",
+        ),
+        (
+            "approval-wrong-action",
+            "release_action",
+            "release",
+            "release-approval-1",
+            "submit_testflight",
+        ),
+    ):
+        approvals.save(
+            ApprovalRecord(
+                id=approval_id,
+                status=ApprovalStatus.APPROVED,
+                summary="Mismatched approval.",
+                created_at="2026-04-01T00:00:00+00:00",
+                approval_type=approval_type,
+                subject_type=subject_type,
+                subject_id=subject_id,
+                action=action,
+            )
+        )
+
+    missing = worker_appstore_main.execute_release_action(
+        "release-approval-1", "submit_appstore", approval_id="approval-missing"
+    )
+    mismatched = [
+        worker_appstore_main.execute_release_action(
+            "release-approval-1", "submit_appstore", approval_id=approval_id
+        )
+        for approval_id in (
+            "approval-wrong-release",
+            "approval-wrong-type",
+            "approval-wrong-subject",
+            "approval-wrong-action",
+        )
+    ]
+
+    assert missing.status is TaskStatus.BLOCKED
+    assert all(result.status is TaskStatus.BLOCKED for result in mismatched)
+    assert ReleaseStore().load_release_record("release-approval-1").appstore_status is (
+        StoreChannelStatus.NOT_STARTED
+    )
+
+
+def test_appstore_worker_accepts_only_the_matching_release_action_approval(
+    isolated_repo_root: Path,
+) -> None:
+    worker_appstore_main = load_appstore_worker_main()
+    create_release_record("release-approval-2")
+    service = ControlPlaneService()
+    approval = platform.create_release_approval(
+        "release-approval-2",
+        "submit_appstore",
+    )
+    service.decide_approval(
+        approval_id=approval.id,
+        status=ApprovalStatus.APPROVED,
+        decided_by="founder",
+    )
+    goal = service.create_goal(
+        title="Submit approved App Store release",
+        summary="Use the approved release action.",
+    )
+    task = service.create_task_for_goal(
+        goal_id=goal.id,
+        repo_id="catchbook-ios",
+        lane=WorkerLane.APPSTORE,
+        title="Submit App Store release",
+        summary="Submit the approved release action.",
+        task_type="appstore_release",
+        constraints=[
+            "release_id=release-approval-2",
+            "release_action=submit_appstore",
+            f"approval_id={approval.id}",
+        ],
+    )
+
+    result = worker_appstore_main.execute_claimed_task(
+        worker_id="worker-appstore-approved",
+        service=service,
+    )
+
+    assert result is not None
+    assert result.status is TaskStatus.COMPLETED
+    assert result.approval_id == approval.id
+    assert TaskStore().load(task.id).approval_id == approval.id
+    assert EventStore().list()[-1].approval_id == approval.id
+    assert ReleaseStore().load_release_record("release-approval-2").appstore_status is (
+        StoreChannelStatus.APPROVED
+    )
+
+
+def test_appstore_worker_blocks_unknown_release_actions(isolated_repo_root: Path) -> None:
+    worker_appstore_main = load_appstore_worker_main()
+    create_release_record("release-unknown-action")
+
+    result = worker_appstore_main.execute_release_action(
+        "release-unknown-action", "delete_release"
+    )
+
+    assert result.status is TaskStatus.BLOCKED
+    assert (
+        ReleaseStore().load_release_record("release-unknown-action").status
+        is ReleaseStatus.DRAFT
+    )
 
 
 def test_appstore_worker_marks_claimed_task_failed_when_execute_raises(

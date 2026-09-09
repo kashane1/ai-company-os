@@ -1,106 +1,71 @@
-# Flagship workflow: simulator-driven polish → App Store
+# Case study: Life Clock simulator polish
 
-This is one concrete, traced workflow end to end — the canonical example
-of what the system actually does. Every file referenced here exists in the
-repo; the Life Clock session logs cited at the end are real output from
-this loop running, not illustrations.
+This is a guided review of a product-development workflow: define the intended
+experience, use deterministic simulator state, review screenshots, and iterate.
+It combines Swift implementation, an agent skill, and recorded session notes.
+Those are different kinds of evidence; this page identifies each.
 
-The flow: **discover/define a product → build it for the simulator →
-iteratively polish it against reference apps using screenshots →
-hand off to an approval-gated App Store lane.**
+## 1. Product intent
 
-## 1. The product and its intent
+[Life Clock](../products/life-clock-ios/README.md) is a managed iOS health-app
+source tree. Its [vision](products/life-clock/vision.md) records product
+constraints, and its [reference-app notes](products/life-clock/reference-apps.md)
+describe what to learn from other apps and which framing to avoid.
 
-`life-clock-ios` is a health/longevity app the system produced. Its design
-intent is pinned in `docs/products/life-clock/` (vision, briefs) and its
-competitive bar is codified — not vibes — in
-[`docs/products/life-clock/reference-apps.md`](products/life-clock/reference-apps.md):
+Review question: can a developer tell which decisions are settled and which
+are open without inventing product requirements?
 
-- **Premium-feel reference:** *Death Clock: The Life Lab* — studied for
-  reveal-animation timing and dramatic pacing.
-- **Pro-value reference:** *MacroFactor* — studied for paywall hierarchy and
-  adherence-neutral copy.
+## 2. Reproducible simulator state
 
-Crucially this file also encodes **binding refusals**: "match the craft,
-reject the framing" — do not import Death Clock's mortality lexicon, do not
-adopt MacroFactor's hard paywall. Reference learning with explicit
-anti-patterns is the difference between studying a competitor and cloning
-one.
+[LifeClockLaunchConfiguration.swift](../products/life-clock-ios/Sources/App/LifeClockLaunchConfiguration.swift)
+parses debug fixture controls such as `LIFECLOCK_JUMP_TO`,
+`LIFECLOCK_HEALTH_PROFILE`, and `LIFECLOCK_SEED_BAD_DAY`. The `#if DEBUG` branch
+and Release defaults are visible in code. The supported presets cover specific
+states; they do not guarantee access to every possible UI state.
 
-## 2. Build for the simulator (deterministic state)
+Compare this with the
+[launch-configuration tests](../products/life-clock-ios/Tests/LifeClockLaunchConfigurationTests.swift).
+For Life Clock build instructions, use its README. The top-level
+[`scripts/test_ios.sh`](../scripts/test_ios.sh) targets **Catchbook**, so a green
+result from that command does not validate Life Clock.
 
-- [`scripts/preflight_xcode.sh`](../scripts/preflight_xcode.sh) verifies the
-  `xcodebuild`/`xcodegen` chain from the daemon context and blocks the iOS
-  lane on failure instead of failing deep in a run.
-- [`scripts/test_ios.sh`](../scripts/test_ios.sh) auto-selects the newest
-  available iPhone simulator (`xcrun simctl … | jq`), runs
-  `xcodebuild test … -enableCodeCoverage YES`, then reports coverage.
-- The polish loop can land on *any* reachable UI state deterministically
-  via the seed harness in
-  [`products/life-clock-ios/Sources/App/LifeClockLaunchConfiguration.swift`](products/life-clock-ios/Sources/App/LifeClockLaunchConfiguration.swift):
-  env probes like `LIFECLOCK_JUMP_TO`, `LIFECLOCK_HEALTH_PROFILE`,
-  `LIFECLOCK_SEED_BAD_DAY`. **Every probe is wrapped in `#if DEBUG`** so the
-  fixture surface cannot exist in the App Store binary — a safety boundary,
-  not just a test convenience.
+## 3. Agent-guided polish
 
-## 3. The polish loop
+The [simulator polish skill](../skills/canonical/simulator-driven-polish/skill.md)
+and [operator guide](skills/simulator-driven-polish-guide.md) specify screenshot
+review, iteration limits, and decision tiers. They distinguish small polish
+changes from feature or vision questions that need operator input.
 
-Defined canonically in
-[`skills/canonical/simulator-driven-polish/skill.md`](../skills/canonical/simulator-driven-polish/skill.md),
-operator guide in
-[`docs/skills/simulator-driven-polish-guide.md`](skills/simulator-driven-polish-guide.md),
-traversal standardized in
-[`docs/ux-audit-playbook.md`](ux-audit-playbook.md).
+These are instructions for an agent/operator workflow, not an independently
+enforced image-regression service. In particular, golden-image comparison and
+stop conditions in the skill should be evaluated as procedures unless a run's
+evidence demonstrates that they were followed.
 
-The loop screenshots the running app, compares against the reference
-design-intent spec, fixes, and re-screenshots — bounded by explicit
-safeguards:
+Two recorded sessions to inspect:
 
-- **Four modes:** `fix-list`, `freeform-polish`, `reference-match`,
-  `vision-driven` (lower iteration cap, requires an acceptance pass).
-- **Autonomy contract — four decision tiers:** Polish (auto-fix, silent
-  commit) → Stretch (auto-fix, flag in session log) → Feature (always ask)
-  → Vision-question (always ask). Asks are **batched at end of cycle**, not
-  one interruption per finding.
-- **Golden screenshot regression:** captures land in
-  `products/life-clock-ios/.polish/goldens/<screen>.png`; a diff on a screen
-  the fix did not touch is flagged as an unintended regression.
-- **Two-recurrence rule:** if the same finding survives two fix attempts,
-  the loop stops and escalates instead of thrashing.
-- **Build-fail gate:** refuses to iterate past two consecutive build
-  failures.
-- **Vision is non-negotiable:** the loop may append Open Questions to
-  `vision.md` but may never edit the "Decided constraints" section — that is
-  operator-only.
+- [May 5 polish session](products/life-clock/polish-2026-05-05.md)
+- [Accessibility and color-matrix pass](products/life-clock/polish-2026-05-06-accessibility-color-matrix.md)
 
-Each session produces a stack of focused commits and an append-only,
-date-stamped session log under `docs/products/life-clock/polish-*.md`.
+The notes document development activity. They are not proof of a public release,
+user outcomes, or comprehensive visual regression coverage. Some referenced
+screenshots or local simulator artifacts may require the operator's environment.
 
-## 4. Approval-gated App Store handoff
+## 4. Release handoff: current boundary
 
-The iOS lane produces a release-ready build and stops. The App Store lane
-([`docs/appstore-lane.md`](appstore-lane.md)) takes over and **never touches
-application code**. It drafts metadata, manages screenshots, and validates a
-submission checklist (`docs/products/<id>/submission-checklist.md`) —
-refusing to proceed if it is incomplete. Positioning copy is produced by
-[`skills/canonical/shared/app-store-positioning-pack.md`](../skills/canonical/shared/app-store-positioning-pack.md),
-which is forbidden from promising features beyond `mvp-spec.md`.
+The [App Store worker](../apps/worker-appstore/main.py) prepares local release
+state. It does not call App Store Connect; its result tells the operator to keep
+external submission manual. The [release-readiness policy](../packages/policies/release_readiness.py)
+contains checklist/approval checks, but that policy is not currently called by
+this worker. The [App Store lane document](appstore-lane.md) describes the fuller
+intended workflow.
 
-Per [`docs/approval-policy.md`](approval-policy.md), the irreversible steps —
-**TestFlight upload, App Review submission, public release** — each require
-an explicit human approval gate. Everything up to that line is automated;
-nothing past it happens without a person.
+This distinction matters when assessing the architecture: separate delivery
+responsibilities and local approval checks exist, while an enforced, end-to-end
+store submission integration remains unfinished.
 
-## 5. Why this is the flagship
+## What to discuss
 
-This is the whole thesis in one workflow: an agent fleet does the slow,
-real work of polishing a shipping app against a competitive bar, every
-iteration is screenshot-audited and regression-checked, the autonomy
-boundary is explicit and tiered, and the only irreversible action — putting
-it in front of real users — is gated on a human.
-
-**Evidence it actually ran** (real session logs, not examples):
-`docs/products/life-clock/polish-2026-05-05.md`,
-`polish-2026-05-06-accessibility-color-matrix.md`,
-`polish-2026-05-06-plan-editor-pro-and-free-walk.md`, and ~20 more dated
-logs in `docs/products/life-clock/`.
+The useful engineering thread is the connection between product constraints,
+repeatable development state, explicit agent instructions, and reviewable
+session evidence. Start with one fixture and one session rather than reading
+the entire product-document history.

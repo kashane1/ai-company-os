@@ -1,10 +1,8 @@
-"""End-to-end control loop on fixtures, zero external dependencies.
+"""Control-loop record fixtures, zero external dependencies.
 
-Exercises the same path the runtime takes — goal -> typed task ->
-worker execution -> validation -> human approval gate -> structured
-audit artifact — using the real schema classes, with no Postgres,
-Redis, Codex, network, or Mac runtime. This is the single most
-load-bearing "safe to leave running unattended" assertion.
+Exercises the shape of a goal -> typed task -> execution record -> validation
+-> approval record -> audit artifact using real schema classes. No worker,
+runtime, human decision, or irreversible action runs here.
 """
 
 from __future__ import annotations
@@ -16,7 +14,7 @@ from packages.schemas.goal import GoalStatus
 from packages.schemas.task_run import EngineeringResultClassification, TaskRun, TaskRunStatus
 
 
-def test_happy_path_reaches_approved_audited_state():
+def test_approved_fixture_has_linked_audit_record():
     run = build_demo_run(succeeded=True)
 
     assert run.goal.status is GoalStatus.COMPLETED
@@ -25,7 +23,7 @@ def test_happy_path_reaches_approved_audited_state():
     # The audit artifact is linked to the approval that gated the merge.
     assert run.task_run.approval_id == run.approval.id
     assert run.approval.status is ApprovalStatus.APPROVED
-    assert run.approval.decided_by  # a human actually decided
+    assert run.approval.decided_by  # the fixture records a completed decision
     assert all(check.passed for check in run.task_run.validation_checks)
 
 
