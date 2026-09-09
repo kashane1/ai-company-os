@@ -67,4 +67,4 @@ __all__ = [
 
 
 if __name__ == "__main__":
-    run_main()
+    raise SystemExit(run_main())
