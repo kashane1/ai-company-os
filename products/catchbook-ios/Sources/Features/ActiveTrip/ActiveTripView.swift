@@ -26,6 +26,7 @@ struct ActiveTripView: View {
     @State private var showingSavedBanner = false
     @State private var showingEndReview = false
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var photoLoadResult: CatchPhotoLoadResult?
     @State private var photos: [CatchPhotoDraft] = []
     @State private var photoLocationSuggestion: CatchPhotoLocationSuggestion?
     @State private var pendingMatchedSpotID: UUID?
@@ -111,7 +112,7 @@ struct ActiveTripView: View {
     }
 
     private var canUseCamera: Bool {
-        UIImagePickerController.isSourceTypeAvailable(.camera)
+        CameraCaptureAvailability().isAvailable
     }
 
     var body: some View {
@@ -275,10 +276,25 @@ struct ActiveTripView: View {
                                 }
                                 .buttonStyle(.bordered)
                                 .disabled(!canUseCamera || photos.count >= 4)
+                                .accessibilityIdentifier("quickCatch.cameraButton")
 
-                                Text("Up to 4 photos. If photo access is unavailable, you can still save the catch.")
+                                Text("Up to 4 photos. Photos are optional, so you can always save the catch.")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
+
+                                if !canUseCamera {
+                                    Text("Camera is unavailable on this device. Add from your library or save without a photo.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .accessibilityIdentifier("quickCatch.cameraUnavailableStatus")
+                                }
+
+                                if photoLoadResult == .unavailable {
+                                    Text("That photo could not be loaded. Choose another photo or save without one.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .accessibilityIdentifier("quickCatch.photoLoadStatus")
+                                }
 
                                 if let photoLocationSuggestion {
                                     PhotoSpotSuggestionCard(
@@ -418,8 +434,12 @@ struct ActiveTripView: View {
         .onChange(of: selectedPhotoItem) { _, newValue in
             guard let newValue else { return }
             Task {
-                if let data = try? await newValue.loadTransferable(type: Data.self) {
+                photoLoadResult = nil
+                let result = await CatchPhotoLoader.load(from: newValue)
+                photoLoadResult = result
+                if case let .loaded(data) = result {
                     appendPhoto(data: data)
+                    photoLoadResult = nil
                 }
                 selectedPhotoItem = nil
             }
@@ -532,6 +552,7 @@ struct ActiveTripView: View {
                 photoLocationSuggestion = nil
                 pendingMatchedSpotID = nil
                 selectedPhotoItem = nil
+                photoLoadResult = nil
                 showingOptionalFields = resetState.showingOptionalFields
                 if action == .saveAndAddAnother || tallyOnly {
                     focusedField = .species
