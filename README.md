@@ -1,6 +1,6 @@
 # ai-company-os
 
-[![Tests](https://github.com/kashane1/ai-company-os/actions/workflows/tests.yml/badge.svg)](https://github.com/kashane1/ai-company-os/actions/workflows/tests.yml)
+[![Tests on main](https://github.com/kashane1/ai-company-os/actions/workflows/tests.yml/badge.svg?branch=main&event=push)](https://github.com/kashane1/ai-company-os/actions/workflows/tests.yml?query=branch%3Amain+event%3Apush)
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 

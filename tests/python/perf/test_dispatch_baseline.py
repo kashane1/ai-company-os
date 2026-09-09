@@ -1,23 +1,18 @@
-"""Phase 0.5a — baseline benchmark for claim_task → submit_task_result.
+"""Latency benchmark for claim_task → successful validated task result.
 
-Captures today's median and p99 latencies into
-`state/benchmarks/2026-04-14-pre-phase-0.json` so every subsequent
-Phase 0.5 sub-PR can compare against this file.
+The benchmark exercises the current ``ControlPlaneService`` and database
+queue against an isolated SQLite state root. Each sample claims an engineering
+task and persists a completed result after its required artifact and claim
+event pass post-run validation. Evidence preparation happens before the timer.
 
-**D1 hardening rule:** this test MUST NOT import from
-`packages/db/connection.py` (which doesn't exist yet). The benchmark
-uses the existing stack — `ControlPlaneService`, `TaskQueue`,
-`ControlPlaneDatabase` — against a test-isolated state root, so it
-measures pre-Phase-0.5b behavior (default `busy_timeout=0`, no WAL,
-implicit DELETE-mode journal).
-
-Re-run this benchmark in Phase 0.5b's PR and compare — the "<100 ms
-regression" NFR from the plan is enforced by asserting median and p99
-are no worse than 1.2x of the pre-Phase-0 baseline.
+The historical pre-Phase-0 baseline remains available for comparison. Current
+regression enforcement uses the absolute median, p95, and p99 budgets below.
+Run the latency gate without coverage instrumentation; coverage belongs in a
+separate test invocation because tracing changes the path being timed.
 
 Usage:
-    # Capture baseline (first run, on main before Phase 0.5b lands):
-    pytest tests/python/perf/test_dispatch_baseline.py -q --capture-baseline
+    # Capture an explicitly labeled reference snapshot:
+    CAPTURE_BASELINE=1 BASELINE_PHASE=local-reference pytest tests/python/perf/test_dispatch_baseline.py -q
 
     # Verify regression on subsequent runs:
     pytest tests/python/perf/test_dispatch_baseline.py -q
@@ -29,6 +24,7 @@ import os
 import statistics
 import time
 from pathlib import Path
+from typing import Any, TypedDict, cast
 
 import pytest
 
@@ -36,6 +32,7 @@ from apps.api.control_plane import ControlPlaneService
 from packages.config.settings import (
     TEST_REPO_ROOT_ENV_VAR,
     ensure_runtime_directories,
+    load_runtime_paths,
 )
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
 
@@ -57,16 +54,19 @@ MEDIAN_MS_BUDGET = 75.0  # generous: 10x pre-Phase-0 baseline
 P95_MS_BUDGET = 90.0
 P99_MS_BUDGET = 100.0
 
-# CI noise model: a single 50-sample benchmark batch can be contaminated
-# by one noisy slice on a shared GitHub Actions runner — observed on
-# PR #54, where p95 spiked to 139ms while the *same* dispatch code
-# measured p95 ~9ms locally (3x) and passed python-tests on PR #55 CI,
-# main's push run, and the PR #54 rerun. A genuine dispatch regression
-# slows down *every* batch, so the budget test runs the benchmark up to
-# this many times (fresh DB each time) and passes as soon as one attempt
-# is within budget. This kills single-batch flakes without hiding a real
-# regression — which would blow the budget on all attempts.
+# A shared CI runner can contaminate tail percentiles for one or several
+# batches. Three fresh-database attempts reduce sensitivity to a short noisy
+# interval. An all-attempt failure still reports a real observed budget breach,
+# but sustained host noise remains one possible cause to investigate.
 MAX_BENCHMARK_ATTEMPTS = 3
+
+
+class DispatchSample(TypedDict):
+    index: int
+    wall_ms: float
+    cpu_ms: float
+    claim_wall_ms: float
+    submit_wall_ms: float
 
 
 def _isolate_state_root(
@@ -98,8 +98,12 @@ def isolated_platform(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return _isolate_state_root(tmp_path, monkeypatch, "isolated")
 
 
-def _round_trip_once(service: ControlPlaneService, goal_id: str, i: int) -> float:
-    """One full claim_task → submit_task_result cycle. Returns elapsed seconds."""
+def _round_trip_once(
+    service: ControlPlaneService,
+    goal_id: str,
+    i: int,
+) -> DispatchSample:
+    """Time one claim through successful validated completion."""
     task = service.create_task_for_goal(
         goal_id=goal_id,
         repo_id="ai-company-os",
@@ -109,19 +113,49 @@ def _round_trip_once(service: ControlPlaneService, goal_id: str, i: int) -> floa
         task_type="bench",
         risk_level=RiskLevel.LOW,
     )
-    start = time.perf_counter()
+    artifact = (
+        load_runtime_paths().artifacts_root
+        / WorkerLane.ENGINEERING.value
+        / task.id
+        / "review_summary.json"
+    )
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text(
+        json.dumps({"task_id": task.id, "status": TaskStatus.COMPLETED.value}) + "\n",
+        encoding="utf-8",
+    )
+
+    wall_start = time.perf_counter_ns()
+    cpu_start = time.process_time_ns()
+    claim_wall_start = time.perf_counter_ns()
     claimed = service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="bench-worker")
+    claim_wall_end = time.perf_counter_ns()
     assert claimed is not None and claimed.id == task.id
-    service.submit_task_result(
+    submit_wall_start = time.perf_counter_ns()
+    completed = service.submit_task_result(
         task_id=claimed.id,
         status=TaskStatus.COMPLETED,
         summary="bench complete",
         worker_id="bench-worker",
+        artifacts=[str(artifact)],
+        events=["task_claimed"],
     )
-    return time.perf_counter() - start
+    submit_wall_end = time.perf_counter_ns()
+    submit_cpu_end = time.process_time_ns()
+    assert completed.status is TaskStatus.COMPLETED, completed.error_summary
+    assert service.tasks.load(task.id).status is TaskStatus.COMPLETED
+    wall_ms = (submit_wall_end - wall_start) / 1_000_000
+    cpu_ms = (submit_cpu_end - cpu_start) / 1_000_000
+    return {
+        "index": i,
+        "wall_ms": wall_ms,
+        "cpu_ms": cpu_ms,
+        "claim_wall_ms": (claim_wall_end - claim_wall_start) / 1_000_000,
+        "submit_wall_ms": (submit_wall_end - submit_wall_start) / 1_000_000,
+    }
 
 
-def _run_benchmark() -> dict[str, float]:
+def _run_benchmark() -> dict[str, Any]:
     """Run one full warmup + ITERATIONS benchmark batch.
 
     Reads the active state root from the environment, so callers must
@@ -138,11 +172,11 @@ def _run_benchmark() -> dict[str, float]:
     for i in range(WARMUP):
         _round_trip_once(service, goal.id, -i - 1)
 
-    samples_ms: list[float] = []
+    samples: list[DispatchSample] = []
     for i in range(ITERATIONS):
-        samples_ms.append(_round_trip_once(service, goal.id, i) * 1000.0)
+        samples.append(_round_trip_once(service, goal.id, i))
 
-    samples_ms.sort()
+    samples_ms = sorted(sample["wall_ms"] for sample in samples)
     return {
         "iterations": ITERATIONS,
         "warmup": WARMUP,
@@ -153,10 +187,15 @@ def _run_benchmark() -> dict[str, float]:
         "p99_ms": samples_ms[min(int(len(samples_ms) * 0.99), len(samples_ms) - 1)],
         "min_ms": samples_ms[0],
         "max_ms": samples_ms[-1],
+        "slowest_samples": sorted(
+            samples,
+            key=lambda sample: sample["wall_ms"],
+            reverse=True,
+        )[:3],
     }
 
 
-def _within_budget(results: dict[str, float]) -> bool:
+def _within_budget(results: dict[str, Any]) -> bool:
     """True when a benchmark batch is inside every latency budget."""
     return (
         results["median_ms"] < MEDIAN_MS_BUDGET
@@ -165,11 +204,26 @@ def _within_budget(results: dict[str, float]) -> bool:
     )
 
 
-def _format_attempt(index: int, results: dict[str, float]) -> str:
+def _format_attempt(index: int, results: dict[str, Any]) -> str:
     return (
         f"#{index} median={results['median_ms']:.3f}ms "
         f"p95={results['p95_ms']:.3f}ms p99={results['p99_ms']:.3f}ms"
     )
+
+
+def _format_diagnostics(results: dict[str, Any]) -> str:
+    samples = cast(list[DispatchSample], results["slowest_samples"])
+    slowest = ", ".join(
+        (
+            f"sample={sample['index']} wall={sample['wall_ms']:.3f}ms "
+            f"cpu={sample['cpu_ms']:.3f}ms "
+            f"wall-cpu={max(sample['wall_ms'] - sample['cpu_ms'], 0.0):.3f}ms "
+            f"claim={sample['claim_wall_ms']:.3f}ms "
+            f"submit={sample['submit_wall_ms']:.3f}ms"
+        )
+        for sample in samples
+    )
+    return f"slowest=[{slowest}]"
 
 
 def test_dispatch_latency_within_plan_budget(
@@ -189,14 +243,13 @@ def test_dispatch_latency_within_plan_budget(
     The 100ms absolute p99 budget gives every subsequent phase >90ms
     of runway for legitimate functionality additions.
 
-    Reliability: the benchmark is run up to MAX_BENCHMARK_ATTEMPTS times
-    (fresh DB per attempt) and passes as soon as one attempt is within
-    budget. A noisy shared CI runner can contaminate a single batch's
-    tail percentiles; a genuine regression slows every attempt and
-    still fails the test. Every attempt is printed so a real regression
-    is legible in the failure output.
+    The benchmark runs up to MAX_BENCHMARK_ATTEMPTS times with a fresh
+    database per attempt and passes as soon as one attempt is within budget.
+    Every attempt is printed. If all attempts exceed the budget, compare the
+    distribution with an isolated rerun because sustained shared-host noise
+    can affect more than one batch.
     """
-    attempts: list[dict[str, float]] = []
+    attempts: list[dict[str, Any]] = []
     for attempt in range(1, MAX_BENCHMARK_ATTEMPTS + 1):
         _isolate_state_root(tmp_path, monkeypatch, f"isolated-attempt-{attempt}")
         results = _run_benchmark()
@@ -210,12 +263,12 @@ def test_dispatch_latency_within_plan_budget(
             f"p99={results['p99_ms']:.3f}ms  "
             f"-> {'within budget' if ok else 'OVER BUDGET'}"
         )
+        print(f"  diagnostics: {_format_diagnostics(results)}")
         if ok:
             return
 
-    # Every attempt exceeded budget. Single-batch CI noise cannot
-    # explain all MAX_BENCHMARK_ATTEMPTS runs being slow — treat this as
-    # a genuine dispatch-latency regression (plan NFR: <100ms p99).
+    # Report the complete observed breach. The distribution and an isolated
+    # rerun distinguish a code-path regression from sustained host noise.
     best = min(attempts, key=lambda r: r["p95_ms"])
     pytest.fail(
         f"dispatch latency over budget on all {MAX_BENCHMARK_ATTEMPTS} "

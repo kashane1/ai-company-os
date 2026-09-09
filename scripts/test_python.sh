@@ -37,9 +37,16 @@ cd "$ROOT"
 # starts Python from another directory. Keep coverage artifacts under build/.
 export COVERAGE_FILE="$ROOT/build/coverage/.coverage"
 
+# Measure real wall-clock latency in a fresh process before the application
+# suite. Coverage tracing and state left by earlier tests distort this budget.
+# This remains a required gate, using the same SQLite path and latency limits.
+"$PYTHON_BIN" -m pytest "$ROOT/tests/python/perf" --no-cov -s \
+  --junitxml="$ROOT/build/test-results/python-latency-junit.xml"
+
 args=(
   "$PYTHON_BIN" -m pytest
   "$ROOT/tests/python"
+  --ignore="$ROOT/tests/python/perf"
   --junitxml="$ROOT/build/test-results/python-junit.xml"
   --cov=apps
   --cov=packages

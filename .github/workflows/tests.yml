@@ -95,6 +95,7 @@ jobs:
         with:
           name: python-${{ matrix.python }}-test-artifacts
           path: |
+            build/test-results/python-latency-junit.xml
             build/test-results/python-junit.xml
             build/coverage/python-coverage.xml
 
