@@ -14,6 +14,12 @@ from packages.policies.completion_evidence import (
     SUPPORTED_LANES,
     validate_completion_evidence,
 )
+from packages.policies.release_readiness import (
+    APPROVAL_REQUIRED_RELEASE_ACTIONS,
+    app_store_release_revision,
+    approval_type_for_release_action,
+    approve_release_action,
+)
 from packages.policies.worker_capabilities import ensure_task_lane_is_consumed
 from packages.queue import TaskQueue
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
@@ -36,6 +42,13 @@ def _atomic_lifecycle(method):
         with self.tasks.db.transaction():
             return method(self, *args, **kwargs)
     return wrapped
+
+
+def _constraint_value(constraints: list[str], prefix: str) -> str | None:
+    for constraint in constraints:
+        if constraint.startswith(prefix):
+            return constraint.split("=", 1)[1]
+    return None
 
 
 class ControlPlaneService:
@@ -237,6 +250,86 @@ class ControlPlaneService:
         )
         return failed, recovery_goal, replacement
 
+    @_atomic_lifecycle
+    def resume_blocked_appstore_task(self, *, task_id: str) -> Task:
+        """Queue one approved replacement for a blocked App Store submission."""
+        current = self.tasks.load_for_update(task_id)
+        if current.status is not TaskStatus.BLOCKED or current.lane is not WorkerLane.APPSTORE:
+            raise ValueError("only a blocked App Store task can be resumed")
+        if not current.goal_id:
+            raise ValueError("blocked App Store task has no parent goal")
+        if self.queue.backend.name != "database":
+            raise ValueError("App Store approval resume requires the database queue backend")
+        approval_id = current.approval_id
+        if not approval_id:
+            raise ValueError("blocked App Store task has no persisted approval binding")
+        release_id = _constraint_value(current.constraints, "release_id=")
+        action = _constraint_value(current.constraints, "release_action=") or "prepare_testflight"
+        if not release_id or action not in APPROVAL_REQUIRED_RELEASE_ACTIONS:
+            raise ValueError("only approval-required App Store release actions support resume")
+
+        approval = self.approvals.load(approval_id)
+        if approval.status is not ApprovalStatus.APPROVED:
+            raise ValueError("approval is not approved")
+        expected_revision = app_store_release_revision(release_id, action=action)
+        if (
+            approval.task_id != current.id
+            or approval.approval_type != approval_type_for_release_action(action)
+            or approval.subject_type != "release"
+            or approval.subject_id != release_id
+            or approval.action != action
+        ):
+            raise ValueError("approval does not match the blocked App Store task")
+        if not approval.reviewed_revision or approval.reviewed_revision != expected_revision:
+            raise ValueError("approval does not match the reviewed revision")
+        approve_release_action(
+            release_id,
+            approval_id,
+            action=action,
+            product_id=current.product_id or "catchbook",
+        )
+
+        now = self._now()
+        replacement_id = self._prefixed_id("task")
+        failed = self.tasks.fail(
+            current.id,
+            error_summary=f"superseded by approved App Store replacement {replacement_id}",
+            failed_at=now,
+        )
+        self._ack_database_task(current.id, worker_id=current.claimed_by or "approval-resume")
+        constraints = [
+            constraint
+            for constraint in current.constraints
+            if not constraint.startswith("approval_id=")
+            and not constraint.startswith("approval_source_task_id=")
+        ]
+        constraints.extend(
+            [f"approval_id={approval.id}", f"approval_source_task_id={current.id}"]
+        )
+        replacement = self.create_task_for_goal(
+            goal_id=current.goal_id,
+            task_id=replacement_id,
+            repo_id=current.repo_id,
+            lane=current.lane,
+            title=current.title,
+            summary=current.summary,
+            task_type=current.task_type,
+            risk_level=current.risk_level,
+            product_id=current.product_id,
+            requires_approval=current.requires_approval,
+            constraints=constraints,
+        )
+        self._append_event(
+            event_type="appstore_task_resumed",
+            subject_type="task",
+            subject_id=failed.id,
+            goal_id=failed.goal_id,
+            task_id=failed.id,
+            approval_id=approval.id,
+            payload={"replacement_task_id": replacement.id, "approval_id": approval.id},
+        )
+        return replacement
+
     def submit_task_result(
         self,
         *,
@@ -332,7 +425,7 @@ class ControlPlaneService:
             self._ack_database_task(task_id, worker_id=worker_id)
             event_type = "task_failed"
         elif status is TaskStatus.BLOCKED:
-            task = self.tasks.set_status(task_id, TaskStatus.BLOCKED, updated_at=now)
+            task = self.tasks.block(task_id, approval_id=approval_id, updated_at=now)
             event_type = "task_blocked"
         else:
             raise ValueError(f"Unsupported task result status for submit flow: {status.value}")

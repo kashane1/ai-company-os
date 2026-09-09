@@ -214,6 +214,20 @@ class TaskStore:
             updated_at=failed_at,
         )
 
+    def block(
+        self,
+        task_id: str,
+        *,
+        approval_id: str | None,
+        updated_at: str,
+    ) -> Task:
+        return self._transition(
+            task_id,
+            TaskStatus.BLOCKED,
+            approval_id=approval_id,
+            updated_at=updated_at,
+        )
+
     def _from_row(self, payload: dict[str, object]) -> Task:
         payload = dict(payload)
         payload["requires_approval"] = bool(payload.get("requires_approval", 0))

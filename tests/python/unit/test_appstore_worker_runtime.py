@@ -332,9 +332,9 @@ def test_appstore_worker_runs_release_readiness_before_local_submission_transiti
     readiness_calls: list[tuple[str, str, str, str]] = []
     monkeypatch.setattr(
         worker_appstore_main,
-        "approve_app_store_submission",
-        lambda release_id, approval_id, *, product_id, expected_action: (
-            readiness_calls.append((release_id, approval_id, product_id, expected_action))
+        "approve_release_action",
+        lambda release_id, approval_id, *, action, product_id, release_store: (
+            readiness_calls.append((release_id, approval_id, product_id, action))
             or ReleaseStore().load_release_record(release_id)
         ),
     )
@@ -394,7 +394,7 @@ def test_appstore_worker_blocks_local_submission_when_readiness_rejects(
     ApprovalStore().save(approval)
     monkeypatch.setattr(
         worker_appstore_main,
-        "approve_app_store_submission",
+        "approve_release_action",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(
             PolicyViolation("submission_checklist_incomplete", "2 items remain")
         ),
@@ -450,7 +450,7 @@ def test_appstore_worker_persists_release_readiness_rejection(
     )
     monkeypatch.setattr(
         worker_appstore_main,
-        "approve_app_store_submission",
+        "approve_release_action",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(
             PolicyViolation("submission_checklist_incomplete", "2 items remain")
         ),

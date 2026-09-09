@@ -102,12 +102,13 @@ def _seed_p0_token_and_approve(
     subject_id: str,
     *,
     service: ControlPlaneService,
+    action: str = "submit_appstore",
 ) -> None:
     token_store = ApprovalTokenStore()
     token = issue_token(
         approval_id=approval_id,
         subject_id=subject_id,
-        action="submit_appstore",
+        action=action,
         secret=SECRET,
         store=token_store,
     )
