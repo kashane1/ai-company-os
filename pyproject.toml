@@ -33,7 +33,7 @@ reply-sync = [
 
 [dependency-groups]
 quality = [
-    "ruff==0.14.11",
+    "ruff==0.16.6",
     "pip-audit==2.10.1",
 ]
 
