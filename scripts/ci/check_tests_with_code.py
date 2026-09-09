@@ -31,19 +31,16 @@ def main() -> int:
         "--event-name",
         default="pull_request",
         help=(
-            "GitHub event name. The PR-body `## Testing` metadata gate is "
-            "only enforced for `pull_request`; other events (e.g. `push`) "
-            "carry no PR body, so that gate is reported but not failed. "
+            "GitHub event name. Pull requests require `## Testing` metadata. "
+            "Other events use supplied merge-commit metadata when available; "
+            "without it, every affected source area must have matching tests. "
             "Defaults to `pull_request` so the strict path is fail-closed."
         ),
     )
     args = parser.parse_args()
 
-    # The `## Testing` metadata gate is a pull-request-review-time check.
-    # A `push` event (e.g. a merge landing on main) has no PR body, so the
-    # gate cannot be evaluated — and it was already enforced when the
-    # change merged as a pull request. `pull_request` keeps full
-    # enforcement; anything else only reports what the diff alone shows.
+    # PRs require review metadata. Pushes may retain it in the merge body;
+    # without metadata, the diff must prove matching tests for every area.
     pr_context = args.event_name == "pull_request"
 
     changed_lines = Path(args.changed_files).read_text().splitlines()
