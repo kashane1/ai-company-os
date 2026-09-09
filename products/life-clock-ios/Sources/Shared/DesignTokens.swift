@@ -24,8 +24,18 @@ enum DesignTokens {
     enum Palette {
         static let surface = Color(.systemBackground)
         static let elevated = Color(.secondarySystemBackground)
-        static let positive = Color.green.opacity(0.85)
-        static let negative = Color.orange // muted, never alarming red
+        // Signed values are also used at body sizes. Resolve opaque text colors
+        // for each appearance instead of reducing contrast through opacity.
+        static let positive = Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.39, green: 0.85, blue: 0.56, alpha: 1)
+                : UIColor(red: 0.07, green: 0.40, blue: 0.20, alpha: 1)
+        })
+        static let negative = Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 1.0, green: 0.70, blue: 0.38, alpha: 1)
+                : UIColor(red: 0.63, green: 0.26, blue: 0.02, alpha: 1)
+        }) // muted orange, never alarming red
         static let muted = Color.secondary
     }
 
