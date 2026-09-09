@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
+import subprocess
 from pathlib import Path
 
+import pytest
 from ios import codex_runner
+
 from packages.schemas.task_packet import WorkerLane
 from packages.tools.codex_tools.task_packet import PacketPattern, select_packet_pattern
 from tests.python.factories.task_data import build_task, build_worktree_metadata
@@ -55,3 +59,40 @@ def test_render_task_packet_uses_ui_polish_pattern_for_ios_polish_work(tmp_path:
     assert "## Review findings to address" in rendered
     assert "spacing, alignment, and accessibility" in rendered
     assert "## Acceptance criteria" in rendered
+
+
+def test_execute_codex_redacts_canaries_from_ios_persisted_diagnostics(
+    isolated_repo_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    canary = "sk-IOSCANARY0123456789ABCDEFG"
+    worktree_root = isolated_repo_root / "token=ios_metadata_canary_123456789"
+    worktree_root.mkdir()
+    packet_path = worktree_root / "TASK_PACKET.md"
+    packet_path.write_text("packet body")
+    task = build_task(lane=WorkerLane.IOS)
+    worktree = build_worktree_metadata(str(worktree_root))
+
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            args=kwargs.get("args", args[0] if args else []),
+            returncode=1,
+            stdout=f"useful ios stdout diagnostic token={canary}",
+            stderr=f"useful ios stderr diagnostic bearer {canary}",
+        ),
+    )
+
+    _, execution, _, metadata_path = codex_runner.execute_codex(task, worktree, str(packet_path))
+
+    stdout_log = isolated_repo_root / "state" / "logs" / "ios" / "task-123.stdout.log"
+    stderr_log = isolated_repo_root / "state" / "logs" / "ios" / "task-123.stderr.log"
+    metadata = json.loads(Path(metadata_path).read_text())
+    persisted = "\n".join([stdout_log.read_text(), stderr_log.read_text(), json.dumps(metadata)])
+
+    assert canary not in persisted
+    assert "ios_metadata_canary_123456789" not in persisted
+    assert "useful ios stdout diagnostic" in persisted
+    assert "useful ios stderr diagnostic" in persisted
+    assert canary not in execution.command_display

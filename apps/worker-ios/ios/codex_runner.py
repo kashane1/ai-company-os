@@ -6,12 +6,24 @@ from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories
 from packages.schemas.task import Task
-from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.task_run import CodexExecutionRecord
+from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.worktree import WorktreeMetadata
 from packages.tools.codex_tools.task_packet import build_task_packet, render_markdown
+from packages.tools.observability.redaction import redact
 
 CODEX_TIMEOUT_SECONDS = 120
+
+
+def _persistable_text(value: str | bytes | None) -> str:
+    """Decode and redact subprocess diagnostics before any runtime write."""
+    if isinstance(value, bytes):
+        value = value.decode("utf-8", errors="replace")
+    return redact(value or "").text
+
+
+def _persistable_command(command: list[str]) -> list[str]:
+    return [_persistable_text(part) for part in command]
 
 
 def render_task_packet(task: Task, worktree: WorktreeMetadata) -> str:
@@ -78,13 +90,15 @@ def execute_codex(
             cwd=worktree.root_path,
             timeout=CODEX_TIMEOUT_SECONDS,
         )
-        stdout = completed.stdout
-        stderr = completed.stderr
+        stdout = _persistable_text(completed.stdout)
+        stderr = _persistable_text(completed.stderr)
         exit_code = completed.returncode
     except subprocess.TimeoutExpired as exc:
         timed_out = True
-        stdout = exc.stdout or ""
-        stderr = (exc.stderr or "") + f"\niOS Codex execution timed out after {CODEX_TIMEOUT_SECONDS} seconds."
+        stdout = _persistable_text(exc.stdout)
+        stderr = _persistable_text(exc.stderr) + (
+            f"\niOS Codex execution timed out after {CODEX_TIMEOUT_SECONDS} seconds."
+        )
         exit_code = -1
 
     finished_at = datetime.now(UTC).isoformat()
@@ -95,12 +109,12 @@ def execute_codex(
     metadata_path = Path(worktree.root_path) / "codex_execution.json"
     metadata_payload = {
         "task_id": task.id,
-        "command": command,
-        "command_display": shlex.join(command),
-        "cwd": worktree.root_path,
-        "packet_path": packet_path,
-        "stdout_path": str(stdout_path),
-        "stderr_path": str(stderr_path),
+        "command": _persistable_command(command),
+        "command_display": _persistable_text(shlex.join(command)),
+        "cwd": _persistable_text(worktree.root_path),
+        "packet_path": _persistable_text(packet_path),
+        "stdout_path": _persistable_text(str(stdout_path)),
+        "stderr_path": _persistable_text(str(stderr_path)),
         "exit_code": exit_code,
         "started_at": started_at,
         "finished_at": finished_at,
@@ -110,9 +124,9 @@ def execute_codex(
         json.dump(metadata_payload, handle, indent=2, sort_keys=True)
 
     execution = CodexExecutionRecord(
-        command=command,
-        command_display=shlex.join(command),
-        cwd=worktree.root_path,
+        command=_persistable_command(command),
+        command_display=_persistable_text(shlex.join(command)),
+        cwd=_persistable_text(worktree.root_path),
         stdout_path=str(stdout_path),
         stderr_path=str(stderr_path),
         exit_code=exit_code,
@@ -131,7 +145,7 @@ def execute_codex(
                 f"product_id={task.product_id or ''}",
                 f"exit_code={exit_code}",
                 f"timed_out={timed_out}",
-                f"last_message_path={result_path}",
+                f"last_message_path={_persistable_text(str(result_path))}",
             ]
         )
         + "\n"
