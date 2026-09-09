@@ -22,7 +22,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest>=9.0.3,<10",
-    "pytest-cov>=6,<7",
+    "pytest-cov>=6,<8",
 ]
 # Reply-sync poller (apps/worker-reply-sync). Kept optional so the core install
 # stays lean — only the always-on Mac running the poller needs the Gmail client.
