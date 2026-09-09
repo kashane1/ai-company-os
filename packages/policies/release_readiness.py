@@ -25,12 +25,18 @@ from packages.config.settings import load_runtime_paths
 from packages.db.approval_store import ApprovalStore
 from packages.db.approval_token_store import ApprovalTokenStore
 from packages.db.release_store import ReleaseStore
+from packages.policies.approval_bindings import canonical_revision
 from packages.policies.approval_tokens import ApprovalToken
-from packages.policies.approvals import PolicyViolation, is_approval_granted
+from packages.policies.approvals import (
+    APPROVAL_REQUIRED_RELEASE_ACTIONS,
+    PolicyViolation,
+    is_approval_granted,
+)
 from packages.schemas.release import ReleaseRecord, ReleaseStatus
 from packages.tools.skills.loader import load_validator
 
 APP_STORE_SUBMISSION_APPROVAL_TYPE = "app_store_submission"
+RELEASE_ACTION_APPROVAL_TYPE = "release_action"
 PROTECTED_BRANCH_MERGE_APPROVAL_TYPE = "protected_branch_merge"
 BILLING_APPROVAL_TYPE = "billing_action"
 DNS_APPROVAL_TYPE = "dns_change"
@@ -87,6 +93,25 @@ class _TokenAuditStoreAdapter:
 def _submission_checklist_path(product_id: str) -> Path:
     root = load_runtime_paths().repo_root
     return root / "docs" / "products" / product_id / "submission-checklist.md"
+
+
+def app_store_release_revision(
+    release_id: str,
+    *,
+    action: str,
+    release_store: ReleaseStore | None = None,
+) -> str:
+    """Bind an approval to the complete persisted release input being reviewed."""
+    release = (release_store or ReleaseStore()).load_release_record(release_id)
+    return canonical_revision({"action": action, "release": release.to_dict()})
+
+
+def approval_type_for_release_action(action: str) -> str:
+    if action == "submit_appstore":
+        return APP_STORE_SUBMISSION_APPROVAL_TYPE
+    if action in APPROVAL_REQUIRED_RELEASE_ACTIONS:
+        return RELEASE_ACTION_APPROVAL_TYPE
+    raise PolicyViolation("unsupported_release_action", f"unsupported release action {action!r}")
 
 
 def _unchecked_items(checklist_path: Path) -> list[str]:
@@ -151,6 +176,56 @@ def _run_token_audit(
             "approval_audit_failed",
             f"approval-token-audit reported {reason!r}",
         )
+
+
+def approve_release_action(
+    release_id: str,
+    approval_id: str,
+    *,
+    action: str,
+    product_id: str = "catchbook",
+    release_store: ReleaseStore | None = None,
+    approval_store: ApprovalStore | None = None,
+    token_store: ApprovalTokenStore | None = None,
+) -> ReleaseRecord:
+    """Authorize one exact, signed P0 local release transition."""
+    expected_type = approval_type_for_release_action(action)
+    approvals = approval_store or ApprovalStore()
+    releases = release_store or ReleaseStore()
+    try:
+        approval = approvals.load(approval_id)
+        release = releases.load_release_record(release_id)
+    except FileNotFoundError as exc:
+        raise PolicyViolation("approval_not_granted", "approval or release record is unavailable") from exc
+    if (
+        approval.status.value != "approved"
+        or approval.approval_type != expected_type
+        or approval.subject_type != "release"
+        or approval.subject_id != release_id
+        or approval.action != action
+        or not approval.reviewed_revision
+        or approval.reviewed_revision
+        != app_store_release_revision(release_id, action=action, release_store=releases)
+    ):
+        raise PolicyViolation("approval_not_granted", "approval does not match the reviewed release action")
+    if action == "submit_appstore":
+        return approve_app_store_submission(
+            release_id,
+            approval_id,
+            product_id=product_id,
+            expected_action=action,
+            release_store=releases,
+            approval_store=approvals,
+            token_store=token_store,
+        )
+    _run_token_audit(
+        approval_id=approval_id,
+        expected_action=action,
+        expected_subject_id=release_id,
+        token_store=token_store,
+        approval_store=approvals,
+    )
+    return release
 
 
 def approve_app_store_submission(

@@ -372,6 +372,38 @@ final class LifeClockUITests: XCTestCase {
                         "mascot value should match TimeDeltaFormatter shape, got: \(value)")
     }
 
+    func testSignedEstimateInLightAndDarkAppearance() throws {
+        for appearance in ["light", "dark"] {
+            launchApp(
+                scenario: "onboarded",
+                extraEnvironment: [
+                    "LIFECLOCK_HEALTH_AUTH": "authorized",
+                    "LIFECLOCK_FORCE_COLOR_SCHEME": appearance,
+                    "LIFECLOCK_FIXED_DATE": "2026-09-09T12:00:00Z",
+                ]
+            )
+            let mascot = app.otherElements["today.mascot"]
+            XCTAssertTrue(mascot.waitForExistence(timeout: 8))
+            XCTAssertFalse(((mascot.value as? String) ?? "").isEmpty)
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "signed-estimate-\(appearance)"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+            // SwiftUI's card identifier can replace descendant identifiers;
+            // use the visible heading to locate this read-only section.
+            let drivers = app.staticTexts["Why it changed"]
+            for _ in 0..<4 where !drivers.isHittable {
+                app.swipeUp()
+            }
+            XCTAssertTrue(drivers.isHittable)
+            let driverScreenshot = XCTAttachment(screenshot: app.screenshot())
+            driverScreenshot.name = "signed-drivers-\(appearance)"
+            driverScreenshot.lifetime = .keepAlways
+            add(driverScreenshot)
+            app.terminate()
+        }
+    }
+
     private func element(_ identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }

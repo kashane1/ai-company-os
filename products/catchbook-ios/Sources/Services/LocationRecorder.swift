@@ -8,17 +8,23 @@ final class LocationRecorder: NSObject, ObservableObject, CLLocationManagerDeleg
     @Published var lastLocation: CLLocation?
     @Published var authorizationStatus: CLAuthorizationStatus
 
-    private let manager = CLLocationManager()
+    private let manager: CLLocationManager
+    private let authorizationOverride: CLAuthorizationStatus?
 
-    override init() {
-        self.authorizationStatus = manager.authorizationStatus
+    init(authorizationOverride: CLAuthorizationStatus? = CatchbookLaunchConfiguration.locationAuthorizationOverride) {
+        let manager = CLLocationManager()
+        self.manager = manager
+        self.authorizationOverride = authorizationOverride
+        self.authorizationStatus = authorizationOverride ?? manager.authorizationStatus
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
     }
 
     func requestIfNeeded() {
-        switch manager.authorizationStatus {
+        guard authorizationOverride == nil else { return }
+
+        switch authorizationStatus {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
         case .authorizedAlways, .authorizedWhenInUse:
@@ -29,6 +35,8 @@ final class LocationRecorder: NSObject, ObservableObject, CLLocationManagerDeleg
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard authorizationOverride == nil else { return }
+
         authorizationStatus = manager.authorizationStatus
         if authorizationStatus == .authorizedAlways || authorizationStatus == .authorizedWhenInUse {
             manager.requestLocation()

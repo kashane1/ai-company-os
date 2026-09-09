@@ -1,11 +1,13 @@
 from pathlib import Path
-from types import SimpleNamespace
 
 from engineering import validator
 
+from packages.schemas.repo import VerificationCommand
 from packages.schemas.testing import ValidationFailureCode
+from packages.tools.verification import run_verification
 from tests.python.factories import build_worktree_metadata
 from tests.python.factories.task_data import build_task
+from tests.python.unit.test_worker_verification import git_repo
 
 
 def test_capture_diff_writes_diff_artifact(
@@ -18,9 +20,9 @@ def test_capture_diff_writes_diff_artifact(
     worktree = build_worktree_metadata(str(worktree_root))
 
     monkeypatch.setattr(
-        validator.subprocess,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(stdout="diff --git a/file b/file\n"),
+        validator,
+        "capture_review_diff",
+        lambda *_: "diff --git a/file b/file\n",
     )
 
     diff_path = validator.capture_diff(worktree, "task-123")
@@ -36,7 +38,7 @@ def test_validate_run_reports_expected_checks(tmp_path: Path) -> None:
     diff_path = tmp_path / "diff.patch"
 
     packet_path.write_text("# packet")
-    worktree_path.mkdir()
+    git_repo(worktree_path)
     execution_result_path.write_text("## Testing\n\n- Added tests/python/unit/test_platform.py\n")
     diff_path.write_text("diff")
 
@@ -48,6 +50,10 @@ def test_validate_run_reports_expected_checks(tmp_path: Path) -> None:
         exit_code=0,
         diff_path=str(diff_path),
         status_lines=["M  apps/api/platform.py", "M  tests/python/unit/test_platform.py"],
+        verification_results=run_verification(
+            [VerificationCommand(["{python}", "-c", "assert 2 + 2 == 4"])],
+            str(worktree_path), tmp_path / "verification",
+        ),
     )
 
     assert all(check.passed for check in checks)
@@ -60,6 +66,7 @@ def test_validate_run_reports_expected_checks(tmp_path: Path) -> None:
         "codex_exit_code_zero",
         "diff_artifact_exists",
         "tests_with_code_policy",
+        "verification_commands_passed",
     ]
 
 

@@ -29,6 +29,7 @@ struct NameStepView: View {
                     .background(Color.appBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.appBorder, lineWidth: 1))
+                    .accessibilityIdentifier("onboarding.name.firstName")
             }
             .appSurface(prominent: true)
             Spacer(minLength: 0)
@@ -36,6 +37,7 @@ struct NameStepView: View {
                 Button("Continue") { onContinue() }
                     .buttonStyle(ActionPillButtonStyle(prominent: true))
                     .disabled(!isValid)
+                    .accessibilityIdentifier("onboarding.name.continue")
                 Button("Back") { onBack() }
                     .buttonStyle(ActionPillButtonStyle())
             }

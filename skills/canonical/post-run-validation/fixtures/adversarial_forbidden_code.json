@@ -5,12 +5,13 @@
     "task_id": "task-advers-003",
     "result": {
       "task_id": "task-advers-003",
-      "summary": "Post rejected by social_post_safety_rejected — see logs",
+      "summary": "Post rejected — see logs",
       "status": "completed",
       "artifacts": [
         "state/artifacts/gtm/task-advers-003/run_summary.json"
       ],
-      "events": ["task_claimed"]
+      "events": ["task_claimed"],
+      "failure_codes": ["social_post_safety_rejected"]
     },
     "repo_root": "."
   },

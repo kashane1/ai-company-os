@@ -88,6 +88,7 @@ struct ActivityVenueStepView: View {
             VStack(spacing: Spacing.sm) {
                 Button("Continue") { onContinue() }
                     .buttonStyle(ActionPillButtonStyle(prominent: true))
+                    .accessibilityIdentifier("onboarding.activity.continue")
                 Button("Skip for now") { onContinue() }
                     .buttonStyle(ActionPillButtonStyle())
                 Button("Back") { onBack() }

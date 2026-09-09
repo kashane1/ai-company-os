@@ -155,8 +155,10 @@ def test_lane_for_worker_lane(worker_lane: WorkerLane) -> TestLane:
     return TestLane.NONE
 
 
-def logic_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) -> list[str]:
-    areas = _areas_for_lane(lane)
+def logic_paths_for_lane(
+    changes: list[ChangeRecord], lane: TestLane, source_root: str | None = None
+) -> list[str]:
+    areas = _areas_for_lane(lane, source_root=source_root)
     return [
         change.path
         for change in changes
@@ -164,9 +166,11 @@ def logic_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) -> list[st
     ]
 
 
-def relevant_test_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) -> list[str]:
-    affected_areas = _affected_areas(changes, lane)
-    areas = affected_areas or _areas_for_lane(lane)
+def relevant_test_paths_for_lane(
+    changes: list[ChangeRecord], lane: TestLane, source_root: str | None = None
+) -> list[str]:
+    affected_areas = _affected_areas(changes, lane, source_root=source_root)
+    areas = affected_areas or _areas_for_lane(lane, source_root=source_root)
     return [
         change.path
         for change in changes
@@ -175,30 +179,90 @@ def relevant_test_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) ->
     ]
 
 
-def is_test_path(path: str, lane: TestLane) -> bool:
-    return any(area.contains_test(path) for area in _areas_for_lane(lane))
+def is_test_path(path: str, lane: TestLane, source_root: str | None = None) -> bool:
+    return any(
+        area.contains_test(path) for area in _areas_for_lane(lane, source_root=source_root)
+    )
 
 
-def _areas_for_lane(lane: TestLane) -> tuple[SourceTestArea, ...]:
-    return tuple(area for area in SOURCE_TEST_AREAS if area.lane is lane)
+def _areas_for_lane(
+    lane: TestLane, source_root: str | None = None
+) -> tuple[SourceTestArea, ...]:
+    areas = tuple(area for area in SOURCE_TEST_AREAS if area.lane is lane)
+    standalone_areas = _standalone_areas_for_source_root(areas, source_root)
+    return standalone_areas or areas
+
+
+def _standalone_areas_for_source_root(
+    areas: tuple[SourceTestArea, ...], source_root: str | None
+) -> tuple[SourceTestArea, ...]:
+    """Expose registered product-relative paths for a standalone worktree.
+
+    Callers must derive ``source_root`` from the trusted repository registry's
+    ``RepoConfig.source_path``. A managed checkout for Catchbook, for example,
+    reports ``Sources/...`` rather than the monorepo's
+    ``products/catchbook-ios/Sources/...``. The canonical roots remain accepted
+    too, which keeps this mapping safe for callers that already have monorepo
+    relative paths.
+    """
+    if not source_root:
+        return ()
+
+    normalized_root = source_root.replace("\\", "/").rstrip("/")
+    standalone_areas: list[SourceTestArea] = []
+    for area in areas:
+        product_root = _product_root(area)
+        if product_root is None or not _matches_source_root(normalized_root, product_root):
+            continue
+
+        relative_source_roots = tuple(
+            source_root.removeprefix(product_root) for source_root in area.source_roots
+        )
+        relative_test_roots = tuple(
+            test_root.removeprefix(product_root) for test_root in area.test_roots
+        )
+        standalone_areas.append(
+            SourceTestArea(
+                name=area.name,
+                lane=area.lane,
+                source_roots=area.source_roots + relative_source_roots,
+                source_suffixes=area.source_suffixes,
+                test_roots=area.test_roots + relative_test_roots,
+                test_suffixes=area.test_suffixes,
+            )
+        )
+    return tuple(standalone_areas)
+
+
+def _product_root(area: SourceTestArea) -> str | None:
+    marker = "/Sources/"
+    source_root = area.source_roots[0]
+    if marker not in source_root:
+        return None
+    return source_root.split(marker, maxsplit=1)[0] + "/"
+
+
+def _matches_source_root(source_root: str, product_root: str) -> bool:
+    canonical_root = product_root.rstrip("/")
+    return source_root == canonical_root or source_root.endswith(f"/{canonical_root}")
 
 
 def _affected_areas(
-    changes: list[ChangeRecord], lane: TestLane
+    changes: list[ChangeRecord], lane: TestLane, source_root: str | None = None
 ) -> tuple[SourceTestArea, ...]:
     return tuple(
         area
-        for area in _areas_for_lane(lane)
+        for area in _areas_for_lane(lane, source_root=source_root)
         if any(area.contains_source(change.path) for change in changes)
     )
 
 
 def _untested_areas(
-    changes: list[ChangeRecord], lane: TestLane
+    changes: list[ChangeRecord], lane: TestLane, source_root: str | None = None
 ) -> tuple[SourceTestArea, ...]:
     return tuple(
         area
-        for area in _affected_areas(changes, lane)
+        for area in _affected_areas(changes, lane, source_root=source_root)
         if not any(
             change.is_created_or_modified and area.contains_test(change.path)
             for change in changes
@@ -212,18 +276,30 @@ def parse_git_status_lines(lines: list[str]) -> list[ChangeRecord]:
         if not line.strip():
             continue
         status_token = line[:2]
-        path_token = line[3:].strip()
-        if "->" in path_token:
-            previous_path, _, path = path_token.partition(" -> ")
+        raw_status = status_token.strip()
+        if ("R" in raw_status or "C" in raw_status) and line[2:].startswith("\t"):
+            _, previous_path, path = line.split("\t", maxsplit=2)
             changes.append(
                 ChangeRecord(
                     status=_normalize_short_status(status_token),
+                    path=path,
+                    previous_path=previous_path,
+                )
+            )
+            continue
+        path_token = line[3:].strip()
+        status = _normalize_short_status(status_token)
+        if status == "R" and " -> " in path_token:
+            previous_path, _, path = path_token.partition(" -> ")
+            changes.append(
+                ChangeRecord(
+                    status=status,
                     path=path.strip(),
                     previous_path=previous_path.strip(),
                 )
             )
             continue
-        changes.append(ChangeRecord(status=_normalize_short_status(status_token), path=path_token))
+        changes.append(ChangeRecord(status=status, path=path_token))
     return changes
 
 
@@ -275,11 +351,12 @@ def evaluate_testing_policy(
     testing_metadata: TestingMetadata | None,
     current_task: Task | None = None,
     task_store: TaskStore | None = None,
+    source_root: str | None = None,
 ) -> TestingPolicyResult:
-    relevant_logic_paths = logic_paths_for_lane(changes, lane)
-    relevant_test_paths = relevant_test_paths_for_lane(changes, lane)
+    relevant_logic_paths = logic_paths_for_lane(changes, lane, source_root=source_root)
+    relevant_test_paths = relevant_test_paths_for_lane(changes, lane, source_root=source_root)
     tests_required = bool(relevant_logic_paths)
-    untested_areas = _untested_areas(changes, lane)
+    untested_areas = _untested_areas(changes, lane, source_root=source_root)
     all_affected_areas_tested = tests_required and not untested_areas
 
     if testing_metadata is None or not testing_metadata.summary:

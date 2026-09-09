@@ -1,7 +1,7 @@
 import json
 import sys
 import time
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import Event
@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
 from apps.api.control_plane import ControlPlaneService
 from packages.config.settings import load_runtime_paths
 from packages.db.approval_store import ApprovalStore
+from packages.db.event_store import EventStore
 from packages.db.release_store import ReleaseStore
 from packages.db.task_store import TaskStore
 from packages.policies.approvals import (
@@ -23,19 +24,17 @@ from packages.policies.approvals import (
 )
 from packages.policies.release_readiness import (
     APP_STORE_SUBMISSION_APPROVAL_TYPE,
-    approve_app_store_submission,
+    app_store_release_revision,
+    approve_release_action,
 )
-from packages.schemas.approval import ApprovalStatus
 from packages.schemas.release import ReleaseRecord, ReleaseStatus, StoreChannelStatus
 from packages.schemas.task_packet import TaskPacket, TaskResult, TaskStatus, WorkerLane
-
-
-@dataclass(frozen=True)
-class WorkerLoopStats:
-    worker_id: str
-    processed_count: int
-    idle_cycles: int
-    stop_reason: str
+from packages.tools.worker_loop import (
+    WorkerLoopStats,
+    redacted_error_message,
+    worker_exit_code,
+)
+from packages.tools.worker_loop import run_worker_loop as shared_worker_loop
 
 
 def inspect_release(release_id: str) -> ReleaseRecord:
@@ -73,52 +72,24 @@ def execute_release_action(release_id: str, action: str, approval_id: str | None
                 ],
             )
         try:
-            approval = ApprovalStore().load(approval_id)
-        except FileNotFoundError:
-            return TaskResult(
-                task_id=release_id,
-                status=TaskStatus.BLOCKED,
-                summary=(
-                    f"Release action {action} is blocked because its approval record "
-                    "is unavailable."
-                ),
-                next_actions=["Create and approve the matching release approval record."],
-            )
-        if (
-            approval.status is not ApprovalStatus.APPROVED
-            or approval.approval_type != _approval_type_for_action(action)
-            or approval.subject_type != "release"
-            or approval.subject_id != release_id
-            or approval.action != action
-        ):
-            return TaskResult(
-                task_id=release_id,
-                status=TaskStatus.BLOCKED,
-                summary=f"Release action {action} is blocked because its approval does not match.",
-                next_actions=["Approve the matching release action before retrying."],
-            )
-
-    validation_checks: list[str] = []
-    if action == "submit_appstore":
-        assert approval_id is not None  # guarded by the approval-required branch above
-        try:
-            approve_app_store_submission(
+            approve_release_action(
                 release_id,
                 approval_id,
+                action=action,
                 product_id=release.product_id,
-                expected_action=action,
+                release_store=release_store,
             )
         except PolicyViolation as exc:
             return TaskResult(
                 task_id=release_id,
                 status=TaskStatus.BLOCKED,
-                summary=f"Release action {action} is blocked by release readiness: {exc.code}: {exc}",
-                next_actions=[
-                    "Complete the local submission checklist and signed P0 approval flow.",
-                    "Retry the local state transition after readiness passes.",
-                ],
+                summary=f"Release action {action} is blocked: {exc.code}: {exc}",
+                next_actions=["Approve the matching release action before retrying."],
                 failure_codes=[exc.code],
             )
+
+    validation_checks: list[str] = []
+    if action == "submit_appstore":
         validation_checks.append("release_readiness:passed")
 
     updated = release
@@ -215,6 +186,7 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
     release_id = _constraint_value(packet, "release_id=")
     release_action = _constraint_value(packet, "release_action=") or "prepare_testflight"
     approval_id = _constraint_value(packet, "approval_id=")
+    approval_source_task_id = _constraint_value(packet, "approval_source_task_id=")
 
     try:
         if release_id and requires_release_action_approval(release_action) and not approval_id:
@@ -225,6 +197,10 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
                 action=release_action,
                 approval_type=_approval_type_for_action(release_action),
                 task_id=task.id,
+                reviewed_revision=app_store_release_revision(
+                    release_id,
+                    action=release_action,
+                ),
             )
             result = TaskResult(
                 task_id=task.id,
@@ -236,17 +212,56 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
                     "Retry the App Store task after approval is granted.",
                 ],
             )
+        elif approval_id and approval_source_task_id:
+            approval = ApprovalStore().load(approval_id)
+            try:
+                source_task = TaskStore().load(approval_source_task_id)
+            except FileNotFoundError:
+                source_task = None
+            resumed_events = [
+                event
+                for event in EventStore().list()
+                if event.event_type == "appstore_task_resumed"
+                and event.task_id == approval_source_task_id
+                and event.approval_id == approval_id
+                and event.payload.get("replacement_task_id") == task.id
+            ]
+            if (
+                source_task is None
+                or source_task.status is not TaskStatus.FAILED
+                or source_task.approval_id != approval_id
+                or approval.task_id != approval_source_task_id
+                or not resumed_events
+            ):
+                result = TaskResult(
+                    task_id=task.id,
+                    status=TaskStatus.BLOCKED,
+                    summary="App Store approval is not bound to the resumed task source.",
+                    failure_codes=["approval_source_task_mismatch"],
+                )
+            elif approval.reviewed_revision != app_store_release_revision(
+                release_id or "",
+                action=release_action,
+            ):
+                result = TaskResult(
+                    task_id=task.id,
+                    status=TaskStatus.BLOCKED,
+                    summary="App Store release changed after approval resume.",
+                    failure_codes=["approval_reviewed_revision_mismatch"],
+                )
+            else:
+                result = execute(packet)
         else:
             result = execute(packet)
     except Exception as exc:
-        summary = f"App Store worker execution failed: {exc}"
+        summary = f"App Store worker execution failed: {redacted_error_message(exc)}"
         control_plane.submit_task_result(
             task_id=task.id,
             status=TaskStatus.FAILED,
             summary=summary,
             worker_id=worker_id,
         )
-        raise
+        return TaskResult(task_id=task.id, status=TaskStatus.FAILED, summary=summary)
 
     release_id = _constraint_value(packet, "release_id=") or ""
     release_action = _constraint_value(packet, "release_action=") or "prepare_testflight"
@@ -303,57 +318,14 @@ def run_worker_loop(
     max_iterations: int | None = None,
 ) -> WorkerLoopStats:
     control_plane = service or ControlPlaneService()
-    stop_signal = stop_event or Event()
-    processed_count = 0
-    idle_cycles = 0
-    iterations = 0
-    stop_reason = "stopped"
-
-    while not stop_signal.is_set():
-        try:
-            result = execute_claimed_task(worker_id=worker_id, service=control_plane)
-        except KeyboardInterrupt:
-            stop_reason = "interrupted"
-            break
-        except Exception:
-            processed_count += 1
-            stop_reason = "failed"
-            iterations += 1
-            if max_iterations is not None and iterations >= max_iterations:
-                break
-            continue
-
-        iterations += 1
-        if result is None:
-            idle_cycles += 1
-            stop_reason = "idle"
-            try:
-                sleep_fn(poll_interval_seconds)
-            except KeyboardInterrupt:
-                stop_reason = "interrupted"
-                break
-            if max_iterations is not None and iterations >= max_iterations:
-                break
-            continue
-
-        processed_count += 1
-        stop_reason = "processed"
-        try:
-            sleep_fn(poll_interval_seconds)
-        except KeyboardInterrupt:
-            stop_reason = "interrupted"
-            break
-        if max_iterations is not None and iterations >= max_iterations:
-            break
-
-    if stop_signal.is_set():
-        stop_reason = "stop_requested"
-
-    return WorkerLoopStats(
+    return shared_worker_loop(
         worker_id=worker_id,
-        processed_count=processed_count,
-        idle_cycles=idle_cycles,
-        stop_reason=stop_reason,
+        work_once=lambda: execute_claimed_task(worker_id=worker_id, service=control_plane),
+        poll_interval_seconds=poll_interval_seconds,
+        stop_event=stop_event,
+        sleep_fn=sleep_fn,
+        max_iterations=max_iterations,
+        sleep_after_result=True,
     )
 
 
@@ -368,3 +340,4 @@ if __name__ == "__main__":
             stop_reason="interrupted",
         )
     print(json.dumps({"stats": asdict(stats)}, default=str))
+    raise SystemExit(worker_exit_code(stats))

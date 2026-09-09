@@ -61,6 +61,14 @@ final class LocationRecorderTests: XCTestCase {
         XCTAssertNil(recorder.lastLocation)
     }
 
+    func testAuthorizationOverridePublishesUnavailableStates() {
+        for status in [CLAuthorizationStatus.denied, .restricted, .notDetermined] {
+            let recorder = LocationRecorder(authorizationOverride: status)
+
+            XCTAssertEqual(recorder.authorizationStatus, status)
+        }
+    }
+
     // Note: Full testing of LocationRecorder requires mocking CLLocationManager behavior.
     // Since LocationRecorder is primarily a wrapper around CLLocationManager (which requires
     // location permissions and device location hardware), comprehensive unit tests would require

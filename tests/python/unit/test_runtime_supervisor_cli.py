@@ -304,7 +304,7 @@ def test_runtime_supervisor_cli_inspect_appstore_release_filters_by_release_and_
     assert claimed is not None
     artifact = isolated_repo_root / "state/artifacts/appstore" / task.id / "submission_summary.json"
     artifact.parent.mkdir(parents=True)
-    artifact.write_text(json.dumps({"fixture": True, "release_id": release_id}))
+    artifact.write_text(json.dumps({"fixture": True, "task_id": task.id, "status": "completed", "release_id": release_id}))
     service.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,
@@ -395,7 +395,7 @@ def test_runtime_supervisor_cli_reports_completed_task_latest_event_and_release_
     assert claimed is not None
     artifact = isolated_repo_root / "state/artifacts/appstore" / task.id / "submission_summary.json"
     artifact.parent.mkdir(parents=True)
-    artifact.write_text(json.dumps({"fixture": True, "release_id": release_id}))
+    artifact.write_text(json.dumps({"fixture": True, "task_id": task.id, "status": "completed", "release_id": release_id}))
     service.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,

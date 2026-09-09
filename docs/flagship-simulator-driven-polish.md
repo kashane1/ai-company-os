@@ -47,24 +47,27 @@ The existing design choices that made the repair practical were:
 | Three-tab documentation disagreed with the running app | Record Today, History, Future, and Profile; update the assertion | Four-destination assertion passed on the simulator |
 
 The [UI tests](../products/life-clock-ios/UITests/LifeClockUITests.swift) expose
-those cases by name. The full local run on September 9, 2026 recorded **450
-passed, 3 skipped, 0 failed** across 453 tests, with **67.72% app line coverage**.
-The three StoreKit skips are explained in the product README. A subsequent
-run of the renamed four-tab assertion also passed.
+those cases by name. The latest full local run on September 9, 2026 recorded
+**452 passed, 3 skipped, 0 failed** across 455 tests, with **68.30% app line
+coverage**. It includes native signed-text contrast checks and light/dark UI
+captures. The three StoreKit skips are explained in the product README.
 
 ## Actual product evidence
 
-<img src="products/life-clock/screenshots/employer-2026-09-09/today-authorized-first-day.png" alt="Life Clock Today screen with synthetic health inputs, an educational progress estimate, data-quality label, and the factors behind the change" width="322">
+<img src="products/life-clock/screenshots/employer-contrast-2026-09-09/today-signed-light.png" alt="Life Clock Today screen with synthetic health inputs, an educational progress estimate, data-quality label, and the factors behind the change" width="322">
 
 *The tested debug app's first-day Today screen, using a fixed date and synthetic
 health inputs. The displayed minutes are educational product output, not a
 measured health outcome.*
 
-The [returning-user wrap-up](products/life-clock/screenshots/employer-2026-09-09/yesterday-wrap-up-day-7.png)
-shows a second actual state after seven seeded days. The
-[capture manifest](products/life-clock/screenshots/employer-2026-09-09/CAPTURE_MANIFEST.md)
-records the source commit, device, build tools, fixture settings, and image
-hashes. The screenshots were resized for display; their content was not edited.
+The [dark appearance](products/life-clock/screenshots/employer-contrast-2026-09-09/today-signed-dark.png)
+and [current capture manifest](products/life-clock/screenshots/employer-contrast-2026-09-09/CAPTURE_MANIFEST.md)
+show the same signed text on both system surfaces. These native screenshots
+were not resized or edited. The earlier
+[returning-user wrap-up](products/life-clock/screenshots/employer-2026-09-09/yesterday-wrap-up-day-7.png)
+shows a state after seven seeded days; its
+[original manifest](products/life-clock/screenshots/employer-2026-09-09/CAPTURE_MANIFEST.md)
+records that capture's separate source revision and display resizing.
 
 ## Reproduce and assess the boundary
 

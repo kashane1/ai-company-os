@@ -51,11 +51,19 @@
 		DBCBE53900E6786E471F0A0D /* NetworkProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E3A94F49070B3F34BEF6C9 /* NetworkProtocols.swift */; };
 		EEAB4EFAE697D0340CA8B6D1 /* SupabaseBackendIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F96B3D304E4673D2F4845613 /* SupabaseBackendIntegrationTests.swift */; };
 		F1DA9611869197428F94AC73 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCAA13CBCDC78B8D7A3F5B /* OnboardingView.swift */; };
+		F7AA145BB734D9B23C3AE827 /* AfterPlansUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DAE67D32FC6146695ED693 /* AfterPlansUITests.swift */; };
 		FFC98866F36C0AD6E9FD0B07 /* OnboardingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 570D7ED5577AFA91DF4C0D37 /* OnboardingStateTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		B5755C3A98FF5C9B8A581F12 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B52427D7E02DE5D2D08E67EC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B509CA916BA1CAAB2A2748E2;
+			remoteInfo = AfterPlans;
+		};
+		EF7835C8AB65F763A8EAF84D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B52427D7E02DE5D2D08E67EC /* Project object */;
 			proxyType = 1;
@@ -71,11 +79,13 @@
 		0932C80E6EEC725DE52426F3 /* PlanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanDetailView.swift; sourceTree = "<group>"; };
 		0D3ABCFA86DE8AF7CA60C5C7 /* AfterPlansTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = AfterPlansTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0EC89CB41FE9CE448DC6A34F /* ActivityVenueStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityVenueStepView.swift; sourceTree = "<group>"; };
+		14DAE67D32FC6146695ED693 /* AfterPlansUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterPlansUITests.swift; sourceTree = "<group>"; };
 		20E785D2A6AA8AEF7A0C7E9C /* AfterPlansStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterPlansStoreTests.swift; sourceTree = "<group>"; };
 		25B1F7FC25FB23A2A02D2C3C /* ConfirmationRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmationRoomView.swift; sourceTree = "<group>"; };
 		289008CD383C55AFAFDA1C83 /* ActivityTaxonomy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTaxonomy.swift; sourceTree = "<group>"; };
 		31DD48153B2FD02D380807D5 /* ContinuationLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuationLoop.swift; sourceTree = "<group>"; };
 		325D10D8C6420D14BC109892 /* AfterPlansModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AfterPlansModelsTests.swift; sourceTree = "<group>"; };
+		46225436513D376679A20F50 /* AfterPlansUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = AfterPlansUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4944A96BEE2C40725BCFE441 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		507EA55C97B024AC3804C9B7 /* ActivityTaxonomyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityTaxonomyTests.swift; sourceTree = "<group>"; };
 		50DBCDC38290C45ED81DC22C /* ContinuationLoopTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuationLoopTests.swift; sourceTree = "<group>"; };
@@ -211,8 +221,17 @@
 			children = (
 				0CE60EE9654517F8CD6BD2EC /* Sources */,
 				4FD7A9483571E910F7A70D93 /* Tests */,
+				7D076803B0A85263E9977005 /* UITests */,
 				8EA57A1ECE1594F740CC6DCE /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		7D076803B0A85263E9977005 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				14DAE67D32FC6146695ED693 /* AfterPlansUITests.swift */,
+			);
+			path = UITests;
 			sourceTree = "<group>";
 		};
 		8BAD3D8844F168F1EEBDBF52 /* Services */ = {
@@ -233,6 +252,7 @@
 			children = (
 				9029163A2F6D292233E2564D /* AfterPlans.app */,
 				0D3ABCFA86DE8AF7CA60C5C7 /* AfterPlansTests.xctest */,
+				46225436513D376679A20F50 /* AfterPlansUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -379,6 +399,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		19DC6DFE3B0586279A139898 /* AfterPlansUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3723D5A54395C8D6A49EC8B /* Build configuration list for PBXNativeTarget "AfterPlansUITests" */;
+			buildPhases = (
+				C21793A8B560F7FD45AAC74E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				06330F528E55075F9709598E /* PBXTargetDependency */,
+			);
+			name = AfterPlansUITests;
+			packageProductDependencies = (
+			);
+			productName = AfterPlansUITests;
+			productReference = 46225436513D376679A20F50 /* AfterPlansUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		B509CA916BA1CAAB2A2748E2 /* AfterPlans */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F2A71ACB1C7C70E6B2BFA0C6 /* Build configuration list for PBXNativeTarget "AfterPlans" */;
@@ -424,6 +462,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					19DC6DFE3B0586279A139898 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = B509CA916BA1CAAB2A2748E2;
+					};
 					B509CA916BA1CAAB2A2748E2 = {
 						ProvisioningStyle = Automatic;
 					};
@@ -448,6 +490,7 @@
 			targets = (
 				B509CA916BA1CAAB2A2748E2 /* AfterPlans */,
 				FBF529B5D3D1D1025B1B4551 /* AfterPlansTests */,
+				19DC6DFE3B0586279A139898 /* AfterPlansUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -478,6 +521,14 @@
 				48F73B8CB4ECD891AF42FF15 /* PublicFeedAndRecommendationsTests.swift in Sources */,
 				EEAB4EFAE697D0340CA8B6D1 /* SupabaseBackendIntegrationTests.swift in Sources */,
 				D26383D0C889E7FEB8F73F1B /* VenueSearchServiceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C21793A8B560F7FD45AAC74E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F7AA145BB734D9B23C3AE827 /* AfterPlansUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -525,6 +576,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		06330F528E55075F9709598E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B509CA916BA1CAAB2A2748E2 /* AfterPlans */;
+			targetProxy = EF7835C8AB65F763A8EAF84D /* PBXContainerItemProxy */;
+		};
 		A6243C9171C688813809146A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = B509CA916BA1CAAB2A2748E2 /* AfterPlans */;
@@ -595,6 +651,24 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		2DF43C1AC320C182D26C64D1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.aicompanyos.products.afterplansUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = AfterPlans;
 			};
 			name = Debug;
 		};
@@ -713,6 +787,24 @@
 			};
 			name = Release;
 		};
+		DBF178B4A9051E7EAFDB6D2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.aicompanyos.products.afterplansUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = AfterPlans;
+			};
+			name = Release;
+		};
 		E9BD4844968AC194902BC161 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -751,6 +843,15 @@
 			buildConfigurations = (
 				1B016DCF00D690866D762719 /* Debug */,
 				D5EC256A3CCD23470B3C9B6A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D3723D5A54395C8D6A49EC8B /* Build configuration list for PBXNativeTarget "AfterPlansUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2DF43C1AC320C182D26C64D1 /* Debug */,
+				DBF178B4A9051E7EAFDB6D2A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

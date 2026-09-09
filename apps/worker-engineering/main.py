@@ -1,6 +1,6 @@
 import sys
 import time
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, replace
 from pathlib import Path
 from threading import Event
 
@@ -17,14 +17,12 @@ from engineering.runner import execute_task
 from apps.api.control_plane import ControlPlaneService
 from packages.schemas.approval import ApprovalRecord
 from packages.schemas.task_packet import TaskResult, TaskStatus, WorkerLane
-
-
-@dataclass(frozen=True)
-class WorkerLoopStats:
-    worker_id: str
-    processed_count: int
-    idle_cycles: int
-    stop_reason: str
+from packages.tools.worker_loop import (
+    WorkerLoopStats,
+    redacted_error_message,
+    worker_exit_code,
+)
+from packages.tools.worker_loop import run_worker_loop as shared_worker_loop
 
 
 def execute(task_id: str) -> TaskResult:
@@ -61,14 +59,14 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
             approval_factory=approval_factory,
         )
     except Exception as exc:
-        summary = f"Engineering worker execution failed: {exc}"
+        summary = f"Engineering worker execution failed: {redacted_error_message(exc)}"
         control_plane.submit_task_result(
             task_id=task.id,
             status=TaskStatus.FAILED,
             summary=summary,
             worker_id=worker_id,
         )
-        raise
+        return TaskResult(task_id=task.id, status=TaskStatus.FAILED, summary=summary)
 
     result_artifacts = list(result.artifacts or [])
     submit_kwargs: dict = {
@@ -103,48 +101,13 @@ def run_worker_loop(
     max_iterations: int | None = None,
 ) -> WorkerLoopStats:
     control_plane = service or ControlPlaneService()
-    stop_signal = stop_event or Event()
-    processed_count = 0
-    idle_cycles = 0
-    iterations = 0
-    stop_reason = "stopped"
-
-    while not stop_signal.is_set():
-        try:
-            result = execute_claimed_task(worker_id=worker_id, service=control_plane)
-        except KeyboardInterrupt:
-            stop_reason = "interrupted"
-            break
-        except Exception:
-            processed_count += 1
-            stop_reason = "failed"
-            iterations += 1
-            if max_iterations is not None and iterations >= max_iterations:
-                break
-            continue
-
-        iterations += 1
-        if result is None:
-            idle_cycles += 1
-            stop_reason = "idle"
-            sleep_fn(poll_interval_seconds)
-            if max_iterations is not None and iterations >= max_iterations:
-                break
-            continue
-
-        processed_count += 1
-        stop_reason = "processed"
-        if max_iterations is not None and iterations >= max_iterations:
-            break
-
-    if stop_signal.is_set():
-        stop_reason = "stop_requested"
-
-    return WorkerLoopStats(
+    return shared_worker_loop(
         worker_id=worker_id,
-        processed_count=processed_count,
-        idle_cycles=idle_cycles,
-        stop_reason=stop_reason,
+        work_once=lambda: execute_claimed_task(worker_id=worker_id, service=control_plane),
+        poll_interval_seconds=poll_interval_seconds,
+        stop_event=stop_event,
+        sleep_fn=sleep_fn,
+        max_iterations=max_iterations,
     )
 
 
@@ -161,3 +124,4 @@ if __name__ == "__main__":
             stop_reason="interrupted",
         )
     print(json.dumps({"stats": asdict(stats)}, default=str))
+    raise SystemExit(worker_exit_code(stats))

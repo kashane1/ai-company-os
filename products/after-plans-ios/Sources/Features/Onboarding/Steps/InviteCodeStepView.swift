@@ -44,6 +44,7 @@ struct InviteCodeStepView: View {
                 }
                 Button(redeemed ? "Continue" : "Skip") { onContinue() }
                     .buttonStyle(ActionPillButtonStyle(prominent: redeemed))
+                    .accessibilityIdentifier("onboarding.inviteCode.skip")
                 Button("Back") { onBack() }
                     .buttonStyle(ActionPillButtonStyle())
             }

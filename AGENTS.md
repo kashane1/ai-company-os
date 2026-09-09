@@ -17,6 +17,7 @@ The full agent model lives in [`docs/agent-model.md`](docs/agent-model.md). Read
 - **Codex** is the engineering engine. It writes code; it does not decide what code matters.
 - **OpenClaw** (if used) is an interface, not an orchestrator.
 - The **discovery layer** (`packages/discovery/`) supports find → score → validate *what* to build; its handoffs remain gated by `packages/policies/discovery_gates.py`. It is not a prerequisite for HomeFromWorking's owner-selected listing workflow. Operator commands: [`docs/founder/operator-guide.md`](docs/founder/operator-guide.md). Deep dive: [`docs/founder/discovery-guide.md`](docs/founder/discovery-guide.md).
+- Engineering and iOS review require executed registry-configured verification and complete staged, unstaged, and new-file evidence. Worker infrastructure errors retry with bounded backoff, then exit visibly. The LaunchAgent owns the foreground supervisor and preserves fail-stop recovery.
 - Completion requires persisted evidence and a passing post-run validator. Database lifecycle writes share a transaction; Redis dispatch has separate, explicit recovery limits.
 - Logic-bearing changes ship with lane-matching tests. Irreversible actions require approval. Runtime state lives under ignored `state/` paths.
 

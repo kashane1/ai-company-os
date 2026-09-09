@@ -42,6 +42,7 @@ targets:
         - AfterPlans
       testTargets:
         - AfterPlansTests
+        - AfterPlansUITests
   AfterPlansTests:
     type: bundle.unit-test
     platform: iOS
@@ -56,3 +57,16 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AfterPlans.app/AfterPlans"
+  AfterPlansUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests/AfterPlansUITests.swift
+    dependencies:
+      - target: AfterPlans
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.afterplansUITests
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: AfterPlans

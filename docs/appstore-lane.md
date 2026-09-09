@@ -98,6 +98,19 @@ These actions are safe to automate:
 - drafting release notes
 - drafting review responses
 
+### Resuming a signed App Store submission
+
+Blocked `submit_testflight`, `submit_appstore`, and `release_to_store` tasks
+have an approval-resume path. After both local P0 confirmations succeed, a
+local operator may call
+`POST /tasks/<blocked-task-id>/resume-appstore` with the configured local
+operator bearer token. The control plane rechecks the approval's task, release,
+action, exact reviewed release record, submission checklist, release readiness,
+and signed token audit before it queues one linked replacement. The blocked
+attempt remains in history and cannot be resumed again. This path only updates
+local release state; it never calls App Store Connect. It requires the database
+queue backend; Redis dispatch recovery is not an approval-resume path.
+
 ## Checklist Enforcement
 
 Before any submission action, the App Store worker should validate the product's submission checklist. If any required item is incomplete, the worker should report a structured failure rather than proceeding.

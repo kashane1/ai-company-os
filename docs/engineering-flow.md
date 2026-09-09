@@ -79,8 +79,26 @@ After execution, the worker currently validates:
 - packet exists
 - Codex result output exists
 - Codex exit code is zero
-- diff artifact exists
+- complete staged, unstaged, and untracked diff artifact exists
 - lane-matching tests were created or modified for logic-bearing changes, or a valid machine-readable no-test exception was supplied
+
+Verification commands are selected from the operator-controlled `verification`
+map in `infra/repos.json`, keyed by worker lane, before Codex executes. Each entry
+contains an argv array, a worktree-relative `cwd` (default `.`), and a bounded
+`timeout_seconds` (default 600, maximum 3600). No shell parses agent output.
+`{python}` selects the worker interpreter, `{worktree}` the isolated checkout,
+`{artifacts}` the verification output directory, and `{ios_destination}` an
+available iPhone simulator. Install the lane's documented tools first.
+
+The worker executes those commands after Codex, records command, working directory,
+Git revision, reviewed diff hash, timestamps, exit status, timeout, and redacted
+stdout/stderr, and checks that verification did not change the reviewed worktree.
+An empty command list, missing executable, timeout, or failed command prevents
+completion and review approval. A `Testing` paragraph and changed test filenames
+remain useful policy metadata but do not substitute for an actual result.
+Verification receives a restricted environment without the worker's service tokens
+or operational database/queue configuration. This is process hygiene, not an OS
+sandbox: checks must still be operator-selected and safe to execute locally.
 
 Validation stays explicit and persisted. A missing-tests failure still classifies as `VALIDATION_FAILED`, but task-run and review records now carry a specific failure code such as `missing_tests_for_logic_change` so humans can see the reason immediately.
 

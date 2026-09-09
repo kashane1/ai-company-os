@@ -1,3 +1,4 @@
+import CoreLocation
 import SwiftData
 import SwiftUI
 
@@ -45,6 +46,42 @@ enum CatchbookLaunchConfiguration {
         ProcessInfo.processInfo.environment["CATCHBOOK_UI_TEST"] == "1"
         #else
         false
+        #endif
+    }
+
+    static var locationAuthorizationOverride: CLAuthorizationStatus? {
+        #if DEBUG
+        guard isUITest else { return nil }
+
+        switch ProcessInfo.processInfo.environment["CATCHBOOK_UI_TEST_LOCATION_AUTHORIZATION"] {
+        case "denied":
+            return .denied
+        case "restricted":
+            return .restricted
+        case "notDetermined":
+            return .notDetermined
+        default:
+            return nil
+        }
+        #else
+        nil
+        #endif
+    }
+
+    static var cameraAvailabilityOverride: Bool? {
+        #if DEBUG
+        guard isUITest else { return nil }
+
+        switch ProcessInfo.processInfo.environment["CATCHBOOK_UI_TEST_CAMERA_AVAILABILITY"] {
+        case "available":
+            return true
+        case "unavailable":
+            return false
+        default:
+            return nil
+        }
+        #else
+        nil
         #endif
     }
 }

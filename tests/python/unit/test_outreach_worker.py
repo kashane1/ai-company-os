@@ -56,6 +56,7 @@ def test_outreach_worker_refreshes_real_ledger_artifacts(tmp_path: Path) -> None
     assert result.artifacts == [
         str(tmp_path / "state/prospects/outreach-lane/client-status.json"),
         str(tmp_path / "state/prospects/outreach-lane/client-status.md"),
+        str(tmp_path / "state/prospects/outreach-lane/receipts/task-1.json"),
     ]
     assert all(Path(artifact).is_file() for artifact in result.artifacts)
 

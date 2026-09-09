@@ -42,6 +42,19 @@ struct TripStartSheet: View {
         trips.first(where: \.isActive)
     }
 
+    private var locationAvailabilityMessage: String? {
+        switch locationRecorder.authorizationStatus {
+        case .denied:
+            return "Location is unavailable. You can still start a trip and save catches. Enable location access in Settings to tag conditions automatically."
+        case .restricted:
+            return "Location is unavailable on this device. You can still start a trip and save catches."
+        case .notDetermined:
+            return "Location access has not been requested. You can still start a trip and save catches."
+        default:
+            return nil
+        }
+    }
+
     private var lastTimeHereCard: HomeReplayCard? {
         guard let selectedSpotID else { return nil }
         guard let trip = trips.first(where: { !$0.isActive && $0.spot?.id == selectedSpotID }) else {
@@ -90,7 +103,13 @@ struct TripStartSheet: View {
                 } header: {
                     Text("Conditions")
                 } footer: {
-                    Text("Location and weather can degrade gracefully. Trip start still works offline and your spots stay yours.")
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text("Location and weather can degrade gracefully. Trip start still works offline and your spots stay yours.")
+                        if let locationAvailabilityMessage {
+                            Text(locationAvailabilityMessage)
+                                .accessibilityIdentifier("tripStart.locationStatus")
+                        }
+                    }
                 }
 
                 Section {

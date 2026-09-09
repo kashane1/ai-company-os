@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from packages.config.settings import load_runtime_paths
-from packages.schemas.repo import RepoConfig
+from packages.schemas.repo import RepoConfig, VerificationCommand
 
 
 def load_repo_configs(config_path: Path | None = None) -> dict[str, RepoConfig]:
@@ -23,6 +23,10 @@ def load_repo_configs(config_path: Path | None = None) -> dict[str, RepoConfig]:
             source_path=str(source_path),
             managed_repo_name=item.get("managed_repo_name", item["id"]),
             default_branch=item.get("default_branch", "main"),
+            verification={
+                lane: [VerificationCommand(**command) for command in commands]
+                for lane, commands in item.get("verification", {}).items()
+            },
         )
 
     return configs

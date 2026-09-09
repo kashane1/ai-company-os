@@ -276,8 +276,17 @@ def request_supervisor_shutdown() -> dict[str, object]:
     return payload
 
 
-def run_main() -> None:
-    """Launchd entrypoint. Called by `apps/runtime-supervisor/main.py`."""
-    supervisor = RuntimeSupervisor()
-    status = supervisor.run()
-    print(json.dumps(asdict(status), default=str))
+def run_main() -> int:
+    """Stay in the launchd-owned process and stop child workers on termination."""
+    stop_event = Event()
+    previous_handlers = {}
+    for signum in (signal.SIGTERM, signal.SIGINT):
+        previous_handlers[signum] = signal.signal(signum, lambda *_: stop_event.set())
+    try:
+        supervisor = RuntimeSupervisor()
+        status = supervisor.run(stop_event=stop_event)
+        print(json.dumps(asdict(status), default=str))
+        return 1 if status.state == "failed" else 0
+    finally:
+        for signum, handler in previous_handlers.items():
+            signal.signal(signum, handler)

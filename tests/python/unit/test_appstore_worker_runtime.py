@@ -332,9 +332,9 @@ def test_appstore_worker_runs_release_readiness_before_local_submission_transiti
     readiness_calls: list[tuple[str, str, str, str]] = []
     monkeypatch.setattr(
         worker_appstore_main,
-        "approve_app_store_submission",
-        lambda release_id, approval_id, *, product_id, expected_action: (
-            readiness_calls.append((release_id, approval_id, product_id, expected_action))
+        "approve_release_action",
+        lambda release_id, approval_id, *, action, product_id, release_store: (
+            readiness_calls.append((release_id, approval_id, product_id, action))
             or ReleaseStore().load_release_record(release_id)
         ),
     )
@@ -394,7 +394,7 @@ def test_appstore_worker_blocks_local_submission_when_readiness_rejects(
     ApprovalStore().save(approval)
     monkeypatch.setattr(
         worker_appstore_main,
-        "approve_app_store_submission",
+        "approve_release_action",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(
             PolicyViolation("submission_checklist_incomplete", "2 items remain")
         ),
@@ -450,7 +450,7 @@ def test_appstore_worker_persists_release_readiness_rejection(
     )
     monkeypatch.setattr(
         worker_appstore_main,
-        "approve_app_store_submission",
+        "approve_release_action",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(
             PolicyViolation("submission_checklist_incomplete", "2 items remain")
         ),
@@ -520,20 +520,17 @@ def test_appstore_worker_marks_claimed_task_failed_when_execute_raises(
         lambda task_packet: (_ for _ in ()).throw(RuntimeError("release state mutation crashed")),
     )
 
-    try:
-        worker_appstore_main.execute_claimed_task(
-            worker_id="worker-appstore-3",
-            service=service,
-        )
-    except RuntimeError:
-        pass
-    else:
-        raise AssertionError("expected execute_claimed_task to re-raise runner exception")
+    result = worker_appstore_main.execute_claimed_task(
+        worker_id="worker-appstore-3",
+        service=service,
+    )
 
     stored_task = TaskStore().load(task.id)
     failure_events = [event for event in EventStore().list() if event.event_type == "task_failed"]
 
     assert stored_task.status is TaskStatus.FAILED
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
     assert stored_task.error_summary == "App Store worker execution failed: release state mutation crashed"
     assert len(failure_events) == 1
     assert failure_events[0].task_id == task.id

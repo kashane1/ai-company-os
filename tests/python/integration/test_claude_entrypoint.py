@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 from apps.api.control_plane import ControlPlaneService
@@ -15,6 +13,7 @@ from packages.tools.supervisor.claude_entrypoint import (
     SupervisorSession,
 )
 from packages.tools.supervisor.enqueue import EngineeringTaskDef
+from tests.python.factories.completion_evidence import persist_completion_evidence
 
 
 def _goal(service: ControlPlaneService):
@@ -46,22 +45,13 @@ def test_open_enqueue_close_cycle(isolated_repo_root) -> None:
     # until the worker completes. We simulate a worker completion here to
     # prove the cross-session read path.
     service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="w1")
-    artifact = (
-        Path(isolated_repo_root)
-        / "state"
-        / "artifacts"
-        / "engineering"
-        / task.id
-        / "review_summary.json"
-    )
-    artifact.parent.mkdir(parents=True, exist_ok=True)
-    artifact.write_text("{}", encoding="utf-8")
+    artifact = persist_completion_evidence(task)
     service.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,
         summary="ok",
         worker_id="w1",
-        artifacts=[str(artifact)],
+        artifacts=[artifact],
         events=["task_claimed"],
     )
 

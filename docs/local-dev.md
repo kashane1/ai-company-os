@@ -128,13 +128,18 @@ If you are working on the iOS or App Store lanes, local tooling will eventually 
 
 Keep iOS engineering and App Store release automation as separate concerns even when both depend on Apple tooling.
 
-Run the iOS test lane with:
+Run each hermetic iOS product scheme with:
 
 ```bash
-./scripts/test_ios.sh
+./scripts/test_ios.sh --product catchbook
+./scripts/test_ios.sh --product life-clock
+./scripts/test_ios.sh --product after-plans
 ```
 
-This regenerates the Xcode project from `products/catchbook-ios/project.yml`, runs `xcodebuild test`, and reports target coverage with `xccov`.
+Each command regenerates the selected Xcode project, runs `xcodebuild test` on
+an available iPhone simulator, and reports target coverage with `xccov`.
+Set `IOS_SIMULATOR_ID` to use a specific installed simulator. The default
+After Plans scheme is offline; its live Supabase integration suite is separate.
 
 ## Local State Directories
 
@@ -174,18 +179,27 @@ Current scope:
 
 ## Testing And Coverage
 
-The staged rollout works like this:
+CI runs the Python lane with `PYTHON_COVERAGE_MIN=85`. It runs the three iOS
+products independently and uploads their result bundles; iOS coverage is
+reported per product and has no percentage threshold configured.
 
-- Stage 0: test failures fail locally and in CI, coverage is reported, thresholds are advisory
-- Active now: `PYTHON_COVERAGE_MIN=55` is enforced in CI
-- Active now: `IOS_COVERAGE_MIN=20` is enforced in CI after two stable local iOS coverage runs at `25.08%`
-- Stage 2: ratchet to `PYTHON_COVERAGE_MIN=70` and `IOS_COVERAGE_MIN=35`
+Published-main baseline (`bf7e753`) verification on 2026-09-09 (Xcode 26.6, iOS 26.5 simulators) recorded:
 
-Coverage failures should be interpreted as a signal to add tests for deterministic logic and persistence/orchestration flows first. UI-heavy snapshot and automation suites are intentionally deferred in this repo's first testing phase.
+| Product | Result | App-target line coverage |
+|---|---:|---:|
+| Catchbook | 325 passed, 0 failed, 0 skipped | 40.13% |
+| Life Clock | 450 passed, 0 failed, 3 skipped | 67.70% |
+| After Plans | 87 passed, 0 failed, 3 skipped | 21.29% |
+
+The skips are documented product boundaries: StoreKit runtime behavior for Life
+Clock and opt-in local Supabase integration tests for After Plans. These local
+results are test evidence, not release evidence.
+
+Prioritize coverage of failure paths and meaningful persistence/orchestration behavior. The product test schemes include focused UI automation; screenshots and coverage percentages alone do not establish usability.
 
 The repo also enforces a shared tests-with-code policy:
 
 - logic-bearing Python changes require created or modified tests under `tests/python/`
-- logic-bearing iOS changes require created or modified tests under `products/catchbook-ios/Tests/`
+- logic-bearing iOS changes require created or modified tests under the same managed product's `Tests/` or `UITests/` root
 - valid no-test exceptions must be declared with a machine-readable `no_test_reason_code`
 - the required CI workflow always runs a `tests-with-code` guardrail job, so avoid assuming a path-filtered workflow can stand in for that check

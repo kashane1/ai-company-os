@@ -69,7 +69,7 @@ Typical components:
 - webhooks
 - dashboard
 
-This is where founder intent enters the system and where oversight happens. The current repo now includes a minimal real control-plane slice for persisted goals, tasks, approvals, events, and task claims. The dashboard remains a documented future surface.
+This is where founder intent enters the system and where oversight happens. The current repo now includes a minimal real control-plane slice for persisted goals, tasks, approvals, events, task claims, and a read-only operator dashboard. Broader dashboard workflows remain future work.
 
 ### 2. Workers
 
@@ -335,18 +335,18 @@ Structured task packets include:
 Structured validator and task-run outputs include:
 
 - `testing_policy`
+- `verification_results` with executed command outcomes and reviewed diff hashes
 - `failure_codes`
 - validation checks with specific codes such as `missing_tests_for_logic_change`
 
 The shared rule is:
 
-- logic-bearing Python changes under `apps/` or `packages/` require created or modified tests under `tests/python/`
-- logic-bearing iOS changes under `products/catchbook-ios/Sources/` require created or modified tests under `products/catchbook-ios/Tests/`
+- logic-bearing Python changes under `apps/`, `packages/`, or `scripts/` require created or modified tests under `tests/python/`
+- logic-bearing iOS changes require created or modified tests under the same product's `Tests/` or `UITests/`; standalone source paths are mapped through the repository registry
 - docs-only, generated-file, visual-only non-logic, comments-only, and config-no-behavior-change cases must use explicit machine-readable exceptions when no tests are added
 - `approved_followup_test_task` is valid only when the referenced task already exists in persisted task state, remains open, and matches the same lane and affected area
 
 CI uses the same shared policy through a required `tests-with-code` job. That job always reports on the latest commit SHA and uses the GitHub event SHAs for pull-request and push diffs instead of path-filtered required workflows.
-- the approval owner
 
 The intended relationship is simple:
 
@@ -385,6 +385,11 @@ per-attempt claim token.
 At the process layer, an unexpected managed-worker exit marks the runtime
 supervisor failed and stops its remaining children so partial runtime loss is
 visible to the operator.
+
+The installed `launchd` agent starts the repository virtualenv's foreground
+supervisor at login and preserves that fail-stop state (`KeepAlive=false`);
+after inspection and recovery, the operator restarts it explicitly with
+`launchctl kickstart`.
 
 ## Example Engineering Flow
 
@@ -531,7 +536,7 @@ V1 includes:
 The larger mock layout remains a future map, but these stay deliberately out of the first implementation pass:
 
 - support, growth, research, and ops workers
-- dashboard implementation
+- write-capable dashboard workflows
 - OpenClaw bridge code
 - larger memory and event systems
 - eval infrastructure beyond narrow validation needs

@@ -9,6 +9,7 @@ from packages.db.event_store import EventStore
 from packages.db.goal_store import GoalStore
 from packages.db.task_store import TaskStore
 from packages.schemas.task_packet import RiskLevel, TaskResult, TaskStatus, WorkerLane
+from tests.python.factories.completion_evidence import persist_completion_evidence
 
 
 def completed_engineering_result(
@@ -18,23 +19,14 @@ def completed_engineering_result(
     summary: str,
     approval_id: str | None = None,
 ) -> TaskResult:
-    artifact = (
-        repo_root
-        / "state"
-        / "artifacts"
-        / "engineering"
-        / task_id
-        / "review_summary.json"
-    )
-    artifact.parent.mkdir(parents=True, exist_ok=True)
-    artifact.write_text("{}", encoding="utf-8")
+    artifact = persist_completion_evidence(TaskStore().load(task_id))
     return TaskResult(
         task_id=task_id,
         status=TaskStatus.COMPLETED,
         summary=summary,
         run_id=f"run-{task_id}",
         approval_id=approval_id,
-        artifacts=[str(artifact)],
+        artifacts=[artifact],
     )
 
 
@@ -194,7 +186,7 @@ def test_engineering_worker_does_not_return_completed_when_evidence_is_missing(
 
     assert result is not None
     assert result.status is TaskStatus.FAILED
-    assert "required_artifact_missing" in result.summary
+    assert "task_run_missing" in result.summary
     assert TaskStore().load(task.id).status is TaskStatus.FAILED
 
 
@@ -218,25 +210,23 @@ def test_engineering_worker_marks_claimed_task_failed_when_runner_raises(
     )
 
     def crash_execute_task(task_id: str, **kwargs) -> TaskResult:
-        raise RuntimeError("codex execution crashed")
+        raise RuntimeError("codex execution crashed: token=super-secret-token-value")
 
     monkeypatch.setattr(worker_engineering_main, "execute_task", crash_execute_task)
 
-    try:
-        worker_engineering_main.execute_claimed_task(
-            worker_id="worker-engineering-3",
-            service=service,
-        )
-    except RuntimeError:
-        pass
-    else:
-        raise AssertionError("expected execute_claimed_task to re-raise runner exception")
+    result = worker_engineering_main.execute_claimed_task(
+        worker_id="worker-engineering-3",
+        service=service,
+    )
 
     stored_task = TaskStore().load(task.id)
     failure_events = [event for event in EventStore().list() if event.event_type == "task_failed"]
 
     assert stored_task.status is TaskStatus.FAILED
-    assert stored_task.error_summary == "Engineering worker execution failed: codex execution crashed"
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
+    assert stored_task.error_summary == "Engineering worker execution failed: codex execution crashed: [REDACTED]"
+    assert "super-secret-token-value" not in stored_task.error_summary
     assert len(failure_events) == 1
     assert failure_events[0].task_id == task.id
 

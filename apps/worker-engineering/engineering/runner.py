@@ -1,5 +1,6 @@
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Callable
 
 from engineering.codex_runner import execute_codex, render_task_packet
@@ -20,6 +21,7 @@ from packages.db.worktree_store import WorktreeStore
 from packages.schemas.approval import ApprovalRecord
 from packages.schemas.task_packet import TaskResult, TaskStatus
 from packages.schemas.task_run import TaskRun, TaskRunStatus
+from packages.tools.verification import run_verification
 from packages.tools.worktrees import finalize_worktree
 
 
@@ -47,6 +49,10 @@ def execute_task(
     )
     post_run_git_state = capture_git_state(worktree.root_path)
     diff_path = capture_diff(worktree, task.id)
+    verification_results = run_verification(
+        repo_config.verification.get(task.lane.value, []),
+        worktree.root_path, Path(diff_path).parent / "verification",
+    ) if execution.exit_code == 0 else []
     validation_checks = validate_run(
         task,
         packet_path,
@@ -55,6 +61,8 @@ def execute_task(
         execution.exit_code,
         diff_path,
         post_run_git_state.status_lines,
+        verification_results,
+        repo_config.source_path,
     )
     validation_checks, testing_policy, testing_summary = validation_checks
     classification = classify_result(
@@ -117,6 +125,7 @@ def execute_task(
         finished_at=finished_at,
         validation_checks=validation_checks,
         testing_policy=testing_policy,
+        verification_results=verification_results,
         failure_codes=failure_codes,
         artifacts=[
             packet_path,
@@ -127,6 +136,7 @@ def execute_task(
             review_artifact_path,
             summary_artifact_path,
             metadata_artifact_path,
+            *[path for result in verification_results for path in (result.stdout_path, result.stderr_path)],
         ],
     )
     TaskRunStore().save(task_run)

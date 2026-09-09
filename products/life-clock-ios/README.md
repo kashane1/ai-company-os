@@ -77,13 +77,16 @@ migrations, snapshot overrides, subscription flow) and `LifeClockUITests`
 (`LifeClockUITests.swift`).
 
 Verified 2026-09-09 with Xcode 26.6 and an iPhone 17 Pro Max simulator on iOS
-26.5: **453 total, 450 passed, 0 failed, 3 skipped** (445 unit tests and 8 UI
+26.5: **455 total, 452 passed, 0 failed, 3 skipped** (446 unit tests and 9 UI
 tests). The three skips are StoreKit purchase, restore, and refund tests guarded
 for the known `SKTestSession.buyProduct` failure on the installed iOS 26.5
 runtime. The UI suite covers onboarding through the paywall, offline and denied
 Health access, retained History, core check-in and plan actions, tab
-destinations, paywall dismissal, and key accessibility values. The result
-bundle is written to `build/ios/life-clock.xcresult`.
+destinations, paywall dismissal, key accessibility values, and signed text in
+light/dark appearance. Native-color tests resolve both signed-text colors
+against the two system surfaces in both appearances and require at least 4.5:1
+contrast. This run reported 68.30% app-target line coverage. The result bundle
+is written to `build/ios/life-clock.xcresult`.
 
 ## Layout
 

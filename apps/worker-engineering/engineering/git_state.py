@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 
 from packages.schemas.task_run import GitStateSnapshot
+from packages.tools.git_changes import capture_git_status
 
 
 def run_git_command(repo_path: str, *args: str) -> subprocess.CompletedProcess[str]:
@@ -21,14 +22,8 @@ def initialize_git_snapshot(repo_path: Path) -> None:
 
 
 def capture_git_state(repo_path: str) -> GitStateSnapshot:
-    status = run_git_command(repo_path, "status", "--short")
-    diff_stat = run_git_command(repo_path, "diff", "--stat")
-    status_lines = [line for line in status.stdout.splitlines() if line.strip()]
-    changed_files: list[str] = []
-    for line in status_lines:
-        parts = line.split(maxsplit=1)
-        if len(parts) == 2:
-            changed_files.append(parts[1])
+    status_lines, changed_files = capture_git_status(repo_path)
+    diff_stat = run_git_command(repo_path, "diff", "--stat", "HEAD", "--")
     return GitStateSnapshot(
         status_lines=status_lines,
         changed_files=changed_files,

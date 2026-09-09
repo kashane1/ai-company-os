@@ -534,6 +534,8 @@ def _run_one(
             (staged_dir / "applied.flag").write_text(
                 json.dumps(
                     {
+                        "task_id": task.id,
+                        "status": "completed",
                         "approval_id": approval.approval_id,
                         "approved_at": _now_iso(),
                     },

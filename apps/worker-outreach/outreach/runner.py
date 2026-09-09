@@ -6,6 +6,7 @@ email, SMS, Instagram, or Facebook messages.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from packages.agency.outreach_lane import refresh_client_status
@@ -32,6 +33,19 @@ def execute_task(task: Task, *, repo_root: Path | None = None) -> TaskResult:
     if task.task_type == "OUTREACH_LEDGER_REFRESH":
         rows = refresh_client_status(repo_root=repo_root)
         lane_root = load_runtime_paths(repo_root).state_root / "prospects" / "outreach-lane"
+        receipt = lane_root / "receipts" / f"{task.id}.json"
+        receipt.parent.mkdir(parents=True, exist_ok=True)
+        receipt.write_text(
+            json.dumps(
+                {
+                    "task_id": task.id,
+                    "status": "completed",
+                    "performed_operation": "OUTREACH_LEDGER_REFRESH",
+                    "row_count": len(rows),
+                    "ledger_path": str(lane_root / "client-status.json"),
+                }
+            )
+        )
         return TaskResult(
             task_id=task.id,
             status=TaskStatus.COMPLETED,
@@ -39,6 +53,7 @@ def execute_task(task: Task, *, repo_root: Path | None = None) -> TaskResult:
             artifacts=[
                 str(lane_root / "client-status.json"),
                 str(lane_root / "client-status.md"),
+                str(receipt),
             ],
             validation_checks=["manual-send-boundary:enforced"],
         )
@@ -62,7 +77,9 @@ def execute_task(task: Task, *, repo_root: Path | None = None) -> TaskResult:
             task_id=task.id,
             status=TaskStatus.BLOCKED,
             summary="OUTREACH_REPLY_RECONCILE is blocked because no approved CRM/inbox adapter is installed",
-            next_actions=["Reconcile replies manually or install an approved read-only inbox adapter."],
+            next_actions=[
+                "Reconcile replies manually or install an approved read-only inbox adapter."
+            ],
             validation_checks=["no-inbox-send-path"],
         )
     return TaskResult(

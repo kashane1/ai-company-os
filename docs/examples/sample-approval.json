@@ -1,6 +1,6 @@
 {
   "action": "merge_pr",
-  "approval_type": "engineering_change",
+  "approval_type": "ios_review",
   "created_at": "2026-05-17T18:02:30Z",
   "decided_at": "2026-05-17T18:02:30Z",
   "decided_by": "founder",
@@ -11,7 +11,7 @@
   "status": "approved",
   "subject_id": "run_demo_0001",
   "subject_type": "task_run",
-  "summary": "Engineering change to Catchbook LogEntry awaiting human review.",
+  "summary": "iOS change to Catchbook LogEntry awaiting human review.",
   "task_id": "task_demo_0001",
   "task_run_id": "run_demo_0001"
 }

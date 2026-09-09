@@ -43,7 +43,13 @@ The script generates the project and selects an available iPhone simulator. Set
 `IOS_SIMULATOR_ID` to select a particular installed simulator.
 
 Verified 2026-09-09 with Xcode 26.6 and an iPhone 17 Pro simulator on iOS
-26.5: **325 passed, 0 failed, 0 skipped** (323 unit tests and 2 UI tests).
+26.5: **333 passed, 0 failed, 0 skipped** (330 unit tests and 3 UI tests).
 The UI tests exercise the empty-state primary action at the largest Dynamic
-Type size and the offline start-trip → save-catch loop. The result bundle is
-written to `build/ios/catchbook.xcresult`.
+Type size, the offline start-trip → save-catch loop, and a denied-location /
+camera-unavailable recovery flow that still saves exactly one catch. The
+recovery test uses DEBUG-only app-boundary fixtures for location authorization
+and camera availability; it does not automate OS permission dialogs. `PhotosPicker`
+does not require broad photo-library access, so the UI test confirms that the
+library control remains available while unit tests cover a selected item's
+missing, empty, or throwing load result. The result bundle is written to
+`build/ios/catchbook.xcresult`.

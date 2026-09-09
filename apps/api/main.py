@@ -19,6 +19,7 @@ from apps.api.discovery_endpoint import router as discovery_router  # noqa: E402
 from apps.api.outreach_endpoint import router as outreach_router  # noqa: E402
 from apps.api.stripe_endpoint import router as stripe_router  # noqa: E402
 from packages.policies.approval_tokens import P0_ACTIONS  # noqa: E402
+from packages.policies.approvals import PolicyViolation  # noqa: E402
 from packages.policies.worker_capabilities import LaneCapabilityError  # noqa: E402
 from packages.queue import QueueClaimOwnershipError  # noqa: E402
 from packages.schemas.approval import ApprovalStatus  # noqa: E402
@@ -168,6 +169,22 @@ def submit_task_result(task_id: str, body: SubmitTaskResultRequest) -> dict[str,
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return as_payload(task)
+
+
+@app.post("/tasks/{task_id}/resume-appstore")
+def resume_appstore_task(
+    task_id: str,
+    _: None = Depends(require_local_operator),
+) -> dict[str, object]:
+    try:
+        task = get_service().resume_blocked_appstore_task(task_id=task_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"Task not found: {task_id}") from exc
+    except PolicyViolation as exc:
+        raise HTTPException(status_code=409, detail=f"{exc.code}: {exc}") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     return as_payload(task)
 
 

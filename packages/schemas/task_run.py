@@ -71,6 +71,32 @@ class EngineeringResultClassification(str, Enum):
 
 
 @dataclass(frozen=True)
+class VerificationResult:
+    command: list[str]
+    cwd: str
+    revision: str
+    exit_code: int
+    stdout_path: str
+    stderr_path: str
+    started_at: str
+    finished_at: str
+    timed_out: bool = False
+
+    diff_sha256: str = ""
+
+    @property
+    def passed(self) -> bool:
+        return self.exit_code == 0 and not self.timed_out
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, object]) -> "VerificationResult":
+        return cls(**payload)
+
+
+@dataclass(frozen=True)
 class GitStateSnapshot:
     status_lines: list[str]
     changed_files: list[str]
@@ -113,6 +139,7 @@ class TaskRun:
     testing_policy: TestingPolicyResult | None = None
     failure_codes: list[str] = field(default_factory=list)
     artifacts: list[str] = field(default_factory=list)
+    verification_results: list[VerificationResult] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, object]:
         payload = asdict(self)
@@ -154,4 +181,8 @@ class TaskRun:
             else None,
             failure_codes=list(payload.get("failure_codes", [])),
             artifacts=list(payload.get("artifacts", [])),
+            verification_results=[
+                VerificationResult.from_dict(dict(item))
+                for item in payload.get("verification_results", [])
+            ],
         )

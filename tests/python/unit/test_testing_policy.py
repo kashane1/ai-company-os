@@ -58,6 +58,124 @@ def test_evaluate_testing_policy_passes_for_lane_matching_ios_test_changes() -> 
     assert result.failure_code is None
 
 
+def test_standalone_catchbook_source_change_requires_matching_test() -> None:
+    changes = testing.parse_name_status_lines(
+        ["M\tSources/Features/Trips/TripsView.swift"]
+    )
+
+    result = testing.evaluate_testing_policy(
+        lane=LaneEnum.IOS,
+        changes=changes,
+        testing_metadata=metadata("- Ran existing tests only"),
+        source_root="products/catchbook-ios",
+    )
+
+    assert result.tests_required is True
+    assert result.failure_code is ValidationFailureCode.MISSING_TESTS_FOR_LOGIC_CHANGE
+    assert "catchbook_ios" in result.details
+
+
+def test_standalone_catchbook_matching_test_satisfies_policy() -> None:
+    changes = testing.parse_name_status_lines(
+        [
+            "M\tSources/Features/Trips/TripsView.swift",
+            "A\tTests/Features/Trips/TripEditingLogicTests.swift",
+        ]
+    )
+
+    result = testing.evaluate_testing_policy(
+        lane=LaneEnum.IOS,
+        changes=changes,
+        testing_metadata=metadata("- Added TripEditingLogic tests"),
+        source_root="/workspace/products/catchbook-ios",
+    )
+
+    assert result.relevant_tests_changed is True
+    assert result.failure_code is None
+
+
+def test_standalone_catchbook_rejects_another_product_test_path() -> None:
+    changes = testing.parse_name_status_lines(
+        [
+            "M\tSources/Features/Trips/TripsView.swift",
+            "A\tproducts/life-clock-ios/Tests/LifeClockStoreTests.swift",
+        ]
+    )
+
+    result = testing.evaluate_testing_policy(
+        lane=LaneEnum.IOS,
+        changes=changes,
+        testing_metadata=metadata("- Added Life Clock tests"),
+        source_root="products/catchbook-ios",
+    )
+
+    assert result.relevant_tests_changed is False
+    assert result.failure_code is ValidationFailureCode.MISSING_TESTS_FOR_LOGIC_CHANGE
+    assert "catchbook_ios" in result.details
+
+
+def test_monorepo_ios_paths_remain_unchanged_without_source_root() -> None:
+    changes = testing.parse_name_status_lines(
+        [
+            "M\tproducts/catchbook-ios/Sources/Features/Trips/TripsView.swift",
+            "A\tproducts/catchbook-ios/Tests/Features/Trips/TripEditingLogicTests.swift",
+        ]
+    )
+
+    result = testing.evaluate_testing_policy(
+        lane=LaneEnum.IOS,
+        changes=changes,
+        testing_metadata=metadata("- Added TripEditingLogic tests"),
+    )
+
+    assert result.relevant_tests_changed is True
+    assert result.failure_code is None
+
+
+def test_parse_git_status_lines_keeps_literal_arrow_in_modified_path() -> None:
+    changes = testing.parse_git_status_lines(
+        [" M products/catchbook-ios/Sources/a -> b.swift"]
+    )
+
+    assert changes == [
+        testing.ChangeRecord(
+            status="M",
+            path="products/catchbook-ios/Sources/a -> b.swift",
+        )
+    ]
+
+
+def test_parse_git_status_lines_parses_explicit_rename_marker() -> None:
+    changes = testing.parse_git_status_lines(
+        ["R  products/catchbook-ios/Sources/old.swift -> products/catchbook-ios/Sources/new.swift"]
+    )
+
+    assert changes == [
+        testing.ChangeRecord(
+            status="R",
+            path="products/catchbook-ios/Sources/new.swift",
+            previous_path="products/catchbook-ios/Sources/old.swift",
+        )
+    ]
+
+
+def test_parse_git_status_lines_parses_lossless_porcelain_rename() -> None:
+    changes = testing.parse_git_status_lines(
+        [
+            "R \tproducts/catchbook-ios/Sources/old -> name.swift\t"
+            "products/catchbook-ios/Sources/new -> name.swift"
+        ]
+    )
+
+    assert changes == [
+        testing.ChangeRecord(
+            status="R",
+            path="products/catchbook-ios/Sources/new -> name.swift",
+            previous_path="products/catchbook-ios/Sources/old -> name.swift",
+        )
+    ]
+
+
 def test_worker_web_lane_uses_web_testing_policy() -> None:
     assert testing.test_lane_for_worker_lane(WorkerLane.WEB) is LaneEnum.WEB
 

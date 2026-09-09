@@ -23,8 +23,8 @@ fixture.
 
 - `lane` — `WorkerLane` value (engineering | ios | appstore | gtm)
 - `task_type` — task packet type
-- `result` — dict with `summary`, `status`, `artifacts: list[str]`,
-  `events: list[str]` (produced by the worker during execution)
+- `result` — dict with `task_id`, `status=completed`, `artifacts: list[str]`,
+  `events: list[str]`, and structured `failure_codes: list[str]`
 - `repo_root` — for resolving relative artifact paths
 
 ## Contract lookup
@@ -39,8 +39,17 @@ required_artifacts:
 required_events:
   - <event name>
 forbidden_failure_codes:
-  - <code that must never appear in summary>
+  - <code that must never appear in structured failure_codes>
 ```
+
+For engineering and iOS, the control plane first reads the deterministic
+persisted `TaskRun` (`run-{task_id}`) through
+`packages.policies.completion_evidence`. It binds task, repo, and lane;
+requires passed validation and configured verification records; verifies the
+review diff hash and logs; and checks the nonempty JSON review artifact against
+the same task, worktree, paths, changed files, and testing policy. The skill
+then receives that persisted provenance and persisted task events. Submission
+summary, artifact, and event fields are not completion evidence for those lanes.
 
 ## Output
 
@@ -66,7 +75,7 @@ forbidden_failure_codes:
 
 - `fixtures/happy_path.json` — engineering lane, all artifacts + events
 - `fixtures/boundary_no_artifacts.json` — empty artifacts list → fail
-- `fixtures/adversarial_forbidden_code.json` — summary contains a forbidden code
+- `fixtures/adversarial_forbidden_code.json` — structured evidence contains a forbidden code
 
 The fixture status is `passing` and the validator is wired into the
 loader as a synchronous, hot-path skill.

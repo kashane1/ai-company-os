@@ -48,6 +48,7 @@ struct PrivacyStepView: View {
             VStack(spacing: Spacing.sm) {
                 Button("Continue") { onContinue() }
                     .buttonStyle(ActionPillButtonStyle(prominent: true))
+                    .accessibilityIdentifier("onboarding.privacy.continue")
                 Button("Back") { onBack() }
                     .buttonStyle(ActionPillButtonStyle())
             }

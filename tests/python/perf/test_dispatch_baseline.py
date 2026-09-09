@@ -32,7 +32,6 @@ from apps.api.control_plane import ControlPlaneService
 from packages.config.settings import (
     TEST_REPO_ROOT_ENV_VAR,
     ensure_runtime_directories,
-    load_runtime_paths,
 )
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
 
@@ -113,17 +112,8 @@ def _round_trip_once(
         task_type="bench",
         risk_level=RiskLevel.LOW,
     )
-    artifact = (
-        load_runtime_paths().artifacts_root
-        / WorkerLane.ENGINEERING.value
-        / task.id
-        / "review_summary.json"
-    )
-    artifact.parent.mkdir(parents=True, exist_ok=True)
-    artifact.write_text(
-        json.dumps({"task_id": task.id, "status": TaskStatus.COMPLETED.value}) + "\n",
-        encoding="utf-8",
-    )
+    from tests.python.factories.completion_evidence import persist_completion_evidence
+    artifact = persist_completion_evidence(task)
 
     wall_start = time.perf_counter_ns()
     cpu_start = time.process_time_ns()
@@ -137,7 +127,7 @@ def _round_trip_once(
         status=TaskStatus.COMPLETED,
         summary="bench complete",
         worker_id="bench-worker",
-        artifacts=[str(artifact)],
+        artifacts=[artifact],
         events=["task_claimed"],
     )
     submit_wall_end = time.perf_counter_ns()

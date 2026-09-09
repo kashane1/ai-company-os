@@ -7,6 +7,14 @@ struct AfterPlansApp: App {
     @StateObject private var store = AfterPlansStore.bootstrap()
     @UIApplicationDelegateAdaptor(PushNotificationDelegate.self) private var pushDelegate
 
+    private var isUITest: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.environment["AFTERPLANS_UI_TEST"] == "1"
+        #else
+        false
+        #endif
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -14,7 +22,9 @@ struct AfterPlansApp: App {
                 .tint(.appAccent)
                 .onAppear {
                     pushDelegate.store = store
-                    pushDelegate.requestAuthorization()
+                    if !isUITest {
+                        pushDelegate.requestAuthorization()
+                    }
                 }
         }
     }

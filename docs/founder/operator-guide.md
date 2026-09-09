@@ -10,29 +10,29 @@ A brief command reference for running `ai-company-os` work streams from your Mac
 Use this when you want to **kick off discovery, validate a niche, or route work to
 agents** — not when you need architecture deep-dives (see links at the bottom).
 
-**Last updated:** 2026-06-01 (includes `codex/realtime-control-plane`: unified operator
-dashboard, Postgres control plane, optional Redis queue, discovery run/score CLIs,
-web validation lane).
+**Capability review:** 2026-09-09. Lane acceptance follows
+[`worker_capabilities.py`](../../packages/policies/worker_capabilities.py).
 
 ---
 
 ## How ready is this for a new business?
 
-**Short answer:** the **discover → score → validate → build** loop is implemented
-and operable today. You can run a niche sweep, rank wedges, gate them, ship a
-landing page as the validation experiment, and hand a passed wedge to the build
-lanes — mostly from the terminal plus agent sessions for the creative steps.
+The repository implements discovery, scoring, policy gates, and selected worker
+lanes. A business workflow still needs operator handoffs: a web validation handoff
+is a planning artifact, and Apple-side distribution remains a manual, separately
+approved action. “Supervised” below means the lane is registered to accept
+queued tasks; “operator-invoked” means it must be run manually.
 
 | Stage | Status | What you run |
 |-------|--------|--------------|
 | Discover pains in a niche | **Ready** | `discovery_run.py` (HN live with no creds; GitHub/Reddit need tokens) |
 | Score & rank opportunities | **Ready** | `discovery_score.py` (offline heuristic or LLM analyst) |
 | Validate gate / build gate | **Ready** | Policy enforced in code; see demo output |
-| Web-first validation (landing page) | **Ready** | Agent + WEB lane (`packages/discovery/web_handoff.py`) |
-| iOS / App Store build & ship | **Ready** | `./scripts/runtime start` + engineering/iOS/App Store workers |
+| Web-first validation (landing page) | **Operator-invoked** | Use the WEB build workflow after `packages/discovery/web_handoff.py`; the WEB lane is not a queue consumer |
+| iOS / App Store preparation | **Supervised** | Engineering, iOS, and App Store workers prepare reviewable work; releases remain approval-gated |
 | Control plane visibility | **Ready** | `python3 apps/api/main.py` → `/dashboard`, `/discovery` |
 | Fully unattended discovery | **Not yet** | Runs are operator-triggered by design; no cron/queue wiring |
-| GTM content loop | **Partial** | Skills + workers scaffolded; not closed-loop autonomous |
+| GTM content loop | **Operator-invoked** | Run the GTM entrypoint manually; it is not a queue consumer |
 
 **Fastest proof (zero setup, ~10 s):**
 
@@ -59,12 +59,11 @@ Deeper context: [discovery-guide.md](discovery-guide.md),
 
 ```bash
 # 1. Python env (needed beyond the zero-dep demos)
-python3 -m venv .venv
+uv sync --frozen --extra test --group quality --python 3.12
 source .venv/bin/activate
-python3 -m pip install -e ".[test]"
 
 # 2. Optional credentials — copy and fill what you need
-cp .env.example .env
+cp -n .env.example .env
 ```
 
 | Variable | Unlocks |
@@ -79,7 +78,7 @@ cp .env.example .env
 | `NETLIFY_AUTH_TOKEN` | Web deploy lane (preview/production) |
 | `STRIPE_SECRET_KEY` | Paid validation on landing pages (test key = no approval) |
 
-Init Postgres when you want durable, queryable state:
+SQLite provides durable local state by default. To exercise the optional Postgres backend:
 
 ```bash
 docker compose -f infra/compose.yaml up -d postgres redis   # optional
@@ -206,10 +205,14 @@ Start Postgres/Redis locally: `docker compose -f infra/compose.yaml up -d postgr
 | `./scripts/runtime stop` | Clean shutdown |
 | `python3 apps/api/main.py` | API + operator dashboard |
 | `./scripts/test_python.sh` | Full Python test lane |
-| `./scripts/test_ios.sh` | iOS test lane (Catchbook) |
+| `./scripts/test_ios.sh --product catchbook` | Catchbook iOS test lane |
+| `./scripts/test_ios.sh --product life-clock` | Life Clock iOS test lane |
+| `./scripts/test_ios.sh --product after-plans` | After Plans iOS test lane |
 
-Note: `./scripts/runtime` currently supervises **engineering, iOS, and App Store**
-loops only. WEB/WEBDEPLOY workers exist but are not yet in the runtime supervisor.
+Note: `./scripts/runtime` currently starts **engineering, iOS, and App Store**
+loops. The capability registry also marks Skill Evolution and Outreach as
+supervised task consumers; WEB, WEBDEPLOY, and GTM are operator-invoked and
+cannot be queued.
 
 ### Control plane DB (optional Postgres)
 
@@ -294,7 +297,7 @@ Tracked honestly in [discovery-backlog.md](discovery-backlog.md):
 
 - **OpenClaw bridge** — documented, not integrated
 - **GTM closed loop** — content/scheduling scaffolded, not autonomous
-- **iOS coverage gate in CI** — measured, threshold not enforced yet
+- **iOS coverage ratchet** — coverage is reported for each product, with no percentage threshold enforced yet
 - **Scheduled discovery sweeps** — deliberately deferred (on-demand is the model)
 
 ---
