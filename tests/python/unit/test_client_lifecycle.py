@@ -15,7 +15,13 @@ from packages.agency.client_lifecycle import (
     scaffold_client_product,
 )
 from packages.agency.intake import ClientIntake
-from packages.agency.promotion import promote_prospect_to_client
+from packages.agency.promotion import promote_prospect_to_client, promotion_reviewed_revision
+from packages.policies.approval_bindings import (
+    PROMOTION_ACTION,
+    PROMOTION_APPROVAL_TYPE,
+    PROMOTION_SUBJECT_TYPE,
+)
+from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.product import ProductPhase
 from packages.schemas.prospect import HumanVerified, ProspectRecord
 
@@ -89,8 +95,25 @@ def test_scaffold_client_product_materializes_astro(tmp_path: Path) -> None:
 def test_promote_intake_launch_end_to_end(tmp_path: Path) -> None:
     p = _paths(tmp_path)
     prospect = _prospect()
+    approval = ApprovalRecord(
+        id="approval-promotion",
+        status=ApprovalStatus.APPROVED,
+        summary="Promote prospect",
+        created_at="2026-09-08T00:00:00+00:00",
+        approval_type=PROMOTION_APPROVAL_TYPE,
+        subject_type=PROMOTION_SUBJECT_TYPE,
+        subject_id=prospect.place_id,
+        action=PROMOTION_ACTION,
+        reviewed_revision=promotion_reviewed_revision(prospect, "package_a"),
+    )
+    approval_store = type("ApprovalStore", (), {"load": lambda _, approval_id: approval})()
     reg = promote_prospect_to_client(
-        prospect, "package_a", approval_granted=True, mark_onboarded=False, **p
+        prospect,
+        "package_a",
+        approval_id=approval.id,
+        approval_store=approval_store,
+        mark_onboarded=False,
+        **p,
     )
     product_id = str(reg["id"])
     intake = intake_from_prospect(prospect)
@@ -124,8 +147,26 @@ def test_promote_intake_launch_end_to_end(tmp_path: Path) -> None:
 
 def test_mark_live_fails_without_approvals(tmp_path: Path) -> None:
     p = _paths(tmp_path)
+    prospect = _prospect()
+    approval = ApprovalRecord(
+        id="approval-promotion",
+        status=ApprovalStatus.APPROVED,
+        summary="Promote prospect",
+        created_at="2026-09-08T00:00:00+00:00",
+        approval_type=PROMOTION_APPROVAL_TYPE,
+        subject_type=PROMOTION_SUBJECT_TYPE,
+        subject_id=prospect.place_id,
+        action=PROMOTION_ACTION,
+        reviewed_revision=promotion_reviewed_revision(prospect, "package_a"),
+    )
+    approval_store = type("ApprovalStore", (), {"load": lambda _, approval_id: approval})()
     reg = promote_prospect_to_client(
-        _prospect(), "package_a", approval_granted=True, mark_onboarded=False, **p
+        prospect,
+        "package_a",
+        approval_id=approval.id,
+        approval_store=approval_store,
+        mark_onboarded=False,
+        **p,
     )
     product_id = str(reg["id"])
     dist = tmp_path / "dist"
