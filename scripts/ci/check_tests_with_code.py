@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -57,7 +57,7 @@ def main() -> int:
 
     failures: list[str] = []
     checked_any_lane = False
-    for lane in (TestLane.PYTHON, TestLane.IOS):
+    for lane in (TestLane.PYTHON, TestLane.IOS, TestLane.WEB):
         logic_paths = logic_paths_for_lane(changes, lane)
         if not logic_paths:
             continue
@@ -92,7 +92,7 @@ def main() -> int:
             print(f"{lane.value}: pass - {result.details}")
 
     if not checked_any_lane:
-        print("No logic-bearing Python or iOS source changes detected.")
+        print("No mapped logic-bearing source changes detected.")
         return 0
 
     if failures:
