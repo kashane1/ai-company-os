@@ -38,6 +38,9 @@ BASELINE = Path(__file__).resolve().parent / "token_efficiency_baseline.txt"
 
 TLDR_THRESHOLD = 400          # lines; docs longer than this need a TL;DR
 STATE_README_MAX_BYTES = 64 * 1024
+FILE_MAX_BYTES = 8 * 1024 * 1024
+DOCS_MAX_BYTES = 150 * 1024 * 1024
+TREE_MAX_BYTES = 250 * 1024 * 1024
 
 
 def tracked(*globs: str) -> list[Path]:
@@ -108,6 +111,31 @@ def check_state_weight() -> list[str]:
             f"{relative} is tracked runtime content; keep it local and publish "
             "reviewed, sanitized examples under docs/examples/ instead"
         )
+    return problems
+
+
+def check_asset_budgets() -> list[str]:
+    """Keep the current public tree reviewable without scanning binary lines.
+
+    Includes new, unignored files. These budgets apply to the checkout, not Git
+    history; historical blobs remain available and are not rewritten by this gate.
+    """
+    problems = []
+    total = docs_total = 0
+    for path in tracked():
+        if path.is_symlink() or not path.is_file():
+            continue
+        size = path.stat().st_size
+        relative = path.relative_to(REPO).as_posix()
+        total += size
+        if relative.startswith("docs/"):
+            docs_total += size
+        if size > FILE_MAX_BYTES:
+            problems.append(f"{relative} exceeds file budget ({size} > {FILE_MAX_BYTES} bytes)")
+    if docs_total > DOCS_MAX_BYTES:
+        problems.append(f"docs budget exceeded ({docs_total} > {DOCS_MAX_BYTES} bytes)")
+    if total > TREE_MAX_BYTES:
+        problems.append(f"public tree budget exceeded ({total} > {TREE_MAX_BYTES} bytes)")
     return problems
 
 
@@ -206,6 +234,7 @@ def main(argv: list[str]) -> int:
     checks = [
         ("Plans archived", check_plans_archived),
         ("No tracked runtime data", check_state_weight),
+        ("Public asset budgets", check_asset_budgets),
         ("Large-doc TL;DR", check_large_doc_tldr),
     ]
     failed = False
