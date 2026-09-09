@@ -55,10 +55,14 @@ backend when the package is absent.
 
 Simulator builds are unsigned and require no Apple development team or local
 signing configuration. Verified 2026-09-09 with Xcode 26.6 and an iPhone 17 Pro
-simulator on iOS 26.5: **90 total, 87 passed, 0 failed, 3 skipped**. The three
-skips are live Supabase integration tests, which require the explicit local
-endpoint and key shown below. This product does not yet define a UI-test target.
-The result bundle is written to `build/ios/after-plans.xcresult`.
+simulator on iOS 26.5: **91 total, 88 passed, 0 failed, 3 skipped**. The scheme
+now includes a hermetic UI test that completes real onboarding, rejects an
+invalid draft, creates an invite-only plan against the in-memory backend, and
+checks the dismissed sheet's visible home-card state. It uses no signed-in
+account, Supabase endpoint, or key. The three skips are live Supabase integration
+tests, which require the explicit local endpoint and key shown below. This run
+reported 51.56% app-target line coverage. The result bundle is written to
+`build/ios/after-plans.xcresult`.
 
 To run `SupabaseBackendIntegrationTests`, start the local Supabase stack, generate
 the separately named integration project, and pass its URL and anon key explicitly:

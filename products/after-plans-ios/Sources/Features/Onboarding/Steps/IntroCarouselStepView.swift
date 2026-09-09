@@ -55,6 +55,7 @@ struct IntroCarouselStepView: View {
                     advance()
                 }
                 .buttonStyle(ActionPillButtonStyle(prominent: true))
+                .accessibilityIdentifier("onboarding.intro.continue")
 
                 Button(stepIndex == slides.count - 1 ? "Skip the rest" : "Skip") {
                     onSkip()

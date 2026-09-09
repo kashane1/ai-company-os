@@ -62,6 +62,7 @@ struct HomeView: View {
                     isShowingCreatePlan = true
                 }
                 .buttonStyle(ActionPillButtonStyle(prominent: true))
+                .accessibilityIdentifier("home.createPlan")
 
                 if !store.feedPlans.isEmpty {
                     Button {
@@ -81,6 +82,7 @@ struct HomeView: View {
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.appSafe)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+                    .accessibilityIdentifier("home.actionMessage")
             }
         }
         .animation(.easeInOut(duration: 0.3), value: store.lastActionMessage != nil)
@@ -104,6 +106,10 @@ struct HomeView: View {
                             Text(plan.lifecycleHeadline)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
+                            Text(plan.visibility.title)
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("home.currentPlanVisibility")
                         }
                         Spacer()
                         LifecycleBadgeView(lifecycle: plan.lifecycle)

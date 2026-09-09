@@ -58,11 +58,14 @@ struct CreatePlanView: View {
                             }
                         }
                     }
+                    .accessibilityIdentifier("createPlan.visibility.\(visibility.id)")
+                    .accessibilityValue(draft.visibility == visibility ? "selected" : "not selected")
                 }
             }
 
             Section("Core details") {
                 TextField("Plan headline", text: $draft.title)
+                    .accessibilityIdentifier("createPlan.title")
                 TextField("What should people know?", text: $draft.summary, axis: .vertical)
                     .lineLimit(3, reservesSpace: true)
                 if draft.visibility != .publicMatch {
@@ -146,6 +149,7 @@ struct CreatePlanView: View {
                     }
                 }
                 .disabled(validationMessage != nil || isPublishing)
+                .accessibilityIdentifier("createPlan.publish")
             }
         }
     }
