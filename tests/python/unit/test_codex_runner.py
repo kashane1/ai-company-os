@@ -5,8 +5,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from engineering import codex_runner
+
 from packages.schemas.task_run import CodexExecutionRecord
 from packages.tools.codex_tools.task_packet import PacketPattern, select_packet_pattern
 from tests.python.factories.task_data import build_task, build_worktree_metadata
@@ -129,6 +129,7 @@ def test_execute_codex_timeout_marks_execution_and_appends_timeout_note(
     isolated_repo_root: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    canary = "sk-TIMEOUTCANARY0123456789"
     worktree_root = isolated_repo_root / "worktree"
     worktree_root.mkdir()
     packet_path = worktree_root / "TASK_PACKET.md"
@@ -140,8 +141,8 @@ def test_execute_codex_timeout_marks_execution_and_appends_timeout_note(
         raise subprocess.TimeoutExpired(
             cmd=["codex", "exec"],
             timeout=codex_runner.CODEX_TIMEOUT_SECONDS,
-            output="partial stdout",
-            stderr="partial stderr",
+            output=f"partial stdout token={canary}",
+            stderr=f"partial stderr bearer {canary}",
         )
 
     monkeypatch.setattr(subprocess, "run", raise_timeout)
@@ -155,10 +156,50 @@ def test_execute_codex_timeout_marks_execution_and_appends_timeout_note(
 
     assert execution.exit_code == -1
     assert execution.timed_out is True
-    assert "Codex execution timed out after 120 seconds." in stderr_log.read_text()
+    persisted_timeout = stderr_log.read_text()
+    assert canary not in persisted_timeout
+    assert "Codex execution timed out after 120 seconds." in persisted_timeout
     assert metadata["exit_code"] == -1
     assert metadata["timed_out"] is True
     assert Path(summary_path).read_text().splitlines()[1:3] == [
         "exit_code=-1",
         "timed_out=True",
     ]
+
+
+def test_execute_codex_redacts_canaries_from_engineering_persisted_diagnostics(
+    isolated_repo_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    canary = "sk-ENGINEERINGCANARY0123456789"
+    worktree_root = isolated_repo_root / "token=metadata_canary_123456789"
+    worktree_root.mkdir()
+    packet_path = worktree_root / "TASK_PACKET.md"
+    packet_path.write_text("packet body")
+    task = build_task()
+    worktree = build_worktree_metadata(str(worktree_root))
+
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            args=kwargs.get("args", args[0] if args else []),
+            returncode=1,
+            stdout=f"useful stdout diagnostic token={canary}",
+            stderr=f"useful stderr diagnostic bearer {canary}",
+        ),
+    )
+
+    _, execution, _, metadata_path = codex_runner.execute_codex(task, worktree, str(packet_path))
+
+    stdout_log = isolated_repo_root / "state" / "logs" / "engineering" / "task-123.stdout.log"
+    stderr_log = isolated_repo_root / "state" / "logs" / "engineering" / "task-123.stderr.log"
+    persisted = "\n".join(
+        [stdout_log.read_text(), stderr_log.read_text(), Path(metadata_path).read_text()]
+    )
+
+    assert canary not in persisted
+    assert "metadata_canary_123456789" not in persisted
+    assert "useful stdout diagnostic" in persisted
+    assert "useful stderr diagnostic" in persisted
+    assert canary not in execution.command_display

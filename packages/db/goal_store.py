@@ -1,7 +1,7 @@
 from dataclasses import replace
 
-from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.db.contracts import GOALS_TABLE
+from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.schemas.goal import GoalRecord, GoalStatus
 
 
@@ -9,7 +9,7 @@ class GoalStore:
     def __init__(self) -> None:
         self.db = ControlPlaneDatabase()
 
-    def save(self, goal: GoalRecord) -> str:
+    def save(self, goal: GoalRecord, *, create_only: bool = False) -> str:
         query = f"""
             INSERT INTO {GOALS_TABLE} (
                 id, title, summary, description, status, parent_goal_id, created_at, updated_at, completed_at
@@ -24,6 +24,9 @@ class GoalStore:
                 {self.db.placeholder("updated_at")},
                 {self.db.placeholder("completed_at")}
             )
+        """
+        insert_query = query
+        query += """
             ON CONFLICT(id) DO UPDATE SET
                 title = excluded.title,
                 summary = excluded.summary,
@@ -35,7 +38,14 @@ class GoalStore:
                 completed_at = excluded.completed_at
         """
         payload = goal.to_dict()
-        self.db.execute(query, payload)
+        if create_only:
+            inserted = self.db.fetch_one(
+                insert_query + " ON CONFLICT(id) DO NOTHING RETURNING id", payload
+            )
+            if inserted is None:
+                raise ValueError(f"goal '{goal.id}' already exists")
+        else:
+            self.db.execute(query, payload)
         return goal.id
 
     def load(self, goal_id: str) -> GoalRecord:
@@ -45,6 +55,17 @@ class GoalStore:
             WHERE id = {self.db.placeholder("id")}
         """
         payload = self.db.fetch_one(query, {"id": goal_id})
+        if payload is None:
+            raise FileNotFoundError(goal_id)
+        return GoalRecord.from_dict(payload)
+
+    def load_for_update(self, goal_id: str) -> GoalRecord:
+        """Lock a goal while a transaction derives its state from task records."""
+        suffix = " FOR UPDATE" if self.db.config.backend == "postgres" else ""
+        payload = self.db.fetch_one(
+            f"SELECT * FROM {GOALS_TABLE} WHERE id = {self.db.placeholder('id')}{suffix}",
+            {"id": goal_id},
+        )
         if payload is None:
             raise FileNotFoundError(goal_id)
         return GoalRecord.from_dict(payload)

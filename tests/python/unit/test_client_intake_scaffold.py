@@ -99,8 +99,9 @@ def test_access_block_and_approver_round_trip_and_render() -> None:
 
 
 def test_invalid_approver_email_is_rejected() -> None:
-    from packages.agency.intake import ClientIntake
     import pytest
+
+    from packages.agency.intake import ClientIntake
 
     bad = ClientIntake(business_name="x", service_category="y", city="z",
                        approver_email="not-an-email")

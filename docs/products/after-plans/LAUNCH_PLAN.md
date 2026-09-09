@@ -108,8 +108,8 @@ This checklist defines what must be done before the App Store lane can execute. 
 
 ### Build Prerequisites
 
-- [ ] backend contract defined (currently in-memory shell)
-- [ ] shipping build with real networking layer
+- [x] local backend contract and Supabase adapter implemented; offline remains the default
+- [ ] cloud backend configured for a release build
 - [ ] TestFlight build validated
 - [ ] build uploaded to App Store Connect via Xcode or Transporter
 

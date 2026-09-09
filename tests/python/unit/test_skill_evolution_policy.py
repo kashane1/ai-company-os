@@ -20,7 +20,6 @@ from packages.policies.skill_evolution import (
 )
 from packages.tools.skills.loader import SkillSpec
 
-
 # ---------------------------------------------------------------------- #
 # Fixtures                                                                #
 # ---------------------------------------------------------------------- #

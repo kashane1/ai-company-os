@@ -24,7 +24,6 @@ from packages.web.palette import (
     relative_luminance,
 )
 
-
 # --- parse_color -----------------------------------------------------------
 
 @pytest.mark.parametrize(

@@ -21,13 +21,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from apps.api.control_plane import ControlPlaneService
 from packages.policies.approvals import PolicyViolation
 from packages.schemas.approval import ApprovalRecord
-from packages.schemas.event import EventRecord
-from packages.schemas.goal import GoalRecord
 from packages.schemas.task import Task
 from packages.schemas.task_packet import RiskLevel, TaskStatus, WorkerLane
 from packages.tools.supervisor.enqueue import (
@@ -38,7 +36,6 @@ from packages.tools.supervisor.enqueue import (
     enqueue_gtm,
     enqueue_ios,
 )
-
 
 STRATEGIC_TASK_TYPES = frozenset(
     {

@@ -46,6 +46,7 @@ from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.tools.primitives.approvals._evolution import (
     _default_device_binding,
     _now_iso,
+    confirm_evolution_approval,
     poll_evolution_approval,
     reject_evolution_approval,
     request_evolution_approval,
@@ -89,6 +90,7 @@ __all__ = [
     "SKILL_EVOLUTION_ACTION",
     "SKILL_EVOLUTION_APPROVAL_TYPE",
     "poll_evolution_approval",
+    "confirm_evolution_approval",
     "reject_evolution_approval",
     "request_evolution_approval",
     "submit_evolution_approval",

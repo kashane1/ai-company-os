@@ -1,6 +1,10 @@
 from pathlib import Path
 
-from packages.tools.ios_tools.xcode import build_command, default_build_command, detect_project_reference
+from packages.tools.ios_tools.xcode import (
+    build_command,
+    default_build_command,
+    detect_project_reference,
+)
 
 
 def test_detect_project_reference_prefers_project_before_workspace(tmp_path: Path) -> None:

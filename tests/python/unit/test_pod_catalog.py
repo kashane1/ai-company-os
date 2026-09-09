@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from scripts.pod_catalog import build_catalog, render_index, write_catalog
+from scripts.pod_catalog import build_catalog, write_catalog
 
 
 def _review(folder: Path, title: str, description: str = "FULL DESCRIPTION") -> None:

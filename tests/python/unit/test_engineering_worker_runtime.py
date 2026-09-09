@@ -11,6 +11,33 @@ from packages.db.task_store import TaskStore
 from packages.schemas.task_packet import RiskLevel, TaskResult, TaskStatus, WorkerLane
 
 
+def completed_engineering_result(
+    repo_root: Path,
+    task_id: str,
+    *,
+    summary: str,
+    approval_id: str | None = None,
+) -> TaskResult:
+    artifact = (
+        repo_root
+        / "state"
+        / "artifacts"
+        / "engineering"
+        / task_id
+        / "review_summary.json"
+    )
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text("{}", encoding="utf-8")
+    return TaskResult(
+        task_id=task_id,
+        status=TaskStatus.COMPLETED,
+        summary=summary,
+        run_id=f"run-{task_id}",
+        approval_id=approval_id,
+        artifacts=[str(artifact)],
+    )
+
+
 def load_engineering_worker_main():
     module_path = Path(__file__).resolve().parents[3] / "apps" / "worker-engineering" / "main.py"
     spec = importlib.util.spec_from_file_location("worker_engineering_main", module_path)
@@ -44,11 +71,10 @@ def test_engineering_worker_claims_executes_and_submits_through_control_plane(
     monkeypatch.setattr(
         worker_engineering_main,
         "execute_task",
-        lambda task_id, **kwargs: TaskResult(
-            task_id=task_id,
-            status=TaskStatus.COMPLETED,
+        lambda task_id, **kwargs: completed_engineering_result(
+            isolated_repo_root,
+            task_id,
             summary="Executed through engineering runtime.",
-            run_id=f"run-{task_id}",
             approval_id="approval-runtime-1",
         ),
     )
@@ -113,11 +139,10 @@ def test_engineering_worker_runtime_requests_approval_when_runner_does(
             "/tmp/review.json",
             "Ready for review.",
         )
-        return TaskResult(
-            task_id=task_id,
-            status=TaskStatus.COMPLETED,
+        return completed_engineering_result(
+            isolated_repo_root,
+            task_id,
             summary="Ready for review.",
-            run_id=f"run-{task_id}",
             approval_id=approval.id,
         )
 
@@ -137,6 +162,40 @@ def test_engineering_worker_runtime_requests_approval_when_runner_does(
     assert len(approval_events) == 1
     assert approval_events[0].task_id == task.id
     assert approval_events[0].payload["action"] == "review_engineering_task"
+
+
+def test_engineering_worker_does_not_return_completed_when_evidence_is_missing(
+    isolated_repo_root: Path, monkeypatch
+) -> None:
+    worker_engineering_main = load_engineering_worker_main()
+    service = ControlPlaneService()
+    goal = service.create_goal(title="Require engineering evidence", summary="Fail closed.")
+    task = service.create_task_for_goal(
+        goal_id=goal.id,
+        repo_id="ai-company-os",
+        lane=WorkerLane.ENGINEERING,
+        title="Missing artifact",
+        summary="The runner omitted its review evidence.",
+        task_type="engineering_change",
+    )
+    monkeypatch.setattr(
+        worker_engineering_main,
+        "execute_task",
+        lambda task_id, **kwargs: TaskResult(
+            task_id=task_id,
+            status=TaskStatus.COMPLETED,
+            summary="Claimed success without evidence.",
+        ),
+    )
+
+    result = worker_engineering_main.execute_claimed_task(
+        worker_id="worker-engineering-missing", service=service
+    )
+
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
+    assert "required_artifact_missing" in result.summary
+    assert TaskStore().load(task.id).status is TaskStatus.FAILED
 
 
 def test_engineering_worker_marks_claimed_task_failed_when_runner_raises(
@@ -212,11 +271,10 @@ def test_engineering_worker_loop_processes_tasks_and_idles_when_queue_is_empty(
     monkeypatch.setattr(
         worker_engineering_main,
         "execute_task",
-        lambda task_id, **kwargs: TaskResult(
-            task_id=task_id,
-            status=TaskStatus.COMPLETED,
+        lambda task_id, **kwargs: completed_engineering_result(
+            isolated_repo_root,
+            task_id,
             summary=f"Completed {task_id}",
-            run_id=f"run-{task_id}",
         ),
     )
 

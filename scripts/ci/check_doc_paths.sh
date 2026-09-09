@@ -45,6 +45,8 @@ DOCS=(
 # source/doc paths. Keep this list narrow.
 RUNTIME_ALLOWED=(
   "state/checkpoints/platform/"
+  # Test/coverage output is generated after checkout, never committed.
+  "build/"
 )
 
 # Optional argument: --quiet suppresses the per-file scan header.

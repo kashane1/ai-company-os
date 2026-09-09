@@ -232,20 +232,24 @@ The iOS lane uses the same structured tests-with-code policy as the engineering 
 
 ### App Store Worker
 
-The App Store worker handles app distribution and release operations.
+The App Store worker owns the release-operations boundary. **Today it models local
+release state and approval checks only**: it does not call App Store Connect,
+upload archives, submit builds, or release products. Its local `submit_appstore`
+state transition invokes the release-readiness checklist and signed-approval
+policy and persists the outcome. See [the lane document](appstore-lane.md) for
+the implemented behavior.
 
-Responsibilities:
+The planned lane responsibilities are:
 
-- TestFlight preparation
-- metadata handling
-- screenshot handling
-- App Store Connect workflows
-- release notes drafts
-- review response drafts
-- submission coordination
-- release-state tracking
+- local TestFlight/release-state preparation
+- metadata and screenshot organization
+- release-note and review-response drafts
+- submission coordination and release-state tracking
 
-The App Store worker is separate from the iOS worker because building an app and shipping an app are different operational concerns.
+App Store Connect workflows, archive upload, submission, and public release remain
+manual operator work until an integrated external-delivery path is implemented.
+The App Store worker is separate from the iOS worker because building an app and
+shipping an app are different operational concerns.
 
 ### Outreach Worker
 
@@ -287,7 +291,9 @@ Products are first-class records, not implied folders.
 
 The current platform now expects:
 
-- a registry entry in `infra/products.json`
+- a registry entry in `infra/products.json`. Its canonical lifecycle vocabulary is
+  `discovery`, `mvp-build`, `app-store-submission`, `live`, and `maintenance`;
+  the phase describes source-controlled planning state, not external-release proof.
 - a checkpoint-backed product record
 - a durable artifact chain such as founder brief, product brief, MVP spec, backlog, iOS architecture, and App Store positioning
 - optional product-specific contracts such as deterministic insight rules
@@ -365,6 +371,20 @@ A typical flow looks like this:
 9. The supervisor reacts to outputs and schedules follow-up work.
 
 This explicit lifecycle is preferred over hidden autonomous loops.
+
+Database-backed lifecycle changes share one transaction boundary across task,
+goal, approval, event, and dispatch records. A `COMPLETED` result is accepted
+only when the current claimant supplies artifacts and already-persisted task
+events that pass the lane validator; missing or unavailable validation records
+a failure. Redis Streams remains an at-least-once dispatch option: claim-bound
+acknowledgement follows the database commit, reconciliation is dry-run by
+default and may be applied only with workers stopped, and idle reclaim is an
+experimental opt-in because the runtime has no execution heartbeat or
+per-attempt claim token.
+
+At the process layer, an unexpected managed-worker exit marks the runtime
+supervisor failed and stops its remaining children so partial runtime loss is
+visible to the operator.
 
 ## Example Engineering Flow
 

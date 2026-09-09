@@ -1,71 +1,95 @@
-# Case study: Life Clock simulator polish
+# Case study: making Life Clock reviewable on a simulator
 
-This is a guided review of a product-development workflow: define the intended
-experience, use deterministic simulator state, review screenshots, and iterate.
-It combines Swift implementation, an agent skill, and recorded session notes.
-Those are different kinds of evidence; this page identifies each.
+[Life Clock](../products/life-clock-ios/README.md) is a SwiftUI/SwiftData health
+app with an educational progress clock, habit plans, and local HealthKit
+integration. This case follows one concrete engineering problem: making the
+main product states reproducible and their controls addressable during review.
 
-## 1. Product intent
+## The problem
 
-[Life Clock](../products/life-clock-ios/README.md) is a managed iOS health-app
-source tree. Its [vision](products/life-clock/vision.md) records product
-constraints, and its [reference-app notes](products/life-clock/reference-apps.md)
-describe what to learn from other apps and which framing to avoid.
+The existing UI tests stalled during onboarding and could not address the
+sparse Today heading in two health-access states. Parent accessibility
+identifiers were obscuring child identifiers. Some test steps also described
+an older onboarding sequence, and documentation still listed three tabs while
+the app had four.
 
-Review question: can a developer tell which decisions are settled and which
-are open without inventing product requirements?
+Those gaps made a simulator walkthrough difficult to repeat even though the
+product source and many unit tests existed. The review needed actual execution
+evidence alongside the design and session notes.
 
-## 2. Reproducible simulator state
+## My role and the implementation work
 
-[LifeClockLaunchConfiguration.swift](../products/life-clock-ios/Sources/App/LifeClockLaunchConfiguration.swift)
-parses debug fixture controls such as `LIFECLOCK_JUMP_TO`,
-`LIFECLOCK_HEALTH_PROFILE`, and `LIFECLOCK_SEED_BAD_DAY`. The `#if DEBUG` branch
-and Release defaults are visible in code. The supported presets cover specific
-states; they do not guarantee access to every possible UI state.
+I own the product direction, operating rules, and review bar for this
+repository. For this pass, the goal was a fresh-checkout experience with clear
+inputs, inspectable results, and honest release status. AI agents investigated
+the failing flows, changed the SwiftUI containers and test steps, ran the
+simulator suites, and captured the evidence below.
 
-Compare this with the
-[launch-configuration tests](../products/life-clock-ios/Tests/LifeClockLaunchConfigurationTests.swift).
-For Life Clock build instructions, use its README. The top-level
-[`scripts/test_ios.sh`](../scripts/test_ios.sh) targets **Catchbook**, so a green
-result from that command does not validate Life Clock.
+The existing design choices that made the repair practical were:
 
-## 3. Agent-guided polish
+- **Deterministic development state.** The
+  [launch configuration](../products/life-clock-ios/Sources/App/LifeClockLaunchConfiguration.swift)
+  selects mock health profiles, a fixed engine clock, and an in-memory store.
+  Fixture controls are behind `#if DEBUG`; Release uses production defaults.
+- **Inspect controls individually.** The repaired Today and onboarding
+  containers use `.accessibilityElement(children: .contain)` so their child
+  controls retain addressable identifiers.
+- **Keep product behavior honest when data is missing.** The denied-health and
+  returning-user tests verify sparse-state copy and retained History, without
+  presenting today's unavailable health data as a precise result.
 
-The [simulator polish skill](../skills/canonical/simulator-driven-polish/skill.md)
-and [operator guide](skills/simulator-driven-polish-guide.md) specify screenshot
-review, iteration limits, and decision tiers. They distinguish small polish
-changes from feature or vision questions that need operator input.
+## What changed and what passed
 
-These are instructions for an agent/operator workflow, not an independently
-enforced image-regression service. In particular, golden-image comparison and
-stop conditions in the skill should be evaluated as procedures unless a run's
-evidence demonstrates that they were followed.
+| Initial failure | Change | Executed verification |
+|---|---|---|
+| Sparse Today heading could not be addressed | Put the content in a `VStack` that contains its child accessibility elements | Denied-health and returning-user cases passed |
+| Onboarding stalled at sensitive consent and the engine dial | Preserve child controls; align the test with the current onboarding sequence | Full onboarding-to-paywall case passed |
+| Three-tab documentation disagreed with the running app | Record Today, History, Future, and Profile; update the assertion | Four-destination assertion passed on the simulator |
 
-Two recorded sessions to inspect:
+The [UI tests](../products/life-clock-ios/UITests/LifeClockUITests.swift) expose
+those cases by name. The full local run on September 9, 2026 recorded **450
+passed, 3 skipped, 0 failed** across 453 tests, with **67.72% app line coverage**.
+The three StoreKit skips are explained in the product README. A subsequent
+run of the renamed four-tab assertion also passed.
 
-- [May 5 polish session](products/life-clock/polish-2026-05-05.md)
-- [Accessibility and color-matrix pass](products/life-clock/polish-2026-05-06-accessibility-color-matrix.md)
+## Actual product evidence
 
-The notes document development activity. They are not proof of a public release,
-user outcomes, or comprehensive visual regression coverage. Some referenced
-screenshots or local simulator artifacts may require the operator's environment.
+<img src="products/life-clock/screenshots/employer-2026-09-09/today-authorized-first-day.png" alt="Life Clock Today screen with synthetic health inputs, an educational progress estimate, data-quality label, and the factors behind the change" width="322">
 
-## 4. Release handoff: current boundary
+*The tested debug app's first-day Today screen, using a fixed date and synthetic
+health inputs. The displayed minutes are educational product output, not a
+measured health outcome.*
 
-The [App Store worker](../apps/worker-appstore/main.py) prepares local release
-state. It does not call App Store Connect; its result tells the operator to keep
-external submission manual. The [release-readiness policy](../packages/policies/release_readiness.py)
-contains checklist/approval checks, but that policy is not currently called by
-this worker. The [App Store lane document](appstore-lane.md) describes the fuller
-intended workflow.
+The [returning-user wrap-up](products/life-clock/screenshots/employer-2026-09-09/yesterday-wrap-up-day-7.png)
+shows a second actual state after seven seeded days. The
+[capture manifest](products/life-clock/screenshots/employer-2026-09-09/CAPTURE_MANIFEST.md)
+records the source commit, device, build tools, fixture settings, and image
+hashes. The screenshots were resized for display; their content was not edited.
 
-This distinction matters when assessing the architecture: separate delivery
-responsibilities and local approval checks exist, while an enforced, end-to-end
-store submission integration remains unfinished.
+## Reproduce and assess the boundary
 
-## What to discuss
+On macOS with Xcode and XcodeGen, run from the repository root:
 
-The useful engineering thread is the connection between product constraints,
-repeatable development state, explicit agent instructions, and reviewable
-session evidence. Start with one fixture and one session rather than reading
-the entire product-document history.
+```bash
+./scripts/test_ios.sh --product life-clock
+```
+
+The result bundle is `build/ios/life-clock.xcresult`. The product README explains
+simulator selection, optional signing configuration, and fixture controls.
+The same script selects Catchbook and After Plans explicitly; a Catchbook result
+is not evidence that Life Clock passed.
+
+This review exercised XCUITest accessibility-tree labels, values, identifiers,
+and product flows. It did not include a manual spoken VoiceOver traversal,
+clinical validation, or a public App Store release. The
+[product status](products/life-clock/PHASE_STATUS.md) keeps the pre-TestFlight
+work separate from local build and test evidence.
+
+For the wider agent workflow, the
+[simulator polish skill](../skills/canonical/simulator-driven-polish/skill.md)
+and [operator guide](skills/simulator-driven-polish-guide.md) describe review
+and iteration rules. Those are procedures; this case supplies the code, tests,
+and real captures for this particular run. The
+[App Store worker](../apps/worker-appstore/main.py) checks local release readiness
+and records preparation state. Apple-side upload, submission, and release
+remain manual.

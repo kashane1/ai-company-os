@@ -5,13 +5,14 @@ import json
 from pathlib import Path
 from threading import Event
 
-from apps.api import platform
 from apps.api.control_plane import ControlPlaneService
 from packages.db.approval_store import ApprovalStore
 from packages.db.event_store import EventStore
 from packages.db.goal_store import GoalStore
 from packages.db.release_store import ReleaseStore
 from packages.db.task_store import TaskStore
+from packages.policies.approvals import PolicyViolation
+from packages.policies.release_readiness import APP_STORE_SUBMISSION_APPROVAL_TYPE
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.release import (
     BuildCandidate,
@@ -192,6 +193,47 @@ def test_appstore_worker_requests_approval_and_blocks_when_action_is_gated(
     assert [event.event_type for event in EventStore().list()][-1] == "task_blocked"
 
 
+def test_appstore_worker_blocks_claimed_task_without_release_id(
+    isolated_repo_root: Path,
+) -> None:
+    worker_appstore_main = load_appstore_worker_main()
+    service = ControlPlaneService()
+    goal = service.create_goal(
+        title="Reject incomplete App Store task",
+        summary="A claimed task without a release must reach a durable terminal state.",
+    )
+    task = service.create_task_for_goal(
+        goal_id=goal.id,
+        repo_id="catchbook-ios",
+        lane=WorkerLane.APPSTORE,
+        title="Prepare unspecified release",
+        summary="No release identifier was supplied.",
+        task_type="appstore_release",
+        constraints=["release_action=prepare_testflight"],
+    )
+
+    result = worker_appstore_main.execute_claimed_task(
+        worker_id="worker-appstore-missing-release",
+        service=service,
+    )
+
+    assert result is not None
+    assert result.status is TaskStatus.BLOCKED
+    assert result.failure_codes == ["missing_release_id"]
+    assert "release_id" in result.summary
+    assert TaskStore().load(task.id).status is TaskStatus.BLOCKED
+    assert EventStore().list()[-1].event_type == "task_blocked"
+    artifact = (
+        isolated_repo_root
+        / "state"
+        / "artifacts"
+        / "appstore"
+        / task.id
+        / "submission_summary.json"
+    )
+    assert json.loads(artifact.read_text(encoding="utf-8"))["status"] == "blocked"
+
+
 def test_appstore_worker_blocks_missing_or_mismatched_release_approval(
     isolated_repo_root: Path,
 ) -> None:
@@ -263,20 +305,38 @@ def test_appstore_worker_blocks_missing_or_mismatched_release_approval(
     )
 
 
-def test_appstore_worker_accepts_only_the_matching_release_action_approval(
-    isolated_repo_root: Path,
+def test_appstore_worker_runs_release_readiness_before_local_submission_transition(
+    isolated_repo_root: Path, monkeypatch
 ) -> None:
     worker_appstore_main = load_appstore_worker_main()
     create_release_record("release-approval-2")
     service = ControlPlaneService()
-    approval = platform.create_release_approval(
-        "release-approval-2",
-        "submit_appstore",
+    # Safe preparation establishes the local READY_FOR_REVIEW state without
+    # requiring an approval or attempting App Store Connect work.
+    prepared = worker_appstore_main.execute_release_action(
+        "release-approval-2", "prepare_testflight"
+    )
+    assert prepared.status is TaskStatus.COMPLETED
+    approval = service.request_approval(
+        summary="Approve the local submission transition.",
+        subject_type="release",
+        subject_id="release-approval-2",
+        action="submit_appstore",
+        approval_type=APP_STORE_SUBMISSION_APPROVAL_TYPE,
     )
     service.decide_approval(
         approval_id=approval.id,
         status=ApprovalStatus.APPROVED,
         decided_by="founder",
+    )
+    readiness_calls: list[tuple[str, str, str, str]] = []
+    monkeypatch.setattr(
+        worker_appstore_main,
+        "approve_app_store_submission",
+        lambda release_id, approval_id, *, product_id, expected_action: (
+            readiness_calls.append((release_id, approval_id, product_id, expected_action))
+            or ReleaseStore().load_release_record(release_id)
+        ),
     )
     goal = service.create_goal(
         title="Submit approved App Store release",
@@ -304,11 +364,115 @@ def test_appstore_worker_accepts_only_the_matching_release_action_approval(
     assert result is not None
     assert result.status is TaskStatus.COMPLETED
     assert result.approval_id == approval.id
+    assert result.validation_checks == ["release_readiness:passed"]
     assert TaskStore().load(task.id).approval_id == approval.id
     assert EventStore().list()[-1].approval_id == approval.id
     assert ReleaseStore().load_release_record("release-approval-2").appstore_status is (
         StoreChannelStatus.APPROVED
     )
+    assert readiness_calls == [
+        ("release-approval-2", approval.id, "catchbook", "submit_appstore")
+    ]
+
+
+def test_appstore_worker_blocks_local_submission_when_readiness_rejects(
+    isolated_repo_root: Path, monkeypatch
+) -> None:
+    worker_appstore_main = load_appstore_worker_main()
+    create_release_record("release-readiness-blocked")
+    worker_appstore_main.execute_release_action("release-readiness-blocked", "prepare_testflight")
+    approval = ApprovalRecord(
+        id="approval-readiness-blocked",
+        status=ApprovalStatus.APPROVED,
+        summary="Approved record but incomplete checklist.",
+        created_at="2026-04-01T00:00:00+00:00",
+        approval_type=APP_STORE_SUBMISSION_APPROVAL_TYPE,
+        subject_type="release",
+        subject_id="release-readiness-blocked",
+        action="submit_appstore",
+    )
+    ApprovalStore().save(approval)
+    monkeypatch.setattr(
+        worker_appstore_main,
+        "approve_app_store_submission",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            PolicyViolation("submission_checklist_incomplete", "2 items remain")
+        ),
+    )
+
+    result = worker_appstore_main.execute_release_action(
+        "release-readiness-blocked", "submit_appstore", approval_id=approval.id
+    )
+
+    assert result.status is TaskStatus.BLOCKED
+    assert "submission_checklist_incomplete" in result.summary
+    assert result.failure_codes == ["submission_checklist_incomplete"]
+    assert ReleaseStore().load_release_record("release-readiness-blocked").appstore_status is (
+        StoreChannelStatus.NOT_STARTED
+    )
+
+
+def test_appstore_worker_persists_release_readiness_rejection(
+    isolated_repo_root: Path, monkeypatch
+) -> None:
+    worker_appstore_main = load_appstore_worker_main()
+    service = ControlPlaneService()
+    create_release_record("release-readiness-artifact")
+    worker_appstore_main.execute_release_action(
+        "release-readiness-artifact", "prepare_testflight"
+    )
+    approval = ApprovalRecord(
+        id="approval-readiness-artifact",
+        status=ApprovalStatus.APPROVED,
+        summary="Approved record with incomplete readiness.",
+        created_at="2026-04-01T00:00:00+00:00",
+        approval_type=APP_STORE_SUBMISSION_APPROVAL_TYPE,
+        subject_type="release",
+        subject_id="release-readiness-artifact",
+        action="submit_appstore",
+    )
+    ApprovalStore().save(approval)
+    goal = service.create_goal(
+        title="Check release readiness", summary="Persist the rejected policy result."
+    )
+    task = service.create_task_for_goal(
+        goal_id=goal.id,
+        repo_id="catchbook-ios",
+        lane=WorkerLane.APPSTORE,
+        title="Prepare App Store submission",
+        summary="Readiness remains local.",
+        task_type="appstore_release",
+        constraints=[
+            "release_id=release-readiness-artifact",
+            "release_action=submit_appstore",
+            f"approval_id={approval.id}",
+        ],
+    )
+    monkeypatch.setattr(
+        worker_appstore_main,
+        "approve_app_store_submission",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            PolicyViolation("submission_checklist_incomplete", "2 items remain")
+        ),
+    )
+
+    result = worker_appstore_main.execute_claimed_task(
+        worker_id="worker-appstore-readiness", service=service
+    )
+
+    assert result is not None
+    assert result.status is TaskStatus.BLOCKED
+    artifact = (
+        isolated_repo_root
+        / "state"
+        / "artifacts"
+        / "appstore"
+        / task.id
+        / "submission_summary.json"
+    )
+    payload = json.loads(artifact.read_text(encoding="utf-8"))
+    assert payload["failure_codes"] == ["submission_checklist_incomplete"]
+    assert TaskStore().load(task.id).status is TaskStatus.BLOCKED
 
 
 def test_appstore_worker_blocks_unknown_release_actions(isolated_repo_root: Path) -> None:

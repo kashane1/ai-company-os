@@ -53,22 +53,27 @@ Shared context, known people, and prior plan partners should outrank strangers. 
 
 ## Current Project State
 
-After Plans is currently in Phase 6.
+After Plans is in Phase 7. Read [PHASE_STATUS.md](PHASE_STATUS.md) first for
+the current boundary: the app defaults to offline in-memory state, while an
+optional Supabase adapter has been validated against a local stack. That source
+and local-validation evidence does not establish cloud deployment, TestFlight,
+App Store submission, or release.
 
 What is already true:
 
 - the managed product docs exist under `docs/products/after-plans/`
 - the managed iOS source tree exists under `products/after-plans-ios/`
-- the app is a compile-safe SwiftUI shell backed by in-memory state
-- the continuation loop, trust cues, lifecycle clarity, invite/share scaffolding, and recap/social-memory surfaces have already been deepened
-- lane-matching unit tests already exist for the current logic-bearing areas
+- the continuation loop, trust cues, lifecycle clarity, invite/share scaffolding,
+  and recap/social-memory surfaces are implemented in the local product source
+- lane-matching unit tests exist for current logic-bearing areas
 
 Default next-step posture:
 
-- continue with one narrow Phase 6 refinement
-- prefer app-layer improvements over architecture changes
-- preserve the in-memory shell unless explicitly tasked otherwise
-- avoid backend, chat, premium, notifications, release operations, and cross-lane redesign
+- preserve the offline default unless a task explicitly covers the configured
+  local or cloud backend boundary
+- prefer narrow, evidence-backed app improvements over broad redesign
+- keep cloud provisioning, release operations, chat, payments, and public
+  discovery as separately scoped work
 
 ## Claude's Role
 
@@ -177,7 +182,7 @@ Bad:
 Use this prompt when you want Claude to implement the next narrow slice inside the existing After Plans iOS app:
 
 ```text
-You are working inside /Users/simons/ai-company-os on the After Plans product.
+You are working from the repository root on the After Plans product.
 
 Before making changes, read these files in order:
 - AGENTS.md
@@ -225,7 +230,7 @@ Return:
 Use this prompt when you want Claude to refine an existing surface without widening the feature set:
 
 ```text
-You are working inside /Users/simons/ai-company-os on the After Plans iOS app.
+You are working from the repository root on the After Plans iOS app.
 
 Read first:
 - docs/products/after-plans/START_HERE_FOR_CLAUDE.md

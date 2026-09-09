@@ -1,5 +1,13 @@
 # Agent Model
 
+> **Current implementation summary:** The platform owns orchestration, policy,
+> approvals, and durable state; workers execute bounded tasks. Engineering, iOS,
+> App Store, outreach, and advisory agency capabilities have distinct boundaries.
+> The App Store worker currently models local release state and approval checks;
+> App Store Connect calls, archive upload, submission, and public release remain
+> manual until a separate delivery integration exists. The deterministic demo is
+> a fixture, not evidence of persistent worker or external-service execution.
+
 This document defines the intended agent model, worker responsibilities, system boundaries, and operating rules for `ai-company-os`.
 
 Its purpose is to keep the system legible as it grows and to prevent drift into a vague multi-agent mess.
@@ -99,18 +107,24 @@ It is separate from the general engineering worker because iOS has distinct buil
 
 ### 5. The App Store Worker
 
-The App Store worker handles release operations.
+The App Store worker is the release-operations boundary. **Current implementation**
+models local release state and approval checks; it does not call App Store Connect,
+upload an archive, submit an app, or release one. Before the worker records the
+local `submit_appstore` transition, it runs the release-readiness checklist and
+signed-approval policy. See [the App Store lane](appstore-lane.md) for the
+executable boundary.
 
-It is responsible for:
+The intended lane responsibilities are:
 
-- preparing TestFlight state
+- preparing local TestFlight/release state
 - drafting release notes and metadata
-- managing screenshots and localization assets
-- interacting with App Store Connect
+- organizing screenshots and localization assets
 - drafting review responses
-- requesting human approval before final submission or release
+- requesting human approval before a final submission or release
 
-It must remain separate from the iOS implementation lane.
+App Store Connect interaction, archive upload, submission, and public release
+remain manual operator steps until a separately integrated external delivery path
+exists. It must remain separate from the iOS implementation lane.
 
 ### 6. Future Workers
 

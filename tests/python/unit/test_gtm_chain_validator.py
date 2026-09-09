@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import yaml
 from pathlib import Path
+
+import yaml
 
 from packages.tools.product_artifacts.gtm_chain import (
     MIN_BACKLOG_ITEMS,

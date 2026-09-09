@@ -16,9 +16,8 @@ so call sites cannot accidentally leave PII or secrets unredacted.
 from __future__ import annotations
 
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from enum import Enum
-
 
 # Tightly bounded character class for failure_code so the value is safe
 # to interpolate into filesystem paths (lockfile, dedup index, fixture

@@ -1,0 +1,51 @@
+# Reviewed historical findings from published history through 8f9aa984.
+# Exact fingerprints only: new occurrences still require review.
+# Values were not validated against live services or printed in audit output.
+
+# Historical short-lived approval token identifier in April dry-run notes; expired.
+# docs/solutions/integration-issues/skill-evolution-revert-dryrun-2026-04-15.md
+1ce62bb812bbf1c858fb7ada09db63522608c14d:docs/solutions/integration-issues/skill-evolution-revert-dryrun-2026-04-15.md:generic-api-key:82
+
+# Local Supabase demo anon JWT (issuer supabase-demo), public client test fixture.
+# products/after-plans-ios/AfterPlans.xcodeproj/xcshareddata/xcschemes/AfterPlans.xcscheme
+a81e114d16b2dfc3976bb51d10b771c82eecf99e:products/after-plans-ios/AfterPlans.xcodeproj/xcshareddata/xcschemes/AfterPlans.xcscheme:jwt:65
+
+# Local Supabase demo anon JWT (issuer supabase-demo), public client test fixture.
+# products/after-plans-ios/AfterPlans.xcodeproj/xcshareddata/xcschemes/AfterPlans.xcscheme
+a81e114d16b2dfc3976bb51d10b771c82eecf99e:products/after-plans-ios/AfterPlans.xcodeproj/xcshareddata/xcschemes/AfterPlans.xcscheme:jwt:114
+
+# Local Supabase demo anon JWT (issuer supabase-demo), public client test fixture.
+# products/after-plans-ios/AfterPlans.xcodeproj/xcshareddata/xcschemes/AfterPlans.xcscheme
+a81e114d16b2dfc3976bb51d10b771c82eecf99e:products/after-plans-ios/AfterPlans.xcodeproj/xcshareddata/xcschemes/AfterPlans.xcscheme:jwt:150
+
+# Local Supabase demo anon JWT (issuer supabase-demo), public client test fixture.
+# products/after-plans-ios/project.yml
+a81e114d16b2dfc3976bb51d10b771c82eecf99e:products/after-plans-ios/project.yml:jwt:62
+
+# Deliberately credential-shaped input exercising redaction/leak detection.
+# tests/python/integration/test_failure_mode_regression.py
+45ea81e549c86eb1f90fd053cff703978234ad59:tests/python/integration/test_failure_mode_regression.py:generic-api-key:26
+
+# Deliberately credential-shaped input exercising redaction/leak detection.
+# tests/python/unit/test_observability_rollup.py
+45ea81e549c86eb1f90fd053cff703978234ad59:tests/python/unit/test_observability_rollup.py:aws-access-token:27
+
+# Deliberately credential-shaped input exercising redaction/leak detection.
+# tests/python/unit/test_observability_rollup.py
+45ea81e549c86eb1f90fd053cff703978234ad59:tests/python/unit/test_observability_rollup.py:jwt:28
+
+# Deliberately credential-shaped input exercising redaction/leak detection.
+# tests/python/unit/test_postmortem_schema.py
+64702737189400fbc7aa297e60477b339ceb1c17:tests/python/unit/test_postmortem_schema.py:generic-api-key:66
+
+# Deliberately credential-shaped input exercising redaction/leak detection.
+# tests/python/unit/test_prospect_site.py
+529f43aeb9d7908b30019d81f228326d9fedf64b:tests/python/unit/test_prospect_site.py:stripe-access-token:313
+
+# Deliberately credential-shaped input exercising redaction/leak detection.
+# tests/python/unit/test_web_deploy_secret_scan.py
+4e604e1e06473e78e8993a93ee79a8d3dd752469:tests/python/unit/test_web_deploy_secret_scan.py:gcp-api-key:34
+
+# Deliberately credential-shaped input exercising redaction/leak detection.
+# tests/python/unit/test_web_deploy_secret_scan.py
+4e604e1e06473e78e8993a93ee79a8d3dd752469:tests/python/unit/test_web_deploy_secret_scan.py:stripe-access-token:52

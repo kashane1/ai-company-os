@@ -52,7 +52,6 @@ from typing import Any, Literal
 
 from packages.tools.primitives._serialization import json_safe_factory
 
-
 Severity = Literal["info", "warn", "fail", "error", "skipped"]
 Verdict = Literal["pass", "soft_fail", "hard_fail"]
 

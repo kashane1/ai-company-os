@@ -14,8 +14,9 @@ work that mutates the repo.
 
 `ai-company-os` — a local-first platform that turns founder goals into
 typed worker tasks, runs them inside isolated git worktrees, gates
-irreversible actions behind a human approval surface, and ships real iOS
-products. See [README.md](README.md) for the longer narrative and
+irreversible actions behind a human approval surface, and contains managed iOS
+product source trees. Source and local validation are not evidence of a public
+release. See [README.md](README.md) for the longer narrative and
 [docs/architecture.md](docs/architecture.md) for how docs map to code.
 
 ## Five zones
@@ -135,9 +136,10 @@ If multiple trigger phrases match a user message, ASK rather than guess
 make demo
 ```
 
-Zero-dependency end-to-end demo: goal → typed task → worker execution →
-validation → human approval gate → audit artifact. No Postgres, Redis,
-Codex, network, or Mac runtime required.
+Zero-dependency deterministic demo fixture: goal → typed task → fixture worker
+result → validation → human approval gate → sample audit artifact. It does not
+start the persistent runtime, invoke Codex, contact a service, or execute an
+external action. No Postgres, Redis, network, or Mac runtime is required.
 
 For the **discovery layer** (find → score → validate, the front of the loop):
 

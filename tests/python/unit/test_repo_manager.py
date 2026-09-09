@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 import pytest
-
 from engineering import repo_manager
+
 from packages.db.repo_store import RepoStore
 from packages.schemas.repo import RepoSyncStatus
 from tests.python.factories.task_data import build_repo_config

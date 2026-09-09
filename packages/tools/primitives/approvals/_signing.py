@@ -17,9 +17,9 @@ SIGNING_KEY_ENV_VAR = "AI_COMPANY_OS_APPROVAL_SIGNING_KEY"
 # the filesystem fallback. Intended for CI (non-macOS runners) and
 # for hermetic unit tests that need to exercise the filesystem code
 # without touching the real user Keychain. Never set this in
-# production on a Mac — the whole point of the Keychain migration
-# is that the filesystem path is no longer defensible under the
-# Phase 3 same-uid threat model.
+# production on a Mac without deliberately choosing file-based storage.
+# Keychain protects credential storage; this subprocess-based interface does
+# not establish isolation from every process running as the same user.
 FORCE_FILE_ENV_VAR = "AI_COMPANY_OS_APPROVAL_KEY_FORCE_FILE"
 
 # macOS Keychain item identity. The "service" field is what
@@ -46,11 +46,9 @@ class KeychainNotFound(KeychainError):
 class KeychainAccessDenied(KeychainError):
     """The Keychain item exists but this process is not on its ACL.
 
-    This is the expected-and-good failure mode when a compromised
-    sibling worker runs from an unexpected binary and tries to read
-    the signing key. :func:`_load_signing_secret` deliberately
-    refuses to fall through to the filesystem path in this case —
-    silent fallback would undo the point of the migration.
+    :func:`_load_signing_secret` refuses to fall through to filesystem
+    storage when Keychain denies access. The calling binary is the shared
+    security CLI, so this is not proof of per-worker process isolation.
     """
 
 
@@ -96,10 +94,9 @@ def _load_signing_secret() -> bytes:
        ``service=ai-company-os``, ``account=approval_signing_key``).
        Read via ``security find-generic-password -w``. The Keychain
        item is bootstrapped by ``approval-reviewer bootstrap-keychain``
-       with a binary ACL that names only the specific Python
-       interpreter and CLI binaries allowed to read it without a
-       user prompt. A same-uid compromised sibling worker run from an
-       unexpected path is denied by Keychain Services out-of-process.
+       with the configured access controls. Reads run through the shared
+       security CLI; its authorization does not independently authenticate
+       the Python worker or protect against all same-user processes.
 
        On :class:`KeychainNotFound`, the function raises with an
        operator-facing hint to run ``bootstrap-keychain``. On

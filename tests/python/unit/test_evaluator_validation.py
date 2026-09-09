@@ -11,7 +11,6 @@ import pytest
 import scripts.evaluator_validation as evaluator_validation
 from scripts.evaluator_validation import validate_markdown_links, validate_sample_artifacts
 
-
 REPO = Path(__file__).resolve().parents[3]
 
 
@@ -54,3 +53,35 @@ def test_employer_validation_includes_product_and_runtime_readmes(monkeypatch, t
         tmp_path / "products/after-plans-ios/README.md",
         tmp_path / "apps/runtime-supervisor/README.md",
     }.issubset(pages)
+
+
+@pytest.mark.parametrize("content", [
+    "![Missing evidence](missing.png)",
+    "[Section](#missing-section)",
+    "[Elsewhere](other.md#missing-section)",
+    "[Evidence][capture]\n\n[capture]: missing.webp",
+    '<img src="missing.png" alt="evidence">',
+])
+def test_link_validation_catches_images_fragments_and_references(tmp_path, content):
+    page = tmp_path / "README.md"
+    page.write_text(content)
+    (tmp_path / "other.md").write_text("# Existing section")
+    with pytest.raises(ValueError):
+        validate_markdown_links(tmp_path, [page])
+
+
+def test_heading_links_support_duplicates_unicode_and_inline_markup(tmp_path):
+    page = tmp_path / "README.md"
+    page.write_text("""# Review `this` & café
+## Repeated
+## Repeated
+[first](#review-this--café)
+[second](#repeated-1)
+![proof][image]
+[image]: <proof image.webp> "A screenshot"
+```markdown
+[example](not-a-real-file.md)
+```
+""")
+    (tmp_path / "proof image.webp").touch()
+    assert len(validate_markdown_links(tmp_path, [page])) == 3

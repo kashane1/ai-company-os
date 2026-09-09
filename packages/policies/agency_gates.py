@@ -7,9 +7,9 @@ owned here — not by the promotion code or a CLI — and a refusal raises
 :class:`~packages.policies.approvals.PolicyViolation` with a machine-readable
 code.
 
-These gates take an explicit ``approval_granted`` boolean. A future iteration can
-swap to the typed approval-token audit (``approvals.is_approval_granted``) once
-agency approvals flow through the ``ApprovalStore``; the call sites stay the same.
+Irreversible agency actions use stored approval records bound to the requested
+action, subject, and reviewed revision. A caller-provided boolean is not
+authorization.
 """
 
 from __future__ import annotations
@@ -18,6 +18,12 @@ from pathlib import Path
 
 from packages.agency.approvals import retainer_approval_spec
 from packages.db.approval_store import ApprovalStore
+from packages.policies.approval_bindings import (
+    PROMOTION_ACTION,
+    PROMOTION_APPROVAL_TYPE,
+    PROMOTION_SUBJECT_TYPE,
+    assert_approval_binding,
+)
 from packages.policies.approvals import PolicyViolation, PolicyViolationCode
 from packages.schemas.approval import ApprovalStatus
 from packages.schemas.product import BillingStatus
@@ -39,7 +45,14 @@ def assert_billing_active(billing_status: BillingStatus | str, *, product_id: st
         )
 
 
-def assert_promotion_allowed(*, human_verified: bool, approval_granted: bool) -> None:
+def assert_promotion_allowed(
+    *,
+    human_verified: bool,
+    approval_id: str | None,
+    prospect_id: str,
+    reviewed_revision: str,
+    store: ApprovalStore | None = None,
+) -> None:
     """Authorize promoting a prospect into a client engagement, or raise.
 
     Two preconditions, both surfaced as ``CLIENT_PROMOTION_NOT_APPROVED`` with a
@@ -47,8 +60,7 @@ def assert_promotion_allowed(*, human_verified: bool, approval_granted: bool) ->
 
     * the prospect must be human-verified (the no-owned-website signal still
       holds) — promotion off an unverified prospect is refused;
-    * a founder approval must be granted (a client engagement is a commercial
-      commitment).
+    * a stored founder approval must exactly bind this commercial commitment.
     """
     if not human_verified:
         raise PolicyViolation(
@@ -56,11 +68,16 @@ def assert_promotion_allowed(*, human_verified: bool, approval_granted: bool) ->
             "prospect is not human-verified; refuse to promote until the "
             "no-owned-website signal is confirmed",
         )
-    if not approval_granted:
-        raise PolicyViolation(
-            PolicyViolationCode.CLIENT_PROMOTION_NOT_APPROVED,
-            "promoting a prospect into a billing client requires a granted approval",
-        )
+    assert_approval_binding(
+        approval_id,
+        approval_type=PROMOTION_APPROVAL_TYPE,
+        subject_type=PROMOTION_SUBJECT_TYPE,
+        subject_id=prospect_id,
+        action=PROMOTION_ACTION,
+        reviewed_revision=reviewed_revision,
+        violation_code=PolicyViolationCode.CLIENT_PROMOTION_NOT_APPROVED,
+        store=store,
+    )
 
 
 def assert_proposal_send_allowed(*, approval_granted: bool) -> None:

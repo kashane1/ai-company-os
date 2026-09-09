@@ -8,7 +8,7 @@ an operator-initiated, approval-gated registry transition.
 Steps:
 
 1. ``assert_promotion_allowed`` — refuse unless the prospect is human-verified
-   **and** a founder approval is granted.
+   and a stored approval binds its exact reviewed promotion inputs.
 2. validate the bundle against the service catalog;
 3. write a ``type: client-site`` record into the product registry
    (``infra/products.json``), backlinking ``client.from_prospect``;
@@ -27,7 +27,9 @@ from packages.agency.client_lifecycle import mark_prospect_onboarded
 from packages.agency.registry import load_registry, write_registry
 from packages.agency.templates import scaffold_client_workspace, slugify
 from packages.config.settings import load_runtime_paths
+from packages.db.approval_store import ApprovalStore
 from packages.policies.agency_gates import assert_promotion_allowed
+from packages.policies.approval_bindings import promotion_revision
 from packages.prospecting.storage import ProspectRepository
 from packages.schemas.offer import CatalogError
 from packages.schemas.prospect import HumanVerified, ProspectRecord
@@ -37,16 +39,37 @@ class PromotionError(ValueError):
     """Raised for non-policy promotion failures (e.g. unknown bundle)."""
 
 
+def promotion_reviewed_revision(
+    prospect: ProspectRecord,
+    bundle: str,
+    *,
+    catalog: ServiceCatalog | None = None,
+) -> str:
+    """Return the stable revision a promotion approval must bind."""
+    resolved_catalog = catalog or default_catalog()
+    quote = resolved_catalog.quote_bundle(bundle)
+    product_id = f"{slugify(prospect.display_name)}-site"
+    return promotion_revision(
+        place_id=prospect.place_id,
+        display_name=prospect.display_name,
+        formatted_address=prospect.formatted_address,
+        bundle=bundle,
+        product_id=product_id,
+        service_ids=[service.service_id for service in quote.services],
+    )
+
+
 def promote_prospect_to_client(
     prospect: ProspectRecord,
     bundle: str,
     *,
-    approval_granted: bool,
+    approval_id: str | None,
     catalog: ServiceCatalog | None = None,
     registry_path: Path | None = None,
     docs_root_parent: Path | None = None,
     repo_root: Path | None = None,
     prospect_repo: ProspectRepository | None = None,
+    approval_store: ApprovalStore | None = None,
     mark_onboarded: bool = True,
 ) -> dict[str, object]:
     """Promote ``prospect`` into a ``client-site`` registry record.
@@ -58,13 +81,7 @@ def promote_prospect_to_client(
     registry_path = registry_path or (paths.repo_root / "infra" / "products.json")
     docs_root_parent = docs_root_parent or (paths.repo_root / "docs" / "products")
 
-    # 1. Policy gate — human-verified + approved.
-    assert_promotion_allowed(
-        human_verified=prospect.human_verified is HumanVerified.TRUE,
-        approval_granted=approval_granted,
-    )
-
-    # 2. Validate the bundle against the catalog.
+    # 1. Validate the bundle before calculating the exact reviewed inputs.
     try:
         quote = catalog.quote_bundle(bundle)
     except CatalogError as exc:
@@ -72,6 +89,23 @@ def promote_prospect_to_client(
 
     slug = slugify(prospect.display_name)
     product_id = f"{slug}-site"
+    reviewed_revision = promotion_revision(
+        place_id=prospect.place_id,
+        display_name=prospect.display_name,
+        formatted_address=prospect.formatted_address,
+        bundle=bundle,
+        product_id=product_id,
+        service_ids=[service.service_id for service in quote.services],
+    )
+
+    # 2. Policy gate — human verification plus a binding stored approval.
+    assert_promotion_allowed(
+        human_verified=prospect.human_verified is HumanVerified.TRUE,
+        approval_id=approval_id,
+        prospect_id=prospect.place_id,
+        reviewed_revision=reviewed_revision,
+        store=approval_store,
+    )
 
     registry = load_registry(registry_path)
     existing = next((r for r in registry if r.get("id") == product_id), None)

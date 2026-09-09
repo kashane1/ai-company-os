@@ -1,3 +1,5 @@
+import sqlite3
+import threading
 from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories, load_runtime_paths
@@ -95,6 +97,7 @@ def test_approval_store_updates_status_with_decision_notes(isolated_repo_root: P
         created_at="2026-03-30T00:00:00+00:00",
         subject_id="release-1",
         action="submit_appstore",
+        reviewed_revision="sha256:reviewed-release-inputs",
     )
     store.save(record)
 
@@ -110,3 +113,118 @@ def test_approval_store_updates_status_with_decision_notes(isolated_repo_root: P
     assert updated.decided_by == "founder"
     assert updated.decision_notes == "Looks good."
     assert store.load(record.id).decided_at == "2026-03-30T00:10:00+00:00"
+    assert store.load(record.id).reviewed_revision == "sha256:reviewed-release-inputs"
+
+
+def test_approval_store_migrates_legacy_records_without_a_reviewed_revision(
+    isolated_repo_root: Path,
+) -> None:
+    db_path = load_runtime_paths().control_plane_db_path
+    with sqlite3.connect(db_path) as connection:
+        connection.execute(
+            """
+            CREATE TABLE approvals (
+                id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                summary TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                task_id TEXT,
+                task_run_id TEXT,
+                approval_type TEXT NOT NULL,
+                review_artifact_path TEXT,
+                subject_type TEXT NOT NULL,
+                subject_id TEXT NOT NULL,
+                action TEXT NOT NULL,
+                decided_by TEXT,
+                decided_at TEXT,
+                decision_notes TEXT
+            )
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO approvals (
+                id, status, summary, created_at, approval_type, subject_type, subject_id, action
+            ) VALUES ('legacy-approval', 'approved', 'Legacy record', '2026-09-08T00:00:00+00:00',
+                      'legacy', 'task', 'task-1', 'review_task')
+            """
+        )
+
+    loaded = ApprovalStore().load("legacy-approval")
+
+    assert loaded.reviewed_revision == ""
+
+
+def test_approval_store_does_not_overwrite_a_terminal_decision(
+    isolated_repo_root: Path,
+) -> None:
+    store = ApprovalStore()
+    record = ApprovalRecord(
+        id="approval-terminal",
+        status=ApprovalStatus.PENDING,
+        summary="Need approval",
+        created_at="2026-03-30T00:00:00+00:00",
+    )
+    store.save(record)
+
+    rejected = store.update_status(
+        record.id,
+        ApprovalStatus.REJECTED,
+        decided_by="founder",
+        decided_at="2026-03-30T00:10:00+00:00",
+        decision_notes="No.",
+    )
+    later_approval = store.update_status(
+        record.id,
+        ApprovalStatus.APPROVED,
+        decided_by="late-confirmation",
+        decided_at="2026-03-30T00:11:00+00:00",
+        decision_notes="Too late.",
+    )
+
+    assert rejected.status is ApprovalStatus.REJECTED
+    assert later_approval.status is ApprovalStatus.REJECTED
+    assert store.load(record.id).status is ApprovalStatus.REJECTED
+
+
+def test_concurrent_approval_decisions_preserve_one_terminal_state(
+    isolated_repo_root: Path,
+) -> None:
+    ApprovalStore().save(
+        ApprovalRecord(
+            id="approval-concurrent",
+            status=ApprovalStatus.PENDING,
+            summary="Need approval",
+            created_at="2026-03-30T00:00:00+00:00",
+        )
+    )
+    start = threading.Barrier(2)
+    outcomes: list[ApprovalStatus] = []
+    errors: list[Exception] = []
+
+    def decide(status: ApprovalStatus) -> None:
+        try:
+            start.wait(timeout=2)
+            outcomes.append(
+                ApprovalStore().update_status(
+                    "approval-concurrent",
+                    status,
+                    decided_by=status.value,
+                ).status
+            )
+        except Exception as exc:  # asserted below
+            errors.append(exc)
+
+    attempts = [
+        threading.Thread(target=decide, args=(ApprovalStatus.APPROVED,)),
+        threading.Thread(target=decide, args=(ApprovalStatus.REJECTED,)),
+    ]
+    for attempt in attempts:
+        attempt.start()
+    for attempt in attempts:
+        attempt.join(timeout=3)
+
+    assert not errors
+    assert not any(attempt.is_alive() for attempt in attempts)
+    assert len(set(outcomes)) == 1
+    assert ApprovalStore().load("approval-concurrent").status is outcomes[0]

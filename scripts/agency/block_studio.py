@@ -41,7 +41,7 @@ from packages.web.block_tournament import (  # noqa: E402
     admit,
     tournament,
 )
-from packages.web.build import subprocess_runner, build_site  # noqa: E402
+from packages.web.build import build_site, subprocess_runner  # noqa: E402
 from packages.web.gemini_judge import gemini_vision_judge  # noqa: E402
 
 _SCAFFOLD = REPO / "packages" / "web" / "scaffold" / "astro-premium"

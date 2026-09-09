@@ -10,7 +10,8 @@ from packages.schemas.product import ProductPhase, ProductType
 
 
 def test_joes_plumbing_client_site_loads() -> None:
-    configs = load_product_configs()
+    repo_root = Path(__file__).parents[3]
+    configs = load_product_configs(repo_root / "infra" / "products.json")
     cfg = configs["joes-plumbing-site"]
     assert cfg.type is ProductType.CLIENT_SITE
     assert cfg.platform.value == "web"

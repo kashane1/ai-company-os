@@ -22,7 +22,6 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-
 _FRONT_MATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
 _HTML_HEADER_RE = re.compile(
     r"<!--\s*claude-output(.*?)-->", re.DOTALL | re.IGNORECASE

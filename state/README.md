@@ -5,6 +5,17 @@ Everything under `state/` is runtime-owned, not source-owned.
 Do not commit real runtime contents here. Subdirectories are created
 lazily on first write by the code that owns them.
 
+Only this contract and empty directory markers are tracked. The content gate
+rejects operational JSON, receipts, Markdown reports, images, scripts, and
+symlinks under this directory, regardless of their size. Keep reusable code in
+scripts/ or packages/ and publish reviewed, sanitized examples in
+[docs/examples/](../docs/examples/).
+
+Previously tracked operator records were removed from the current Git index
+without deleting the local originals or rewriting history. They are not
+required for a clean-checkout evaluation. New clones start with empty runtime
+state; operators retain their own local records and backups.
+
 ## Directory glossary
 
 | Subdir                                 | Writer                    | Purpose                                                                               | Lifecycle                              |

@@ -7,11 +7,76 @@ import os
 import re
 import sys
 from collections.abc import Callable, Iterable
+from html import unescape
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+_MARKDOWN_LINK_RE = re.compile(r"!?\[[^]]*\]\((<[^>]+>|(?:[^()]|\([^)]*\))*)\)")
 
-_MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[[^]]*\]\(([^)]+)\)")
+
+def _without_fences(text: str) -> str:
+    lines = []
+    fence = ""
+    for line in text.splitlines():
+        match = re.match(r"^\s{0,3}(`{3,}|~{3,})", line)
+        if match:
+            marker = match.group(1)
+            if not fence:
+                fence = marker
+            elif marker[0] == fence[0] and len(marker) >= len(fence):
+                fence = ""
+            continue
+        if not fence:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _link_destination(raw: str) -> str:
+    raw = raw.strip()
+    if raw.startswith("<"):
+        return raw[1:raw.index(">")]
+    return raw.split(maxsplit=1)[0] if raw else ""
+
+
+def _markdown_targets(text: str) -> list[str]:
+    text = _without_fences(text)
+    definitions = {
+        " ".join(label.lower().split()): _link_destination(target)
+        for label, target in re.findall(r"^\s{0,3}\[([^]]+)\]:\s*(.+)$", text, re.MULTILINE)
+    }
+    targets = [_link_destination(match.group(1)) for match in _MARKDOWN_LINK_RE.finditer(text)]
+    # Explicit and collapsed reference links, including images.
+    for label, reference in re.findall(r"!?\[([^]]+)\]\[([^]]*)\]", text):
+        key = " ".join((reference or label).lower().split())
+        if key in definitions:
+            targets.append(definitions[key])
+    # Shortcut references are links only when their definition exists.
+    for label in re.findall(r"(?<![\][])\[([^]\n]+)\](?![(:\[])", text):
+        key = " ".join(label.lower().split())
+        if key in definitions:
+            targets.append(definitions[key])
+    targets.extend(re.findall(r'<(?:img|a)\b[^>]*\b(?:src|href)=["\']([^"\']+)["\']', text))
+    return targets
+
+
+def _heading_anchors(page: Path) -> set[str]:
+    text = _without_fences(page.read_text())
+    anchors: set[str] = set()
+    for line in text.splitlines():
+        match = re.match(r"^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$", line)
+        if not match:
+            continue
+        heading = unescape(re.sub(r"<[^>]*>", "", match.group(1)))
+        heading = re.sub(r"!?\[([^]]+)\]\([^)]*\)", r"\1", heading)
+        slug = re.sub(r"[^\w\-\s]", "", heading.lower()).replace(" ", "-")
+        anchor = slug
+        suffix = 0
+        while anchor in anchors:
+            suffix += 1
+            anchor = f"{slug}-{suffix}"
+        anchors.add(anchor)
+    anchors.update(re.findall(r'<[^>]+\b(?:id|name)=["\']([^"\']+)["\']', text))
+    return anchors
 
 
 def validate_sample_artifacts(root: Path) -> list[str]:
@@ -46,30 +111,34 @@ def validate_markdown_links(root: Path, pages: Iterable[Path]) -> list[str]:
     """Ensure local Markdown links in evaluator pages still resolve in the repo."""
     checked: list[str] = []
     for page in pages:
-        for match in _MARKDOWN_LINK_RE.finditer(page.read_text()):
-            target = match.group(1).strip().strip("<>")
+        for target in _markdown_targets(page.read_text()):
             parsed = urlsplit(target)
-            if parsed.scheme or parsed.netloc or target.startswith("#"):
+            if parsed.scheme or parsed.netloc:
                 continue
             target_path = unquote(parsed.path)
-            if not target_path:
-                continue
             # Resolve ``..`` lexically without following a repository's local
             # symlinks; evaluator fixtures may intentionally use symlinked
             # source trees.
-            resolved = Path(os.path.abspath(page.parent / target_path))
+            resolved = Path(os.path.abspath(page.parent / target_path)) if target_path else page
             try:
                 resolved.relative_to(Path(os.path.abspath(root)))
             except ValueError as exc:
                 raise ValueError(f"{page.relative_to(root)} links outside the repo: {target}") from exc
             if not resolved.exists():
                 raise ValueError(f"{page.relative_to(root)} has a missing local link: {target}")
+            if parsed.fragment and resolved.suffix.lower() == ".md":
+                if unquote(parsed.fragment) not in _heading_anchors(resolved):
+                    raise ValueError(f"{page.relative_to(root)} has a missing heading anchor: {target}")
             checked.append(f"{page.relative_to(root)} -> {target}")
     return checked
 
 
 def validate_employer_materials(root: Path) -> tuple[list[str], list[str]]:
     pages = [
+        root / "README.md",
+        root / "CONTRIBUTING.md",
+        root / "REPO_MAP.md",
+        root / "docs" / "README.md",
         root / "docs" / "FOR-EMPLOYERS.md",
         root / "docs" / "EVALUATOR-WALKTHROUGH.md",
         root / "docs" / "examples" / "README.md",
@@ -80,6 +149,11 @@ def validate_employer_materials(root: Path) -> tuple[list[str], list[str]]:
         root / "products" / "catchbook-ios" / "README.md",
         root / "products" / "after-plans-ios" / "README.md",
         root / "apps" / "runtime-supervisor" / "README.md",
+        root / "docs" / "architecture.md",
+        root / "docs" / "agent-model.md",
+        root / "docs" / "products" / "after-plans" / "PHASE_STATUS.md",
+        root / "docs" / "products" / "life-clock" / "PHASE_STATUS.md",
+        root / "docs" / "products" / "catchbook" / "submission-checklist.md",
     ]
     return validate_sample_artifacts(root), validate_markdown_links(root, pages)
 

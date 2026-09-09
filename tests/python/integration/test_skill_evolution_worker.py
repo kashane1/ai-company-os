@@ -28,13 +28,12 @@ from packages.config.settings import (
     ensure_runtime_directories,
 )
 from packages.db.approval_store import ApprovalStore
-from packages.db.locks.skill_evolution import SkillEvolutionLockStore
 from packages.db.control_plane_db import ControlPlaneDatabase
-from packages.policies.skill_evolution import ProposedDiff
+from packages.db.locks.skill_evolution import SkillEvolutionLockStore
+from packages.db.task_store import TaskStore
 from packages.schemas.approval import ApprovalStatus
 from packages.schemas.task_packet import TaskStatus, WorkerLane
 from packages.tools.skills.loader import SkillSpec
-
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -185,6 +184,7 @@ def test_end_to_end_approved(
     would have passed even if every HMAC check was broken."""
     from packages.db.approval_token_store import ApprovalTokenStore
     from packages.tools.primitives.approvals import (
+        confirm_evolution_approval,
         submit_evolution_approval,
     )
 
@@ -231,6 +231,14 @@ def test_end_to_end_approved(
                 decided_by="test-reviewer",
                 decision_notes="real-hmac sign path",
             )
+            confirm_evolution_approval(
+                approval_id=approval_id,
+                token_id=token.token_id,
+                provided_signature=token.signature,
+                device_fingerprint=socket.gethostname() or "unknown-host",
+                decided_by="test-reviewer",
+                decision_notes="real-hmac second confirmation",
+            )
 
     result = worker.execute_claimed_task(
         worker_id="worker-skill-evolution",
@@ -245,6 +253,7 @@ def test_end_to_end_approved(
     assert result is not None
     assert result.status is TaskStatus.COMPLETED
     assert result.approval_id is not None
+    assert TaskStore().load("task-ok-1").status is TaskStatus.COMPLETED
 
     # Verify the token was actually burned (burn_count == 1) — this
     # is the critical regression check. A broken HMAC path would

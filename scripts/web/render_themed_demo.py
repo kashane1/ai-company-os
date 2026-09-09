@@ -22,14 +22,18 @@ import argparse
 import re
 import shutil
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from packages.web.palette import Palette, palette_for_genre  # noqa: E402
-from packages.web.scaffold import local_business_context, render_landing_html, unfilled_tokens  # noqa: E402
+from packages.web.scaffold import (  # noqa: E402
+    local_business_context,
+    render_landing_html,
+    unfilled_tokens,
+)
 from packages.web.validation import validate_web_dist  # noqa: E402
 
 PORTFOLIO = ROOT / "products/better-business-web/portfolio"

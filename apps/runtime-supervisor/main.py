@@ -31,7 +31,6 @@ _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
-from packages.config.settings import ensure_runtime_directories  # noqa: E402
 from supervisor import (  # noqa: E402  (intentional post-sys.path-insert)
     ManagedProcess,
     ManagedWorker,
@@ -44,6 +43,8 @@ from supervisor import (  # noqa: E402  (intentional post-sys.path-insert)
     request_supervisor_shutdown,
     run_main,
 )
+
+from packages.config.settings import ensure_runtime_directories  # noqa: E402
 
 # Backward-compat: re-export names at module level so callers that did
 # `importlib.import_module("main")` or similar still find them.

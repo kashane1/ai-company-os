@@ -1,13 +1,13 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from packages.policies.approvals import requires_human_approval
-from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.schemas.task_packet import Goal, RiskLevel, TaskPacket, WorkerLane
+from packages.schemas.testing import NoTestReasonCode, TestLane
 from packages.tools.learning.worker_signals import augment_packet_constraints
 
 

@@ -2,7 +2,7 @@ lane: appstore
 required_artifacts:
   - path: state/artifacts/appstore/{task_id}/submission_summary.json
 required_events:
-  - task_completed
+  - task_claimed
 forbidden_failure_codes:
   - submission_checklist_missing
   - submission_checklist_incomplete

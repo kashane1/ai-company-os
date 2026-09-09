@@ -113,8 +113,9 @@ def test_one_judgment_retries_past_a_malformed_response(monkeypatch) -> None:
 
 
 def test_one_judgment_raises_after_exhausting_retries(monkeypatch) -> None:
-    import packages.web.gemini_judge as gj
     import pytest as _pytest
+
+    import packages.web.gemini_judge as gj
 
     monkeypatch.setattr(gj, "_call_gemini", lambda parts, key: "not json at all")
     with _pytest.raises(ValueError, match="unparseable"):

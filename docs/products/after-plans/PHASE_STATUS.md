@@ -1,5 +1,10 @@
 # After Plans Phase Status
 
+> **Status evidence, reconciled 2026-09-08:** Phase 7 local-development work is
+> in progress. The repository documents an offline default and local Supabase
+> validation; it does not establish a cloud deployment, archive upload, TestFlight
+> build, App Store submission, or public release.
+
 ## Current Phase
 
 Phase 7 is in progress. The C1 backend slice landed on 2026-04-25: the
@@ -67,7 +72,8 @@ Phases 0 through 5 are complete. Phase 6 includes the known-people ranking refin
 - v1 wedge: post-activity continuation
 - trust posture: bounded context, non-anonymous, report/block/moderation from day one
 - monetization posture: free consumer core in v1, organizer/community premium later
-- iOS shell pattern: XcodeGen project plus SwiftUI shell with in-memory services before any backend work
+- runtime backend: in-memory by default for offline development, with an
+  optional local Supabase adapter behind configuration
 
 ## Current Source-Of-Truth Artifacts
 
@@ -117,9 +123,11 @@ The App Store positioning and launch-prep artifact pass has been completed. Arti
 
 ### Next lanes (in recommended priority)
 
-1. **Founder decisions** — subtitle, age rating, and launch context approvals (see LAUNCH_PLAN.md handoff checklist)
-2. **Backend contract definition** — move past the in-memory shell
-3. **Seeded launch prep** — select target contexts, draft organizer outreach
-4. **App Store lane execution** — screenshots, icon, build, submission (blocked by founder decisions and backend)
+1. **Founder decisions** — complete the remaining launch-context decision (see LAUNCH_PLAN.md handoff checklist).
+2. **Cloud backend readiness** — provision and configure a cloud Supabase project;
+   the local adapter does not establish this.
+3. **Seeded launch prep** — select target contexts and draft organizer outreach.
+4. **Manual App Store preparation** — finalize assets, legal/support URLs, archive,
+   TestFlight, and Apple-side submission steps. None is represented here as complete.
 
 Do not continue adding in-app slices unless a clear gap is identified in a fresh review.

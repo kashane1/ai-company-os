@@ -18,6 +18,9 @@ class ApprovalRecord:
     task_run_id: str | None = None
     approval_type: str = ""
     review_artifact_path: str | None = None
+    # Empty is retained for legacy records. Irreversible writers require a
+    # non-empty exact value before they treat an approval as authority.
+    reviewed_revision: str = ""
     subject_type: str = "task_run"
     subject_id: str = ""
     action: str = ""
@@ -45,6 +48,7 @@ class ApprovalRecord:
                 if payload.get("review_artifact_path")
                 else None
             ),
+            reviewed_revision=str(payload.get("reviewed_revision") or ""),
             subject_type=str(payload.get("subject_type", "task_run")),
             subject_id=str(payload.get("subject_id", "")),
             action=str(payload.get("action", "")),

@@ -16,7 +16,6 @@ from tests.python.unit._skill_contract_freeze import (
     load_fixture_cases,
 )
 
-
 _FIXTURES = (
     SKILLS_ROOT
     / "canonical"

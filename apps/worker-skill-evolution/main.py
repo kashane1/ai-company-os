@@ -51,13 +51,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-import shutil
 import sys
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path, PurePosixPath
 from threading import Event
-from typing import Any, Mapping
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -87,7 +85,6 @@ from packages.tools.primitives.approvals import (
     request_evolution_approval,
 )
 from packages.tools.primitives.kill_switches import get_switch
-
 
 WORKER_ID = "worker-skill-evolution"
 KILL_SWITCH_NAME = "skill_evolution_frozen"
@@ -543,6 +540,7 @@ def _run_one(
                     indent=2,
                 )
             )
+            applied_artifact = str(staged_dir / "applied.flag")
             return _complete(
                 task,
                 worker_id,
@@ -552,7 +550,7 @@ def _run_one(
                     f"approval_id={approval.approval_id}"
                 ),
                 approval_id=approval.approval_id,
-                artifacts=[str(staged_dir)],
+                artifacts=[applied_artifact],
             )
         if decision == "rejected":
             quarantined = _quarantine_artifact(staged_dir)
@@ -672,13 +670,24 @@ def _complete(
     approval_id: str | None = None,
     artifacts: list[str] | None = None,
 ) -> TaskResult:
-    control_plane.submit_task_result(
+    submitted = control_plane.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,
         summary=summary,
         worker_id=worker_id,
         approval_id=approval_id,
+        artifacts=artifacts or [],
+        events=["task_claimed"],
     )
+    if submitted.status is not TaskStatus.COMPLETED:
+        return TaskResult(
+            task_id=task.id,
+            status=submitted.status,
+            summary=submitted.error_summary or summary,
+            approval_id=approval_id,
+            artifacts=artifacts or [],
+            failure_codes=["post_run_validation_failed"],
+        )
     return TaskResult(
         task_id=task.id,
         status=TaskStatus.COMPLETED,

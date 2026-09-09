@@ -255,6 +255,7 @@ private struct StartTripCTA: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(.appAccent)
+            .accessibilityIdentifier("home.startTrip")
         }
         .padding(Spacing.xxl)
         .background(.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))

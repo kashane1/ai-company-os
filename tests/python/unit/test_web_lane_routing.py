@@ -13,7 +13,7 @@ from pathlib import Path
 
 from packages.schemas.product import ProductArtifactType, ProductPlatform
 from packages.schemas.task_packet import Goal, WorkerLane
-from packages.schemas.testing import TestLane
+from packages.schemas.testing import TestLane as LaneEnum
 
 
 def _load_supervisor():
@@ -34,7 +34,7 @@ def test_new_enum_members_exist() -> None:
     assert WorkerLane.WEB.value == "web"
     assert WorkerLane.WEBDEPLOY.value == "webdeploy"
     assert ProductPlatform.WEB.value == "web"
-    assert TestLane.WEB.value == "web"
+    assert LaneEnum.WEB.value == "web"
     assert ProductArtifactType.WEB_ARCHITECTURE.value == "web_architecture"
 
 
@@ -47,7 +47,7 @@ def test_web_build_goal_routes_to_web_lane() -> None:
     ):
         (task,) = sup.plan_goal(_goal(summary))
         assert task.lane is WorkerLane.WEB, summary
-        assert task.test_lane is TestLane.WEB
+        assert task.test_lane is LaneEnum.WEB
         assert task.tests_required is True
 
 

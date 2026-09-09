@@ -64,6 +64,12 @@ follow-ups" below for the source-signal mapping used.
 
 | File | Date | Slug | Status | Notes |
 |---|---|---|---|---|
+| [2026-06-13-bbw-v2-landing-design.md](2026-06-13-bbw-v2-landing-design.md) | 2026-06-13 | bbw-v2-landing-design | open | design; implementation status not recorded |
+| [2026-06-13-bbw-v2-landing-plan.md](2026-06-13-bbw-v2-landing-plan.md) | 2026-06-13 | bbw-v2-landing-plan | open | implementation plan; no terminal status recorded |
+| [2026-06-14-feat-bbw-site-trust-positioning-and-demo-gallery-plan.md](2026-06-14-feat-bbw-site-trust-positioning-and-demo-gallery-plan.md) | 2026-06-14 | feat-bbw-site-trust-positioning-and-demo-gallery-plan | open | frontmatter status: plan |
+| [2026-06-15-feat-dataforseo-prospect-discovery-plan.md](2026-06-15-feat-dataforseo-prospect-discovery-plan.md) | 2026-06-15 | feat-dataforseo-prospect-discovery-plan | open | body reports Parts 1–3 built; pilot remains |
+| [2026-09-03-pod-artwork-generator-design.md](2026-09-03-pod-artwork-generator-design.md) | 2026-09-03 | pod-artwork-generator-design | open | design approved; not a claim of completed implementation |
+| [2026-09-03-pod-artwork-generator.md](2026-09-03-pod-artwork-generator.md) | 2026-09-03 | pod-artwork-generator | open | implementation plan; no terminal status recorded |
 | [2026-09-02-home-from-working-pod-design.md](2026-09-02-home-from-working-pod-design.md) | 2026-09-02 | home-from-working-pod | open | current direction: owner-selected artwork → Printify draft; operated CLI available; Etsy payload automation planned |
 | [2026-09-02-printify-repeatable-drafts-plan.md](2026-09-02-printify-repeatable-drafts-plan.md) | 2026-09-02 | printify-repeatable-drafts | open | native Duplicate plus reusable API draft command; implemented locally, pending integration |
 | [2026-04-12-feat-catchbook-angler-ux-parity-plan.md](2026-04-12-feat-catchbook-angler-ux-parity-plan.md) | 2026-04-12 | feat-catchbook-angler-ux-parity | open | product-scoped (catchbook) |

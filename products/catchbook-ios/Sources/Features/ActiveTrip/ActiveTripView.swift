@@ -641,6 +641,10 @@ private struct ActiveTripStatusCard: View {
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Catches logged")
+                .accessibilityValue("\(catchCount)")
+                .accessibilityIdentifier("trip.catchCount")
             }
 
             if let spot = trip.spot?.title {

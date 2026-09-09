@@ -1,13 +1,17 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories
-from packages.policies.testing import evaluate_testing_policy, parse_git_status_lines, parse_testing_metadata
+from packages.policies.testing import (
+    evaluate_testing_policy,
+    parse_git_status_lines,
+    parse_testing_metadata,
+)
 from packages.schemas.task import Task
-from packages.schemas.testing import TestLane, TestingPolicyResult
 from packages.schemas.task_run import ValidationCheck
+from packages.schemas.testing import TestingPolicyResult, TestLane
 from packages.schemas.worktree import WorktreeMetadata
-from packages.tools.ios_tools.xcode import detect_project_reference, default_build_command
+from packages.tools.ios_tools.xcode import default_build_command, detect_project_reference
 
 
 def capture_diff(worktree: WorktreeMetadata, task_id: str) -> str:

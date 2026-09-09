@@ -8,11 +8,12 @@ import pytest
 from packages.config.settings import TEST_REPO_ROOT_ENV_VAR, ensure_runtime_directories
 from packages.db.approval_store import ApprovalStore
 from packages.db.approval_token_store import ApprovalTokenStore
-from packages.policies.approval_tokens import TokenSignatureInvalid
+from packages.policies.approval_tokens import TokenSignatureInvalid, issue_token
 from packages.schemas.approval import ApprovalStatus
 from packages.tools.primitives.approvals import (
     SKILL_EVOLUTION_ACTION,
     SKILL_EVOLUTION_APPROVAL_TYPE,
+    confirm_evolution_approval,
     poll_evolution_approval,
     reject_evolution_approval,
     request_evolution_approval,
@@ -100,7 +101,9 @@ def test_poll_missing_approval_returns_pending(isolated_state: Path) -> None:
     assert decision.outcome == "pending"
 
 
-def test_submit_approves_with_correct_hmac(isolated_state: Path) -> None:
+def test_submit_evolution_p0_keeps_approval_pending_after_first_confirmation(
+    isolated_state: Path,
+) -> None:
     req = request_evolution_approval(
         proposal_id="p",
         target_skill_id="demo",
@@ -116,13 +119,68 @@ def test_submit_approves_with_correct_hmac(isolated_state: Path) -> None:
         decided_by="alice@host",
         decision_notes="LGTM",
     )
-    assert decision.outcome == "approved"
-    assert decision.decided_by == "alice@host"
-    assert decision.decision_notes == "LGTM"
+    assert decision.outcome == "pending"
 
-    # Subsequent poll sees the approved state.
+    # Skill evolution is P0: the first confirmation burns the token but does
+    # not approve the staged change. The follow-up confirmation uses the same
+    # token/device and is not represented as independent MFA.
     readback = poll_evolution_approval(approval_id=req.approval_id)
-    assert readback.outcome == "approved"
+    assert readback.outcome == "pending"
+
+
+def test_confirm_evolution_p0_approves_after_first_confirmation(
+    isolated_state: Path,
+) -> None:
+    req = request_evolution_approval(
+        proposal_id="p",
+        target_skill_id="demo",
+        rationale="r",
+        artifact_dir=isolated_state,
+        expected_device_fingerprint="test-device",
+    )
+    submit_evolution_approval(
+        approval_id=req.approval_id,
+        token_id=req.token_id,
+        provided_signature=req.signature,
+        device_fingerprint="test-device",
+        decided_by="alice@host",
+    )
+
+    decision = confirm_evolution_approval(
+        approval_id=req.approval_id,
+        token_id=req.token_id,
+        provided_signature=req.signature,
+        device_fingerprint="test-device",
+        decided_by="alice@host",
+        decision_notes="Second confirmation recorded",
+    )
+
+    assert decision.outcome == "approved"
+    assert poll_evolution_approval(approval_id=req.approval_id).outcome == "approved"
+
+
+@pytest.mark.parametrize("action,subject", [
+    ("review_task", "demo"),
+    (SKILL_EVOLUTION_ACTION, "another-skill"),
+])
+def test_evolution_rejects_unrelated_token_before_burning(isolated_state, action, subject):
+    req = request_evolution_approval(
+        proposal_id="bound", target_skill_id="demo", rationale="r",
+        artifact_dir=isolated_state, expected_device_fingerprint="test-device",
+    )
+    tokens = ApprovalTokenStore()
+    unrelated = issue_token(
+        approval_id=req.approval_id, subject_id=subject, action=action,
+        secret=bytes(32), store=tokens, expected_device_fingerprint="test-device",
+    )
+    with pytest.raises(TokenSignatureInvalid):
+        submit_evolution_approval(
+            approval_id=req.approval_id, token_id=unrelated.token_id,
+            provided_signature=unrelated.signature, device_fingerprint="test-device",
+            decided_by="reviewer",
+        )
+    assert tokens.load(unrelated.token_id).burn_count == 0
+    assert ApprovalStore().load(req.approval_id).status is ApprovalStatus.PENDING
 
 
 def test_submit_with_wrong_signature_raises(isolated_state: Path) -> None:
@@ -181,7 +239,7 @@ def test_submit_with_mismatched_approval_id_does_not_burn_token(
         "review Blocker #2"
     )
 
-    # And the real reviewer can still approve:
+    # And the real reviewer can still record the required first confirmation:
     # The token was issued with expected_device_fingerprint="test-device"
     # so a legitimate burn must use the same binding.
     decision = submit_evolution_approval(
@@ -191,7 +249,7 @@ def test_submit_with_mismatched_approval_id_does_not_burn_token(
         device_fingerprint="test-device",
         decided_by="alice",
     )
-    assert decision.outcome == "approved"
+    assert decision.outcome == "pending"
 
 
 def test_submit_with_wrong_device_fingerprint_is_rejected(
@@ -218,7 +276,7 @@ def test_submit_with_wrong_device_fingerprint_is_rejected(
             device_fingerprint="attacker-host",
             decided_by="alice",
         )
-    # Token not burned — legitimate reviewer can still sign.
+    # Token not burned — legitimate reviewer can still record the first confirmation.
     decision = submit_evolution_approval(
         approval_id=req.approval_id,
         token_id=req.token_id,
@@ -226,7 +284,7 @@ def test_submit_with_wrong_device_fingerprint_is_rejected(
         device_fingerprint="the-real-host",
         decided_by="alice",
     )
-    assert decision.outcome == "approved"
+    assert decision.outcome == "pending"
 
 
 def test_signing_secret_rejects_empty_env_var(tmp_path, monkeypatch) -> None:
@@ -269,8 +327,8 @@ def test_signing_secret_bootstrap_writes_mode_0600(tmp_path, monkeypatch) -> Non
     import os as _os
     import stat
 
-    from packages.tools.primitives.approvals import _load_signing_secret
     from packages.config.settings import load_runtime_paths
+    from packages.tools.primitives.approvals import _load_signing_secret
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
     monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
@@ -297,8 +355,8 @@ def test_signing_secret_refuses_symlink(tmp_path, monkeypatch) -> None:
     key on the worker's next restart."""
     import os as _os
 
-    from packages.tools.primitives.approvals import _load_signing_secret
     from packages.config.settings import load_runtime_paths
+    from packages.tools.primitives.approvals import _load_signing_secret
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
     monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
@@ -326,8 +384,8 @@ def test_signing_secret_refuses_group_readable_file(tmp_path, monkeypatch) -> No
     file with wrong permissions earlier."""
     import os as _os
 
-    from packages.tools.primitives.approvals import _load_signing_secret
     from packages.config.settings import load_runtime_paths
+    from packages.tools.primitives.approvals import _load_signing_secret
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
     monkeypatch.delenv("AI_COMPANY_OS_APPROVAL_SIGNING_KEY", raising=False)
@@ -536,8 +594,8 @@ def test_keychain_timeout_raises_keychain_error(tmp_path, monkeypatch) -> None:
     import subprocess as _subprocess
 
     from packages.tools.primitives.approvals import (
-        _read_keychain_secret,
         KeychainError,
+        _read_keychain_secret,
     )
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
@@ -556,8 +614,8 @@ def test_bootstrap_refuses_existing_keychain_item(tmp_path, monkeypatch) -> None
     """bootstrap-keychain must refuse to clobber an existing item —
     rotation is a deliberate, separate action."""
     from packages.tools.primitives.approvals import (
-        _bootstrap_keychain_secret,
         KeychainAlreadyExists,
+        _bootstrap_keychain_secret,
     )
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))
@@ -675,8 +733,8 @@ def test_bootstrap_detects_duplicate_item_at_add_time(
     KeychainAlreadyExists so the caller sees a consistent error
     regardless of which guard fires."""
     from packages.tools.primitives.approvals import (
-        _bootstrap_keychain_secret,
         KeychainAlreadyExists,
+        _bootstrap_keychain_secret,
     )
 
     monkeypatch.setenv(TEST_REPO_ROOT_ENV_VAR, str(tmp_path))

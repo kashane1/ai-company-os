@@ -11,12 +11,13 @@ The full agent model lives in [`docs/agent-model.md`](docs/agent-model.md). Read
 
 - The **platform** owns orchestration, persistence, queueing, approvals, and policy.
 - The **supervisor** decomposes goals and routes work; it does not deliver.
-- **Workers** specialize: engineering, iOS, App Store, and future lanes (support, growth, research, ops). Each is narrow, schema-driven, policy-bound.
+- **Active workers** consume engineering, iOS, App Store preparation, outreach operations, and skill-evolution tasks. Other lane enums do not imply a queue consumer; `packages/policies/worker_capabilities.py` makes acceptance explicit. Each worker is narrow, schema-driven, and policy-bound.
 - **Outreach** is an operations lane for drafts, ledgers, follow-ups, and CRM sync; it does not send cold emails, texts, or DMs without a future explicit gate.
 - **Conversion Lab** is an agency capability for advisory synthetic-audience preflight reports; it does not predict revenue, launch ads, or bypass approval gates.
 - **Codex** is the engineering engine. It writes code; it does not decide what code matters.
 - **OpenClaw** (if used) is an interface, not an orchestrator.
 - The **discovery layer** (`packages/discovery/`) supports find → score → validate *what* to build; its handoffs remain gated by `packages/policies/discovery_gates.py`. It is not a prerequisite for HomeFromWorking's owner-selected listing workflow. Operator commands: [`docs/founder/operator-guide.md`](docs/founder/operator-guide.md). Deep dive: [`docs/founder/discovery-guide.md`](docs/founder/discovery-guide.md).
-- Logic-bearing changes ship with lane-matching tests. Irreversible actions require approval. Runtime state lives under `state/`.
+- Completion requires persisted evidence and a passing post-run validator. Database lifecycle writes share a transaction; Redis dispatch has separate, explicit recovery limits.
+- Logic-bearing changes ship with lane-matching tests. Irreversible actions require approval. Runtime state lives under ignored `state/` paths.
 
 When the architecture changes materially, update `README.md`, this stub, `docs/agent-model.md`, and `docs/architecture.md`.

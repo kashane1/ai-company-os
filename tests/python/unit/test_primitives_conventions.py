@@ -28,7 +28,6 @@ from pathlib import Path
 
 import pytest
 
-
 PRIMITIVES_DIR = (
     Path(__file__).resolve().parents[3] / "packages" / "tools" / "primitives"
 )

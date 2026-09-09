@@ -154,7 +154,9 @@ struct TripStartSheet: View {
         .onAppear {
             // Permission prompt is a side-effect, not async — keep in onAppear
             // so it fires on every sheet appearance.
-            locationRecorder.requestIfNeeded()
+            if !CatchbookLaunchConfiguration.isUITest {
+                locationRecorder.requestIfNeeded()
+            }
         }
         .task {
             // .task { } instead of Task { } in .onAppear so SwiftUI cancels

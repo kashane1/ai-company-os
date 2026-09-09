@@ -4,18 +4,14 @@ import SwiftUI
 @main
 struct CatchbookApp: App {
     @State private var router = AppRouter()
+    private let modelContainer: ModelContainer
 
     init() {
         // Instantiate the shared formatters singleton eagerly so its locale
         // change observer is registered before any view reads a formatter.
         _ = AppFormatters.shared
-    }
 
-    var body: some Scene {
-        WindowGroup {
-            CatchbookRootView(router: router)
-        }
-        .modelContainer(for: [
+        let schema = Schema([
             Waterbody.self,
             Spot.self,
             Trip.self,
@@ -25,6 +21,31 @@ struct CatchbookApp: App {
             PersonalBest.self,
             SavedLure.self,
         ])
+        let configuration = ModelConfiguration(
+            isStoredInMemoryOnly: CatchbookLaunchConfiguration.isUITest
+        )
+        do {
+            modelContainer = try ModelContainer(for: schema, configurations: configuration)
+        } catch {
+            fatalError("Unable to initialize Catchbook data store: \(error)")
+        }
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            CatchbookRootView(router: router)
+        }
+        .modelContainer(modelContainer)
+    }
+}
+
+enum CatchbookLaunchConfiguration {
+    static var isUITest: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.environment["CATCHBOOK_UI_TEST"] == "1"
+        #else
+        false
+        #endif
     }
 }
 

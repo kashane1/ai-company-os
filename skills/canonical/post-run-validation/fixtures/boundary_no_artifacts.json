@@ -8,7 +8,7 @@
       "summary": "nothing to do",
       "status": "completed",
       "artifacts": [],
-      "events": ["task_completed"]
+      "events": ["task_claimed"]
     },
     "repo_root": "."
   },

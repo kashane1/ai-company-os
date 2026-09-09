@@ -8,15 +8,39 @@ contributions as local development guidance, not an open-source invitation.
 ```bash
 ./scripts/evaluator_check.sh
 make demo
-python3 -m venv .venv
-.venv/bin/python -m pip install -e ".[test]"
+uv sync --frozen --extra test --group quality --python 3.12
 ./scripts/test_python.sh
 ```
 
-`make demo` has no external dependencies. It runs the control loop end to end
-and writes schema-faithful sample artifacts to `docs/examples/`.
-`./scripts/evaluator_check.sh` wraps that path and verifies the main files an
-evaluator is likely to inspect.
+`make demo` has no external dependencies. It exercises the deterministic demo
+control-loop fixture and writes schema-faithful sample artifacts to
+`docs/examples/`; it does not start persistent workers, contact third-party
+services, or prove an external deployment. `./scripts/evaluator_check.sh`
+wraps that path and verifies the main files an evaluator is likely to inspect.
+
+The platform supports Python 3.11 and 3.12, tested separately in CI. The frozen
+setup uses uv 0.9.22 and the checked-in lockfile; run commands from the repository
+root. This is a source-checkout application, not an installable library or wheel
+distribution. `packages = []` in the build configuration is deliberate: the
+editable install provides dependencies and project metadata, and source imports
+resolve from the checkout. The zero-dependency fixture also supports Python 3.10.
+
+For dependency changes, edit `pyproject.toml`, run `uv lock`, then verify a fresh
+`uv sync --frozen --extra test --group quality`. To include the optional Gmail
+adapter, add `--extra reply-sync`; it is not needed to evaluate the core platform.
+
+```bash
+.venv/bin/ruff check apps packages scripts tests
+mkdir -p build
+uv export --frozen --all-extras --group quality --no-emit-project \
+  --output-file build/audit-requirements.txt > /dev/null
+.venv/bin/pip-audit --requirement build/audit-requirements.txt --no-deps --disable-pip
+```
+
+CI enforces correctness/import lint rules; it does not gate source paragraph
+length. Coverage includes API and worker entrypoints. A passing aggregate reports
+all selected Python versions and all three iOS projects; inspect individual jobs
+for failures or product-specific coverage.
 
 ## Repo Boundaries
 
@@ -31,14 +55,25 @@ evaluator is likely to inspect.
 
 Logic-bearing changes ship with lane-matching tests.
 
-- Python changes under `apps/` or `packages/` need tests under
-  `tests/python/`.
-- iOS logic changes under `products/*/Sources/` need matching tests under that
-  product's `Tests/` tree.
+- Python changes under `apps/` or `packages/`, plus Python/shell scripts under
+  `scripts/`, need tests under `tests/python/`.
+- iOS logic changes need tests in each affected product's `Tests/` or `UITests/`
+  tree. Tests from another product do not satisfy that requirement.
+- Web source changes need tests in the affected product's mapped test area.
+  [The testing policy](packages/policies/testing.py) defines the source and test
+  paths, including exclusions for generated files and static assets.
 - No-test exceptions must use explicit, machine-readable reason codes.
 
 Run the narrowest relevant test while working, then run `./scripts/test_python.sh`
 before handing off platform changes.
+
+## Publication
+
+Publish through a pull request and wait for all required checks, including
+maintenance and security. Main's protection applies to routine owner/admin
+changes too. Keep the `## Testing` section in the PR body: merge and squash
+commits retain that reviewed metadata so post-merge checks can evaluate explicit
+test exceptions. Rebase merging is disabled because it would discard that body.
 
 ## Runtime State
 

@@ -40,7 +40,7 @@ doctor:
 	@echo "  - docs/skills-index.md"
 	@echo
 	@echo "Local checks (run manually):"
-	@echo "  - python3 --version            (expect 3.12+)"
+	@echo "  - python3 --version            (expect 3.11 or 3.12)"
 	@echo "  - test -d .venv                 (recreate if missing)"
 	@echo "  - .venv/bin/python -c 'import yaml'   (pyyaml needed for enqueue scripts)"
 	@echo "  - which codex                   (for Codex CLI integration)"

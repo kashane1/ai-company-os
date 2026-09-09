@@ -22,14 +22,16 @@ Prospect **preview mockups** (playbook `dist-v2/`) are separate — see
 
 ## Phase 3 — Promote to client
 
-**Gate:** prospect `human_verified=true` and explicit operator approval.
+**Gate:** prospect `human_verified=true` and a stored approved record bound to
+the prospect, promotion action, selected bundle, and resulting client
+configuration.
 
 ```bash
 python scripts/promote_prospect.py list-verified
 python scripts/promote_prospect.py promote \
   --place-id <PLACE_ID> \
   --bundle package_a \
-  --approved-by kashane
+  --approval-id <APPROVAL_ID>
 ```
 
 **Creates:**

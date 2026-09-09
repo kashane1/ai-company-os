@@ -1,8 +1,11 @@
 # Phase Status
 
 - **Product:** Life Clock — App Store name **"Life Clock: habits earn time"**
-- **Last updated:** 2026-05-01
+- **Last reconciled:** 2026-09-08 (public-source and documentation review)
 - **Phase:** pre-TestFlight (reveal-onboarding rebuild landed)
+- **Evidence boundary:** This file records implementation and prepared artifacts.
+  It does not establish an archive, TestFlight upload, App Store submission, or
+  public release; those require Apple-side records.
 - **Owner:** founder (Kashane)
 - **Source tree:** `products/life-clock-ios/`
 - **Docs root:** `docs/products/life-clock/`

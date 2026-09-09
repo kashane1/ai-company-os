@@ -6,9 +6,10 @@ together. The morning briefing (Phase 4.1) calls this every weekday.
 
 from __future__ import annotations
 
-import yaml
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
+
+import yaml
 
 REQUIRED_FILES = (
     "voice.md",

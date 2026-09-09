@@ -8,7 +8,6 @@ from typing import Protocol
 
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 
-
 CLIENT_SITE_SUBJECT_TYPE = "client_site"
 
 

@@ -35,7 +35,6 @@ from pathlib import Path
 
 from packages.config.settings import load_runtime_paths
 
-
 # Canonical switch names used across the platform. New switches MUST be
 # added here — the module-level set is the single source of truth for
 # "which switches exist?" and the enum is cheap compared to a future

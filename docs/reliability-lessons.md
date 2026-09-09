@@ -14,6 +14,70 @@ checks that a serialization error preserves the previous record and removes
 the temporary file. This is evidence for that failure case, not a blanket
 power-loss or concurrent-writer durability guarantee.
 
+## Keep lifecycle writes inside one database boundary
+
+Control-plane lifecycle methods use the shared transaction context in
+[`ControlPlaneDatabase`](../packages/db/control_plane_db.py). Task, goal,
+approval, event, and database-backed dispatch writes either commit together or
+roll back together, including calls made through separate store instances. The
+[transaction tests](../tests/python/unit/test_control_plane_transactions.py)
+exercise nested commits, rollback, and reuse after a failed transaction.
+
+Task completion also fails closed. The control plane checks claim ownership and
+runs the lane's post-run validator against listed artifacts and already-persisted
+task events. Missing evidence, an unavailable validator, or a malformed verdict
+records a failed task instead of accepting completion. The
+[failure-recovery tests](../tests/python/integration/test_control_plane_failure_recovery.py)
+cover write failures and retry behavior; they do not establish exactly-once
+execution of worker code or external effects.
+
+## Treat Redis recovery as an operator action
+
+For Redis Streams, database state is canonical and delivery is at least once.
+Acknowledgement is bound to the current worker claim and deferred until the
+database lifecycle commit succeeds. The queue reconciliation command is a dry
+run by default:
+
+```bash
+python3 scripts/control_plane_db.py reconcile-queue
+python3 scripts/control_plane_db.py reconcile-queue --apply --workers-stopped
+```
+
+The apply form is for a stopped-worker maintenance window. It removes orphaned
+or terminal queue entries, restores missing pending entries, and preserves
+active nonterminal entries. Automatic idle reclaim is experimental and off by
+default because there is no execution heartbeat or per-attempt claim token; a
+restarted process using the same worker ID cannot be fenced as a distinct
+attempt. The
+[Redis failure-recovery tests](../tests/python/integration/test_redis_queue_recovery.py)
+cover these bounded cases.
+
+An abandoned active task has a separate dry-run/apply recovery path:
+
+```bash
+python3 scripts/control_plane_db.py recover-task TASK_ID --reason "worker stopped"
+python3 scripts/control_plane_db.py recover-task TASK_ID --reason "worker stopped" --apply --workers-stopped
+```
+
+Apply marks the original attempt failed and creates a pending replacement under
+a child goal, preserving the earlier record. Review any external effects before
+restarting workers; replacement execution is not automatically safe to repeat.
+For Redis, run the reconciliation preview/apply again to remove the old terminal
+dispatch and check the new pending entry. The
+[real worker demo](../scripts/worker_demo.py) and its
+[integration test](../tests/python/integration/test_real_worker_demo.py) show an
+offline outreach success and a preserved failed attempt through the real worker
+path.
+
+## Fail the supervised process group when a child exits
+
+The [runtime supervisor](../apps/runtime-supervisor/supervisor/core.py) treats an
+unexpected managed-child exit as a supervisor failure and stops the remaining
+workers. Its [process tests](../tests/python/unit/test_runtime_supervisor.py)
+verify the persisted failed status and sibling shutdown. This surfaces process
+loss; it does not restart work or decide whether an in-progress task is safe to
+retry.
+
 ## Validate the fields that cross a parsing boundary
 
 [TaskRun.from_dict](../packages/schemas/task_run.py) converts worker lane,
@@ -57,9 +121,15 @@ surface, not a claim that every test hook throughout the product was audited.
 ## Scope redaction and retention precisely
 
 [PostMortem](../packages/schemas/postmortem.py) applies redaction to selected
-fields, including notes, excerpts, remediation text, and fixture paths. Other
-fields and raw worker stdout/stderr are not covered by that statement; this
-is not proof that all artifacts or Git history are free of secrets.
+fields, including notes, excerpts, remediation text, and fixture paths. The
+engineering and iOS Codex runners separately redact subprocess stdout and
+stderr plus selected execution metadata before writing platform-owned logs and
+records.
+The [engineering](../tests/python/unit/test_codex_runner.py) and
+[iOS](../tests/python/unit/test_ios_codex_runner.py) runner tests plant
+credential-shaped canaries. The Codex CLI's separate last-message output is
+outside this redaction claim. These checks do not prove that every artifact or
+Git history is free of secrets.
 
 [Postmortem retention policy](../packages/policies/postmortem_retention.py)
 controls visibility and stale-record checks. Its time window is not automatic

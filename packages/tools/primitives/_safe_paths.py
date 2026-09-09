@@ -29,7 +29,6 @@ import functools
 import re
 from pathlib import Path
 
-
 # Adapter paths stored in `skills/registry.yaml` under `adapters:` entries
 # must match this pattern. The runtime slug and skill id are both
 # kebab-case identifiers; the path is relative to the skills root, NOT

@@ -9,13 +9,12 @@ function boundary, so credential fragments never reach a briefing.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
 from packages.config.settings import load_runtime_paths
 from packages.tools.observability.redaction import redact
-
 
 LANE_LOG_DIRS = {
     "engineering": "engineering",
@@ -68,7 +67,7 @@ class Rollup:
                 lines.append(f"- `{code}` × {count}")
             lines.append("")
             if lane.tail_excerpt:
-                lines.append(f"Tail (redacted):")
+                lines.append("Tail (redacted):")
                 lines.append("```")
                 lines.extend(lane.tail_excerpt)
                 lines.append("```")

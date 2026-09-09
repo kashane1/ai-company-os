@@ -8,7 +8,6 @@ import pytest
 
 from packages.agency.outreach_store import (
     DEFAULT_VARIANT,
-    SUPPRESSIONS_TABLE,
     TOUCHES_TABLE,
     OutreachStore,
 )

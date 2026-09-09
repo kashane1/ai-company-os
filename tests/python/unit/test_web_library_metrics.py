@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from packages.web.block_library import BlockEntry, BlockLibrary, TIER_PREMIUM
+from packages.web.block_library import TIER_PREMIUM, BlockEntry
 from packages.web.blocks_composer import builtin_library
 from packages.web.library_metrics import (
     block_usage,

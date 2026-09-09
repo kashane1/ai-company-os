@@ -1,8 +1,4 @@
-"""Evolution approval flow: request / poll / submit / reject.
-
-Split out of the original single-file ``approvals`` module. Behaviour is
-unchanged. Re-exported from ``approvals/__init__.py``.
-"""
+"""Evolution approvals: request, first confirmation, second confirmation, and rejection."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -12,9 +8,11 @@ from packages.db.approval_store import ApprovalStore
 from packages.db.approval_token_store import ApprovalTokenStore
 from packages.policies.approval_tokens import (
     ApprovalToken,
+    ApprovalTokenError,
     TokenNotFound,
     TokenSignatureInvalid,
     issue_token,
+    record_second_factor,
     verify_and_burn_token,
 )
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
@@ -170,6 +168,20 @@ def poll_evolution_approval(
 # ---------------------------------------------------------------------- #
 
 
+def _check_evolution_binding(token: ApprovalToken, approval: ApprovalRecord) -> None:
+    if approval.status is not ApprovalStatus.PENDING:
+        raise ApprovalTokenError("approval is no longer pending")
+    if (
+        approval.approval_type != SKILL_EVOLUTION_APPROVAL_TYPE
+        or approval.subject_type != "skill_evolution_proposal"
+        or approval.action != SKILL_EVOLUTION_ACTION
+        or token.action != approval.action
+        or token.subject_id != approval.subject_id
+        or token.action_class != "p0"
+    ):
+        raise TokenSignatureInvalid("token does not match the reviewed P0 evolution action")
+
+
 def submit_evolution_approval(
     *,
     approval_id: str,
@@ -181,24 +193,26 @@ def submit_evolution_approval(
     approval_store: ApprovalStore | None = None,
     token_store: ApprovalTokenStore | None = None,
 ) -> ApprovalDecision:
-    """Verify a reviewer's HMAC signature and, on success, flip the
-    underlying :class:`ApprovalRecord` to ``approved``.
+    """Record the first confirmation for a skill-evolution approval.
 
     On any token failure (missing, signature mismatch, already burned,
     expired), the approval record is left untouched and the underlying
     :class:`ApprovalTokenError` is re-raised so the CLI can render a
     targeted error message.
 
-    After this function returns ``outcome=approved``, the worker's next
-    poll will see the new status and proceed to apply the staged diff.
+    Skill evolution is a P0 action. A valid first confirmation burns its
+    token but leaves the underlying approval pending until
+    :func:`confirm_evolution_approval` records the required second
+    confirmation. The two confirmations use the same token/device; this is
+    not independent MFA.
     """
     secret = _load_signing_secret()
     tokens = token_store or ApprovalTokenStore()
     approvals = approval_store or ApprovalStore()
 
     # Pre-flight: load the token and verify the approval_id BEFORE
-    # calling verify_and_burn_token. The underlying burn is a
-    # read-modify-write that persists ``burn_count=1`` BEFORE this
+    # calling verify_and_burn_token. The underlying burn persists
+    # ``burn_count=1`` BEFORE this
     # wrapper would have had a chance to reject on approval_id
     # mismatch — which, pre-fix, meant an attacker (or a CLI bug)
     # could permanently burn a legitimate token by submitting with
@@ -213,6 +227,7 @@ def submit_evolution_approval(
             f"token approval_id {pre_check.approval_id!r} != "
             f"{approval_id!r} — refusing to burn"
         )
+    _check_evolution_binding(pre_check, approvals.load(approval_id))
 
     # Raises on any HMAC/burn/expiry failure; re-raised to the CLI.
     burned: ApprovalToken = verify_and_burn_token(
@@ -228,6 +243,68 @@ def submit_evolution_approval(
     if burned.approval_id != approval_id:  # pragma: no cover
         raise TokenSignatureInvalid(
             f"post-burn approval_id {burned.approval_id!r} != {approval_id!r}"
+        )
+
+    if burned.action_class == "p0":
+        return ApprovalDecision(
+            approval_id=approval_id,
+            outcome="pending",
+            decided_by=None,
+            decided_at=None,
+            decision_notes=None,
+        )
+
+    updated = approvals.update_status(
+        approval_id,
+        ApprovalStatus.APPROVED,
+        decided_by=decided_by,
+        decided_at=_now_iso(),
+        decision_notes=decision_notes,
+    )
+    return ApprovalDecision(
+        approval_id=approval_id,
+        outcome="approved",
+        decided_by=updated.decided_by,
+        decided_at=updated.decided_at,
+        decision_notes=updated.decision_notes,
+    )
+
+
+def confirm_evolution_approval(
+    *,
+    approval_id: str,
+    token_id: str,
+    provided_signature: str,
+    device_fingerprint: str,
+    decided_by: str,
+    decision_notes: str | None = None,
+    approval_store: ApprovalStore | None = None,
+    token_store: ApprovalTokenStore | None = None,
+) -> ApprovalDecision:
+    """Complete a P0 skill-evolution approval after its first confirmation."""
+    tokens = token_store or ApprovalTokenStore()
+    approvals = approval_store or ApprovalStore()
+    try:
+        pre_check = tokens.load(token_id)
+    except FileNotFoundError as exc:
+        raise TokenNotFound(token_id) from exc
+    if pre_check.approval_id != approval_id:
+        raise TokenSignatureInvalid(
+            f"token approval_id {pre_check.approval_id!r} != "
+            f"{approval_id!r} — refusing to confirm"
+        )
+    _check_evolution_binding(pre_check, approvals.load(approval_id))
+
+    confirmed = record_second_factor(
+        token_id=token_id,
+        provided_signature=provided_signature,
+        device_fingerprint=device_fingerprint,
+        secret=_load_signing_secret(),
+        store=tokens,
+    )
+    if confirmed.approval_id != approval_id:  # pragma: no cover
+        raise TokenSignatureInvalid(
+            f"confirmed token approval_id {confirmed.approval_id!r} != {approval_id!r}"
         )
 
     updated = approvals.update_status(
@@ -314,5 +391,3 @@ def _default_device_binding() -> str:
 # ---------------------------------------------------------------------- #
 # Keychain error taxonomy                                                 #
 # ---------------------------------------------------------------------- #
-
-

@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from packages.agency.outreach_lane import refresh_client_status
+from packages.config.settings import load_runtime_paths
 from packages.schemas.task import Task
 from packages.schemas.task_packet import TaskResult, TaskStatus
 
@@ -30,21 +31,22 @@ def execute_task(task: Task, *, repo_root: Path | None = None) -> TaskResult:
         )
     if task.task_type == "OUTREACH_LEDGER_REFRESH":
         rows = refresh_client_status(repo_root=repo_root)
+        lane_root = load_runtime_paths(repo_root).state_root / "prospects" / "outreach-lane"
         return TaskResult(
             task_id=task.id,
             status=TaskStatus.COMPLETED,
             summary=f"refreshed client-status ledger with {len(rows)} outreach row(s)",
             artifacts=[
-                "state/prospects/outreach-lane/client-status.json",
-                "state/prospects/outreach-lane/client-status.md",
+                str(lane_root / "client-status.json"),
+                str(lane_root / "client-status.md"),
             ],
             validation_checks=["manual-send-boundary:enforced"],
         )
     if task.task_type == "OUTREACH_DRAFT":
         return TaskResult(
             task_id=task.id,
-            status=TaskStatus.COMPLETED,
-            summary="OUTREACH_DRAFT acknowledged; use scripts/agency/build_outreach.py for draft generation",
+            status=TaskStatus.BLOCKED,
+            summary="OUTREACH_DRAFT is blocked until the operator creates a draft with the supported CLI",
             next_actions=["Run scripts/agency/build_outreach.py, then refresh outreach ledger"],
             validation_checks=["manual-send-boundary:enforced"],
         )
@@ -58,8 +60,9 @@ def execute_task(task: Task, *, repo_root: Path | None = None) -> TaskResult:
     if task.task_type == "OUTREACH_REPLY_RECONCILE":
         return TaskResult(
             task_id=task.id,
-            status=TaskStatus.COMPLETED,
-            summary="OUTREACH_REPLY_RECONCILE scaffolded; CRM/inbox adapter not installed",
+            status=TaskStatus.BLOCKED,
+            summary="OUTREACH_REPLY_RECONCILE is blocked because no approved CRM/inbox adapter is installed",
+            next_actions=["Reconcile replies manually or install an approved read-only inbox adapter."],
             validation_checks=["no-inbox-send-path"],
         )
     return TaskResult(

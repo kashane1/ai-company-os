@@ -1,5 +1,8 @@
 # Life Clock — New Claude Instance Handoff
 
+> **Superseded handoff.** This document describes an earlier worktree and MVP state. Use [PHASE_STATUS.md](PHASE_STATUS.md), [SUBMIT_DAY_CHECKLIST.md](SUBMIT_DAY_CHECKLIST.md), and the product source README for current boundaries.
+
+
 > Paste the section below ("Pasteable handoff prompt") into the first
 > message of a fresh Claude Code chat to onboard the new instance with
 > zero ramp time. The full reference further down is for humans.

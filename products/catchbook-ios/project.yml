@@ -54,6 +54,7 @@ targets:
         - Catchbook
       testTargets:
         - CatchbookTests
+        - CatchbookUITests
   CatchbookTests:
     type: bundle.unit-test
     platform: iOS
@@ -67,3 +68,14 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Catchbook.app/Catchbook"
+  CatchbookUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests/CatchbookUITests.swift
+    dependencies:
+      - target: Catchbook
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.aicompanyos.products.fishinglogbookUITests
+        GENERATE_INFOPLIST_FILE: YES

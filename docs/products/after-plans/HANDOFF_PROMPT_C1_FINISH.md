@@ -1,5 +1,8 @@
 # Handoff prompt — After Plans C1 finish + remaining submission slices
 
+> **Superseded handoff.** C1 local-Supabase work is recorded in [PHASE_STATUS.md](PHASE_STATUS.md). Use that status document and [remaining-steps-before-ios-submission.md](remaining-steps-before-ios-submission.md) for current work; this prompt is retained as historical implementation context.
+
+
 Paste everything below this line into a fresh Claude Code conversation in the
 `/Users/simons/ai-company-os` working directory once Docker Desktop and the
 Supabase CLI are installed.

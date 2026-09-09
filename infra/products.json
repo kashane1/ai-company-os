@@ -17,7 +17,7 @@
     "repo_id": "after-plans-ios",
     "source_path": "products/after-plans-ios",
     "docs_root": "docs/products/after-plans",
-    "phase": "discovery"
+    "phase": "mvp-build"
   },
   {
     "id": "life-clock",
@@ -27,11 +27,11 @@
     "repo_id": "life-clock-ios",
     "source_path": "products/life-clock-ios",
     "docs_root": "docs/products/life-clock",
-    "phase": "discovery"
+    "phase": "app-store-submission"
   },
   {
     "id": "joes-plumbing-site",
-    "name": "Joe's Plumbing",
+    "name": "Joe's Plumbing (example client site)",
     "slug": "joes-plumbing",
     "type": "client-site",
     "platform": "web",

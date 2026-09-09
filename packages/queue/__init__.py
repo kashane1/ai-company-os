@@ -4,6 +4,8 @@ from packages.queue.task_queue import (
     ClaimedTask,
     DatabaseQueueBackend,
     QueueBackend,
+    QueueClaimOwnershipError,
+    QueueReconciliationReport,
     RedisStreamQueueBackend,
     TaskQueue,
     active_queue_backend_name,
@@ -13,6 +15,8 @@ from packages.queue.task_queue import (
 __all__ = [
     "ClaimedTask",
     "DatabaseQueueBackend",
+    "QueueClaimOwnershipError",
+    "QueueReconciliationReport",
     "QueueBackend",
     "RedisStreamQueueBackend",
     "TaskQueue",

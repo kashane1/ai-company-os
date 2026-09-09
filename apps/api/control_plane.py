@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from datetime import UTC, datetime
+from functools import wraps
 from uuid import uuid4
 
 from packages.config.settings import ensure_runtime_directories, load_runtime_paths
@@ -9,6 +10,7 @@ from packages.db.approval_store import ApprovalStore
 from packages.db.event_store import EventStore
 from packages.db.goal_store import GoalStore
 from packages.db.task_store import TaskStore
+from packages.policies.worker_capabilities import ensure_task_lane_is_consumed
 from packages.queue import TaskQueue
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.event import EventRecord
@@ -23,6 +25,15 @@ from packages.tools.skills.loader import (
 )
 
 
+def _atomic_lifecycle(method):
+    """Keep database task, event, goal and dispatch-table writes together."""
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        with self.tasks.db.transaction():
+            return method(self, *args, **kwargs)
+    return wrapped
+
+
 class ControlPlaneService:
     def __init__(self) -> None:
         ensure_runtime_directories()
@@ -35,16 +46,21 @@ class ControlPlaneService:
     def health(self) -> dict[str, object]:
         paths = load_runtime_paths()
         db_info = self.queue.db.health_info()
+        metrics = self.queue.metrics_by_lane()
         return {
             "status": "ok",
             "repo_root": str(paths.repo_root),
             "state_root": str(paths.state_root),
             "control_plane_db_path": str(paths.control_plane_db_path),
             "database": db_info,
-            "queued_tasks": self.queue.size(),
-            "queued_tasks_by_lane": self.queue.counts_by_lane(),
+            "queued_tasks": sum(counts["queued"] for counts in metrics.values()),
+            "queued_tasks_by_lane": {
+                lane: counts["queued"] for lane, counts in metrics.items() if counts["queued"]
+            },
+            "queue_metrics_by_lane": metrics,
         }
 
+    @_atomic_lifecycle
     def create_goal(
         self,
         *,
@@ -54,6 +70,8 @@ class ControlPlaneService:
         goal_id: str | None = None,
         parent_goal_id: str | None = None,
     ) -> GoalRecord:
+        if parent_goal_id is not None:
+            self.goals.load(parent_goal_id)
         now = self._now()
         goal = GoalRecord(
             id=goal_id or self._prefixed_id("goal"),
@@ -64,7 +82,7 @@ class ControlPlaneService:
             created_at=now,
             updated_at=now,
         )
-        self.goals.save(goal)
+        self.goals.save(goal, create_only=True)
         self._append_event(
             event_type="goal_created",
             subject_type="goal",
@@ -77,6 +95,7 @@ class ControlPlaneService:
     def list_goals(self) -> list[GoalRecord]:
         return self.goals.list()
 
+    @_atomic_lifecycle
     def create_task_for_goal(
         self,
         *,
@@ -92,7 +111,8 @@ class ControlPlaneService:
         constraints: list[str] | None = None,
         task_id: str | None = None,
     ) -> Task:
-        goal = self.goals.load(goal_id)
+        goal = self.goals.load_for_update(goal_id)
+        ensure_task_lane_is_consumed(lane)
         now = self._now()
         task = Task(
             id=task_id or self._prefixed_id("task"),
@@ -109,9 +129,9 @@ class ControlPlaneService:
             created_at=now,
             updated_at=now,
         )
-        self.tasks.save(task)
+        self.tasks.save(task, create_only=True)
         self.queue.enqueue(task)
-        if goal.status is GoalStatus.OPEN:
+        if goal.status is not GoalStatus.IN_PROGRESS:
             self.goals.set_status(goal.id, GoalStatus.IN_PROGRESS, updated_at=now)
         self._append_event(
             event_type="task_created",
@@ -127,11 +147,15 @@ class ControlPlaneService:
         self.goals.load(goal_id)
         return self.tasks.list_for_goal(goal_id)
 
+    @_atomic_lifecycle
     def claim_task(self, *, lane: WorkerLane, worker_id: str) -> Task | None:
         claimed = self.queue.claim_next(lanes=[lane], worker_id=worker_id)
         if claimed is None:
             return None
-        task = self.tasks.claim(claimed.task_id, worker_id=worker_id, claimed_at=claimed.claimed_at)
+        task = self.tasks.claim(
+            claimed.task_id, worker_id=worker_id, claimed_at=claimed.claimed_at,
+            allow_reclaim=self.queue.backend.name == "redis",
+        )
         self._append_event(
             event_type="task_claimed",
             subject_type="task",
@@ -141,6 +165,73 @@ class ControlPlaneService:
             payload={"worker_id": worker_id, "lane": lane.value, "claimed_at": claimed.claimed_at},
         )
         return task
+
+    @_atomic_lifecycle
+    def abandon_task(
+        self, *, task_id: str, reason: str, workers_stopped: bool = False,
+    ) -> tuple[Task, GoalRecord, Task]:
+        """Preserve an abandoned active attempt and create a pending replacement.
+
+        This is a stopped-worker maintenance operation. It does not claim or
+        execute the replacement task. Redis terminal-dispatch cleanup remains
+        the explicit reconciliation operation because Redis is outside this
+        database transaction.
+        """
+        if not workers_stopped:
+            raise ValueError("task recovery requires stopped-worker confirmation")
+        reason = reason.strip()
+        if not reason:
+            raise ValueError("an abandonment reason is required")
+        current = self.tasks.load_for_update(task_id)
+        if current.status not in {TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED}:
+            raise ValueError("only in-progress or blocked tasks can be abandoned")
+        if not current.goal_id:
+            raise ValueError("an abandoned task must have a parent goal")
+        self.goals.load(current.goal_id)
+        now = self._now()
+        recovery_goal_id = self._prefixed_id("goal")
+        replacement_task_id = self._prefixed_id("task")
+        failed = self.tasks.fail(
+            current.id,
+            error_summary=f"abandoned after stopped-worker confirmation: {reason}",
+            failed_at=now,
+        )
+        self._ack_database_task(current.id, worker_id=current.claimed_by or "maintenance")
+        self._refresh_goal_status(current.goal_id, now)
+        self._append_event(
+            event_type="task_abandoned",
+            subject_type="task",
+            subject_id=failed.id,
+            goal_id=current.goal_id,
+            task_id=failed.id,
+            payload={
+                "reason": reason,
+                "previous_status": current.status.value,
+                "replacement_goal_id": recovery_goal_id,
+                "replacement_task_id": replacement_task_id,
+            },
+        )
+        recovery_goal = self.create_goal(
+            goal_id=recovery_goal_id,
+            parent_goal_id=current.goal_id,
+            title=f"Recovery: {current.title}",
+            summary=f"Replacement attempt for abandoned task {current.id}.",
+            description="Created by stopped-worker maintenance recovery.",
+        )
+        replacement = self.create_task_for_goal(
+            goal_id=recovery_goal.id,
+            task_id=replacement_task_id,
+            repo_id=current.repo_id,
+            lane=current.lane,
+            title=current.title,
+            summary=current.summary,
+            task_type=current.task_type,
+            risk_level=current.risk_level,
+            product_id=current.product_id,
+            requires_approval=current.requires_approval,
+            constraints=list(current.constraints),
+        )
+        return failed, recovery_goal, replacement
 
     def submit_task_result(
         self,
@@ -153,31 +244,59 @@ class ControlPlaneService:
         artifacts: list[str] | None = None,
         events: list[str] | None = None,
     ) -> Task:
+        # Redis dispatch is outside the database transaction. Commit canonical
+        # state first: failed ACKs can then be retried or reconciled from it.
+        task = self._persist_task_result(
+            task_id=task_id, status=status, summary=summary, worker_id=worker_id,
+            approval_id=approval_id, artifacts=artifacts, events=events,
+        )
+        if self.queue.backend.name == "redis" and task.status in {
+            TaskStatus.COMPLETED, TaskStatus.FAILED,
+        }:
+            self.queue.acknowledge(task_id, worker_id=worker_id)
+        return task
+
+    @_atomic_lifecycle
+    def _persist_task_result(
+        self,
+        *,
+        task_id: str,
+        status: TaskStatus,
+        summary: str,
+        worker_id: str,
+        approval_id: str | None = None,
+        artifacts: list[str] | None = None,
+        events: list[str] | None = None,
+    ) -> Task:
+        current = self.tasks.load_for_update(task_id)
+        if current.claimed_by != worker_id or current.status is TaskStatus.PENDING:
+            raise ValueError("result requires the current task claimant")
+        if current.status in {TaskStatus.COMPLETED, TaskStatus.FAILED}:
+            recorded_summary = current.result_summary if status is TaskStatus.COMPLETED else current.error_summary
+            if current.status is status and recorded_summary == summary:
+                return current
+            raise ValueError("terminal task result conflicts with the recorded result")
+        self.queue.assert_claim_owner(task_id, worker_id=worker_id)
         now = self._now()
         if status is TaskStatus.COMPLETED:
-            # Phase 4.5 — post-run-validation gate. Fail-closed: if the
-            # validator reports a failure, downgrade to REJECTED. Skip the
-            # gate entirely when neither kwarg was passed (distinct from
-            # explicit empty lists) so direct-service callers in tests are
-            # not conflated with worker mains.
-            if artifacts is None and events is None:
-                gate = None
-            else:
-                gate = self._run_post_run_validation(
-                    task_id=task_id,
-                    summary=summary,
-                    artifacts=artifacts or [],
-                    events=events or [],
-                )
-            if gate is not None and gate.get("verdict") != "ok":
+            # Completion is accepted only after the lane validator verifies
+            # existing evidence. Missing evidence and unavailable validators
+            # are both failures, never an implicit test-only bypass.
+            gate = self._run_post_run_validation(
+                task_id=task_id,
+                summary=summary,
+                artifacts=artifacts or [],
+                events=events or [],
+            )
+            if gate.get("verdict") != "ok":
                 failure_code = gate.get("failure_code") or "post_run_validation_failed"
                 reason = gate.get("reason") or failure_code
                 task = self.tasks.fail(
                     task_id,
-                    error_summary=f"post_run_validation: {reason}",
+                    error_summary=f"post_run_validation:{failure_code}: {reason}",
                     failed_at=now,
                 )
-                self.queue.acknowledge(task_id)
+                self._ack_database_task(task_id, worker_id=worker_id)
                 self._append_event(
                     event_type="task_result_rejected",
                     subject_type="task",
@@ -202,11 +321,11 @@ class ControlPlaneService:
                 completed_at=now,
                 approval_id=approval_id,
             )
-            self.queue.acknowledge(task_id)
+            self._ack_database_task(task_id, worker_id=worker_id)
             event_type = "task_completed"
         elif status is TaskStatus.FAILED:
             task = self.tasks.fail(task_id, error_summary=summary, failed_at=now)
-            self.queue.acknowledge(task_id)
+            self._ack_database_task(task_id, worker_id=worker_id)
             event_type = "task_failed"
         elif status is TaskStatus.BLOCKED:
             task = self.tasks.set_status(task_id, TaskStatus.BLOCKED, updated_at=now)
@@ -226,6 +345,11 @@ class ControlPlaneService:
         self._refresh_goal_status(task.goal_id, now)
         return task
 
+    def _ack_database_task(self, task_id: str, *, worker_id: str) -> None:
+        if self.queue.backend.name == "database":
+            self.queue.acknowledge(task_id, worker_id=worker_id)
+
+    @_atomic_lifecycle
     def request_approval(
         self,
         *,
@@ -237,6 +361,7 @@ class ControlPlaneService:
         task_id: str | None = None,
         task_run_id: str | None = None,
         review_artifact_path: str | None = None,
+        reviewed_revision: str = "",
         approval_id: str | None = None,
     ) -> ApprovalRecord:
         now = self._now()
@@ -249,11 +374,12 @@ class ControlPlaneService:
             task_run_id=task_run_id,
             approval_type=approval_type,
             review_artifact_path=review_artifact_path,
+            reviewed_revision=reviewed_revision,
             subject_type=subject_type,
             subject_id=subject_id,
             action=action,
         )
-        self.approvals.save(approval)
+        self.approvals.save(approval, create_only=True)
         self._append_event(
             event_type="approval_requested",
             subject_type="approval",
@@ -264,6 +390,7 @@ class ControlPlaneService:
         )
         return approval
 
+    @_atomic_lifecycle
     def decide_approval(
         self,
         *,
@@ -272,6 +399,11 @@ class ControlPlaneService:
         decided_by: str,
         decision_notes: str = "",
     ) -> ApprovalRecord:
+        current = self.approvals.load(approval_id)
+        if current.status is not ApprovalStatus.PENDING:
+            return current
+        if status is ApprovalStatus.PENDING:
+            raise ValueError("approval decisions must be terminal")
         approval = self.approvals.update_status(
             approval_id,
             status,
@@ -286,9 +418,9 @@ class ControlPlaneService:
             task_id=approval.task_id,
             approval_id=approval.id,
             payload={
-                "status": status.value,
-                "decided_by": decided_by,
-                "decision_notes": decision_notes,
+                "status": approval.status.value,
+                "decided_by": approval.decided_by,
+                "decision_notes": approval.decision_notes,
             },
         )
         return approval
@@ -303,25 +435,53 @@ class ControlPlaneService:
         summary: str,
         artifacts: list[str],
         events: list[str],
-    ) -> dict | None:
+    ) -> dict[str, str]:
         """Invoke the ``post-run-validation`` validator skill.
 
-        Returns the validator verdict dict, or ``None`` if the validator
-        cannot be loaded (in which case the gate is considered advisory
-        and we let the task complete — the loader already refuses
-        fixture-failing skills in autonomous mode).
+        Returns a fail-closed validator verdict. A missing task or unavailable
+        validator is represented as a structured failure so callers can audit
+        why completion was rejected.
         """
         try:
             task = self.tasks.load(task_id)
-        except Exception:
-            return None
+        except Exception as exc:
+            return {
+                "verdict": "fail",
+                "failure_code": "task_unavailable",
+                "reason": str(exc),
+                "lane": "",
+            }
         try:
             validator = load_validator("post-run-validation")
-        except (SkillNotFound, SkillNotEvaluated, SkillLoadError):
-            return None
+        except (SkillNotFound, SkillNotEvaluated, SkillLoadError) as exc:
+            return {
+                "verdict": "fail",
+                "failure_code": "validator_unavailable",
+                "reason": f"{type(exc).__name__}: {exc}",
+                "lane": task.lane.value,
+            }
+        if validator is None or not callable(getattr(validator, "run", None)):
+            return {
+                "verdict": "fail",
+                "failure_code": "validator_unavailable",
+                "reason": "post-run-validation did not provide a runnable validator",
+                "lane": task.lane.value,
+            }
+        persisted_event_types = {
+            event.event_type
+            for event in self.events.list_for_subject("task", task_id)
+        }
+        unpersisted_events = sorted(set(events) - persisted_event_types)
+        if unpersisted_events:
+            return {
+                "verdict": "fail",
+                "failure_code": "event_evidence_not_persisted",
+                "reason": f"unpersisted task event(s): {unpersisted_events}",
+                "lane": task.lane.value,
+            }
         try:
             paths = load_runtime_paths()
-            return validator.run(
+            result = validator.run(
                 {
                     "lane": task.lane.value,
                     "task_type": task.task_type,
@@ -336,6 +496,17 @@ class ControlPlaneService:
                     "repo_root": str(paths.repo_root),
                 }
             )
+            if not isinstance(result, dict):
+                return {
+                    "verdict": "fail",
+                    "failure_code": "validator_invalid_result",
+                    "reason": (
+                        "post-run-validation returned "
+                        f"{type(result).__name__}, expected a mapping"
+                    ),
+                    "lane": task.lane.value,
+                }
+            return result
         except Exception as exc:
             return {
                 "verdict": "fail",
@@ -347,6 +518,9 @@ class ControlPlaneService:
     def _refresh_goal_status(self, goal_id: str | None, now: str) -> None:
         if not goal_id:
             return
+        # Serialize goal aggregation across completions of different tasks.
+        # SQLite holds its writer lock; Postgres needs this shared parent lock.
+        self.goals.load_for_update(goal_id)
         tasks = self.tasks.list_for_goal(goal_id)
         if not tasks:
             return

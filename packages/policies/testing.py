@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 
 from packages.db.task_store import TaskStore
 from packages.schemas.task import Task
 from packages.schemas.task_packet import TaskStatus, WorkerLane
 from packages.schemas.testing import (
     NoTestReasonCode,
-    TestLane,
     TestingPolicyResult,
+    TestLane,
     ValidationFailureCode,
 )
 
@@ -48,50 +48,162 @@ class TestingMetadata:
     followup_task_id: str | None = None
 
 
+@dataclass(frozen=True)
+class SourceTestArea:
+    name: str
+    lane: TestLane
+    source_roots: tuple[str, ...]
+    source_suffixes: tuple[str, ...]
+    test_roots: tuple[str, ...]
+    test_suffixes: tuple[str, ...]
+
+    def contains_source(self, path: str) -> bool:
+        return path.startswith(self.source_roots) and path.endswith(self.source_suffixes)
+
+    def contains_test(self, path: str) -> bool:
+        return path.startswith(self.test_roots) and path.endswith(self.test_suffixes)
+
+
+SOURCE_TEST_AREAS = (
+    SourceTestArea(
+        name="platform_python",
+        lane=TestLane.PYTHON,
+        source_roots=("apps/", "packages/"),
+        source_suffixes=(".py",),
+        test_roots=("tests/python/",),
+        test_suffixes=(".py",),
+    ),
+    SourceTestArea(
+        name="repository_scripts",
+        lane=TestLane.PYTHON,
+        source_roots=("scripts/",),
+        source_suffixes=(".py", ".sh"),
+        test_roots=("tests/python/",),
+        test_suffixes=(".py",),
+    ),
+    SourceTestArea(
+        name="after_plans_ios",
+        lane=TestLane.IOS,
+        source_roots=("products/after-plans-ios/Sources/",),
+        source_suffixes=(".swift",),
+        test_roots=(
+            "products/after-plans-ios/Tests/",
+            "products/after-plans-ios/UITests/",
+        ),
+        test_suffixes=(".swift",),
+    ),
+    SourceTestArea(
+        name="catchbook_ios",
+        lane=TestLane.IOS,
+        source_roots=("products/catchbook-ios/Sources/",),
+        source_suffixes=(".swift",),
+        test_roots=(
+            "products/catchbook-ios/Tests/",
+            "products/catchbook-ios/UITests/",
+        ),
+        test_suffixes=(".swift",),
+    ),
+    SourceTestArea(
+        name="life_clock_ios",
+        lane=TestLane.IOS,
+        source_roots=("products/life-clock-ios/Sources/",),
+        source_suffixes=(".swift",),
+        test_roots=(
+            "products/life-clock-ios/Tests/",
+            "products/life-clock-ios/UITests/",
+        ),
+        test_suffixes=(".swift",),
+    ),
+    SourceTestArea(
+        name="better_business_web",
+        lane=TestLane.WEB,
+        source_roots=(
+            "products/better-business-web/site/src/",
+            "products/better-business-web/site/netlify/functions/",
+            "products/better-business-web/portfolio/synapsex/src/",
+        ),
+        source_suffixes=(".astro", ".css", ".js", ".jsx", ".mjs", ".ts", ".tsx"),
+        test_roots=(
+            "products/better-business-web/tests/",
+            "products/better-business-web/site/tests/",
+            "products/better-business-web/portfolio/synapsex/tests/",
+            "tests/web/better-business-web/",
+        ),
+        test_suffixes=(".js", ".jsx", ".mjs", ".py", ".ts", ".tsx"),
+    ),
+    SourceTestArea(
+        name="pokemon_tcg_web",
+        lane=TestLane.WEB,
+        source_roots=("products/pokemon-tcg-search/web/",),
+        source_suffixes=(".css", ".html", ".js"),
+        test_roots=(
+            "products/pokemon-tcg-search/tests/",
+            "products/pokemon-tcg-search/web/tests/",
+        ),
+        test_suffixes=(".js", ".mjs", ".py", ".ts"),
+    ),
+)
+
+
 def test_lane_for_worker_lane(worker_lane: WorkerLane) -> TestLane:
     if worker_lane is WorkerLane.IOS:
         return TestLane.IOS
+    if worker_lane is WorkerLane.WEB:
+        return TestLane.WEB
     if worker_lane is WorkerLane.ENGINEERING:
         return TestLane.PYTHON
     return TestLane.NONE
 
 
 def logic_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) -> list[str]:
-    if lane is TestLane.PYTHON:
-        # Only actual Python source files are logic-bearing for this lane.
-        # Without the `.py` filter, docs-only changes such as
-        # `apps/**/README.md` were misclassified as logic and wrongly
-        # required matching `tests/python/` changes.
-        return [
-            change.path
-            for change in changes
-            if change.path.startswith(("apps/", "packages/"))
-            and change.path.endswith(".py")
-            and not is_test_path(change.path, lane)
-        ]
-    if lane is TestLane.IOS:
-        return [
-            change.path
-            for change in changes
-            if change.path.startswith("products/catchbook-ios/Sources/")
-        ]
-    return []
-
-
-def relevant_test_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) -> list[str]:
+    areas = _areas_for_lane(lane)
     return [
         change.path
         for change in changes
-        if is_test_path(change.path, lane) and change.is_created_or_modified
+        if any(area.contains_source(change.path) for area in areas)
+    ]
+
+
+def relevant_test_paths_for_lane(changes: list[ChangeRecord], lane: TestLane) -> list[str]:
+    affected_areas = _affected_areas(changes, lane)
+    areas = affected_areas or _areas_for_lane(lane)
+    return [
+        change.path
+        for change in changes
+        if change.is_created_or_modified
+        and any(area.contains_test(change.path) for area in areas)
     ]
 
 
 def is_test_path(path: str, lane: TestLane) -> bool:
-    if lane is TestLane.PYTHON:
-        return path.startswith("tests/python/")
-    if lane is TestLane.IOS:
-        return path.startswith("products/catchbook-ios/Tests/")
-    return False
+    return any(area.contains_test(path) for area in _areas_for_lane(lane))
+
+
+def _areas_for_lane(lane: TestLane) -> tuple[SourceTestArea, ...]:
+    return tuple(area for area in SOURCE_TEST_AREAS if area.lane is lane)
+
+
+def _affected_areas(
+    changes: list[ChangeRecord], lane: TestLane
+) -> tuple[SourceTestArea, ...]:
+    return tuple(
+        area
+        for area in _areas_for_lane(lane)
+        if any(area.contains_source(change.path) for change in changes)
+    )
+
+
+def _untested_areas(
+    changes: list[ChangeRecord], lane: TestLane
+) -> tuple[SourceTestArea, ...]:
+    return tuple(
+        area
+        for area in _affected_areas(changes, lane)
+        if not any(
+            change.is_created_or_modified and area.contains_test(change.path)
+            for change in changes
+        )
+    )
 
 
 def parse_git_status_lines(lines: list[str]) -> list[ChangeRecord]:
@@ -167,12 +279,14 @@ def evaluate_testing_policy(
     relevant_logic_paths = logic_paths_for_lane(changes, lane)
     relevant_test_paths = relevant_test_paths_for_lane(changes, lane)
     tests_required = bool(relevant_logic_paths)
+    untested_areas = _untested_areas(changes, lane)
+    all_affected_areas_tested = tests_required and not untested_areas
 
     if testing_metadata is None or not testing_metadata.summary:
         return TestingPolicyResult(
             tests_required=tests_required,
             test_lane=lane if tests_required else TestLane.NONE,
-            relevant_tests_changed=bool(relevant_test_paths),
+            relevant_tests_changed=all_affected_areas_tested,
             failure_code=ValidationFailureCode.MISSING_TESTING_METADATA,
             details="Codex result must include a ## Testing section with tests added or a valid no_test_reason_code.",
         )
@@ -182,7 +296,7 @@ def evaluate_testing_policy(
         return TestingPolicyResult(
             tests_required=tests_required,
             test_lane=lane if tests_required else TestLane.NONE,
-            relevant_tests_changed=bool(relevant_test_paths),
+            relevant_tests_changed=all_affected_areas_tested,
             failure_code=ValidationFailureCode.INVALID_NO_TEST_REASON_CODE,
             details=f"Unknown no_test_reason_code={testing_metadata.no_test_reason_code}.",
         )
@@ -197,7 +311,7 @@ def evaluate_testing_policy(
             details="No logic-bearing files changed for this lane.",
         )
 
-    if relevant_test_paths:
+    if all_affected_areas_tested:
         return TestingPolicyResult(
             tests_required=True,
             test_lane=lane,
@@ -251,7 +365,10 @@ def evaluate_testing_policy(
         test_lane=lane,
         relevant_tests_changed=False,
         failure_code=ValidationFailureCode.MISSING_TESTS_FOR_LOGIC_CHANGE,
-        details=f"Logic-bearing {lane.value} files changed without matching created or modified tests.",
+        details=(
+            f"Logic-bearing {lane.value} files changed without matching created or "
+            f"modified tests for: {', '.join(area.name for area in untested_areas)}."
+        ),
     )
 
 
@@ -314,7 +431,9 @@ def _is_valid_followup_test_task(
     if followup_task.repo_id != current_task.repo_id:
         return False
 
-    if required_lane is TestLane.IOS and current_task.product_id != followup_task.product_id:
+    if required_lane in {TestLane.IOS, TestLane.WEB} and (
+        current_task.product_id != followup_task.product_id
+    ):
         return False
 
     return True

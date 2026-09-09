@@ -61,7 +61,7 @@ LEAD_FROM_EMAIL_ENV_VAR = "LEAD_FROM_EMAIL"
 
 def load_dotenv() -> None:
     """Load .env file from repo root if it exists. No external dependencies."""
-    root = Path(__file__).resolve().parents[2]
+    root = load_runtime_paths().repo_root
     env_file = root / ".env"
     if not env_file.exists():
         return

@@ -1,0 +1,9 @@
+lane: skill_evolution
+required_artifacts:
+  - path_glob: state/artifacts/skill-evolution/{task_id}-*/applied.flag
+required_events:
+  - task_claimed
+forbidden_failure_codes:
+  - skill_evolution_rejected
+  - sidecar_validation_failed
+  - approval_token_invalid

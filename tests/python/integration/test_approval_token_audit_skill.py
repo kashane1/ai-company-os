@@ -8,7 +8,7 @@ drifted token-store adapter surfaces ``approval_audit_failed``.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -22,7 +22,6 @@ from packages.policies.approval_tokens import (
 from packages.policies.approvals import PolicyViolation
 from packages.policies.release_readiness import (
     APP_STORE_SUBMISSION_APPROVAL_TYPE,
-    _TokenAuditStoreAdapter,
     approve_app_store_submission,
 )
 from packages.schemas.approval import ApprovalStatus

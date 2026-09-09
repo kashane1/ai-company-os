@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from packages.schemas.task import Task
 from packages.schemas.task_packet import TaskStatus, WorkerLane
@@ -46,10 +46,24 @@ def test_outreach_worker_fails_closed_on_send_task_type() -> None:
     assert "outreach_send_forbidden" in result.failure_codes
 
 
-def test_outreach_worker_accepts_refresh_task_type() -> None:
+def test_outreach_worker_refreshes_real_ledger_artifacts(tmp_path: Path) -> None:
     runner = load_outreach_runner()
 
-    result = runner.execute_task(_task("OUTREACH_LEDGER_REFRESH"))
+    result = runner.execute_task(_task("OUTREACH_LEDGER_REFRESH"), repo_root=tmp_path)
 
     assert result.status == TaskStatus.COMPLETED
     assert "client-status" in result.summary
+    assert result.artifacts == [
+        str(tmp_path / "state/prospects/outreach-lane/client-status.json"),
+        str(tmp_path / "state/prospects/outreach-lane/client-status.md"),
+    ]
+    assert all(Path(artifact).is_file() for artifact in result.artifacts)
+
+
+def test_outreach_worker_blocks_unimplemented_draft_and_reply_operations() -> None:
+    runner = load_outreach_runner()
+
+    for task_type in ("OUTREACH_DRAFT", "OUTREACH_REPLY_RECONCILE"):
+        result = runner.execute_task(_task(task_type))
+        assert result.status is TaskStatus.BLOCKED
+        assert result.next_actions

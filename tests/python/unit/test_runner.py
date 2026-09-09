@@ -3,26 +3,35 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from engineering import runner
+
 from packages.db.task_run_store import TaskRunStore
 from packages.db.task_store import TaskStore
 from packages.db.worktree_store import WorktreeStore
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.task_packet import TaskStatus
-from packages.schemas.testing import (
-    TestLane as LaneEnum,
-    TestingPolicyResult as PolicyOutcome,
-    ValidationFailureCode,
-)
 from packages.schemas.task_run import (
     CodexExecutionRecord,
     EngineeringResultClassification,
     GitStateSnapshot,
     ValidationCheck,
 )
+from packages.schemas.testing import (
+    TestingPolicyResult as PolicyOutcome,
+)
+from packages.schemas.testing import (
+    TestLane as LaneEnum,
+)
+from packages.schemas.testing import (
+    ValidationFailureCode,
+)
 from packages.schemas.worktree import WorktreeStatus
-from tests.python.factories.task_data import build_repo_config, build_repo_record, build_task, build_worktree_metadata
+from tests.python.factories.task_data import (
+    build_repo_config,
+    build_repo_record,
+    build_task,
+    build_worktree_metadata,
+)
 
 
 def build_execution_record() -> CodexExecutionRecord:

@@ -5,6 +5,7 @@ and in the consumer skill body. Closes the architecture-review concern
 that the schema was 'documentation in Python clothing.'
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 from packages.schemas.polish_prompt import POLISH_PROMPT_FIELDS

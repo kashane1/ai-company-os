@@ -14,7 +14,6 @@
 		2005797679863899FAD6AC8D /* CreatePlanDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6390FFCE8DACAF4A2380209 /* CreatePlanDraftTests.swift */; };
 		219B34F7FFF56269CAA6CF6D /* SafetyCenterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE06918A2DB057ADBBE6A5DD /* SafetyCenterView.swift */; };
 		24702E0501273A706ABFE6FA /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4944A96BEE2C40725BCFE441 /* ProfileView.swift */; };
-		297170DA0E7D23293D7A5B1D /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 5512D4C915E97009FE8307E8 /* Supabase */; };
 		2B82630048F3D88893D772C4 /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC28F038AE7E325CA3522EB6 /* ServiceProtocols.swift */; };
 		2C7CEB353745048BF973D656 /* InMemoryBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63950949EA208C8E3391B2BA /* InMemoryBackendTests.swift */; };
 		2FC77CAB214BC85F204A7632 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0046A198B2A3A9950198CFEB /* Assets.xcassets */; };
@@ -96,7 +95,7 @@
 		734DDAE879F368AB93A04A55 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		7988367039DD847DA93D2BE5 /* PublicFeedAndRecommendationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicFeedAndRecommendationsTests.swift; sourceTree = "<group>"; };
 		8162AAEDB5A594309FEEBD3E /* NameStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameStepView.swift; sourceTree = "<group>"; };
-		9029163A2F6D292233E2564D /* AfterPlans.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AfterPlans.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9029163A2F6D292233E2564D /* AfterPlans.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AfterPlans.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9084512148C9A74F07691351 /* QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeView.swift; sourceTree = "<group>"; };
 		9390BC42EA209EF88FA436CD /* InviteShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteShareView.swift; sourceTree = "<group>"; };
 		A8A82A0A8DDE3932004CB037 /* InviteCodeStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteCodeStepView.swift; sourceTree = "<group>"; };
@@ -114,17 +113,6 @@
 		FC28F038AE7E325CA3522EB6 /* ServiceProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
 		FE06918A2DB057ADBBE6A5DD /* SafetyCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyCenterView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		6DD120F165A3FE87BBBB3761 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				297170DA0E7D23293D7A5B1D /* Supabase in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		00BC44155521C21CB25D89B3 /* Models */ = {
@@ -397,7 +385,6 @@
 			buildPhases = (
 				E933FF924855CE31F9927E66 /* Sources */,
 				F1712B7C681E770C0C7DC054 /* Resources */,
-				6DD120F165A3FE87BBBB3761 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -405,7 +392,6 @@
 			);
 			name = AfterPlans;
 			packageProductDependencies = (
-				5512D4C915E97009FE8307E8 /* Supabase */,
 			);
 			productName = AfterPlans;
 			productReference = 9029163A2F6D292233E2564D /* AfterPlans.app */;
@@ -437,6 +423,14 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					B509CA916BA1CAAB2A2748E2 = {
+						ProvisioningStyle = Automatic;
+					};
+					FBF529B5D3D1D1025B1B4551 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = 928565A26D370787916D0243 /* Build configuration list for PBXProject "AfterPlans" */;
 			developmentRegion = en;
@@ -447,9 +441,6 @@
 			);
 			mainGroup = 5CC6ABA5592AF017F52B38F5;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				6089FDADFAD95B632298419D /* XCRemoteSwiftPackageReference "supabase-swift" */,
-			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8EA57A1ECE1594F740CC6DCE /* Products */;
 			projectDirPath = "";
@@ -615,10 +606,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"\"";
-				DEVELOPMENT_TEAM = 92SGDZ88FW;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = AfterPlans;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -636,7 +624,6 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3YCTPY88Y4;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -655,7 +642,6 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3YCTPY88Y4;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -735,10 +721,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"\"";
-				DEVELOPMENT_TEAM = 92SGDZ88FW;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = AfterPlans;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -782,25 +765,6 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		6089FDADFAD95B632298419D /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/supabase/supabase-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.5.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		5512D4C915E97009FE8307E8 /* Supabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6089FDADFAD95B632298419D /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Supabase;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B52427D7E02DE5D2D08E67EC /* Project object */;
 }

@@ -20,12 +20,10 @@ elif command -v python3 >/dev/null 2>&1; then
 elif command -v python >/dev/null 2>&1; then
   PYTHON_BIN="$(command -v python)"
 else
-  echo "Python 3.10+ is required. Install Python or set PYTHON_BIN." >&2
+  echo "Python 3.11+ is required. Install Python or set PYTHON_BIN." >&2
   exit 1
 fi
 
-"$PYTHON_BIN" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' \
-  || { echo "Python 3.10+ is required; found $("$PYTHON_BIN" --version)." >&2; exit 1; }
 "$PYTHON_BIN" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' \
   || { echo "Python tests require Python 3.11+ because the platform uses datetime.UTC; found $("$PYTHON_BIN" --version)." >&2; exit 1; }
 if ! "$PYTHON_BIN" -c 'import pytest, pytest_cov'; then
@@ -35,6 +33,9 @@ fi
 
 mkdir -p "$ROOT/build/test-results" "$ROOT/build/coverage"
 cd "$ROOT"
+# Keep all subprocesses on the same branch/config contract even when a test
+# starts Python from another directory. Keep coverage artifacts under build/.
+export COVERAGE_FILE="$ROOT/build/coverage/.coverage"
 
 args=(
   "$PYTHON_BIN" -m pytest
@@ -42,6 +43,8 @@ args=(
   --junitxml="$ROOT/build/test-results/python-junit.xml"
   --cov=apps
   --cov=packages
+  --cov-branch
+  --cov-config="$ROOT/pyproject.toml"
   --cov-report=term-missing
   --cov-report=xml:"$ROOT/build/coverage/python-coverage.xml"
 )

@@ -7,8 +7,10 @@ from packages.agency.approvals import (
     request_retainer_approval,
 )
 from packages.db.approval_store import ApprovalStore
-from packages.policies.agency_gates import assert_retainer_approval_granted
-from packages.policies.agency_gates import assert_review_sms_allowed
+from packages.policies.agency_gates import (
+    assert_retainer_approval_granted,
+    assert_review_sms_allowed,
+)
 from packages.policies.approvals import PolicyViolation
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 

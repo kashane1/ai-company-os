@@ -1,6 +1,10 @@
 # After Plans
 
-After Plans is now tracked in `ai-company-os` as a managed product with:
+> **Current status:** see [PHASE_STATUS.md](PHASE_STATUS.md). This directory
+> contains source and planning artifacts; it does not establish cloud deployment,
+> TestFlight, App Store submission, or public release.
+
+After Plans is tracked in `ai-company-os` as a managed product with:
 
 - product docs in `docs/products/after-plans/`
 - a managed product registry record in `infra/products.json`

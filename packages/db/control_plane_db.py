@@ -5,6 +5,7 @@ import os
 import sqlite3
 from collections.abc import Sequence
 from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,13 @@ class ControlPlaneDatabaseConfig:
         return parsed._replace(netloc=netloc).geturl()
 
 
+# Store objects are cheap and often created independently. Share the active
+# transaction by database identity within the current thread/task context.
+_ACTIVE_CONNECTIONS: ContextVar[dict[ControlPlaneDatabaseConfig, Any]] = ContextVar(
+    "control_plane_transactions", default={}
+)
+
+
 class ControlPlaneDatabase:
     def __init__(self) -> None:
         self.config = self._load_config()
@@ -73,6 +81,10 @@ class ControlPlaneDatabase:
 
     @contextmanager
     def connection(self):
+        active = _ACTIVE_CONNECTIONS.get().get(self.config)
+        if active is not None:
+            yield active
+            return
         if self.config.backend == "postgres":
             if psycopg is None:
                 raise RuntimeError(
@@ -97,6 +109,32 @@ class ControlPlaneDatabase:
             connection.commit()
         finally:
             connection.close()
+
+    @contextmanager
+    def transaction(self):
+        """Commit related store writes together, or roll all of them back.
+
+        SQLite reserves the writer before reads to avoid read/update races.
+        Postgres callers use row locks where lifecycle ownership is evaluated.
+        Nested scopes share the outer boundary; these are not savepoints.
+        """
+        active = _ACTIVE_CONNECTIONS.get()
+        if self.config in active:
+            yield active[self.config]
+            return
+        with self.connection() as connection:
+            # Schema bootstrap is separate from business-state mutation.
+            connection.commit()
+            if self.config.backend == "sqlite":
+                connection.execute("BEGIN IMMEDIATE")
+            token = _ACTIVE_CONNECTIONS.set({**active, self.config: connection})
+            try:
+                yield connection
+            except BaseException:
+                connection.rollback()
+                raise
+            finally:
+                _ACTIVE_CONNECTIONS.reset(token)
 
     def ensure_schema(self, connection: Any) -> None:
         integer_pk = (
@@ -154,6 +192,7 @@ class ControlPlaneDatabase:
                 task_run_id TEXT,
                 approval_type TEXT NOT NULL,
                 review_artifact_path TEXT,
+                reviewed_revision TEXT NOT NULL DEFAULT '',
                 subject_type TEXT NOT NULL,
                 subject_id TEXT NOT NULL,
                 action TEXT NOT NULL,
@@ -228,8 +267,26 @@ class ControlPlaneDatabase:
         cursor = connection.cursor()
         for statement in statements:
             cursor.execute(statement)
+        self._ensure_approval_columns(cursor)
         for statement in self._index_statements():
             cursor.execute(statement)
+
+    def _ensure_approval_columns(self, cursor: Any) -> None:
+        """Add approval fields to existing local databases without data loss."""
+        if self.config.backend == "postgres":
+            cursor.execute(
+                f"ALTER TABLE {APPROVALS_TABLE} "
+                "ADD COLUMN IF NOT EXISTS reviewed_revision TEXT NOT NULL DEFAULT ''"
+            )
+            return
+
+        cursor.execute(f"PRAGMA table_info({APPROVALS_TABLE})")
+        columns = {str(row[1]) for row in cursor.fetchall()}
+        if "reviewed_revision" not in columns:
+            cursor.execute(
+                f"ALTER TABLE {APPROVALS_TABLE} "
+                "ADD COLUMN reviewed_revision TEXT NOT NULL DEFAULT ''"
+            )
 
     def _index_statements(self) -> list[str]:
         return [

@@ -11,7 +11,6 @@ from packages.policies.claude_output import (
     validate_claude_output,
 )
 
-
 HAPPY = """---
 last_updated: 2026-04-10
 source_session_id: session-abc123

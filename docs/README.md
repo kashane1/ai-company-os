@@ -46,9 +46,9 @@ don't read the directory top-to-bottom. Regenerate after adding docs with
 
 | Path | What it is |
 |---|---|
-| `products/` (~219 files) | Per-product specs, positioning, and release artifacts the system produced while building the iOS apps |
-| [`plans/`](plans/INDEX.md) (46) | Per-feature implementation plans; completed/superseded ones move to `plans/archive/` |
-| [`solutions/`](solutions/INDEX.md) (21) | Recorded fixes/learnings from real runs (categorized subfolders) |
+| `products/` | Per-product specs, positioning, and release artifacts the system produced while building the iOS apps |
+| [`plans/`](plans/INDEX.md) | Per-feature implementation plans; completed/superseded ones move to `plans/archive/` |
+| [`solutions/`](solutions/INDEX.md) | Recorded fixes/learnings from real runs (categorized subfolders) |
 | [`agency/`](agency/INDEX.md), [`founder/`](founder/INDEX.md) | Lane maps and operator guides |
 | [`brainstorms/`](brainstorms/INDEX.md), `handoffs/`, [`research/`](research/INDEX.md) | Working notes from individual agent sessions |
 | [`decisions/`](decisions/INDEX.md), [`adr/`](adr/INDEX.md) | Architecture decision records |

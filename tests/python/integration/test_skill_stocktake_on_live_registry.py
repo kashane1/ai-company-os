@@ -19,7 +19,6 @@ from __future__ import annotations
 
 from packages.tools.primitives.registry_drift import check_drift
 
-
 # Pre-existing drift that Phase 2a does not fix. Each entry is a
 # tuple of (drift_type, matching_substring_in_detail_or_path).
 KNOWN_LIVE_DRIFT = frozenset(
