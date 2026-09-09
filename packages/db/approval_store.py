@@ -1,5 +1,3 @@
-from dataclasses import replace
-
 from packages.db.contracts import APPROVALS_TABLE
 from packages.db.control_plane_db import ControlPlaneDatabase
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
@@ -13,7 +11,7 @@ class ApprovalStore:
         query = f"""
             INSERT INTO {APPROVALS_TABLE} (
                 id, status, summary, created_at, task_id, task_run_id, approval_type,
-                review_artifact_path, subject_type, subject_id, action, decided_by,
+                review_artifact_path, reviewed_revision, subject_type, subject_id, action, decided_by,
                 decided_at, decision_notes
             ) VALUES (
                 {self.db.placeholder("id")},
@@ -24,6 +22,7 @@ class ApprovalStore:
                 {self.db.placeholder("task_run_id")},
                 {self.db.placeholder("approval_type")},
                 {self.db.placeholder("review_artifact_path")},
+                {self.db.placeholder("reviewed_revision")},
                 {self.db.placeholder("subject_type")},
                 {self.db.placeholder("subject_id")},
                 {self.db.placeholder("action")},
@@ -39,6 +38,7 @@ class ApprovalStore:
                 task_run_id = excluded.task_run_id,
                 approval_type = excluded.approval_type,
                 review_artifact_path = excluded.review_artifact_path,
+                reviewed_revision = excluded.reviewed_revision,
                 subject_type = excluded.subject_type,
                 subject_id = excluded.subject_id,
                 action = excluded.action,
@@ -92,13 +92,33 @@ class ApprovalStore:
         decided_at: str | None = None,
         decision_notes: str | None = None,
     ) -> ApprovalRecord:
-        current = self.load(approval_id)
-        updated = replace(
-            current,
-            status=status,
-            decided_by=decided_by,
-            decided_at=decided_at,
-            decision_notes=decision_notes,
-        )
-        self.save(updated)
-        return updated
+        """Decide a pending approval without overwriting a terminal decision."""
+        params = {
+            "id": approval_id,
+            "status": status.value,
+            "decided_by": decided_by,
+            "decided_at": decided_at,
+            "decision_notes": decision_notes,
+            "pending": ApprovalStatus.PENDING.value,
+        }
+        update = f"""
+            UPDATE {APPROVALS_TABLE}
+            SET status = {self.db.placeholder("status")},
+                decided_by = {self.db.placeholder("decided_by")},
+                decided_at = {self.db.placeholder("decided_at")},
+                decision_notes = {self.db.placeholder("decision_notes")}
+            WHERE id = {self.db.placeholder("id")}
+              AND status = {self.db.placeholder("pending")}
+        """
+        select = f"""
+            SELECT * FROM {APPROVALS_TABLE}
+            WHERE id = {self.db.placeholder("id")}
+        """
+        with self.db.connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(update, params)
+            cursor.execute(select, {"id": approval_id})
+            payload = self.db._row_to_dict(cursor.fetchone())
+        if payload is None:
+            raise FileNotFoundError(approval_id)
+        return ApprovalRecord.from_dict(payload)

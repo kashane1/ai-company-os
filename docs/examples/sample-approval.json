@@ -7,6 +7,7 @@
   "decision_notes": "Diff and tests reviewed; safe to merge.",
   "id": "appr_demo_0001",
   "review_artifact_path": "state/artifacts/run_demo_0001/review.json",
+  "reviewed_revision": "",
   "status": "approved",
   "subject_id": "run_demo_0001",
   "subject_type": "task_run",

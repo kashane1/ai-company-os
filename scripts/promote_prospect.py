@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """Operator CLI — promote a human-verified prospect into a client engagement.
 
-Promotion is approval-gated: it requires ``--approved-by NAME`` (a recorded
-operator approval) and the prospect must already be human-verified. Promotion
-does not send outreach; it writes a ``client-site`` record into the product
-registry and scaffolds the client docs workspace.
+Promotion is approval-gated: it requires a stored approval ID whose type,
+action, prospect, and reviewed promotion inputs match this request. The prospect
+must already be human-verified. Promotion does not send outreach; it writes a
+``client-site`` record into the product registry and scaffolds the client docs
+workspace.
 
 Examples::
 
     python3 scripts/promote_prospect.py list-verified
     python3 scripts/promote_prospect.py promote --place-id PLACE --bundle package_a \\
-        --approved-by kashane
+        --approval-id APPROVAL_ID
 """
 
 from __future__ import annotations
@@ -38,9 +39,9 @@ def main(argv: list[str] | None = None) -> int:
     promote.add_argument("--place-id", required=True)
     promote.add_argument("--bundle", required=True, choices=sorted(default_catalog().bundles))
     promote.add_argument(
-        "--approved-by",
+        "--approval-id",
         required=True,
-        help="operator name recording the founder approval for this promotion",
+        help="stored approval for this prospect, bundle, and resulting client configuration",
     )
 
     args = parser.parse_args(argv)
@@ -61,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
         result = promote_prospect_to_client(
             record,
             args.bundle,
-            approval_granted=bool(args.approved_by),
+            approval_id=args.approval_id,
         )
     except PolicyViolation as exc:
         print(f"REFUSED [{exc.code}]: {exc}", file=sys.stderr)

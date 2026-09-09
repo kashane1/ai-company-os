@@ -37,6 +37,16 @@ def _load_runner():
     return module
 
 
+def _load_worker_main():
+    path = Path(__file__).resolve().parents[3] / "apps" / "worker-webdeploy" / "main.py"
+    spec = importlib.util.spec_from_file_location("webdeploy_worker_main", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 # ── policy ──────────────────────────────────────────────────────────────────
 
 
@@ -128,6 +138,21 @@ def test_runner_blocks_production_without_approval(tmp_path: Path) -> None:
             production=True, preview_reviewed=True, approval_granted=False,
         )
     assert target.deploys == []  # nothing shipped
+
+
+def test_worker_production_refuses_without_bound_stored_approval(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    project = _good_project(tmp_path)
+    worker = _load_worker_main()
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["webdeploy", str(project), "acme", "--production", "--preview-reviewed"],
+    )
+
+    assert worker.main() == 2
+    assert "REFUSED [deploy_approval_not_granted]" in capsys.readouterr().err
 
 
 def test_runner_blocks_deploy_when_build_invalid(tmp_path: Path) -> None:

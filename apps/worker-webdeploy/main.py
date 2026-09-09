@@ -34,10 +34,42 @@ def main() -> int:
     parser.add_argument("site_name", help="deploy target site name")
     parser.add_argument("--production", action="store_true", help="promote to production (gated)")
     parser.add_argument("--preview-reviewed", action="store_true")
-    parser.add_argument("--approved", action="store_true", help="a human approval was granted")
+    parser.add_argument(
+        "--approval-id",
+        help="stored approval bound to this production deploy's site and dist tree",
+    )
     args = parser.parse_args()
 
+    from packages.policies.approval_bindings import (
+        WEB_DEPLOY_ACTION,
+        WEB_DEPLOY_APPROVAL_TYPE,
+        WEB_DEPLOY_SUBJECT_TYPE,
+        assert_approval_binding,
+        web_deploy_revision,
+    )
+    from packages.policies.approvals import PolicyViolation, PolicyViolationCode
     from packages.web.deploy import NetlifyDeployTarget
+
+    approval_granted = False
+    if args.production:
+        try:
+            assert_approval_binding(
+                args.approval_id,
+                approval_type=WEB_DEPLOY_APPROVAL_TYPE,
+                subject_type=WEB_DEPLOY_SUBJECT_TYPE,
+                subject_id=args.site_name,
+                action=WEB_DEPLOY_ACTION,
+                reviewed_revision=web_deploy_revision(
+                    dist_dir=Path(args.project_dir) / "dist",
+                    site_name=args.site_name,
+                ),
+                violation_code=PolicyViolationCode.DEPLOY_APPROVAL_NOT_GRANTED,
+            )
+        except (PolicyViolation, ValueError) as exc:
+            code = exc.code if isinstance(exc, PolicyViolation) else "deploy_approval_not_granted"
+            print(f"REFUSED [{code}]: {exc}", file=sys.stderr)
+            return 2
+        approval_granted = True
 
     outcome: WebDeployOutcome = run_webdeploy(
         Path(args.project_dir),
@@ -45,7 +77,7 @@ def main() -> int:
         target=NetlifyDeployTarget(),
         production=args.production,
         preview_reviewed=args.preview_reviewed,
-        approval_granted=args.approved,
+        approval_granted=approval_granted,
     )
     kind = "production" if outcome.result.production else "preview"
     print(f"Deployed ({kind}) → {outcome.result.url}  [{outcome.result.state}]")

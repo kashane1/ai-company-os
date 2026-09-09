@@ -224,10 +224,47 @@ def test_p0_second_factor_out_of_window(isolated_repo_root) -> None:
 # ── FastAPI endpoint ─────────────────────────────────────────────
 
 
+@pytest.mark.parametrize("token_action,token_subject", [("review_task", "release-one"), ("submit_appstore", "other-release")])
+def test_magic_link_cannot_authorize_a_different_action_or_subject(
+    isolated_repo_root, token_action, token_subject
+):
+    service = ControlPlaneService()
+    approval = service.request_approval(
+        summary="release", subject_type="release", subject_id="release-one",
+        action="submit_appstore", approval_type="app_store_submission",
+    )
+    token = _issue(ApprovalTokenStore(), action=token_action,
+                   approval_id=approval.id, subject_id=token_subject)
+    response = TestClient(app).post(
+        f"/magic/approvals/{token.token_id}/confirm",
+        data={"signature": token.signature, "device_fingerprint": "mac-local"},
+    )
+    assert response.status_code == 409
+    assert service.approvals.load(approval.id).status is ApprovalStatus.PENDING
+
+
+def test_magic_link_cannot_report_success_after_rejection(isolated_repo_root):
+    service = ControlPlaneService()
+    approval = service.request_approval(
+        summary="review", subject_type="task", subject_id="task-one",
+        action="review_task", approval_type="review_task",
+    )
+    token = _issue(ApprovalTokenStore(), action=approval.action,
+                   approval_id=approval.id, subject_id=approval.subject_id)
+    service.decide_approval(approval_id=approval.id, status=ApprovalStatus.REJECTED,
+                            decided_by="test-reviewer")
+    response = TestClient(app).post(
+        f"/magic/approvals/{token.token_id}/confirm",
+        data={"signature": token.signature, "device_fingerprint": "mac-local"},
+    )
+    assert response.status_code == 409
+    assert service.approvals.load(approval.id).status is ApprovalStatus.REJECTED
+
+
 def test_magic_link_confirm_endpoint_flips_approval(isolated_repo_root) -> None:
     client = TestClient(app)
     service = ControlPlaneService()
-    goal = service.create_goal(title="g", summary="s")
+    service.create_goal(title="g", summary="s")
     approval = service.request_approval(
         summary="approve the thing",
         subject_type="task",

@@ -26,6 +26,7 @@ from pydantic import BaseModel
 from apps.api.control_plane import ControlPlaneService
 from packages.db.approval_token_store import ApprovalTokenStore
 from packages.policies.approval_tokens import (
+    ApprovalToken,
     ApprovalTokenError,
     DeviceMismatch,
     SecondFactorOutOfWindow,
@@ -34,6 +35,7 @@ from packages.policies.approval_tokens import (
     TokenExpired,
     TokenNotFound,
     TokenSignatureInvalid,
+    classify_action,
     record_second_factor,
     verify_and_burn_token,
 )
@@ -89,6 +91,22 @@ _CONFIRM_HTML = """<!doctype html>
 """
 
 
+def _require_pending_binding(store: ApprovalTokenStore, token_id: str) -> None:
+    """A valid signature cannot authorize a different stored approval action."""
+    try:
+        token: ApprovalToken = store.load(token_id)
+        approval = ControlPlaneService().approvals.load(token.approval_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="token or approval not found") from exc
+    if (
+        approval.status is not ApprovalStatus.PENDING
+        or approval.action != token.action
+        or approval.subject_id != token.subject_id
+        or classify_action(approval.action) != token.action_class
+    ):
+        raise HTTPException(status_code=409, detail="token does not match a pending approval")
+
+
 @router.get("/{token_id}", response_class=HTMLResponse)
 def render_confirm_page(token_id: str, request: Request) -> HTMLResponse:
     store = ApprovalTokenStore()
@@ -132,6 +150,7 @@ def confirm_token(
     device_fingerprint: str = Form(...),
 ) -> ConfirmResponse | RedirectResponse:
     store = ApprovalTokenStore()
+    _require_pending_binding(store, token_id)
     secret = get_secret()
     try:
         record = verify_and_burn_token(
@@ -160,12 +179,14 @@ def confirm_token(
     # what the release-readiness policy cross-checks via the
     # approval-token-audit validator (Phase 3.2a).
     if record.action_class == "default":
-        service.decide_approval(
+        decision = service.decide_approval(
             approval_id=record.approval_id,
             status=ApprovalStatus.APPROVED,
             decided_by=f"magic-link:{device_fingerprint}",
             decision_notes=f"token {token_id} burned",
         )
+        if decision.status is not ApprovalStatus.APPROVED:
+            raise HTTPException(status_code=409, detail="approval already decided")
 
     if record.action_class == "p0" and "text/html" in request.headers.get("accept", ""):
         return RedirectResponse(
@@ -191,6 +212,7 @@ def confirm_second_factor(
     device_fingerprint: str = Form(...),
 ) -> ConfirmResponse:
     store = ApprovalTokenStore()
+    _require_pending_binding(store, token_id)
     secret = get_secret()
     try:
         record = record_second_factor(
@@ -216,12 +238,14 @@ def confirm_second_factor(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     service = ControlPlaneService()
-    service.decide_approval(
+    decision = service.decide_approval(
         approval_id=record.approval_id,
         status=ApprovalStatus.APPROVED,
         decided_by=f"magic-link-p0:{device_fingerprint}",
         decision_notes=f"token {token_id} second-factor burned",
     )
+    if decision.status is not ApprovalStatus.APPROVED:
+        raise HTTPException(status_code=409, detail="approval already decided")
     return ConfirmResponse(
         approval_id=record.approval_id,
         status="approved",

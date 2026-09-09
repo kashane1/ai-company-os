@@ -7,9 +7,19 @@ from pathlib import Path
 
 import pytest
 
-from packages.agency.promotion import PromotionError, promote_prospect_to_client
+from packages.agency.promotion import (
+    PromotionError,
+    promote_prospect_to_client,
+    promotion_reviewed_revision,
+)
+from packages.policies.approval_bindings import (
+    PROMOTION_ACTION,
+    PROMOTION_APPROVAL_TYPE,
+    PROMOTION_SUBJECT_TYPE,
+)
 from packages.policies.approvals import PolicyViolation, PolicyViolationCode
 from packages.prospecting.storage import ProspectRepository
+from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.prospect import EngagementStatus, HumanVerified, ProspectRecord
 
 
@@ -36,10 +46,40 @@ def _paths(tmp_path: Path) -> dict:
     }
 
 
+class _ApprovalStore:
+    def __init__(self, record: ApprovalRecord) -> None:
+        self.record = record
+
+    def load(self, approval_id: str) -> ApprovalRecord:
+        if approval_id != self.record.id:
+            raise FileNotFoundError(approval_id)
+        return self.record
+
+
+def _approval_kwargs(prospect: ProspectRecord, bundle: str) -> dict[str, object]:
+    return {
+        "approval_id": "approval-promotion",
+        "approval_store": _ApprovalStore(
+            ApprovalRecord(
+                id="approval-promotion",
+                status=ApprovalStatus.APPROVED,
+                summary="Promote prospect",
+                created_at="2026-09-08T00:00:00+00:00",
+                approval_type=PROMOTION_APPROVAL_TYPE,
+                subject_type=PROMOTION_SUBJECT_TYPE,
+                subject_id=prospect.place_id,
+                action=PROMOTION_ACTION,
+                reviewed_revision=promotion_reviewed_revision(prospect, bundle),
+            )
+        ),
+    }
+
+
 def test_promotes_verified_approved_prospect(tmp_path: Path) -> None:
     p = _paths(tmp_path)
+    prospect = _prospect()
     record = promote_prospect_to_client(
-        _prospect(), "package_a", approval_granted=True, mark_onboarded=False, **p
+        prospect, "package_a", mark_onboarded=False, **_approval_kwargs(prospect, "package_a"), **p
     )
     assert record["id"] == "joes-plumbing-site"
     assert record["type"] == "client-site"
@@ -69,9 +109,9 @@ def test_promotion_marks_prospect_onboarded(tmp_path: Path) -> None:
     promote_prospect_to_client(
         prospect,
         "package_a",
-        approval_granted=True,
         prospect_repo=repo,
         mark_onboarded=True,
+        **_approval_kwargs(prospect, "package_a"),
         **p,
     )
     updated = repo.get(prospect.place_id)
@@ -85,7 +125,7 @@ def test_refuses_unverified_prospect(tmp_path: Path) -> None:
             promote_prospect_to_client(
                 _prospect(state),
                 "package_a",
-                approval_granted=True,
+                approval_id=None,
                 mark_onboarded=False,
                 **p,
             )
@@ -98,7 +138,7 @@ def test_refuses_without_approval(tmp_path: Path) -> None:
     p = _paths(tmp_path)
     with pytest.raises(PolicyViolation) as exc:
         promote_prospect_to_client(
-            _prospect(), "package_a", approval_granted=False, mark_onboarded=False, **p
+            _prospect(), "package_a", approval_id=None, mark_onboarded=False, **p
         )
     assert exc.value.code == PolicyViolationCode.CLIENT_PROMOTION_NOT_APPROVED.value
 
@@ -107,17 +147,18 @@ def test_unknown_bundle_raises_promotion_error(tmp_path: Path) -> None:
     p = _paths(tmp_path)
     with pytest.raises(PromotionError):
         promote_prospect_to_client(
-            _prospect(), "package_z", approval_granted=True, mark_onboarded=False, **p
+            _prospect(), "package_z", approval_id=None, mark_onboarded=False, **p
         )
 
 
 def test_promotion_is_idempotent(tmp_path: Path) -> None:
     p = _paths(tmp_path)
+    prospect = _prospect()
     first = promote_prospect_to_client(
-        _prospect(), "package_a", approval_granted=True, mark_onboarded=False, **p
+        prospect, "package_a", mark_onboarded=False, **_approval_kwargs(prospect, "package_a"), **p
     )
     second = promote_prospect_to_client(
-        _prospect(), "package_a", approval_granted=True, mark_onboarded=False, **p
+        prospect, "package_a", mark_onboarded=False, **_approval_kwargs(prospect, "package_a"), **p
     )
     assert first["id"] == second["id"]
     registry = json.loads(p["registry_path"].read_text())
@@ -126,12 +167,13 @@ def test_promotion_is_idempotent(tmp_path: Path) -> None:
 
 def test_re_promotion_with_different_bundle_is_refused(tmp_path: Path) -> None:
     p = _paths(tmp_path)
+    prospect = _prospect()
     promote_prospect_to_client(
-        _prospect(), "package_a", approval_granted=True, mark_onboarded=False, **p
+        prospect, "package_a", mark_onboarded=False, **_approval_kwargs(prospect, "package_a"), **p
     )
     with pytest.raises(PromotionError):
         promote_prospect_to_client(
-            _prospect(), "package_c", approval_granted=True, mark_onboarded=False, **p
+            prospect, "package_c", mark_onboarded=False, **_approval_kwargs(prospect, "package_c"), **p
         )
     # Registry + rendered OFFER stay on the original bundle (no silent divergence).
     registry = json.loads(p["registry_path"].read_text())
