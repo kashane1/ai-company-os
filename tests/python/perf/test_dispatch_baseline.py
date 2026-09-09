@@ -7,6 +7,8 @@ event pass post-run validation. Evidence preparation happens before the timer.
 
 The historical pre-Phase-0 baseline remains available for comparison. Current
 regression enforcement uses the absolute median, p95, and p99 budgets below.
+Run the latency gate without coverage instrumentation; coverage belongs in a
+separate test invocation because tracing changes the path being timed.
 
 Usage:
     # Capture an explicitly labeled reference snapshot:
@@ -22,6 +24,7 @@ import os
 import statistics
 import time
 from pathlib import Path
+from typing import Any, TypedDict, cast
 
 import pytest
 
@@ -58,6 +61,14 @@ P99_MS_BUDGET = 100.0
 MAX_BENCHMARK_ATTEMPTS = 3
 
 
+class DispatchSample(TypedDict):
+    index: int
+    wall_ms: float
+    cpu_ms: float
+    claim_wall_ms: float
+    submit_wall_ms: float
+
+
 def _isolate_state_root(
     base: Path, monkeypatch: pytest.MonkeyPatch, label: str
 ) -> Path:
@@ -87,7 +98,11 @@ def isolated_platform(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return _isolate_state_root(tmp_path, monkeypatch, "isolated")
 
 
-def _round_trip_once(service: ControlPlaneService, goal_id: str, i: int) -> float:
+def _round_trip_once(
+    service: ControlPlaneService,
+    goal_id: str,
+    i: int,
+) -> DispatchSample:
     """Time one claim through successful validated completion."""
     task = service.create_task_for_goal(
         goal_id=goal_id,
@@ -110,9 +125,13 @@ def _round_trip_once(service: ControlPlaneService, goal_id: str, i: int) -> floa
         encoding="utf-8",
     )
 
-    start = time.perf_counter()
+    wall_start = time.perf_counter_ns()
+    cpu_start = time.process_time_ns()
+    claim_wall_start = time.perf_counter_ns()
     claimed = service.claim_task(lane=WorkerLane.ENGINEERING, worker_id="bench-worker")
+    claim_wall_end = time.perf_counter_ns()
     assert claimed is not None and claimed.id == task.id
+    submit_wall_start = time.perf_counter_ns()
     completed = service.submit_task_result(
         task_id=claimed.id,
         status=TaskStatus.COMPLETED,
@@ -121,13 +140,22 @@ def _round_trip_once(service: ControlPlaneService, goal_id: str, i: int) -> floa
         artifacts=[str(artifact)],
         events=["task_claimed"],
     )
-    elapsed = time.perf_counter() - start
+    submit_wall_end = time.perf_counter_ns()
+    submit_cpu_end = time.process_time_ns()
     assert completed.status is TaskStatus.COMPLETED, completed.error_summary
     assert service.tasks.load(task.id).status is TaskStatus.COMPLETED
-    return elapsed
+    wall_ms = (submit_wall_end - wall_start) / 1_000_000
+    cpu_ms = (submit_cpu_end - cpu_start) / 1_000_000
+    return {
+        "index": i,
+        "wall_ms": wall_ms,
+        "cpu_ms": cpu_ms,
+        "claim_wall_ms": (claim_wall_end - claim_wall_start) / 1_000_000,
+        "submit_wall_ms": (submit_wall_end - submit_wall_start) / 1_000_000,
+    }
 
 
-def _run_benchmark() -> dict[str, float]:
+def _run_benchmark() -> dict[str, Any]:
     """Run one full warmup + ITERATIONS benchmark batch.
 
     Reads the active state root from the environment, so callers must
@@ -144,11 +172,11 @@ def _run_benchmark() -> dict[str, float]:
     for i in range(WARMUP):
         _round_trip_once(service, goal.id, -i - 1)
 
-    samples_ms: list[float] = []
+    samples: list[DispatchSample] = []
     for i in range(ITERATIONS):
-        samples_ms.append(_round_trip_once(service, goal.id, i) * 1000.0)
+        samples.append(_round_trip_once(service, goal.id, i))
 
-    samples_ms.sort()
+    samples_ms = sorted(sample["wall_ms"] for sample in samples)
     return {
         "iterations": ITERATIONS,
         "warmup": WARMUP,
@@ -159,10 +187,15 @@ def _run_benchmark() -> dict[str, float]:
         "p99_ms": samples_ms[min(int(len(samples_ms) * 0.99), len(samples_ms) - 1)],
         "min_ms": samples_ms[0],
         "max_ms": samples_ms[-1],
+        "slowest_samples": sorted(
+            samples,
+            key=lambda sample: sample["wall_ms"],
+            reverse=True,
+        )[:3],
     }
 
 
-def _within_budget(results: dict[str, float]) -> bool:
+def _within_budget(results: dict[str, Any]) -> bool:
     """True when a benchmark batch is inside every latency budget."""
     return (
         results["median_ms"] < MEDIAN_MS_BUDGET
@@ -171,11 +204,26 @@ def _within_budget(results: dict[str, float]) -> bool:
     )
 
 
-def _format_attempt(index: int, results: dict[str, float]) -> str:
+def _format_attempt(index: int, results: dict[str, Any]) -> str:
     return (
         f"#{index} median={results['median_ms']:.3f}ms "
         f"p95={results['p95_ms']:.3f}ms p99={results['p99_ms']:.3f}ms"
     )
+
+
+def _format_diagnostics(results: dict[str, Any]) -> str:
+    samples = cast(list[DispatchSample], results["slowest_samples"])
+    slowest = ", ".join(
+        (
+            f"sample={sample['index']} wall={sample['wall_ms']:.3f}ms "
+            f"cpu={sample['cpu_ms']:.3f}ms "
+            f"wall-cpu={max(sample['wall_ms'] - sample['cpu_ms'], 0.0):.3f}ms "
+            f"claim={sample['claim_wall_ms']:.3f}ms "
+            f"submit={sample['submit_wall_ms']:.3f}ms"
+        )
+        for sample in samples
+    )
+    return f"slowest=[{slowest}]"
 
 
 def test_dispatch_latency_within_plan_budget(
@@ -201,7 +249,7 @@ def test_dispatch_latency_within_plan_budget(
     distribution with an isolated rerun because sustained shared-host noise
     can affect more than one batch.
     """
-    attempts: list[dict[str, float]] = []
+    attempts: list[dict[str, Any]] = []
     for attempt in range(1, MAX_BENCHMARK_ATTEMPTS + 1):
         _isolate_state_root(tmp_path, monkeypatch, f"isolated-attempt-{attempt}")
         results = _run_benchmark()
@@ -215,6 +263,7 @@ def test_dispatch_latency_within_plan_budget(
             f"p99={results['p99_ms']:.3f}ms  "
             f"-> {'within budget' if ok else 'OVER BUDGET'}"
         )
+        print(f"  diagnostics: {_format_diagnostics(results)}")
         if ok:
             return
 

@@ -18,8 +18,10 @@ limited to the tested source revision and environments.
   worker failure/recovery exercise, and full suite, then remained clean.
 - **Dispatch benchmark:** The [timing test](../tests/python/perf/test_dispatch_baseline.py)
   supplies required evidence and verifies returned and persisted completion.
-  Its latency budgets remain unchanged; shared-runner tail spikes still
-  require investigation when they occur.
+  The test command runs it in a fresh process without coverage instrumentation
+  before the application suite, with a separate result artifact. Its latency
+  budgets remain unchanged; shared-runner tail spikes still require investigation
+  when they occur.
 - **iOS:** Hosted simulator tests passed for Catchbook, Life Clock, and After
   Plans. Per-product result bundles are attached to the workflow run. Known
   StoreKit simulator skips and opt-in live Supabase tests remain explicit.

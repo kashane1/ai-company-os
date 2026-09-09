@@ -42,6 +42,12 @@ length. Coverage includes API and worker entrypoints. A passing aggregate report
 all selected Python versions and all three iOS projects; inspect individual jobs
 for failures or product-specific coverage.
 
+`./scripts/test_python.sh` first runs the required dispatch latency check in a
+fresh process without coverage instrumentation, then runs the application suite
+with coverage. Both gates must pass; each writes its own JUnit report under
+`build/test-results/`. The latency check uses actual SQLite persistence and
+unchanged wall-clock budgets, so a slow host can still produce a budget failure.
+
 ## Repo Boundaries
 
 - `apps/` contains thin runtime entrypoints.
