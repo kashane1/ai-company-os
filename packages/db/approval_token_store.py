@@ -2,13 +2,15 @@
 
 Tokens live at ``state/checkpoints/platform/approval_tokens/<token_id>.json``
 and are gitignored under the repo's ``state/`` convention. One file per
-token; writes are whole-file replacements to keep the single-use burn path
-atomic on a local filesystem.
+token; a per-token advisory file lock serializes load/check/write operations,
+and writes are whole-file replacements.
 """
 
 from __future__ import annotations
 
+import fcntl
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 from packages.config.settings import load_runtime_paths
@@ -35,6 +37,27 @@ class ApprovalTokenStore(ApprovalTokenStoreProtocol):
         tmp.replace(self._path_for(token.token_id))
 
     def load(self, token_id: str) -> ApprovalToken:
+        return self._load_unlocked(token_id)
+
+    def update_atomically(
+        self,
+        token_id: str,
+        update: Callable[[ApprovalToken], ApprovalToken],
+    ) -> ApprovalToken:
+        """Load, validate, and replace one token while holding its file lock."""
+        lock_path = self._path_for(token_id).with_suffix(".lock")
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a+") as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                token = self._load_unlocked(token_id)
+                updated = update(token)
+                self.save(updated)
+                return updated
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+    def _load_unlocked(self, token_id: str) -> ApprovalToken:
         path = self._path_for(token_id)
         if not path.exists():
             raise FileNotFoundError(token_id)

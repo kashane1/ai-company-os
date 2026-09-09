@@ -8,18 +8,18 @@ A small, deliberately boring command-line tool that a human runs to:
 2. ``show <approval_id>`` — render the proposal artifact dir
    contents (diff, rationale, manifest) so the reviewer can read
    what they're about to sign without leaving the terminal.
-3. ``sign <approval_id> --token-id X --signature Y`` — verify the
-   HMAC signature and flip the underlying :class:`ApprovalRecord`
-   to ``approved``. Both arguments are MANDATORY — the reviewer
-   retrieves them from the worker's task-output log out-of-band.
-4. ``reject <approval_id> --reason "..."`` — mark the approval
+3. ``sign <approval_id> --token-id X --signature Y`` — record the
+   first P0 confirmation while leaving the approval pending.
+4. ``confirm <approval_id> --token-id X --signature Y`` — record the
+   second confirmation using the same token/device and approve the change.
+5. ``reject <approval_id> --reason "..."`` — mark the approval
    ``rejected`` so the worker can quarantine the staged artifact
    and re-queue or give up.
-5. ``bootstrap-keychain`` — first-run command on a new macOS
+6. ``bootstrap-keychain`` — first-run command on a new macOS
    machine that creates the signing-secret entry in the login
    Keychain with a binary-path ACL. Refuses to clobber an
    existing item.
-6. ``rotate-keychain`` — delete the existing Keychain item and
+7. ``rotate-keychain`` — delete the existing Keychain item and
    bootstrap a fresh one. Every outstanding unburned token
    becomes unverifiable after this runs, by design.
 
@@ -54,12 +54,6 @@ Deliberately NOT here (all follow-up):
 - GitHub PR integration (Option C). Sign today = write the decision
   to :class:`ApprovalStore`. A future wrapper can open a PR from
   the same approval_id without changing this CLI.
-- Second-factor enforcement for P0 tokens. ``skill_evolution_apply``
-  is in ``P0_ACTIONS`` so the token carries the 5-min TTL, but the
-  CLI's ``sign`` command still completes in one call. Full
-  second-factor wiring is a separate small PR that adds a
-  ``confirm`` subcommand and makes ``submit_evolution_approval``
-  two-step for P0 actions.
 """
 
 from __future__ import annotations
@@ -80,18 +74,18 @@ from packages.db.approval_store import ApprovalStore
 from packages.db.approval_token_store import ApprovalTokenStore
 from packages.schemas.approval import ApprovalStatus
 from packages.tools.primitives.approvals import (
-    ApprovalTokenError,
     KEYCHAIN_ACCOUNT,
     KEYCHAIN_SERVICE,
+    SKILL_EVOLUTION_APPROVAL_TYPE,
+    ApprovalTokenError,
     KeychainAlreadyExists,
     KeychainError,
-    SKILL_EVOLUTION_APPROVAL_TYPE,
     _bootstrap_keychain_secret,
     _rotate_keychain_secret,
+    confirm_evolution_approval,
     reject_evolution_approval,
     submit_evolution_approval,
 )
-
 
 # ---------------------------------------------------------------------- #
 # Commands                                                                #
@@ -199,7 +193,7 @@ def cmd_show(args: argparse.Namespace) -> int:
 
 
 def cmd_sign(args: argparse.Namespace) -> int:
-    """Verify HMAC + flip the approval record to ``approved``.
+    """Verify HMAC and record the first P0 confirmation.
 
     The reviewer MUST pass ``--token-id`` AND ``--signature`` as
     explicit arguments. The CLI deliberately does NOT fall back to
@@ -249,6 +243,49 @@ def cmd_sign(args: argparse.Namespace) -> int:
 
     try:
         decision = submit_evolution_approval(
+            approval_id=args.approval_id,
+            token_id=args.token_id,
+            provided_signature=args.signature,
+            device_fingerprint=args.device or _default_device(),
+            decided_by=args.reviewer or _default_reviewer(),
+            decision_notes=args.note,
+        )
+    except ApprovalTokenError as exc:
+        print(
+            f"error: token rejected ({type(exc).__name__}): {exc}",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(
+        f"first confirmation recorded: {decision.approval_id}; "
+        "run `confirm` with the same token and device to approve."
+    )
+    return 0
+
+
+def cmd_confirm(args: argparse.Namespace) -> int:
+    """Record the required second confirmation for a P0 evolution action."""
+    store = ApprovalStore()
+    try:
+        record = store.load(args.approval_id)
+    except FileNotFoundError:
+        print(f"error: approval {args.approval_id!r} not found", file=sys.stderr)
+        return 2
+    if record.approval_type != SKILL_EVOLUTION_APPROVAL_TYPE:
+        print(
+            f"error: approval {args.approval_id!r} is not a skill-evolution approval",
+            file=sys.stderr,
+        )
+        return 2
+    if record.status is not ApprovalStatus.PENDING:
+        print(
+            f"error: approval {args.approval_id!r} is already {record.status.value}",
+            file=sys.stderr,
+        )
+        return 2
+    try:
+        decision = confirm_evolution_approval(
             approval_id=args.approval_id,
             token_id=args.token_id,
             provided_signature=args.signature,
@@ -524,7 +561,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_show.add_argument("approval_id")
     p_show.set_defaults(func=cmd_show)
 
-    p_sign = sub.add_parser("sign", help="verify + approve one request")
+    p_sign = sub.add_parser("sign", help="record the first P0 confirmation")
     p_sign.add_argument("approval_id")
     p_sign.add_argument(
         "--token-id",
@@ -560,6 +597,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="optional decision note attached to the approval record",
     )
     p_sign.set_defaults(func=cmd_sign)
+
+    p_confirm = sub.add_parser("confirm", help="record the second P0 confirmation")
+    p_confirm.add_argument("approval_id")
+    p_confirm.add_argument("--token-id", required=True)
+    p_confirm.add_argument("--signature", required=True)
+    p_confirm.add_argument(
+        "--reviewer",
+        default=None,
+        help="decided_by string (defaults to USER@hostname)",
+    )
+    p_confirm.add_argument(
+        "--device",
+        default=None,
+        help="device fingerprint (defaults to hostname)",
+    )
+    p_confirm.add_argument(
+        "--note",
+        default=None,
+        help="optional decision note attached to the approval record",
+    )
+    p_confirm.set_defaults(func=cmd_confirm)
 
     p_reject = sub.add_parser("reject", help="mark one request as rejected")
     p_reject.add_argument("approval_id")

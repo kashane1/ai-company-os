@@ -25,10 +25,10 @@ import base64
 import hashlib
 import hmac
 import secrets
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from typing import Literal
-
 
 ActionClass = Literal["default", "p0"]
 
@@ -225,37 +225,37 @@ def verify_and_burn_token(
     if not hmac.compare_digest(expected_sig, provided_signature):
         raise TokenSignatureInvalid("signature mismatch")
 
+    current_time = now or _now()
+
+    def burn(record: ApprovalToken) -> ApprovalToken:
+        if not hmac.compare_digest(record.signature, provided_signature):
+            raise TokenSignatureInvalid("persisted signature mismatch")
+
+        expires_at = _parse(record.issued_at) + timedelta(seconds=record.ttl_seconds)
+        if current_time > expires_at:
+            raise TokenExpired(f"token expired at {expires_at.isoformat()}")
+
+        if record.burn_count >= 1:
+            raise TokenAlreadyBurned(f"burn_count={record.burn_count}")
+
+        if (
+            record.expected_device_fingerprint
+            and record.expected_device_fingerprint != device_fingerprint
+        ):
+            raise DeviceMismatch("expected device fingerprint did not match")
+
+        return replace(
+            record,
+            burn_count=1,
+            approved_at=_iso(current_time),
+            device_fingerprint=device_fingerprint,
+            transitions=list(record.transitions) + ["approved"],
+        )
+
     try:
-        record = store.load(token_id)
+        return store.update_atomically(token_id, burn)
     except FileNotFoundError as exc:
         raise TokenNotFound(token_id) from exc
-
-    if not hmac.compare_digest(record.signature, provided_signature):
-        raise TokenSignatureInvalid("persisted signature mismatch")
-
-    current_time = now or _now()
-    expires_at = _parse(record.issued_at) + timedelta(seconds=record.ttl_seconds)
-    if current_time > expires_at:
-        raise TokenExpired(f"token expired at {expires_at.isoformat()}")
-
-    if record.burn_count >= 1:
-        raise TokenAlreadyBurned(f"burn_count={record.burn_count}")
-
-    if (
-        record.expected_device_fingerprint
-        and record.expected_device_fingerprint != device_fingerprint
-    ):
-        raise DeviceMismatch("expected device fingerprint did not match")
-
-    updated = replace(
-        record,
-        burn_count=1,
-        approved_at=_iso(current_time),
-        device_fingerprint=device_fingerprint,
-        transitions=list(record.transitions) + ["approved"],
-    )
-    store.save(updated)
-    return updated
 
 
 def record_second_factor(
@@ -276,38 +276,44 @@ def record_second_factor(
     if not hmac.compare_digest(expected_sig, provided_signature):
         raise TokenSignatureInvalid("signature mismatch")
 
-    try:
-        record = store.load(token_id)
-    except FileNotFoundError as exc:
-        raise TokenNotFound(token_id) from exc
-
-    if record.action_class != "p0":
-        raise ApprovalTokenError("second factor only required for p0 tokens")
-
-    if not record.approved_at:
-        raise SecondFactorRequired("primary confirm must land first")
-
     current_time = now or _now()
-    approved_at = _parse(record.approved_at)
-    window = current_time - approved_at
-    if window > P0_SECOND_FACTOR_WINDOW or window < timedelta(0):
-        raise SecondFactorOutOfWindow(
-            f"second factor {window.total_seconds():.1f}s outside window"
+
+    def confirm(record: ApprovalToken) -> ApprovalToken:
+        if not hmac.compare_digest(record.signature, provided_signature):
+            raise TokenSignatureInvalid("persisted signature mismatch")
+        if record.action_class != "p0":
+            raise ApprovalTokenError("second factor only required for p0 tokens")
+
+        if not record.approved_at:
+            raise SecondFactorRequired("primary confirm must land first")
+        if record.second_factor_at:
+            raise TokenAlreadyBurned("second confirmation already recorded")
+        if record.device_fingerprint != device_fingerprint:
+            raise DeviceMismatch("second confirmation must use the first confirmed device")
+
+        approved_at = _parse(record.approved_at)
+        window = current_time - approved_at
+        if window > P0_SECOND_FACTOR_WINDOW or window < timedelta(0):
+            raise SecondFactorOutOfWindow(
+                f"second factor {window.total_seconds():.1f}s outside window"
+            )
+
+        if (
+            record.expected_device_fingerprint
+            and record.expected_device_fingerprint != device_fingerprint
+        ):
+            raise DeviceMismatch("expected device fingerprint did not match")
+
+        return replace(
+            record,
+            second_factor_at=_iso(current_time),
+            transitions=list(record.transitions) + ["second_factor"],
         )
 
-    if (
-        record.expected_device_fingerprint
-        and record.expected_device_fingerprint != device_fingerprint
-    ):
-        raise DeviceMismatch("expected device fingerprint did not match")
-
-    updated = replace(
-        record,
-        second_factor_at=_iso(current_time),
-        transitions=list(record.transitions) + ["second_factor"],
-    )
-    store.save(updated)
-    return updated
+    try:
+        return store.update_atomically(token_id, confirm)
+    except FileNotFoundError as exc:
+        raise TokenNotFound(token_id) from exc
 
 
 class ApprovalTokenStoreProtocol:
@@ -321,6 +327,13 @@ class ApprovalTokenStoreProtocol:
         raise NotImplementedError
 
     def load(self, token_id: str) -> ApprovalToken:  # pragma: no cover - interface
+        raise NotImplementedError
+
+    def update_atomically(
+        self,
+        token_id: str,
+        update: Callable[[ApprovalToken], ApprovalToken],
+    ) -> ApprovalToken:  # pragma: no cover - interface
         raise NotImplementedError
 
     def list_by_approval(

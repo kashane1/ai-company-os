@@ -5,8 +5,8 @@ A tiny FastAPI ``APIRouter`` that exposes:
 - ``GET /approvals/{token_id}`` — renders a one-page confirm screen with a
   form that POSTs the signature back to the endpoint. No auth beyond
   possession of the token and a localhost bind.
-- ``POST /approvals/{token_id}/confirm`` — verifies and burns the token,
-  moves the referenced :class:`ApprovalRecord` to ``approved``.
+- ``POST /approvals/{token_id}/confirm`` — verifies and burns the token;
+  P0 actions remain pending for a second confirmation.
 - ``POST /approvals/{token_id}/second-factor`` — second-click window for
   P0 actions (App Store submission, protected-branch merge, billing, DNS).
 
@@ -16,11 +16,11 @@ for Phase 3. The endpoint should only ever be mounted on ``127.0.0.1``.
 
 from __future__ import annotations
 
-import os
 from datetime import datetime, timezone
+from html import escape
 
-from fastapi import APIRouter, Form, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
 from apps.api.control_plane import ControlPlaneService
@@ -38,24 +38,22 @@ from packages.policies.approval_tokens import (
     verify_and_burn_token,
 )
 from packages.schemas.approval import ApprovalStatus
+from packages.tools.primitives.approvals import SIGNING_KEY_ENV_VAR, _load_signing_secret
 
-
-APPROVAL_SECRET_ENV_VAR = "AI_COMPANY_OS_APPROVAL_SECRET"
+# Kept as the endpoint's public constant for callers/tests. The actual secret
+# resolution is shared with worker and reviewer approval primitives.
+APPROVAL_SECRET_ENV_VAR = SIGNING_KEY_ENV_VAR
 
 
 def get_secret() -> bytes:
-    """Load the HMAC secret from the environment.
-
-    Production loads this via ``packages.config.secrets.get_secret`` from
-    macOS Keychain (Phase 0.4). Tests inject it via ``monkeypatch.setenv``.
-    """
-    raw = os.environ.get(APPROVAL_SECRET_ENV_VAR)
-    if not raw:
+    """Load the shared approval signing secret or return a safe 503."""
+    try:
+        return _load_signing_secret()
+    except (RuntimeError, ValueError):
         raise HTTPException(
             status_code=503,
-            detail="approval secret not configured",
-        )
-    return raw.encode("utf-8")
+            detail="approval signing secret unavailable",
+        ) from None
 
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
@@ -81,10 +79,10 @@ _CONFIRM_HTML = """<!doctype html>
   <p>Class: <strong>{action_class}</strong></p>
   <p>Issued: {issued_at}</p>
   <p>TTL: {ttl_seconds}s</p>
-  <form method="post" action="/approvals/{token_id}/confirm">
+  <form method="post" action="{confirm_path}">
     <input type="hidden" name="signature" value="{signature}">
-    <input type="hidden" name="device_fingerprint" value="mac-local">
-    <button type="submit">Confirm</button>
+    <input type="hidden" name="device_fingerprint" value="{device_fingerprint}">
+    <button type="submit">{button_label}</button>
   </form>
 </body>
 </html>
@@ -92,31 +90,47 @@ _CONFIRM_HTML = """<!doctype html>
 
 
 @router.get("/{token_id}", response_class=HTMLResponse)
-def render_confirm_page(token_id: str) -> HTMLResponse:
+def render_confirm_page(token_id: str, request: Request) -> HTMLResponse:
     store = ApprovalTokenStore()
     try:
         token = store.load(token_id)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail="token not found") from exc
-    html = _CONFIRM_HTML.format(
-        token_id=token_id,
-        action=token.action,
-        subject_id=token.subject_id,
-        approval_id=token.approval_id,
-        action_class=token.action_class,
-        issued_at=token.issued_at,
-        ttl_seconds=token.ttl_seconds,
-        signature=token.signature,
+    second_step = token.action_class == "p0" and bool(token.approved_at)
+    endpoint = "confirm_second_factor" if second_step else "confirm_token"
+    rendered = _CONFIRM_HTML.format(
+        confirm_path=escape(request.url_for(endpoint, token_id=token_id).path, quote=True),
+        device_fingerprint=escape(
+            token.expected_device_fingerprint or token.device_fingerprint or "mac-local",
+            quote=True,
+        ),
+        button_label="Confirm a second time" if second_step else "Confirm",
+        action=escape(token.action, quote=True),
+        subject_id=escape(token.subject_id, quote=True),
+        approval_id=escape(token.approval_id, quote=True),
+        action_class=escape(token.action_class, quote=True),
+        issued_at=escape(token.issued_at, quote=True),
+        ttl_seconds=escape(str(token.ttl_seconds), quote=True),
+        signature=escape(token.signature, quote=True),
     )
-    return HTMLResponse(content=html)
+    return HTMLResponse(
+        content=rendered,
+        headers={
+            "Cache-Control": "no-store",
+            "Referrer-Policy": "no-referrer",
+            "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; "
+            "form-action 'self'; frame-ancestors 'none'",
+        },
+    )
 
 
 @router.post("/{token_id}/confirm", response_model=ConfirmResponse)
 def confirm_token(
     token_id: str,
+    request: Request,
     signature: str = Form(...),
     device_fingerprint: str = Form(...),
-) -> ConfirmResponse:
+) -> ConfirmResponse | RedirectResponse:
     store = ApprovalTokenStore()
     secret = get_secret()
     try:
@@ -153,6 +167,12 @@ def confirm_token(
             decision_notes=f"token {token_id} burned",
         )
 
+    if record.action_class == "p0" and "text/html" in request.headers.get("accept", ""):
+        return RedirectResponse(
+            request.url_for("render_confirm_page", token_id=token_id).path,
+            status_code=303,
+            headers={"Cache-Control": "no-store"},
+        )
     return ConfirmResponse(
         approval_id=record.approval_id,
         status="approved" if record.action_class == "default" else "awaiting_second_factor",
@@ -185,6 +205,8 @@ def confirm_second_factor(
     except TokenSignatureInvalid as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     except SecondFactorRequired as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except TokenAlreadyBurned as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except SecondFactorOutOfWindow as exc:
         raise HTTPException(status_code=410, detail=str(exc)) from exc
