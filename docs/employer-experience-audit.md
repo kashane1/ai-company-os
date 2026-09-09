@@ -16,6 +16,10 @@ limited to the tested source revision and environments.
   3.12; CI enforces an 85% coverage floor across the application suite. A
   separate fresh detached checkout at `08437aa` passed the evaluator, real
   worker failure/recovery exercise, and full suite, then remained clean.
+- **Dispatch benchmark:** The [timing test](../tests/python/perf/test_dispatch_baseline.py)
+  supplies required evidence and verifies returned and persisted completion.
+  Its latency budgets remain unchanged; shared-runner tail spikes still
+  require investigation when they occur.
 - **iOS:** Hosted simulator tests passed for Catchbook, Life Clock, and After
   Plans. Per-product result bundles are attached to the workflow run. Known
   StoreKit simulator skips and opt-in live Supabase tests remain explicit.
