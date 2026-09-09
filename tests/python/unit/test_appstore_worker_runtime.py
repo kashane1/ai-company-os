@@ -520,20 +520,17 @@ def test_appstore_worker_marks_claimed_task_failed_when_execute_raises(
         lambda task_packet: (_ for _ in ()).throw(RuntimeError("release state mutation crashed")),
     )
 
-    try:
-        worker_appstore_main.execute_claimed_task(
-            worker_id="worker-appstore-3",
-            service=service,
-        )
-    except RuntimeError:
-        pass
-    else:
-        raise AssertionError("expected execute_claimed_task to re-raise runner exception")
+    result = worker_appstore_main.execute_claimed_task(
+        worker_id="worker-appstore-3",
+        service=service,
+    )
 
     stored_task = TaskStore().load(task.id)
     failure_events = [event for event in EventStore().list() if event.event_type == "task_failed"]
 
     assert stored_task.status is TaskStatus.FAILED
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
     assert stored_task.error_summary == "App Store worker execution failed: release state mutation crashed"
     assert len(failure_events) == 1
     assert failure_events[0].task_id == task.id

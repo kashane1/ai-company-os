@@ -218,25 +218,23 @@ def test_engineering_worker_marks_claimed_task_failed_when_runner_raises(
     )
 
     def crash_execute_task(task_id: str, **kwargs) -> TaskResult:
-        raise RuntimeError("codex execution crashed")
+        raise RuntimeError("codex execution crashed: token=super-secret-token-value")
 
     monkeypatch.setattr(worker_engineering_main, "execute_task", crash_execute_task)
 
-    try:
-        worker_engineering_main.execute_claimed_task(
-            worker_id="worker-engineering-3",
-            service=service,
-        )
-    except RuntimeError:
-        pass
-    else:
-        raise AssertionError("expected execute_claimed_task to re-raise runner exception")
+    result = worker_engineering_main.execute_claimed_task(
+        worker_id="worker-engineering-3",
+        service=service,
+    )
 
     stored_task = TaskStore().load(task.id)
     failure_events = [event for event in EventStore().list() if event.event_type == "task_failed"]
 
     assert stored_task.status is TaskStatus.FAILED
-    assert stored_task.error_summary == "Engineering worker execution failed: codex execution crashed"
+    assert result is not None
+    assert result.status is TaskStatus.FAILED
+    assert stored_task.error_summary == "Engineering worker execution failed: codex execution crashed: [REDACTED]"
+    assert "super-secret-token-value" not in stored_task.error_summary
     assert len(failure_events) == 1
     assert failure_events[0].task_id == task.id
 

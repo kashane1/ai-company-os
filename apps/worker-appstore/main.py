@@ -1,7 +1,7 @@
 import json
 import sys
 import time
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import Event
@@ -28,14 +28,12 @@ from packages.policies.release_readiness import (
 from packages.schemas.approval import ApprovalStatus
 from packages.schemas.release import ReleaseRecord, ReleaseStatus, StoreChannelStatus
 from packages.schemas.task_packet import TaskPacket, TaskResult, TaskStatus, WorkerLane
-
-
-@dataclass(frozen=True)
-class WorkerLoopStats:
-    worker_id: str
-    processed_count: int
-    idle_cycles: int
-    stop_reason: str
+from packages.tools.worker_loop import (
+    WorkerLoopStats,
+    redacted_error_message,
+    worker_exit_code,
+)
+from packages.tools.worker_loop import run_worker_loop as shared_worker_loop
 
 
 def inspect_release(release_id: str) -> ReleaseRecord:
@@ -239,14 +237,14 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
         else:
             result = execute(packet)
     except Exception as exc:
-        summary = f"App Store worker execution failed: {exc}"
+        summary = f"App Store worker execution failed: {redacted_error_message(exc)}"
         control_plane.submit_task_result(
             task_id=task.id,
             status=TaskStatus.FAILED,
             summary=summary,
             worker_id=worker_id,
         )
-        raise
+        return TaskResult(task_id=task.id, status=TaskStatus.FAILED, summary=summary)
 
     release_id = _constraint_value(packet, "release_id=") or ""
     release_action = _constraint_value(packet, "release_action=") or "prepare_testflight"
@@ -303,57 +301,14 @@ def run_worker_loop(
     max_iterations: int | None = None,
 ) -> WorkerLoopStats:
     control_plane = service or ControlPlaneService()
-    stop_signal = stop_event or Event()
-    processed_count = 0
-    idle_cycles = 0
-    iterations = 0
-    stop_reason = "stopped"
-
-    while not stop_signal.is_set():
-        try:
-            result = execute_claimed_task(worker_id=worker_id, service=control_plane)
-        except KeyboardInterrupt:
-            stop_reason = "interrupted"
-            break
-        except Exception:
-            processed_count += 1
-            stop_reason = "failed"
-            iterations += 1
-            if max_iterations is not None and iterations >= max_iterations:
-                break
-            continue
-
-        iterations += 1
-        if result is None:
-            idle_cycles += 1
-            stop_reason = "idle"
-            try:
-                sleep_fn(poll_interval_seconds)
-            except KeyboardInterrupt:
-                stop_reason = "interrupted"
-                break
-            if max_iterations is not None and iterations >= max_iterations:
-                break
-            continue
-
-        processed_count += 1
-        stop_reason = "processed"
-        try:
-            sleep_fn(poll_interval_seconds)
-        except KeyboardInterrupt:
-            stop_reason = "interrupted"
-            break
-        if max_iterations is not None and iterations >= max_iterations:
-            break
-
-    if stop_signal.is_set():
-        stop_reason = "stop_requested"
-
-    return WorkerLoopStats(
+    return shared_worker_loop(
         worker_id=worker_id,
-        processed_count=processed_count,
-        idle_cycles=idle_cycles,
-        stop_reason=stop_reason,
+        work_once=lambda: execute_claimed_task(worker_id=worker_id, service=control_plane),
+        poll_interval_seconds=poll_interval_seconds,
+        stop_event=stop_event,
+        sleep_fn=sleep_fn,
+        max_iterations=max_iterations,
+        sleep_after_result=True,
     )
 
 
@@ -368,3 +323,4 @@ if __name__ == "__main__":
             stop_reason="interrupted",
         )
     print(json.dumps({"stats": asdict(stats)}, default=str))
+    raise SystemExit(worker_exit_code(stats))

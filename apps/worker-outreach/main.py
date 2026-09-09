@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import sys
 import time
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, replace
 from pathlib import Path
 from threading import Event
 
@@ -27,14 +27,12 @@ from outreach.runner import execute_task  # noqa: E402
 from apps.api.control_plane import ControlPlaneService  # noqa: E402
 from packages.config.settings import load_runtime_paths  # noqa: E402
 from packages.schemas.task_packet import TaskResult, TaskStatus, WorkerLane  # noqa: E402
-
-
-@dataclass(frozen=True)
-class WorkerLoopStats:
-    worker_id: str
-    processed_count: int
-    idle_cycles: int
-    stop_reason: str
+from packages.tools.worker_loop import (  # noqa: E402
+    WorkerLoopStats,
+    redacted_error_message,
+    worker_exit_code,
+)
+from packages.tools.worker_loop import run_worker_loop as shared_worker_loop  # noqa: E402
 
 
 def execute_claimed_task(
@@ -48,13 +46,18 @@ def execute_claimed_task(
     try:
         result = execute_task(task, repo_root=load_runtime_paths().repo_root)
     except Exception as exc:
+        summary = f"outreach worker execution failed: {redacted_error_message(exc)}"
         control_plane.submit_task_result(
             task_id=task.id,
             status=TaskStatus.FAILED,
-            summary=f"outreach worker execution failed: {exc}",
+            summary=summary,
             worker_id=worker_id,
         )
-        raise
+        return TaskResult(
+            task_id=task.id,
+            status=TaskStatus.FAILED,
+            summary=summary,
+        )
 
     submitted = control_plane.submit_task_result(
         task_id=task.id,
@@ -85,44 +88,13 @@ def run_worker_loop(
     max_iterations: int | None = None,
 ) -> WorkerLoopStats:
     control_plane = service or ControlPlaneService()
-    stop_signal = stop_event or Event()
-    processed = 0
-    idle = 0
-    iters = 0
-    stop_reason = "stopped"
-
-    while not stop_signal.is_set():
-        try:
-            result = execute_claimed_task(worker_id=worker_id, service=control_plane)
-        except KeyboardInterrupt:
-            stop_reason = "interrupted"
-            break
-        except Exception:
-            processed += 1
-            stop_reason = "failed"
-            iters += 1
-            if max_iterations is not None and iters >= max_iterations:
-                break
-            continue
-
-        iters += 1
-        if result is None:
-            idle += 1
-            sleep_fn(poll_interval_seconds)
-            stop_reason = "idle"
-            if max_iterations is not None and iters >= max_iterations:
-                break
-            continue
-        processed += 1
-        stop_reason = "processed"
-        if max_iterations is not None and iters >= max_iterations:
-            break
-
-    return WorkerLoopStats(
+    return shared_worker_loop(
         worker_id=worker_id,
-        processed_count=processed,
-        idle_cycles=idle,
-        stop_reason=stop_reason,
+        work_once=lambda: execute_claimed_task(worker_id=worker_id, service=control_plane),
+        poll_interval_seconds=poll_interval_seconds,
+        stop_event=stop_event,
+        sleep_fn=sleep_fn,
+        max_iterations=max_iterations,
     )
 
 
@@ -137,3 +109,4 @@ if __name__ == "__main__":
             stop_reason="interrupted",
         )
     print(json.dumps({"stats": asdict(stats)}, default=str))
+    raise SystemExit(worker_exit_code(stats))
