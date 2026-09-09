@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
+from types import ModuleType
 
 from apps.api.control_plane import ControlPlaneService
 from apps.api.platform import scaffold_release_state
@@ -32,6 +33,12 @@ def load_runtime_supervisor_main():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def test_cli_does_not_import_an_unrelated_cached_main_module(monkeypatch):
+    monkeypatch.setitem(sys.modules, "main", ModuleType("unrelated_worker_main"))
+    cli = load_runtime_supervisor_cli()
+    assert callable(cli.load_supervisor_status)
 
 
 class FakeProcess:
@@ -295,11 +302,16 @@ def test_runtime_supervisor_cli_inspect_appstore_release_filters_by_release_and_
     )
     claimed = service.claim_task(lane=WorkerLane.APPSTORE, worker_id="worker-appstore")
     assert claimed is not None
+    artifact = isolated_repo_root / "state/artifacts/appstore" / task.id / "submission_summary.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text(json.dumps({"fixture": True, "release_id": release_id}))
     service.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,
         summary="Prepared release state for action prepare_testflight.",
         worker_id="worker-appstore",
+        artifacts=[str(artifact)],
+        events=["task_claimed"],
     )
 
     exit_code = runtime_supervisor_cli.main(["inspect-appstore-release", "--release-id", release_id])
@@ -381,11 +393,16 @@ def test_runtime_supervisor_cli_reports_completed_task_latest_event_and_release_
     )
     claimed = service.claim_task(lane=WorkerLane.APPSTORE, worker_id="worker-appstore")
     assert claimed is not None
+    artifact = isolated_repo_root / "state/artifacts/appstore" / task.id / "submission_summary.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text(json.dumps({"fixture": True, "release_id": release_id}))
     service.submit_task_result(
         task_id=task.id,
         status=TaskStatus.COMPLETED,
         summary="Prepared release state for action prepare_testflight.",
         worker_id="worker-appstore",
+        artifacts=[str(artifact)],
+        events=["task_claimed"],
     )
 
     exit_code = runtime_supervisor_cli.main(["status"])

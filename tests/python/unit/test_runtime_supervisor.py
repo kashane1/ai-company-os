@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import signal
 import sys
+from pathlib import Path
 from threading import Event
 
 
@@ -134,6 +134,53 @@ def test_runtime_supervisor_records_worker_exit_without_restart(
     assert engineering.exit_code == 7
     assert engineering.last_known_status == "exited"
     assert ios.state == "running"
+
+
+def test_runtime_supervisor_reports_failed_when_a_required_worker_exits(
+    isolated_repo_root: Path,
+) -> None:
+    runtime_supervisor_main = load_runtime_supervisor_main()
+    processes = iter(
+        [
+            FakeProcess(pid=501, poll_results=[7], wait_result=7),
+            *[FakeProcess(pid=pid, poll_results=[None], wait_result=0) for pid in range(502, 509)],
+        ]
+    )
+
+    supervisor = runtime_supervisor_main.RuntimeSupervisor(
+        process_factory=lambda command, **kwargs: next(processes)
+    )
+    supervisor.start_all()
+    supervisor.monitor_once()
+
+    assert supervisor.status().state == "failed"
+    payload = json.loads(supervisor.status_path.read_text())
+    assert payload["state"] == "failed"
+
+
+def test_runtime_supervisor_fail_stops_remaining_workers_after_unexpected_exit(
+    isolated_repo_root: Path,
+) -> None:
+    runtime_supervisor_main = load_runtime_supervisor_main()
+    processes = [
+        FakeProcess(pid=601, poll_results=[7], wait_result=7),
+        *[FakeProcess(pid=pid, poll_results=[None], wait_result=0) for pid in range(602, 609)],
+    ]
+
+    supervisor = runtime_supervisor_main.RuntimeSupervisor(
+        process_factory=lambda command, **kwargs: processes.pop(0)
+    )
+    status = supervisor.run(max_iterations=3, sleep_fn=lambda _: None)
+
+    assert status.state == "failed"
+    failed = next(worker for worker in status.workers if worker.lane == "engineering")
+    assert failed.last_known_status == "exited"
+    assert failed.exit_code == 7
+    assert all(
+        worker.last_known_status == "stopped"
+        for worker in status.workers
+        if worker.lane != "engineering"
+    )
 
 
 def test_runtime_supervisor_stops_all_workers_cleanly_on_stop_request(

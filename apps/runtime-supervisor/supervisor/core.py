@@ -116,7 +116,7 @@ class RuntimeSupervisor:
                 last_known_status="started",
                 started_at=self._now(),
             )
-        self._persist_status(state="running")
+        self._persist_status(state=self._overall_state())
 
     def monitor_once(self) -> list[WorkerProcessStatus]:
         for lane, managed in self._workers.items():
@@ -148,7 +148,7 @@ class RuntimeSupervisor:
                 exit_code=exit_code,
             )
             self._close_log_handle(lane)
-        self._persist_status(state="running")
+        self._persist_status(state=self._overall_state())
         return self.status().workers
 
     def stop_all(self, *, timeout_seconds: float = 2.0) -> None:
@@ -184,7 +184,7 @@ class RuntimeSupervisor:
                 exit_code=exit_code,
             )
             self._close_log_handle(lane)
-        self._persist_status(state="stopped")
+        self._persist_status(state=self._overall_state())
 
     def status(self) -> SupervisorStatus:
         return SupervisorStatus(
@@ -213,6 +213,8 @@ class RuntimeSupervisor:
                     break
                 self.monitor_once()
                 iterations += 1
+                if self._overall_state() == "failed":
+                    break
                 if all(status.state == "exited" for status in self._worker_statuses.values()):
                     break
                 if max_iterations is not None and iterations >= max_iterations:
@@ -234,6 +236,8 @@ class RuntimeSupervisor:
         self.status_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
     def _overall_state(self) -> str:
+        if any(status.last_known_status == "exited" for status in self._worker_statuses.values()):
+            return "failed"
         states = {status.state for status in self._worker_statuses.values()}
         if states == {"exited"}:
             return "stopped"

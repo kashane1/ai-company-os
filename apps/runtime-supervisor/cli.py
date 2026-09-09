@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -15,7 +15,8 @@ APP_ROOT = Path(__file__).resolve().parent
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from main import load_supervisor_status, request_supervisor_shutdown
+from supervisor import load_supervisor_status, request_supervisor_shutdown
+
 from apps.api.platform import APPSTORE_RELEASE_PREP_ACTION, seed_appstore_release_prep
 from packages.config.settings import ensure_runtime_directories
 from packages.db.event_store import EventStore
