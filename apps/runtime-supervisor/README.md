@@ -13,6 +13,8 @@ operator flow, not a full orchestration system.
   [default process specs](supervisor/specs.py) for the current list
 - clean shutdown: a stop-request file is watched and honored by the
   running supervisor loop
+- fail-closed process health: an unexpected child exit marks the supervisor
+  failed and stops the remaining managed workers
 
 ## Does not own
 
@@ -43,10 +45,25 @@ Operated via [cli.py](cli.py), wrapped by `./scripts/runtime`:
 `state/checkpoints/platform/`; `stop` writes a stop-request file the
 running loop honors.
 
+Queue reconciliation is a separate stopped-worker maintenance action. Inspect
+the proposed repairs first, then apply them only after the worker processes are
+stopped:
+
+```bash
+python3 scripts/control_plane_db.py reconcile-queue
+python3 scripts/control_plane_db.py reconcile-queue --apply --workers-stopped
+```
+
+This repairs dispatch records from canonical task state. It does not make task
+execution exactly once. Redis idle reclaim remains experimental and disabled by
+default because workers do not publish execution heartbeats or per-attempt claim
+tokens.
+
 ## Boundaries
 
 - The supervisor manages worker loop processes only. It does not
   claim tasks or perform work.
+- Queue reconciliation does not run automatically inside the supervisor.
 - Current scope is a thin local runtime operator flow, per
   [docs/local-dev.md](../../docs/local-dev.md) — not a full
   orchestration system.

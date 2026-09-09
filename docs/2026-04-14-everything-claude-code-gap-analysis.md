@@ -17,7 +17,7 @@ My recommendation:
 - **Do selectively port 4-6 high-value ideas** into this repo's canonical skill system
 - **Do treat ECC as a pattern library**, not as a source of truth
 
-The core reason is architectural fit. `ai-company-os` is explicitly a **platform with bounded workers and policy-owned orchestration** ([README.md](/Users/simons/ai-company-os/README.md:7), [AGENTS.md](/Users/simons/ai-company-os/AGENTS.md:11), [docs/operating-model.md](/Users/simons/ai-company-os/docs/operating-model.md:19)). ECC is optimized as an **agent-harness performance system** with a very broad surface of skills, rules, hooks, commands, and cross-harness packaging ([ECC README](https://github.com/affaan-m/everything-claude-code), observed 2026-04-14).
+The core reason is architectural fit. `ai-company-os` is explicitly a **platform with bounded workers and policy-owned orchestration** ([README.md](../README.md), [AGENTS.md](../AGENTS.md), [docs/operating-model.md](operating-model.md)). ECC is optimized as an **agent-harness performance system** with a very broad surface of skills, rules, hooks, commands, and cross-harness packaging ([ECC README](https://github.com/affaan-m/everything-claude-code), observed 2026-04-14).
 
 That means the overlap is real, but the abstraction level is different.
 
@@ -25,9 +25,9 @@ That means the overlap is real, but the abstraction level is different.
 
 This repo is already stronger than ECC in a few important ways:
 
-- It has a much clearer platform/worker boundary and explicitly prevents Codex from becoming the system brain ([README.md](/Users/simons/ai-company-os/README.md:22), [docs/architecture.md](/Users/simons/ai-company-os/docs/architecture.md:17)).
-- It has a canonical skill model with explicit inputs, outputs, edit boundaries, forbidden areas, validation steps, adapters, and fixture state ([skills/README.md](/Users/simons/ai-company-os/skills/README.md:7), [skills/spec.md](/Users/simons/ai-company-os/skills/spec.md:1), [skills/registry.yaml](/Users/simons/ai-company-os/skills/registry.yaml:5)).
-- It already encodes lane-aware validation and testing policy in shared code, not just prompts ([README.md](/Users/simons/ai-company-os/README.md:215), [skills/canonical/shared/post-run-validation.md](/Users/simons/ai-company-os/skills/canonical/shared/post-run-validation.md:1)).
+- It has a much clearer platform/worker boundary and explicitly prevents Codex from becoming the system brain ([README.md](../README.md), [docs/architecture.md](architecture.md)).
+- It has a canonical skill model with explicit inputs, outputs, edit boundaries, forbidden areas, validation steps, adapters, and fixture state ([skills/README.md](../skills/README.md), [skills/spec.md](../skills/spec.md), [skills/registry.yaml](../skills/registry.yaml)).
+- It already encodes lane-aware validation and testing policy in shared code, not just prompts ([README.md](../README.md), [skills/canonical/shared/post-run-validation.md](../skills/canonical/shared/post-run-validation.md)).
 
 So this is not a case where ECC should replace the repo's current model. The useful question is where ECC has **higher-quality operational know-how** that this repo has not yet turned into productized workflows.
 
@@ -52,9 +52,9 @@ ECC has mature examples of exactly these workflows:
 
 Why this matters here:
 
-- this repo explicitly wants to stay legible and avoid hidden prompt logic ([README.md](/Users/simons/ai-company-os/README.md:30))
+- this repo explicitly wants to stay legible and avoid hidden prompt logic ([README.md](../README.md))
 - that goal gets easier if the supervisor/engineering lanes have reusable research procedures instead of ad hoc investigation
-- there is already evidence in this repo that “search-first” thinking matters at the product layer, but it is not yet generalized as a reusable platform capability ([todos/003-pending-p2-lock-waterbody-search-contract.md](/Users/simons/ai-company-os/todos/003-pending-p2-lock-waterbody-search-contract.md:11))
+- there is already evidence in this repo that “search-first” thinking matters at the product layer, but it is not yet generalized as a reusable platform capability ([todos/003-pending-p2-lock-waterbody-search-contract.md](../todos/003-pending-p2-lock-waterbody-search-contract.md))
 
 Recommendation:
 
@@ -70,7 +70,7 @@ This repo has a clean canonical skill system, but it is still small and partiall
 - `8` marked `fixture_status: passing`
 - `14` marked `fixture_status: missing`
 
-Source: [skills/registry.yaml](/Users/simons/ai-company-os/skills/registry.yaml:1)
+Source: [skills/registry.yaml](../skills/registry.yaml)
 
 ECC has much stronger operational patterns for managing a large skill estate:
 
@@ -83,7 +83,7 @@ Why this matters here:
 
 - this repo is already growing across supervisor, engineering, iOS, App Store, and GTM lanes
 - once more skills land, drift and bloat become real
-- the repo already anticipates later additions like memory helpers and observability helpers ([docs/architecture.md](/Users/simons/ai-company-os/docs/architecture.md:112))
+- the repo already anticipates later additions like memory helpers and observability helpers ([docs/architecture.md](architecture.md))
 
 Recommendation:
 
@@ -98,7 +98,7 @@ Recommendation:
 
 ### 3. Session memory and continuous learning are mostly still future-state here
 
-`ai-company-os` talks about persistent workers, durable state, and explicit runtime records ([README.md](/Users/simons/ai-company-os/README.md:7), [docs/architecture.md](/Users/simons/ai-company-os/docs/architecture.md:122)), but it does not yet have a mature loop for:
+`ai-company-os` talks about persistent workers, durable state, and explicit runtime records ([README.md](../README.md), [docs/architecture.md](architecture.md)), but it does not yet have a mature loop for:
 
 - extracting reusable learnings from task runs
 - turning repeated patterns into reviewed skills
@@ -116,7 +116,7 @@ This is probably the single biggest conceptual opportunity, but also the easiest
 Why not copy directly:
 
 - ECC's design is harness-centric and hook-heavy
-- this repo's architecture says the **platform** owns orchestration and persistence, not the tool harness ([AGENTS.md](/Users/simons/ai-company-os/AGENTS.md:13), [docs/operating-model.md](/Users/simons/ai-company-os/docs/operating-model.md:21))
+- this repo's architecture says the **platform** owns orchestration and persistence, not the tool harness ([AGENTS.md](../AGENTS.md), [docs/operating-model.md](operating-model.md))
 - direct hook-driven behavior could smuggle important state transitions out of shared policy code
 
 Recommendation:
@@ -134,7 +134,7 @@ This repo already has meaningful validation:
 - lane-aware tests-with-code enforcement
 - approval scaffolding
 
-Source: [skills/canonical/shared/post-run-validation.md](/Users/simons/ai-company-os/skills/canonical/shared/post-run-validation.md:1)
+Source: [skills/canonical/shared/post-run-validation.md](../skills/canonical/shared/post-run-validation.md)
 
 But ECC is stronger at the broader “operator quality loop” level:
 
@@ -161,9 +161,9 @@ Recommendation:
 
 ECC has a mature manifest/profile installation model and broad harness packaging across Claude Code, Codex, Cursor, OpenCode, Gemini, and more ([ECC README](https://github.com/affaan-m/everything-claude-code), [install components](https://github.com/affaan-m/everything-claude-code/tree/main/manifests)).
 
-`ai-company-os` already has canonical/adapters separation ([skills/README.md](/Users/simons/ai-company-os/skills/README.md:43)), which is the right foundation.
+`ai-company-os` already has canonical/adapters separation ([skills/README.md](../skills/README.md)), which is the right foundation.
 
-But the repo is still explicitly in a lean control-plane phase ([README.md](/Users/simons/ai-company-os/README.md:176)). That means install profiles and massive harness packaging are likely premature.
+But the repo is still explicitly in a lean control-plane phase ([README.md](../README.md)). That means install profiles and massive harness packaging are likely premature.
 
 Recommendation:
 
@@ -187,7 +187,7 @@ Reasons:
    ECC optimizes the harness. This repo optimizes the operating system and control plane.
 
 3. **Bloat risk**
-   Bulk-importing ECC-style skills would make it easier to reintroduce the exact “prompt bundle” failure mode this repo is trying to avoid ([README.md](/Users/simons/ai-company-os/README.md:34)).
+   Bulk-importing ECC-style skills would make it easier to reintroduce the exact “prompt bundle” failure mode this repo is trying to avoid ([README.md](../README.md)).
 
 4. **Governance mismatch**
    `ai-company-os` requires bounded edit areas, validation steps, adapter discipline, and fixture state. ECC skills are useful, but they are not already normalized to this repo's canonical schema.
@@ -308,13 +308,13 @@ If we want a simple decision:
 ## Sources
 
 - Local architecture and skill system:
-  - [README.md](/Users/simons/ai-company-os/README.md:7)
-  - [docs/architecture.md](/Users/simons/ai-company-os/docs/architecture.md:17)
-  - [docs/operating-model.md](/Users/simons/ai-company-os/docs/operating-model.md:19)
-  - [skills/README.md](/Users/simons/ai-company-os/skills/README.md:7)
-  - [skills/spec.md](/Users/simons/ai-company-os/skills/spec.md:1)
-  - [skills/registry.yaml](/Users/simons/ai-company-os/skills/registry.yaml:1)
-  - [skills/canonical/shared/post-run-validation.md](/Users/simons/ai-company-os/skills/canonical/shared/post-run-validation.md:1)
+  - [README.md](../README.md)
+  - [docs/architecture.md](architecture.md)
+  - [docs/operating-model.md](operating-model.md)
+  - [skills/README.md](../skills/README.md)
+  - [skills/spec.md](../skills/spec.md)
+  - [skills/registry.yaml](../skills/registry.yaml)
+  - [skills/canonical/shared/post-run-validation.md](../skills/canonical/shared/post-run-validation.md)
 - External reference:
   - [affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code)
 
@@ -322,16 +322,17 @@ If we want a simple decision:
 
 ## Appendix — 2026-04-15 (ECC Gap Recommendations plan closed)
 
-The four open recommendations from this gap analysis are now closed
-by [docs/plans/2026-04-15-feat-ecc-gap-recommendations-plan.md](/Users/simons/ai-company-os/docs/plans/2026-04-15-feat-ecc-gap-recommendations-plan.md).
+The four open recommendations from this gap analysis were recorded as closed in
+the historical plan path `docs/plans/2026-04-15-feat-ecc-gap-recommendations-plan.md`,
+which is no longer tracked.
 
 | § | Recommendation                | Status         | How                                                                                         |
 | - | ----------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
 | 1 | Research-first execution      | **closed**     | Three canonical agentic skills shipped in Phase 1: `search-first`, `documentation-lookup`, `repo-onboarding`. Trigger phrases added to CLAUDE.md with a binding disambiguation rule. |
 | 2 | Skill-estate hygiene          | **closed**     | Two canonical validators shipped in Phase 2: `skill-stocktake` (3 MVP drift types) and `context-budget` (report-only v1, no thresholds). Seven new primitives under `packages/tools/primitives/` including `_safe_paths`, `_serialization`, `_state_writer`, `_contracts`, `followup_issue_writer`, `registry_drift`, `context_budget`. Loader refactored to import the adapter-path guard from primitives (dependency inversion). |
-| 3 | Continuous learning           | (prior closure)| Closed by [Hermes Phase 3](/Users/simons/ai-company-os/docs/plans/2026-04-14-feat-hermes-inspired-platform-upgrade-plan.md) (`worker-skill-evolution`, PR #8, commit `1ce62bb`). |
+| 3 | Continuous learning           | (prior closure)| Closed by [Hermes Phase 3](plans/2026-04-14-feat-hermes-inspired-platform-upgrade-plan.md) (`worker-skill-evolution`, PR #8, commit `1ce62bb`). |
 | 4 | Verification loop             | **closed**     | One canonical agentic skill shipped in Phase 3: `verification-loop`. Composes reconciliation + skill-stocktake + changed-surface into a 5-state severity aggregator (`{info, warn, fail, error, skipped}`) with `pass` / `soft_fail` / `hard_fail` verdict. Two entry points: runner primitive (advisory, never raises) + policy wrapper (raises `VERIFICATION_LOOP_HARD_FAIL` for CI). |
-| 5 | Install-surface strategy      | **deferred**   | Formally deferred in [docs/adr/2026-04-15-ecc-skill-decisions.md](/Users/simons/ai-company-os/docs/adr/2026-04-15-ecc-skill-decisions.md) §A with four explicit trip-wire conditions. Any PR reintroducing install-profile / manifest / marketplace machinery must first supersede §A with evidence that a trip-wire has fired. |
+| 5 | Install-surface strategy      | **deferred**   | Formally deferred in [docs/adr/2026-04-15-ecc-skill-decisions.md](adr/2026-04-15-ecc-skill-decisions.md) §A with four explicit trip-wire conditions. Any PR reintroducing install-profile / manifest / marketplace machinery must first supersede §A with evidence that a trip-wire has fired. |
 
 ### Phase 4 baseline metrics
 
@@ -343,8 +344,10 @@ by [docs/plans/2026-04-15-feat-ecc-gap-recommendations-plan.md](/Users/simons/ai
 - Per-lane token totals: `gtm` 16,664 · `supervisor` 13,664 · `engineering` 9,512 · `any` 9,269 · `ios` 2,952 · `appstore` 2,378.
 - System-prompt lane (CLAUDE.md + project-skill pointers): **5,054 tokens**. MCP instruction blocks not yet included (deferred to v2 with a TODO per todo 014).
 
-Baseline artifacts:
-- [state/health/skill-estate/2026-04-15-stocktake.json](/Users/simons/ai-company-os/state/health/skill-estate/2026-04-15-stocktake.json)
-- [state/health/skill-estate/2026-04-15-context-budget.json](/Users/simons/ai-company-os/state/health/skill-estate/2026-04-15-context-budget.json)
-- [state/health/skill-estate/2026-04-15-ecc-gap-baseline.json](/Users/simons/ai-company-os/state/health/skill-estate/2026-04-15-ecc-gap-baseline.json) (composite)
-- [state/artifacts/verification-loop/2026-04-15-ecc-gap-baseline/report.json](/Users/simons/ai-company-os/state/artifacts/verification-loop/2026-04-15-ecc-gap-baseline/report.json)
+The baseline artifacts were private runtime output and are not tracked. Their
+historical paths are retained as labels only:
+
+- `state/health/skill-estate/2026-04-15-stocktake.json`
+- `state/health/skill-estate/2026-04-15-context-budget.json`
+- `state/health/skill-estate/2026-04-15-ecc-gap-baseline.json` (composite)
+- `state/artifacts/verification-loop/2026-04-15-ecc-gap-baseline/report.json`

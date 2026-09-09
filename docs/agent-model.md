@@ -109,8 +109,9 @@ It is separate from the general engineering worker because iOS has distinct buil
 
 The App Store worker is the release-operations boundary. **Current implementation**
 models local release state and approval checks; it does not call App Store Connect,
-upload an archive, submit an app, or release one. The release-readiness policy is
-not yet wired into this worker. See [the App Store lane](appstore-lane.md) for the
+upload an archive, submit an app, or release one. Before the worker records the
+local `submit_appstore` transition, it runs the release-readiness checklist and
+signed-approval policy. See [the App Store lane](appstore-lane.md) for the
 executable boundary.
 
 The intended lane responsibilities are:

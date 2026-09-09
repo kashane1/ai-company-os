@@ -2,9 +2,11 @@
 
 > **Implementation status:** The current [worker](../apps/worker-appstore/main.py)
 > models local release state and leaves App Store Connect submission manual.
-> It does not call the [release-readiness policy](../packages/policies/release_readiness.py).
-> Checklist validation and external delivery described below are intended lane
-> responsibilities, not an end-to-end integration demonstrated by this worker.
+> Its local `submit_appstore` transition calls the
+> [release-readiness policy](../packages/policies/release_readiness.py) and persists
+> the pass or rejection in task evidence. It does not upload, submit, or release
+> anything through Apple. External delivery described below remains an intended
+> lane responsibility, not an end-to-end integration demonstrated by this worker.
 
 
 This document defines the operational scope, inputs, outputs, and workflow of the App Store worker.

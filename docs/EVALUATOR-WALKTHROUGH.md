@@ -29,7 +29,7 @@ leave unattended.
 The [license](../LICENSE) permits prospective employers to clone the repository
 and run these documented checks locally to evaluate the author's work.
 
-Requires Git, Bash, and **Python 3.10+** (CI uses 3.12). On Windows, use WSL.
+Requires Git, Bash, and **Python 3.10+** (application CI uses 3.11 and 3.12). On Windows, use WSL.
 The default check needs no third-party Python packages, external services,
 API keys, or model calls.
 
@@ -51,20 +51,30 @@ run `./scripts/demo.sh` (`make demo` is an alias if Make is installed).
 
 ## Fifteen to twenty minutes: tests and one design decision
 
-Use **Python 3.11+** for the application and test dependencies (3.12 matches
-CI). The standalone fixture only needs 3.10. Create a virtual environment and
-install the test dependencies. This step downloads packages; the fixture check
-above does not.
+Use **Python 3.11 or 3.12** and **uv 0.9.22** for the application checks.
+The standalone fixture only needs 3.10. Install the locked dependencies; this
+step downloads packages. Run these commands from the repository root.
 
 ```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install -e ".[test]"
+uv sync --frozen --extra test --group quality --python 3.12
+.venv/bin/python scripts/worker_demo.py --exercise-failure
 ./scripts/evaluator_check.sh --with-tests
 ```
 
-The fast subset checks sample records, enum parsing, approval rules, and
-token/endpoint behavior. It uses test state rather than your operator state.
-It does not call a coding agent or perform a real release.
+The worker demonstration uses the **actual outreach worker**, database queue,
+control plane, and post-run validator with one synthetic prospect. It injects
+a ledger-write failure, records the failed task and goal, then runs a new task
+to completion. The original failure remains in the evidence. Inspect
+`report.json` in the directory printed by the command for task IDs, events,
+artifact paths, and validation results. Each run creates a fresh isolated root;
+network connections and child processes are blocked. This proves one local
+execution and recovery path, without invoking a model or sending outreach.
+
+The fast test subset checks sample records, enum parsing, approval rules, and
+token/endpoint behavior with temporary state. The
+[worker exercise tests](../tests/python/integration/test_real_worker_demo.py)
+and [transaction rollback tests](../tests/python/integration/test_control_plane_failure_recovery.py)
+provide additional failure cases in the full suite.
 
 Then choose one thread to follow:
 
@@ -90,14 +100,22 @@ to inspect, not evidence to skip in favor of the fixture demo.
 For architecture, read the [runtime supervisor](../apps/runtime-supervisor/README.md),
 [architecture](architecture.md), and [agent model](agent-model.md). For product
 source, use the [product table](FOR-EMPLOYERS.md#product-work).
-Building iOS requires macOS, Xcode, and XcodeGen. The top-level
-`./scripts/test_ios.sh` tests **Catchbook only**; Life Clock and After Plans
-are separate projects.
+Building iOS requires macOS, Xcode, and XcodeGen. The common script selects
+each source tree explicitly; CI runs all three:
+
+```bash
+./scripts/test_ios.sh --product catchbook
+./scripts/test_ios.sh --product after-plans
+./scripts/test_ios.sh --product life-clock
+```
+
+Each product README explains its simulator configuration, optional integrations,
+and known test limitations. Reports go under `build/ios/`.
 
 ## Troubleshooting
 
 - **Python missing or too old:** the fixture needs 3.10+, and application/tests
-  need 3.11+. Python 3.12 matches CI.
+  need 3.11+. CI tests both Python 3.11 and 3.12.
 - **`No module named pytest` or another dependency error:** complete the virtual
   environment/install commands above and retry.
 - **Selecting an interpreter:** set `PYTHON_BIN=/absolute/path/to/python3` before
