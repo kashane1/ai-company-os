@@ -232,20 +232,23 @@ The iOS lane uses the same structured tests-with-code policy as the engineering 
 
 ### App Store Worker
 
-The App Store worker handles app distribution and release operations.
+The App Store worker owns the release-operations boundary. **Today it models local
+release state and approval checks only**: it does not call App Store Connect,
+upload archives, submit builds, or release products. It also does not yet invoke
+the release-readiness policy. See [the lane document](appstore-lane.md) for the
+implemented behavior.
 
-Responsibilities:
+The planned lane responsibilities are:
 
-- TestFlight preparation
-- metadata handling
-- screenshot handling
-- App Store Connect workflows
-- release notes drafts
-- review response drafts
-- submission coordination
-- release-state tracking
+- local TestFlight/release-state preparation
+- metadata and screenshot organization
+- release-note and review-response drafts
+- submission coordination and release-state tracking
 
-The App Store worker is separate from the iOS worker because building an app and shipping an app are different operational concerns.
+App Store Connect workflows, archive upload, submission, and public release remain
+manual operator work until an integrated external-delivery path is implemented.
+The App Store worker is separate from the iOS worker because building an app and
+shipping an app are different operational concerns.
 
 ### Outreach Worker
 
@@ -287,7 +290,9 @@ Products are first-class records, not implied folders.
 
 The current platform now expects:
 
-- a registry entry in `infra/products.json`
+- a registry entry in `infra/products.json`. Its canonical lifecycle vocabulary is
+  `discovery`, `mvp-build`, `app-store-submission`, `live`, and `maintenance`;
+  the phase describes source-controlled planning state, not external-release proof.
 - a checkpoint-backed product record
 - a durable artifact chain such as founder brief, product brief, MVP spec, backlog, iOS architecture, and App Store positioning
 - optional product-specific contracts such as deterministic insight rules

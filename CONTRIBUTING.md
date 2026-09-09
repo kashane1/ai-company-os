@@ -13,10 +13,11 @@ python3 -m venv .venv
 ./scripts/test_python.sh
 ```
 
-`make demo` has no external dependencies. It runs the control loop end to end
-and writes schema-faithful sample artifacts to `docs/examples/`.
-`./scripts/evaluator_check.sh` wraps that path and verifies the main files an
-evaluator is likely to inspect.
+`make demo` has no external dependencies. It exercises the deterministic demo
+control-loop fixture and writes schema-faithful sample artifacts to
+`docs/examples/`; it does not start persistent workers, contact third-party
+services, or prove an external deployment. `./scripts/evaluator_check.sh`
+wraps that path and verifies the main files an evaluator is likely to inspect.
 
 ## Repo Boundaries
 

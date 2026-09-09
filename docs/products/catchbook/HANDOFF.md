@@ -1,5 +1,8 @@
 # Handoff: Catchbook App Store Readiness
 
+> **Historical handoff (2026-04-08).** Use [remaining-steps-before-ios-submission.md](remaining-steps-before-ios-submission.md) and [submission-checklist.md](submission-checklist.md) for the current manual-release boundary. This handoff does not establish an archive, TestFlight upload, submission, or release.
+
+
 Start here if you are a new agent (Claude or Codex) picking up work on the Catchbook App Store submission lane.
 
 Last updated: 2026-04-08 (two-pass session: audit then implementation)

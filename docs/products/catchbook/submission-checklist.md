@@ -2,13 +2,16 @@
 
 Structured checklist for App Store submission readiness. The App Store worker should validate this before allowing any submission action.
 
-Last updated: 2026-04-09
+Last reconciled: 2026-09-08 (public-source and documentation review)
 
 ## Status Key
 
-- [x] Done
-- [A] Done — needs human action in ASC (step-by-step in `asc-setup-guide.md`)
-- [X] Done — needs human action in Xcode (step-by-step in `asc-setup-guide.md`)
+- [x] Prepared or verified in tracked source
+- [ ] Pending external or operator action (instructions may be prepared)
+
+A checked item records preparation or a source-level verification only. It does
+not by itself establish a release archive, TestFlight upload, App Store
+submission, review approval, or public release.
 
 ---
 
@@ -24,8 +27,8 @@ Last updated: 2026-04-09
 - [x] **Version strings aligned** — both project.yml and Info.plist now say 1.0.0 (fixed 2026-04-08)
 - [x] **App icon in Asset Catalog** — catchbook_icon.png placed in AppIcon.appiconset (1024×1024)
 - [x] **Deployment target set** — iOS 17.0
-- [X] **Release build configuration verified** — archive build needed in Xcode (see `asc-setup-guide.md` Step 10)
-- [X] **Code signing configured** — human sets up in Xcode with automatic signing (see `asc-setup-guide.md` Step 1)
+- [ ] **Release build configuration verified** — archive build needed in Xcode (see `asc-setup-guide.md` Step 10)
+- [ ] **Code signing configured** — human sets up in Xcode with automatic signing (see `asc-setup-guide.md` Step 1)
 - [x] **Entitlements created** — Catchbook.entitlements with WeatherKit capability (2026-04-09)
 - [x] **WeatherKit entitlement added** — enabled in Apple Developer Portal (confirmed 2026-04-09) + Catchbook.entitlements + project.yml
 
@@ -38,8 +41,8 @@ Last updated: 2026-04-09
 - [x] **Keywords** (100 chars) — 99 chars, keyword-researched
 - [x] **What's New text** — v1.0 launch text written
 - [x] **Category** — Sports / Reference
-- [A] **Age rating questionnaire completed** — answer all "None", result 4+ (see `asc-setup-guide.md` Step 4)
-- [A] **Content rights declaration** — "Does not contain third-party content" (see `asc-setup-guide.md` Step 5)
+- [ ] **Age rating questionnaire completed** — answer all "None", result 4+ (see `asc-setup-guide.md` Step 4)
+- [ ] **Content rights declaration** — "Does not contain third-party content" (see `asc-setup-guide.md` Step 5)
 
 ## 4. Visual Assets
 
@@ -58,7 +61,7 @@ Last updated: 2026-04-09
 - [x] **PrivacyInfo.xcprivacy created** — Location + Photos declarations (2026-04-09)
 - [x] **Location usage description** — present in Info.plist
 - [x] **Photo library usage descriptions** — present in Info.plist
-- [A] **App Privacy Details (nutrition labels)** — Location + Photos = App Functionality, not linked, not tracking. All else = Not Collected (see `asc-setup-guide.md` Step 6)
+- [ ] **App Privacy Details (nutrition labels)** — Location + Photos = App Functionality, not linked, not tracking. All else = Not Collected (see `asc-setup-guide.md` Step 6)
 - [x] **No third-party SDKs** — WeatherKit is Apple first-party, no others
 - [x] **No network calls except WeatherKit** — local-first, weather is optional enrichment
 
@@ -66,7 +69,7 @@ Last updated: 2026-04-09
 
 - [x] **Unit test coverage adequate** — 62 new tests added (WeatherKit, edge cases, enrichment). ~135+ total tests across 21 test files. Coverage target 40%+ achievable.
 - [x] **Manual QA pass documented** — `manual-qa-pass.md` with 40+ test scenarios (see `docs/products/catchbook/manual-qa-pass.md`)
-- [X] **TestFlight internal testing completed** — requires Xcode archive + physical device (see `asc-setup-guide.md` Steps 10-11)
+- [ ] **TestFlight internal testing completed** — requires Xcode archive + physical device (see `asc-setup-guide.md` Steps 10-11)
 - [x] **Edge cases tested** — `EdgeCaseTests.swift` with 39 tests: empty states, extreme values, boundaries, nil handling, permission denial paths
 
 ## 8. App Review Preparation
@@ -79,7 +82,7 @@ Last updated: 2026-04-09
 
 - [x] **Release type decided** — **Manual release** for v1.0 (decided 2026-04-09)
 - [x] **Pricing decided** — **Free**
-- [A] **TestFlight configuration** — create internal test group in ASC (see `asc-setup-guide.md` Step 10)
+- [ ] **TestFlight configuration** — create internal test group in ASC (see `asc-setup-guide.md` Step 10)
 - [x] **WeatherKit attribution added** — Apple  Weather attribution in condition preview and trip detail views
 
 ## 10. Handoff Readiness
@@ -92,16 +95,18 @@ Last updated: 2026-04-09
 
 ---
 
-## Summary: 35 of 35 COMPLETE
+## Summary: preparation artifacts are present; external release gates remain
 
-All items are either fully done or have step-by-step instructions prepared for the remaining human actions.
+The checklist documents source-level preparation and operator instructions. It
+does **not** record a completed archive, TestFlight upload, App Store submission,
+review approval, or public release.
 
-**Items requiring Kashane in Xcode (3):**
+**Pending Xcode operator actions (3):**
 1. Code signing setup → `asc-setup-guide.md` Step 1
 2. Archive build + TestFlight → `asc-setup-guide.md` Step 10
 3. Release build verification → happens during archive
 
-**Items requiring Kashane in App Store Connect (4):**
+**Pending App Store Connect operator actions (4):**
 1. Age rating questionnaire → `asc-setup-guide.md` Step 4
 2. Content rights declaration → `asc-setup-guide.md` Step 5
 3. Privacy nutrition labels → `asc-setup-guide.md` Step 6

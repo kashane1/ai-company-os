@@ -100,7 +100,7 @@ Why it still remains:
 
 What to do:
 
-1. run the scenarios in [manual-qa-pass.md](/Users/simons/ai-company-os/docs/products/catchbook/manual-qa-pass.md)
+1. run the scenarios in [manual-qa-pass.md](manual-qa-pass.md)
 2. record pass/fail results
 3. fix any issues found
 4. re-archive if needed

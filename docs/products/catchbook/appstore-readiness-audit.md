@@ -1,5 +1,8 @@
 # App Store Readiness Audit: Catchbook
 
+> **Historical audit (2026-04-08).** It records that session’s source review, not current Apple-side release evidence. For current preparation and outstanding manual gates, use [remaining-steps-before-ios-submission.md](remaining-steps-before-ios-submission.md) and [submission-checklist.md](submission-checklist.md).
+
+
 Single source of truth for what is ready, what is missing, and what must happen before App Store submission becomes a credible, repeatable workflow.
 
 Audit date: 2026-04-08

@@ -18,13 +18,13 @@ What exists today:
   Supabase instance
 - backend contract finalized in [api/CONTRACT.md](api/CONTRACT.md), with both
   in-memory and Supabase adapters conforming to the same protocols
-- local Supabase scaffold at [/infra/supabase/](/Users/simons/ai-company-os/infra/supabase/) with schema +
+- local Supabase scaffold at [/infra/supabase/](../../../infra/supabase/) with schema +
   RLS policies + seed; `supabase start` boots a working dev stack
 - runtime backend selection via env vars in `AfterPlansConfiguration` —
   default is in-memory; flip `AFTERPLANS_BACKEND=supabase` in the scheme to
   point the app at local Supabase
-- `afterplans://` URL scheme registered and deep-link join handling wired in [AfterPlansStore.swift](/Users/simons/ai-company-os/products/after-plans-ios/Sources/App/AfterPlansStore.swift)
-- App icon (placeholder, on-brand) and asset catalog at [Sources/Assets.xcassets/](/Users/simons/ai-company-os/products/after-plans-ios/Sources/Assets.xcassets/)
+- `afterplans://` URL scheme registered and deep-link join handling wired in [AfterPlansStore.swift](../../../products/after-plans-ios/Sources/App/AfterPlansStore.swift)
+- App icon (placeholder, on-brand) and asset catalog at [Sources/Assets.xcassets/](../../../products/after-plans-ios/Sources/Assets.xcassets/)
 - `AccentColor` and `LaunchBackground` colorsets matching the in-app palette
 - non-empty `UILaunchScreen` configured against `LaunchBackground`
 - App Store metadata drafted in [APP_STORE_METADATA_DRAFT.md](APP_STORE_METADATA_DRAFT.md)
@@ -88,16 +88,16 @@ Status: **complete for local dev; cloud Supabase project still to provision**
 Landed in C1 (2026-04-25):
 
 1. ✅ contract extracted to platform-neutral protocols — see
-   [Sources/Services/NetworkProtocols.swift](/Users/simons/ai-company-os/products/after-plans-ios/Sources/Services/NetworkProtocols.swift)
+   [Sources/Services/NetworkProtocols.swift](../../../products/after-plans-ios/Sources/Services/NetworkProtocols.swift)
    and [api/CONTRACT.md](api/CONTRACT.md)
-2. ✅ Supabase chosen, scaffold at [/infra/supabase/](/Users/simons/ai-company-os/infra/supabase/)
+2. ✅ Supabase chosen, scaffold at [/infra/supabase/](../../../infra/supabase/)
 3. ✅ real network adapter at
-   [Sources/Services/SupabaseBackend.swift](/Users/simons/ai-company-os/products/after-plans-ios/Sources/Services/SupabaseBackend.swift),
+   [Sources/Services/SupabaseBackend.swift](../../../products/after-plans-ios/Sources/Services/SupabaseBackend.swift),
    gated behind `#if canImport(Supabase)`
 4. ✅ `InMemoryBackend` retained as the test/preview backing store
 5. ✅ `AfterPlansConfiguration` flips between backends via env vars
 6. ✅ full lifecycle validated against the real backend by
-   [SupabaseBackendIntegrationTests.swift](/Users/simons/ai-company-os/products/after-plans-ios/Tests/Services/SupabaseBackendIntegrationTests.swift)
+   [SupabaseBackendIntegrationTests.swift](../../../products/after-plans-ios/Tests/Services/SupabaseBackendIntegrationTests.swift)
    (`currentUser → suggestedContexts → feed → createPlan → join → confirm →
    markActive → wrap`)
 
@@ -126,7 +126,7 @@ is required for any installed-on-device validation.
 
 Why it still remains:
 
-- the current icon is a programmatically rendered placeholder ([AppIcon-1024.png](/Users/simons/ai-company-os/products/after-plans-ios/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png))
+- the current icon is a programmatically rendered placeholder ([AppIcon-1024.png](../../../products/after-plans-ios/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png))
 - distinctive enough to ship, but not designer-finished
 
 What to do:
@@ -147,7 +147,7 @@ Why it still remains:
 
 What to do:
 
-1. seed a demo state in the in-memory shell (or eventually the real backend) that matches each storyboard frame
+1. seed a demo state in the offline default or configured local backend that matches each storyboard frame
 2. capture from iPhone 15 Pro Max simulator (6.7") and iPhone 8 Plus or equivalent (5.5") at minimum
 3. add the headline/caption overlays per `SCREENSHOT_PLAN.md`
 4. export at the exact pixel dimensions Apple requires
@@ -284,17 +284,17 @@ Shared with Catchbook.
 
 If the goal is **submit After Plans soon**:
 
-1. founder decisions (subtitle, age rating, contexts, moderation)
-2. backend contract definition + thin networked build
-3. icon refinement
-4. real screenshots from the networked build
-5. legal/support URLs
-6. signing + release archive
-7. TestFlight + device QA
-8. App Store Connect form work
-9. final review pass and submit
+1. complete the remaining founder launch-context decision
+2. provision and configure the cloud backend for a release build
+3. icon refinement and screenshots from the configured release path
+4. legal/support URLs and privacy review
+5. signing + release archive
+6. TestFlight + device QA
+7. App Store Connect form work
+8. final review pass and manual submission
 
-The single biggest item is the backend contract — without it, every later step is provisional.
+The release path depends on cloud configuration and Apple-side execution. The
+local backend contract is implemented, but it is not evidence of either.
 
 If the goal is **eventually submit through Codex or Claude**:
 

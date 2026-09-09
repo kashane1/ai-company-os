@@ -1,8 +1,13 @@
 # Submission Prep Report — Life Clock v1.0
 
+> **Historical preparation report (2026-05-19).** It records prepared local artifacts and proposed operator steps; it does not establish an archive, TestFlight upload, App Store submission, or release. See [PHASE_STATUS.md](PHASE_STATUS.md) for the current product boundary.
+
+
 > **Generated:** 2026-05-19 by Claude (autonomous prep session)
 > **Branch:** `submission-prep-life-clock`
-> **Status:** 99% ready. Remaining work is administrative (ASC paste-in + Archive + Submit).
+> **Status at the time:** preparation report only. The Apple-side actions below
+> were still pending and must not be read as evidence of upload, submission, or
+> release.
 
 ---
 

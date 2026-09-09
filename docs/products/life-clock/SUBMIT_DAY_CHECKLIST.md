@@ -1,10 +1,15 @@
 # Submit Day Checklist — Life Clock v1.0
 
-> **Purpose:** the linear, no-thinking-required list to ship Life Clock from "everything prepped" to "Submitted for Review."
+> **Purpose:** an operator checklist for moving Life Clock from prepared local
+> artifacts to a manual App Store submission.
 >
-> **Inputs already prepared by automation:**
+> **Current evidence boundary:** these inputs do not establish an archive,
+> TestFlight upload, App Store submission, approval, or public release. Mark each
+> Apple-side action only after recording it in the appropriate operator system.
+>
+> **Prepared local inputs:**
 > - `LifeClock.xcodeproj` regenerated via `xcodegen`
-> - `LifeClock.local.xcconfig` created with a `DEVELOPMENT_TEAM = ` placeholder (paste your Team ID before archive)
+> - `LifeClock.local.xcconfig.example` — copy to ignored `LifeClock.local.xcconfig` and add your Team ID before archive
 > - `SUBMISSION_METADATA.md` — paste-ready copy for every ASC field
 > - `screenshots/submission-v1/` — captured 6×iPhone-6.9" + 6×iPad-13" set (assuming the sim-runtime download succeeded; see fallback below)
 > - Branch: `submission-prep-life-clock` (rebase to main before opening Xcode if main moved)
@@ -15,7 +20,7 @@
 
 ## 0 — Pre-flight (1 minute)
 
-- [ ] `git -C /Users/kashane/dev/ai-company-os status` — make sure you're on `submission-prep-life-clock` (or merged into your trunk).
+- [ ] From this repository checkout, run `git status` and confirm the intended revision is checked out.
 - [ ] Confirm legal site loads: open https://kashane1.github.io/life-clock-legal/privacy-policy.html in Chrome. Should render real privacy text, not 404.
 - [ ] Confirm support email inbox exists: log into lifeclock.support@gmail.com. Apple reviewers will email this if they reject.
 
@@ -86,7 +91,7 @@ If captures didn't happen because of the sim-runtime mismatch, fallback path:
 
 In a terminal:
 ```bash
-cd /Users/kashane/dev/ai-company-os/products/life-clock-ios
+cd products/life-clock-ios
 # bump build number if you're re-uploading after a previous attempt
 # (open project.yml, increment CURRENT_PROJECT_VERSION, then `xcodegen generate`)
 open LifeClock.xcodeproj
