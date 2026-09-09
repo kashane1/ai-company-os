@@ -33,6 +33,7 @@ The decisions I would start a technical conversation with are:
 | Where do approval rules live? | [Approval policy](../packages/policies/approvals.py) and [policy tests](../tests/python/unit/test_approvals.py) | Risk/keyword classification and the explicit release-action list |
 | How does an approval get recorded? | [Magic-link endpoint](../apps/api/approval_endpoint.py) and [integration tests](../tests/python/integration/test_approval_tokens.py) | Expiry, signature rejection, single-use tokens, and the extra confirmation step for P0 actions |
 | What happens when an audit write fails? | [Postmortem store](../packages/db/postmortem_store.py) and [failure-injection test](../tests/python/integration/test_audit_artifact_crash_safety.py) | Temporary-file replacement and preservation of the previous record after a write error |
+| What proves that verification ran? | [Verification runner](../packages/tools/verification.py) and [failure-path tests](../tests/python/unit/test_worker_verification.py) | Configured commands, exit codes, timeouts, redacted logs, and detection of changes made during verification |
 | How do the workers fit together? | [Runtime supervisor](../apps/runtime-supervisor/README.md) and [engineering flow](engineering-flow.md) | Worker lifecycle, task preparation, validation, and review handoff |
 
 These links show specific implemented behavior. They do not establish that
@@ -49,7 +50,7 @@ an App Store launch, user adoption, or revenue.
 |---|---|
 | [Life Clock](../products/life-clock-ios/README.md) | SwiftUI/SwiftData health app with engines, HealthKit integration, subscription code, and test targets; the [polish walkthrough](flagship-simulator-driven-polish.md) traces one development workflow |
 | [Catchbook](../products/catchbook-ios/README.md) | Fishing logbook source with trip/catch/history flows and unit/UI tests |
-| [After Plans](../products/after-plans-ios/README.md) | SwiftUI app with an offline in-memory default, optional Supabase adapter, and lifecycle/visibility tests; deployed service status is not established here |
+| [After Plans](../products/after-plans-ios/README.md) | SwiftUI app with an offline in-memory default, optional Supabase adapter, lifecycle/visibility tests, and an onboarding-to-plan UI test; deployed service status is not established here |
 
 ## Scope and limitations
 

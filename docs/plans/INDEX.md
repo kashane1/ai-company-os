@@ -126,9 +126,7 @@ follow-ups" below for the source-signal mapping used.
 
 | [2026-09-09-employer-readiness-round-2-plan.md](2026-09-09-employer-readiness-round-2-plan.md) | 2026-09-09 | employer-readiness-round-2 | open | platform / products — verification evidence, recovery, and evaluator clarity |
 
-Indexed here: **53 open** plans. Four pre-existing June 13–15 BBW/DataForSEO
-documents remain unindexed; the September 2 handoff records that unrelated drift.
-Finished plans
+The table covers the live plans checked by `make plans-index-check`. Finished plans
 (`done` / `abandoned`) are moved out of this directory into
 [archive/](archive/INDEX.md), so this table lists open work only. This
 index is verified by `make plans-index-check` (drift gate; see below).
