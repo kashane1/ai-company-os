@@ -4,13 +4,56 @@
     "name": "AI Company OS",
     "source_path": ".",
     "managed_repo_name": "ai-company-os",
-    "default_branch": "main"
+    "default_branch": "main",
+    "verification": {
+      "engineering": [
+        {
+          "argv": [
+            "{python}",
+            "-m",
+            "pytest",
+            "tests/python",
+            "--ignore=tests/python/perf",
+            "-q"
+          ],
+          "timeout_seconds": 600
+        }
+      ]
+    }
   },
   {
     "id": "catchbook-ios",
     "name": "Catchbook iOS",
     "source_path": "products/catchbook-ios",
     "managed_repo_name": "catchbook-ios",
-    "default_branch": "main"
+    "default_branch": "main",
+    "verification": {
+      "ios": [
+        {
+          "argv": [
+            "xcodegen",
+            "--spec",
+            "project.yml",
+            "--quiet"
+          ]
+        },
+        {
+          "argv": [
+            "xcodebuild",
+            "test",
+            "-project",
+            "Catchbook.xcodeproj",
+            "-scheme",
+            "Catchbook",
+            "-destination",
+            "{ios_destination}",
+            "-derivedDataPath",
+            "{artifacts}/DerivedData",
+            "CODE_SIGNING_ALLOWED=NO"
+          ],
+          "timeout_seconds": 1800
+        }
+      ]
+    }
   }
 ]

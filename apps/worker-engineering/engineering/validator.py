@@ -1,4 +1,3 @@
-import subprocess
 from pathlib import Path
 
 from packages.config.settings import ensure_runtime_directories
@@ -8,28 +7,18 @@ from packages.policies.testing import (
     parse_testing_metadata,
 )
 from packages.schemas.task import Task
-from packages.schemas.task_run import ValidationCheck
+from packages.schemas.task_run import ValidationCheck, VerificationResult
 from packages.schemas.testing import TestingPolicyResult, TestLane
 from packages.schemas.worktree import WorktreeMetadata
+from packages.tools.git_changes import capture_review_diff
+from packages.tools.verification import verification_check
 
 
 def capture_diff(worktree: WorktreeMetadata, task_id: str) -> str:
     paths = ensure_runtime_directories()
     diff_path = paths.engineering_artifacts_root / task_id / "worktree.diff"
-    completed = subprocess.run(
-        [
-            "git",
-            "-C",
-            worktree.root_path,
-            "diff",
-            "--stat",
-            "--patch",
-        ],
-        text=True,
-        capture_output=True,
-    )
     diff_path.parent.mkdir(parents=True, exist_ok=True)
-    diff_path.write_text(completed.stdout)
+    diff_path.write_text(capture_review_diff(worktree.root_path))
     return str(diff_path)
 
 
@@ -41,6 +30,8 @@ def validate_run(
     exit_code: int,
     diff_path: str,
     status_lines: list[str],
+    verification_results: list[VerificationResult] | None = None,
+    source_root: str | None = None,
 ) -> tuple[list[ValidationCheck], TestingPolicyResult, str]:
     execution_result = Path(execution_result_path)
     testing_metadata = (
@@ -51,6 +42,7 @@ def validate_run(
         changes=parse_git_status_lines(status_lines),
         testing_metadata=testing_metadata,
         current_task=task,
+        source_root=source_root,
     )
     checks = [
         ValidationCheck(
@@ -85,5 +77,6 @@ def validate_run(
             code=testing_policy.failure_code.value if testing_policy.failure_code else None,
         ),
     ]
+    checks.append(verification_check(verification_results or []))
     testing_summary = testing_metadata.summary if testing_metadata else ""
     return checks, testing_policy, testing_summary
