@@ -13,7 +13,9 @@ from packages.db.approval_store import ApprovalStore  # noqa: E402
 from packages.pod.runner import (  # noqa: E402
     TEMPLATE_ID,
     PrintifyClient,
+    apply_copy_run,
     apply_run,
+    prepare_copy_run,
     prepare_run,
     read_json,
 )
@@ -36,6 +38,18 @@ def main():
     apply = sub.add_parser("apply", help="apply an exact approved draft revision; never publish")
     apply.add_argument("--run-dir", required=True, type=Path)
     apply.add_argument("--approval-id", required=True)
+    prepare_copy = sub.add_parser(
+        "prepare-copy", help="prepare copy after artwork was placed in the Printify editor"
+    )
+    prepare_copy.add_argument("--template-id", default=TEMPLATE_ID)
+    prepare_copy.add_argument("--draft-id", required=True)
+    prepare_copy.add_argument("--artwork", required=True, type=Path)
+    prepare_copy.add_argument("--copy", required=True, type=Path)
+    prepare_copy.add_argument("--run-dir", required=True, type=Path)
+    prepare_copy.add_argument("--scale-percent", type=float)
+    apply_copy = sub.add_parser("apply-copy", help="apply approved copy after a browser artwork edit")
+    apply_copy.add_argument("--run-dir", required=True, type=Path)
+    apply_copy.add_argument("--approval-id", required=True)
     args = parser.parse_args()
     client = PrintifyClient(require_secret("PRINTIFY_API_TOKEN", source="keychain"))
     try:
@@ -55,8 +69,18 @@ def main():
                       "review": str(args.run_dir / "review.json"),
                       "approval_request": str(args.run_dir / "approval-request.json"),
                       "dpi": review["artwork"]["dpi"], "account_writes": 0}
-        else:
+        elif args.command == "prepare-copy":
+            review = prepare_copy_run(client, args.template_id, args.draft_id, args.artwork,
+                                      read_json(args.copy), args.run_dir,
+                                      scale_percent=args.scale_percent)
+            result = {"status": "prepared", "revision": review["revision"],
+                      "review": str(args.run_dir / "review.json"),
+                      "approval_request": str(args.run_dir / "approval-request.json"),
+                      "dpi": review["artwork"]["dpi"], "account_writes": 0}
+        elif args.command == "apply":
             result = apply_run(client, args.run_dir, ApprovalStore().load(args.approval_id))
+        else:
+            result = apply_copy_run(client, args.run_dir, ApprovalStore().load(args.approval_id))
         print(json.dumps(result, indent=2))
         return 0
     except (ValueError, RuntimeError, FileNotFoundError) as exc:

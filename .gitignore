@@ -13,6 +13,8 @@ build/
 .env
 .env.local
 .env.*.local
+.etsy.env
+.etsy.env.*
 
 # Runtime records, reports, assets, tokens, and local worktrees stay private.
 # Only the contract and empty directory markers belong in a clean checkout.

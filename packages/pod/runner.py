@@ -1,4 +1,4 @@
-"""A small operated runner: prepare, upload, update one native duplicate, verify."""
+"""Prepare, update, and verify one operated native Printify duplicate."""
 
 from __future__ import annotations
 
@@ -29,8 +29,10 @@ from packages.policies.pod import require_draft_approval
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 
 SHOP_ID = 28779955
-TEMPLATE_ID = "6a98ae4aaa543bfeff0f8735"
+TEMPLATE_ID = "6a9860cc0bf15ba9490bfe3a"
 PATCH_FIELDS = {"title", "description", "tags", "print_areas"}
+API_UPLOAD_MAX_BYTES = 5 * 1024 * 1024
+BROWSER_UPLOAD_MAX_BYTES = 100 * 1024 * 1024
 
 
 def digest(value) -> str:
@@ -126,8 +128,72 @@ class PrintifyClient:
     def get_product(self, identifier):
         return self._request("GET", self._product_path(identifier))
 
+    def get_catalog_shipping(self, blueprint_id: int, print_provider_id: int):
+        """Read current standard shipping rates for an exact catalog pairing."""
+        self._validate_catalog_ids(blueprint_id, print_provider_id)
+        return self._request(
+            "GET",
+            f"catalog/blueprints/{blueprint_id}/print_providers/"
+            f"{print_provider_id}/shipping.json",
+        )
+
+    def get_catalog_standard_shipping(
+        self, blueprint_id: int, print_provider_id: int
+    ):
+        """Read V2 rates from the explicitly named standard-shipping route."""
+        self._validate_catalog_ids(blueprint_id, print_provider_id)
+        return self._request(
+            "GET",
+            "https://api.printify.com/v2/catalog/blueprints/"
+            f"{blueprint_id}/print_providers/{print_provider_id}/"
+            "shipping/standard.json",
+        )
+
+    @staticmethod
+    def _validate_catalog_ids(blueprint_id: int, print_provider_id: int) -> None:
+        for value in (blueprint_id, print_provider_id):
+            if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                raise DraftError(
+                    "Blueprint and print provider IDs must be positive integers."
+                )
+
+    def iter_products(self, *, limit=50):
+        """Yield every shop product through Printify's read-only paginated route."""
+        if not isinstance(limit, int) or not 1 <= limit <= 50:
+            raise DraftError("Printify product list limit must be 1 through 50.")
+        page = 1
+        expected_last_page = None
+        while True:
+            payload = self._request(
+                "GET", f"shops/{SHOP_ID}/products.json?limit={limit}&page={page}"
+            )
+            products = payload.get("data") if isinstance(payload, dict) else None
+            current_page = payload.get("current_page") if isinstance(payload, dict) else None
+            last_page = payload.get("last_page") if isinstance(payload, dict) else None
+            if (
+                not isinstance(products, list)
+                or isinstance(current_page, bool)
+                or not isinstance(current_page, int)
+                or isinstance(last_page, bool)
+                or not isinstance(last_page, int)
+                or current_page != page
+                or last_page < current_page
+                or last_page < page
+                or (expected_last_page is not None and last_page != expected_last_page)
+            ):
+                raise DraftError("Printify product list response is invalid.")
+            if expected_last_page is None:
+                expected_last_page = last_page
+            for product in products:
+                if not isinstance(product, dict):
+                    raise DraftError("Printify product list contains an invalid product.")
+                yield product
+            if current_page >= last_page:
+                return
+            page = current_page + 1
+
     def upload(self, name, content):
-        if len(content) > 5 * 1024 * 1024:
+        if len(content) > API_UPLOAD_MAX_BYTES:
             raise DraftError("PNG exceeds the runner's 5 MiB upload limit; use a reviewed upload path.")
         return self._request("POST", "uploads/images.json", {
             "file_name": name, "contents": base64.b64encode(content).decode(),
@@ -157,7 +223,7 @@ def prepare_run(client, template_id, draft_id, artwork, copy, directory, *, scal
                 or len(set(tags)) != len(tags)):
             raise DraftError("Use up to 13 unique tags, each 1–20 characters.")
         content = artwork.read_bytes()
-        if len(content) > 5 * 1024 * 1024:
+        if len(content) > API_UPLOAD_MAX_BYTES:
             raise DraftError("PNG exceeds the runner's 5 MiB upload limit.")
         with Image.open(artwork) as image:
             if image.format != "PNG":
@@ -190,6 +256,84 @@ def prepare_run(client, template_id, draft_id, artwork, copy, directory, *, scal
         }
         if scale_percent is not None:
             review["placement"] = placement
+        review["revision"] = digest(review)
+        save_json(directory / "template.json", template)
+        save_json(directory / "before.json", before)
+        save_json(directory / "review.json", review)
+        approval = ApprovalRecord(
+            id=str(uuid4()), status=ApprovalStatus.PENDING,
+            summary=f"Update unpublished Printify draft {draft_id}: {payload['title']}",
+            created_at=datetime.now(timezone.utc).isoformat(), approval_type="pod_draft_update",
+            review_artifact_path=str((directory / "review.json").resolve()),
+            subject_type="pod_manifest", subject_id=review["revision"],
+            action="update_printify_draft",
+        )
+        save_json(directory / "approval-request.json", approval.to_dict())
+        return review
+
+
+def prepare_copy_run(client, template_id, draft_id, artwork, copy, directory, *, scale_percent=None):
+    """Prepare metadata for artwork already placed through Printify's editor."""
+    directory, artwork = Path(directory), Path(artwork).resolve()
+    with run_lock(directory):
+        if (directory / "review.json").exists():
+            raise DraftError("Review already exists; resume it or use a new revision directory.")
+        if set(copy) != {"title", "intro", "tags"}:
+            raise DraftError("Copy input must contain title, intro, and tags only.")
+        if not isinstance(copy["title"], str) or not 1 <= len(copy["title"].strip()) <= 140:
+            raise DraftError("Title must contain 1–140 characters.")
+        if not isinstance(copy["intro"], str) or not 1 <= len(copy["intro"].strip()) <= 5000:
+            raise DraftError("Supply a short design-specific introduction.")
+        tags = copy["tags"]
+        if (not isinstance(tags, list) or not 1 <= len(tags) <= 13
+                or any(not isinstance(t, str) or not 1 <= len(t) <= 20 for t in tags)
+                or len(set(tags)) != len(tags)):
+            raise DraftError("Use up to 13 unique tags, each 1–20 characters.")
+        if artwork.stat().st_size > BROWSER_UPLOAD_MAX_BYTES:
+            raise DraftError("PNG exceeds the browser workflow's 100 MiB limit.")
+        content = artwork.read_bytes()
+        with Image.open(artwork) as image:
+            if image.format != "PNG":
+                raise DraftError("Artwork must be a PNG.")
+            image.load()
+            width, height = image.size
+            alpha = image.convert("RGBA").getchannel("A").getextrema()
+        if alpha[1] == 0:
+            raise DraftError("Artwork is fully transparent; supply visible artwork.")
+        placement = artwork_placement(width, height, scale_percent)
+        template = client.get_product(template_id)
+        before = client.get_product(draft_id)
+        assert_native_copy(template, before, SHOP_ID)
+        front_images = [
+            image
+            for area in before.get("print_areas", [])
+            for placeholder in area.get("placeholders", [])
+            if placeholder.get("position") == "front"
+            for image in placeholder.get("images", [])
+        ]
+        if len(front_images) != 1:
+            raise DraftError("Browser-edited draft must have exactly one front image.")
+        front = front_images[0]
+        if (front.get("name") != artwork.name or front.get("width") != width
+                or front.get("height") != height or front.get("angle") != 0
+                or abs(front.get("x", -1) - placement["x"]) > 0.001
+                or abs(front.get("y", -1) - placement["y"]) > 0.001
+                or abs(front.get("scale", -1) - placement["scale"]) > 0.001):
+            raise DraftError("Browser artwork or placement does not match the reviewed file.")
+        if "\n\nPRODUCT FEATURES" not in template["description"]:
+            raise DraftError("Template has no stable PRODUCT FEATURES section; review its copy.")
+        description = (copy["intro"].strip() + "\n\nPRODUCT FEATURES"
+                       + template["description"].split("\n\nPRODUCT FEATURES", 1)[1])
+        payload = {"title": copy["title"].strip(), "description": description, "tags": tags}
+        review = {
+            "schema_version": 1, "shop_id": SHOP_ID, "template_id": template_id,
+            "draft_id": draft_id, "before_fingerprint": snapshot_digest(before),
+            "artwork": {"path": str(artwork), "sha256": hashlib.sha256(content).hexdigest(),
+                        "width": width, "height": height, "dpi": placement["dpi"],
+                        "alpha_range": list(alpha)},
+            "placement": placement,
+            "payload": payload,
+        }
         review["revision"] = digest(review)
         save_json(directory / "template.json", template)
         save_json(directory / "before.json", before)
@@ -259,6 +403,50 @@ def apply_run(client, directory, approval):
             current = client.get_product(review["draft_id"])
             save_json(directory / "after.json", current)
             verify_update(before, current, payload)
+        receipt = {
+            "status": "already_verified" if already_verified else "verified",
+            "product_id": current["id"], "revision": revision, "approval_id": approval.id,
+            "url": "https://printify.com/app/product-details/" + current["id"],
+            "selected_mockups": len(mockup_signature(current)),
+            "enabled_variants": sum(v["is_enabled"] for v in current["variants"]),
+            "dpi": review["artwork"]["dpi"], "published": False,
+        }
+        save_json(directory / "receipt.json", receipt)
+        return receipt
+
+
+def apply_copy_run(client, directory, approval):
+    """Apply approved title, description, and tags after a reviewed browser artwork edit."""
+    directory = Path(directory)
+    with run_lock(directory):
+        review = read_json(directory / "review.json")
+        revision = review["revision"]
+        if digest({k: v for k, v in review.items() if k != "revision"}) != revision:
+            raise DraftError("Review changed; prepare a new approved revision.")
+        require_draft_approval(approval, revision)
+        content = Path(review["artwork"]["path"]).read_bytes()
+        if hashlib.sha256(content).hexdigest() != review["artwork"]["sha256"]:
+            raise DraftError("Artwork changed; prepare a new approved revision.")
+        before = read_json(directory / "before.json")
+        if snapshot_digest(before) != review["before_fingerprint"]:
+            raise DraftError("Baseline changed; prepare a new approved revision.")
+        current = client.get_product(review["draft_id"])
+        require_unpublished(current)
+        verification_payload = {**review["payload"], "print_areas": before["print_areas"]}
+        already_verified = False
+        try:
+            verify_update(before, current, verification_payload)
+            already_verified = True
+        except DraftError:
+            pass
+        if not already_verified:
+            if snapshot_digest(current) != review["before_fingerprint"]:
+                raise DraftError("Draft changed since review; inspect before preparing a new revision.")
+            save_json(directory / "update-request.json", review["payload"])
+            client.update_draft(review["draft_id"], review["payload"])
+            current = client.get_product(review["draft_id"])
+            save_json(directory / "after.json", current)
+            verify_update(before, current, verification_payload)
         receipt = {
             "status": "already_verified" if already_verified else "verified",
             "product_id": current["id"], "revision": revision, "approval_id": approval.id,

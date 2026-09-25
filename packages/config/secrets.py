@@ -17,7 +17,9 @@ import subprocess
 from pathlib import Path
 from typing import Literal
 
-SecretSource = Literal["env", "keychain"]
+from packages.config.etsy_env import load_etsy_env
+
+SecretSource = Literal["env", "keychain", "etsy_env"]
 
 KEYCHAIN_SERVICE_DEFAULT = "ai-company-os"
 
@@ -81,9 +83,15 @@ def get_secret(
 ) -> str | None:
     """Return the secret value, or None if missing.
 
-    ``source="env"`` reads process env first, then the repo ``.env`` file.
-    ``source="keychain"`` uses ``security find-generic-password``.
+    Every ``ETSY_*`` name always reads the repository ``.etsy.env`` file,
+    including legacy callers that still pass ``source="keychain"``. Other
+    names retain their existing source behavior.
     """
+    etsy_name = account if account and account.startswith("ETSY_") else name
+    if etsy_name.startswith("ETSY_"):
+        return load_etsy_env(_repo_root() / ".etsy.env").get(etsy_name) or None
+    if source == "etsy_env":
+        return load_etsy_env(_repo_root() / ".etsy.env").get(etsy_name) or None
     if source == "env":
         value = os.environ.get(name)
         if value:
@@ -107,8 +115,13 @@ def require_secret(
         name, source=source, service=service, account=account, runner=runner
     )
     if not value:
+        resolved_source = (
+            ".etsy.env"
+            if (account if account and account.startswith("ETSY_") else name).startswith("ETSY_")
+            else source
+        )
         raise SecretNotFoundError(
-            f"required secret {name!r} not found in source={source}"
+            f"required secret {name!r} not found in source={resolved_source}"
         )
     return value
 
