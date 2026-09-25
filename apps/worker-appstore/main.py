@@ -11,10 +11,15 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from apps.api.control_plane import ControlPlaneService
+from packages.config.settings import load_runtime_paths
 from packages.db.task_store import TaskStore
 from packages.db.approval_store import ApprovalStore
 from packages.db.release_store import ReleaseStore
-from packages.policies.approvals import requires_release_action_approval
+from packages.policies.approvals import (
+    APPROVAL_REQUIRED_RELEASE_ACTIONS,
+    SAFE_RELEASE_ACTIONS,
+    requires_release_action_approval,
+)
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
 from packages.schemas.release import ReleaseRecord, ReleaseStatus, StoreChannelStatus
 from packages.schemas.task_packet import RiskLevel, TaskPacket, TaskResult, TaskStatus, WorkerLane
@@ -33,6 +38,14 @@ def inspect_release(release_id: str) -> ReleaseRecord:
 
 
 def execute_release_action(release_id: str, action: str, approval_id: str | None = None) -> TaskResult:
+    if action not in SAFE_RELEASE_ACTIONS | APPROVAL_REQUIRED_RELEASE_ACTIONS:
+        return TaskResult(
+            task_id=release_id,
+            status=TaskStatus.BLOCKED,
+            summary=f"Unsupported release action {action} is blocked.",
+            next_actions=["Use a supported App Store release action."],
+        )
+
     release_store = ReleaseStore()
     release = release_store.load_release_record(release_id)
     needs_approval = requires_release_action_approval(action)
@@ -48,13 +61,30 @@ def execute_release_action(release_id: str, action: str, approval_id: str | None
                     "Retry the action once approval is granted.",
                 ],
             )
-        approval = ApprovalStore().load(approval_id)
-        if approval.status is not ApprovalStatus.APPROVED:
+        try:
+            approval = ApprovalStore().load(approval_id)
+        except FileNotFoundError:
             return TaskResult(
                 task_id=release_id,
                 status=TaskStatus.BLOCKED,
-                summary=f"Release action {action} is still waiting for approval.",
-                next_actions=["Approve the release action before retrying."],
+                summary=(
+                    f"Release action {action} is blocked because its approval record "
+                    "is unavailable."
+                ),
+                next_actions=["Create and approve the matching release approval record."],
+            )
+        if (
+            approval.status is not ApprovalStatus.APPROVED
+            or approval.approval_type != "release_action"
+            or approval.subject_type != "release"
+            or approval.subject_id != release_id
+            or approval.action != action
+        ):
+            return TaskResult(
+                task_id=release_id,
+                status=TaskStatus.BLOCKED,
+                summary=f"Release action {action} is blocked because its approval does not match.",
+                next_actions=["Approve the matching release action before retrying."],
             )
 
     updated = release
@@ -88,6 +118,7 @@ def execute_release_action(release_id: str, action: str, approval_id: str | None
         task_id=release_id,
         status=TaskStatus.COMPLETED,
         summary=f"Prepared release state for action {action}.",
+        approval_id=approval_id if needs_approval else None,
         next_actions=[
             "Inspect the updated release record.",
             "Keep App Store Connect submission manual for now.",
@@ -180,8 +211,13 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
 
     release_id = _constraint_value(packet, "release_id=") or ""
     release_action = _constraint_value(packet, "release_action=") or "prepare_testflight"
-    artifact_path = f"state/artifacts/appstore/{task.id}/submission_summary.json"
-    artifact_file = Path(artifact_path)
+    artifact_file = (
+        load_runtime_paths().artifacts_root
+        / "appstore"
+        / task.id
+        / "submission_summary.json"
+    )
+    artifact_path = str(artifact_file)
     artifact_file.parent.mkdir(parents=True, exist_ok=True)
     artifact_file.write_text(
         json.dumps(
@@ -189,7 +225,7 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
                 "task_id": task.id,
                 "release_id": release_id,
                 "action": release_action,
-                "status": "completed",
+                "status": result.status.value,
                 "summary": result.summary,
                 "written_at": datetime.now(UTC).isoformat(),
             }
@@ -204,7 +240,7 @@ def execute_claimed_task(*, worker_id: str, service: ControlPlaneService | None 
         worker_id=worker_id,
         approval_id=result.approval_id,
         artifacts=[artifact_path],
-        events=["task_completed"],
+        events=["task_completed"] if result.status is TaskStatus.COMPLETED else [],
     )
     return result
 

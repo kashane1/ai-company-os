@@ -6,7 +6,14 @@
 
 **Architecture:** Add a narrow HomeFromWorking domain package, a read-only Etsy adapter, and deterministic CLIs that turn historical/local data plus permitted live evidence into versioned operational artifacts. Keep raw evidence separate from derived registry data and enforce mutation/approval boundaries in code and documentation.
 
-**Tech Stack:** Python 3.12, stdlib dataclasses/JSON/CSV/urllib, existing `httpx`, macOS Keychain through `packages.config.secrets`, pytest, Etsy Open API v3, existing Printify adapter.
+**Tech Stack:** Python 3.12, stdlib dataclasses/JSON/CSV/urllib, existing `httpx`, ignored repository-root `.etsy.env` for Etsy credentials, pytest, Etsy Open API v3, existing Printify adapter.
+
+> **Credential policy superseded (2026-09-07):** Any Keychain-first Etsy
+> instructions in this historical implementation plan are replaced by the
+> root `.etsy.env` contract in
+> [`docs/founder/etsy-credentials.md`](../founder/etsy-credentials.md). Do not
+> query macOS Keychain, invoke `security`, or fall back to `.env` or process
+> environment for Etsy. Printify and approval-signing Keychain use is separate.
 
 ---
 
@@ -43,7 +50,7 @@
 
 1. Write failing tests for composite API-key validation, secret redaction, PKCE generation, state validation, token refresh, pagination, and read-only route construction.
 2. Run the tests and confirm they fail.
-3. Implement Keychain-first credential loading. Treat `.env` `ETSY_API_KEY` as a legacy keystring only; never print credential material.
+3. Implement `.etsy.env`-only credential loading; never print credential material or report anything beyond key names and safe status.
 4. Implement an OAuth bootstrap command requesting only `shops_r listings_r`, with browser consent and callback exchange separated from pure/testable logic.
 5. Implement read-only shop, listing, inventory, shipping-profile, and receipt retrieval. Expose no write method.
 6. Add a diagnostics command that reports readiness without exposing secrets.

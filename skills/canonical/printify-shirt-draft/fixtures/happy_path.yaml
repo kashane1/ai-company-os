@@ -1,0 +1,46 @@
+- name: happy_path_hybrid_unpublished_draft
+  description: |
+    A normal new shirt draft must use one native Printify duplicate, browser-only
+    front-art placement, the existing prepare-copy/apply-copy sequence, and
+    finish unpublished after a revision-bound approval.
+  input:
+    skill_file: canonical/printify-shirt-draft/skill.md
+    adapter_file: adapters/codex/printify-shirt-draft.md
+    contract_file: canonical/printify-shirt-draft/contract.yaml
+  expected:
+    required_sections:
+      - "## Purpose"
+      - "## When to invoke"
+      - "## Contract"
+      - "## Procedure"
+      - "## Approval and publication boundary"
+      - "## Boundaries and failure modes"
+    required_strings_in_skill:
+      - "Native duplicate once"
+      - "Duplicate"
+      - "Browser-only artwork placement"
+      - "pod_draft.py prepare-copy"
+      - "pod_draft.py apply-copy"
+      - "approval_type=pod_draft_update"
+      - "revision-bound"
+      - "unlinked and unpublished"
+      - "inner-neck `text_layer.svg`"
+      - "scripts/pod_catalog.py"
+    required_strings_in_adapter:
+      - "browser"
+      - "prepare-copy"
+      - "apply-copy"
+      - "Never publish"
+    required_contract_inputs:
+      - artwork_path
+      - artwork_provenance_disclosure
+      - copy
+    required_contract_outputs:
+      - stage
+      - draft_id
+      - review_revision
+      - publication_state
+    required_contract_violations:
+      - NATIVE_DUPLICATE_REQUIRED
+      - REVISION_BOUND_APPROVAL_REQUIRED
+

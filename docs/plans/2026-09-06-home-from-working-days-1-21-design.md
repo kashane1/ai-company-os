@@ -68,18 +68,27 @@ Raw evidence is preserved separately from derived state. Derived files identify 
 
 ### Etsy adapter
 
+> **Credential policy superseded (2026-09-07):** The original Keychain
+> storage direction below is historical and no longer applies. All Etsy API
+> and OAuth credentials now come exclusively from the ignored repository-root
+> `.etsy.env`; agents must not query macOS Keychain, invoke `security`, or use
+> `.env` or process-environment fallbacks. See
+> [`docs/founder/etsy-credentials.md`](../founder/etsy-credentials.md).
+
 The first Etsy integration is read-only:
 
 - Require the Open API v3 composite `x-api-key` value (`keystring:shared_secret`).
 - Require OAuth 2.0 Authorization Code with PKCE for private shop scopes.
 - Request only `shops_r listings_r` initially.
-- Store the composite app credential, access token, refresh token, and expiration metadata in macOS Keychain under service `ai-company-os`.
+- Store the composite app credential, access token, refresh token, and expiration metadata in the approved keys of the ignored repository-root `.etsy.env`.
 - Never print secret values. Diagnostic output reports only presence, source, and expiry.
 - Refresh access tokens deterministically and fail closed if refresh is unavailable.
 - Save sanitized API responses as dated evidence.
 - Provide no create, update, activate, or publish method in this phase.
 
-The existing `.env` `ETSY_API_KEY` may be used only as a migration input for the public keystring. It is incomplete until paired with the shared secret and must not be treated as proof of API readiness.
+The older `.env` `ETSY_API_KEY` migration direction is superseded. `.etsy.env`
+is the sole Etsy credential source; report missing key names without exposing
+values.
 
 ### Printify adapter
 

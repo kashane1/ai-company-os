@@ -5,9 +5,17 @@ specs, run plans, session handoffs, postmortems. The volume is the system
 documenting its own output, not hand-written prose. If you are evaluating
 the engineering, do not read top-to-bottom — use the map below.
 
+## For employers
+
+Start with [For employers](FOR-EMPLOYERS.md) for the project, my role, and
+product status. Then follow the [evaluator walkthrough](EVALUATOR-WALKTHROUGH.md)
+for a five-minute code review or optional local demo and tests. You do not need
+to read the operator instructions or generated plans below.
+
 ## For agents resuming work
 
 - [founder/printify-shirt-workflow.md](founder/printify-shirt-workflow.md) — next-shirt procedure and reusable CLI: native Duplicate once, API artwork/copy update, preserve mockups and prices, one visual review.
+- [founder/etsy-credentials.md](founder/etsy-credentials.md) — current Etsy API/OAuth source, diagnostics, redaction, and approval boundaries; supersedes older Etsy Keychain instructions.
 - [plans/2026-09-02-home-from-working-pod-design.md](plans/2026-09-02-home-from-working-pod-design.md) — broader HomeFromWorking direction; operated draft CLI available, Etsy payload automation remains planned.
 - [../REPO_MAP.md](../REPO_MAP.md) — 60-second orientation across the five zones
 - [preflight-for-agents.md](preflight-for-agents.md) — boundaries for this session

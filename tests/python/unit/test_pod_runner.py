@@ -1,15 +1,24 @@
+import hashlib
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import httpx
 import pytest
 from PIL import Image
 
-from packages.pod.runner import PrintifyClient, apply_run, prepare_run
+from packages.pod.runner import (
+    PrintifyClient,
+    apply_copy_run,
+    apply_run,
+    prepare_copy_run,
+    prepare_run,
+)
 from packages.policies.approvals import PolicyViolation
 from packages.policies.pod import require_draft_approval
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
+from packages.pod.template import artwork_placement
 
 
 SHOP = 28779955
@@ -211,6 +220,127 @@ def test_large_placement_survives_upload_and_retry(tmp_path):
     assert sent['y'] == .5 and sent['scale'] == pytest.approx(1024 * 3.05 / 3951)
     assert retry['status'] == 'already_verified'
     assert client.upload.call_count == client.update_draft.call_count == 1
+
+
+def test_browser_artwork_copy_run_updates_metadata_without_resubmitting_print_areas(tmp_path):
+    from copy import deepcopy
+
+    image = tmp_path / 'browser-art.png'
+    Image.new('RGBA', (1024, 1536), (0, 0, 0, 255)).save(image)
+    template = product(SOURCE, True)
+    before = product(DRAFT)
+    front = before['print_areas'][0]['placeholders'][0]['images'][0]
+    front.update({'name': image.name, 'width': 1024, 'height': 1536,
+                  'x': .5, 'y': .5, 'scale': 1024 * 3.05 / 3951, 'angle': 0})
+    client = Mock()
+    client.get_product.side_effect = [template, before]
+    directory = tmp_path / 'copy-run'
+    review = prepare_copy_run(
+        client, SOURCE, DRAFT, image,
+        {'title': 'Browser shirt', 'intro': 'Browser design.', 'tags': ['browser shirt']},
+        directory, scale_percent=305,
+    )
+    after = deepcopy(before)
+    after.update(deepcopy(review['payload']))
+    client.get_product.side_effect = [before, after]
+
+    receipt = apply_copy_run(client, directory, approved(review))
+
+    assert receipt['status'] == 'verified'
+    assert set(client.update_draft.call_args.args[1]) == {'title', 'description', 'tags'}
+    assert after['print_areas'] == before['print_areas']
+    client.upload.assert_not_called()
+
+
+def test_prepare_copy_allows_browser_artwork_larger_than_api_upload_limit(
+    tmp_path, monkeypatch
+):
+    image = tmp_path / 'browser-large.png'
+    Image.new('RGBA', (100, 150), (0, 0, 0, 255)).save(image)
+    oversized_content = b'x' * (5 * 1024 * 1024 + 1)
+    original_read_bytes = Path.read_bytes
+
+    def read_bytes(path):
+        if path == image:
+            return oversized_content
+        return original_read_bytes(path)
+
+    monkeypatch.setattr(Path, 'read_bytes', read_bytes)
+    template = product(SOURCE, True)
+    before = product(DRAFT)
+    placement = artwork_placement(100, 150, 305)
+    before['print_areas'][0]['placeholders'][0]['images'][0].update({
+        'name': image.name,
+        'width': 100,
+        'height': 150,
+        'x': placement['x'],
+        'y': placement['y'],
+        'scale': placement['scale'],
+        'angle': placement['angle'],
+    })
+    client = Mock()
+    client.get_product.side_effect = [template, before]
+
+    review = prepare_copy_run(
+        client, SOURCE, DRAFT, image,
+        {'title': 'Browser shirt', 'intro': 'Browser design.', 'tags': ['browser shirt']},
+        tmp_path / 'copy-run', scale_percent=305,
+    )
+
+    assert review['artwork']['sha256'] == hashlib.sha256(oversized_content).hexdigest()
+    client.upload.assert_not_called()
+    client.update_draft.assert_not_called()
+
+
+def test_prepare_still_rejects_artwork_larger_than_api_upload_limit(tmp_path, monkeypatch):
+    image = tmp_path / 'api-large.png'
+    Image.new('RGBA', (100, 150), (0, 0, 0, 255)).save(image)
+    original_read_bytes = Path.read_bytes
+
+    def read_bytes(path):
+        if path == image:
+            return b'x' * (5 * 1024 * 1024 + 1)
+        return original_read_bytes(path)
+
+    monkeypatch.setattr(Path, 'read_bytes', read_bytes)
+    client = Mock()
+
+    with pytest.raises(ValueError, match='5 MiB'):
+        prepare_run(
+            client, SOURCE, DRAFT, image,
+            {'title': 'API shirt', 'intro': 'API design.', 'tags': ['api shirt']},
+            tmp_path / 'api-run',
+        )
+
+    client.get_product.assert_not_called()
+
+
+def test_prepare_copy_rejects_artwork_over_browser_limit_before_read_or_api(
+    tmp_path, monkeypatch
+):
+    image = tmp_path / 'too-large.png'
+    Image.new('RGBA', (100, 150), (0, 0, 0, 255)).save(image)
+    original_stat = Path.stat
+
+    def stat(path, *args, **kwargs):
+        if path == image:
+            return SimpleNamespace(st_size=100 * 1024 * 1024 + 1)
+        return original_stat(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, 'stat', stat)
+    read_bytes = Mock(side_effect=AssertionError('oversized browser file must not be read'))
+    monkeypatch.setattr(Path, 'read_bytes', read_bytes)
+    client = Mock()
+
+    with pytest.raises(ValueError, match='100 MiB'):
+        prepare_copy_run(
+            client, SOURCE, DRAFT, image,
+            {'title': 'Browser shirt', 'intro': 'Browser design.', 'tags': ['browser shirt']},
+            tmp_path / 'copy-run',
+        )
+
+    read_bytes.assert_not_called()
+    client.get_product.assert_not_called()
 
 
 def test_cli_requires_shared_store_decision_even_with_local_approval_file(tmp_path, monkeypatch):

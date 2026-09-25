@@ -64,8 +64,11 @@ follow-ups" below for the source-signal mapping used.
 
 | File | Date | Slug | Status | Notes |
 |---|---|---|---|---|
+| [2026-09-11-printify-ebay-crosslisting-plan.md](2026-09-11-printify-ebay-crosslisting-plan.md) | 2026-09-11 | printify-ebay-crosslisting | open | process specification only; varied product-accurate lead photos; one-listing pilot awaits approval; no execution |
 | [2026-09-02-home-from-working-pod-design.md](2026-09-02-home-from-working-pod-design.md) | 2026-09-02 | home-from-working-pod | open | current direction: owner-selected artwork → Printify draft; operated CLI available; Etsy payload automation planned |
 | [2026-09-02-printify-repeatable-drafts-plan.md](2026-09-02-printify-repeatable-drafts-plan.md) | 2026-09-02 | printify-repeatable-drafts | open | native Duplicate plus reusable API draft command; implemented locally, pending integration |
+| [2026-09-06-home-from-working-days-1-21-design.md](2026-09-06-home-from-working-days-1-21-design.md) | 2026-09-06 | home-from-working-days-1-21-design | open | approved launch operating design; read-only live evidence and founder-gated public changes remain |
+| [2026-09-06-home-from-working-days-1-21.md](2026-09-06-home-from-working-days-1-21.md) | 2026-09-06 | home-from-working-days-1-21 | open | implementation plan for launch policy, registry, research, pilot, and Etsy read-only access |
 | [2026-04-12-feat-catchbook-angler-ux-parity-plan.md](2026-04-12-feat-catchbook-angler-ux-parity-plan.md) | 2026-04-12 | feat-catchbook-angler-ux-parity | open | product-scoped (catchbook) |
 | [2026-04-12-feat-catchbook-competitive-gap-plan.md](2026-04-12-feat-catchbook-competitive-gap-plan.md) | 2026-04-12 | feat-catchbook-competitive-gap | open | product-scoped (catchbook) |
 | [2026-04-12-feat-content-pipeline-skills-plan.md](2026-04-12-feat-content-pipeline-skills-plan.md) | 2026-04-12 | feat-content-pipeline-skills | open | platform / skills |
@@ -118,7 +121,7 @@ follow-ups" below for the source-signal mapping used.
 | [2026-06-11-bbw-v2-strategic-build-list-plan.md](2026-06-11-bbw-v2-strategic-build-list-plan.md) | 2026-06-11 | bbw-v2-strategic-build-list | open | agency / strategy — v1→v2 review output: send sprint, new funnel arms, scale gates |
 | [2026-06-12-outreach-follow-up-sequencer-plan.md](2026-06-12-outreach-follow-up-sequencer-plan.md) | 2026-06-12 | outreach-follow-up-sequencer | open | platform / outreach — per-step cadence + draft variants (v2 item 6) |
 
-Indexed here: **52 open** plans. Four pre-existing June 13–15 BBW/DataForSEO
+Indexed here: **54 open** plans. Four pre-existing June 13–15 BBW/DataForSEO
 documents remain unindexed; the September 2 handoff records that unrelated drift.
 Finished plans
 (`done` / `abandoned`) are moved out of this directory into

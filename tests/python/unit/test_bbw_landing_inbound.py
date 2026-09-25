@@ -7,8 +7,9 @@ import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
-# The review form lives on its own /free-review route (multi-page split, 2026-06-07).
-REVIEW_FORM_PAGE = REPO / "products" / "better-business-web" / "site" / "src" / "pages" / "free-review.astro"
+# The review form is a component rendered by the landing page (v2.1).
+LANDING_PAGE = REPO / "products" / "better-business-web" / "site" / "src" / "pages" / "index.astro"
+REVIEW_FORM_COMPONENT = REPO / "products" / "better-business-web" / "site" / "src" / "components" / "ReviewForm.astro"
 FUNCTION = REPO / "products" / "better-business-web" / "site" / "netlify" / "functions" / "website-review.mjs"
 PULL_SCRIPT = REPO / "scripts" / "web" / "pull-inbound.mjs"
 THANKS_PAGE = REPO / "products" / "better-business-web" / "site" / "src" / "pages" / "thanks.astro"
@@ -20,7 +21,11 @@ INBOUND_FIELDS = frozenset(
 
 
 def test_landing_form_posts_to_function() -> None:
-    text = REVIEW_FORM_PAGE.read_text(encoding="utf-8")
+    landing_text = LANDING_PAGE.read_text(encoding="utf-8")
+    assert 'import ReviewForm from "../components/ReviewForm.astro"' in landing_text
+    assert "<ReviewForm />" in landing_text
+
+    text = REVIEW_FORM_COMPONENT.read_text(encoding="utf-8")
     assert 'name="website-review"' in text
     assert 'method="POST"' in text
     assert 'action="/.netlify/functions/website-review"' in text

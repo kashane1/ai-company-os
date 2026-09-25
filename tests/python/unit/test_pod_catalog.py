@@ -43,3 +43,25 @@ def test_catalog_retains_full_copy_and_writes_index(tmp_path):
     assert "line one" not in (output / "INDEX.md").read_text()
     assert "../design/v1/review.json" in (output / "INDEX.md").read_text()
     assert (output / "catalog.json").exists()
+
+
+def test_catalog_records_lead_mockup_color_and_pair(tmp_path):
+    folder = tmp_path / "design" / "v1"
+    _review(folder, "Title")
+    images = [
+        {"src": "https://images.printify.com/mockup/product/12070/92570/title.jpg?camera_label=front", "is_selected_for_publishing": True, "is_default": True},
+        {"src": "https://images.printify.com/mockup/product/12070/127735/title.jpg?camera_label=folded-2", "is_selected_for_publishing": True, "is_default": False},
+    ]
+    (folder / "after.json").write_text(json.dumps({
+        "id": "product-1", "title": "Title", "description": "FULL DESCRIPTION", "tags": [],
+        "images": images, "variants": [{"id": 12070, "title": "Sport Grey / L", "is_enabled": True}],
+    }))
+    record = build_catalog(tmp_path, tmp_path)["records"][0]
+    assert record["mockups"] == {
+        "selected_count": 2,
+        "lead_color": "Sport Grey",
+        "lead_pair": [
+            {"color": "Sport Grey", "camera": "front", "is_default": True},
+            {"color": "Sport Grey", "camera": "folded-2", "is_default": False},
+        ],
+    }

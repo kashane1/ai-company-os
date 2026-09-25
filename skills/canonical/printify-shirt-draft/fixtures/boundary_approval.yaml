@@ -1,0 +1,24 @@
+- name: boundary_apply_copy_needs_exact_approval
+  description: |
+    Saving a draft is reversible, but the script that updates its copy must not
+    run unless a platform decision names its exact prepared revision.
+  input:
+    skill_file: canonical/printify-shirt-draft/skill.md
+    adapter_file: adapters/codex/printify-shirt-draft.md
+    contract_file: canonical/printify-shirt-draft/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "apply-copy"
+      - "real shared approval"
+      - "exact review revision"
+      - "REVISION_BOUND_APPROVAL_REQUIRED"
+    required_strings_in_adapter:
+      - "real shared approval"
+      - "approval store"
+    required_contract_inputs:
+      - draft_update_approval_id
+    required_contract_outputs:
+      - approval_id
+      - approval_request_path
+    required_contract_violations:
+      - REVISION_BOUND_APPROVAL_REQUIRED

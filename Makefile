@@ -1,8 +1,7 @@
 .PHONY: demo dash test test-python doctor audit handoff archive-plans doc-index tokens-check skills-sync premium
 
-# Zero-dependency end-to-end demo: goal -> task -> execute -> validate
-# -> human approval gate -> structured audit artifact. No Postgres,
-# Redis, Codex, network, or Mac runtime required.
+# Offline synthetic-record illustration using real schema classes.
+# Requires Python 3.10+ and Bash; does not execute workers or approvals.
 demo:
 	./scripts/demo.sh
 

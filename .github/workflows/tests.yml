@@ -51,6 +51,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Verify employer path without third-party packages
+        run: ./scripts/evaluator_check.sh
+
       - name: Install Python test dependencies
         run: |
           python -m pip install --upgrade pip

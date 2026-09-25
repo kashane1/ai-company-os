@@ -1,0 +1,20 @@
+- name: boundary_old_front_layer_deletion_uses_action_time_confirmation
+  description: |
+    Replacing template artwork can require deleting the old front layer in the
+    live browser. The skill must follow the active browser confirmation policy
+    at the moment that destructive click becomes necessary.
+  input:
+    skill_file: canonical/printify-shirt-draft/skill.md
+    adapter_file: adapters/codex/printify-shirt-draft.md
+    contract_file: canonical/printify-shirt-draft/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "action-time confirmation"
+      - "BROWSER_DELETION_CONFIRMATION_REQUIRED"
+    required_strings_in_adapter:
+      - "action-time confirmation"
+      - "old front layer"
+    required_contract_violations:
+      - BROWSER_DELETION_CONFIRMATION_REQUIRED
+    required_contract_outputs:
+      - browser_deletion_confirmation_status
