@@ -2,6 +2,8 @@
 
 Prepared September 20–21, 2026 · Decision document · Original nine planning files reviewed in full
 
+> **TL;DR:** continue only as a tightly bounded validation project. The deciding risk is a permitted, useful stock data source at sustainable cost; see §6 and the [data-source plan](../../plans/2026-09-25-collector-radar-data-sources-plan.md). First customer hypothesis: a US hobby collector who wants specific sealed Pokémon products within a budget and acts manually on restocks that stay available for minutes. Keep the local app free and test one optional hosted plan at $5.99/month. Proceed only with source rights, alerts that measurably beat the customer's current method, and retention that pays for maintenance.
+
 ## 1. Recommendation
 
 **Continue with a tightly bounded validation project. Do not yet commit to the full application roadmap or a paid launch.** The pack is thoughtful about permission, secrets, purchase safety, and honest status. Its weakest point is whether a sufficiently useful, permitted data source can serve the intended customer at a sustainable cost. Its most significant technical error is the assumption that a reused macOS notification identifier guarantees no repeated alert.

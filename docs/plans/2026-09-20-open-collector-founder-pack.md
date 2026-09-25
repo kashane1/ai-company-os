@@ -9,3 +9,5 @@
 **Status:** Founder-review draft, 2026-09-20. User requested a complete audit and founder pack. The pack is delivered; implementation is future work. Public repository visibility is required; the final owner/name/license and initial permitted source remain setup decisions.
 
 Use the [founder pack](../products/open-collector/README.md) as the canonical design, [execution plan](../products/open-collector/05-execution-plan.md) for milestones, and [implementation task cards](../products/open-collector/08-first-implementation-task-cards.md) for files, dependencies and verification. Future agents should use the executing-plans workflow task by task after the proposed direction is confirmed, without importing any private audit evidence or vendor source.
+
+Data-source follow-up (2026-09-25): the [Collector Radar data-source plan](2026-09-25-collector-radar-data-sources-plan.md) proposes the personal-lab source register, signal ladder and milestones that fill this pack's open M0 source decision.
