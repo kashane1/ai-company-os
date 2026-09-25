@@ -6,10 +6,18 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 REPO = Path(__file__).resolve().parents[3]
+CATALOG = REPO / "state/home-from-working/catalog/catalog.json"
+# Runtime state under state/ is git-ignored, so these checks run only on the operator Mac.
+requires_local_state = pytest.mark.skipif(
+    not CATALOG.exists(), reason="requires local HomeFromWorking runtime state"
+)
 
 
+@requires_local_state
 def test_generation_creates_manual_worksheet_sections_and_provisional_concepts(tmp_path: Path) -> None:
     result = subprocess.run(
         [
@@ -48,6 +56,7 @@ def test_generation_creates_manual_worksheet_sections_and_provisional_concepts(t
     assert all(concept["score"]["weighted_score"] is None for concept in concepts["concepts"])
 
 
+@requires_local_state
 def test_completed_insights_are_imported_without_overwriting_and_affect_ranking(
     tmp_path: Path,
 ) -> None:
@@ -95,6 +104,7 @@ def test_completed_insights_are_imported_without_overwriting_and_affect_ranking(
     assert payload["founder_review_shortlist"] == []
 
 
+@requires_local_state
 def test_generation_does_not_use_design_folder_or_partial_words_for_query_evidence(
     tmp_path: Path,
 ) -> None:

@@ -3,7 +3,20 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 from packages.home_from_working.reconcile import build_reconciliation_report
+
+
+RECEIPT_ROOTS = [
+    Path("state/home-from-working/multi-product-listings"),
+    Path("state/home-from-working/multi-product-listings-10color"),
+]
+# Runtime state under state/ is git-ignored, so this check runs only on the operator Mac.
+requires_local_state = pytest.mark.skipif(
+    not all(root.exists() for root in RECEIPT_ROOTS),
+    reason="requires local HomeFromWorking runtime state",
+)
 
 
 def _reconcile_script():
@@ -15,6 +28,7 @@ def _reconcile_script():
     return module
 
 
+@requires_local_state
 def test_default_receipt_discovery_covers_both_known_roots_without_duplicates() -> None:
     script = _reconcile_script()
 

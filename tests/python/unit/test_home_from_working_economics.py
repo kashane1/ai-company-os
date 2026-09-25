@@ -4,12 +4,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from packages.home_from_working.economics import (
     EconomicsAssumptions,
     evaluate_launch,
     calculate_contribution,
 )
 from scripts.home_from_working_launch import evaluate_policy, load_policy
+
+
+LAUNCH_POLICY = Path("state/home-from-working/operations/launch-policy.json")
+# Runtime state under state/ is git-ignored, so this check runs only on the operator Mac.
+requires_local_state = pytest.mark.skipif(
+    not LAUNCH_POLICY.exists(), reason="requires local HomeFromWorking runtime state"
+)
 
 
 def shirt(*, product_cost_cents: int | None = 740) -> EconomicsAssumptions:
@@ -92,8 +101,9 @@ def test_current_3xl_live_cost_does_not_clear_thirty_percent_margin_floor() -> N
     assert result.offsite_ads_stress.contribution_cents > 0
 
 
+@requires_local_state
 def test_launch_policy_uses_live_printify_size_costs_and_blocks_current_3xl() -> None:
-    policy = load_policy(Path("state/home-from-working/operations/launch-policy.json"))
+    policy = load_policy(LAUNCH_POLICY)
     costs = {
         variant["sku"]: variant["product_cost_cents"]
         for variant in policy["current_single_shirt_variants"]
