@@ -13,6 +13,8 @@ last_reviewed: 2026-09-25
 
 **Scope decision (founder, 2026-09-25):** personal lab first. The lab runs only on this Mac for the founder. It may use two extra kinds of reads beyond official APIs. The first is public pages that the platform documents or `robots.txt` permits, such as Shopify store JSON or a distributor release list. The second is alerts the founder subscribes to. Anything that later ships in the public Open Collector app must pass the pack's stricter source-review packet again. All four retailer groups are in scope: big box, Pokémon Center, local game stores and marketplaces.
 
+**Build-out 1:** see [the first build plan](2026-09-25-collector-radar-build-1.md). It skips Best Buy (all Pokémon TCG releases are invitation-only), defers Kroger, drops camelcamelcamel in favor of Keepa, and uses a dedicated project Gmail inbox.
+
 ## Summary
 
 - **"When" is solved for free.** Four sources give 6–11 weeks of warning: pokemon.com announcements, PokeBeach's RSS feed, Southern Hobby's public release/order-due list, and tcgcsv. tcgcsv lists every sealed SKU with its presale release date, retailer-exclusive tags and a presale market price.
