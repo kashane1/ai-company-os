@@ -6,7 +6,7 @@ set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 agents="$HOME/Library/LaunchAgents"
 domain="gui/$(id -u)"
-labels="com.ai-company-os.open-tcg.stream com.ai-company-os.open-tcg.sync"
+labels="${OPEN_TCG_LABELS:-com.ai-company-os.open-tcg.stream com.ai-company-os.open-tcg.sync com.ai-company-os.open-tcg.inbox}"
 
 case "${1:-status}" in
   install)

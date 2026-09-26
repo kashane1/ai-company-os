@@ -13,6 +13,8 @@
     python -m radar mark EPISODE_ID real|false
     python -m radar log guppy|sighting "TEXT" [--retailer R] [--at "YYYY-MM-DD HH:MM"]
     python -m radar notify-test
+    python -m radar inbox [--once]            # read alert emails (read-only IMAP)
+    python -m radar inbox-export [--limit N]  # save recent Pokémon/alert emails to data/inbox-samples/
 """
 
 from __future__ import annotations
@@ -27,6 +29,8 @@ from .catalog import sync as catalog_sync
 from .catalog.tcgcsv import TcgCsvClient
 from .feeds import pokebeach, southern_hobby
 from .http import make_client
+from .inbox import message as inbox_message
+from .inbox import reader as inbox_reader
 from .social import bluesky
 
 
@@ -253,6 +257,58 @@ def cmd_notify_test(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_inbox(args: argparse.Namespace) -> int:
+    connection = _open()
+    watch = watchlist.load()
+
+    def on_observation(observation_id: int) -> None:
+        _print_observation(connection, observation_id)
+        _settle(connection, episodes.assign(connection, observation_id), watch)
+
+    if not args.once:
+        print("reading the project inbox read-only every 30 s (Ctrl-C to stop)", flush=True)
+        try:
+            inbox_reader.run_inbox(connection, watch=watch, on_observation=on_observation)
+        except KeyboardInterrupt:
+            return 0
+        return 0
+
+    mailbox = inbox_reader.ImapMailbox(*inbox_reader.credentials())
+    try:
+        new_ids = inbox_reader.poll(connection, mailbox, watch=watch, now=_now())
+    finally:
+        mailbox.close()
+    sources.record_run(connection, "email", ok=True, now=_now())
+    for observation_id in new_ids:
+        on_observation(observation_id)
+    print(f"email: {len(new_ids)} new alert emails")
+    return 0
+
+
+def cmd_inbox_export(args: argparse.Namespace) -> int:
+    """Save relevant recent emails so parsers can be built against real ones."""
+    out_dir = db.DB_PATH.parent / "inbox-samples"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    mailbox = inbox_reader.ImapMailbox(*inbox_reader.credentials())
+    saved = 0
+    try:
+        since = dt.date.today() - dt.timedelta(days=args.days)
+        for uid in reversed(mailbox.search(after_uid=None, since=since)):
+            raw = mailbox.fetch(uid)
+            alert = inbox_message.parse_email(raw)
+            if not inbox_message.is_relevant(alert):
+                continue
+            (out_dir / f"{uid}.eml").write_bytes(raw)
+            print(f"{uid}: {alert.sender_domain:<20} {alert.subject[:90]}")
+            saved += 1
+            if saved >= args.limit:
+                break
+    finally:
+        mailbox.close()
+    print(f"saved {saved} emails to {out_dir}")
+    return 0
+
+
 def cmd_init_db(_: argparse.Namespace) -> int:
     _open()
     print(f"database ready at {db.DB_PATH}")
@@ -293,6 +349,13 @@ def main(argv: list[str] | None = None) -> int:
     log_parser.add_argument("--at", help='local time, "YYYY-MM-DD HH:MM" (default now)')
     log_parser.set_defaults(func=cmd_log)
     commands.add_parser("notify-test", help="send a test Mac notification").set_defaults(func=cmd_notify_test)
+    inbox_parser = commands.add_parser("inbox", help="read alert emails from the project inbox")
+    inbox_parser.add_argument("--once", action="store_true")
+    inbox_parser.set_defaults(func=cmd_inbox)
+    export_parser = commands.add_parser("inbox-export", help="save recent relevant emails as samples")
+    export_parser.add_argument("--limit", type=int, default=15)
+    export_parser.add_argument("--days", type=int, default=30)
+    export_parser.set_defaults(func=cmd_inbox_export)
     args = parser.parse_args(argv)
     return args.func(args)
 
