@@ -7,7 +7,7 @@ last_reviewed: 2026-09-25
 
 # OpenTCG build-out 1: release calendar, alert inbox, live feed
 
-**Status:** Proposed implementation plan. No code, accounts, OAuth clients or scheduled jobs exist yet. This is the first build of the [data-source plan](2026-09-25-open-tcg-data-sources-plan.md).
+**Status:** Proposed implementation plan. No radar code or scheduled jobs exist yet; alert subscriptions and the watchlist are set up (see founder setup below). This is the first build of the [data-source plan](2026-09-25-open-tcg-data-sources-plan.md).
 
 **Goal:** In about two working weeks, get a local radar on the always-on Mac that does five things:
 
@@ -72,7 +72,7 @@ products/open-tcg/
     db.py  schema.sql
     catalog/               tcgcsv sealed ingest, product-type + exclusive parser, alias matcher
     sources/               southern_hobby, pokemon_news, pokebeach_rss, keepa_rss
-    inbox/                 gmail reader + parsers/{nowinstock,keepa}
+    inbox/                 IMAP IDLE reader + parsers/{nowinstock,keepa}
     stream/                Bluesky Jetstream subscriber + post parser
     episodes.py            grouping, dedupe, lag
     notify/                ntfy sender, cooldowns, quiet hours, digest
@@ -105,7 +105,7 @@ Each slice is test-first: write fixture tests before code. A slice is done when 
 | 0 | Skeleton: product folder, schema, source registry, CLI, `make test`, per-source health | nothing | `make test` is green and `radar sources` lists every source with its health |
 | 1 | Catalog and calendar: tcgcsv sealed ingest (category 3), type and exclusive parsing, presale price per day | nothing | Live run lists all 21 Delta Reign SKUs with release dates, the Target and Pokémon Center exclusives and presale prices. A re-run creates no duplicates; a fixture with an added SKU emits one `sku_added` event |
 | 2 | News and distributor watchers: Southern Hobby diff, pokemon.com news, PokeBeach RSS | nothing | Fixture diffs emit `order_due` and `announced` events; the live run records Delta Reign's 09/06 order-due and 11/06 release |
-| 3 | Inbox: Gmail reader (read-only), NowInStock and Keepa email parsers, Keepa RSS reader, product matcher, unmatched queue | Gmail access (below), NowInStock item alerts on, Keepa tracking + RSS on, and 3–5 real alert emails for fixtures | Every fixture email parses to retailer, product text, status, price, link and alert time. A live alert lands as an observation within 60 s of arriving in Gmail |
+| 3 | Inbox: IMAP IDLE reader (never marks, moves or deletes mail), NowInStock and Keepa email parsers, Keepa RSS reader, product matcher, unmatched queue | Gmail access (below), NowInStock item alerts on, Keepa tracking + RSS on, and 3–5 real alert emails for fixtures | Every fixture email parses to retailer, product text, status, price, link and alert time. A live alert lands as an observation within 60 s of arriving in Gmail |
 | 4 | Bluesky stream: Jetstream subscriber filtered to chosen accounts, post parser | pick accounts (starting list: @pokemonrestocks, @nowinstockus) | Recorded events parse correctly; the subscriber reconnects after a network drop and resumes from its cursor |
 | 5 | Episodes and push: grouping, first-source lag, ntfy push, quiet hours, daily digest, manual `radar log guppy …` / `radar log sighting …` | an ntfy topic and the phone app | Four reports of one restock produce one push and four `episode_sources` rows; a stale source sends one "source down" push |
 | 6 | Radar page, weekly report, launchd | approval to install two launchd agents | The page shows Upcoming, Live and Sources; the report compares against Guppy; the daemon survives a reboot |
@@ -117,19 +117,21 @@ Each slice is test-first: write fixture tests before code. A slice is done when 
 
 ## Running it
 
-- **Always-on daemon (launchd KeepAlive).** It runs the Jetstream subscriber, polls Gmail every 30 s, checks Keepa and PokeBeach RSS every 5–15 min, and sends pushes. Every source records its health.
+- **Always-on daemon (launchd KeepAlive).** It runs the Jetstream subscriber, holds an IMAP IDLE connection to the project inbox (reconnecting at least every 29 min), checks Keepa and PokeBeach RSS every 5–15 min, and sends pushes. Every source records its health.
 - **Daily job.** After tcgcsv's ~20:00 UTC rebuild, it runs tcgcsv, then Southern Hobby, then pokemon.com, then the calendar digest.
 - **Politeness.** Each source uses an identifying User-Agent and a declared cadence: 0.25 s between tcgcsv calls, one request at a time per host, and backoff on 429.
 - **Install.** Installing launchd agents is a persistent system change, so it happens only after the founder approves it in slice 6.
 
 ## Founder setup for build-out 1
 
-1. **NowInStock:** alerts are per item. Open the Pokémon trackers page and add each current product you want. Start with current-era ETBs, booster bundles and booster boxes, and add Delta Reign items as trackers appear. Then switch on email alerts for each.
-2. **Keepa:** track the Amazon listing (ASIN) for each product. Set the price type to **"Amazon"** and the threshold near retail price, so it fires when Amazon itself sells at retail rather than a reseller. Turn on the RSS channel and put its private URL in the lab config. Keep email on as a backup.
-3. **Gmail access for the lab:** the lab needs its own read-only access, independent of any Claude chat. Two options, both set up and approved by the founder:
-   - **Recommended:** a Google Cloud OAuth "desktop app" client with the `gmail.readonly` scope. Set the publishing status to **In production**; apps left in *Testing* get refresh tokens that expire after 7 days.
-   - **Fallback:** IMAP with an app password, which requires 2-Step Verification on the account.
-   - The token goes in `products/open-tcg/data/secrets/`, which is git-ignored with mode 0600.
+Status 2026-09-25: steps 1–2 are done by Claude through the founder's Brave browser, and the list lives in [`products/open-tcg/watchlist.toml`](../../products/open-tcg/watchlist.toml).
+
+1. **NowInStock (done):** 12 tracker alerts, email and browser delivery, in-stock and pre-order. NowInStock has no custom items, so 9 of the 18 watchlist items have no tracker yet and none has a Walmart one. A product suggestion covering them was drafted for the founder to submit past the reCAPTCHA. Subscriptions expire after 180 days.
+2. **Keepa (done):** 18 Amazon trackings with Buy Box and Amazon desired price at each item's `alert_at`, alert rearm timer 1 day. No RSS link appeared, so email is the channel.
+3. **Gmail access for the lab (founder chose IMAP):** an app password on the project Gmail, read over IMAP with IDLE, so new mail arrives in seconds with no weekly expiry.
+   - This needs 2-Step Verification on the account. The founder creates the app password and stores it with a no-echo terminal command in `products/open-tcg/data/secrets/gmail-app-password` (git-ignored, mode 0600). Claude never handles the value.
+   - Why not OAuth: publishing an OAuth app to production needs a public home page and privacy policy on a domain the founder controls. Leaving it in *Testing* expires Gmail refresh tokens every 7 days. An unused `open-tcg` Cloud project with its consent screen stays available if read-only OAuth is wanted later.
+   - The inbox reader is IMAP instead of the Gmail API, and it treats every message as read-only data.
 4. **ntfy:** install the phone app and use a long random topic name. ntfy.sh topics are readable by anyone who knows the name.
 5. **Optional Claude Gmail connector:** lets a chat session pull real alert emails to turn into sanitized test fixtures. The radar never depends on it. Chat sessions treat email content as data only.
 
