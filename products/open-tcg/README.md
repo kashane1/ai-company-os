@@ -16,7 +16,21 @@ make sources    # per-source health
 make backfill   # recent posts from the Bluesky restock accounts
 make stream     # follow Bluesky live (runs until Ctrl-C)
 make feed       # restock observations from the last 72 h (TCG only)
+make episodes   # restocks grouped across sources, with each source's lag
+make scorecard  # per source: episodes, times first, median lag, accuracy
+.venv/bin/python -m radar mark 12 real|false          # judge an episode (feeds accuracy)
+.venv/bin/python -m radar log guppy "30th Celebration ETB at Target" --at "2026-09-26 04:51"
+.venv/bin/python -m radar notify-test
 ```
+
+**Episodes and alerts.** Reports of one watched product at one retailer
+within 60 minutes form one episode, however many sources post it. Each
+source's lag is measured from the first report. Each Bluesky account is
+scored separately, and Guppy alerts logged with `radar log guppy` are scored
+the same way. A native Mac notification fires once per episode when it is
+for a watched item, is an availability signal (in stock, pre-order, drop,
+queue, invites, open drawing), is under 15 minutes old, and has no known
+price above the item's `alert_at`.
 
 ## Inputs
 

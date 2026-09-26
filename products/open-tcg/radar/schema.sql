@@ -113,3 +113,42 @@ CREATE TABLE IF NOT EXISTS stream_cursors (
     cursor     INTEGER NOT NULL,
     updated_at TEXT NOT NULL
 );
+
+-- A restock episode: one product at one retailer becoming available, however
+-- many sources report it. The first report opens it; later ones record lag.
+CREATE TABLE IF NOT EXISTS episodes (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    episode_key       TEXT NOT NULL,
+    watch_item        TEXT,                 -- watchlist item name, when matched
+    retailer          TEXT,
+    family            TEXT NOT NULL,        -- availability | announcement
+    first_signal      TEXT NOT NULL,
+    product_text      TEXT NOT NULL,
+    opened_at         TEXT NOT NULL,
+    last_seen_at      TEXT NOT NULL,
+    first_source_id   TEXT NOT NULL,
+    verdict           TEXT                  -- real | false, set by the founder
+);
+CREATE INDEX IF NOT EXISTS episodes_key_idx ON episodes(episode_key, last_seen_at);
+
+CREATE TABLE IF NOT EXISTS episode_observations (
+    episode_id     INTEGER NOT NULL REFERENCES episodes(id),
+    observation_id INTEGER NOT NULL REFERENCES observations(id),
+    source_id      TEXT NOT NULL,
+    seen_at        TEXT NOT NULL,
+    lag_s          INTEGER NOT NULL,        -- seconds after the episode opened
+    PRIMARY KEY (episode_id, observation_id)
+);
+
+-- Notification outbox. The unique key is the dedupe guarantee.
+CREATE TABLE IF NOT EXISTS notifications (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    dedupe_key TEXT NOT NULL UNIQUE,
+    episode_id INTEGER REFERENCES episodes(id),
+    channel    TEXT NOT NULL,
+    title      TEXT NOT NULL,
+    body       TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    status     TEXT NOT NULL,               -- sent | failed
+    error      TEXT
+);

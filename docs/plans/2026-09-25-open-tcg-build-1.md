@@ -117,6 +117,12 @@ Each slice is test-first: write fixture tests before code. A slice is done when 
 - tcgcsv stamps undated legacy groups with its build time, so the radar treats non-midnight dates as unknown.
 - Phone push (ntfy) is paused at the founder's request, so slice 5 will add native macOS notifications.
 - **2026-09-26:** slice 4 is built. It follows the Bluesky Jetstream, filtered to @pokemonrestocks and @nowinstockus, with a resume cursor and a startup backfill from the author feed. Each post is classified by signal (drawing open or scheduled, results, invites, queue, drop, in stock, pre-order, cancelled), retailer and TCG relevance, then matched to the watchlist, including "ETB" abbreviations and multi-product posts. The first backfill stored 59 posts. The live connection is proven. python.org Python lacks system TLS roots, so the stream uses certifi.
+- **2026-09-26:** slice 5 is built with macOS notifications in place of ntfy. It includes:
+  - restock episodes (60-minute window, per watched item or product text, per retailer and signal family)
+  - per-source lag, and a scorecard scoring each Bluesky account and Guppy separately on times first, median lag and accuracy from founder verdicts
+  - `radar mark`, and `radar log guppy|sighting`
+  - one notification per fresh (<15 min) watched availability episode, with a price-threshold guard
+  - X/Twitter is excluded for now: its API is pay-per-read (~$20–25/month for a few accounts) and scraping is against its terms. Revisit once the scorecard shows which alert accounts lead.
 
 **Estimate:** slices 0–6 take about 8–10 working days, then a 7-day soak with the founder using it.
 

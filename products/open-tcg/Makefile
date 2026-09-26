@@ -1,6 +1,6 @@
 PYTHON := ./.venv/bin/python
 
-.PHONY: setup test sync calendar events sources backfill stream feed
+.PHONY: setup test sync calendar events sources backfill stream feed episodes scorecard
 
 setup:
 	python3 -m venv .venv
@@ -33,3 +33,9 @@ stream:
 
 feed:
 	$(PYTHON) -m radar feed
+
+episodes:
+	$(PYTHON) -m radar episodes
+
+scorecard:
+	$(PYTHON) -m radar scorecard

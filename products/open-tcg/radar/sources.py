@@ -32,6 +32,9 @@ REGISTRY: tuple[Source, ...] = (
     Source("pokebeach_rss", "L", "poll", 15 * 60, note="Front-page news RSS"),
     # A connected stream records a heartbeat every cadence, even when no one posts.
     Source("bluesky", "S", "stream", 10 * 60, note="Jetstream, filtered to restock-alert accounts"),
+    # Manual entries never go stale; the cadence only keeps health quiet.
+    Source("guppy", "L", "manual", 10 * 365 * 24 * 3600, note="Guppy alerts logged by the founder (benchmark)"),
+    Source("sighting", "L", "manual", 10 * 365 * 24 * 3600, note="In-store or app sightings logged by the founder"),
     Source(
         "pokemon_news",
         "S",
