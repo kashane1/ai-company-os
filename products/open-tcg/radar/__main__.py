@@ -82,6 +82,8 @@ def cmd_sync(args: argparse.Namespace) -> int:
         if not sources.get(source_id).enabled:
             continue
         now = _now()
+        if not args.force and not args.only and not sources.is_due(connection, source_id, now):
+            continue
         try:
             summary = runner(connection, now)
         except Exception as exc:  # one failing source must not stop the others
@@ -91,7 +93,7 @@ def cmd_sync(args: argparse.Namespace) -> int:
             print(f"{source_id}: FAILED ({type(exc).__name__}: {exc})", file=sys.stderr)
             continue
         sources.record_run(connection, source_id, ok=True, now=now)
-        print(f"{source_id}: {summary}")
+        print(f"{now.isoformat(timespec='seconds')} {source_id}: {summary}", flush=True)
     return 1 if failures else 0
 
 
@@ -263,6 +265,7 @@ def main(argv: list[str] | None = None) -> int:
     commands.add_parser("init-db").set_defaults(func=cmd_init_db)
     sync_parser = commands.add_parser("sync", help="run every enabled poll source once")
     sync_parser.add_argument("--only", choices=sorted(RUNNERS))
+    sync_parser.add_argument("--force", action="store_true", help="poll every source even if not due")
     sync_parser.set_defaults(func=cmd_sync)
     commands.add_parser("calendar", help="upcoming sealed releases").set_defaults(func=cmd_calendar)
     events_parser = commands.add_parser("events", help="recent calendar events")

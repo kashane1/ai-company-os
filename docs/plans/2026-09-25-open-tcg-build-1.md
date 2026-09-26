@@ -122,6 +122,7 @@ Each slice is test-first: write fixture tests before code. A slice is done when 
   - per-source lag, and a scorecard scoring each Bluesky account and Guppy separately on times first, median lag and accuracy from founder verdicts
   - `radar mark`, and `radar log guppy|sighting`
   - one notification per fresh (<15 min) watched availability episode, with a price-threshold guard
+  - Background service (slice 6, launchd part) installed 2026-09-26 at the founder's request. The stream agent is KeepAlive with RunAtLoad. The sync agent runs every 15 min, and `radar sync` polls only due sources (tcgcsv once after its 20:30 UTC rebuild). Install, remove and inspect with `scripts/launchd.sh`. Notifications are verified from the launchd context.
   - X/Twitter is excluded for now: its API is pay-per-read (~$20–25/month for a few accounts) and scraping is against its terms. Revisit once the scorecard shows which alert accounts lead.
 
 **Estimate:** slices 0–6 take about 8–10 working days, then a 7-day soak with the founder using it.

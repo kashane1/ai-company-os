@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from .db import iso
 
 STALE_AFTER_CADENCES = 3
+DUE_SLACK = dt.timedelta(seconds=60)
 
 
 @dataclass(frozen=True)
@@ -24,10 +25,16 @@ class Source:
     cadence_s: int
     enabled: bool = True
     note: str = ""
+    # Daily sources that follow an upstream rebuild are due once after this UTC time.
+    due_after_utc: dt.time | None = None
 
 
 REGISTRY: tuple[Source, ...] = (
-    Source("tcgcsv", "S", "poll", 24 * 3600, note="TCGplayer catalog mirror; rebuilt ~20:00 UTC daily"),
+    Source(
+        "tcgcsv", "S", "poll", 24 * 3600,
+        note="TCGplayer catalog mirror; rebuilt ~20:00 UTC daily",
+        due_after_utc=dt.time(20, 30),
+    ),
     Source("southern_hobby", "L", "poll", 24 * 3600, note="Distributor release and order-due list"),
     Source("pokebeach_rss", "L", "poll", 15 * 60, note="Front-page news RSS"),
     # A connected stream records a heartbeat every cadence, even when no one posts.
@@ -60,7 +67,7 @@ class Health:
     cadence_s: int
     enabled: bool
     note: str
-    status: str  # ok | stale | failing | never_run | disabled
+    status: str  # ok | stale | failing | never_run | manual | disabled
     last_success_at: str | None
     last_error: str | None
     consecutive_failures: int
@@ -126,13 +133,33 @@ def has_succeeded(connection: sqlite3.Connection, source_id: str) -> bool:
     return bool(row and row["last_success_at"])
 
 
+def is_due(connection: sqlite3.Connection, source_id: str, now: dt.datetime) -> bool:
+    """Whether a scheduled sync should poll this source now."""
+    source = get(source_id)
+    row = connection.execute(
+        "SELECT last_success_at, consecutive_failures FROM sources WHERE source_id = ?", (source_id,)
+    ).fetchone()
+    if not source.enabled:
+        return False
+    if row is None or not row["last_success_at"] or row["consecutive_failures"]:
+        return True
+    last_success = dt.datetime.fromisoformat(row["last_success_at"])
+    if source.due_after_utc is not None:
+        utc_now = now.astimezone(dt.timezone.utc)
+        latest_rebuild = dt.datetime.combine(utc_now.date(), source.due_after_utc, tzinfo=dt.timezone.utc)
+        if utc_now < latest_rebuild:
+            latest_rebuild -= dt.timedelta(days=1)
+        return last_success < latest_rebuild
+    return now - last_success >= dt.timedelta(seconds=source.cadence_s) - DUE_SLACK
+
+
 def _status(row: sqlite3.Row, now: dt.datetime) -> str:
     if not row["enabled"]:
         return "disabled"
     if row["consecutive_failures"]:
         return "failing"
     if not row["last_success_at"]:
-        return "never_run"
+        return "manual" if row["kind"] == "manual" else "never_run"
     last_success = dt.datetime.fromisoformat(row["last_success_at"])
     if (now - last_success).total_seconds() > row["cadence_s"] * STALE_AFTER_CADENCES:
         return "stale"

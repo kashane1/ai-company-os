@@ -32,6 +32,21 @@ for a watched item, is an availability signal (in stock, pre-order, drop,
 queue, invites, open drawing), is under 15 minutes old, and has no known
 price above the item's `alert_at`.
 
+## Background service
+
+Two per-user LaunchAgents run the radar without a Terminal window:
+
+- `com.ai-company-os.open-tcg.stream` follows Bluesky live. KeepAlive restarts it, and it starts at login.
+- `com.ai-company-os.open-tcg.sync` runs every 15 minutes and polls only the sources that are due: PokeBeach every 15 min, Southern Hobby daily, and tcgcsv once after its nightly rebuild.
+
+```
+scripts/launchd.sh install | uninstall | status
+tail -f data/logs/stream.log        # live posts as they arrive
+tail -f data/logs/sync.log
+```
+
+The jobs only run while the Mac is awake and logged in.
+
 ## Inputs
 
 - **`watchlist.toml`:** the founder's only input. Claude keeps the NowInStock
