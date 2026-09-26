@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<rss xmlns:ns0="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <title>Front Page News</title>
+    <description>Discuss the latest news from &lt;a href="/" target="_blank"&gt;PokeBeach.com&lt;/a&gt;.</description>
+    <pubDate>Sat, 26 Sep 2026 05:54:34 +0000</pubDate>
+    <lastBuildDate>Sat, 26 Sep 2026 05:54:34 +0000</lastBuildDate>
+    <generator>PokéBeach</generator>
+    <link>https://www.pokebeach.com/forums/</link>
+    <ns0:link rel="self" type="application/rss+xml" href="https://www.pokebeach.com/forums/forum/front-page-news.18/index.rss" />
+    <item>
+      <title>New Pokemon TCG Premium Binders to Release Featuring Numbered Pokedex Slots for All 1,025 Pokemon!</title>
+      <pubDate>Sat, 26 Sep 2026 04:12:37 +0000</pubDate>
+      <link>https://www.pokebeach.com/forums/threads/new-pokemon-tcg-premium-binders-to-release-featuring-numbered-pokedex-slots-for-all-1-025-pokemon.157060/</link>
+      <guid isPermaLink="false">157060</guid>
+      </item>
+    <item>
+      <title>Mew RGB Secret Rares Pulled From “30th Celebration,” May Remain Officially Unrevealed for Months</title>
+      <pubDate>Fri, 25 Sep 2026 18:19:59 +0000</pubDate>
+      <link>https://www.pokebeach.com/forums/threads/mew-rgb-secret-rares-pulled-from-%E2%80%9C30th-celebration-%E2%80%9D-may-remain-officially-unrevealed-for-months.157041/</link>
+      <guid isPermaLink="false">157041</guid>
+      </item>
+    <item>
+      <title>20+ “Delta Reign” Card Images Revealed!</title>
+      <pubDate>Fri, 25 Sep 2026 12:32:24 +0000</pubDate>
+      <link>https://www.pokebeach.com/forums/threads/20-%E2%80%9Cdelta-reign%E2%80%9D-card-images-revealed.157054/</link>
+      <guid isPermaLink="false">157054</guid>
+      </item>
+    </channel>
+</rss>

@@ -1,0 +1,88 @@
+-- OpenTCG radar schema. Idempotent: every statement is safe to re-run.
+
+-- Source registry and health. Rows are seeded from radar/sources.py.
+CREATE TABLE IF NOT EXISTS sources (
+    source_id            TEXT PRIMARY KEY,
+    tier                 TEXT NOT NULL,        -- 'S' shippable candidate | 'L' lab-only
+    kind                 TEXT NOT NULL,        -- 'poll' | 'stream' | 'inbox' | 'manual'
+    cadence_s            INTEGER NOT NULL,
+    enabled              INTEGER NOT NULL,
+    note                 TEXT,
+    last_run_at          TEXT,
+    last_success_at      TEXT,
+    last_error           TEXT,
+    consecutive_failures INTEGER NOT NULL DEFAULT 0
+);
+
+-- TCGplayer groups (sets) as mirrored by tcgcsv.
+CREATE TABLE IF NOT EXISTS catalog_groups (
+    group_id                   INTEGER PRIMARY KEY,
+    name                       TEXT NOT NULL,
+    abbreviation               TEXT,
+    published_on               TEXT,          -- ISO date
+    modified_on                TEXT,          -- latest tcgcsv modifiedOn seen
+    products_synced_modified_on TEXT          -- modifiedOn at the last product sync
+);
+
+-- Canonical sealed products. product_id is the TCGplayer product id.
+CREATE TABLE IF NOT EXISTS products (
+    product_id         INTEGER PRIMARY KEY,
+    group_id           INTEGER NOT NULL REFERENCES catalog_groups(group_id),
+    name               TEXT NOT NULL,
+    product_type       TEXT NOT NULL,
+    exclusive_retailer TEXT,
+    release_on         TEXT,                  -- ISO date
+    is_presale         INTEGER NOT NULL DEFAULT 0,
+    url                TEXT,
+    first_seen_at      TEXT NOT NULL,
+    updated_at         TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS products_release_idx ON products(release_on);
+
+-- One TCGplayer market/low price per product per day.
+CREATE TABLE IF NOT EXISTS price_points (
+    product_id   INTEGER NOT NULL REFERENCES products(product_id),
+    day          TEXT NOT NULL,               -- ISO date
+    market_price REAL,
+    low_price    REAL,
+    PRIMARY KEY (product_id, day)
+) WITHOUT ROWID;
+
+-- Distributor release list rows (e.g. Southern Hobby).
+CREATE TABLE IF NOT EXISTS distributor_items (
+    source_id     TEXT NOT NULL,
+    item_key      TEXT NOT NULL,
+    name          TEXT NOT NULL,
+    release_on    TEXT,
+    order_due_on  TEXT,
+    url           TEXT,
+    first_seen_at TEXT NOT NULL,
+    updated_at    TEXT NOT NULL,
+    PRIMARY KEY (source_id, item_key)
+);
+
+-- News feed items (e.g. PokeBeach front page).
+CREATE TABLE IF NOT EXISTS news_items (
+    source_id       TEXT NOT NULL,
+    item_key        TEXT NOT NULL,
+    title           TEXT NOT NULL,
+    link            TEXT,
+    published_at    TEXT,
+    is_product_news INTEGER NOT NULL DEFAULT 0,
+    first_seen_at   TEXT NOT NULL,
+    PRIMARY KEY (source_id, item_key)
+);
+
+-- "When" events. The unique key makes every detector safe to re-run.
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id    TEXT NOT NULL,
+    kind         TEXT NOT NULL,   -- sku_added | release_date_changed | distributor_listed | order_due_changed | news_posted
+    subject_key  TEXT NOT NULL,
+    subject_text TEXT NOT NULL,
+    value        TEXT NOT NULL DEFAULT '',
+    product_id   INTEGER,
+    detected_at  TEXT NOT NULL,
+    UNIQUE (source_id, kind, subject_key, value)
+);
+CREATE INDEX IF NOT EXISTS calendar_events_detected_idx ON calendar_events(detected_at);

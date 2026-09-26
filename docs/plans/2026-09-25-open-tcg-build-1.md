@@ -111,6 +111,12 @@ Each slice is test-first: write fixture tests before code. A slice is done when 
 | 6 | Radar page, weekly report, launchd | approval to install two launchd agents | The page shows Upcoming, Live and Sources; the report compares against Guppy; the daemon survives a reboot |
 | 7 | Stretch: Shopify local-store pilot | home ZIP and a radius | 10–25 stores polled politely. These report both in-stock and sold-out, so this is the first source that measures how long stock stays buyable. |
 
+**Progress 2026-09-25:**
+- Slices 0–2 are built in `products/open-tcg/` with 61 passing tests. The live baseline holds 856 sealed products across 7 sets, 41 Southern Hobby listings and 30 PokeBeach items.
+- pokemon.com was dropped as a source: it serves an Incapsula bot challenge to non-browser clients, and we don't bypass that.
+- tcgcsv stamps undated legacy groups with its build time, so the radar treats non-midnight dates as unknown.
+- Phone push (ntfy) is paused at the founder's request, so slice 5 will add native macOS notifications.
+
 **Estimate:** slices 0–6 take about 8–10 working days, then a 7-day soak with the founder using it.
 
 **Order:** slices 0–2 and 4 need nothing from the founder, so building starts there. Slice 3 waits on Gmail access and a few real alert emails.
