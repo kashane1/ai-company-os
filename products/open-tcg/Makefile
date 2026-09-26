@@ -1,11 +1,11 @@
 PYTHON := ./.venv/bin/python
 
-.PHONY: setup test sync calendar events sources
+.PHONY: setup test sync calendar events sources backfill stream feed
 
 setup:
 	python3 -m venv .venv
 	./.venv/bin/pip install --quiet --upgrade pip
-	./.venv/bin/pip install --quiet httpx pytest
+	./.venv/bin/pip install --quiet httpx websockets pytest
 	@echo "setup complete — next: make sync"
 
 test:
@@ -23,3 +23,13 @@ events:
 
 sources:
 	$(PYTHON) -m radar sources
+
+backfill:
+	$(PYTHON) -m radar backfill
+
+# Follow Bluesky restock accounts live (Ctrl-C to stop).
+stream:
+	$(PYTHON) -m radar stream
+
+feed:
+	$(PYTHON) -m radar feed

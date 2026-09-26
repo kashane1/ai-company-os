@@ -116,6 +116,7 @@ Each slice is test-first: write fixture tests before code. A slice is done when 
 - pokemon.com was dropped as a source: it serves an Incapsula bot challenge to non-browser clients, and we don't bypass that.
 - tcgcsv stamps undated legacy groups with its build time, so the radar treats non-midnight dates as unknown.
 - Phone push (ntfy) is paused at the founder's request, so slice 5 will add native macOS notifications.
+- **2026-09-26:** slice 4 is built. It follows the Bluesky Jetstream, filtered to @pokemonrestocks and @nowinstockus, with a resume cursor and a startup backfill from the author feed. Each post is classified by signal (drawing open or scheduled, results, invites, queue, drop, in stock, pre-order, cancelled), retailer and TCG relevance, then matched to the watchlist, including "ETB" abbreviations and multi-product posts. The first backfill stored 59 posts. The live connection is proven. python.org Python lacks system TLS roots, so the stream uses certifi.
 
 **Estimate:** slices 0–6 take about 8–10 working days, then a 7-day soak with the founder using it.
 

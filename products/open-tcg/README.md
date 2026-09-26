@@ -13,6 +13,9 @@ make sync       # run every enabled poll source once
 make calendar   # upcoming sealed releases with exclusives and presale prices
 make events     # what changed in the last 7 days
 make sources    # per-source health
+make backfill   # recent posts from the Bluesky restock accounts
+make stream     # follow Bluesky live (runs until Ctrl-C)
+make feed       # restock observations from the last 72 h (TCG only)
 ```
 
 ## Inputs
@@ -29,6 +32,7 @@ make sources    # per-source health
 | tcgcsv (TCGplayer catalog mirror) | S | daily | Sealed SKUs, presale release dates, retailer exclusives, daily market price |
 | Southern Hobby release list | L | daily | Distributor release and order-due dates |
 | PokeBeach front-page RSS | L | 15 min | Reveals and product announcements |
+| Bluesky (@pokemonrestocks, @nowinstockus) | S | live stream | Drawings, invites, queues, drops, in-stock and pre-order posts, matched to the watchlist |
 | pokemon.com news | S | — | Disabled: bot challenge for non-browser clients, not bypassed |
 
 The first successful run of each source is a silent baseline. After that,

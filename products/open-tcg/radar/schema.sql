@@ -86,3 +86,30 @@ CREATE TABLE IF NOT EXISTS calendar_events (
     UNIQUE (source_id, kind, subject_key, value)
 );
 CREATE INDEX IF NOT EXISTS calendar_events_detected_idx ON calendar_events(detected_at);
+
+-- "Now" observations from alert sources (Bluesky posts, alert emails, manual log).
+CREATE TABLE IF NOT EXISTS observations (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id     TEXT NOT NULL,
+    external_id   TEXT NOT NULL,           -- e.g. at:// URI, Message-ID
+    author        TEXT,
+    text          TEXT NOT NULL,
+    signal        TEXT NOT NULL,           -- in_stock | preorder | drop | queue | invites | drawing_* | cancelled | event | other
+    retailer      TEXT,
+    product_text  TEXT,
+    price         REAL,
+    url           TEXT,
+    is_tcg        INTEGER NOT NULL,
+    watch_matches TEXT NOT NULL DEFAULT '[]',  -- JSON list of watchlist item names
+    source_time   TEXT,                    -- when the source says it happened
+    received_at   TEXT NOT NULL,           -- when the radar saw it
+    UNIQUE (source_id, external_id)
+);
+CREATE INDEX IF NOT EXISTS observations_received_idx ON observations(received_at);
+
+-- Resume points for streaming sources.
+CREATE TABLE IF NOT EXISTS stream_cursors (
+    source_id  TEXT PRIMARY KEY,
+    cursor     INTEGER NOT NULL,
+    updated_at TEXT NOT NULL
+);

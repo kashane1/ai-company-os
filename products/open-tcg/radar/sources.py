@@ -30,6 +30,8 @@ REGISTRY: tuple[Source, ...] = (
     Source("tcgcsv", "S", "poll", 24 * 3600, note="TCGplayer catalog mirror; rebuilt ~20:00 UTC daily"),
     Source("southern_hobby", "L", "poll", 24 * 3600, note="Distributor release and order-due list"),
     Source("pokebeach_rss", "L", "poll", 15 * 60, note="Front-page news RSS"),
+    # A connected stream records a heartbeat every cadence, even when no one posts.
+    Source("bluesky", "S", "stream", 10 * 60, note="Jetstream, filtered to restock-alert accounts"),
     Source(
         "pokemon_news",
         "S",
