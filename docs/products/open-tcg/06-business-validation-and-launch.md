@@ -70,7 +70,7 @@ Potential positioning to test: “A free collector watchlist that shows the evid
 
 ## Naming and brand process
 
-Keep Open Collector as a working folder name. Generate original names after the core promise is confirmed, check existing apps/projects/domains and relevant trademark conflicts, then choose independently designed visual identity. Do not borrow Guppy's fish character, name, slogans, screen composition, or commercial imagery. A name search and appropriate review precede public launch; no domain purchase is needed for this pack.
+OpenTCG is the founder-chosen project name (2026-09-25). Before public launch, check existing apps/projects/domains and relevant trademark conflicts, then choose independently designed visual identity. Do not borrow Guppy's fish character, name, slogans, screen composition, or commercial imagery. A name search and appropriate review precede public launch; no domain purchase is needed for this pack.
 
 ## Operating risks and owners
 

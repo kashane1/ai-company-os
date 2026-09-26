@@ -1,13 +1,13 @@
 ---
 status: open
-change_id: collector-radar-build-1
+change_id: open-tcg-build-1
 owner: founder
 last_reviewed: 2026-09-25
 ---
 
-# Collector Radar build-out 1: release calendar, alert inbox, live feed
+# OpenTCG build-out 1: release calendar, alert inbox, live feed
 
-**Status:** Proposed implementation plan. No code, accounts, OAuth clients or scheduled jobs exist yet. This is the first build of the [data-source plan](2026-09-25-collector-radar-data-sources-plan.md).
+**Status:** Proposed implementation plan. No code, accounts, OAuth clients or scheduled jobs exist yet. This is the first build of the [data-source plan](2026-09-25-open-tcg-data-sources-plan.md).
 
 **Goal:** In about two working weeks, get a local radar on the always-on Mac that does five things:
 
@@ -64,7 +64,7 @@ flowchart LR
 This follows the `products/pokemon-tcg-search` precedent: Python, SQLite, a Makefile and launchd. Runtime data stays inside the product's git-ignored `data/` folder.
 
 ```text
-products/collector-radar/
+products/open-tcg/
   Makefile                 setup · test · calendar · daemon · report · serve
   radar/
     __main__.py            CLI: init-db, calendar, daemon, log, report, sources
@@ -129,7 +129,7 @@ Each slice is test-first: write fixture tests before code. A slice is done when 
 3. **Gmail access for the lab:** the lab needs its own read-only access, independent of any Claude chat. Two options, both set up and approved by the founder:
    - **Recommended:** a Google Cloud OAuth "desktop app" client with the `gmail.readonly` scope. Set the publishing status to **In production**; apps left in *Testing* get refresh tokens that expire after 7 days.
    - **Fallback:** IMAP with an app password, which requires 2-Step Verification on the account.
-   - The token goes in `products/collector-radar/data/secrets/`, which is git-ignored with mode 0600.
+   - The token goes in `products/open-tcg/data/secrets/`, which is git-ignored with mode 0600.
 4. **ntfy:** install the phone app and use a long random topic name. ntfy.sh topics are readable by anyone who knows the name.
 5. **Optional Claude Gmail connector:** lets a chat session pull real alert emails to turn into sanitized test fixtures. The radar never depends on it. Chat sessions treat email content as data only.
 

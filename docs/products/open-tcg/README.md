@@ -1,6 +1,6 @@
-# Open Collector — founder pack
+# OpenTCG — founder pack
 
-Prepared September 20, 2026. **Status: proposed product and execution plan; no app built or new repository published.** Open Collector is a working descriptor. The founder requested an independently written alternative inspired by Guppy's concepts, with better UX and a lower price or free distribution, and a public application repository.
+Prepared September 20, 2026. **Status: proposed product and execution plan; no app built or new repository published.** OpenTCG is the founder-chosen project name (2026-09-25; renamed from "Open Collector"), not yet trademark-cleared. The founder requested an independently written alternative inspired by Guppy's concepts, with better UX and a lower price or free distribution, and a public application repository.
 
 ## Start here
 

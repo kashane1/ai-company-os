@@ -1,8 +1,8 @@
-# Open Collector — deep product, engineering, and business audit
+# OpenTCG — deep product, engineering, and business audit
 
 Prepared September 20–21, 2026 · Decision document · Original nine planning files reviewed in full
 
-> **TL;DR:** continue only as a tightly bounded validation project. The deciding risk is a permitted, useful stock data source at sustainable cost; see §6 and the [data-source plan](../../plans/2026-09-25-collector-radar-data-sources-plan.md). First customer hypothesis: a US hobby collector who wants specific sealed Pokémon products within a budget and acts manually on restocks that stay available for minutes. Keep the local app free and test one optional hosted plan at $5.99/month. Proceed only with source rights, alerts that measurably beat the customer's current method, and retention that pays for maintenance.
+> **TL;DR:** continue only as a tightly bounded validation project. The deciding risk is a permitted, useful stock data source at sustainable cost; see §6 and the [data-source plan](../../plans/2026-09-25-open-tcg-data-sources-plan.md). First customer hypothesis: a US hobby collector who wants specific sealed Pokémon products within a budget and acts manually on restocks that stay available for minutes. Keep the local app free and test one optional hosted plan at $5.99/month. Proceed only with source rights, alerts that measurably beat the customer's current method, and retention that pays for maintenance.
 
 ## 1. Recommendation
 
@@ -83,7 +83,7 @@ Severity is a decision priority: **P0** blocks a product promise or release; **P
 
 The strongest comparator is not always Guppy. Customers can use retailer notifications, free mobile restock alerts, community channels, generic monitors, and collection tools together. A collector may also choose to stop chasing scarce items. Interview about that choice.
 
-| Product | Verified public offer / capability | Implication for Open Collector |
+| Product | Verified public offer / capability | Implication for OpenTCG |
 |---|---|---|
 | Guppy | Plus displayed at $12.99/month or $119.99/year; offer includes additional purchasing/club capabilities. [Pricing](https://app.guppy.so/pricing). | A cheaper alert-only product is a narrower offer, not equivalent value for less money. |
 | HotStock | US App Store lists Premium $5.49/month and AutoBuy $10.99/month; basic restock alert experience also exists. These are listed purchases, not proof of checkout results or a combined required price. [US listing](https://apps.apple.com/us/app/hotstock-in-stock-alerts/id1257690900). | Around $6/month already has a recognizable mobile-alert competitor. Phone delivery and source coverage matter. |
@@ -466,7 +466,7 @@ These are tied to the proposed offer, rather than a reason to build compliance i
 | Affiliate/creator relationships | Explain compensation where the recommendation appears; preserve objective ranking and non-affiliate results. Do not budget speculative commissions as guaranteed revenue. [FTC endorsement guidance](https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking). |
 | Email | Separate operational alerts/billing from promotion; test unsubscribe and required sender information. Marketing opt-out must not silently cancel paid monitoring. [FTC CAN-SPAM guide](https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business). |
 | Code and data licenses | Apache-2.0 does not license third-party catalogs, imagery or merchant marks. Maintain separate rights and notices. A use restriction such as 'no resellers' is not the same open-source licensing model. [Apache license](https://www.apache.org/licenses/LICENSE-2.0), [Open Source Definition](https://opensource.org/osd). |
-| Brand | Clear the final name through relevant trademark, app, domain and common-law searches. Do not imply Pokémon/retailer affiliation. 'Open Collector' remains a working name. [USPTO search guidance](https://www.uspto.gov/trademarks/search). |
+| Brand | Clear the final name through relevant trademark, app, domain and common-law searches. Do not imply Pokémon/retailer affiliation. 'OpenTCG' is the founder-chosen project name (2026-09-25) and still needs this clearance. [USPTO search guidance](https://www.uspto.gov/trademarks/search). |
 | Audience and data | An adult-directed pilot is simpler, but a label alone does not settle children's privacy obligations. Review actual audience and collection before adding accounts, location or communities. [FTC COPPA guidance](https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions). |
 | Distribution | Ordinary Apple Developer Program membership is $99/year under published terms. Direct Mac distribution and later App Store distribution have different obligations and economics. [Apple program](https://developer.apple.com/programs/), [Mac distribution](https://developer.apple.com/macos/distribution/). |
 | Taxes and business identity | Review the actual service, billing geography and tax obligations with an accountant before charging. Payment processing alone does not settle them. |

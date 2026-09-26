@@ -1,19 +1,19 @@
 ---
 status: open
-change_id: collector-radar-data-sources
+change_id: open-tcg-data-sources
 owner: founder
 last_reviewed: 2026-09-25
 ---
 
-# Collector Radar: near-zero-cost inventory signal plan
+# OpenTCG: near-zero-cost inventory signal plan
 
-**Status:** Proposed plan, researched 2026-09-25. Nothing is built, no accounts are created, and no polling is scheduled. It is a second version of the data-source part of the [Open Collector founder pack](2026-09-20-open-collector-founder-pack.md). The pack left the source choice as its open M0 decision. This plan fills that gap.
+**Status:** Proposed plan, researched 2026-09-25. Nothing is built, no accounts are created, and no polling is scheduled. It is a second version of the data-source part of the [OpenTCG founder pack](2026-09-20-open-tcg-founder-pack.md). The pack left the source choice as its open M0 decision. This plan fills that gap.
 
 **Goal:** Know **when** sealed Pokémon TCG inventory is coming, **where** it lands (retailer and store), and **the moment** it goes live. Run for about $0 per month on the always-on Mac. Measure ourselves against Guppy while we learn.
 
-**Scope decision (founder, 2026-09-25):** personal lab first. The lab runs only on this Mac for the founder. It may use two extra kinds of reads beyond official APIs. The first is public pages that the platform documents or `robots.txt` permits, such as Shopify store JSON or a distributor release list. The second is alerts the founder subscribes to. Anything that later ships in the public Open Collector app must pass the pack's stricter source-review packet again. All four retailer groups are in scope: big box, Pokémon Center, local game stores and marketplaces.
+**Scope decision (founder, 2026-09-25):** personal lab first. The lab runs only on this Mac for the founder. It may use two extra kinds of reads beyond official APIs. The first is public pages that the platform documents or `robots.txt` permits, such as Shopify store JSON or a distributor release list. The second is alerts the founder subscribes to. Anything that later ships in the public OpenTCG app must pass the pack's stricter source-review packet again. All four retailer groups are in scope: big box, Pokémon Center, local game stores and marketplaces.
 
-**Build-out 1:** see [the first build plan](2026-09-25-collector-radar-build-1.md). It skips Best Buy (all Pokémon TCG releases are invitation-only), defers Kroger, drops camelcamelcamel in favor of Keepa, and uses a dedicated project Gmail inbox.
+**Build-out 1:** see [the first build plan](2026-09-25-open-tcg-build-1.md). It skips Best Buy (all Pokémon TCG releases are invitation-only), defers Kroger, drops camelcamelcamel in favor of Keepa, and uses a dedicated project Gmail inbox.
 
 ## Summary
 
@@ -21,7 +21,7 @@ last_reviewed: 2026-09-25
 - **"Now" for online stock is partly free.** Best Buy's official API (50,000 calls/day) covers Best Buy. Bluesky's public stream and alert emails the founder receives (NowInStock, Keepa/camelcamelcamel, retailer notify-me) cover the others second-hand.
 - **"Where" at store level only has two official sources: Best Buy and Kroger.** Local game stores on Shopify or WooCommerce expose public stock status, sometimes with quantities. This is the most underused lane and the place we can beat Guppy.
 - **Honest gap:** there's no permitted direct feed for Target, Walmart store stock, or Pokémon Center. We only learn about those second-hand, and Guppy will usually be faster there. We don't try to close that gap by breaking terms of service.
-- **The lab answers the [deep audit's](../products/open-collector/open-collector-deep-audit.md) open question:** how long restocked stock stays buyable. If replenishments last minutes, a watch-and-act app is viable. If they last seconds, only checkout automation competes. The event log measures this directly.
+- **The lab answers the [deep audit's](../products/open-tcg/open-tcg-deep-audit.md) open question:** how long restocked stock stays buyable. If replenishments last minutes, a watch-and-act app is viable. If they last seconds, only checkout automation competes. The event log measures this directly.
 
 ## The signal ladder
 
@@ -98,7 +98,7 @@ TYPA, Restockd, PokeNotify sightings and Poke RestockR city chats are useful to 
 
 Python, SQLite and launchd, following the pattern `products/pokemon-tcg-search` already runs daily on this Mac.
 
-- **Placement (proposed):** code in `products/collector-radar/`. Reuse or copy the tcgcsv client from `products/pokemon-tcg-search/ingest/tcgcsv.py`. Runtime data goes in git-ignored `state/collector-radar/`. Lab-tier code stays in this private repo. Only tier-S adapters are later ported to the public Open Collector repo, which is written independently as the pack requires.
+- **Placement (proposed):** code in `products/open-tcg/`. Reuse or copy the tcgcsv client from `products/pokemon-tcg-search/ingest/tcgcsv.py`. Runtime data goes in git-ignored `state/open-tcg/`. Lab-tier code stays in this private repo. Only tier-S adapters are later ported to the public OpenTCG repo, which is written independently as the pack requires.
 - **Four ingest shapes:**
   1. **Pollers:** tcgcsv, Southern Hobby, pokemon.com, Best Buy, Kroger, Shopify/Woo, Reddit RSS. Each has a declared cadence and per-host budget.
   2. **Stream:** a Bluesky Jetstream subscriber.

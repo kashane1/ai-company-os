@@ -1,6 +1,6 @@
-# Open Collector — founder thesis and product requirements
+# OpenTCG — founder thesis and product requirements
 
-Prepared 2026-09-20. Proposed design, ready for founder review and engineering feasibility work. “Open Collector” is a descriptor, not a cleared product name. The requested deliverable is a founder pack; no application, new repository, or public launch has been created by this planning task.
+Prepared 2026-09-20. Proposed design, ready for founder review and engineering feasibility work. “OpenTCG” is the founder-chosen project name (2026-09-25), not yet a trademark-cleared product name. The requested deliverable is a founder pack; no application, new repository, or public launch has been created by this planning task.
 
 ## The product we should build
 

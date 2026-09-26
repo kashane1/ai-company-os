@@ -1,4 +1,4 @@
-# Open Collector execution plan
+# OpenTCG execution plan
 
 This plan turns the Mac-first, local-first architecture into an independently
 written public repository. It assumes one experienced macOS engineer, one
@@ -170,7 +170,7 @@ code signatures, but still needs release-specific validation
 ## Public repository blueprint
 
 ```text
-open-collector/
+open-tcg/
   Apps/macOS/                    # SwiftUI application target and UI tests
   Packages/
     CollectorDomain/             # models, condition evaluation, state machine

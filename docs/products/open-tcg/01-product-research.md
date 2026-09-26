@@ -1,7 +1,7 @@
-# Open Collector: public product and market research
+# OpenTCG: public product and market research
 
 Research date: 2026-09-20.  This is a public-source product brief for a
-separately designed, potentially open-source collector tool. “Open Collector”
+separately designed, potentially open-source collector tool. “OpenTCG”
 is a working descriptor only. It is not a request to use Guppy’s name, code,
 copy, artwork, UI, or proprietary data.
 
@@ -160,7 +160,7 @@ and language, with independently licensed data and brand assets.
 | Product search by title, set, or retailer URL | **Adopt** | A concurrent local UI review reports this as an input path. It is a useful low-friction onboarding concept; independently implement it through a permissioned importer that previews the canonical product match before saving anything. |
 | Category-specific discovery filters | **Adopt** | A concurrent local UI review reports filters for Pokémon, Magic, One Piece, and Lorcana. Start with one category but use a category-agnostic product model to avoid a rewrite. |
 | Retailer account readiness health | **Adopt, without credential inspection** | A concurrent local UI review reports account-health status. A new product should only report whether a user-approved connector is ready, never collect retailer passwords or inspect payment fields. |
-| Local session-recording / “black box” control | **Adapt and expand** | A concurrent local UI review reports recording, quality, processing, purge, and CPU-saving controls. For Open Collector’s alert-first MVP, retain a local, user-controlled event log rather than video. If execution is ever approved, offer encrypted local recording with short retention, explicit consent, and a one-click purge. |
+| Local session-recording / “black box” control | **Adapt and expand** | A concurrent local UI review reports recording, quality, processing, purge, and CPU-saving controls. For OpenTCG’s alert-first MVP, retain a local, user-controlled event log rather than video. If execution is ever approved, offer encrypted local recording with short retention, explicit consent, and a one-click purge. |
 | Mission history and cancel countdown | **Adopt** | A concurrent local UI review reports history and a cancel grace period. A reusable operation timeline plus reversible cancellation is a strong trust pattern, even for notification-only rules. |
 | Community feature voting | **Adapt later** | A concurrent local UI review reports an ideas/voting area. Use a public roadmap and issue voting after core signal quality is proven; protect it with abuse prevention and show resolution status. |
 | Cross-site catalogue | **Defer** | Catalog normalization creates a major ongoing data-quality burden. Seed one category and a small source set, prove alert freshness, then expand by demand. |

@@ -1,4 +1,4 @@
-# Open Collector architecture and security
+# OpenTCG architecture and security
 
 **Proposed recommendation — pending founder direction:** build a Mac-first,
 local-first watchlist client before attempting retailer automation. The first

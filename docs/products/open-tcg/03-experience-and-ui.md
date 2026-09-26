@@ -11,7 +11,7 @@ Use native window behavior, a resizable sidebar, system typography, generous lin
 ## Primary screen, proposed wireframe
 
 ```text
-┌ Open Collector ────────────────────────────────────────────────────────┐
+┌ OpenTCG ───────────────────────────────────────────────────────────────┐
 │ Watchlist          │ My watches            [+ Add item]   [Pause all] │
 │ Inbox       2      │ Search…      Source ▾    State ▾                  │
 │ Activity           ├───────────────────────────┬──────────────────────┤
