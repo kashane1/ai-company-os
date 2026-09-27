@@ -32,6 +32,11 @@ for a watched item, is an availability signal (in stock, pre-order, drop,
 queue, invites, open drawing), is under 15 minutes old, and has no known
 price above the item's `alert_at`.
 
+**Rules in `watchlist.toml`.**
+- `[exclude] terms` never alert. Today these are "Pitch Black" and "Chaos Rising", newer sets that are still easy to find.
+- `[[retailer_rule]]` alerts on any Costco drop that names a watched item or a watched set: 30th Celebration, Ascended Heroes, Prismatic Evolutions, Destined Rivals.
+- **Assisted checkout:** with `open_in_browser`, the radar follows the post's short link. If the final URL is really on costco.com, it opens the page in Brave, where the founder is signed in, and the founder clicks Buy. Links landing anywhere else are never opened.
+
 ## Background service
 
 Two per-user LaunchAgents run the radar without a Terminal window:

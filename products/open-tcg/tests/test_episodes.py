@@ -150,3 +150,77 @@ def test_scorecard_scores_each_bluesky_account_separately(connection):
     card = {row.source_id: row for row in episodes.scorecard(connection)}
     assert card["bluesky:pokemonrestocks"].first == 1
     assert card["bluesky:nowinstockus"].median_lag_s == 240
+
+
+# ---------------------------------------------------------------------------
+# Exclusions, retailer rules, assisted open
+# ---------------------------------------------------------------------------
+
+class RecordingOpener:
+    def __init__(self) -> None:
+        self.opened: list[str] = []
+
+    def __call__(self, url: str) -> None:
+        self.opened.append(url)
+
+
+def costco_episode(connection, text: str, *, url: str = "https://buff.ly/abc"):
+    connection.execute(
+        "INSERT OR IGNORE INTO catalog_groups (group_id, name, published_on) VALUES (1, 'ME: Ascended Heroes', '2026-01-30')"
+    )
+    observation_id = observe(connection, source_id="bluesky", external_id=text[:20], text=text,
+                             signal="queue", retailer="Costco", watch=())
+    connection.execute("UPDATE observations SET url = ? WHERE id = ?", (url, observation_id))
+    connection.commit()
+    return episodes.assign(connection, observation_id)[0]
+
+
+def test_costco_rule_alerts_for_a_watched_set_and_opens_the_verified_page(connection):
+    notifier, opener = RecordingNotifier(), RecordingOpener()
+    episode_id = costco_episode(connection, "New Ascended Heroes Mini Tins + Promo Cards Bundle Queue up Costco")
+    sent = notify.maybe_notify(
+        connection, episode_id, now=NOW, send=notifier, open_url=opener,
+        resolve=lambda url: "https://www.costco.com/pokemon-ascended-heroes-mini-tins.product.100.html",
+    )
+    assert sent
+    assert "Costco" in notifier.sent[0][0]
+    assert opener.opened == ["https://www.costco.com/pokemon-ascended-heroes-mini-tins.product.100.html"]
+
+
+def test_costco_rule_ignores_sets_not_on_the_watchlist(connection):
+    notifier = RecordingNotifier()
+    episode_id = costco_episode(connection, "Surging Sparks Mini Tin Bundle Queue up Costco")
+    assert not notify.maybe_notify(connection, episode_id, now=NOW, send=notifier, resolve=lambda url: url)
+    assert notifier.sent == []
+
+
+def test_links_that_do_not_land_on_the_retailer_are_never_opened(connection):
+    notifier, opener = RecordingNotifier(), RecordingOpener()
+    episode_id = costco_episode(connection, "Ascended Heroes bundle Queue up Costco")
+    notify.maybe_notify(connection, episode_id, now=NOW, send=notifier, open_url=opener,
+                        resolve=lambda url: "https://costco.com.example-login.net/deal")
+    assert opener.opened == []
+    assert len(notifier.sent) == 1  # still alerted, just not opened
+    assert "not opened" in notifier.sent[0][1]
+
+
+def test_excluded_terms_never_alert_even_with_a_matching_rule(connection):
+    notifier = RecordingNotifier()
+    episode_id = costco_episode(connection, "Ascended Heroes and Chaos Rising Mini Tins Queue up Costco")
+    assert not notify.maybe_notify(connection, episode_id, now=NOW, send=notifier, resolve=lambda url: url)
+
+    watched = observe(connection, source_id="bluesky", external_id="pb",
+                      text="Pitch Black Elite Trainer Box in stock at Target")
+    for watched_episode in episodes.assign(connection, watched):
+        assert not notify.maybe_notify(connection, watched_episode, now=NOW, send=notifier)
+    assert notifier.sent == []
+
+
+def test_a_repeat_alert_never_opens_a_second_tab(connection):
+    notifier, opener = RecordingNotifier(), RecordingOpener()
+    episode_id = costco_episode(connection, "Ascended Heroes Mini Tins Queue up Costco")
+    for _ in range(2):
+        notify.maybe_notify(connection, episode_id, now=NOW, send=notifier, open_url=opener,
+                            resolve=lambda url: "https://www.costco.com/p.html")
+    assert opener.opened == ["https://www.costco.com/p.html"]
+    assert len(notifier.sent) == 1

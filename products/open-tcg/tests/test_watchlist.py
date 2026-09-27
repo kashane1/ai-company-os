@@ -18,3 +18,10 @@ def test_watch_set_keys_come_from_item_names():
         [item.name for item in watchlist.load()],
     )
     assert keys == {"prismatic evolutions", "30th celebration"}
+
+
+def test_policy_loads_exclusions_and_the_costco_rule():
+    policy = watchlist.load_policy()
+    assert {term.lower() for term in policy.exclude_terms} == {"pitch black", "chaos rising"}
+    [rule] = policy.retailer_rules
+    assert (rule.retailer, rule.match, rule.open_in_browser) == ("Costco", "watch_items_or_sets", True)

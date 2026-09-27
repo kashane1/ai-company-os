@@ -173,3 +173,21 @@ retailers = ["Target"]
 auto_buy = false
 nowinstock = []
 keepa_asins = ["B0H783FY5Z"]
+
+# ---------------------------------------------------------------------------
+# Rules beyond single items
+# ---------------------------------------------------------------------------
+
+[exclude]
+# Never alert on anything naming these, even if an item or rule matches.
+# Newer sets that are still easy to find in stores (founder, 2026-09-27).
+terms = ["Pitch Black", "Chaos Rising"]
+
+[[retailer_rule]]
+# Any Costco Pokémon drop that names a watched item or a set from this
+# watchlist alerts, since Costco sells club-only bundles that rarely match
+# item names. When it fires, the product page opens in Brave (assisted
+# checkout: the founder clicks Buy).
+retailer = "Costco"
+match = "watch_items_or_sets"
+open_in_browser = true

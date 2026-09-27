@@ -52,3 +52,36 @@ def set_keys_for(group_names: Iterable[str], item_names: Iterable[str]) -> set[s
         if len(key) >= MIN_SET_KEY_LENGTH and any(key in item for item in lowered_items):
             keys.add(key)
     return keys
+
+
+@dataclass(frozen=True)
+class RetailerRule:
+    retailer: str
+    match: str  # "watch_items_or_sets"
+    open_in_browser: bool = False
+
+
+@dataclass(frozen=True)
+class Policy:
+    items: tuple[WatchItem, ...]
+    exclude_terms: tuple[str, ...] = ()
+    retailer_rules: tuple[RetailerRule, ...] = ()
+
+    def rule_for(self, retailer: str | None) -> RetailerRule | None:
+        return next((rule for rule in self.retailer_rules if rule.retailer == retailer), None)
+
+
+def load_policy(path: Path = WATCHLIST_PATH) -> Policy:
+    data = tomllib.loads(path.read_text())
+    return Policy(
+        items=tuple(load(path)),
+        exclude_terms=tuple((data.get("exclude") or {}).get("terms", [])),
+        retailer_rules=tuple(
+            RetailerRule(
+                retailer=raw["retailer"],
+                match=raw.get("match", "watch_items_or_sets"),
+                open_in_browser=bool(raw.get("open_in_browser", False)),
+            )
+            for raw in data.get("retailer_rule", [])
+        ),
+    )
