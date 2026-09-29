@@ -2,12 +2,12 @@
 status: open
 change_id: open-tcg-build-1
 owner: founder
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # OpenTCG build-out 1: release calendar, alert inbox, live feed
 
-**Status:** Proposed implementation plan. No radar code or scheduled jobs exist yet; alert subscriptions and the watchlist are set up (see founder setup below). This is the first build of the [data-source plan](2026-09-25-open-tcg-data-sources-plan.md).
+**Status (2026-09-29):** Slices 0–5 are built and running, with three LaunchAgents and a 6 AM sign-in check. Slice 6's radar page and weekly report and slice 7's Shopify pilot are not built. Follow-up work is tracked in the [OpenTCG audit backlog](../products/open-tcg/09-audit-2026-09-29.md). This is the first build of the [data-source plan](2026-09-25-open-tcg-data-sources-plan.md).
 
 **Goal:** In about two working weeks, get a local radar on the always-on Mac that does five things:
 
@@ -123,6 +123,8 @@ Each slice is test-first: write fixture tests before code. A slice is done when 
   - `radar mark`, and `radar log guppy|sighting`
   - one notification per fresh (<15 min) watched availability episode, with a price-threshold guard
   - Background service (slice 6, launchd part) installed 2026-09-26 at the founder's request. The stream agent is KeepAlive with RunAtLoad. The sync agent runs every 15 min, and `radar sync` polls only due sources (tcgcsv once after its 20:30 UTC rebuild). Install, remove and inspect with `scripts/launchd.sh`. Notifications are verified from the launchd context.
+  - **2026-09-27:** slice 3 is built: a read-only IMAP reader (EXAMINE + BODY.PEEK, UIDVALIDITY-aware cursor). It takes any Pokémon mail plus NowInStock and Keepa, is scored per sender, and runs as an inbox LaunchAgent. Only account-confirmation emails have arrived so far, so the NowInStock and Keepa parsers still use synthetic fixtures.
+  - **2026-09-27:** the watchlist gained `[exclude]` terms (Pitch Black, Chaos Rising) and a Costco rule: any Costco drop naming a watched item or set alerts and opens the page in Brave, but only after the link is verified to land on costco.com.
   - X/Twitter is excluded for now: its API is pay-per-read (~$20–25/month for a few accounts) and scraping is against its terms. Revisit once the scorecard shows which alert accounts lead.
 
 **Estimate:** slices 0–6 take about 8–10 working days, then a 7-day soak with the founder using it.

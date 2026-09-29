@@ -12,7 +12,6 @@ from __future__ import annotations
 import datetime as dt
 import json
 import sqlite3
-import ssl
 import time
 from typing import Callable, Iterable
 from urllib.parse import urlencode
@@ -21,6 +20,7 @@ from .. import matching, sources
 from ..catalog.classify import set_key
 from ..config import BLUESKY_ACCOUNTS, BLUESKY_PUBLIC_API, JETSTREAM_URL
 from ..db import iso
+from ..http import tls_context
 from ..watchlist import WatchItem
 from . import parse
 
@@ -30,12 +30,6 @@ POST_COLLECTION = "app.bsky.feed.post"
 CURSOR_REWIND_US = 5_000_000
 MAX_BACKOFF_S = 60
 
-
-def tls_context() -> ssl.SSLContext:
-    """TLS roots from certifi (shipped with httpx); python.org builds lack system roots."""
-    import certifi
-
-    return ssl.create_default_context(cafile=certifi.where())
 
 
 def post_uri(did: str, rkey: str) -> str:

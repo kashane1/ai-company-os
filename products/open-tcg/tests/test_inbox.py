@@ -101,3 +101,29 @@ def test_emails_are_scored_per_sender(connection):
     episodes.assign(connection, observation_id)
     card = {row.source_id for row in episodes.scorecard(connection)}
     assert card == {"email:nowinstock.net"}
+
+
+def test_imap_connection_verifies_gmails_certificate(monkeypatch):
+    """imaplib's default SSL context does not verify certificates; ours must."""
+    import ssl
+
+    captured = {}
+
+    class FakeIMAP:
+        def __init__(self, host, **kwargs):
+            captured.update(host=host, **kwargs)
+            raise ConnectionAbortedError("stop before any network use")
+
+    monkeypatch.setattr(reader.imaplib, "IMAP4_SSL", FakeIMAP)
+    try:
+        reader.ImapMailbox("radar@example.test", "not-a-real-password")
+    except ConnectionAbortedError:
+        pass
+    context = captured["ssl_context"]
+    assert context.verify_mode == ssl.CERT_REQUIRED
+    assert context.check_hostname is True
+
+
+def test_fixtures_do_not_contain_the_real_inbox_address():
+    for path in (FIXTURES / "email").glob("*.eml"):
+        assert "@gmail.com" not in path.read_text(), path.name

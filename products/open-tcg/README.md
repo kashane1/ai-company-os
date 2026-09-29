@@ -7,7 +7,7 @@ Mac. The plans are
 and [build-out 1](../../docs/plans/2026-09-25-open-tcg-build-1.md).
 
 ```
-make setup      # create .venv and install httpx + pytest
+make setup      # create .venv and install httpx, websockets, pytest
 make test
 make sync       # run every enabled poll source once
 make calendar   # upcoming sealed releases with exclusives and presale prices
@@ -39,15 +39,19 @@ price above the item's `alert_at`.
 
 ## Background service
 
-Two per-user LaunchAgents run the radar without a Terminal window:
+Three per-user LaunchAgents run the radar without a Terminal window:
 
 - `com.ai-company-os.open-tcg.stream` follows Bluesky live. KeepAlive restarts it, and it starts at login.
+- `com.ai-company-os.open-tcg.inbox` reads the project Gmail read-only every 30 s (KeepAlive).
 - `com.ai-company-os.open-tcg.sync` runs every 15 minutes and polls only the sources that are due: PokeBeach every 15 min, Southern Hobby daily, and tcgcsv once after its nightly rebuild.
+
+A scheduled Claude task, "OpenTCG 6 AM retailer sign-in check", checks sign-in at Costco, Pokémon Center, Walmart, Target and Amazon in Brave. It writes `data/login-status.json` and notifies only when a store needs signing in.
 
 ```
 scripts/launchd.sh install | uninstall | status
 tail -f data/logs/stream.log        # live posts as they arrive
 tail -f data/logs/sync.log
+tail -f data/logs/inbox.log
 ```
 
 The jobs only run while the Mac is awake and logged in.
@@ -67,6 +71,8 @@ The jobs only run while the Mac is awake and logged in.
 | Southern Hobby release list | L | daily | Distributor release and order-due dates |
 | PokeBeach front-page RSS | L | 15 min | Reveals and product announcements |
 | Bluesky (@pokemonrestocks, @nowinstockus) | S | live stream | Drawings, invites, queues, drops, in-stock and pre-order posts, matched to the watchlist |
+| Project Gmail (NowInStock, Keepa, any Pokémon mail) | L | 30 s | Alert emails, read-only over IMAP, scored per sender |
+| Guppy / sightings (manual log) | L | manual | Founder-logged benchmark entries (`radar log guppy …`) |
 | pokemon.com news | S | — | Disabled: bot challenge for non-browser clients, not bypassed |
 
 The first successful run of each source is a silent baseline. After that,

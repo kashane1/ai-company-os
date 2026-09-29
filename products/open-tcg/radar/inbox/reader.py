@@ -22,6 +22,7 @@ from typing import Callable, Iterable, Protocol
 from .. import matching, sources
 from ..config import DATA_DIR
 from ..db import iso
+from ..http import tls_context
 from ..social.bluesky import catalog_set_keys
 from ..watchlist import WatchItem
 from . import message
@@ -48,7 +49,8 @@ class ImapMailbox:
     """Gmail INBOX opened read-only (EXAMINE)."""
 
     def __init__(self, address: str, password: str) -> None:
-        self._imap = imaplib.IMAP4_SSL(IMAP_HOST, timeout=30)
+        # imaplib's default context skips certificate checks; always pass a verifying one.
+        self._imap = imaplib.IMAP4_SSL(IMAP_HOST, timeout=30, ssl_context=tls_context())
         self._imap.login(address, password)
         status, _ = self._imap.select("INBOX", readonly=True)
         if status != "OK":

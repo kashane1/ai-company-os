@@ -1,6 +1,8 @@
-"""Shared HTTP client. One identifying User-Agent for every source."""
+"""Shared network setup: one identifying User-Agent and one verifying TLS context."""
 
 from __future__ import annotations
+
+import ssl
 
 import httpx
 
@@ -13,3 +15,14 @@ def make_client() -> httpx.Client:
         follow_redirects=True,
         headers={"User-Agent": USER_AGENT},
     )
+
+
+def tls_context() -> ssl.SSLContext:
+    """Certificate-verifying TLS with certifi's roots.
+
+    python.org Python builds ship without macOS system roots, and some stdlib
+    clients (imaplib) do not verify certificates unless given a context.
+    """
+    import certifi
+
+    return ssl.create_default_context(cafile=certifi.where())

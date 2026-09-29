@@ -23,6 +23,8 @@ The decisive feasibility question is access to useful, timely stock data. The de
 | [Independent build and repository handoff](07-independent-build-and-repository-handoff.md) | No-code-copy boundary, what can enter the public repo, license decision, project-creation checklist and agent handoff prompt |
 | [First implementation task cards](08-first-implementation-task-cards.md) | Small engineering tickets with proposed files, dependencies, test scenarios and intended verification commands |
 
+**Radar audit (2026-09-29):** [audit findings and prioritized backlog](09-audit-2026-09-29.md) for the running personal-lab radar in `products/open-tcg/`.
+
 ## What to keep, change and skip
 
 Keep exact-product watches, threshold alerts, retailer links, search by product or permitted URL, history, and clear pause controls. Improve source freshness, seller/variant matching, all-in money semantics, diagnostics consent, data export, crash recovery, and visible authority.
