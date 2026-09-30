@@ -3,8 +3,10 @@
 The channel is a native macOS notification (phone push via ntfy is paused).
 A notification fires when an episode:
 
-- is for a watched item, or hits a retailer rule (e.g. any Costco drop naming
-  a watched item or set);
+- is for a watched item, or names a watched set without a specific item (e.g.
+  "All 30th Celebration Drawings LIVE Now at Walmart!"). The set-only alert
+  lists the watched items that retailer announced for the set in the last
+  ANNOUNCEMENT_LOOKBACK;
 - is an availability signal (in stock, pre-order, drop, queue, invites, open
   drawing) that opened within MAX_AGE;
 - names no excluded term (e.g. "Pitch Black") and no known price above the
@@ -18,6 +20,7 @@ checkout: the founder clicks Buy). Links from posts and emails are untrusted.
 from __future__ import annotations
 
 import datetime as dt
+import json
 import sqlite3
 import subprocess
 from typing import Callable, Iterable
@@ -25,12 +28,14 @@ from typing import Callable, Iterable
 import httpx
 
 from . import watchlist
+from .catalog.classify import set_key
 from .db import iso
 from .http import make_client
 from .matching import normalize
 from .watchlist import Policy, WatchItem
 
 MAX_AGE = dt.timedelta(minutes=15)
+ANNOUNCEMENT_LOOKBACK = dt.timedelta(hours=72)
 SIGNAL_LABELS = {
     "in_stock": "In stock",
     "preorder": "Pre-order open",
@@ -103,6 +108,29 @@ def _watch_set_keys(connection: sqlite3.Connection, policy: Policy) -> list[str]
     return sorted(watchlist.set_keys_for(names, (item.name for item in policy.items)))
 
 
+def _set_display_name(connection: sqlite3.Connection, key: str) -> str:
+    """'30th celebration' -> '30th Celebration', using the catalog's own spelling."""
+    for (name,) in connection.execute("SELECT name FROM catalog_groups"):
+        if set_key(name) == key:
+            return name.split(":", 1)[-1].strip()
+    return key.title()
+
+
+def _announced_items(connection: sqlite3.Connection, episode: sqlite3.Row, key: str) -> list[str]:
+    """Watched items of this set that the same retailer announced shortly before."""
+    opened = dt.datetime.fromisoformat(episode["opened_at"])
+    names: set[str] = set()
+    for row in connection.execute(
+        "SELECT watch_matches, source_time, received_at FROM observations "
+        "WHERE is_tcg = 1 AND retailer = ? AND watch_matches != '[]'",
+        (episode["retailer"],),
+    ):
+        seen = dt.datetime.fromisoformat(row["source_time"] or row["received_at"])
+        if opened - ANNOUNCEMENT_LOOKBACK <= seen <= opened:
+            names.update(name for name in json.loads(row["watch_matches"]) if normalize(key) in normalize(name))
+    return sorted(names)
+
+
 def _message(connection: sqlite3.Connection, episode: sqlite3.Row, label: str) -> tuple[str, str]:
     first = _first_observation(connection, episode["id"])
     title = f"{label} · {episode['retailer'] or 'unknown retailer'}"
@@ -155,9 +183,11 @@ def maybe_notify(
 
     rule = policy.rule_for(episode["retailer"])
     label = episode["watch_item"]
-    if not label and rule and rule.match == "watch_items_or_sets":
-        hit = next((key for key in _watch_set_keys(connection, policy) if normalize(key) in text), None)
-        label = f"{episode['retailer']} drop · {hit.title()}" if hit else None
+    set_hit = None
+    if not label:
+        # Live posts often name only the set; alert when it is a watched set.
+        set_hit = next((key for key in _watch_set_keys(connection, policy) if normalize(key) in text), None)
+        label = _set_display_name(connection, set_hit) if set_hit else None
     if not label:
         return False
 
@@ -175,6 +205,9 @@ def maybe_notify(
         return False
 
     title, body = _message(connection, episode, label)
+    if set_hit:
+        announced = _announced_items(connection, episode, set_hit)
+        body += "\nAnnounced: " + ", ".join(announced) if announced else "\nWatched set (no specific item named)"
     # Claim the dedupe key before any side effect, so a repeat never re-opens a page.
     cursor = connection.execute(
         """

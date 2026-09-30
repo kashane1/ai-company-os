@@ -184,10 +184,11 @@ keepa_asins = ["B0H783FY5Z"]
 terms = ["Pitch Black", "Chaos Rising"]
 
 [[retailer_rule]]
-# Any Costco Pokémon drop that names a watched item or a set from this
-# watchlist alerts, since Costco sells club-only bundles that rarely match
-# item names. When it fires, the product page opens in Brave (assisted
-# checkout: the founder clicks Buy).
+# At every retailer, a drop that names a watched item or a set from this
+# watchlist alerts (club bundles and "Drawings LIVE" posts often name only the
+# set). This rule adds assisted checkout for Costco: when it fires, the
+# product page opens in Brave after the link is verified to land on
+# costco.com, and the founder clicks Buy.
 retailer = "Costco"
 match = "watch_items_or_sets"
 open_in_browser = true

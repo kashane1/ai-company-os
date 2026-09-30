@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 priority: p1
 issue_id: "098"
 tags: [open-tcg, alerts, matching]
@@ -28,7 +28,10 @@ Implement option 1 now. Add option 2 as an enrichment, test-first, using real ob
 
 ## Acceptance Criteria
 
-- [ ] A set-only LIVE drawing post for a watched set produces one notification that names the set and retailer.
-- [ ] If an announcement from the past 72 h named items, the notification lists them.
-- [ ] Posts for sets not on the watchlist, or with excluded terms, stay silent.
-- [ ] The existing Costco rule behavior is unchanged, and all tests pass.
+- [x] A set-only LIVE drawing post for a watched set produces one notification that names the set and retailer.
+- [x] If an announcement from the past 72 h named items, the notification lists them.
+- [x] Posts for sets not on the watchlist, or with excluded terms, stay silent.
+- [x] The existing Costco rule behavior is unchanged, and all tests pass.
+
+## ✓ Completed 2026-09-30
+Landed in the commit "feat(open-tcg): alert on set-level availability posts". Set-only availability posts for watched sets now alert at every retailer and list the items that retailer announced in the last 72 h. A rehearsal on a copy of the real database produced "30th Celebration · Walmart / Drawing open / Announced: 30th Celebration Booster Bundle" for the Sep 30 drawing.

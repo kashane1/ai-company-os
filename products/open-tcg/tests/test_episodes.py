@@ -216,6 +216,72 @@ def test_excluded_terms_never_alert_even_with_a_matching_rule(connection):
     assert notifier.sent == []
 
 
+# ---------------------------------------------------------------------------
+# Set-level availability posts (todo 098). Texts are real posts from the DB.
+# ---------------------------------------------------------------------------
+
+LIVE_SET_ONLY = "All 30th Celebration Drawings LIVE Now at Walmart! Ends in 1 Hour! 🎉 buff.ly/OxyI3ht"
+ANNOUNCEMENT = ("30th Celebration Booster Bundles, Mini Tin Display & More Walmart Drawings Confirmed for "
+                "September 30th at 2PM PT / 5PM ET! ✨ buff.ly/l9rQbLw")
+
+
+def with_watched_sets(connection):
+    connection.executemany(
+        "INSERT OR IGNORE INTO catalog_groups (group_id, name, published_on) VALUES (?, ?, ?)",
+        [(24722, "ME: 30th Celebration", "2026-09-16"), (99, "SV: Surging Sparks", "2024-11-08")],
+    )
+    connection.commit()
+
+
+def set_only_episode(connection, text: str, *, retailer: str = "Walmart", external_id: str = "live"):
+    observation_id = observe(connection, source_id="bluesky", external_id=external_id, text=text,
+                             signal="drawing_open", retailer=retailer, watch=())
+    return episodes.assign(connection, observation_id)[0]
+
+
+def test_a_set_only_live_post_for_a_watched_set_alerts(connection):
+    with_watched_sets(connection)
+    notifier, opener = RecordingNotifier(), RecordingOpener()
+    episode_id = set_only_episode(connection, LIVE_SET_ONLY)
+    assert notify.maybe_notify(connection, episode_id, now=NOW, send=notifier, open_url=opener)
+    title, body = notifier.sent[0]
+    assert title == "30th Celebration · Walmart"
+    assert "Drawing open" in body
+    assert opener.opened == []  # only retailers with open_in_browser rules open pages
+
+
+def test_a_set_only_alert_lists_items_the_retailer_announced_for_that_set(connection):
+    with_watched_sets(connection)
+    notifier = RecordingNotifier()
+    observe(connection, source_id="bluesky", external_id="announce", text=ANNOUNCEMENT, minutes_after=-600,
+            signal="drawing_scheduled", retailer="Walmart", watch=("30th Celebration Booster Bundle",))
+    episode_id = set_only_episode(connection, LIVE_SET_ONLY)
+    notify.maybe_notify(connection, episode_id, now=NOW, send=notifier)
+    assert "Announced: 30th Celebration Booster Bundle" in notifier.sent[0][1]
+
+
+def test_announcements_from_another_retailer_or_set_are_not_inherited(connection):
+    with_watched_sets(connection)
+    notifier = RecordingNotifier()
+    observe(connection, source_id="bluesky", external_id="other-retailer", text=ANNOUNCEMENT.replace("Walmart", "Target"),
+            minutes_after=-600, signal="drawing_scheduled", retailer="Target", watch=("30th Celebration Booster Bundle",))
+    observe(connection, source_id="bluesky", external_id="old", text=ANNOUNCEMENT, minutes_after=-(5 * 24 * 60),
+            signal="drawing_scheduled", retailer="Walmart", watch=("30th Celebration Poster Collection",))
+    episode_id = set_only_episode(connection, LIVE_SET_ONLY)
+    notify.maybe_notify(connection, episode_id, now=NOW, send=notifier)
+    assert "Announced:" not in notifier.sent[0][1]
+
+
+def test_set_only_posts_for_unwatched_or_excluded_sets_stay_silent(connection):
+    with_watched_sets(connection)
+    notifier = RecordingNotifier()
+    for index, text in enumerate(("All Surging Sparks Drawings LIVE Now at Walmart!",
+                                  "30th Celebration and Chaos Rising Drawings LIVE Now at Walmart!")):
+        episode_id = set_only_episode(connection, text, external_id=f"quiet{index}")
+        assert not notify.maybe_notify(connection, episode_id, now=NOW, send=notifier)
+    assert notifier.sent == []
+
+
 def test_a_repeat_alert_never_opens_a_second_tab(connection):
     notifier, opener = RecordingNotifier(), RecordingOpener()
     episode_id = costco_episode(connection, "Ascended Heroes Mini Tins Queue up Costco")
