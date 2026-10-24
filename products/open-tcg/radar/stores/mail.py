@@ -316,6 +316,16 @@ def run(
     from ..notify import macos_notify
 
     notifier = notifier or macos_notify
+
+    def check_and_alert(c: sqlite3.Connection, store: registry.Store, at: dt.datetime) -> bool:
+        """Read the store now, then alert on any MSRP hit the read found (P4)."""
+        from . import alerts  # imported here: alerts -> report -> mail
+
+        ok = collect.check_store_now(c, store, now=at)
+        if ok:
+            alerts.evaluate(c, now=at, send=notifier)
+        return ok
+
     backoff = 5
     while True:
         mailbox = None
@@ -329,7 +339,7 @@ def run(
                     mailbox,
                     stores=stores,
                     now=clock(),
-                    check_store=lambda c, s, n: collect.check_store_now(c, s, now=n),
+                    check_store=check_and_alert,
                     notifier=notifier,
                 ):
                     if on_email:

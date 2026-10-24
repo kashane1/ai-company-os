@@ -29,9 +29,9 @@ def family(signal: str) -> str:
 
 
 def reporter(source_id: str, author: str | None) -> str:
-    """Score each Bluesky account and each email sender separately."""
-    if source_id == "email" and author:
-        return f"email:{author}"
+    """Score each Bluesky account, email sender and store separately."""
+    if source_id in ("email", "stores") and author:
+        return f"{source_id}:{author}"
     handle = _HANDLE_BY_DID.get(author or "")
     return f"{source_id}:{handle}" if handle else source_id
 
