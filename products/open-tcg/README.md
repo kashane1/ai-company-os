@@ -133,7 +133,20 @@ over automatic matching from then on: `confirmed`, or rejected (`excluded`,
 .venv/bin/python -m radar stores-rematch     # after a matcher or catalog change; decisions still apply
 ```
 
-Stores create no observations, episodes or alerts yet. MSRP classes come in P3,
+**Store drop emails.** The founder (`ksakhakorn@gmail.com`) is subscribed to
+14 stores' drop or newsletter emails. 52 more need a signup the founder does
+by hand, because of Shopify's CAPTCHA. The checklist and the Gmail forwarding
+filter are in [store-email-signups.md](../../docs/products/open-tcg/store-email-signups.md).
+The `com.ai-company-os.open-tcg.store-mail` LaunchAgent runs
+`radar store-mail`, which reads the project inbox read-only every 30 s with
+its own cursor. Each email is attributed to a store by known sender, sender
+domain, display name or links, and classified as drop, subscription, promo or
+other. A fresh Pokémon drop email immediately reads that store's newest page,
+then sends one Mac notification with what's in stock and its market price, at
+most once per store per 30 minutes. `radar store-mail-filter` prints the Gmail
+forwarding query.
+
+Store listings themselves still create no observations, episodes or alerts. MSRP classes come in P3,
 so `make stores` compares prices with the reference catalog's market price and
 with each watched item's `alert_at`. "Matched" counts `exact` and `confirmed`. `make sources` ends with a one-line store health
 summary.

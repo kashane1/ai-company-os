@@ -470,6 +470,43 @@ def collect(
     return summary
 
 
+def check_store_now(
+    connection: sqlite3.Connection,
+    store: registry.Store,
+    *,
+    now: dt.datetime,
+    make_reader: Callable[[registry.Store, httpx.Client], StoreReader] = StoreReader,
+    client_factory: Callable[[], httpx.Client] = make_client,
+) -> bool:
+    """Read one store's newest page right away (a drop email arrived); True if it succeeded.
+
+    Uses the store's existing robots decision; a store never checked, or one
+    that disallows reads, is not fetched.
+    """
+    review.ensure_schema(connection)
+    sync_registry(connection, [store])
+    row = connection.execute(
+        "SELECT is_robots_allowed, baseline_at FROM stores WHERE store_id = ?", (store.store_id,)
+    ).fetchone()
+    if not store.is_polled or row is None or row["is_robots_allowed"] != 1:
+        return False
+    plan_item = StorePlan(
+        store=store,
+        is_discovery_due=True,
+        is_full_sweep=False,
+        is_robots_check_due=False,
+        is_collection_check_due=False,
+    )
+    catalog = match.Catalog.from_db(connection)
+    with client_factory() as client:
+        outcome = fetch(plan_item, make_reader(store, client), catalog)
+    if outcome.products is not None:
+        persist(connection, store, outcome.products, catalog, now=now, is_baseline=row["baseline_at"] is None)
+    _record_store(connection, outcome, now)
+    connection.commit()
+    return outcome.products is not None
+
+
 def rematch(connection: sqlite3.Connection) -> int:
     """Re-run matching on stored listings, e.g. after the catalog or matcher changes.
 

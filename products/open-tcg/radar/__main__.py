@@ -17,6 +17,8 @@
     python -m radar stores-rematch                      # re-run listing matching after a catalog change
     python -m radar stores-review [--limit N] [--reason R] [--unknown-form]   # listings to identify by hand
     python -m radar stores-decide STORE VARIANT PRODUCT_ID|reject [--same-title] [--note TEXT] [--by founder|claude]
+    python -m radar store-mail [--once]          # store drop emails: attribute, check the store, notify
+    python -m radar store-mail-filter            # Gmail search for the founder's forwarding filter
     python -m radar inbox [--once]            # read alert emails (read-only IMAP)
     python -m radar inbox-export [--limit N]  # save recent Pokémon/alert emails to data/inbox-samples/
 """
@@ -39,6 +41,7 @@ from .social import bluesky
 from .stores import collect as store_collect
 from .stores import registry as store_registry
 from .stores import reference as store_reference
+from .stores import mail as store_mail
 from .stores import review as store_review
 from .stores import report as store_report
 
@@ -389,6 +392,47 @@ def cmd_stores_decide(args: argparse.Namespace) -> int:
     return 0
 
 
+def _print_store_email(email) -> None:
+    store = email.store_id or f"unattributed {email.sender}"
+    print(f"{_now().isoformat(timespec='seconds')} store_email {email.kind}{' pokemon' if email.is_pokemon else ''} "
+          f"[{store}] {email.subject[:100]}", flush=True)
+
+
+def cmd_store_mail(args: argparse.Namespace) -> int:
+    connection = _open()
+    store_review.ensure_schema(connection)
+    if not args.once:
+        print("reading store emails in the project inbox read-only every 30 s (Ctrl-C to stop)", flush=True)
+        try:
+            store_mail.run(connection, on_email=_print_store_email)
+        except KeyboardInterrupt:
+            return 0
+        return 0
+    mailbox = store_mail.StoreMailbox(*inbox_reader.credentials())
+    try:
+        emails = store_mail.poll(
+            connection,
+            mailbox,
+            stores=store_registry.load(),
+            now=_now(),
+            check_store=lambda c, s, n: store_collect.check_store_now(c, s, now=n),
+            notifier=notify.macos_notify,
+        )
+    finally:
+        mailbox.close()
+    sources.record_run(connection, store_mail.SOURCE_ID, ok=True, now=_now())
+    for email in emails:
+        _print_store_email(email)
+    print(f"store_email: {len(emails)} new store emails")
+    return 0
+
+
+def cmd_store_mail_filter(_: argparse.Namespace) -> int:
+    connection = _open()
+    print(store_mail.forwarding_filter(connection, store_registry.load()))
+    return 0
+
+
 def cmd_init_db(_: argparse.Namespace) -> int:
     _open()
     print(f"database ready at {db.DB_PATH}")
@@ -434,6 +478,12 @@ def main(argv: list[str] | None = None) -> int:
     stores_parser.add_argument("--unmatched", type=int, default=0, help="also list N unmatched English titles")
     stores_parser.set_defaults(func=cmd_stores)
     commands.add_parser("stores-rematch", help="re-run store listing matching").set_defaults(func=cmd_stores_rematch)
+    store_mail_parser = commands.add_parser("store-mail", help="read store drop emails from the project inbox")
+    store_mail_parser.add_argument("--once", action="store_true")
+    store_mail_parser.set_defaults(func=cmd_store_mail)
+    commands.add_parser("store-mail-filter", help="Gmail search for the store-mail forwarding filter").set_defaults(
+        func=cmd_store_mail_filter
+    )
     review_parser = commands.add_parser("stores-review", help="store listings to identify by hand")
     review_parser.add_argument("--limit", type=int, default=30)
     review_parser.add_argument("--reason", help="only this match reason")

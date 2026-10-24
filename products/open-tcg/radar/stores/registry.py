@@ -18,6 +18,8 @@ PLATFORMS = frozenset(
 POLLED_PLATFORMS = frozenset({"shopify_json"})
 # Newest-page discovery cadence per tier, in minutes. Parked stores aren't polled.
 TIER_DISCOVERY_MINUTES = {"first_pass": 15, "explore": 60, "backup": 60}
+EMAIL_SIGNUPS = frozenset({"drop", "newsletter", "restock_button", "loyalty", "none", "unreachable"})
+EMAIL_STATUSES = frozenset({"subscribed", "needs_founder", "none"})
 _STORE_ID = re.compile(r"^[a-z0-9_]+$")
 _DOMAIN = re.compile(r"^[a-z0-9.-]+\.[a-z]{2,}$")
 
@@ -33,6 +35,9 @@ class Store:
     notes: str = ""
     discovery_every_minutes: int | None = None
     has_newsletter: bool = False
+    email_signup: str = "none"  # drop | newsletter | restock_button | loyalty | none | unreachable
+    email_status: str = "none"  # subscribed | needs_founder | none
+    discord: str = ""
 
     @property
     def base_url(self) -> str:
@@ -68,6 +73,9 @@ def _store(raw: dict) -> Store:
         notes=raw.get("notes", ""),
         discovery_every_minutes=raw.get("discovery_every_minutes"),
         has_newsletter=bool(raw.get("newsletter", False)),
+        email_signup=raw.get("email_signup", "none"),
+        email_status=raw.get("email_status", "none"),
+        discord=raw.get("discord", ""),
     )
     if not _STORE_ID.match(store.store_id):
         raise ValueError(f"store_id must be lowercase snake case: {store.store_id!r}")
@@ -79,6 +87,10 @@ def _store(raw: dict) -> Store:
         raise ValueError(f"{store.store_id}: unknown trust {store.trust!r}")
     if store.platform not in PLATFORMS:
         raise ValueError(f"{store.store_id}: unknown platform {store.platform!r}")
+    if store.email_signup not in EMAIL_SIGNUPS:
+        raise ValueError(f"{store.store_id}: unknown email_signup {store.email_signup!r}")
+    if store.email_status not in EMAIL_STATUSES:
+        raise ValueError(f"{store.store_id}: unknown email_status {store.email_status!r}")
     minutes = store.discovery_every_minutes
     if minutes is not None and (not isinstance(minutes, int) or minutes < 5):
         raise ValueError(f"{store.store_id}: discovery_every_minutes must be a whole number of at least 5")

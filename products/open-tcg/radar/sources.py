@@ -49,6 +49,7 @@ REGISTRY: tuple[Source, ...] = (
     # A connected stream records a heartbeat every cadence, even when no one posts.
     Source("bluesky", "S", "stream", 10 * 60, note="Jetstream, filtered to restock-alert accounts"),
     Source("email", "L", "inbox", 5 * 60, note="Project Gmail, read-only IMAP: NowInStock, Keepa, any Pokémon mail"),
+    Source("store_email", "L", "inbox", 5 * 60, note="Project Gmail, read-only IMAP: store drop emails forwarded from the founder's inbox"),
     # Manual entries never go stale; the cadence only keeps health quiet.
     Source("guppy", "L", "manual", 10 * 365 * 24 * 3600, note="Guppy alerts logged by the founder (benchmark)"),
     Source("sighting", "L", "manual", 10 * 365 * 24 * 3600, note="In-store or app sightings logged by the founder"),

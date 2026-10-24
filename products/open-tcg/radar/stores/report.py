@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 from .. import watchlist
 from ..db import iso
-from . import match, registry
+from . import mail, match, registry
 
 
 @dataclass(frozen=True)
@@ -244,6 +244,12 @@ def render(connection: sqlite3.Connection, *, now: dt.datetime, days: int = 7, s
         lines.append(f"  median in stock {statistics.median(minutes):.0f} min, shortest {min(minutes):.0f} min")
         for store, product, span_minutes in sorted(spans, key=lambda span: span[2])[:15]:
             lines.append(f"  {span_minutes:>7.0f} min  {product[:60]}  @ {store}")
+
+    emails = mail.summary(connection, since=since)
+    subscribed = [store for store in stores if store.email_status == "subscribed"]
+    founder = [store for store in stores if store.email_status == "needs_founder"]
+    lines += ["", f"Store emails: subscribed at {len(subscribed)} stores, {len(founder)} need the founder's signup (CAPTCHA)."]
+    lines += emails or ["  none received yet (needs the Gmail forwarding filter: radar store-mail-filter)"]
 
     if show_unmatched:
         lines += ["", f"Sample of English listings not matched exactly (up to {show_unmatched}):"]

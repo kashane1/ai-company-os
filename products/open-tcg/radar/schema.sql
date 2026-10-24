@@ -283,3 +283,29 @@ CREATE TABLE IF NOT EXISTS listing_decisions (
     PRIMARY KEY (store_id, variant_id),
     CHECK ((decision = 'confirm') = (catalog_product_id IS NOT NULL))
 ) WITHOUT ROWID;
+
+-- Store emails (drop, subscription, promo or other) read from the project
+-- inbox. Store mail reaches it through the founder's Gmail forwarding filter.
+CREATE TABLE IF NOT EXISTS store_emails (
+    message_id      TEXT PRIMARY KEY,
+    store_id        TEXT REFERENCES stores(store_id),   -- NULL when no store matched
+    attribution     TEXT,                    -- known_sender | sender_domain | display_name | links
+    sender          TEXT NOT NULL,
+    display_name    TEXT,
+    subject         TEXT NOT NULL,
+    sent_at         TEXT,
+    received_at     TEXT NOT NULL,
+    kind            TEXT NOT NULL,           -- drop | subscription | promo | other
+    is_pokemon      INTEGER NOT NULL,
+    first_link      TEXT,
+    notified_at     TEXT
+);
+CREATE INDEX IF NOT EXISTS store_emails_store_idx ON store_emails(store_id, received_at);
+
+-- Sender addresses learned from attributed emails, so later mail from the
+-- same address is attributed even when its domain or name doesn't match.
+CREATE TABLE IF NOT EXISTS store_mail_senders (
+    sender     TEXT PRIMARY KEY,
+    store_id   TEXT NOT NULL REFERENCES stores(store_id),
+    learned_at TEXT NOT NULL
+);
