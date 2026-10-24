@@ -71,10 +71,13 @@ class FormDefault:
     since: str
     until: str | None = None
     exclusive: str | None = None  # ref_products.exclusive_retailer; None means "not exclusive"
+    name_excludes: tuple[str, ...] = ()  # e.g. "Display": a case of bundles isn't a bundle
     note: str = ""
 
-    def applies(self, form: str, exclusive: str | None, release_on: str | None) -> bool:
+    def applies(self, form: str, exclusive: str | None, release_on: str | None, name: str = "") -> bool:
         if form != self.form or (exclusive or None) != self.exclusive or not release_on:
+            return False
+        if any(word.lower() in name.lower() for word in self.name_excludes):
             return False
         return release_on >= self.since and (self.until is None or release_on < self.until)
 
@@ -171,6 +174,7 @@ def load(path: Path = MSRP_PATH) -> Config:
             since=dt.date.fromisoformat(str(raw["since"])).isoformat(),
             until=dt.date.fromisoformat(str(raw["until"])).isoformat() if raw.get("until") else None,
             exclusive=raw.get("exclusive") or None,
+            name_excludes=tuple(raw.get("name_excludes", [])),
             note=raw.get("note", ""),
         )
         for raw in document.get("form_default", [])
@@ -263,9 +267,11 @@ class Resolver:
         if references:
             best = min(references, key=lambda r: (BASIS_RANK[r.basis], _negated(r.checked_on)))
             return Msrp(best.msrp_cents, best.basis, best.evidence_url)
+        if product.product_id in self.config.unpriced:
+            return None  # deliberately unpriced: an estimate would be wrong
         defaults = [
             rule for rule in self.config.form_defaults
-            if rule.applies(product.product_type, product.exclusive_retailer, product.release_on)
+            if rule.applies(product.product_type, product.exclusive_retailer, product.release_on, product.name)
         ]
         if defaults:
             rule = max(defaults, key=lambda r: r.since)
@@ -361,7 +367,7 @@ def render_coverage(connection: sqlite3.Connection, resolver: Resolver, *, forms
     for item, msrp in missing:
         estimate = f"{_money(msrp.msrp_cents)} {msrp.label}" if msrp else "no estimate"
         reason = resolver.config.unpriced.get(item.product_id)
-        suffix = f"  [{reason}]" if reason else ""
+        suffix = f"  [{reason[:80]}{'…' if len(reason) > 80 else ''}]" if reason else ""
         lines.append(
             f"  {item.product_id:>7}  {item.release_on or '?':<10}  {item.product_type:<15} {item.name[:70]:<70} {estimate}{suffix}"
         )

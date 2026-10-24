@@ -104,6 +104,19 @@ def test_estimates_follow_form_window_exclusive_and_pack_count(msrp_connection, 
     assert _resolve(msrp_connection, config, 13) is None  # booster box: no evidence, no default
 
 
+def test_unpriced_and_name_excludes_block_estimates(msrp_connection, tmp_path):
+    path = tmp_path / "msrp.toml"
+    path.write_text(
+        '[[form_default]]\nform = "etb"\nmsrp = 49.99\nsince = "2025-01-01"\nname_excludes = ["Prismatic"]\n'
+        '[[form_default]]\nform = "etb"\nexclusive = "Pokemon Center"\nmsrp = 59.99\nsince = "2025-01-01"\n'
+        '[[unpriced]]\nproduct_id = 12\nreason = "test"\n'
+    )
+    config = msrp.load(path)
+    assert _resolve(msrp_connection, config, 21) is None  # name excluded
+    assert _resolve(msrp_connection, config, 12) is None  # unpriced, despite the PC default
+    assert _resolve(msrp_connection, config, 11) == msrp.Msrp(4999, "form_default")
+
+
 def test_newest_form_default_applies(msrp_connection, config):
     # A 2026 standard ETB without evidence takes the 2026 default, not the 2023 one.
     msrp_connection.execute("DELETE FROM msrp_references")

@@ -80,3 +80,21 @@ The weekly refresh is manual for now. Run `radar msrp missing`, research the new
 - Every 2025+ ETB, booster bundle and booster display in the catalog has a basis 1–3 MSRP, or is listed by `radar msrp missing` with the reason in `msrp.toml`.
 - Unit tests cover resolution order, the class boundaries, estimates never being alert-eligible, and watchlist-derived references.
 - `radar stores` shows classes on live data.
+
+## As built (2026-10-24)
+
+- **Evidence:** 50 of the 57 target products have an evidence MSRP: 35 Pokémon Center US listings, 14 distributor solicitations (PHD Games) and 1 Best Buy watch.
+  - Every set from Prismatic Evolutions to Delta Reign has the same prices: ETB $49.99, Pokémon Center ETB $59.99, booster bundle $26.94 and 36-pack display $161.64, enhanced or not.
+  - A spot check of the Chaos Rising distributor page matched the research exactly.
+- **Unpriced, with reasons in `msrp.toml`:** 7 products.
+  - Four booster bundle displays (bundle counts are unconfirmed)
+  - The Sam's Club bundle
+  - The Dollar General ETB
+  - The standard Mega Evolution display, which only shipped as the enhanced box
+  - Unpriced products get no estimate either.
+- **Estimates:** form defaults and the $4.49 pack price start at 2025-01-01, where the evidence starts. Older sets show `no_msrp` until researched.
+- **Do not use Pokémon Center Canada pages:** they show CAD prices labeled as USD.
+- **First live digest:**
+  - **CARDHAVEN TCG (unvetted)** lists recent sets at about 90% of MSRP: six below-MSRP offers, all carrying the unvetted warning.
+  - **GoodStash TCG** has Journey Together ETBs at MSRP.
+

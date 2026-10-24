@@ -1,0 +1,571 @@
+# MSRPs for store price classes (plan phase P3). Source of truth; synced into
+# the msrp_references table on every store run and by `radar msrp`.
+#
+# [[reference]]: evidence only. basis is official_listing (Pokémon Center US),
+#   big_box_first_party (Target/Walmart/Best Buy/GameStop selling it themselves
+#   at list price) or distributor_or_press (distributor solicitation or press).
+#   Only these can make a listing alert. Watches whose alert_at is a Best Buy
+#   first-party price also count (big_box_first_party); a row here wins.
+# [[form_default]] and [[pack_price]]: estimates. They rank offers in the
+#   digest but never alert. Windows start 2025-01-01 because that is where the
+#   evidence below starts; older sets have no estimate until researched.
+# [[unpriced]]: products deliberately left without an MSRP (no estimate).
+#
+# Weekly refresh: `radar msrp missing` lists products with no evidence.
+# Pokémon Center Canada pages (en-ca) show CAD prices labeled USD; never use them.
+#
+# Researched 2026-10-24. Every set from Prismatic Evolutions to Delta Reign:
+# ETB $49.99, Pokémon Center ETB $59.99, booster bundle $26.94 (6 × $4.49),
+# 36-pack display and enhanced display $161.64 (36 × $4.49).
+
+[[form_default]]
+form = "etb"
+msrp = 49.99
+since = "2025-01-01"
+note = "Standard ETB, every 2025-2026 set with evidence"
+
+[[form_default]]
+form = "etb"
+exclusive = "Pokemon Center"
+msrp = 59.99
+since = "2025-01-01"
+note = "Pokémon Center ETB, every 2025-2026 set with evidence"
+
+[[form_default]]
+form = "booster_bundle"
+msrp = 26.94
+since = "2025-01-01"
+name_excludes = ["Display", "Case", "Surprise Box"]
+note = "6 packs × $4.49"
+
+[[form_default]]
+form = "booster_box"
+msrp = 161.64
+since = "2025-01-01"
+name_excludes = ["Case", "Half"]
+note = "36 packs × $4.49; enhanced displays are the same price"
+
+[[pack_price]]
+msrp = 4.49
+since = "2025-01-01"
+
+[[reference]]
+product_id = 600518
+name = "Prismatic Evolutions Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/prismatic-evolutions-booster-bundle"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US search-page snapshot. Bundle shipped later than the set (PokeBeach lists Mar 7, 2025)."
+
+[[reference]]
+product_id = 593355
+name = "Prismatic Evolutions Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/11/08/pokemon-tcg-scarlet-amp-violetprismatic-evolutions/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. ScreenRant also lists the ETB at $49.99 with nine packs. Not sold on Pokemon Center (only the PC version is)."
+
+[[reference]]
+product_id = 593324
+name = "Prismatic Evolutions Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/100-10019/pokemon-tcg-scarlet-and-violet-prismatic-evolutions-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Also ScreenRant: 'Price: $59.99', 11 packs. A separate PC bundle (ETB + Espeon pin + playmat, $94.99) is a different SKU."
+
+[[reference]]
+product_id = 610931
+name = "Journey Together Booster Box"
+msrp = 161.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/01/09/pokemon-tcg-scarlet-violet-journey-together/"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. 36 packs x $4.49. Pokemon Center sold only the Enhanced display."
+
+[[reference]]
+product_id = 623628
+name = "Journey Together Enhanced Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/journey-together"
+checked_on = "2026-10-24"
+packs = 36
+note = "Same price as the standard display; the enhanced box adds 1 promo. Pokemon Center en-ca pages show higher figures (ETB 80.99 / bundle 36.99 / display 218.99); these are the Canadian store, not US."
+
+[[reference]]
+product_id = 610953
+name = "Journey Together Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/journey-together"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists it at MSRP $26.94 (PKU10341)."
+
+[[reference]]
+product_id = 610930
+name = "Journey Together Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/01/09/pokemon-tcg-scarlet-violet-journey-together/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. A pre-release ScreenRant article said $54.99 with 8 packs. Later sources contradict it on both counts, so it is disregarded."
+
+[[reference]]
+product_id = 610929
+name = "Journey Together Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/journey-together"
+checked_on = "2026-10-24"
+packs = 11
+note = "ScreenRant: 'costs $59.99 from the Pokemon Center', 11 packs."
+
+[[reference]]
+product_id = 624679
+name = "Destined Rivals Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/destined-rivals"
+checked_on = "2026-10-24"
+packs = 36
+note = "The Pokemon Center sold the standard display. PHD also lists MSRP $161.64 (PKU10157)."
+
+[[reference]]
+product_id = 625670
+name = "Destined Rivals Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/destined-rivals"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10638)."
+
+[[reference]]
+product_id = 624676
+name = "Destined Rivals Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/03/27/pokemon-tcg-destined-rivals/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. One secondary price guide claims $54.99. It is not a qualifying source and conflicts with PHD."
+
+[[reference]]
+product_id = 624675
+name = "Destined Rivals Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/destined-rivals"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pack count from PokeGuardian's reproduction of the PC listing."
+
+[[reference]]
+product_id = 630686
+name = "Black Bolt Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/05/08/pokemon-tcg-black-bolt-white-flare/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. PokeGuardian also says $49.99. Conflict: a ScreenRant review (Jul 17, 2025) calls the standard ETB 'worth the $59.99 price', and GameStop lists it at $59.99, a GameStop markup. Treat $49.99 as MSRP."
+
+[[reference]]
+product_id = 630687
+name = "Black Bolt Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/10-10037-118"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center en-ca pages show higher figures (ETB 80.99 / bundle 36.99 / display 218.99); these are the Canadian store, not US."
+
+[[reference]]
+product_id = 630689
+name = "White Flare Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/05/08/pokemon-tcg-black-bolt-white-flare/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. Same ScreenRant/GameStop $59.99 conflict as Black Bolt."
+
+[[reference]]
+product_id = 630688
+name = "White Flare Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/elite-trainer-box"
+checked_on = "2026-10-24"
+note = "Pack count not stated for White Flare; the Black Bolt PC ETB has 11."
+
+[[reference]]
+product_id = 630431
+name = "Black Bolt Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/black-bolt-and-white-flare"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD: MSRP $26.94 (PKU10115), released Aug 22, 2025."
+
+[[reference]]
+product_id = 630696
+name = "White Flare Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/black-bolt-and-white-flare"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD: MSRP $26.94 (PKU10035)."
+
+[[reference]]
+product_id = 644300
+name = "Mega Evolution Enhanced Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/mega-evolution"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10057)."
+
+[[reference]]
+product_id = 644362
+name = "Mega Evolution Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/mega-evolution"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10054)."
+
+[[reference]]
+product_id = 644279
+name = "Mega Evolution Elite Trainer Box [Mega Gardevoir]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/07/11/pokemon-tcg-mega-evolution/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. One item code covers both variants, including Mega Gardevoir. Best Buy's first-party 'Styles May Vary' listing (SKU 6639103) was also seen at $49.99 in a search snapshot. Pack count not stated in the source."
+
+[[reference]]
+product_id = 648394
+name = "Mega Evolution Elite Trainer Box [Mega Lucario]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/07/11/pokemon-tcg-mega-evolution/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. One item code covers both variants, including Mega Lucario. Best Buy's first-party 'Styles May Vary' listing (SKU 6639103) was also seen at $49.99 in a search snapshot. Pack count not stated in the source."
+
+[[reference]]
+product_id = 648415
+name = "Mega Evolution Pokemon Center Elite Trainer Box (Exclusive) [Mega Gardevoir]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/elite-trainer-box"
+checked_on = "2026-10-24"
+note = "Pack count not stated for the Gardevoir PC page; the Lucario PC ETB has 11."
+
+[[reference]]
+product_id = 644282
+name = "Mega Evolution Pokemon Center Elite Trainer Box (Exclusive) [Mega Lucario]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/10-10047-108/"
+checked_on = "2026-10-24"
+packs = 11
+
+[[reference]]
+product_id = 654137
+name = "Phantasmal Flames Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/phantasmal-flames"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10190). Pokemon Center en-ca pages show higher figures (ETB 80.99 / bundle 36.99 / display 218.99); these are the Canadian store, not US."
+
+[[reference]]
+product_id = 654160
+name = "Phantasmal Flames Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/phantasmal-flames"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10191)."
+
+[[reference]]
+product_id = 654136
+name = "Phantasmal Flames Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/09/11/pokemon-tcg-phantasmal-flames/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. A Best Buy search snapshot also showed $49.99."
+
+[[reference]]
+product_id = 654135
+name = "Phantasmal Flames Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/phantasmal-flames"
+checked_on = "2026-10-24"
+note = "Pack count not stated in the snapshot."
+
+[[reference]]
+product_id = 668496
+name = "Ascended Heroes Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/11/21/pokemon-tcg-mega-evolution-ascended-heroes/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. PHD lists release Feb 20, 2026 (input says Jan 30, 2026). Pack count not stated."
+
+[[reference]]
+product_id = 668497
+name = "Ascended Heroes Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/ascended-heroes"
+checked_on = "2026-10-24"
+note = "Pack count not stated in the snapshot."
+
+[[reference]]
+product_id = 672394
+name = "Perfect Order Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/perfect-order"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10380)."
+
+[[reference]]
+product_id = 672396
+name = "Perfect Order Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/perfect-order"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10377)."
+
+[[reference]]
+product_id = 672401
+name = "Perfect Order Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/01/13/pokemon-tcg-perfect-order/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail."
+
+[[reference]]
+product_id = 672404
+name = "Perfect Order Pokemon Center Elite Trainer Box"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/perfect-order"
+checked_on = "2026-10-24"
+packs = 11
+
+[[reference]]
+product_id = 668541
+name = "Ascended Heroes Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/ascended"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD: MSRP $26.94 (PKU10311), released Apr 24, 2026."
+
+[[reference]]
+product_id = 684444
+name = "Chaos Rising Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/chaos-rising"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10407)."
+
+[[reference]]
+product_id = 684456
+name = "Chaos Rising Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/chaos-rising"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10403), six packs."
+
+[[reference]]
+product_id = 684450
+name = "Chaos Rising Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/03/13/pokemon-tcg-mega-evolution-chaos-rising/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. ScreenRant (May 13, 2026): 'from a retailer like Best Buy, it'll cost you $49.99.' A Slickdeals post (Sep 2026) shows Target selling it at $59.99, $10 over list."
+
+[[reference]]
+product_id = 684452
+name = "Chaos Rising Pokemon Center Elite Trainer Box"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/chaos-rising"
+checked_on = "2026-10-24"
+note = "ScreenRant also says the PC version is $59.99."
+
+[[reference]]
+product_id = 692939
+name = "Pitch Black Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/pitch-black"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10425)."
+
+[[reference]]
+product_id = 692942
+name = "Pitch Black Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/pitch-black"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10422)."
+
+[[reference]]
+product_id = 692947
+name = "Pitch Black Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/05/01/pokemon-tcg-mega-evolution-pitch-black/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail."
+
+[[reference]]
+product_id = 692949
+name = "Pitch Black Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/pitch-black"
+checked_on = "2026-10-24"
+note = "Pack count not stated in the snapshot."
+
+[[reference]]
+product_id = 704143
+name = "30th Celebration Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/07/10/pokemon-tcg-30th-celebration/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. The solicitation prices only the 10-box case; $499.90/10 = $49.99 per box. Retailers sold it well above this (Best Buy listing ~$284.99, GameStop $99.99); those are markups, not MSRP."
+
+[[reference]]
+product_id = 704144
+name = "30th Celebration Pokemon Center Elite Trainer Box"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/10-10447-111/pokemon-tcg-30th-celebration-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+
+[[reference]]
+product_id = 704171
+name = "30th Celebration Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/30th-booster"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD: Booster Bundle Case of 25 at MSRP $673.50 = $26.94 each, released Oct 2, 2026."
+
+[[reference]]
+product_id = 712094
+name = "Delta Reign Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/delta-reign"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pre-release (Nov 6, 2026) PC listing. PHD also lists MSRP $161.64 (PKU10446)."
+
+[[reference]]
+product_id = 712097
+name = "Delta Reign Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/delta-reign"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pre-release PC listing. PHD: Booster Bundle Case of 25 at $673.50 = $26.94 each."
+
+[[reference]]
+product_id = 712102
+name = "Delta Reign Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/08/20/pokemon-tcg-mega-evolution-delta-reign/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. Case-only pricing; $499.90/10 = $49.99 per box. A third-party tracker (hotdropstock, Oct 2026) saw Best Buy at $49.99 'Coming Soon' and Target at $59.99."
+
+[[reference]]
+product_id = 712104
+name = "Delta Reign Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/delta-reign"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pre-release PC listing; PC preorders sold out."
+
+[[unpriced]]
+product_id = 678555
+name = "Prismatic Evolutions Booster Bundle + Surprise Box Bundle (Sam's Club)"
+reason = "Sam's Club-only bundle (Booster Bundle + Surprise Box, 10 packs total). samsclub.com blocks fetches and no search snapshot showed its price. Social restock posts (x.com/PokemonDealsTCG, Feb 2026) and StockX quote a $39.98 Sam's Club price, but those are not qualifying sources. Component MSRPs: bundle $26.94, Surprise Box $22.99 (PHD PKU10096)."
+
+[[unpriced]]
+product_id = 610317
+name = "Prismatic Evolutions Booster Bundle Display"
+reason = "No MSRP found for the display itself. Sellers say a Booster Bundle Display holds 10 bundles (60 packs). 10 x $26.94 = $269.40, matching PHD's 151 Booster Bundle Display (PKU85321, $269.40/10 bundles). That is an analogy, not evidence for this product."
+
+[[unpriced]]
+product_id = 670607
+name = "Prismatic Evolutions Elite Trainer Box (Dollar General Exclusive)"
+reason = "No Dollar General price found from DG or press. One seller says this version has 8 packs instead of 9. Only an unverified DG customer review mentions a price. Do not assume the $49.99 standard ETB price."
+
+[[unpriced]]
+product_id = 630433
+name = "Black Bolt Booster Bundle Display"
+reason = "No MSRP found for the display. Sellers (Card Codex, PokeBoxUSA) list 10 bundles per display; one seller says 8. 10 x $26.94 = $269.40 would be an inference, not evidence. Do not confuse with the 25-bundle case."
+
+[[unpriced]]
+product_id = 630698
+name = "White Flare Booster Bundle Display"
+reason = "Same as Black Bolt Booster Bundle Display: no display MSRP found, and the bundle count is not authoritatively confirmed."
+
+[[unpriced]]
+product_id = 644298
+name = "Mega Evolution Booster Box"
+reason = "No qualifying MSRP for the standard (non-enhanced) ME01 display. PHD's ME01 solicitation lists only the Enhanced Booster Display, and Pokemon Center sold only the Enhanced. PokeGuardian lists $161.64 but says its MSRPs are 'unconfirmed ... taken off previous sets'. Every other 36-pack display this era is $161.64; that is a pattern, not evidence."
+
+[[unpriced]]
+product_id = 692362
+name = "Ascended Heroes Booster Bundle Display"
+reason = "No display MSRP found. Sellers say 10 bundles x 6 packs. PHD's AH solicitation lists only the single Booster Bundle ($26.94), so 10 x $26.94 = $269.40 is an inference."
