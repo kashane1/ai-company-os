@@ -11,7 +11,13 @@ from ..config import STORES_PATH
 
 TIERS = frozenset({"first_pass", "explore", "backup", "parked"})
 TRUST_LEVELS = frozenset({"unvetted", "checked", "purchased_ok", "avoid"})
-PLATFORMS = frozenset({"shopify_json"})
+PLATFORMS = frozenset(
+    {"shopify_json", "shopify_html", "woocommerce", "wix", "ecwid", "crystalcommerce", "challenge", "unknown"}
+)
+# Only these platforms have an adapter; the rest are recorded until P5.
+POLLED_PLATFORMS = frozenset({"shopify_json"})
+# Newest-page discovery cadence per tier, in minutes. Parked stores aren't polled.
+TIER_DISCOVERY_MINUTES = {"first_pass": 15, "explore": 60, "backup": 60}
 _STORE_ID = re.compile(r"^[a-z0-9_]+$")
 _DOMAIN = re.compile(r"^[a-z0-9.-]+\.[a-z]{2,}$")
 
@@ -25,6 +31,8 @@ class Store:
     platform: str = "shopify_json"
     trust: str = "unvetted"
     notes: str = ""
+    discovery_every_minutes: int | None = None
+    has_newsletter: bool = False
 
     @property
     def base_url(self) -> str:
@@ -32,7 +40,21 @@ class Store:
 
     @property
     def is_polled(self) -> bool:
-        return self.tier != "parked" and self.trust != "avoid"
+        return self.platform in POLLED_PLATFORMS and self.tier != "parked" and self.trust != "avoid"
+
+    @property
+    def not_polled_reason(self) -> str | None:
+        if self.trust == "avoid":
+            return "trust is avoid"
+        if self.tier == "parked":
+            return "parked"
+        if self.platform not in POLLED_PLATFORMS:
+            return f"no adapter for {self.platform}"
+        return None
+
+    @property
+    def discovery_minutes(self) -> int:
+        return self.discovery_every_minutes or TIER_DISCOVERY_MINUTES.get(self.tier, 60)
 
 
 def _store(raw: dict) -> Store:
@@ -44,6 +66,8 @@ def _store(raw: dict) -> Store:
         platform=raw.get("platform", "shopify_json"),
         trust=raw.get("trust", "unvetted"),
         notes=raw.get("notes", ""),
+        discovery_every_minutes=raw.get("discovery_every_minutes"),
+        has_newsletter=bool(raw.get("newsletter", False)),
     )
     if not _STORE_ID.match(store.store_id):
         raise ValueError(f"store_id must be lowercase snake case: {store.store_id!r}")
@@ -54,7 +78,10 @@ def _store(raw: dict) -> Store:
     if store.trust not in TRUST_LEVELS:
         raise ValueError(f"{store.store_id}: unknown trust {store.trust!r}")
     if store.platform not in PLATFORMS:
-        raise ValueError(f"{store.store_id}: unsupported platform {store.platform!r}")
+        raise ValueError(f"{store.store_id}: unknown platform {store.platform!r}")
+    minutes = store.discovery_every_minutes
+    if minutes is not None and (not isinstance(minutes, int) or minutes < 5):
+        raise ValueError(f"{store.store_id}: discovery_every_minutes must be a whole number of at least 5")
     return store
 
 

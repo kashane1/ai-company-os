@@ -212,3 +212,25 @@ CREATE TABLE IF NOT EXISTS listing_snapshots (
     PRIMARY KEY (store_id, variant_id, observed_at),
     FOREIGN KEY (store_id, variant_id) REFERENCES store_listings(store_id, variant_id)
 ) WITHOUT ROWID;
+
+-- Sealed-collection discovery (weekly). A candidate is selected when its
+-- first page is mostly sealed Pokémon product; daily sweeps read only the
+-- selected collections instead of the whole catalog.
+CREATE TABLE IF NOT EXISTS store_collections (
+    store_id      TEXT NOT NULL REFERENCES stores(store_id),
+    handle        TEXT NOT NULL,
+    title         TEXT,
+    sampled_count INTEGER NOT NULL,          -- Pokémon products on the first page
+    sealed_count  INTEGER NOT NULL,          -- of those, not excluded by the matcher
+    is_selected   INTEGER NOT NULL,
+    checked_at    TEXT NOT NULL,
+    PRIMARY KEY (store_id, handle)
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS store_collection_checks (
+    store_id        TEXT PRIMARY KEY REFERENCES stores(store_id),
+    checked_at      TEXT NOT NULL,
+    candidate_count INTEGER NOT NULL,
+    selected_count  INTEGER NOT NULL,
+    error           TEXT
+);

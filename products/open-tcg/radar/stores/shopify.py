@@ -9,7 +9,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from typing import Callable
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 from urllib.robotparser import RobotFileParser
 
 import httpx
@@ -18,6 +18,11 @@ from ..config import STORE_MIN_REQUEST_INTERVAL_S, STORE_PAGE_SIZE, USER_AGENT
 from .registry import Store
 
 PRODUCTS_PATH = "/products.json"
+COLLECTIONS_PATH = "/collections.json"
+
+
+def collection_products_path(handle: str) -> str:
+    return f"/collections/{quote(handle, safe='-_')}/products.json"
 
 
 class StoreFetchError(Exception):
@@ -69,7 +74,7 @@ class StoreReader:
             raise StoreFetchError(f"redirected off {self.store.domain} to {response.url.host}")
         return response
 
-    def robots_allows_products(self) -> bool:
+    def robots_allows(self, path: str) -> bool:
         response = self._get("/robots.txt")
         if response.status_code in (404, 410):
             return True
@@ -77,25 +82,42 @@ class StoreReader:
             raise StoreFetchError(f"robots.txt HTTP {response.status_code}")
         parser = RobotFileParser()
         parser.parse(response.text.splitlines())
-        return parser.can_fetch(USER_AGENT, PRODUCTS_PATH)
+        return parser.can_fetch(USER_AGENT, path)
 
-    def products_page(self, page: int) -> list[dict]:
-        response = self._get(PRODUCTS_PATH, {"limit": STORE_PAGE_SIZE, "page": page})
+    def robots_allows_products(self) -> bool:
+        return self.robots_allows(PRODUCTS_PATH)
+
+    def _json_list(self, path: str, key: str, page: int) -> list[dict]:
+        response = self._get(path, {"limit": STORE_PAGE_SIZE, "page": page})
+        label = f"{path} page {page}"
         if response.status_code != 200:
-            raise StoreFetchError(f"products.json page {page} HTTP {response.status_code}")
+            raise StoreFetchError(f"{label} HTTP {response.status_code}")
         try:
-            products = response.json()["products"]
+            items = response.json()[key]
         except (ValueError, KeyError, TypeError) as exc:
-            raise StoreFetchError(f"products.json page {page} is not Shopify product JSON") from exc
-        if not isinstance(products, list):
-            raise StoreFetchError(f"products.json page {page} has no product list")
-        return products
+            raise StoreFetchError(f"{label} is not Shopify {key} JSON") from exc
+        if not isinstance(items, list):
+            raise StoreFetchError(f"{label} has no {key} list")
+        return items
 
-    def fetch(self, *, max_pages: int) -> FetchResult:
-        """Newest-first pages until a short page or `max_pages`."""
+    def products_page(self, page: int, collection: str | None = None) -> list[dict]:
+        path = collection_products_path(collection) if collection else PRODUCTS_PATH
+        return self._json_list(path, "products", page)
+
+    def collections(self, *, max_pages: int) -> list[dict]:
+        found: list[dict] = []
+        for page in range(1, max_pages + 1):
+            items = self._json_list(COLLECTIONS_PATH, "collections", page)
+            found.extend(items)
+            if len(items) < STORE_PAGE_SIZE:
+                break
+        return found
+
+    def fetch(self, *, max_pages: int, collection: str | None = None) -> FetchResult:
+        """Newest-first pages (of the catalog or one collection) until a short page or `max_pages`."""
         result = FetchResult()
         for page in range(1, max_pages + 1):
-            products = self.products_page(page)
+            products = self.products_page(page, collection)
             result.products.extend(products)
             result.pages_fetched = page
             if len(products) < STORE_PAGE_SIZE:

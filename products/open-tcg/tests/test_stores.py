@@ -8,7 +8,7 @@ import pytest
 
 from radar import watchlist
 from radar.catalog import classify
-from radar.stores import collect, match, registry, report
+from radar.stores import collect, collections, match, registry, report
 from radar.stores.shopify import StoreFetchError, StoreReader
 
 from .conftest import NOW
@@ -137,8 +137,30 @@ def test_registry_loads_and_rejects_bad_rows(tmp_path: Path):
 
 def test_shipped_registry_is_valid():
     stores = registry.load()
-    assert len(stores) == 20
-    assert all(store.platform == "shopify_json" for store in stores)
+    assert len(stores) == 109
+    polled = [store for store in stores if store.is_polled]
+    assert len(polled) == 85  # 86 open Shopify stores, minus parked GG Legends
+    pilot = [store for store in polled if store.discovery_minutes == 15]
+    assert len(pilot) == 20
+
+
+def test_registry_cadence_and_not_polled_reasons(tmp_path: Path):
+    path = tmp_path / "stores.toml"
+    path.write_text(
+        '[[store]]\nstore_id = "a"\nname = "A"\ndomain = "a.com"\ntier = "explore"\n'
+        '[[store]]\nstore_id = "b"\nname = "B"\ndomain = "b.com"\ntier = "explore"\n'
+        'discovery_every_minutes = 15\n'
+        '[[store]]\nstore_id = "c"\nname = "C"\ndomain = "c.com"\ntier = "backup"\nplatform = "challenge"\n'
+        'newsletter = true\n'
+        '[[store]]\nstore_id = "d"\nname = "D"\ndomain = "d.com"\ntier = "parked"\n'
+    )
+    a, b, c, d = registry.load(path)
+    assert (a.discovery_minutes, b.discovery_minutes) == (60, 15)
+    assert (c.is_polled, c.not_polled_reason, c.has_newsletter) == (False, "no adapter for challenge", True)
+    assert (d.is_polled, d.not_polled_reason) == (False, "parked")
+    path.write_text('[[store]]\nstore_id = "a"\nname = "A"\ndomain = "a.com"\ntier = "explore"\ndiscovery_every_minutes = 1\n')
+    with pytest.raises(ValueError, match="at least 5"):
+        registry.load(path)
 
 
 def _product(
@@ -200,14 +222,22 @@ def test_reader_accepts_www_and_reads_robots():
 
 
 def test_reader_rejects_non_json():
-    with pytest.raises(StoreFetchError, match="not Shopify product JSON"):
+    with pytest.raises(StoreFetchError, match="not Shopify products JSON"):
         _reader(lambda request: httpx.Response(200, text="<html>")).products_page(1)
 
 
 class FakeReader:
-    """Stands in for StoreReader: serves whatever `catalog_pages` holds."""
+    """Stands in for StoreReader.
+
+    Catalog reads pop `responses` in order (a list of products or an exception).
+    `collection_list` is what /collections.json returns, and `collection_products`
+    maps a handle to its products (or an exception).
+    """
 
     responses: list = []
+    collection_list: list = []
+    collection_products: dict = {}
+    calls: list = []
 
     def __init__(self, store, client):
         self.store = store
@@ -215,21 +245,42 @@ class FakeReader:
     def robots_allows_products(self) -> bool:
         return True
 
-    def fetch(self, *, max_pages: int):
-        response = FakeReader.responses.pop(0)
+    def robots_allows(self, path: str) -> bool:
+        return True
+
+    def collections(self, *, max_pages: int):
+        FakeReader.calls.append("collections")
+        return FakeReader.collection_list
+
+    def _products(self, collection):
+        if collection is None:
+            response = FakeReader.responses.pop(0)
+        else:
+            response = FakeReader.collection_products[collection]
         if isinstance(response, Exception):
             raise response
+        return response
+
+    def products_page(self, page: int, collection: str | None = None):
+        FakeReader.calls.append(f"page:{collection}")
+        return self._products(collection)
+
+    def fetch(self, *, max_pages: int, collection: str | None = None):
         from radar.stores.shopify import FetchResult
 
-        return FetchResult(products=response, pages_fetched=1)
+        FakeReader.calls.append(f"fetch:{collection}:{max_pages}")
+        return FetchResult(products=self._products(collection), pages_fetched=1)
 
 
-def _collect(connection, now: dt.datetime, *responses):
+def _collect(connection, now: dt.datetime, *responses, stores=None, collection_list=(), collection_products=None):
     FakeReader.responses = list(responses)
+    FakeReader.collection_list = list(collection_list)
+    FakeReader.collection_products = collection_products or {}
+    FakeReader.calls = []
     return collect.collect(
         connection,
         now=now,
-        stores=[STORE],
+        stores=stores or [STORE],
         make_reader=FakeReader,
         client_factory=lambda: httpx.Client(),
         workers=1,
@@ -290,6 +341,142 @@ def test_full_sweep_is_daily(catalog_connection):
     assert plans[0].is_full_sweep is False
     plans = collect.plan(connection, [STORE], NOW + dt.timedelta(hours=24))
     assert plans[0].is_full_sweep is True
+
+
+def test_discovery_follows_tier_cadence(catalog_connection):
+    connection = catalog_connection
+    explore = registry.Store(store_id="test_store", name="Test Store", domain="teststore.com", tier="explore")
+    _collect(connection, NOW, [], stores=[explore])
+    assert collect.plan(connection, [explore], NOW + dt.timedelta(minutes=30)) == []
+    plans = collect.plan(connection, [explore], NOW + dt.timedelta(minutes=59))
+    assert [(p.is_discovery_due, p.is_full_sweep) for p in plans] == [(True, False)]
+
+
+def test_catalog_sweeps_are_staggered_but_collection_sweeps_are_not(catalog_connection):
+    stores = [
+        registry.Store(store_id=f"s{n}", name=f"S{n}", domain=f"s{n}.com", tier="first_pass") for n in range(3)
+    ]
+    FakeReader.responses = [[] for _ in range(5)]
+    FakeReader.collection_list = []
+    FakeReader.collection_products = {}
+    FakeReader.calls = []
+    summary = collect.collect(
+        catalog_connection, now=NOW, stores=stores, make_reader=FakeReader,
+        client_factory=lambda: httpx.Client(), workers=1, max_catalog_sweeps=2,
+    )
+    assert (summary.full_sweeps, summary.catalog_sweeps_deferred) == (2, 1)
+    assert FakeReader.calls.count("fetch:None:40") == 2
+    deferred = catalog_connection.execute("SELECT * FROM stores WHERE store_id = 's2'").fetchone()
+    assert (deferred["baseline_at"], deferred["last_discovery_at"] is not None) == (None, True)
+
+    # A store whose collection check selects a collection sweeps it even with no budget left.
+    budget = collect.CatalogSweepBudget(0)
+    collect.sync_registry(catalog_connection, [STORE])
+    plan_item = collect.plan(catalog_connection, [STORE], NOW)[0]
+    FakeReader.responses = [[]]
+    FakeReader.collection_list = [{"handle": "pokemon-sealed", "title": "Pokemon Sealed", "products_count": 3}]
+    FakeReader.collection_products = {"pokemon-sealed": SEALED_COLLECTION}
+    outcome = collect.fetch(plan_item, FakeReader(STORE, None), match.Catalog.from_db(catalog_connection), budget)
+    assert (outcome.sweep_mode, outcome.is_catalog_sweep_deferred) == ("collections", False)
+
+
+SEALED_COLLECTION = [
+    _product(1, "Delta Reign Elite Trainer Box"),
+    _product(3, "Delta Reign Booster Bundle"),
+    _product(4, "Lost Origin Elite Trainer Box"),
+]
+
+
+def test_collection_candidates_skip_singles_titles_but_not_mislabeled_handles():
+    found = collections.candidates(
+        [
+            {"handle": "pokemon-singles", "title": "Pokemon Singles", "products_count": 1783},
+            {"handle": "sealed-151-pokemon-copy", "title": "Sealed Paradox Rift Pokemon", "products_count": 4},
+            {"handle": "pokemon-cards", "title": "Pokemon Sealed", "products_count": 92},
+            {"handle": "pokemon", "title": "Pokemon", "products_count": 79},
+            {"handle": "mtg-sealed", "title": "Magic Sealed", "products_count": 40},
+            {"handle": "japanese-pokemon", "title": "Japanese Pokemon Boxes", "products_count": 20},
+            {"handle": "pokemon-empty", "title": "Pokemon Boxes", "products_count": 0},
+            {"handle": "lionz-pokemon-model", "title": "Lionz - Pokemon Model", "products_count": 46},
+            {"handle": "nanoblocks-pokemon", "title": "Nanoblocks  Pokémon", "products_count": 66},
+        ]
+    )
+    assert [c["handle"] for c in found] == ["pokemon-cards", "sealed-151-pokemon-copy", "pokemon"]
+
+
+def test_collection_sample_selects_mostly_sealed_pages(catalog):
+    sealed = collections.sample("pokemon-sealed", "Pokemon Sealed", SEALED_COLLECTION, catalog)
+    assert (sealed.sampled_count, sealed.sealed_count, sealed.is_strong) == (3, 3, True)
+    singles = collections.sample(
+        "pokemon", "Pokemon", [_product(7, "Pikachu 069/185"), _product(8, "Eevee 070/185"), _product(1, "Delta Reign ETB")],
+        catalog,
+    )
+    assert (singles.sealed_count, singles.is_eligible) == (1, False)
+    assert collections.sample("x", "X", [], catalog).is_eligible is False
+    kits = collections.sample(
+        "pokemon-models", "Pokemon Models", [_product(5, "Pokemon Model Kit Pikachu"), _product(6, "Pokemon Plush Eevee")], catalog
+    )
+    assert (kits.sealed_count, kits.is_eligible) == (0, False)
+
+
+def test_broad_collections_only_when_no_strong_one():
+    def sample(handle, sealed, sampled):
+        return collections.CollectionSample(handle, handle, sampled, sealed)
+
+    with_strong = collections.CollectionCheck(samples=[sample("pokemon", 127, 250), sample("pokemon-sealed", 237, 250)])
+    assert with_strong.selected_handles == ["pokemon-sealed"]
+    only_broad = collections.CollectionCheck(samples=[sample("pokemon", 152, 222), sample("misc", 2, 10)])
+    assert only_broad.selected_handles == ["pokemon"]
+
+
+def test_full_sweep_reads_selected_collections_not_the_catalog(catalog_connection):
+    connection = catalog_connection
+    summary = _collect(
+        connection,
+        NOW,
+        [_product(9, "Delta Reign Booster Box")],  # the newest catalog page
+        collection_list=[{"handle": "pokemon-sealed", "title": "Pokemon Sealed", "products_count": 3}],
+        collection_products={"pokemon-sealed": SEALED_COLLECTION},
+    )
+    assert FakeReader.calls == [
+        "collections",
+        "page:pokemon-sealed",
+        "fetch:pokemon-sealed:40",
+        "fetch:None:1",
+    ]
+    assert (summary.full_sweeps, summary.collection_checks) == (1, 1)
+    kept = {row["variant_id"] for row in connection.execute("SELECT variant_id FROM store_listings")}
+    assert kept == {10, 30, 40, 90}
+    check = connection.execute("SELECT * FROM store_collection_checks").fetchone()
+    assert (check["candidate_count"], check["selected_count"], check["error"]) == (1, 1, None)
+
+
+def test_broken_collection_falls_back_to_catalog_and_rechecks(catalog_connection):
+    connection = catalog_connection
+    listing = {"handle": "pokemon-sealed", "title": "Pokemon Sealed", "products_count": 3}
+    _collect(
+        connection, NOW, [], collection_list=[listing], collection_products={"pokemon-sealed": SEALED_COLLECTION}
+    )
+    later = NOW + dt.timedelta(hours=24)
+    summary = _collect(
+        connection,
+        later,
+        [_product(1, "Delta Reign Elite Trainer Box")],
+        collection_products={"pokemon-sealed": StoreFetchError("HTTP 404")},
+    )
+    assert FakeReader.calls == ["fetch:pokemon-sealed:40", "fetch:None:40"]
+    assert (summary.stores_failed, summary.full_sweeps) == (0, 1)
+    assert connection.execute("SELECT COUNT(*) FROM store_collection_checks").fetchone()[0] == 0
+    plans = collect.plan(connection, [STORE], later + dt.timedelta(minutes=15))
+    assert plans[0].is_collection_check_due is True
+
+
+def test_store_health_line(catalog_connection):
+    connection = catalog_connection
+    blocked = registry.Store(store_id="blocked", name="Blocked", domain="blocked.com", tier="backup", platform="challenge")
+    _collect(connection, NOW, [])
+    line = report.store_health(connection, [STORE, blocked])
+    assert line == "stores: 1 ok, 0 failing, 0 not yet read; not polled: 1 no adapter for challenge"
 
 
 def test_report_shows_offers_under_alert_at_and_stock_spans(catalog_connection):

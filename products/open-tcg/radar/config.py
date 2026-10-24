@@ -43,3 +43,14 @@ STORE_FULL_SWEEP_MAX_PAGES = 40
 STORE_FULL_SWEEP_EVERY_S = 24 * 3600
 STORE_ROBOTS_EVERY_S = 24 * 3600
 STORE_FETCH_WORKERS = 10
+# Whole-catalog sweeps (stores without a validated sealed collection) per sync
+# run, so new stores' baselines spread across runs instead of one long one.
+STORE_MAX_CATALOG_SWEEPS_PER_RUN = 8
+# Sealed-collection discovery: weekly, bounded, and validated by sampling.
+STORE_COLLECTIONS_EVERY_S = 7 * 24 * 3600
+STORE_COLLECTION_LIST_MAX_PAGES = 8
+STORE_COLLECTION_CANDIDATES_MAX = 6
+STORE_COLLECTION_MIN_SEALED_SHARE = 0.5
+# A collection at least this sealed makes the store's broader (min-share)
+# collections redundant: those are mostly catch-alls full of singles.
+STORE_COLLECTION_STRONG_SEALED_SHARE = 0.75

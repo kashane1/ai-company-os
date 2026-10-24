@@ -1,8 +1,10 @@
 """Poll the store registry and keep listing history. Collection only.
 
 Each due store is fetched on a worker thread (one request at a time per
-host); results are written here on the calling thread. A store's first full
-sweep is its silent baseline. Later runs record a snapshot row only when a
+host); results are written here on the calling thread. Every run reads a
+due store's newest catalog page; once a day a full sweep reads its selected
+sealed collections, or its whole catalog when none is selected. A store's
+first full sweep is its silent baseline. Later runs record a snapshot row only when a
 listing appears or its price or availability changes. Nothing here creates
 observations, episodes or notifications.
 """
@@ -12,6 +14,7 @@ from __future__ import annotations
 import concurrent.futures
 import datetime as dt
 import sqlite3
+import threading
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from typing import Callable
@@ -19,32 +22,62 @@ from typing import Callable
 import httpx
 
 from ..config import (
+    STORE_COLLECTIONS_EVERY_S,
     STORE_FETCH_WORKERS,
     STORE_FULL_SWEEP_EVERY_S,
     STORE_FULL_SWEEP_MAX_PAGES,
+    STORE_MAX_CATALOG_SWEEPS_PER_RUN,
     STORE_ROBOTS_EVERY_S,
 )
 from ..db import iso
 from ..http import make_client
-from . import match, registry
-from .shopify import FetchResult, StoreFetchError, StoreReader
+from . import collections, match, registry
+from .shopify import StoreFetchError, StoreReader
 
 SOURCE_ID = "stores"
+# The sync runs every 15 minutes with some jitter; without slack a store due
+# every 15 minutes would skip every other run.
+DISCOVERY_SLACK_S = 120
 
 
 @dataclass
 class StorePlan:
     store: registry.Store
+    is_discovery_due: bool
     is_full_sweep: bool
     is_robots_check_due: bool
+    is_collection_check_due: bool
+    selected_collections: tuple[str, ...] = ()
 
 
 @dataclass
 class StoreOutcome:
     plan: StorePlan
-    result: FetchResult | None = None
+    products: list[dict] | None = None
+    is_discovery_read: bool = False
+    sweep_mode: str | None = None  # 'collections' | 'catalog' when a full sweep ran
+    sweep_pages: int = 0
+    is_sweep_truncated: bool = False
+    collection_check: collections.CollectionCheck | None = None
+    is_collection_recheck_needed: bool = False
     is_robots_allowed: bool | None = None
+    is_catalog_sweep_deferred: bool = False
     error: str | None = None
+
+
+class CatalogSweepBudget:
+    """Whole-catalog sweeps left this run, shared by the worker threads."""
+
+    def __init__(self, remaining: int):
+        self._remaining = remaining
+        self._lock = threading.Lock()
+
+    def take(self) -> bool:
+        with self._lock:
+            if self._remaining <= 0:
+                return False
+            self._remaining -= 1
+            return True
 
 
 @dataclass
@@ -52,6 +85,8 @@ class CollectSummary:
     stores_polled: int = 0
     stores_failed: int = 0
     full_sweeps: int = 0
+    collection_checks: int = 0
+    catalog_sweeps_deferred: int = 0
     listings_new: int = 0
     listings_changed: int = 0
     failures: list[str] = field(default_factory=list)
@@ -88,35 +123,116 @@ def sync_registry(connection: sqlite3.Connection, stores: list[registry.Store]) 
 
 
 def plan(connection: sqlite3.Connection, stores: list[registry.Store], now: dt.datetime) -> list[StorePlan]:
-    """Every polled store gets a discovery read; a full sweep once a day."""
+    """Which stores to read this run and how.
+
+    Newest-page discovery follows each store's cadence, a full sweep is due
+    daily, and collection discovery weekly. Whether a due sweep reads
+    collections or the whole catalog is settled in `fetch`, after any
+    collection check, and catalog sweeps draw on a per-run budget there.
+    """
     plans = []
     for store in stores:
         if not store.is_polled:
             continue
         row = connection.execute(
-            "SELECT last_full_sweep_at, robots_checked_at, is_robots_allowed FROM stores WHERE store_id = ?",
+            "SELECT last_discovery_at, last_full_sweep_at, robots_checked_at, is_robots_allowed "
+            "FROM stores WHERE store_id = ?",
             (store.store_id,),
         ).fetchone()
+        check_row = connection.execute(
+            "SELECT checked_at FROM store_collection_checks WHERE store_id = ?", (store.store_id,)
+        ).fetchone()
+        selected = tuple(
+            r["handle"]
+            for r in connection.execute(
+                "SELECT handle FROM store_collections WHERE store_id = ? AND is_selected = 1 ORDER BY handle",
+                (store.store_id,),
+            )
+        )
+        is_discovery_due = _age_exceeds(
+            row["last_discovery_at"], now, store.discovery_minutes * 60 - DISCOVERY_SLACK_S
+        )
+        is_full_sweep = _age_exceeds(row["last_full_sweep_at"], now, STORE_FULL_SWEEP_EVERY_S)
+        is_collection_check_due = check_row is None or _age_exceeds(
+            check_row["checked_at"], now, STORE_COLLECTIONS_EVERY_S
+        )
+        if not (is_discovery_due or is_full_sweep or is_collection_check_due):
+            continue
         plans.append(
             StorePlan(
                 store=store,
-                is_full_sweep=_age_exceeds(row["last_full_sweep_at"], now, STORE_FULL_SWEEP_EVERY_S),
+                is_discovery_due=is_discovery_due,
+                is_full_sweep=is_full_sweep,
                 is_robots_check_due=row["is_robots_allowed"] is None
                 or _age_exceeds(row["robots_checked_at"], now, STORE_ROBOTS_EVERY_S),
+                is_collection_check_due=is_collection_check_due,
+                selected_collections=selected,
             )
         )
     return plans
 
 
-def fetch(plan_item: StorePlan, reader: StoreReader) -> StoreOutcome:
+def _sweep_collections(reader: StoreReader, handles: tuple[str, ...] | list[str], outcome: StoreOutcome) -> list[dict]:
+    products: list[dict] = []
+    for handle in handles:
+        result = reader.fetch(max_pages=STORE_FULL_SWEEP_MAX_PAGES, collection=handle)
+        products.extend(result.products)
+        outcome.sweep_pages += result.pages_fetched
+        outcome.is_sweep_truncated = outcome.is_sweep_truncated or result.is_truncated
+    return products
+
+
+def fetch(
+    plan_item: StorePlan,
+    reader: StoreReader,
+    catalog: match.Catalog,
+    budget: CatalogSweepBudget | None = None,
+) -> StoreOutcome:
     outcome = StoreOutcome(plan=plan_item)
     try:
         if plan_item.is_robots_check_due:
             outcome.is_robots_allowed = reader.robots_allows_products()
             if not outcome.is_robots_allowed:
                 return outcome
-        max_pages = STORE_FULL_SWEEP_MAX_PAGES if plan_item.is_full_sweep else 1
-        outcome.result = reader.fetch(max_pages=max_pages)
+        selected: tuple[str, ...] | list[str] = plan_item.selected_collections
+        if plan_item.is_collection_check_due:
+            try:
+                outcome.collection_check = collections.check(reader, catalog)
+            except StoreFetchError as exc:
+                outcome.collection_check = collections.CollectionCheck(error=str(exc))
+            if outcome.collection_check.error is None:
+                selected = outcome.collection_check.selected_handles
+
+        products: list[dict] = []
+        if plan_item.is_full_sweep and selected:
+            try:
+                products = _sweep_collections(reader, selected, outcome)
+                outcome.sweep_mode = "collections"
+            except StoreFetchError:
+                # A selected collection vanished or broke: sweep the catalog
+                # this time and rediscover collections next run.
+                outcome.is_collection_recheck_needed = True
+                outcome.sweep_pages = 0
+                outcome.is_sweep_truncated = False
+                products = []
+        is_catalog_sweep = plan_item.is_full_sweep and outcome.sweep_mode is None
+        if is_catalog_sweep and budget is not None and not budget.take():
+            outcome.is_catalog_sweep_deferred = True
+            is_catalog_sweep = False
+        if is_catalog_sweep:
+            result = reader.fetch(max_pages=STORE_FULL_SWEEP_MAX_PAGES)
+            products = result.products
+            outcome.sweep_mode = "catalog"
+            outcome.sweep_pages = result.pages_fetched
+            outcome.is_sweep_truncated = result.is_truncated
+            outcome.is_discovery_read = True
+        if not outcome.is_discovery_read and (plan_item.is_discovery_due or outcome.sweep_mode):
+            products = reader.fetch(max_pages=1).products + products
+            outcome.is_discovery_read = True
+        unique: dict[object, dict] = {}
+        for product in products:
+            unique.setdefault(product.get("id"), product)
+        outcome.products = list(unique.values())
     except StoreFetchError as exc:
         outcome.error = str(exc)
     return outcome
@@ -228,6 +344,34 @@ def persist(
     return new_count, changed_count
 
 
+def _record_collections(connection: sqlite3.Connection, store_id: str, check: collections.CollectionCheck, stamp: str) -> None:
+    if check.error is None:
+        selected = set(check.selected_handles)
+        connection.execute("DELETE FROM store_collections WHERE store_id = ?", (store_id,))
+        connection.executemany(
+            """
+            INSERT INTO store_collections
+                (store_id, handle, title, sampled_count, sealed_count, is_selected, checked_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (store_id, sample.handle, sample.title, sample.sampled_count, sample.sealed_count,
+                 1 if sample.handle in selected else 0, stamp)
+                for sample in check.samples
+            ],
+        )
+    connection.execute(
+        """
+        INSERT INTO store_collection_checks (store_id, checked_at, candidate_count, selected_count, error)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(store_id) DO UPDATE SET
+            checked_at = excluded.checked_at, candidate_count = excluded.candidate_count,
+            selected_count = excluded.selected_count, error = excluded.error
+        """,
+        (store_id, stamp, check.candidate_count, len(check.selected_handles), check.error),
+    )
+
+
 def _record_store(connection: sqlite3.Connection, outcome: StoreOutcome, now: dt.datetime) -> None:
     stamp = iso(now)
     store_id = outcome.plan.store.store_id
@@ -236,7 +380,11 @@ def _record_store(connection: sqlite3.Connection, outcome: StoreOutcome, now: dt
             "UPDATE stores SET robots_checked_at = ?, is_robots_allowed = ? WHERE store_id = ?",
             (stamp, 1 if outcome.is_robots_allowed else 0, store_id),
         )
-    if outcome.error or outcome.result is None:
+    if outcome.collection_check is not None:
+        _record_collections(connection, store_id, outcome.collection_check, stamp)
+    if outcome.is_collection_recheck_needed:
+        connection.execute("DELETE FROM store_collection_checks WHERE store_id = ?", (store_id,))
+    if outcome.error or outcome.products is None:
         error = outcome.error or "robots.txt disallows /products.json"
         connection.execute(
             """
@@ -247,18 +395,19 @@ def _record_store(connection: sqlite3.Connection, outcome: StoreOutcome, now: dt
         )
         return
     connection.execute(
-        "UPDATE stores SET last_discovery_at = ?, last_success_at = ?, last_error = NULL, "
-        "consecutive_failures = 0 WHERE store_id = ?",
-        (stamp, stamp, store_id),
+        "UPDATE stores SET last_success_at = ?, last_error = NULL, consecutive_failures = 0 WHERE store_id = ?",
+        (stamp, store_id),
     )
-    if outcome.plan.is_full_sweep:
+    if outcome.is_discovery_read:
+        connection.execute("UPDATE stores SET last_discovery_at = ? WHERE store_id = ?", (stamp, store_id))
+    if outcome.sweep_mode is not None:
         connection.execute(
             """
             UPDATE stores SET last_full_sweep_at = ?, baseline_at = COALESCE(baseline_at, ?),
                 last_sweep_pages = ?, is_last_sweep_truncated = ?
             WHERE store_id = ?
             """,
-            (stamp, stamp, outcome.result.pages_fetched, 1 if outcome.result.is_truncated else 0, store_id),
+            (stamp, stamp, outcome.sweep_pages, 1 if outcome.is_sweep_truncated else 0, store_id),
         )
 
 
@@ -270,16 +419,18 @@ def collect(
     make_reader: Callable[[registry.Store, httpx.Client], StoreReader] = StoreReader,
     client_factory: Callable[[], httpx.Client] = make_client,
     workers: int = STORE_FETCH_WORKERS,
+    max_catalog_sweeps: int = STORE_MAX_CATALOG_SWEEPS_PER_RUN,
 ) -> CollectSummary:
     stores = registry.load() if stores is None else stores
     sync_registry(connection, stores)
-    plans = plan(connection, stores, now)
     catalog = match.Catalog.from_db(connection)
+    plans = plan(connection, stores, now)
     summary = CollectSummary()
+    budget = CatalogSweepBudget(max_catalog_sweeps)
 
     def run(plan_item: StorePlan) -> StoreOutcome:
         with client_factory() as client:
-            return fetch(plan_item, make_reader(plan_item.store, client))
+            return fetch(plan_item, make_reader(plan_item.store, client), catalog, budget)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
         outcomes = list(pool.map(run, plans))
@@ -287,21 +438,25 @@ def collect(
     for outcome in outcomes:
         store = outcome.plan.store
         summary.stores_polled += 1
-        if outcome.result is not None:
+        if outcome.collection_check is not None:
+            summary.collection_checks += 1
+        if outcome.is_catalog_sweep_deferred:
+            summary.catalog_sweeps_deferred += 1
+        if outcome.products is not None:
             baseline_row = connection.execute(
                 "SELECT baseline_at FROM stores WHERE store_id = ?", (store.store_id,)
             ).fetchone()
             new, changed = persist(
                 connection,
                 store,
-                outcome.result.products,
+                outcome.products,
                 catalog,
                 now=now,
                 is_baseline=baseline_row["baseline_at"] is None,
             )
             summary.listings_new += new
             summary.listings_changed += changed
-            if outcome.plan.is_full_sweep:
+            if outcome.sweep_mode is not None:
                 summary.full_sweeps += 1
         else:
             summary.stores_failed += 1

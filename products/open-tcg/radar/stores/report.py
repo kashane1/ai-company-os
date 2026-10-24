@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 from .. import watchlist
 from ..db import iso
-from . import match
+from . import match, registry
 
 
 @dataclass(frozen=True)
@@ -132,35 +132,80 @@ def _money(cents: int | None) -> str:
     return "-" if cents is None else f"${cents / 100:,.2f}"
 
 
+def store_health(connection: sqlite3.Connection, stores: list[registry.Store]) -> str:
+    """One line for `radar sources`: polled store status and why others aren't polled."""
+    rows = {row["store_id"]: row for row in connection.execute("SELECT * FROM stores")}
+    counts = {"ok": 0, "failing": 0, "never": 0}
+    not_polled: dict[str, int] = {}
+    for store in stores:
+        reason = store.not_polled_reason
+        if reason:
+            not_polled[reason] = not_polled.get(reason, 0) + 1
+            continue
+        row = rows.get(store.store_id)
+        if row is None or not row["last_success_at"]:
+            counts["never"] += 1
+        elif row["consecutive_failures"]:
+            counts["failing"] += 1
+        else:
+            counts["ok"] += 1
+    skipped = ", ".join(f"{count} {reason}" for reason, count in sorted(not_polled.items()))
+    return (
+        f"stores: {counts['ok']} ok, {counts['failing']} failing, {counts['never']} not yet read; "
+        f"not polled: {skipped or 'none'}"
+    )
+
+
 def render(connection: sqlite3.Connection, *, now: dt.datetime, days: int = 7, show_unmatched: int = 0) -> str:
     since = now - dt.timedelta(days=days)
-    lines = [f"Store pilot report (collection only, no alerts), last {days} days", ""]
+    stores = registry.load()
+    polled = {store.store_id for store in stores if store.is_polled}
+    lines = [f"Independent store report (collection only, no alerts), last {days} days", store_health(connection, stores), ""]
 
-    lines.append(f"{'store':<28} {'status':<8} {'last ok':<16} {'pokemon':>7} {'exact':>6} {'in stock':>8} {'new':>4}  note")
+    lines.append(
+        f"{'store':<28} {'tier':<10} {'status':<8} {'last ok':<16} {'sweep':<11} {'kept':>6} {'exact':>6} "
+        f"{'in stock':>8} {'new':>4}  note"
+    )
     for row in connection.execute(
         """
-        SELECT s.*,
+        SELECT s.*, c.selected_count, c.error AS collection_error,
           (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id) AS listings,
           (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id AND l.match_status = 'exact') AS exact,
           (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id AND l.match_status = 'exact'
              AND l.is_available = 1) AS in_stock,
           (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id AND l.is_baseline = 0
              AND l.first_seen_at >= ?) AS new
-        FROM stores s ORDER BY s.name
+        FROM stores s LEFT JOIN store_collection_checks c USING (store_id)
+        ORDER BY s.tier, s.name
         """,
         (iso(since),),
     ):
+        if row["store_id"] not in polled:
+            continue
         status = "failing" if row["consecutive_failures"] else ("ok" if row["last_success_at"] else "never")
+        if row["selected_count"]:
+            sweep = f"{row['selected_count']} coll."
+        elif row["last_full_sweep_at"]:
+            sweep = "catalog"
+        else:
+            sweep = "pending"
         note = (row["last_error"] or "")[:60]
         if not note and row["is_last_sweep_truncated"]:
             note = f"sweep stopped at {row['last_sweep_pages']} pages"
         last_ok = (row["last_success_at"] or "-")[:16]
         lines.append(
-            f"{row['name'][:28]:<28} {status:<8} {last_ok:<16} {row['listings']:>7} {row['exact']:>6} "
-            f"{row['in_stock']:>8} {row['new']:>4}  {note}"
+            f"{row['name'][:28]:<28} {row['tier']:<10} {status:<8} {last_ok:<16} {sweep:<11} {row['listings']:>6} "
+            f"{row['exact']:>6} {row['in_stock']:>8} {row['new']:>4}  {note}"
         )
 
-    lines += ["", "Match quality (all Pokémon listings):"]
+    unpolled = [store for store in stores if not store.is_polled]
+    if unpolled:
+        lines += ["", f"Not polled ({len(unpolled)}):"]
+        for store in sorted(unpolled, key=lambda s: (s.not_polled_reason or "", s.name.lower())):
+            newsletter = "  newsletter signup" if store.has_newsletter else ""
+            lines.append(f"  {store.name[:32]:<32} {store.domain[:32]:<32} {store.not_polled_reason}{newsletter}")
+
+    lines += ["", "Match quality (kept Pokémon listings; singles, graded, non-English and similar are not kept):"]
     for row in connection.execute(
         """
         SELECT match_status, COALESCE(match_reason, '') AS reason, COUNT(*) AS n

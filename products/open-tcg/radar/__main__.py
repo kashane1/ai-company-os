@@ -13,7 +13,7 @@
     python -m radar mark EPISODE_ID real|false
     python -m radar log guppy|sighting "TEXT" [--retailer R] [--at "YYYY-MM-DD HH:MM"]
     python -m radar notify-test
-    python -m radar stores [--days N] [--unmatched N]   # independent store pilot report
+    python -m radar stores [--days N] [--unmatched N]   # independent store report
     python -m radar stores-rematch                      # re-run listing matching after a catalog change
     python -m radar inbox [--once]            # read alert emails (read-only IMAP)
     python -m radar inbox-export [--limit N]  # save recent Pokémon/alert emails to data/inbox-samples/
@@ -35,6 +35,7 @@ from .inbox import message as inbox_message
 from .inbox import reader as inbox_reader
 from .social import bluesky
 from .stores import collect as store_collect
+from .stores import registry as store_registry
 from .stores import report as store_report
 
 
@@ -81,7 +82,8 @@ def _run_stores(connection, now: dt.datetime) -> str:
     if summary.stores_polled and summary.stores_failed == summary.stores_polled:
         raise RuntimeError(f"all {summary.stores_polled} stores failed")
     return (
-        f"{summary.stores_polled} stores ({summary.full_sweeps} full sweeps, {summary.stores_failed} failed), "
+        f"{summary.stores_polled} stores ({summary.full_sweeps} full sweeps, {summary.collection_checks} collection "
+        f"checks, {summary.catalog_sweeps_deferred} sweeps deferred, {summary.stores_failed} failed), "
         f"{summary.listings_new} new listings, {summary.listings_changed} changed"
     )
 
@@ -142,6 +144,7 @@ def cmd_sources(_: argparse.Namespace) -> int:
         detail = row.last_error if row.status == "failing" else (row.note if row.status == "disabled" else "")
         last = row.last_success_at[:16] if row.last_success_at else "-"
         print(f"{row.source_id:<15} {row.tier}  {row.status:<9} last ok {last:<16} {detail}")
+    print(store_report.store_health(connection, store_registry.load()))
     return 0
 
 
@@ -378,7 +381,7 @@ def main(argv: list[str] | None = None) -> int:
     log_parser.add_argument("--at", help='local time, "YYYY-MM-DD HH:MM" (default now)')
     log_parser.set_defaults(func=cmd_log)
     commands.add_parser("notify-test", help="send a test Mac notification").set_defaults(func=cmd_notify_test)
-    stores_parser = commands.add_parser("stores", help="independent store pilot report")
+    stores_parser = commands.add_parser("stores", help="independent store report")
     stores_parser.add_argument("--days", type=int, default=7)
     stores_parser.add_argument("--unmatched", type=int, default=0, help="also list N unmatched English titles")
     stores_parser.set_defaults(func=cmd_stores)
