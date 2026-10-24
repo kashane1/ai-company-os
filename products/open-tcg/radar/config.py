@@ -11,6 +11,7 @@ DB_PATH = Path(os.environ.get("OPEN_TCG_DB", DATA_DIR / "radar.db"))
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 WATCHLIST_PATH = ROOT / "watchlist.toml"
 STORES_PATH = ROOT / "stores.toml"
+MSRP_PATH = ROOT / "msrp.toml"
 
 # Every request identifies itself; tcgcsv asks for an identifiable User-Agent.
 USER_AGENT = "open-tcg-radar/0.1 (+personal, non-commercial)"

@@ -309,3 +309,17 @@ CREATE TABLE IF NOT EXISTS store_mail_senders (
     store_id   TEXT NOT NULL REFERENCES stores(store_id),
     learned_at TEXT NOT NULL
 );
+
+-- Evidence-backed MSRPs (basis 1-3), synced from msrp.toml and from watches
+-- priced by a Best Buy first-party listing. Estimates (form defaults, per-pack)
+-- are computed in code and never stored here.
+CREATE TABLE IF NOT EXISTS msrp_references (
+    product_id   INTEGER NOT NULL,        -- ref_products.product_id (tcgcsv)
+    basis        TEXT NOT NULL,           -- official_listing | big_box_first_party | distributor_or_press
+    msrp_cents   INTEGER NOT NULL,
+    evidence_url TEXT,
+    checked_on   TEXT NOT NULL,
+    source       TEXT NOT NULL,           -- 'msrp.toml' | 'watchlist:<watch_id>'
+    note         TEXT,
+    PRIMARY KEY (product_id, basis)
+) WITHOUT ROWID;

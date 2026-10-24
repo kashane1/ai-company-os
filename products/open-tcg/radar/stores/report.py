@@ -1,8 +1,9 @@
 """Store report: store health, match quality, prices and how long stock lasts.
 
-There is no MSRP table yet (plan phase P3), so prices are compared with the
-latest reference-catalog market price and with the founder's `alert_at` for
-watched items. "Matched" means `exact` or `confirmed` by a review decision.
+Prices are classed against MSRP (`msrp.py`, plan phase P3), compared with the
+latest reference-catalog market price, and checked against the founder's
+`alert_at` for watched items. "Matched" means `exact` or `confirmed` by a
+review decision. Nothing here alerts yet (P4).
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ from dataclasses import dataclass
 
 from .. import watchlist
 from ..db import iso
-from . import mail, match, registry
+from . import mail, match, msrp, registry
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,9 @@ class Offer:
     market_cents: int | None
     alert_at_cents: int | None
     url: str
+    product_id: int | None = None
+    trust: str = "unvetted"
+    price_class: msrp.PriceClass | None = None
 
     @property
     def market_ratio(self) -> float | None:
@@ -68,30 +72,47 @@ def _market_cents(connection: sqlite3.Connection) -> dict[int, int]:
     return {row["product_id"]: round(row["market_price"] * 100) for row in rows if row["market_price"]}
 
 
-def offers(connection: sqlite3.Connection, thresholds: dict[int, int]) -> list[Offer]:
-    """In-stock exact matches, cheapest first within each product."""
+def offers(
+    connection: sqlite3.Connection, thresholds: dict[int, int], resolver: msrp.Resolver | None = None
+) -> list[Offer]:
+    """In-stock exact matches, cheapest first within each product, with their MSRP class."""
     market = _market_cents(connection)
+    resolver = resolver or msrp.Resolver.from_db(connection)
     rows = connection.execute(
         """
-        SELECT s.name AS store, p.name AS product, l.catalog_product_id, l.price_cents, l.url
+        SELECT s.name AS store, s.trust, p.name AS product, p.product_type, p.exclusive_retailer,
+               COALESCE(p.release_on, g.published_on) AS release_on, l.catalog_product_id, l.price_cents, l.url
         FROM store_listings l
         JOIN stores s USING (store_id)
         JOIN ref_products p ON p.product_id = l.catalog_product_id
+        JOIN ref_groups g ON g.group_id = p.group_id
         WHERE l.match_status IN ('exact', 'confirmed') AND l.is_available = 1 AND l.price_cents IS NOT NULL
         ORDER BY p.name, l.price_cents
         """
     ).fetchall()
-    return [
-        Offer(
-            store=row["store"],
-            product=row["product"],
-            price_cents=row["price_cents"],
-            market_cents=market.get(row["catalog_product_id"]),
-            alert_at_cents=thresholds.get(row["catalog_product_id"]),
-            url=row["url"],
+    resolved: dict[int, msrp.Msrp | None] = {}
+    result = []
+    for row in rows:
+        product_id = row["catalog_product_id"]
+        if product_id not in resolved:
+            resolved[product_id] = resolver.resolve(
+                msrp.Product(product_id, row["product"], row["product_type"], row["exclusive_retailer"], row["release_on"])
+            )
+        market_cents = market.get(product_id)
+        result.append(
+            Offer(
+                store=row["store"],
+                product=row["product"],
+                price_cents=row["price_cents"],
+                market_cents=market_cents,
+                alert_at_cents=thresholds.get(product_id),
+                url=row["url"],
+                product_id=product_id,
+                trust=row["trust"],
+                price_class=msrp.classify(row["price_cents"], resolved[product_id], market_cents),
+            )
         )
-        for row in rows
-    ]
+    return result
 
 
 def in_stock_spans(connection: sqlite3.Connection, since: dt.datetime) -> list[tuple[str, str, float]]:
@@ -131,6 +152,19 @@ def in_stock_spans(connection: sqlite3.Connection, since: dt.datetime) -> list[t
 
 def _money(cents: int | None) -> str:
     return "-" if cents is None else f"${cents / 100:,.2f}"
+
+
+def offer_line(offer: Offer) -> str:
+    """One offer with its MSRP basis and market, e.g. for the alert-eligible list."""
+    price_class = offer.price_class
+    reference = price_class.msrp
+    text = (
+        f"{offer.store} · {offer.trust} · {offer.product} {_money(offer.price_cents)} "
+        f"(MSRP {_money(reference.msrp_cents)} {reference.label}, market {_money(offer.market_cents)})"
+    )
+    if price_class.name == "below_msrp" and offer.trust == "unvetted":
+        text += "  ! unvetted store, below MSRP, check before paying"
+    return text
 
 
 def store_health(connection: sqlite3.Connection, stores: list[registry.Store]) -> str:
@@ -226,15 +260,37 @@ def render(connection: sqlite3.Connection, *, now: dt.datetime, days: int = 7, s
     for offer in under:
         lines.append(f"  {_money(offer.price_cents):>9}  {offer.product}  @ {offer.store}  (alert_at {_money(offer.alert_at_cents)})")
 
-    lines += ["", "Cheapest in-stock offer per product vs tcgcsv market:"]
+    lines += ["", "MSRP classes of in-stock offers (estimated MSRPs rank but never alert):"]
+    class_counts: dict[str, list[int]] = {}
+    for offer in current:
+        price_class = offer.price_class
+        counts = class_counts.setdefault(price_class.name, [0, 0])
+        counts[0 if price_class.msrp is None or not price_class.msrp.is_estimated else 1] += 1
+    for name in msrp.CLASS_ORDER:
+        if name in class_counts:
+            evidence, estimated = class_counts[name]
+            lines.append(f"  {name:<11} {evidence + estimated:>6}  ({estimated} on an estimated MSRP)")
+
+    eligible = [offer for offer in current if offer.price_class.is_alert_eligible]
+    lines += ["", f"At or below MSRP with evidence (alert-eligible from P4): {len(eligible)}"]
+    for offer in sorted(eligible, key=lambda o: o.price_class.ratio):
+        lines.append("  " + offer_line(offer))
+
+    lines += ["", "Cheapest in-stock offer per product vs MSRP and tcgcsv market:"]
     cheapest: dict[str, Offer] = {}
     for offer in current:
         cheapest.setdefault(offer.product, offer)
     for product, offer in sorted(cheapest.items()):
         ratio = offer.market_ratio
         ratio_text = f"{ratio:.2f}x" if ratio is not None else "-"
+        price_class = offer.price_class
+        msrp_text = (
+            f"{price_class.name:<10} MSRP {_money(price_class.msrp.msrp_cents):>8} {price_class.msrp.label:<10}"
+            if price_class.msrp else f"{'no_msrp':<10} {'':<24}"
+        )
         lines.append(
-            f"  {_money(offer.price_cents):>9}  {ratio_text:>6} market {_money(offer.market_cents):>9}  {product[:60]}  @ {offer.store}"
+            f"  {_money(offer.price_cents):>9}  {msrp_text}  {ratio_text:>6} market {_money(offer.market_cents):>9}  "
+            f"{product[:60]}  @ {offer.store}"
         )
 
     spans = in_stock_spans(connection, since)

@@ -42,6 +42,7 @@ from .stores import collect as store_collect
 from .stores import registry as store_registry
 from .stores import reference as store_reference
 from .stores import mail as store_mail
+from .stores import msrp as store_msrp
 from .stores import review as store_review
 from .stores import report as store_report
 
@@ -96,6 +97,7 @@ def _run_tcgcsv_reference(connection, now: dt.datetime) -> str:
 
 def _run_stores(connection, now: dt.datetime) -> str:
     summary = store_collect.collect(connection, now=now)
+    store_msrp.sync(connection, store_msrp.load())
     for failure in summary.failures:
         print(f"  store failed: {failure}", file=sys.stderr, flush=True)
     if summary.stores_polled and summary.stores_failed == summary.stores_polled:
@@ -355,6 +357,26 @@ def cmd_stores(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_msrp(args: argparse.Namespace) -> int:
+    connection = _open()
+    try:
+        config = store_msrp.load()
+    except ValueError as exc:
+        print(f"msrp: {exc}", file=sys.stderr)
+        return 2
+    count = store_msrp.sync(connection, config)
+    resolver = store_msrp.Resolver.from_db(connection, config)
+    forms = tuple(args.forms.split(",")) if args.forms else store_msrp.TARGET_FORMS
+    if args.view != "missing":
+        print(f"{count} evidence references synced")
+    print(
+        store_msrp.render_coverage(connection, resolver, forms=forms, since=args.since,
+                                   missing_only=args.view == "missing"),
+        end="",
+    )
+    return 0
+
+
 def cmd_stores_rematch(_: argparse.Namespace) -> int:
     connection = _open()
     print(f"rematched {store_collect.rematch(connection)} listings")
@@ -477,6 +499,11 @@ def main(argv: list[str] | None = None) -> int:
     stores_parser.add_argument("--days", type=int, default=7)
     stores_parser.add_argument("--unmatched", type=int, default=0, help="also list N unmatched English titles")
     stores_parser.set_defaults(func=cmd_stores)
+    msrp_parser = commands.add_parser("msrp", help="MSRP reference coverage, or the products still missing one")
+    msrp_parser.add_argument("view", nargs="?", choices=("coverage", "missing"), default="coverage")
+    msrp_parser.add_argument("--since", default=store_msrp.TARGET_SINCE, help="release date floor (YYYY-MM-DD)")
+    msrp_parser.add_argument("--forms", help="comma-separated product types (default etb,booster_bundle,booster_box)")
+    msrp_parser.set_defaults(func=cmd_msrp)
     commands.add_parser("stores-rematch", help="re-run store listing matching").set_defaults(func=cmd_stores_rematch)
     store_mail_parser = commands.add_parser("store-mail", help="read store drop emails from the project inbox")
     store_mail_parser.add_argument("--once", action="store_true")
