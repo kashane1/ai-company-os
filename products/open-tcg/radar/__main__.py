@@ -15,6 +15,8 @@
     python -m radar notify-test
     python -m radar stores [--days N] [--unmatched N]   # independent store report
     python -m radar stores-rematch                      # re-run listing matching after a catalog change
+    python -m radar stores-review [--limit N] [--reason R] [--unknown-form]   # listings to identify by hand
+    python -m radar stores-decide STORE VARIANT PRODUCT_ID|reject [--same-title] [--note TEXT] [--by founder|claude]
     python -m radar inbox [--once]            # read alert emails (read-only IMAP)
     python -m radar inbox-export [--limit N]  # save recent Pokémon/alert emails to data/inbox-samples/
 """
@@ -36,6 +38,8 @@ from .inbox import reader as inbox_reader
 from .social import bluesky
 from .stores import collect as store_collect
 from .stores import registry as store_registry
+from .stores import reference as store_reference
+from .stores import review as store_review
 from .stores import report as store_report
 
 
@@ -75,6 +79,18 @@ def _run_pokebeach(connection, now: dt.datetime) -> str:
     return f"{emitted} new events"
 
 
+def _run_tcgcsv_reference(connection, now: dt.datetime) -> str:
+    client = TcgCsvClient()
+    try:
+        result = store_reference.sync_reference(connection, client, now=now)
+    finally:
+        client.close()
+    return (
+        f"{result.groups_seen} groups, {result.groups_refetched} refreshed, {result.products_upserted} sealed "
+        f"products, prices for {result.price_groups} groups ({result.prices_recorded})"
+    )
+
+
 def _run_stores(connection, now: dt.datetime) -> str:
     summary = store_collect.collect(connection, now=now)
     for failure in summary.failures:
@@ -92,6 +108,7 @@ RUNNERS = {
     "tcgcsv": _run_tcgcsv,
     "southern_hobby": _run_southern_hobby,
     "pokebeach_rss": _run_pokebeach,
+    "tcgcsv_reference": _run_tcgcsv_reference,
     "stores": _run_stores,
 }
 
@@ -341,6 +358,37 @@ def cmd_stores_rematch(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_stores_review(args: argparse.Namespace) -> int:
+    connection = _open()
+    store_review.ensure_schema(connection)
+    items = store_review.queue(
+        connection, limit=args.limit, reason=args.reason, include_unknown_form=args.unknown_form
+    )
+    print(store_review.render_queue(items), end="")
+    return 0
+
+
+def cmd_stores_decide(args: argparse.Namespace) -> int:
+    connection = _open()
+    store_review.ensure_schema(connection)
+    try:
+        count = store_review.decide(
+            connection,
+            store_id=args.store,
+            variant_id=args.variant,
+            product=args.product,
+            decided_by=args.by,
+            now=_now(),
+            note=args.note,
+            same_title=args.same_title,
+        )
+    except store_review.DecisionError as exc:
+        print(f"stores-decide: {exc}", file=sys.stderr)
+        return 2
+    print(f"decision recorded for {count} listing(s)")
+    return 0
+
+
 def cmd_init_db(_: argparse.Namespace) -> int:
     _open()
     print(f"database ready at {db.DB_PATH}")
@@ -386,6 +434,19 @@ def main(argv: list[str] | None = None) -> int:
     stores_parser.add_argument("--unmatched", type=int, default=0, help="also list N unmatched English titles")
     stores_parser.set_defaults(func=cmd_stores)
     commands.add_parser("stores-rematch", help="re-run store listing matching").set_defaults(func=cmd_stores_rematch)
+    review_parser = commands.add_parser("stores-review", help="store listings to identify by hand")
+    review_parser.add_argument("--limit", type=int, default=30)
+    review_parser.add_argument("--reason", help="only this match reason")
+    review_parser.add_argument("--unknown-form", action="store_true", help="include listings with no recognized form")
+    review_parser.set_defaults(func=cmd_stores_review)
+    decide_parser = commands.add_parser("stores-decide", help="confirm or reject a store listing's product")
+    decide_parser.add_argument("store")
+    decide_parser.add_argument("variant", type=int)
+    decide_parser.add_argument("product", help="reference product id, or 'reject'")
+    decide_parser.add_argument("--same-title", action="store_true", help="apply to every listing with the same title")
+    decide_parser.add_argument("--note")
+    decide_parser.add_argument("--by", choices=("founder", "claude"), default="founder")
+    decide_parser.set_defaults(func=cmd_stores_decide)
     inbox_parser = commands.add_parser("inbox", help="read alert emails from the project inbox")
     inbox_parser.add_argument("--once", action="store_true")
     inbox_parser.set_defaults(func=cmd_inbox)

@@ -192,9 +192,9 @@ CREATE TABLE IF NOT EXISTS store_listings (
     compare_at_cents   INTEGER,
     is_available       INTEGER NOT NULL,
     language           TEXT NOT NULL,         -- 'en' | 'ja' | 'ko' | 'zh' | ...
-    match_status       TEXT NOT NULL,         -- 'exact' | 'ambiguous' | 'unmatched' | 'excluded'
+    match_status       TEXT NOT NULL,         -- 'exact' | 'confirmed' | 'ambiguous' | 'unmatched' | 'excluded'
     match_reason       TEXT,
-    catalog_product_id INTEGER REFERENCES products(product_id),
+    catalog_product_id INTEGER REFERENCES ref_products(product_id),
     PRIMARY KEY (store_id, variant_id)
 ) WITHOUT ROWID;
 CREATE INDEX IF NOT EXISTS store_listings_product_idx ON store_listings(catalog_product_id);
@@ -234,3 +234,52 @@ CREATE TABLE IF NOT EXISTS store_collection_checks (
     selected_count  INTEGER NOT NULL,
     error           TEXT
 );
+
+-- Reference catalog for store matching: every English Pokémon group's sealed
+-- products and prices from tcgcsv. Kept apart from catalog_groups/products,
+-- which feed the radar's calendar, Bluesky set detection and alert text, so
+-- widening this never changes radar behavior. Never emits calendar events.
+CREATE TABLE IF NOT EXISTS ref_groups (
+    group_id                    INTEGER PRIMARY KEY,
+    name                        TEXT NOT NULL,
+    abbreviation                TEXT,
+    published_on                TEXT,
+    modified_on                 TEXT,
+    products_synced_modified_on TEXT,
+    prices_day                  TEXT          -- last day prices were recorded
+);
+
+CREATE TABLE IF NOT EXISTS ref_products (
+    product_id         INTEGER PRIMARY KEY,   -- TCGplayer product id
+    group_id           INTEGER NOT NULL REFERENCES ref_groups(group_id),
+    name               TEXT NOT NULL,
+    product_type       TEXT NOT NULL,
+    exclusive_retailer TEXT,
+    release_on         TEXT,
+    url                TEXT,
+    updated_at         TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ref_products_group_idx ON ref_products(group_id);
+
+CREATE TABLE IF NOT EXISTS ref_price_points (
+    product_id   INTEGER NOT NULL REFERENCES ref_products(product_id),
+    day          TEXT NOT NULL,
+    market_price REAL,
+    low_price    REAL,
+    PRIMARY KEY (product_id, day)
+) WITHOUT ROWID;
+
+-- Review decisions on store listings. A decision overrides automatic matching
+-- on every later fetch and rematch: 'confirm' sets the product (status
+-- 'confirmed'), 'reject' marks the listing irrelevant (excluded, 'reviewed').
+CREATE TABLE IF NOT EXISTS listing_decisions (
+    store_id           TEXT NOT NULL,
+    variant_id         INTEGER NOT NULL,
+    decision           TEXT NOT NULL,          -- 'confirm' | 'reject'
+    catalog_product_id INTEGER REFERENCES ref_products(product_id),
+    decided_by         TEXT NOT NULL,          -- 'founder' | 'claude'
+    decided_at         TEXT NOT NULL,
+    note               TEXT,
+    PRIMARY KEY (store_id, variant_id),
+    CHECK ((decision = 'confirm') = (catalog_product_id IS NOT NULL))
+) WITHOUT ROWID;

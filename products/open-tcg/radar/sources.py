@@ -38,6 +38,11 @@ REGISTRY: tuple[Source, ...] = (
     Source("southern_hobby", "L", "poll", 24 * 3600, note="Distributor release and order-due list"),
     Source("pokebeach_rss", "L", "poll", 15 * 60, note="Front-page news RSS"),
     Source(
+        "tcgcsv_reference", "L", "poll", 24 * 3600,
+        note="Every English group's sealed products and prices, for store matching only; silent",
+        due_after_utc=dt.time(20, 45),
+    ),
+    Source(
         "stores", "L", "poll", 15 * 60,
         note="Independent Shopify stores (stores.toml): newest page by tier, daily sealed-collection sweep; collection only",
     ),

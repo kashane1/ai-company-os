@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 from pathlib import Path
 
 import httpx
@@ -8,10 +9,10 @@ import pytest
 
 from radar import watchlist
 from radar.catalog import classify
-from radar.stores import collect, collections, match, registry, report
+from radar.stores import collect, collections, match, reference, registry, report, review
 from radar.stores.shopify import StoreFetchError, StoreReader
 
-from .conftest import NOW
+from .conftest import FIXTURES, NOW
 
 GROUPS = {
     24831: "ME06: Delta Reign",
@@ -42,12 +43,12 @@ STORE = registry.Store(store_id="test_store", name="Test Store", domain="teststo
 @pytest.fixture()
 def catalog_connection(connection):
     for group_id, name in GROUPS.items():
-        connection.execute("INSERT INTO catalog_groups (group_id, name) VALUES (?, ?)", (group_id, name))
+        connection.execute("INSERT INTO ref_groups (group_id, name) VALUES (?, ?)", (group_id, name))
     for product_id, group_id, name in PRODUCTS:
         connection.execute(
             """
-            INSERT INTO products (product_id, group_id, name, product_type, exclusive_retailer, first_seen_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, '2026-10-01', '2026-10-01')
+            INSERT INTO ref_products (product_id, group_id, name, product_type, exclusive_retailer, updated_at)
+            VALUES (?, ?, ?, ?, ?, '2026-10-01')
             """,
             (product_id, group_id, name, classify.product_type(name), classify.exclusive_retailer(name)),
         )
@@ -481,7 +482,7 @@ def test_store_health_line(catalog_connection):
 
 def test_report_shows_offers_under_alert_at_and_stock_spans(catalog_connection):
     connection = catalog_connection
-    connection.execute("INSERT INTO price_points (product_id, day, market_price) VALUES (1, '2026-09-25', 80.0)")
+    connection.execute("INSERT INTO ref_price_points (product_id, day, market_price) VALUES (1, '2026-09-25', 80.0)")
     _collect(connection, NOW, [])
     _collect(connection, NOW + dt.timedelta(minutes=15), [_product(1, "Delta Reign ETB", price="49.99")])
     _collect(connection, NOW + dt.timedelta(minutes=45), [_product(1, "Delta Reign ETB", price="49.99", available=False)])
@@ -497,3 +498,201 @@ def test_report_shows_offers_under_alert_at_and_stock_spans(catalog_connection):
     assert spans == [("Test Store", "Delta Reign Elite Trainer Box", 30.0)]
     text = report.render(connection, now=NOW + dt.timedelta(hours=1))
     assert "Test Store" in text and "0.62x" in text
+
+
+# --- P2: reference catalog, matcher upgrades, review decisions ----------------
+
+P2_GROUPS = {
+    1: "SV: Scarlet & Violet 151",
+    2: "ME01: Mega Evolution",
+    3: "Miscellaneous Cards & Products",
+    4: "Arceus",
+    5: "ME04: Chaos Rising",
+    6: "SV01: Scarlet & Violet Base Set",
+}
+P2_PRODUCTS = [
+    (101, 1, "151 Booster Bundle"),
+    (102, 1, "151 Elite Trainer Box"),
+    (103, 1, "151 Booster Pack"),
+    (201, 2, "Mega Evolution Elite Trainer Box [Mega Lucario]"),
+    (202, 2, "Mega Evolution Elite Trainer Box [Mega Gardevoir]"),
+    (203, 2, "Mega Evolution Booster Box"),
+    (301, 3, "Charizard ex Premium Collection"),
+    (302, 3, "Charizard ex Super-Premium Collection"),
+    (303, 3, "Arceus V Figure Collection"),
+    (401, 4, "Arceus Booster Pack"),
+    (501, 5, "Mega Greninja ex Premium Collection"),
+    (502, 5, "Chaos Rising 3-Pack Blister [Charmeleon]"),
+    (503, 5, "Chaos Rising Booster Box Case"),
+    (504, 5, "Chaos Rising Booster Pack"),
+    (505, 5, "Chaos Rising Elite Trainer Box"),
+    (506, 5, "Chaos Rising Elite Trainer Box Case"),
+    (601, 6, "Scarlet & Violet Booster Pack"),
+]
+
+
+@pytest.fixture()
+def p2_catalog():
+    rows = [(pid, gid, name, classify.product_type(name), classify.exclusive_retailer(name)) for pid, gid, name in P2_PRODUCTS]
+    return match.Catalog.from_rows(list(P2_GROUPS.items()), rows)
+
+
+@pytest.mark.parametrize(
+    ("title", "variant", "expected"),
+    [
+        ("Pokemon 151 Booster Bundle", None, ("exact", 101)),  # alias without the era
+        ("Pokémon 151 Booster Pack", None, ("exact", 103)),  # "151" is a set, not a pack count
+        ("Pokémon 151 Booster Pack x 10", None, ("ambiguous", None)),
+        ("Mega Evolution Elite Trainer Box - Lucario", None, ("exact", 201)),  # era name = base set
+        ("Pokémon Mega Evolution Phantasmal Flames Booster Box", None, ("ambiguous", None)),  # unexplained set words
+        ("Pokémon Mega Greninja ex Premium Collection Box", None, ("exact", 501)),  # no set named
+        ("Pokemon Charizard ex Premium Collection", None, ("exact", 301)),
+        ("Pokemon TCG: Charizard ex Super Premium Collection", None, ("exact", 302)),
+        ("Pokemon TCG Arceus V Figure Collection Box", None, ("exact", 303)),  # "Arceus" set has no collection
+        ("Pokemon: Scarlet & Violet Booster Pack", None, ("exact", 601)),
+        ("Chaos Rising Elite Trainer Box", "Factory Sealed Case of 10 Elite Trainer Boxes (FREE Double Box Shipping)", ("exact", 506)),
+        ("Chaos Rising 3-Pack Booster Blister", "Factory Sealed Case of 24x 3-Pack Blisters (FREE Double Box Shipping)", ("unmatched", None)),
+        ("Pokémon TCG: Chaos Rising: Booster Pack: 36 Loose Packs", None, ("ambiguous", None)),
+        ("Pokemon Chaos Rising Booster Box Case (6 boxes)", None, ("exact", 503)),
+        ("Chaos Rising Elite Trainer Box [DAMAGED]", None, ("ambiguous", None)),
+        ("Pokémon Mega Evolutions ME4 - Chaos Rising Elite Trainer Box", None, ("exact", 505)),
+        ("Chaos Rising Elite Trainer Box", "Near Mint / English / New", ("exact", 505)),
+        ("Pokemon 30th Celebration Battle Deck RELEASE DATE 10/30/2026", None, ("unmatched", None)),  # date isn't a card number
+        ("Shining Celebi 106 - Holofoil ME 30th Celebration Classic Collection", "Lightly Played", ("excluded", None)),
+        ("Mega Evolution: Ninja Spinner - Booster Box (J)", None, ("excluded", None)),
+    ],
+)
+def test_p2_matching(p2_catalog, title, variant, expected):
+    result = match.match_listing(p2_catalog, title, variant)
+    assert (result.status, result.catalog_product_id) == expected
+
+
+def test_candidates_rank_by_shared_words(p2_catalog):
+    names = [p.name for p in match.candidates(p2_catalog, "Mega Evolution Elite Trainer Box")]
+    assert names[:2] == ["Mega Evolution Elite Trainer Box [Mega Gardevoir]", "Mega Evolution Elite Trainer Box [Mega Lucario]"]
+
+
+class FakeReferenceClient:
+    def __init__(self):
+        self.groups = [
+            {"groupId": 7, "name": "SWSH07: Evolving Skies", "publishedOn": "2021-08-27T00:00:00", "modifiedOn": "a"},
+            {"groupId": 8, "name": "Jumbo Cards", "publishedOn": "2015-01-01T00:00:00", "modifiedOn": "b"},
+        ]
+        self.calls = []
+
+    def fetch_groups(self):
+        return self.groups
+
+    def fetch_products(self, group_id):
+        self.calls.append(("products", group_id))
+        if group_id == 7:
+            return [
+                {"productId": 70, "name": "Evolving Skies Booster Box", "extendedData": []},
+                {"productId": 71, "name": "Umbreon VMAX", "extendedData": [{"name": "Number", "value": "215/203"}, {"name": "Rarity", "value": "Secret Rare"}]},
+            ]
+        return []
+
+    def fetch_prices(self, group_id):
+        self.calls.append(("prices", group_id))
+        return [{"productId": 70, "marketPrice": 1200.0, "lowPrice": 1100.0}]
+
+
+def test_reference_sync_is_silent_and_incremental(connection):
+    client = FakeReferenceClient()
+    result = reference.sync_reference(connection, client, now=NOW)
+    assert (result.groups_seen, result.groups_refetched, result.products_upserted, result.price_groups) == (2, 2, 1, 1)
+    assert [r["name"] for r in connection.execute("SELECT name FROM ref_products")] == ["Evolving Skies Booster Box"]
+    assert connection.execute("SELECT COUNT(*) FROM calendar_events").fetchone()[0] == 0
+    assert connection.execute("SELECT COUNT(*) FROM catalog_groups").fetchone()[0] == 0
+    assert connection.execute("SELECT COUNT(*) FROM products").fetchone()[0] == 0
+    client.calls = []
+    reference.sync_reference(connection, client, now=NOW + dt.timedelta(days=1))
+    # Unchanged groups aren't refetched, and a set over three years old reprices weekly.
+    assert client.calls == []
+    reference.sync_reference(connection, client, now=NOW + dt.timedelta(days=7))
+    assert client.calls == [("prices", 7)]
+
+
+def test_decisions_override_matching_and_survive_rematch(catalog_connection):
+    connection = catalog_connection
+    _collect(connection, NOW, [_product(1, "Delta Reign 3 Pack Blister"), _product(2, "Delta Reign Stickers Pokemon")])
+    assert _listing(connection, 10)["match_status"] == "ambiguous"
+    with pytest.raises(review.DecisionError, match="no reference product"):
+        review.decide(connection, store_id="test_store", variant_id=10, product="999", decided_by="claude", now=NOW)
+    review.decide(connection, store_id="test_store", variant_id=10, product="9", decided_by="claude", now=NOW, note="art is Seel")
+    review.decide(connection, store_id="test_store", variant_id=20, product="reject", decided_by="founder", now=NOW)
+    assert (_listing(connection, 10)["match_status"], _listing(connection, 10)["catalog_product_id"]) == ("confirmed", 9)
+    assert (_listing(connection, 20)["match_status"], _listing(connection, 20)["match_reason"]) == ("excluded", "reviewed")
+
+    collect.rematch(connection)
+    _collect(connection, NOW + dt.timedelta(minutes=15), [_product(1, "Delta Reign 3 Pack Blister"), _product(2, "Delta Reign Stickers Pokemon")])
+    assert _listing(connection, 10)["match_status"] == "confirmed"
+    assert _listing(connection, 20)["match_reason"] == "reviewed"
+    assert review.queue(connection) == []
+
+
+def test_same_title_decision_covers_other_stores(catalog_connection):
+    connection = catalog_connection
+    other = registry.Store(store_id="other_store", name="Other", domain="other.com", tier="first_pass")
+    _collect(
+        connection,
+        NOW,
+        [_product(1, "Delta Reign 3 Pack Blister")],
+        [_product(5, "Delta Reign: 3 Pack Blister"), _product(6, "Delta Reign 3-Pack Blister")],
+        stores=[STORE, other],
+    )
+    items = review.queue(connection)
+    # "Delta Reign: 3 Pack Blister" folds to the same title; "3-Pack" doesn't.
+    assert sorted((i.listing_count, i.reason) for i in items) == [(1, "variant_unclear"), (2, "variant_unclear")]
+    count = review.decide(
+        connection, store_id="test_store", variant_id=10, product="9", decided_by="claude", now=NOW, same_title=True
+    )
+    assert count == 2
+    assert {(r["store_id"], r["variant_id"]) for r in connection.execute("SELECT * FROM listing_decisions")} == {
+        ("test_store", 10),
+        ("other_store", 50),
+    }
+    assert [(i.title, i.listing_count) for i in review.queue(connection)] == [("Delta Reign 3-Pack Blister", 1)]
+
+
+def test_ensure_schema_repoints_old_listing_foreign_key(connection):
+    connection.executescript(
+        """
+        DROP TABLE listing_snapshots;
+        DROP TABLE store_listings;
+        CREATE TABLE store_listings (
+            store_id TEXT NOT NULL, variant_id INTEGER NOT NULL, title TEXT NOT NULL,
+            catalog_product_id INTEGER REFERENCES products(product_id),
+            PRIMARY KEY (store_id, variant_id)
+        ) WITHOUT ROWID;
+        INSERT INTO store_listings VALUES ('s', 1, 'Old listing', NULL);
+        """
+    )
+    review.ensure_schema(connection)
+    targets = {row["table"] for row in connection.execute("PRAGMA foreign_key_list(store_listings)")}
+    assert targets == {"ref_products"}
+    assert connection.execute("SELECT title FROM store_listings").fetchone()["title"] == "Old listing"
+    review.ensure_schema(connection)  # idempotent
+
+
+def test_matching_accuracy_on_300_real_titles():
+    """Hand-labeled sample of real titles: no wrong exact match, at least 90% recall."""
+    fixture = json.loads((FIXTURES / "store_titles_p2.json").read_text())
+    groups = fixture["catalog"]["groups"]
+    catalog = match.Catalog.from_rows(
+        [(group_id, name) for group_id, name, _ in groups],
+        [tuple(row) for row in fixture["catalog"]["products"]],
+        [abbreviation for _, _, abbreviation in groups if abbreviation],
+    )
+    wrong, found, matchable = [], 0, 0
+    for item in fixture["titles"]:
+        result = match.match_listing(catalog, item["title"], item["variant"])
+        expected = item["expected_product_id"]
+        if result.status == "exact" and result.catalog_product_id != expected:
+            wrong.append((item["title"], result.catalog_product_id, expected))
+        if expected is not None:
+            matchable += 1
+            found += result.status == "exact" and result.catalog_product_id == expected
+    assert wrong == []
+    assert len(fixture["titles"]) == 300
+    assert found / matchable >= 0.90, f"recall {found}/{matchable}"

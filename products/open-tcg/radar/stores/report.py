@@ -1,7 +1,8 @@
-"""Pilot report: store health, match quality, prices and how long stock lasts.
+"""Store report: store health, match quality, prices and how long stock lasts.
 
 There is no MSRP table yet (plan phase P3), so prices are compared with the
-latest tcgcsv market price and with the founder's `alert_at` for watched items.
+latest reference-catalog market price and with the founder's `alert_at` for
+watched items. "Matched" means `exact` or `confirmed` by a review decision.
 """
 
 from __future__ import annotations
@@ -59,8 +60,8 @@ def _market_cents(connection: sqlite3.Connection) -> dict[int, int]:
     rows = connection.execute(
         """
         SELECT p.product_id, p.market_price
-        FROM price_points p
-        JOIN (SELECT product_id, MAX(day) AS day FROM price_points WHERE market_price IS NOT NULL GROUP BY product_id) latest
+        FROM ref_price_points p
+        JOIN (SELECT product_id, MAX(day) AS day FROM ref_price_points WHERE market_price IS NOT NULL GROUP BY product_id) latest
           ON latest.product_id = p.product_id AND latest.day = p.day
         """
     ).fetchall()
@@ -75,8 +76,8 @@ def offers(connection: sqlite3.Connection, thresholds: dict[int, int]) -> list[O
         SELECT s.name AS store, p.name AS product, l.catalog_product_id, l.price_cents, l.url
         FROM store_listings l
         JOIN stores s USING (store_id)
-        JOIN products p ON p.product_id = l.catalog_product_id
-        WHERE l.match_status = 'exact' AND l.is_available = 1 AND l.price_cents IS NOT NULL
+        JOIN ref_products p ON p.product_id = l.catalog_product_id
+        WHERE l.match_status IN ('exact', 'confirmed') AND l.is_available = 1 AND l.price_cents IS NOT NULL
         ORDER BY p.name, l.price_cents
         """
     ).fetchall()
@@ -106,8 +107,8 @@ def in_stock_spans(connection: sqlite3.Connection, since: dt.datetime) -> list[t
         FROM listing_snapshots n
         JOIN store_listings l USING (store_id, variant_id)
         JOIN stores s USING (store_id)
-        JOIN products p ON p.product_id = l.catalog_product_id
-        WHERE l.match_status = 'exact'
+        JOIN ref_products p ON p.product_id = l.catalog_product_id
+        WHERE l.match_status IN ('exact', 'confirmed')
         ORDER BY n.store_id, n.variant_id, n.observed_at
         """
     ).fetchall()
@@ -163,15 +164,17 @@ def render(connection: sqlite3.Connection, *, now: dt.datetime, days: int = 7, s
     lines = [f"Independent store report (collection only, no alerts), last {days} days", store_health(connection, stores), ""]
 
     lines.append(
-        f"{'store':<28} {'tier':<10} {'status':<8} {'last ok':<16} {'sweep':<11} {'kept':>6} {'exact':>6} "
+        f"{'store':<28} {'tier':<10} {'status':<8} {'last ok':<16} {'sweep':<11} {'kept':>6} {'match':>6} "
         f"{'in stock':>8} {'new':>4}  note"
     )
     for row in connection.execute(
         """
         SELECT s.*, c.selected_count, c.error AS collection_error,
           (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id) AS listings,
-          (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id AND l.match_status = 'exact') AS exact,
-          (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id AND l.match_status = 'exact'
+          (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id
+             AND l.match_status IN ('exact', 'confirmed')) AS exact,
+          (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id
+             AND l.match_status IN ('exact', 'confirmed')
              AND l.is_available = 1) AS in_stock,
           (SELECT COUNT(*) FROM store_listings l WHERE l.store_id = s.store_id AND l.is_baseline = 0
              AND l.first_seen_at >= ?) AS new
@@ -218,7 +221,7 @@ def render(connection: sqlite3.Connection, *, now: dt.datetime, days: int = 7, s
     thresholds = watch_thresholds(catalog, watchlist.load())
     current = offers(connection, thresholds)
     under = [offer for offer in current if offer.is_at_or_below_alert_at]
-    lines += ["", f"In-stock exact offers: {len(current)} across {len({o.product for o in current})} products."]
+    lines += ["", f"In-stock matched offers: {len(current)} across {len({o.product for o in current})} products."]
     lines.append(f"At or below your watchlist alert_at: {len(under)}")
     for offer in under:
         lines.append(f"  {_money(offer.price_cents):>9}  {offer.product}  @ {offer.store}  (alert_at {_money(offer.alert_at_cents)})")

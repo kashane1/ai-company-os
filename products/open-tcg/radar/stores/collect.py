@@ -31,7 +31,7 @@ from ..config import (
 )
 from ..db import iso
 from ..http import make_client
-from . import collections, match, registry
+from . import collections, match, registry, review
 from .shopify import StoreFetchError, StoreReader
 
 SOURCE_ID = "stores"
@@ -263,6 +263,7 @@ def persist(
     new_count = 0
     changed_count = 0
     stamp = iso(now)
+    decisions = review.load_decisions(connection, store.store_id)
     for product in products:
         if not match.is_pokemon(product):
             continue
@@ -274,9 +275,11 @@ def persist(
             compare_at_cents = _cents(variant.get("compare_at_price"))
             is_available = bool(variant.get("available"))
             result = match.match_listing(catalog, product.get("title") or "", variant.get("title"))
+            result = review.apply(result, decisions.get((store.store_id, variant_id)))
             # Singles, graded cards, non-English products and the like are
-            # most of a store's catalog and never relevant, so they aren't kept.
-            if result.status == "excluded":
+            # most of a store's catalog and never relevant, so they aren't
+            # kept. Listings rejected in review are kept, so the decision sticks.
+            if result.status == "excluded" and result.reason != "reviewed":
                 continue
             previous = connection.execute(
                 "SELECT price_cents, is_available FROM store_listings WHERE store_id = ? AND variant_id = ?",
@@ -422,6 +425,7 @@ def collect(
     max_catalog_sweeps: int = STORE_MAX_CATALOG_SWEEPS_PER_RUN,
 ) -> CollectSummary:
     stores = registry.load() if stores is None else stores
+    review.ensure_schema(connection)
     sync_registry(connection, stores)
     catalog = match.Catalog.from_db(connection)
     plans = plan(connection, stores, now)
@@ -467,11 +471,26 @@ def collect(
 
 
 def rematch(connection: sqlite3.Connection) -> int:
-    """Re-run matching on stored listings, e.g. after the catalog grows."""
+    """Re-run matching on stored listings, e.g. after the catalog or matcher changes.
+
+    Review decisions still apply. Listings that the matcher now excludes are
+    dropped, as a fresh fetch would drop them.
+    """
+    review.ensure_schema(connection)
     catalog = match.Catalog.from_db(connection)
+    decisions = review.load_decisions(connection)
     rows = connection.execute("SELECT store_id, variant_id, title, variant_title FROM store_listings").fetchall()
     for row in rows:
         result = match.match_listing(catalog, row["title"], row["variant_title"])
+        result = review.apply(result, decisions.get((row["store_id"], row["variant_id"])))
+        if result.status == "excluded" and result.reason != "reviewed":
+            connection.execute(
+                "DELETE FROM listing_snapshots WHERE store_id = ? AND variant_id = ?", (row["store_id"], row["variant_id"])
+            )
+            connection.execute(
+                "DELETE FROM store_listings WHERE store_id = ? AND variant_id = ?", (row["store_id"], row["variant_id"])
+            )
+            continue
         connection.execute(
             """
             UPDATE store_listings SET language = ?, match_status = ?, match_reason = ?, catalog_product_id = ?

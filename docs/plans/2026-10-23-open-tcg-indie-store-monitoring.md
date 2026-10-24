@@ -14,7 +14,7 @@ last_reviewed: 2026-10-23
 - **OpenFlip consumes the result.** Price-classified offers go out through the existing OpenTCG export bridge. OpenFlip then judges them against sold comps.
 - **Order:** 20-store pilot, then a store registry, Shopify collector, identity matching, MSRP classes, alerts and digest. After that come the remaining stores and OpenFlip export. Store scoring decides polling frequency.
 
-**Status:** P0 pilot built 2026-10-23 (commit `0a9700c`). P1 built 2026-10-24: all 109 stores are registered, 85 are polled, and daily sweeps use validated sealed collections ([P1 plan](2026-10-24-open-tcg-store-registry-p1.md)). Both run in the existing 15-minute sync, with collection only and no alerts. P2–P7 aren't built.
+**Status:** P0 pilot built 2026-10-23 (commit `0a9700c`). P1 built 2026-10-24: all 109 stores are registered, 85 are polled, and daily sweeps use validated sealed collections ([P1 plan](2026-10-24-open-tcg-store-registry-p1.md)). P2 built 2026-10-24: a silent reference catalog of every English set, stricter matching, and a review queue with remembered decisions ([P2 plan](2026-10-24-open-tcg-store-matching-p2.md)). Everything runs in the existing 15-minute sync, with collection only and no alerts. P3–P7 aren't built.
 
 **P0 substitutions:** Thirdspace TCG isn't on Shopify JSON, and PokeMall TCG's `/products.json` is empty, so MH Deals Plus and Pokémon Plug replace them in the pilot. Hosts are spaced 4 s apart, not 5, and full sweeps stop at 40 pages. This plan builds the "local game stores on Shopify" lane. The [data-source plan](2026-09-25-open-tcg-data-sources-plan.md) called that lane the most underused, and its founder scope decision allows reads of public Shopify store JSON where `robots.txt` permits.
 

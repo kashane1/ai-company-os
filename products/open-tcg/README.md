@@ -90,7 +90,8 @@ founder's list. The 85 with open Shopify `/products.json` (GG Legends is parked)
 are polled. The others are listed with the reason they aren't: JSON blocked,
 another platform, or a bot challenge. Phase status:
 [P0 pilot](../../docs/plans/2026-10-23-open-tcg-indie-store-monitoring.md) and
-[P1 registry](../../docs/plans/2026-10-24-open-tcg-store-registry-p1.md) are built.
+[P1 registry](../../docs/plans/2026-10-24-open-tcg-store-registry-p1.md) and
+[P2 matching](../../docs/plans/2026-10-24-open-tcg-store-matching-p2.md) are built.
 
 - **Discovery:** the store's newest 250 products, every 15 min for first-pass
   stores and the 20 pilot stores, hourly for explore and backup stores.
@@ -108,14 +109,31 @@ A row goes into `listing_snapshots` only when a listing appears or its price or
 stock changes. A store's first full sweep is a silent baseline. A failed fetch
 leaves listings unknown, never sold out.
 
-Each kept listing is matched to the tcgcsv catalog as `exact`, `ambiguous` or
-`unmatched`, with a reason. Japanese and other non-English products, graded
+Each kept listing is matched to a **reference catalog**: every English group's
+sealed products and prices from tcgcsv, synced daily by the silent
+`tcgcsv_reference` source into `ref_*` tables. That catalog is kept apart from
+the radar's own `catalog_groups`/`products`, so it never changes the calendar,
+Bluesky set detection or alerts. A listing is `exact` only when one product
+fits. Titles that name no set ("Mega Greninja ex Premium Collection") or only
+an era ("Mega Evolution Elite Trainer Box [Lucario]") must also leave no
+unexplained words. Otherwise the listing is `ambiguous` or `unmatched`, with a
+reason. Japanese, Chinese (slim packs) and other non-English products, graded
 cards, singles, promos, code cards, repacks and accessories are excluded and
-not stored. A title naming only the era ("Mega Evolution") is never exact. Sets
-outside the catalog's current window stay `unmatched`.
-`python -m radar stores-rematch` re-runs matching after the catalog grows.
+not stored. On a 300-title hand-labeled fixture, matching makes no wrong exact
+match and finds 94% of the titles that have one right product.
+
+The review queue lists plausible sealed listings the matcher couldn't pin
+down, grouped by title. A decision is remembered per store variant and wins
+over automatic matching from then on: `confirmed`, or rejected (`excluded`,
+`reviewed`).
+
+```
+.venv/bin/python -m radar stores-review [--limit N] [--reason R] [--unknown-form]
+.venv/bin/python -m radar stores-decide STORE VARIANT PRODUCT_ID|reject [--same-title] [--note TEXT] [--by founder|claude]
+.venv/bin/python -m radar stores-rematch     # after a matcher or catalog change; decisions still apply
+```
 
 Stores create no observations, episodes or alerts yet. MSRP classes come in P3,
-so `make stores` compares prices with the tcgcsv market price and with each
-watched item's `alert_at`. `make sources` ends with a one-line store health
+so `make stores` compares prices with the reference catalog's market price and
+with each watched item's `alert_at`. "Matched" counts `exact` and `confirmed`. `make sources` ends with a one-line store health
 summary.
