@@ -18,6 +18,7 @@ make stream     # follow Bluesky live (runs until Ctrl-C)
 make feed       # restock observations from the last 72 h (TCG only)
 make episodes   # restocks grouped across sources, with each source's lag
 make scorecard  # per source: episodes, times first, median lag, accuracy
+make stores     # independent store pilot: health, matches, prices vs market, stock duration
 .venv/bin/python -m radar mark 12 real|false          # judge an episode (feeds accuracy)
 .venv/bin/python -m radar log guppy "30th Celebration ETB at Target" --at "2026-09-26 04:51"
 .venv/bin/python -m radar notify-test
@@ -75,7 +76,33 @@ The jobs only run while the Mac is awake and logged in.
 | Project Gmail (NowInStock, Keepa, any Pokémon mail) | L | 30 s | Alert emails, read-only over IMAP, scored per sender |
 | Guppy / sightings (manual log) | L | manual | Founder-logged benchmark entries (`radar log guppy …`) |
 | pokemon.com news | S | — | Disabled: bot challenge for non-browser clients, not bypassed |
+| Independent stores (`stores.toml`) | L | 15 min, full sweep daily | Pokémon listings, prices and stock at 20 pilot Shopify stores; collection only |
 
 The first successful run of each source is a silent baseline. After that,
 new SKUs, date changes, new distributor listings and new news items become
 calendar events.
+
+## Independent store pilot
+
+[The store-monitoring plan](../../docs/plans/2026-10-23-open-tcg-indie-store-monitoring.md)
+starts with a one-week pilot (P0) over the 20 stores in `stores.toml`. Each
+sync reads a store's newest 250 products from Shopify's public
+`/products.json`, and once a day it pages through the whole catalog (up to 40
+pages). It checks `robots.txt` daily, sends one request per store at a time
+at least 4 s apart, and drops any response that redirects off the store's domain.
+
+Only Pokémon listings are kept (`store_listings`). A row goes into
+`listing_snapshots` only when a listing appears or its price or stock changes.
+A store's first full sweep is a silent baseline. A failed fetch leaves
+listings unknown, never sold out.
+
+Each listing is matched to the tcgcsv catalog as `exact`, `ambiguous`,
+`unmatched` or `excluded`, with a reason. Japanese and other non-English
+products, graded cards, singles, promos, code cards, repacks and accessories
+are excluded. A title naming only the era ("Mega Evolution") is never exact.
+Sets outside the catalog's current window stay `unmatched`.
+`python -m radar stores-rematch` re-runs matching after the catalog grows.
+
+The pilot creates no observations, episodes or alerts. MSRP classes come in
+P3, so `make stores` compares prices with the tcgcsv market price and with
+each watched item's `alert_at`.

@@ -13,6 +13,8 @@
     python -m radar mark EPISODE_ID real|false
     python -m radar log guppy|sighting "TEXT" [--retailer R] [--at "YYYY-MM-DD HH:MM"]
     python -m radar notify-test
+    python -m radar stores [--days N] [--unmatched N]   # independent store pilot report
+    python -m radar stores-rematch                      # re-run listing matching after a catalog change
     python -m radar inbox [--once]            # read alert emails (read-only IMAP)
     python -m radar inbox-export [--limit N]  # save recent Pokémon/alert emails to data/inbox-samples/
 """
@@ -32,6 +34,8 @@ from .http import make_client
 from .inbox import message as inbox_message
 from .inbox import reader as inbox_reader
 from .social import bluesky
+from .stores import collect as store_collect
+from .stores import report as store_report
 
 
 def _now() -> dt.datetime:
@@ -70,10 +74,23 @@ def _run_pokebeach(connection, now: dt.datetime) -> str:
     return f"{emitted} new events"
 
 
+def _run_stores(connection, now: dt.datetime) -> str:
+    summary = store_collect.collect(connection, now=now)
+    for failure in summary.failures:
+        print(f"  store failed: {failure}", file=sys.stderr, flush=True)
+    if summary.stores_polled and summary.stores_failed == summary.stores_polled:
+        raise RuntimeError(f"all {summary.stores_polled} stores failed")
+    return (
+        f"{summary.stores_polled} stores ({summary.full_sweeps} full sweeps, {summary.stores_failed} failed), "
+        f"{summary.listings_new} new listings, {summary.listings_changed} changed"
+    )
+
+
 RUNNERS = {
     "tcgcsv": _run_tcgcsv,
     "southern_hobby": _run_southern_hobby,
     "pokebeach_rss": _run_pokebeach,
+    "stores": _run_stores,
 }
 
 
@@ -309,6 +326,18 @@ def cmd_inbox_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_stores(args: argparse.Namespace) -> int:
+    connection = _open()
+    print(store_report.render(connection, now=_now(), days=args.days, show_unmatched=args.unmatched), end="")
+    return 0
+
+
+def cmd_stores_rematch(_: argparse.Namespace) -> int:
+    connection = _open()
+    print(f"rematched {store_collect.rematch(connection)} listings")
+    return 0
+
+
 def cmd_init_db(_: argparse.Namespace) -> int:
     _open()
     print(f"database ready at {db.DB_PATH}")
@@ -349,6 +378,11 @@ def main(argv: list[str] | None = None) -> int:
     log_parser.add_argument("--at", help='local time, "YYYY-MM-DD HH:MM" (default now)')
     log_parser.set_defaults(func=cmd_log)
     commands.add_parser("notify-test", help="send a test Mac notification").set_defaults(func=cmd_notify_test)
+    stores_parser = commands.add_parser("stores", help="independent store pilot report")
+    stores_parser.add_argument("--days", type=int, default=7)
+    stores_parser.add_argument("--unmatched", type=int, default=0, help="also list N unmatched English titles")
+    stores_parser.set_defaults(func=cmd_stores)
+    commands.add_parser("stores-rematch", help="re-run store listing matching").set_defaults(func=cmd_stores_rematch)
     inbox_parser = commands.add_parser("inbox", help="read alert emails from the project inbox")
     inbox_parser.add_argument("--once", action="store_true")
     inbox_parser.set_defaults(func=cmd_inbox)

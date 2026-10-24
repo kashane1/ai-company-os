@@ -1,6 +1,6 @@
 PYTHON := ./.venv/bin/python
 
-.PHONY: setup test sync calendar events sources backfill stream feed episodes scorecard
+.PHONY: setup test sync calendar events sources backfill stream feed episodes scorecard stores
 
 setup:
 	python3 -m venv .venv
@@ -11,7 +11,7 @@ setup:
 test:
 	$(PYTHON) -m pytest
 
-# Run every enabled poll source once (tcgcsv, Southern Hobby, PokeBeach).
+# Run every enabled poll source once (tcgcsv, Southern Hobby, PokeBeach, stores).
 sync:
 	$(PYTHON) -m radar sync
 
@@ -39,3 +39,7 @@ episodes:
 
 scorecard:
 	$(PYTHON) -m radar scorecard
+
+# Independent store pilot: health, match quality, prices vs market, stock duration.
+stores:
+	$(PYTHON) -m radar stores

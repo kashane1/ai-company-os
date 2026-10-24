@@ -152,3 +152,63 @@ CREATE TABLE IF NOT EXISTS notifications (
     status     TEXT NOT NULL,               -- sent | failed
     error      TEXT
 );
+
+-- Independent stores (stores.toml) and their fetch health. Registry fields
+-- are refreshed from the TOML on every run; health columns are runtime only.
+CREATE TABLE IF NOT EXISTS stores (
+    store_id             TEXT PRIMARY KEY,
+    name                 TEXT NOT NULL,
+    domain               TEXT NOT NULL,
+    platform             TEXT NOT NULL,       -- 'shopify_json' in the pilot
+    tier                 TEXT NOT NULL,
+    trust                TEXT NOT NULL,
+    baseline_at          TEXT,                -- first completed full sweep
+    last_discovery_at    TEXT,
+    last_full_sweep_at   TEXT,
+    last_success_at      TEXT,
+    last_error           TEXT,
+    consecutive_failures INTEGER NOT NULL DEFAULT 0,
+    robots_checked_at    TEXT,
+    is_robots_allowed    INTEGER,
+    last_sweep_pages     INTEGER,
+    is_last_sweep_truncated INTEGER NOT NULL DEFAULT 0
+);
+
+-- One row per Pokémon store listing variant. Only Pokémon listings are kept.
+CREATE TABLE IF NOT EXISTS store_listings (
+    store_id           TEXT NOT NULL REFERENCES stores(store_id),
+    variant_id         INTEGER NOT NULL,      -- Shopify variant id
+    shop_product_id    INTEGER NOT NULL,
+    handle             TEXT NOT NULL,
+    title              TEXT NOT NULL,
+    variant_title      TEXT,
+    vendor             TEXT,
+    url                TEXT NOT NULL,
+    listed_at          TEXT,                  -- the store's created_at
+    first_seen_at      TEXT NOT NULL,
+    last_seen_at       TEXT NOT NULL,
+    is_baseline        INTEGER NOT NULL,      -- seen before the store's first full sweep finished
+    price_cents        INTEGER,
+    compare_at_cents   INTEGER,
+    is_available       INTEGER NOT NULL,
+    language           TEXT NOT NULL,         -- 'en' | 'ja' | 'ko' | 'zh' | ...
+    match_status       TEXT NOT NULL,         -- 'exact' | 'ambiguous' | 'unmatched' | 'excluded'
+    match_reason       TEXT,
+    catalog_product_id INTEGER REFERENCES products(product_id),
+    PRIMARY KEY (store_id, variant_id)
+) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS store_listings_product_idx ON store_listings(catalog_product_id);
+
+-- A row only when a listing first appears or its price, compare-at price or
+-- availability changes, so history stays small however often stores are polled.
+CREATE TABLE IF NOT EXISTS listing_snapshots (
+    store_id         TEXT NOT NULL,
+    variant_id       INTEGER NOT NULL,
+    observed_at      TEXT NOT NULL,
+    change           TEXT NOT NULL,           -- 'first_seen' | 'price' | 'availability' | 'price_and_availability'
+    price_cents      INTEGER,
+    compare_at_cents INTEGER,
+    is_available     INTEGER NOT NULL,
+    PRIMARY KEY (store_id, variant_id, observed_at),
+    FOREIGN KEY (store_id, variant_id) REFERENCES store_listings(store_id, variant_id)
+) WITHOUT ROWID;

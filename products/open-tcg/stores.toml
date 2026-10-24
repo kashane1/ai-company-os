@@ -1,0 +1,141 @@
+# OpenTCG independent store registry (P0 pilot).
+#
+# Source configuration that Claude maintains; product intent stays in
+# watchlist.toml. Every store here is read through Shopify's public
+# /products.json, after checking robots.txt, one request per host at a time.
+# Collection only: these stores produce no observations or alerts yet.
+#
+# Plan: docs/plans/2026-10-23-open-tcg-indie-store-monitoring.md
+# Platform probe: docs/products/open-tcg/research/2026-10-23-indie-store-platform-probe.json
+#
+# tier:  first_pass | explore | backup | parked
+# trust: unvetted | checked | purchased_ok | avoid
+# Domains are exact. A response that redirects off the domain is discarded.
+
+# The 14 first-pass stores from the founder's watchlist spreadsheet.
+
+[[store]]
+store_id = "black_vault_gaming"
+name = "Black Vault Gaming"
+domain = "blackvaultgaming.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "cardboard_and_die"
+name = "Cardboard and Die"
+domain = "cardboardanddie.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "cardtopia_collectibles"
+name = "Cardtopia Collectibles"
+domain = "cardtopiacollectibles.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "indy_card_shop"
+name = "Indy Card Shop"
+domain = "indycardshop.myshopify.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "knight_and_day_games"
+name = "Knight and Day Games"
+domain = "knightanddaygames.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "larrys_game_store"
+name = "Larry's Game Store"
+domain = "larrysgamestore.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "maine_phase_hobbies"
+name = "Maine Phase Hobbies & Games"
+domain = "mainephasehobbies.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "many_realms"
+name = "Many Realms"
+domain = "manyrealms.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "on_board_gaming"
+name = "On-Board Gaming"
+domain = "on-boardgaming.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "shippin_texas"
+name = "Shippin Texas"
+domain = "shippintexas.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "sunnys_card_shop"
+name = "Sunny's Card Shop"
+domain = "sunnyscardshop.myshopify.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "the_warp_gate"
+name = "The Warp Gate"
+domain = "thewarpgate.net"
+tier = "first_pass"
+
+[[store]]
+store_id = "wolf_den_gaming"
+name = "Wolf Den Gaming"
+domain = "wolfdentcg.com"
+tier = "first_pass"
+
+[[store]]
+store_id = "wulf_gaming"
+name = "Wulf Gaming"
+domain = "wulfgaming.com"
+tier = "first_pass"
+
+# Six more for the pilot. Thirdspace TCG and PokeMall TCG were planned, but
+# Thirdspace is not on Shopify JSON and PokeMall's /products.json is empty, so
+# MH Deals Plus and Pokémon Plug replace them.
+
+[[store]]
+store_id = "tcg_hub_and_hobbies"
+name = "TCG Hub and Hobbies"
+domain = "tcghubandhobbies.com"
+tier = "explore"
+notes = "Says preorders open once distributor allocations are received."
+
+[[store]]
+store_id = "cardhaven_tcg"
+name = "CARDHAVEN TCG"
+domain = "cardhaventcg.com"
+tier = "explore"
+
+[[store]]
+store_id = "goodstash_tcg"
+name = "GoodStash TCG"
+domain = "goodstashstore.myshopify.com"
+tier = "explore"
+notes = "Listed out-of-print sets at MSRP on 2026-10-23; treat below-market prices with suspicion."
+
+[[store]]
+store_id = "smoke_and_mirrors_hobby"
+name = "Smoke and Mirrors Hobby"
+domain = "smokeandmirrorshobby.com"
+tier = "backup"
+
+[[store]]
+store_id = "mh_deals_plus"
+name = "MH Deals Plus"
+domain = "mhdealsplus.com"
+tier = "explore"
+
+[[store]]
+store_id = "pokemon_plug"
+name = "Pokémon Plug"
+domain = "pokemonplug.com"
+tier = "explore"

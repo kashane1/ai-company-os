@@ -10,6 +10,7 @@ DATA_DIR = ROOT / "data"
 DB_PATH = Path(os.environ.get("OPEN_TCG_DB", DATA_DIR / "radar.db"))
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 WATCHLIST_PATH = ROOT / "watchlist.toml"
+STORES_PATH = ROOT / "stores.toml"
 
 # Every request identifies itself; tcgcsv asks for an identifiable User-Agent.
 USER_AGENT = "open-tcg-radar/0.1 (+personal, non-commercial)"
@@ -33,3 +34,12 @@ BLUESKY_ACCOUNTS = {
 }
 JETSTREAM_URL = "wss://jetstream2.us-east.bsky.network/subscribe"
 BLUESKY_PUBLIC_API = "https://public.api.bsky.app/xrpc"
+
+# Independent stores (Shopify /products.json). One request per host at a time,
+# at least this far apart. Full sweeps page newest-first and stop at the cap.
+STORE_MIN_REQUEST_INTERVAL_S = 4.0
+STORE_PAGE_SIZE = 250
+STORE_FULL_SWEEP_MAX_PAGES = 40
+STORE_FULL_SWEEP_EVERY_S = 24 * 3600
+STORE_ROBOTS_EVERY_S = 24 * 3600
+STORE_FETCH_WORKERS = 10

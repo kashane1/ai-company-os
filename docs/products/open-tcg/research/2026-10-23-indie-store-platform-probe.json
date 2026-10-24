@@ -1,0 +1,988 @@
+{
+ "probed_at": "2026-10-23",
+ "method": "one GET of /products.json?limit=250 per store, then one homepage GET if that failed; no pagination, no challenge bypass",
+ "source": "Pokemon_TCG_Store_Watchlist.xlsx (109 stores)",
+ "stores": [
+  {
+   "name": "1st Capital Gaming",
+   "url": "https://1stcapitalgaming.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 12
+  },
+  {
+   "name": "AllPokeTCG",
+   "url": "https://allpoketcg.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 147
+  },
+  {
+   "name": "Aurora Sparks",
+   "url": "https://aurorasparks.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 9,
+   "first_page_pokemon": 8
+  },
+  {
+   "name": "Beckett Castle TCG",
+   "url": "https://beckettcastletcg.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "cloudflare_challenge",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Black Vault Gaming",
+   "url": "https://blackvaultgaming.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "Black Wolf Collectibles",
+   "url": "https://blackwolfcollectibles.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 10
+  },
+  {
+   "name": "CapyQuest TCG",
+   "url": "https://capyquesttcg.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 111,
+   "first_page_pokemon": 9
+  },
+  {
+   "name": "Card Cavern Trading Cards",
+   "url": "https://cardcaverntradingcards.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 224
+  },
+  {
+   "name": "Cardboard and Die",
+   "url": "https://cardboardanddie.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 13
+  },
+  {
+   "name": "CARDHAVEN TCG",
+   "url": "https://cardhaventcg.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 166
+  },
+  {
+   "name": "Cardland Market",
+   "url": "https://cardlandmarket.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 86,
+   "first_page_pokemon": 20
+  },
+  {
+   "name": "Cardtopia Collectibles",
+   "url": "https://cardtopiacollectibles.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 51,
+   "first_page_pokemon": 3
+  },
+  {
+   "name": "Cash Cards Unlimited",
+   "url": "https://cashcardsunlimited.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 85
+  },
+  {
+   "name": "Collector Store",
+   "url": "https://collectorstore.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 35
+  },
+  {
+   "name": "Collector's Cache",
+   "url": "https://collectorscache.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "crystalcommerce",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Common Lands",
+   "url": "https://common-lands.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 181
+  },
+  {
+   "name": "CoreTCG",
+   "url": "https://coretcg.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "unknown",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Croma TCG",
+   "url": "https://cromatcg.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 128
+  },
+  {
+   "name": "Decal Depo TF",
+   "url": "https://decaldepotf.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Delightful TCG",
+   "url": "https://delightfultcg.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 40,
+   "first_page_pokemon": 13
+  },
+  {
+   "name": "Fabricator's Forge",
+   "url": "https://shop.fabricatorsforge.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 2
+  },
+  {
+   "name": "Flipside Gaming",
+   "url": "https://flipsidegaming.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 3
+  },
+  {
+   "name": "Forge and Fire Gaming",
+   "url": "https://forgeandfiregaming.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "cloudflare_challenge",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Fox and Fable Games",
+   "url": "https://foxandfablegames.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 9
+  },
+  {
+   "name": "Galactic Toys",
+   "url": "https://galactictoys.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 38
+  },
+  {
+   "name": "Game Nerdz",
+   "url": "https://gamenerdz.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "cloudflare_challenge",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Gamers Grove",
+   "url": "https://gamersgrove.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 7
+  },
+  {
+   "name": "Geekery Games",
+   "url": "https://geekerygames.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 9
+  },
+  {
+   "name": "GG Hobby Card",
+   "url": "https://gghobbycard.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 15,
+   "first_page_pokemon": 15
+  },
+  {
+   "name": "GG Legends",
+   "url": "https://store.gglehi.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 7
+  },
+  {
+   "name": "GoodStash TCG",
+   "url": "https://goodstashstore.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 108
+  },
+  {
+   "name": "Hobby Addicts",
+   "url": "https://hobby-addicts.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 13
+  },
+  {
+   "name": "Hobby Card Shop",
+   "url": "https://hobbycardshop.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 60
+  },
+  {
+   "name": "Hot Hitz Collectables",
+   "url": "https://hothitzcollectables.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 18,
+   "first_page_pokemon": 13
+  },
+  {
+   "name": "Hypno Comics & Games",
+   "url": "https://hypnocomics.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "unknown",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Impact Gaming Center",
+   "url": "https://impactgamingcenter.gg",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 12
+  },
+  {
+   "name": "Indy Card Shop",
+   "url": "https://indycardshop.myshopify.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 161
+  },
+  {
+   "name": "JAF Comics",
+   "url": "https://jafcomics.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "Jaro Cards",
+   "url": "https://jarocards.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 184,
+   "first_page_pokemon": 143
+  },
+  {
+   "name": "JD Collectibles",
+   "url": "https://shopjdc.com",
+   "sheet_priority": "Explore",
+   "platform": "woocommerce",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Jeffthrowcards",
+   "url": "https://jeffthrowcards.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 55
+  },
+  {
+   "name": "Josh's Cards",
+   "url": "https://joshscards.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 13
+  },
+  {
+   "name": "Knight and Day Games",
+   "url": "https://knightanddaygames.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "Kollect Korner",
+   "url": "https://kollectkorner.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 17
+  },
+  {
+   "name": "Larry's Game Store",
+   "url": "https://larrysgamestore.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 3
+  },
+  {
+   "name": "Level Up Games",
+   "url": "https://levelupgamesatl.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "ecwid",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Loose Packs Trading Co.",
+   "url": "https://loosepacks.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 89
+  },
+  {
+   "name": "Maine Phase Hobbies & Games",
+   "url": "https://mainephasehobbies.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 22
+  },
+  {
+   "name": "Mantis Game Studio",
+   "url": "https://mantisgamestudio.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 23
+  },
+  {
+   "name": "Many Realms",
+   "url": "https://manyrealms.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "MH Deals Plus",
+   "url": "https://mhdealsplus.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 179
+  },
+  {
+   "name": "Mystery MTG",
+   "url": "https://mysterymtg.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "N4YTCG",
+   "url": "https://n4ytcg.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 13
+  },
+  {
+   "name": "Nerdzoic",
+   "url": "https://nerdzoic.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 20
+  },
+  {
+   "name": "Nexus Tabletop Games",
+   "url": "https://nexustabletopgames.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "Omni Collectibles",
+   "url": "https://omnicollectibles.social",
+   "sheet_priority": "Explore",
+   "platform": "unknown",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "On-Board Gaming",
+   "url": "https://on-boardgaming.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 2
+  },
+  {
+   "name": "OneStopTCG",
+   "url": "https://onestoptcg.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Out of the Box Cards",
+   "url": "https://outoftheboxcards.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "cloudflare_challenge",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Over the Brick",
+   "url": "https://overthebrick.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 7
+  },
+  {
+   "name": "Phantasma",
+   "url": "https://phantasmalv.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 106
+  },
+  {
+   "name": "Poke-Collect",
+   "url": "https://poke-collect.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 42
+  },
+  {
+   "name": "PokeMall TCG",
+   "url": "https://pokemalltcg.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 0,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "Pokémon Plug",
+   "url": "https://pokemonplug.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 250
+  },
+  {
+   "name": "PokéZone",
+   "url": "https://poke-zone.com",
+   "sheet_priority": "Explore",
+   "platform": "unknown",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "PrCards",
+   "url": "https://storeprcards.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Prestige Collectibles",
+   "url": "https://prestigecollectibles.store",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Prime City Comics",
+   "url": "https://primecitycomics.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 29
+  },
+  {
+   "name": "Prodigy Games",
+   "url": "https://prodigy-games.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 127
+  },
+  {
+   "name": "PunkOuter Games",
+   "url": "https://punkouter.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 14
+  },
+  {
+   "name": "RareTCG",
+   "url": "https://raretcg.store",
+   "sheet_priority": "Explore",
+   "platform": "unknown",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Rawmon",
+   "url": "https://rawmon.org",
+   "sheet_priority": "Explore",
+   "platform": "woocommerce",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "Realgoodeal",
+   "url": "https://realgoodeal.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 87
+  },
+  {
+   "name": "Retro Gaming of Denver",
+   "url": "https://retrogamingofdenver.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "RNG-GAMEZ",
+   "url": "https://rng-gamez.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "RoboSkillz (BallSquad Shop)",
+   "url": "https://roboskillz.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 117
+  },
+  {
+   "name": "Rolling Hills Collectibles",
+   "url": "https://ip5f5c-0a.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 188
+  },
+  {
+   "name": "Safari Zone Collectibles",
+   "url": "https://safari-zone.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 31,
+   "first_page_pokemon": 4
+  },
+  {
+   "name": "Shippin Texas",
+   "url": "https://shippintexas.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 11
+  },
+  {
+   "name": "Skybox Collectibles",
+   "url": "https://skyboxct.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 127
+  },
+  {
+   "name": "Smoke and Mirrors Hobby",
+   "url": "https://smokeandmirrorshobby.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 93
+  },
+  {
+   "name": "Stacked Pax",
+   "url": "https://stackedpax.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 167
+  },
+  {
+   "name": "Stomping Grounds TCG",
+   "url": "https://stompinggroundstcg.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 20
+  },
+  {
+   "name": "Stonebrook Collectibles",
+   "url": "https://stonebrookcollectibles.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 173,
+   "first_page_pokemon": 153
+  },
+  {
+   "name": "Sunny's Card Shop",
+   "url": "https://sunnyscardshop.myshopify.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 57,
+   "first_page_pokemon": 32
+  },
+  {
+   "name": "Sweets and Geeks",
+   "url": "https://sweetsandgeeks.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 48
+  },
+  {
+   "name": "TCG Card Depot",
+   "url": "https://tcgcarddepot.com",
+   "sheet_priority": "Explore",
+   "platform": "error",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "TCG Hobby",
+   "url": "https://tcghobby.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 204
+  },
+  {
+   "name": "TCG Hub and Hobbies",
+   "url": "https://tcghubandhobbies.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 101
+  },
+  {
+   "name": "TCG Jackpot",
+   "url": "https://tcgjackpot.com",
+   "sheet_priority": "Explore",
+   "platform": "cloudflare_challenge",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "TCG Moonblast",
+   "url": "https://tcgmoonblast.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "wix",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "TCG Slayer",
+   "url": "https://tcgslayer.io",
+   "sheet_priority": "Explore",
+   "platform": "unknown",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "TCG Stadium",
+   "url": "https://tcg-stadium.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 79,
+   "first_page_pokemon": 14
+  },
+  {
+   "name": "TCGORA",
+   "url": "https://tcgora.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 103,
+   "first_page_pokemon": 52
+  },
+  {
+   "name": "The Game Capital",
+   "url": "https://thegamecapital.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 171,
+   "first_page_pokemon": 93
+  },
+  {
+   "name": "The Platypus Party",
+   "url": "https://theplatypusparty.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 18
+  },
+  {
+   "name": "The Trainer Court",
+   "url": "https://thetrainercourt.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 223
+  },
+  {
+   "name": "The Warp Gate",
+   "url": "https://thewarpgate.net",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 1
+  },
+  {
+   "name": "ThePokeHive",
+   "url": "https://thepokehive.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 48,
+   "first_page_pokemon": 43
+  },
+  {
+   "name": "Thirdspace TCG",
+   "url": "https://thirdspacetcg.com",
+   "sheet_priority": "Explore",
+   "platform": "unknown",
+   "shopify_json_open": false,
+   "first_page_products": null,
+   "first_page_pokemon": null
+  },
+  {
+   "name": "To The Table Board Game Café",
+   "url": "https://tothetable.game",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 5
+  },
+  {
+   "name": "Trove of Collectibles",
+   "url": "https://troveofcollectibles.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 0
+  },
+  {
+   "name": "Ultima Supply",
+   "url": "https://ultimasupply.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 23
+  },
+  {
+   "name": "Underhill Gaming",
+   "url": "https://underhillgaming.myshopify.com",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 10
+  },
+  {
+   "name": "Vegas Singles",
+   "url": "https://vegas.singles",
+   "sheet_priority": "Explore",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 10
+  },
+  {
+   "name": "VGMX",
+   "url": "https://vgmx.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 98
+  },
+  {
+   "name": "Wolf Den Gaming",
+   "url": "https://wolfdentcg.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 8
+  },
+  {
+   "name": "Wulf Gaming",
+   "url": "https://wulfgaming.com",
+   "sheet_priority": "First pass",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 69
+  },
+  {
+   "name": "Zulu's Board Game Café",
+   "url": "https://zulusgames.com",
+   "sheet_priority": "Backup retailer",
+   "platform": "shopify",
+   "shopify_json_open": true,
+   "first_page_products": 250,
+   "first_page_pokemon": 23
+  }
+ ]
+}
