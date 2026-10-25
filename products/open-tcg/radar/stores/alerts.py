@@ -36,7 +36,7 @@ from ..catalog.classify import set_key
 from ..db import iso
 from ..matching import normalize
 from ..notify import MAX_AGE, Sender, macos_notify
-from . import match, msrp, report
+from . import match, msrp, registry, report
 
 SOURCE_ID = "stores"
 _PREORDER = re.compile(r"\bpre[- ]?orders?\b|\bpresale\b", re.IGNORECASE)
@@ -59,6 +59,7 @@ class Candidate:
     group_name: str
     price_class: msrp.PriceClass
     market_cents: int | None
+    shipping_cents: int | None = None  # None: the store's shipping isn't recorded
 
 
 @dataclass(frozen=True)
@@ -157,6 +158,7 @@ def candidates(
     """Fresh changes that leave a matched English listing in stock and no more expensive than before."""
     since = iso(now - MAX_AGE)
     market = report._market_cents(connection)
+    registered = {store.store_id: store for store in registry.load()}
     rows = connection.execute(
         """
         SELECT n.store_id, n.variant_id, n.observed_at, n.change, n.price_cents,
@@ -201,6 +203,9 @@ def candidates(
                 group_name=row["group_name"],
                 price_class=msrp.classify(row["price_cents"], resolver.resolve(product), market_cents),
                 market_cents=market_cents,
+                shipping_cents=(
+                    registered[row["store_id"]].shipping_for(row["price_cents"]) if row["store_id"] in registered else None
+                ),
             )
         )
     return result
@@ -218,7 +223,8 @@ def message(candidate: Candidate, decision: Decision) -> tuple[str, str]:
     reference = price_class.msrp
     msrp_text = f"MSRP {_money(reference.msrp_cents)} {reference.label}" if reference else "no MSRP"
     lines = [
-        f"{candidate.product} {_money(candidate.price_cents)} ({msrp_text}, market {_money(candidate.market_cents)})",
+        f"{candidate.product} {report.price_with_shipping(candidate.price_cents, candidate.shipping_cents)} "
+        f"({msrp_text}, market {_money(candidate.market_cents)})",
         f"{candidate.store} · {candidate.trust} · {decision.reason}",
     ]
     if caution:

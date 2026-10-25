@@ -41,6 +41,14 @@ class Store:
     email_status: str = "none"  # subscribed | needs_founder | none
     discord: str = ""
     product_path: str = ""  # sitemap stores: the URL path that marks a product page, e.g. "/product-page"
+    shipping_cents: int | None = None  # standard US shipping for one sealed item, from the store's policy
+    free_shipping_over_cents: int | None = None  # order subtotal from which standard shipping is free
+
+    def shipping_for(self, price_cents: int) -> int | None:
+        """Shipping for one item at this price: 0 over the free threshold, the flat rate, or None if unknown."""
+        if self.free_shipping_over_cents is not None and price_cents >= self.free_shipping_over_cents:
+            return 0
+        return self.shipping_cents
 
     @property
     def base_url(self) -> str:
@@ -65,6 +73,14 @@ class Store:
         return self.discovery_every_minutes or TIER_DISCOVERY_MINUTES.get(self.tier, 60)
 
 
+def _dollars_to_cents(value: object) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+        raise ValueError(f"shipping amounts must be non-negative dollars: {value!r}")
+    return round(value * 100)
+
+
 def _store(raw: dict) -> Store:
     store = Store(
         store_id=raw["store_id"],
@@ -80,6 +96,8 @@ def _store(raw: dict) -> Store:
         email_status=raw.get("email_status", "none"),
         discord=raw.get("discord", ""),
         product_path=raw.get("product_path", ""),
+        shipping_cents=_dollars_to_cents(raw.get("shipping")),
+        free_shipping_over_cents=_dollars_to_cents(raw.get("free_shipping_over")),
     )
     if not _STORE_ID.match(store.store_id):
         raise ValueError(f"store_id must be lowercase snake case: {store.store_id!r}")

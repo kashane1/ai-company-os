@@ -78,9 +78,13 @@ def render(connection: sqlite3.Connection, *, now: dt.datetime, limit: int = 40)
             reference = offer.price_class.msrp
             caution = msrp.warning(offer.price_class, offer.trust, offer.price_cents, offer.market_cents)
             warning = "  ! unvetted, check first" if caution else ""
+            shipping = (
+                "" if offer.shipping_cents is None else
+                "  free ship" if offer.shipping_cents == 0 else f"  +{_money(offer.shipping_cents)} ship"
+            )
             lines.append(
                 f"  {_money(offer.price_cents):>9}  MSRP {_money(reference.msrp_cents):>8} {reference.label:<10} "
-                f"market {_money(offer.market_cents):>9}  {_change(deal):>8}  {offer.product[:55]}  @ {offer.store}{warning}"
+                f"market {_money(offer.market_cents):>9}  {_change(deal):>8}  {offer.product[:55]}  @ {offer.store}{shipping}{warning}"
             )
         if len(group) > limit:
             lines.append(f"  … {len(group) - limit} more")

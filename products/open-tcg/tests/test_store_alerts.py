@@ -174,3 +174,30 @@ def test_avoid_store_is_never_offered_or_alerted(store_connection):
     resolver = _resolver(p1=(4999, "official_listing"))
     assert alerts.candidates(store_connection, now=LATER, resolver=resolver) == []
     assert report.offers(store_connection, {}, resolver) == []
+
+
+def test_alert_and_report_show_shipping(store_connection, monkeypatch):
+    from radar.stores import registry, report
+
+    shipped = registry.Store(store_id="test_store", name="Test Store", domain="teststore.com", tier="first_pass",
+                             shipping_cents=999, free_shipping_over_cents=10000)
+    monkeypatch.setattr(registry, "load", lambda *a, **k: [shipped])
+    _collect(store_connection, LATER, [_product(1, "Delta Reign Elite Trainer Box", price="49.99")])
+    _, sent = _run(store_connection, _policy("Delta Reign Booster Box"), _resolver(p1=(4999, "official_listing")))
+    assert "Delta Reign Elite Trainer Box $49.99 + $9.99 ship = $59.98 (MSRP $49.99 official" in sent[0][1]
+    assert sent[0][0] == "At MSRP · Test Store"  # classes stay on the item price
+    assert report.price_with_shipping(12000, shipped.shipping_for(12000)) == "$120.00, free shipping"
+    assert report.price_with_shipping(4999, None) == "$49.99"
+
+
+def test_registry_shipping_fields(tmp_path):
+    from radar.stores import registry
+
+    path = tmp_path / "stores.toml"
+    path.write_text('[[store]]\nstore_id = "a"\nname = "A"\ndomain = "a.com"\ntier = "explore"\n'
+                    'shipping = 9.99\nfree_shipping_over = 100\n')
+    (store,) = registry.load(path)
+    assert (store.shipping_for(4999), store.shipping_for(10000)) == (999, 0)
+    path.write_text('[[store]]\nstore_id = "a"\nname = "A"\ndomain = "a.com"\ntier = "explore"\nshipping = -1\n')
+    with pytest.raises(ValueError, match="shipping"):
+        registry.load(path)

@@ -29,6 +29,7 @@ class Offer:
     product_id: int | None = None
     trust: str = "unvetted"
     price_class: msrp.PriceClass | None = None
+    shipping_cents: int | None = None  # None: the store's shipping isn't recorded
 
     @property
     def market_ratio(self) -> float | None:
@@ -78,9 +79,10 @@ def offers(
     """In-stock exact matches, cheapest first within each product, with their MSRP class."""
     market = _market_cents(connection)
     resolver = resolver or msrp.Resolver.from_db(connection)
+    registered = {store.store_id: store for store in registry.load()}
     rows = connection.execute(
         """
-        SELECT s.name AS store, s.trust, p.name AS product, p.product_type, p.exclusive_retailer,
+        SELECT s.store_id, s.name AS store, s.trust, p.name AS product, p.product_type, p.exclusive_retailer,
                COALESCE(p.release_on, g.published_on) AS release_on, l.catalog_product_id, l.price_cents, l.url
         FROM store_listings l
         JOIN stores s USING (store_id)
@@ -111,6 +113,9 @@ def offers(
                 product_id=product_id,
                 trust=row["trust"],
                 price_class=msrp.classify(row["price_cents"], resolved[product_id], market_cents),
+                shipping_cents=(
+                    registered[row["store_id"]].shipping_for(row["price_cents"]) if row["store_id"] in registered else None
+                ),
             )
         )
     return result
@@ -155,12 +160,21 @@ def _money(cents: int | None) -> str:
     return "-" if cents is None else f"${cents / 100:,.2f}"
 
 
+def price_with_shipping(price_cents: int, shipping_cents: int | None) -> str:
+    """'$49.99 + $9.99 ship = $59.98', '$49.99, free shipping', or '$49.99' when shipping isn't recorded."""
+    if shipping_cents is None:
+        return _money(price_cents)
+    if shipping_cents == 0:
+        return f"{_money(price_cents)}, free shipping"
+    return f"{_money(price_cents)} + {_money(shipping_cents)} ship = {_money(price_cents + shipping_cents)}"
+
+
 def offer_line(offer: Offer) -> str:
     """One offer with its MSRP basis and market, e.g. for the alert-eligible list."""
     price_class = offer.price_class
     reference = price_class.msrp
     text = (
-        f"{offer.store} · {offer.trust} · {offer.product} {_money(offer.price_cents)} "
+        f"{offer.store} · {offer.trust} · {offer.product} {price_with_shipping(offer.price_cents, offer.shipping_cents)} "
         f"(MSRP {_money(reference.msrp_cents)} {reference.label}, market {_money(offer.market_cents)})"
     )
     caution = msrp.warning(price_class, offer.trust, offer.price_cents, offer.market_cents)
