@@ -127,3 +127,36 @@ def test_new_platforms_are_polled_without_collection_checks(connection, platform
     collect.sync_registry(connection, [store])
     (plan_item,) = collect.plan(connection, [store], NOW)
     assert plan_item.is_collection_check_due is False and plan_item.is_full_sweep is True
+
+
+POKEZONE = registry.Store(store_id="pokezone", name="PokéZone", domain="poke-zone.com", tier="explore", platform="pokezone")
+
+
+def _pz_item(name: str, **overrides) -> dict:
+    item = {"id": f"id-{name}", "name": name, "brand": "Pokémon", "category": "Trading Cards", "unit_price": 59.99,
+            "retail_price": 59.99, "discount_percent": 0, "stock_quantity": 3, "committed_stock": 1, "pre_order": False,
+            "visible_on_website": True, "is_active": True, "is_deleted": False, "is_archived": False,
+            "created_at": "2026-08-10T07:56:53+00:00"}
+    item.update(overrides)
+    return item
+
+
+def test_pokezone_reader_maps_its_storefront_api():
+    payload = {"products": [
+        _pz_item("30th Anniversary Elite Trainer Box | English | Pre-Order", stock_quantity=1000000, pre_order=True),
+        _pz_item("Pitch Black Elite Trainer Box", unit_price=60.0, discount_percent=10),
+        _pz_item("Sold Out Bundle", stock_quantity=2, committed_stock=2),
+        _pz_item("Hidden Thing", visible_on_website=False),
+    ], "overridden_skus": []}
+    client, seen = _client({"/api/storefront-products": httpx.Response(200, json=payload)})
+    result = readers.PokeZoneReader(POKEZONE, client, min_interval_s=0, sleep=lambda _: None).fetch(max_pages=1)
+    assert seen == ["/api/storefront-products"]
+    by_title = {p["title"]: p for p in result.products}
+    assert set(by_title) == {"30th Anniversary Elite Trainer Box | English | Pre-Order", "Pitch Black Elite Trainer Box",
+                             "Sold Out Bundle"}
+    preorder = by_title["30th Anniversary Elite Trainer Box | English | Pre-Order"]
+    assert preorder["url"] == "https://poke-zone.com/shop/30th-anniversary-elite-trainer-box-english-pre-order"
+    assert preorder["variants"][0]["available"] is True and "pre-order" in preorder["tags"]
+    assert by_title["Pitch Black Elite Trainer Box"]["variants"][0]["price"] == "54.00"  # 10% off
+    assert by_title["Sold Out Bundle"]["variants"][0]["available"] is False
+    assert match.is_pokemon(preorder)  # brand

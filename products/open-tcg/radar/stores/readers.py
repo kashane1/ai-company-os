@@ -12,6 +12,8 @@ classes and alerts work unchanged. Collection discovery stays Shopify-only.
   data (JSON-LD) on the Pokémon-looking product pages. That's Wix and
   custom sites that publish both. A discovery read fetches the most recently
   modified pages; a full sweep fetches every Pokémon-looking page.
+- `PokeZoneReader` reads PokéZone's own storefront API
+  (`/api/storefront-products`), the catalog its site loads, in one request.
 
 Network only, like `StoreReader`: nothing here touches the database.
 """
@@ -169,6 +171,64 @@ class SitemapReader(StoreReader):
             if product:
                 result.products.append(product)
         return result
+
+
+POKEZONE_PRODUCTS_PATH = "/api/storefront-products"
+
+
+def slugify(text: str) -> str:
+    """'30th Anniversary Elite Trainer Box | English | Pre-Order' -> '30th-anniversary-elite-trainer-box-english-pre-order'."""
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+
+
+class PokeZoneReader(StoreReader):
+    """PokéZone's storefront API: the whole catalog in one JSON response, read only on discovery and sweeps."""
+
+    def robots_allows_products(self) -> bool:
+        return self.robots_allows(POKEZONE_PRODUCTS_PATH)
+
+    def fetch(self, *, max_pages: int, collection: str | None = None) -> FetchResult:
+        response = self._get(POKEZONE_PRODUCTS_PATH)
+        if response.status_code != 200:
+            raise StoreFetchError(f"{POKEZONE_PRODUCTS_PATH} HTTP {response.status_code}")
+        try:
+            items = response.json()["products"]
+        except (ValueError, KeyError, TypeError) as exc:
+            raise StoreFetchError(f"{POKEZONE_PRODUCTS_PATH} is not a product list") from exc
+        products = [product for product in (pokezone_product(item, self.store.base_url) for item in items) if product]
+        return FetchResult(products=products, pages_fetched=1)
+
+
+def pokezone_product(item: dict, base_url: str) -> dict | None:
+    if not isinstance(item, dict) or not item.get("name") or not item.get("id"):
+        return None
+    if not item.get("visible_on_website", True) or item.get("is_deleted") or item.get("is_archived"):
+        return None
+    price = item.get("unit_price") if item.get("unit_price") is not None else item.get("retail_price")
+    try:
+        price = float(price) * (1 - float(item.get("discount_percent") or 0) / 100)
+    except (TypeError, ValueError):
+        price = None
+    stock = (item.get("stock_quantity") or 0) - (item.get("committed_stock") or 0)
+    is_available = bool(item.get("is_active", True)) and (stock > 0 or bool(item.get("pre_order")))
+    identity = stable_id(str(item["id"]))
+    handle = slugify(item["name"])
+    return {
+        "id": identity,
+        "title": _text(item["name"]),
+        "handle": handle,
+        "vendor": _text(item.get("brand")),
+        "product_type": _text(item.get("category")),
+        "tags": ["pre-order"] if item.get("pre_order") else [],
+        "created_at": item.get("created_at"),
+        "url": f"{base_url}/shop/{handle}",
+        "variants": [{
+            "id": identity,
+            "title": "Default Title",
+            "price": f"{price:.2f}" if price else None,
+            "available": is_available,
+        }],
+    }
 
 
 def _lowest(prices: list[str]) -> str | None:

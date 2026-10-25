@@ -48,6 +48,8 @@ def reader_factory(catalog: match.Catalog) -> Callable[[registry.Store, httpx.Cl
             return readers.WooCommerceReader(store, client)
         if store.platform in ("wix", "sitemap_jsonld"):
             return readers.SitemapReader(store, client, match_words=words)
+        if store.platform == "pokezone":
+            return readers.PokeZoneReader(store, client)
         return StoreReader(store, client)
 
     return make
