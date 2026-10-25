@@ -9,7 +9,7 @@ last_reviewed: 2026-10-25
 Everything the radar needs from you, in priority order. Claude has built everything it can do on its own. Each step below needs a human: your accounts, your money, or your judgment. Tick the boxes as you go, and tell Claude in a new session which ones you finished. The "Tell Claude" lines are the exact words to use.
 
 **Where things stand (2026-10-25):**
-- **Stores:** 89 polled, scored hourly. Hot stores are read every 5 minutes, and every 2 minutes on drop days.
+- **Stores:** 88 polled, scored hourly. Hot stores are read every 5 minutes, and every 2 minutes on drop days.
 - **MSRPs:** evidence-backed MSRPs for 148 of the 178 ETBs, bundles and displays released since 2020.
 - **Alerts:** Mac alerts fire on MSRP hits from stores and sets you watch. A `radar deals` digest lists the rest, and OpenFlip receives each store offer with its MSRP.
 - **Email:** 66 store email lists are subscribed, but their mail doesn't reach the radar yet (step 1).
@@ -45,15 +45,15 @@ Done 2026-10-25. The radar matched the forward to TCG Moonblast by its links and
 - [ ] Open the confirmation emails in ksakhakorn@gmail.com from **Thirdspace TCG**, **Wulf Gaming**, **Common Lands** and, if one arrived, **Level Up Games**, and click each confirmation link. Until then those stores don't send you anything.
 - [ ] Unsubscribe from **GoodStash TCG**'s emails. It's marked as a scam and the radar ignores it.
 
-## 4. Vet CARDHAVEN TCG and PokéZone (judgment calls)
+## 4. Vet CARDHAVEN TCG (judgment call)
 
-**PokéZone** (poke-zone.com) lists a Pitch Black booster box at $139.99, against a $161.64 MSRP, and runs pre-orders with unlimited stock. It has the same "too good" look, so look at it the same way.
+**PokéZone is done:** you confirmed it's a scam on 2026-10-25. It's marked `avoid` like GoodStash and never read again.
 
 **CARDHAVEN** (cardhaventcg.com) lists recent sets at about 90% of MSRP. Examples: a Perfect Order booster box at $143.10 (MSRP $161.64), and a Chaos Rising ETB at $43.49 (MSRP $49.99). The product matches are correct. It is the only "hot" store right now, so it's read every 5 minutes, and its alerts carry an "unvetted, check before paying" warning. It could be a real discounter, or the same pattern as GoodStash.
 
-- [ ] For each store, look at its reviews and policies, then tell Claude one of:
-  - *"Mark <store> avoid"*: it's never read again, like GoodStash.
-  - *"Mark <store> checked"*: the store looks legitimate, and the warning drops from its alerts.
+- [ ] Look at CARDHAVEN's reviews and policies, then tell Claude one of:
+  - *"Mark CARDHAVEN avoid"*: it's never read again, like GoodStash.
+  - *"Mark CARDHAVEN checked"*: the store looks legitimate, and the warning drops from its alerts.
   - Nothing: it stays unvetted, with warnings.
 
 ## 5. Your first purchase turns on one-click opening
@@ -92,7 +92,7 @@ Each has a default that Claude has already applied. Change any of them by tellin
 
 Store shipping comes from each store's published policy: 12 stores have a flat rate and 35 a free-shipping threshold. Alerts and the digest show shipping when it's known.
 
-- **Not verified (13 stores):** Shopify rate-limited the research partway through, so these weren't checked: Collector Store, Delightful TCG, Fox and Fable Games, Jaro Cards, JeffThrowCards, PokeMall TCG, Rolling Hills Collectibles, Sweets and Geeks, The Platypus Party, ThePokeHive, Omni Collectibles, TCG Hub and Hobbies, and PokéZone.
+- **Not verified (13 stores):** Shopify rate-limited the research partway through, so these weren't checked: Collector Store, Delightful TCG, Fox and Fable Games, Jaro Cards, JeffThrowCards, PokeMall TCG, Rolling Hills Collectibles, Sweets and Geeks, The Platypus Party, ThePokeHive, Omni Collectibles, and TCG Hub and Hobbies.
 - **Calculated at checkout (about 20 stores):** these have no flat rate at all.
 
 - [ ] Nothing needed. If you notice a store's shipping while shopping, tell Claude (*"<store> ships for $X, free over $Y"*). Or ask Claude to rerun the research for the 13 later.
