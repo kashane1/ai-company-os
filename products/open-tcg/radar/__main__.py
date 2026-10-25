@@ -34,6 +34,7 @@ import time
 from . import calendar, db, episodes, manual, notify, sources, watchlist
 from .catalog import sync as catalog_sync
 from .catalog.tcgcsv import TcgCsvClient
+from .export import ExportError, export_observations
 from .feeds import pokebeach, southern_hobby
 from .http import make_client
 from .inbox import message as inbox_message
@@ -521,10 +522,29 @@ def cmd_init_db(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_export_observations(args: argparse.Namespace) -> int:
+    """Emit radar observations as NDJSON without opening the normal radar DB."""
+    try:
+        records = export_observations(args.db, after=args.after, limit=args.limit)
+    except ExportError as exc:
+        print(f"export-observations: {exc}", file=sys.stderr)
+        return 2
+    for record in records:
+        print(json.dumps(record, separators=(",", ":"), sort_keys=True))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="radar", description="OpenTCG radar")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("init-db").set_defaults(func=cmd_init_db)
+    export_observations_parser = commands.add_parser(
+        "export-observations", help="write read-only observation evidence as NDJSON"
+    )
+    export_observations_parser.add_argument("--db", required=True, help="existing radar SQLite database")
+    export_observations_parser.add_argument("--after", help="cursor from a prior export record")
+    export_observations_parser.add_argument("--limit", type=int, default=100)
+    export_observations_parser.set_defaults(func=cmd_export_observations)
     sync_parser = commands.add_parser("sync", help="run every enabled poll source once")
     sync_parser.add_argument("--only", choices=sorted(RUNNERS))
     sync_parser.add_argument("--force", action="store_true", help="poll every source even if not due")
