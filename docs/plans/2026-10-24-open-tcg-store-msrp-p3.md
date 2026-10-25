@@ -115,3 +115,17 @@ The weekly refresh is manual for now. Run `radar msrp missing`, research the new
   - "151 Booster Pack" was being read as 151 packs. Pack counts are now plural only ("10 Booster Packs").
   - An unvetted store priced far below market (under 0.6× market) now gets a warning, even at MSRP. GoodStash TCG lists out-of-print SV ETBs and displays at or below MSRP, against markets of $300–$450. All of them were listed together on 2026-10-03, which fits the "too good" risk in the parent plan.
 
+### Sword & Shield era (2020–2022), added 2026-10-25
+
+- **Evidence:** 45 of 55 products: 26 Pokémon Center US, 17 distributor or press (PHD Games from Astral Radiance on, plus PokeBeach and Dexerto) and 2 Best Buy first-party.
+  - Main sets had $3.99 packs throughout: ETB $39.99 (8 packs), Pokémon Center ETB $49.99 (10 packs, from Chilling Reign), bundle $23.94 and display $143.64.
+  - Special sets differ: Champion's Path, Shining Fates, Celebrations and Pokémon GO ETBs are $49.99, and the Celebrations and Pokémon GO Pokémon Center ETBs are $64.99.
+  - A spot check of PHD's Lost Origin solicitation matched exactly.
+- **Estimate rules** now cover 2020-02-07 to 2023-03-31 at those prices.
+- **Unpriced (10):**
+  - "[Set of 2]" pairings
+  - the international-only ETB Plus
+  - the Vivid Voltage display (only a CAD page was found)
+  - Trick or Trade bags
+- **Total:** 148 of 178 ETBs, bundles and displays since 2020 have evidence. Older sets trade far above MSRP and are left without one.
+

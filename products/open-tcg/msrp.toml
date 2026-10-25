@@ -20,6 +20,10 @@
 # ETB $59.99, booster bundle $26.94 (6 × $4.49; PHD solicited 2023 bundles at
 # $26.99), 36-pack display and enhanced display $161.64 (36 × $4.49).
 # Crown Zenith (Jan 2023, last Sword & Shield set) kept $3.99 packs.
+# Sword & Shield era (Feb 2020 to Mar 2023, researched 2026-10-25): $3.99
+# packs, ETB $39.99 (8 packs), Pokémon Center ETB $49.99 (10 packs, from
+# Chilling Reign), bundle $23.94, display $143.64. Special sets (Champion's
+# Path, Shining Fates, Celebrations, Pokémon GO) have their own evidence rows.
 
 [[form_default]]
 form = "etb"
@@ -53,6 +57,44 @@ note = "36 packs × $4.49; enhanced displays are the same price"
 [[pack_price]]
 msrp = 4.49
 since = "2023-03-31"
+
+[[form_default]]
+form = "etb"
+msrp = 39.99
+since = "2020-02-07"
+until = "2023-03-31"
+name_excludes = ["Set of", "Plus"]
+note = "Sword & Shield main-set ETB"
+
+[[form_default]]
+form = "etb"
+exclusive = "Pokemon Center"
+msrp = 49.99
+since = "2021-06-18"
+until = "2023-03-31"
+name_excludes = ["Set of", "Plus"]
+note = "Sword & Shield Pokémon Center ETB, from Chilling Reign"
+
+[[form_default]]
+form = "booster_bundle"
+msrp = 23.94
+since = "2020-02-07"
+until = "2023-03-31"
+name_excludes = ["Display", "Case", "Trick or Trade"]
+note = "6 packs × $3.99"
+
+[[form_default]]
+form = "booster_box"
+msrp = 143.64
+since = "2020-02-07"
+until = "2023-03-31"
+name_excludes = ["Case", "Half"]
+note = "36 packs × $3.99"
+
+[[pack_price]]
+msrp = 3.99
+since = "2020-02-07"
+until = "2023-03-31"
 
 [[reference]]
 product_id = 600518
@@ -1069,6 +1111,455 @@ checked_on = "2026-10-24"
 packs = 11
 note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
 
+[[reference]]
+product_id = 206027
+name = "Sword & Shield Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://pokemoncenter.com/pok%C3%A9mon-tcg:-sword-shield-booster-display-box-(36-packs)-172-81651"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. 36 x $3.99."
+
+[[reference]]
+product_id = 206038
+name = "Sword & Shield Elite Trainer Box [Zacian]"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-16994/pokemon-tcg-sword-and-shield-elite-trainer-box-zacian"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 206039
+name = "Sword & Shield Elite Trainer Box [Zamazenta]"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-16995/pokemon-tcg-sword-and-shield-elite-trainer-box-zamazenta"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 210561
+name = "Rebel Clash Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/173-80681/pokemon-tcg-sword-and-shield-rebel-clash-booster-display-box-36-packs"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 210572
+name = "Rebel Clash Elite Trainer Box"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/173-80700/pokemon-tcg-sword-and-shield-rebel-clash-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 216853
+name = "Darkness Ablaze Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/darkness-ablaze-booster-box/"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US search-page snapshot (not the product page); listing sold out."
+
+[[reference]]
+product_id = 216856
+name = "Darkness Ablaze Elite Trainer Box"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/174-80731/pokemon-tcg-sword-and-shield-darkness-ablaze-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 218791
+name = "Champion's Path Elite Trainer Box"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-80545/pokemon-tcg-champions-path-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Special set: 10 packs and a Charizard V promo. PokeBeach's July 2020 reveal gave the same $49.99."
+
+[[reference]]
+product_id = 221752
+name = "Vivid Voltage Elite Trainer Box"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/175-80768/pokemon-tcg-sword-and-shield-vivid-voltage-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. A Pokemon Center category snapshot also showed $37.99 (likely a later markdown); product page price used."
+
+[[reference]]
+product_id = 228821
+name = "Shining Fates Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2020/12/shining-fates-is-februarys-special-set"
+checked_on = "2026-10-25"
+packs = 10
+note = "PokeBeach announcement (quote from search snippet; pokebeach.com blocks direct fetches). Special set, no booster boxes. The US Pokemon Center listing is sold out and the snapshot did not show a clear USD price."
+
+[[reference]]
+product_id = 229277
+name = "Battle Styles Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/176-80818/pokemon-tcg-sword-and-shield-battle-styles-booster-display-box-36-packs"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 229285
+name = "Battle Styles Elite Trainer Box [Rapid Strike Urshifu] (Blue)"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-17081/pokemon-tcg-sword-and-shield-battle-styles-elite-trainer-box-rapid-strike-urshifu"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 229284
+name = "Battle Styles Elite Trainer Box [Single Strike Urshifu] (Red)"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-17080/pokemon-tcg-sword-and-shield-battle-styles-elite-trainer-box-single-strike-urshifu"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 236258
+name = "Chilling Reign Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-81846/pokemon-tcg-sword-and-shield-chilling-reign-booster-display-box-36-packs"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 236260
+name = "Chilling Reign Elite Trainer Box [Ice Rider Calyrex]"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/06/exclusive-larger-chilling-reign-elite-trainer-boxes-releasing-at-pokemon-center"
+checked_on = "2026-10-25"
+packs = 8
+note = "PokeBeach (June 2021) on the regular Chilling Reign ETBs (both Calyrex versions). Quote from search snippet; pokebeach.com blocks direct fetches. Regular ETBs were not sold on pokemoncenter.com (it sold the PC versions)."
+
+[[reference]]
+product_id = 236261
+name = "Chilling Reign Elite Trainer Box [Shadow Rider Calyrex]"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/06/exclusive-larger-chilling-reign-elite-trainer-boxes-releasing-at-pokemon-center"
+checked_on = "2026-10-25"
+packs = 8
+note = "PokeBeach (June 2021) on the regular Chilling Reign ETBs (both Calyrex versions). Quote from search snippet."
+
+[[reference]]
+product_id = 247281
+name = "Chilling Reign Pokemon Center Elite Trainer Box [Ice Rider Calyrex] (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/177-80970/pokemon-tcg-sword-and-shield-chilling-reign-pokemon-center-elite-trainer-box-ice-rider-calyrex"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Listed with 10 packs, but PokeBeach reported the first run shipped with only 8 packs by mistake (Pokemon Center compensated buyers). PokeBeach also gives $49.99."
+
+[[reference]]
+product_id = 247282
+name = "Chilling Reign Pokemon Center Elite Trainer Box [Shadow Rider Calyrex] (Exclusive)"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/06/exclusive-larger-chilling-reign-elite-trainer-boxes-releasing-at-pokemon-center"
+checked_on = "2026-10-25"
+packs = 10
+note = "PokeBeach (June 2021) covers both Pokemon Center Calyrex ETBs at $49.99. The Shadow Rider product page did not surface in search; the Ice Rider PC page shows $49.99. Listed with 10 packs; first run shipped with 8 by mistake."
+
+[[reference]]
+product_id = 242436
+name = "Evolving Skies Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/evolvong-skies-display"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US search-page snapshot (structured data); not the product page. Sold out."
+
+[[reference]]
+product_id = 242434
+name = "Evolving Skies Elite Trainer Box [Flareon/Jolteon/Umbreon/Leafeon]"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/07/evolving-skies-pokemon-center-etbs-come-with-eevee-pin-and-eeveelution-coin"
+checked_on = "2026-10-25"
+packs = 8
+note = "PokeBeach (July 2021) on the regular Evolving Skies ETBs (both Eeveelution versions). Quote from search snippet; pokebeach.com blocks direct fetches."
+
+[[reference]]
+product_id = 242443
+name = "Evolving Skies Elite Trainer Box [Glaceon/Vaporeon/Sylveon/Espeon]"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/07/evolving-skies-pokemon-center-etbs-come-with-eevee-pin-and-eeveelution-coin"
+checked_on = "2026-10-25"
+packs = 8
+note = "PokeBeach (July 2021) on the regular Evolving Skies ETBs (both Eeveelution versions). Quote from search snippet."
+
+[[reference]]
+product_id = 245352
+name = "Evolving Skies Pokemon Center Elite Trainer Box [Glaceon/Vaporeon/Sylveon/Espeon] (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/178-80981/pokemon-tcg-sword-and-shield-evolving-skies-pokemon-center-elite-trainer-box-vaporeon-espeon-glaceon-and-sylveon"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. PokeBeach (July 2021) also says the PC versions cost $49.99."
+
+[[reference]]
+product_id = 245376
+name = "Evolving Skies Pokemon Center Elite Trainer Box [Jolteon/Flareon/Umbreon/Leafeon] (Exclusive)"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/07/evolving-skies-pokemon-center-etbs-come-with-eevee-pin-and-eeveelution-coin"
+checked_on = "2026-10-25"
+packs = 10
+note = "PokeBeach (July 2021) on both Pokemon Center Evolving Skies ETBs. The Jolteon/Flareon/Umbreon/Leafeon US product page did not surface. 10 packs per Pokemon Center listings for the PC versions."
+
+[[reference]]
+product_id = 242811
+name = "Celebrations Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://pocketmonsters.net/news/5289"
+checked_on = "2026-10-25"
+packs = 15
+note = "PocketMonsters.net news on the official release (Oct 8, 2021). Slickdeals also logged GameStop selling it at $49.99. Packs: 10 four-card Celebrations packs + 5 regular packs (pokemon.com product gallery). No US Pokemon Center listing for the regular ETB surfaced."
+
+[[reference]]
+product_id = 251199
+name = "Celebrations Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 64.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-80986/pokemon-tcg-celebrations-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 19
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Larger than the regular $49.99 ETB (13 Celebrations + 6 other packs)."
+
+[[reference]]
+product_id = 247654
+name = "Fusion Strike Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-81916"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 247671
+name = "Fusion Strike Elite Trainer Box"
+msrp = 39.99
+basis = "big_box_first_party"
+evidence_url = "https://www.bestbuy.com/site/pokemon-trading-card-game-fusion-strike-elite-trainer-box/6482276.p?skuId=6482276"
+checked_on = "2026-10-25"
+packs = 8
+note = "Best Buy first-party listing (SKU 6482276), price from search snapshot; now 'no longer available in new condition'. 8 packs per retailer descriptions."
+
+[[reference]]
+product_id = 247673
+name = "Fusion Strike Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/fusion-strike-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US search-page snapshot; product page did not surface. The en-ca page's $67.99 is CAD and was ignored."
+
+[[reference]]
+product_id = 256141
+name = "Brilliant Stars Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-81996/pokemon-tcg-sword-and-shield-brilliant-stars-booster-display-box-36-packs"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 256138
+name = "Brilliant Stars Elite Trainer Box"
+msrp = 39.99
+basis = "big_box_first_party"
+evidence_url = "https://www.bestbuy.com/site/pokemon-trading-card-game-brilliant-stars-elite-trainer-box/6494284.p?skuId=6494284"
+checked_on = "2026-10-25"
+packs = 8
+note = "Best Buy first-party listing (SKU 6494284), price from search snapshot; release date 02/25/2022. A Slickdeals post showed Target at $44.99 in Dec 2022, so Target may have priced above $39.99 later."
+
+[[reference]]
+product_id = 256140
+name = "Brilliant Stars Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/180-85006/pokemon-tcg-sword-and-shield-brilliant-stars-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 265519
+name = "Astral Radiance Booster Box"
+msrp = 143.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/03/09/pokemon-tcg-sword-shield-astral-radiance/"
+checked_on = "2026-10-25"
+packs = 36
+note = "PHD Games distributor solicitation. Pack count not stated by PHD; 36 = 143.64 / 3.99 is inferred."
+
+[[reference]]
+product_id = 265527
+name = "Astral Radiance Elite Trainer Box"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/03/09/pokemon-tcg-sword-shield-astral-radiance/"
+checked_on = "2026-10-25"
+packs = 8
+note = "PHD Games distributor solicitation; releases May 27, 2022."
+
+[[reference]]
+product_id = 265528
+name = "Astral Radiance Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/181-85133/pokemon-tcg-sword-and-shield-astral-radiance-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. The en-ca $67.99 is CAD and was ignored."
+
+[[reference]]
+product_id = 270708
+name = "Pokemon GO Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/05/02/pokemon-go-special-collection-v-battle-decks-more/"
+checked_on = "2026-10-25"
+packs = 10
+note = "PHD Games distributor solicitation. Special set: 10 packs at $49.99, not the 8-pack $39.99 main-set ETB."
+
+[[reference]]
+product_id = 270709
+name = "Pokemon GO Pokemon Center Elite Trainer Box Plus (Exclusive)"
+msrp = 64.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-85033/pokemon-tcg-pokemon-go-pokemon-center-elite-trainer-box-plus"
+checked_on = "2026-10-25"
+packs = 12
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Includes a deck box and metal dice/coin/markers."
+
+[[reference]]
+product_id = 280302
+name = "Trick or Trade BOOster Bundle (40 ct)"
+msrp = 14.99
+basis = "distributor_or_press"
+evidence_url = "https://www.dexerto.com/pokemon/all-pokemon-cards-in-tcgs-trick-or-trade-booster-bundle-halloween-set-1915956/"
+checked_on = "2026-10-25"
+packs = 40
+note = "Dexerto (Aug 26, 2022). 40 three-card mini packs; on sale Sept 1, 2022 at Pokemon Center and retailers. Not a $3.99-pack product."
+
+[[reference]]
+product_id = 277324
+name = "Lost Origin Booster Box"
+msrp = 143.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/06/24/pokemon-tcg-lost-origin-infernape-v-box/"
+checked_on = "2026-10-25"
+packs = 36
+note = "PHD Games distributor solicitation; Pokemon Center US search snapshots also show $143.64. 36 packs inferred (PHD did not state count)."
+
+[[reference]]
+product_id = 278819
+name = "Lost Origin Booster Bundle"
+msrp = 23.94
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/06/24/pokemon-tcg-lost-origin-infernape-v-box/"
+checked_on = "2026-10-25"
+packs = 6
+note = "PHD Games distributor solicitation. 6 packs inferred from 23.94 / 3.99; PHD did not state the count."
+
+[[reference]]
+product_id = 277335
+name = "Lost Origin Elite Trainer Box"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/06/24/pokemon-tcg-lost-origin-infernape-v-box/"
+checked_on = "2026-10-25"
+packs = 8
+note = "PHD Games distributor solicitation; releases September 9, 2022."
+
+[[reference]]
+product_id = 277336
+name = "Lost Origin Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/lost-origin"
+checked_on = "2026-10-25"
+note = "Pokemon Center US category-page snapshot; sold out. Pack count not shown in the snapshot (other SWSH PC ETBs have 10). en-ca $67.99 is CAD and was ignored."
+
+[[reference]]
+product_id = 283389
+name = "Silver Tempest Booster Box"
+msrp = 143.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/09/01/pokemon-tcg-sword-shield-silver-tempest-more/"
+checked_on = "2026-10-25"
+packs = 36
+note = "PHD Games distributor solicitation. 36 packs inferred."
+
+[[reference]]
+product_id = 283396
+name = "Silver Tempest Booster Bundle"
+msrp = 23.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/183-85154/pokemon-tcg-sword-and-shield-silver-tempest-booster-bundle-6-packs"
+checked_on = "2026-10-25"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Conflict: PHD Games lists this item (PKU85154) at 'MSRP: $23.99'. Pokemon Center's $23.94 (= 6 x $3.99) used; the 5-cent difference doesn't affect at-or-below-MSRP alerts much."
+
+[[reference]]
+product_id = 283401
+name = "Silver Tempest Elite Trainer Box"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/09/01/pokemon-tcg-sword-shield-silver-tempest-more/"
+checked_on = "2026-10-25"
+packs = 8
+note = "PHD Games distributor solicitation; releases November 11, 2022."
+
+[[reference]]
+product_id = 285860
+name = "Silver Tempest Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/183-85162/pokemon-tcg-sword-and-shield-silver-tempest-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Category snapshots show $49.99 USD; the $67.99 figure is the en-ca (CAD) page and was ignored."
+
 [[unpriced]]
 product_id = 678555
 name = "Prismatic Evolutions Booster Bundle + Surprise Box Bundle (Sam's Club)"
@@ -1168,3 +1659,53 @@ reason = "No MSRP found. Pokemon Center sells only the standalone Greninja ex Ba
 product_id = 679564
 name = "Surging Sparks Booster Bundle (Retail)"
 reason = "No version-specific MSRP. Target sells 'Surging Sparks Booster Bundle' first-party at $27.99 (target.com A-91619929, out of stock, current snapshot, not necessarily launch list price). Pokemon Center lists a Surging Sparks bundle at $26.94 and PHD (hobby) at $26.94, neither labeled Retail vs LGS. Most likely $26.94, but no source ties a price to the Retail version; left null."
+
+[[unpriced]]
+product_id = 244411
+name = "Sword & Shield Elite Trainer Box [Set of 2]"
+reason = "TCGplayer bundle of the Zacian and Zamazenta ETBs; no retailer sold a 2-pack at a stated price. Each ETB is $39.99 at Pokemon Center (699-16994, 699-16995), so 2 x $39.99 = $79.98 is an inference, not evidence."
+
+[[unpriced]]
+product_id = 221313
+name = "Vivid Voltage Booster Box"
+reason = "No US price found. Only the Pokemon Center Canada page (175-80749) surfaced, at $186.99 CAD, which must not be used. Sibling SWSH displays (Rebel Clash, Battle Styles, Chilling Reign, Fusion Strike, etc.) are $143.64 at Pokemon Center US, but that is a pattern, not evidence for this product."
+
+[[unpriced]]
+product_id = 222987
+name = "Sword & Shield Elite Trainer Box Plus [Zacian]"
+reason = "PokeBeach (Oct 2020) reported the Elite Trainer Box Plus at $59.99 with 12 packs and a gold Zacian V, but also said it was for some international markets and the US would only get the Ultra-Premium Collection. No US retailer listing found, so there is no confirmed US MSRP. Left null; $59.99 is reference only."
+
+[[unpriced]]
+product_id = 222986
+name = "Sword & Shield Elite Trainer Box Plus [Zamazenta]"
+reason = "Same as the Zacian version: PokeBeach reported $59.99 / 12 packs but said the ETB Plus was not a US release. No US listing found. Left null; $59.99 is reference only."
+
+[[unpriced]]
+product_id = 244414
+name = "Battle Styles Elite Trainer Box [Set of 2]"
+reason = "TCGplayer 2-pack of the Single Strike and Rapid Strike ETBs; no stated price for a set of 2. Each is $39.99 at Pokemon Center; $79.98 would be an inference, not evidence."
+
+[[unpriced]]
+product_id = 244410
+name = "Chilling Reign Elite Trainer Box [Set of 2]"
+reason = "TCGplayer 2-pack of the Ice Rider and Shadow Rider ETBs; no stated set-of-2 price. Each regular ETB is $39.99 (PokeBeach); $79.98 would be an inference."
+
+[[unpriced]]
+product_id = 243721
+name = "Evolving Skies Elite Trainer Box [Set of 2]"
+reason = "TCGplayer 2-pack of both regular Evolving Skies ETBs; no stated set-of-2 price. Each is $39.99 (PokeBeach); $79.98 would be an inference."
+
+[[unpriced]]
+product_id = 245855
+name = "Evolving Skies Pokemon Center Elite Trainer Box [Set of 2] (Exclusive)"
+reason = "TCGplayer 2-pack of both Pokemon Center ETBs; no evidence Pokemon Center sold them as a set at a stated price. 2 x $49.99 = $99.98 would be an inference."
+
+[[unpriced]]
+product_id = 659627
+name = "Trick or Trade BOOster Bundle (120 ct)"
+reason = "No evidence for a 120-count product. Only the 40-pack bundle has a published price ($14.99, Dexerto). 3 x $14.99 = $44.97 would be an inference. This may be a club-store or retailer pack; check before using."
+
+[[unpriced]]
+product_id = 280301
+name = "Trick or Trade BOOster Bundle - Mini Booster Pack"
+reason = "A single 3-card mini pack from the 40-pack bundle; never sold alone at retail, so there is no MSRP. $14.99 / 40 = ~$0.37 per pack is an inference only."
