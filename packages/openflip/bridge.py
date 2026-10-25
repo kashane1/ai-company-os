@@ -43,6 +43,15 @@ _TEXT_FIELDS = frozenset(
 )
 
 
+# Optional store-offer context (OpenTCG store monitoring P6). Absent or null
+# for non-store observations; v1 exports from before P6 omit them entirely.
+_PRICE_CLASSES = frozenset({"below_msrp", "at_msrp", "near_msrp", "market", "marked_up", "no_msrp"})
+_STORE_TRUST_LEVELS = frozenset({"unvetted", "checked", "purchased_ok", "avoid"})
+_MSRP_BASES = frozenset(
+    {"official_listing", "big_box_first_party", "distributor_or_press", "form_default", "per_pack_estimate"}
+)
+
+
 class OpenTcgBridgeError(ValueError):
     """The supplied export cannot safely be treated as OpenTCG evidence."""
 
@@ -120,6 +129,24 @@ def _parse_record(value: object) -> dict[str, object]:
     cursor_time, _ = cursor_position(parsed["cursor"])
     if _validate_time(cursor_time, "cursor.received_at") != parsed["received_at"]:
         raise OpenTcgBridgeError("cursor does not match received_at")
+
+    # Optional fields are kept only when the export sent them.
+    for field, minimum in (("msrp_cents", 0), ("catalog_product_id", 1)):
+        if field not in value:
+            continue
+        number = value[field]
+        if number is not None and (isinstance(number, bool) or not isinstance(number, int) or number < minimum):
+            raise OpenTcgBridgeError(f"{field} must be an integer of at least {minimum} or null")
+        parsed[field] = number
+    for field, allowed in (
+        ("msrp_basis", _MSRP_BASES), ("price_class", _PRICE_CLASSES), ("store_trust", _STORE_TRUST_LEVELS)
+    ):
+        if field not in value:
+            continue
+        label = value[field]
+        if label is not None and label not in allowed:
+            raise OpenTcgBridgeError(f"{field} is not a known value")
+        parsed[field] = label
 
     price = value["price_hint"]
     if price is not None:

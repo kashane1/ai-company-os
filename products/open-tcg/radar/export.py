@@ -33,6 +33,15 @@ _OBSERVATION_COLUMNS = frozenset(
 )
 
 
+# Optional store-offer context (store monitoring P6), null for other sources.
+PRICE_CLASSES = frozenset({"below_msrp", "at_msrp", "near_msrp", "market", "marked_up", "no_msrp"})
+STORE_TRUST_LEVELS = frozenset({"unvetted", "checked", "purchased_ok", "avoid"})
+MSRP_BASES = frozenset(
+    {"official_listing", "big_box_first_party", "distributor_or_press", "form_default", "per_pack_estimate"}
+)
+_OFFER_FIELDS = ("msrp_cents", "msrp_basis", "price_class", "store_trust", "catalog_product_id")
+
+
 class ExportError(ValueError):
     """The requested source database or export parameters are invalid."""
 
@@ -116,6 +125,34 @@ def _origin_key(source_id: str, external_id: str) -> str:
     return hashlib.sha256(json.dumps([source_id, external_id]).encode("utf-8")).hexdigest()
 
 
+def _optional_int(value: object, field: str, *, minimum: int) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        raise ExportError(f"{field} must be an integer of at least {minimum} or null")
+    return value
+
+
+def _optional_enum(value: object, field: str, allowed: frozenset[str]) -> str | None:
+    if value is None:
+        return None
+    if value not in allowed:
+        raise ExportError(f"{field} is not a known value")
+    return value
+
+
+def _offer_fields(row: sqlite3.Row) -> dict[str, object]:
+    keys = row.keys()
+    values = {field: row[field] if field in keys else None for field in _OFFER_FIELDS}
+    return {
+        "msrp_cents": _optional_int(values["msrp_cents"], "msrp_cents", minimum=0),
+        "msrp_basis": _optional_enum(values["msrp_basis"], "msrp_basis", MSRP_BASES),
+        "price_class": _optional_enum(values["price_class"], "price_class", PRICE_CLASSES),
+        "store_trust": _optional_enum(values["store_trust"], "store_trust", STORE_TRUST_LEVELS),
+        "catalog_product_id": _optional_int(values["catalog_product_id"], "catalog_product_id", minimum=1),
+    }
+
+
 def _record(row: sqlite3.Row) -> dict[str, object]:
     source_id = _validate_text(row["source_id"], "source_id", nullable=False)
     external_id = _validate_text(row["external_id"], "external_id", nullable=False)
@@ -155,6 +192,7 @@ def _record(row: sqlite3.Row) -> dict[str, object]:
         "url": _validate_text(row["url"], "url"),
         "raw_text": _validate_text(row["text"], "text", nullable=False),
         "cursor": _encode_cursor(row["received_at"], observation_id),
+        **_offer_fields(row),
     }
 
 
@@ -168,16 +206,23 @@ def export_observations(
     connection = _connect_read_only(path)
     try:
         _validate_schema(connection)
-        query = """
-            SELECT id, source_id, external_id, author, text, signal, retailer,
-                   product_text, price, url, source_time, received_at
-            FROM observations
+        has_offers = connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'store_offer_details'"
+        ).fetchone()
+        offer_columns = (
+            ", d.msrp_cents, d.msrp_basis, d.price_class, d.store_trust, d.catalog_product_id" if has_offers else ""
+        )
+        offer_join = " LEFT JOIN store_offer_details d ON d.observation_id = observations.id" if has_offers else ""
+        query = f"""
+            SELECT observations.id AS id, source_id, external_id, author, text, signal, retailer,
+                   product_text, price, url, source_time, received_at{offer_columns}
+            FROM observations{offer_join}
         """
         values: tuple[object, ...] = ()
         if cursor is not None:
-            query += " WHERE (received_at > ?) OR (received_at = ? AND id > ?)"
+            query += " WHERE (received_at > ?) OR (received_at = ? AND observations.id > ?)"
             values = (cursor[0], cursor[0], cursor[1])
-        query += " ORDER BY received_at ASC, id ASC LIMIT ?"
+        query += " ORDER BY received_at ASC, observations.id ASC LIMIT ?"
         rows = connection.execute(query, (*values, limit)).fetchall()
         return [_record(row) for row in rows]
     except sqlite3.Error as exc:

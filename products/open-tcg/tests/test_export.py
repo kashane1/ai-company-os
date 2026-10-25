@@ -114,3 +114,38 @@ def test_cursor_preserves_database_sort_key_and_unknown_source_time(tmp_path, re
     assert first["origin_key"] != second["origin_key"]
     assert first["observed_at"] is None
     assert export_observations(database, after=second["cursor"], limit=1) == []
+
+
+def test_store_offer_context_is_exported_and_null_elsewhere(tmp_path: Path) -> None:
+    path = tmp_path / "radar.db"
+    connection = _source_db(path)
+    _insert_observation(connection, external_id="post", received_at="2026-10-25T12:00:00+00:00")
+    _insert_observation(connection, external_id="offer", received_at="2026-10-25T12:00:01+00:00")
+    offer_id = connection.execute("SELECT id FROM observations WHERE external_id = 'offer'").fetchone()[0]
+    connection.execute(
+        """
+        INSERT INTO store_offer_details (observation_id, store_id, store_trust, catalog_product_id, price_cents,
+            msrp_cents, msrp_basis, price_class, market_cents, is_alert_eligible)
+        VALUES (?, 'wulf_gaming', 'unvetted', 712102, 4999, 4999, 'official_listing', 'at_msrp', 7800, 1)
+        """,
+        (offer_id,),
+    )
+    connection.commit()
+    connection.close()
+    post, offer = export_observations(path)
+    assert {key: post[key] for key in ("msrp_cents", "price_class", "store_trust", "catalog_product_id")} == {
+        "msrp_cents": None, "price_class": None, "store_trust": None, "catalog_product_id": None,
+    }
+    assert (offer["msrp_cents"], offer["msrp_basis"], offer["price_class"], offer["store_trust"],
+            offer["catalog_product_id"]) == (4999, "official_listing", "at_msrp", "unvetted", 712102)
+
+
+def test_database_without_store_offers_still_exports(tmp_path: Path) -> None:
+    path = tmp_path / "radar.db"
+    connection = _source_db(path)
+    _insert_observation(connection, external_id="post", received_at="2026-10-25T12:00:00+00:00")
+    connection.execute("DROP TABLE store_offer_details")
+    connection.commit()
+    connection.close()
+    (record,) = export_observations(path)
+    assert record["price_class"] is None and record["msrp_cents"] is None

@@ -80,3 +80,17 @@ def test_import_replay_and_whole_batch_validation_preserve_cursor():
     with pytest.raises(ValueError, match="changed"):
         service.import_observations(json.dumps(_record(raw_text="Changed content")))
     assert service.store.by_key("opentcg:cursor") == cursor
+
+
+def test_store_offer_context_is_kept_and_validated() -> None:
+    offer = {"msrp_cents": 4999, "msrp_basis": "official_listing", "price_class": "at_msrp",
+             "store_trust": "unvetted", "catalog_product_id": 712102}
+    (parsed,) = parse_observations(json.dumps(_record(source="stores", **offer)))
+    assert {key: parsed[key] for key in offer} == offer
+    # Exports from before store monitoring P6 omit the fields, and so does the parsed record.
+    (older,) = parse_observations(json.dumps(_record()))
+    assert "price_class" not in older and "msrp_cents" not in older
+    with pytest.raises(OpenTcgBridgeError, match="price_class"):
+        parse_observations(json.dumps(_record(price_class="cheap")))
+    with pytest.raises(OpenTcgBridgeError, match="msrp_cents"):
+        parse_observations(json.dumps(_record(msrp_cents=-1)))
