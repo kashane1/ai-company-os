@@ -34,6 +34,8 @@ email_signup = "restock_button"
 email_status = "none"
 discord = "https://discord.gg/AyvpT3gZBG"
 discord_status = "joined"
+shipping = 10.00
+free_shipping_over = 150.00
 
 [[store]]
 store_id = "cardboard_and_die"
@@ -56,6 +58,8 @@ platform = "shopify_json"
 discovery_every_minutes = 15
 email_signup = "none"
 email_status = "none"
+shipping = 6.99
+free_shipping_over = 75.00
 
 [[store]]
 store_id = "cardtopia_collectibles"
@@ -87,6 +91,7 @@ platform = "shopify_json"
 email_signup = "drop"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 75.00
 
 [[store]]
 store_id = "knight_and_day_games"
@@ -97,18 +102,21 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+shipping = 9.99
+free_shipping_over = 150.00
 
 [[store]]
 store_id = "larrys_game_store"
 name = "Larry's Game Store"
 domain = "larrysgamestore.com"
-tier = "first_pass"
+tier = "parked"
 platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 discord = "https://discord.gg/tAtxMMhRBV"
 discord_status = "joined"
+notes = "Not shipping: its shipping policy says the store is not currently shipping orders (2026-10-25). Parked; recheck later."
 
 [[store]]
 store_id = "maine_phase_hobbies"
@@ -118,6 +126,7 @@ tier = "first_pass"
 platform = "shopify_json"
 email_signup = "none"
 email_status = "none"
+free_shipping_over = 100.00
 
 [[store]]
 store_id = "many_realms"
@@ -129,6 +138,8 @@ email_signup = "none"
 email_status = "none"
 discord = "https://discord.gg/manyrealms"
 discord_status = "joined"
+shipping = 10.00
+free_shipping_over = 125.00
 
 [[store]]
 store_id = "mh_deals_plus"
@@ -160,6 +171,7 @@ discovery_every_minutes = 15
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 200.00
 
 [[store]]
 store_id = "shippin_texas"
@@ -180,6 +192,7 @@ discovery_every_minutes = 15
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 150.00
 
 [[store]]
 store_id = "sunnys_card_shop"
@@ -238,6 +251,7 @@ email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 
 # Shopify stores with open /products.json, added in P1.
+free_shipping_over = 149.00
 
 [[store]]
 store_id = "1st_capital_gaming"
@@ -270,6 +284,7 @@ notes = "Directory snapshot reported 0 in-stock sealed listings; recheck later."
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 35.00
 
 [[store]]
 store_id = "black_wolf_collectibles"
@@ -280,6 +295,8 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+shipping = 5.00
+free_shipping_over = 200.00
 
 [[store]]
 store_id = "capyquest_tcg"
@@ -290,6 +307,7 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 150.00
 
 [[store]]
 store_id = "card_cavern_trading_cards"
@@ -300,6 +318,8 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+shipping = 9.00
+free_shipping_over = 100.00
 
 [[store]]
 store_id = "cardland_market"
@@ -310,6 +330,8 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+shipping = 5.95
+free_shipping_over = 150.00
 
 [[store]]
 store_id = "cash_cards_unlimited"
@@ -322,6 +344,7 @@ email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 discord = "https://discord.gg/4GNeqMVM6u"
 discord_status = "joined"
+free_shipping_over = 99.00
 
 [[store]]
 store_id = "collector_store"
@@ -343,6 +366,7 @@ email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 discord = "https://discord.gg/NXhEgkS5cQ"
 discord_status = "joined"
+free_shipping_over = 300.00
 
 [[store]]
 store_id = "croma_tcg"
@@ -355,6 +379,7 @@ email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 discord = "https://discord.gg/hz8BkZgwQf"
 discord_status = "joined"
+free_shipping_over = 250.00
 
 [[store]]
 store_id = "delightful_tcg"
@@ -388,6 +413,7 @@ newsletter = true
 email_signup = "drop"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 100.00
 
 [[store]]
 store_id = "fox_and_fable_games"
@@ -430,6 +456,8 @@ tier = "explore"
 platform = "shopify_json"
 email_signup = "restock_button"
 email_status = "none"
+shipping = 6.99
+free_shipping_over = 50.00
 
 [[store]]
 store_id = "gg_hobby_card"
@@ -465,6 +493,7 @@ email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 discord = "https://discord.gg/5tpfdd7pzD"
 discord_status = "joined"
+free_shipping_over = 99.00
 
 [[store]]
 store_id = "hobby_card_shop"
@@ -506,6 +535,7 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+shipping = 6.00
 
 [[store]]
 store_id = "jaro_cards"
@@ -539,6 +569,7 @@ email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 discord = "https://discord.gg/ampDUDV5cU"
 discord_status = "joined"
+free_shipping_over = 75.00
 
 [[store]]
 store_id = "kollect_korner"
@@ -591,6 +622,7 @@ email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 discord = "https://discord.gg/DdatDNq4zB"
 discord_status = "joined"
+free_shipping_over = 200.00
 
 [[store]]
 store_id = "nerdzoic"
@@ -625,6 +657,7 @@ email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
 discord = "https://discord.gg/R8RvrcJ3pu"
 discord_status = "joined"
+free_shipping_over = 75.00
 
 [[store]]
 store_id = "phantasma"
@@ -701,6 +734,8 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+shipping = 9.95
+free_shipping_over = 199.00
 
 [[store]]
 store_id = "retro_gaming_of_denver"
@@ -710,6 +745,7 @@ tier = "explore"
 platform = "shopify_json"
 email_signup = "restock_button"
 email_status = "none"
+free_shipping_over = 50.00
 
 [[store]]
 store_id = "roboskillz"
@@ -753,6 +789,7 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 200.00
 
 [[store]]
 store_id = "stacked_pax"
@@ -773,6 +810,8 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+shipping = 10.00
+free_shipping_over = 500.00
 
 [[store]]
 store_id = "stonebrook_collectibles"
@@ -783,6 +822,8 @@ platform = "shopify_json"
 email_signup = "drop"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+shipping = 6.99
+free_shipping_over = 150.00
 
 [[store]]
 store_id = "sweets_and_geeks"
@@ -812,6 +853,7 @@ platform = "shopify_json"
 email_signup = "drop"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 199.99
 
 [[store]]
 store_id = "tcgora"
@@ -822,6 +864,7 @@ platform = "shopify_json"
 email_signup = "newsletter"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 150.00
 
 [[store]]
 store_id = "the_game_capital"
@@ -882,6 +925,7 @@ tier = "explore"
 platform = "shopify_json"
 email_signup = "none"
 email_status = "none"
+free_shipping_over = 175.00
 
 [[store]]
 store_id = "ultima_supply"
@@ -922,6 +966,7 @@ platform = "shopify_json"
 email_signup = "drop"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 250.00
 
 [[store]]
 store_id = "zulus_board_game_cafe"
@@ -936,6 +981,7 @@ discord = "https://discord.gg/vgeYHjV"
 discord_status = "joined"
 
 # Not polled yet: JSON blocked, another platform, a bot challenge, or unidentified.
+free_shipping_over = 100.00
 
 [[store]]
 store_id = "beckett_castle_tcg"
@@ -1018,6 +1064,7 @@ tier = "explore"
 platform = "woocommerce"
 email_signup = "none"
 email_status = "none"
+free_shipping_over = 100.00
 
 [[store]]
 store_id = "level_up_games"
@@ -1112,6 +1159,7 @@ tier = "explore"
 platform = "woocommerce"
 email_signup = "none"
 email_status = "none"
+notes = "Local pickup only in La Mirada, CA; no shipping (shipping policy, 2026-10-25)."
 
 [[store]]
 store_id = "rng_gamez"
@@ -1156,6 +1204,7 @@ notes = "Dedicated Drops Signup section. Wix: read via product sitemap + schema.
 email_signup = "drop"
 email_status = "subscribed"
 email_subscribed_on = "2026-10-24"
+free_shipping_over = 99.00
 
 [[store]]
 store_id = "tcg_slayer"

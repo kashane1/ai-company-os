@@ -141,10 +141,11 @@ def test_shipped_registry_is_valid():
     assert len(stores) == 109
     polled = [store for store in stores if store.is_polled]
     # 86 open Shopify stores, minus parked GG Legends and GoodStash (scam, avoid), plus Omni (headless
-    # Shopify), 2 WooCommerce stores, 2 sitemap stores and PokéZone's storefront API (P5).
-    assert len(polled) == 90
+    # Shopify), 2 WooCommerce stores, 2 sitemap stores and PokéZone's storefront API (P5), minus
+    # Larry's Game Store (not shipping).
+    assert len(polled) == 89
     pilot = [store for store in polled if store.discovery_minutes == 15]
-    assert len(pilot) == 19
+    assert len(pilot) == 18
 
 
 def test_registry_cadence_and_not_polled_reasons(tmp_path: Path):

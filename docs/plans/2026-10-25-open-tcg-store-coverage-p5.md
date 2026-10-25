@@ -66,3 +66,14 @@ Each unpolled store got one polite read: robots.txt, the homepage, the platform'
   - 6 parked (closed, password-protected, singles-only, or scam)
   - 10 without a usable product feed
   - 5 of the 21 are covered by store email.
+
+### Follow-up (2026-10-25)
+
+- **PokéZone:** read through its own storefront API (`/api/storefront-products`), the catalog its single-page site loads, in one request. The first read matched 75 products.
+- **Omni Collectibles:** headless Shopify, now read through `/products.json` on omnicollectibles.store.
+- **Collector's Cache:** its robots.txt disallows every crawler except Google, so it is never read.
+- **Shipping:** the registry gains `shipping` and `free_shipping_over`. Alerts, the report and the digest show shipping; price classes stay on the item price (founder decision 8c in the handoff).
+  - From published policies: 12 flat rates and 35 free-shipping thresholds. 13 stores went unverified after Shopify rate-limited the research.
+- **Larry's Game Store** isn't shipping and is parked. **Rawmon** is local pickup only (La Mirada, CA) and stays polled.
+- **Polled now:** 89 stores.
+
