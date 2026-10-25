@@ -140,17 +140,35 @@ def sync_registry(connection: sqlite3.Connection, stores: list[registry.Store]) 
     connection.commit()
 
 
-def plan(connection: sqlite3.Connection, stores: list[registry.Store], now: dt.datetime) -> list[StorePlan]:
+def plan(
+    connection: sqlite3.Connection,
+    stores: list[registry.Store],
+    now: dt.datetime,
+    *,
+    cadence: dict[str, int] | None = None,
+    mode: str = "all",
+) -> list[StorePlan]:
     """Which stores to read this run and how.
 
     Newest-page discovery follows each store's cadence, a full sweep is due
     daily, and collection discovery weekly. Whether a due sweep reads
     collections or the whole catalog is settled in `fetch`, after any
     collection check, and catalog sweeps draw on a per-run budget there.
+
+    `cadence` (store id -> discovery minutes, from `scoring.cadence`) overrides
+    the registry cadence. `mode` splits the work between two processes:
+    "fast" (`radar stores-fast`) does only discovery reads, of stores due
+    faster than every 15 minutes; "slow" (the sync) does everything else.
     """
+    from .scoring import FAST_BELOW_MINUTES
+
     plans = []
     for store in stores:
         if not store.is_polled:
+            continue
+        minutes = (cadence or {}).get(store.store_id, store.discovery_minutes)
+        is_fast_store = minutes < FAST_BELOW_MINUTES
+        if mode == "fast" and not is_fast_store:
             continue
         row = connection.execute(
             "SELECT last_discovery_at, last_full_sweep_at, robots_checked_at, is_robots_allowed "
@@ -167,9 +185,16 @@ def plan(connection: sqlite3.Connection, stores: list[registry.Store], now: dt.d
                 (store.store_id,),
             )
         )
-        is_discovery_due = _age_exceeds(
-            row["last_discovery_at"], now, store.discovery_minutes * 60 - DISCOVERY_SLACK_S
-        )
+        slack = min(DISCOVERY_SLACK_S, minutes * 60 * 0.2)
+        is_discovery_due = _age_exceeds(row["last_discovery_at"], now, minutes * 60 - slack)
+        if mode == "slow" and is_fast_store:
+            is_discovery_due = False  # `radar stores-fast` reads it
+        if mode == "fast":
+            if row["is_robots_allowed"] != 1 or not is_discovery_due:
+                continue  # robots checks and sweeps stay with the sync
+            plans.append(StorePlan(store=store, is_discovery_due=True, is_full_sweep=False,
+                                   is_robots_check_due=False, is_collection_check_due=False))
+            continue
         is_full_sweep = _age_exceeds(row["last_full_sweep_at"], now, STORE_FULL_SWEEP_EVERY_S)
         # Collections are a Shopify feature; other readers sweep their whole catalog.
         is_collection_check_due = store.platform == "shopify_json" and (
@@ -397,6 +422,14 @@ def _record_collections(connection: sqlite3.Connection, store_id: str, check: co
 def _record_store(connection: sqlite3.Connection, outcome: StoreOutcome, now: dt.datetime) -> None:
     stamp = iso(now)
     store_id = outcome.plan.store.store_id
+    is_failure = bool(outcome.error) or outcome.products is None
+    connection.execute(
+        """
+        INSERT INTO store_run_days (store_id, day, runs, failures) VALUES (?, ?, 1, ?)
+        ON CONFLICT(store_id, day) DO UPDATE SET runs = runs + 1, failures = failures + excluded.failures
+        """,
+        (store_id, now.astimezone(dt.timezone.utc).date().isoformat(), int(is_failure)),
+    )
     if outcome.is_robots_allowed is not None:
         connection.execute(
             "UPDATE stores SET robots_checked_at = ?, is_robots_allowed = ? WHERE store_id = ?",
@@ -442,13 +475,15 @@ def collect(
     client_factory: Callable[[], httpx.Client] = make_client,
     workers: int = STORE_FETCH_WORKERS,
     max_catalog_sweeps: int = STORE_MAX_CATALOG_SWEEPS_PER_RUN,
+    cadence: dict[str, int] | None = None,
+    mode: str = "all",
 ) -> CollectSummary:
     stores = registry.load() if stores is None else stores
     review.ensure_schema(connection)
     sync_registry(connection, stores)
     catalog = match.Catalog.from_db(connection)
     make_reader = make_reader or reader_factory(catalog)
-    plans = plan(connection, stores, now)
+    plans = plan(connection, stores, now, cadence=cadence, mode=mode)
     summary = CollectSummary()
     budget = CatalogSweepBudget(max_catalog_sweeps)
 

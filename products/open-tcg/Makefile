@@ -1,6 +1,6 @@
 PYTHON := ./.venv/bin/python
 
-.PHONY: setup test sync calendar events sources backfill stream feed episodes scorecard stores deals msrp
+.PHONY: setup test sync calendar events sources backfill stream feed episodes scorecard stores deals msrp store-scores
 
 setup:
 	python3 -m venv .venv
@@ -47,6 +47,10 @@ stores:
 # Cheapest store offer per product, by MSRP class, with the change since yesterday.
 deals:
 	$(PYTHON) -m radar deals
+
+# Store scores: tier, cadence, MSRP offers and hits, failures.
+store-scores:
+	$(PYTHON) -m radar store-scores
 
 # MSRP reference coverage; `make msrp VIEW=missing` lists products without evidence.
 msrp:

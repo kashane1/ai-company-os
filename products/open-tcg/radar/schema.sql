@@ -338,3 +338,30 @@ CREATE TABLE IF NOT EXISTS store_offer_details (
     market_cents       INTEGER,
     is_alert_eligible  INTEGER NOT NULL
 );
+
+-- Store read outcomes per day (P7), for each store's failure rate.
+CREATE TABLE IF NOT EXISTS store_run_days (
+    store_id TEXT NOT NULL REFERENCES stores(store_id),
+    day      TEXT NOT NULL,                    -- UTC date
+    runs     INTEGER NOT NULL DEFAULT 0,
+    failures INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (store_id, day)
+) WITHOUT ROWID;
+
+-- Store scores (P7): metrics over the scoring window and the cadence they set.
+-- Refreshed by the sync; plan() reads discovery_minutes from here.
+CREATE TABLE IF NOT EXISTS store_scores (
+    store_id             TEXT PRIMARY KEY REFERENCES stores(store_id),
+    computed_at          TEXT NOT NULL,
+    matched_listings     INTEGER NOT NULL,
+    in_stock_matched     INTEGER NOT NULL,
+    msrp_offers_now      INTEGER NOT NULL,     -- in stock at or below an evidence MSRP right now
+    msrp_hits            INTEGER NOT NULL,     -- alert-eligible store observations in the window
+    new_listings         INTEGER NOT NULL,     -- matched, outside the baseline, in the window
+    stock_minutes_median REAL,                 -- how long matched stock stayed in stock
+    runs                 INTEGER NOT NULL,
+    failures             INTEGER NOT NULL,
+    effective_tier       TEXT NOT NULL,        -- hot | first_pass | explore | backup
+    discovery_minutes    INTEGER NOT NULL,
+    reason               TEXT NOT NULL
+);

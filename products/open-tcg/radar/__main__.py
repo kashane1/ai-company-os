@@ -29,6 +29,7 @@ import argparse
 import datetime as dt
 import json
 import sys
+import time
 
 from . import calendar, db, episodes, manual, notify, sources, watchlist
 from .catalog import sync as catalog_sync
@@ -46,6 +47,7 @@ from .stores import alerts as store_alerts
 from .stores import deals as store_deals
 from .stores import msrp as store_msrp
 from .stores import review as store_review
+from .stores import scoring as store_scoring
 from .stores import report as store_report
 
 
@@ -98,7 +100,10 @@ def _run_tcgcsv_reference(connection, now: dt.datetime) -> str:
 
 
 def _run_stores(connection, now: dt.datetime) -> str:
-    summary = store_collect.collect(connection, now=now)
+    stores = store_registry.load()
+    store_scoring.refresh(connection, stores, now=now)
+    cadence = store_scoring.cadence(connection, stores, now=now, set_keys=store_scoring.watched_set_keys(connection))
+    summary = store_collect.collect(connection, now=now, stores=stores, cadence=cadence, mode="slow")
     store_msrp.sync(connection, store_msrp.load())
     alerted = store_alerts.evaluate(connection, now=now)
     for failure in summary.failures:
@@ -381,6 +386,50 @@ def cmd_msrp(args: argparse.Namespace) -> int:
     return 0
 
 
+FAST_LOOP_S = 30
+FAST_SET_KEYS_EVERY = dt.timedelta(minutes=15)
+
+
+def cmd_stores_fast(args: argparse.Namespace) -> int:
+    """Read hot stores (and drop-window stores) on their sub-15-minute cadence; the sync reads the rest."""
+    connection = _open()
+    print("reading fast-cadence stores every 30 s (Ctrl-C to stop)", flush=True)
+    set_keys: frozenset[str] = frozenset()
+    keys_at: dt.datetime | None = None
+    while True:
+        now = _now()
+        try:
+            if keys_at is None or now - keys_at >= FAST_SET_KEYS_EVERY:
+                set_keys, keys_at = store_scoring.watched_set_keys(connection), now
+            stores = store_registry.load()
+            cadence = store_scoring.cadence(connection, stores, now=now, set_keys=set_keys)
+            summary = store_collect.collect(connection, now=now, stores=stores, cadence=cadence, mode="fast")
+            if summary.stores_polled:
+                alerted = store_alerts.evaluate(connection, now=now) if (
+                    summary.listings_new or summary.listings_changed) else None
+                print(
+                    f"{now.isoformat()} fast: {summary.stores_polled} stores, {summary.stores_failed} failed, "
+                    f"{summary.listings_new} new, {summary.listings_changed} changed"
+                    + (f", {alerted.alerts} alerts" if alerted else ""),
+                    flush=True,
+                )
+                for failure in summary.failures:
+                    print(f"  store failed: {failure}", file=sys.stderr, flush=True)
+        except Exception as exc:  # keep the loop alive; launchd restarts on a crash anyway
+            print(f"{now.isoformat()} fast: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
+        if args.once:
+            return 0
+        time.sleep(FAST_LOOP_S)
+
+
+def cmd_store_scores(_: argparse.Namespace) -> int:
+    connection = _open()
+    now = _now()
+    store_scoring.refresh(connection, store_registry.load(), now=now, force=True)
+    print(store_scoring.render(connection, now=now, set_keys=store_scoring.watched_set_keys(connection)), end="")
+    return 0
+
+
 def cmd_deals(args: argparse.Namespace) -> int:
     connection = _open()
     store_msrp.sync(connection, store_msrp.load())
@@ -515,6 +564,10 @@ def main(argv: list[str] | None = None) -> int:
     msrp_parser.add_argument("--since", default=store_msrp.TARGET_SINCE, help="release date floor (YYYY-MM-DD)")
     msrp_parser.add_argument("--forms", help="comma-separated product types (default etb,booster_bundle,booster_box)")
     msrp_parser.set_defaults(func=cmd_msrp)
+    fast_parser = commands.add_parser("stores-fast", help="read hot and drop-window stores every few minutes")
+    fast_parser.add_argument("--once", action="store_true")
+    fast_parser.set_defaults(func=cmd_stores_fast)
+    commands.add_parser("store-scores", help="store scores, tiers and cadence").set_defaults(func=cmd_store_scores)
     deals_parser = commands.add_parser("deals", help="cheapest store offer per product, by MSRP class")
     deals_parser.add_argument("--limit", type=int, default=40, help="rows per class")
     deals_parser.set_defaults(func=cmd_deals)
