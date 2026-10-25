@@ -76,7 +76,8 @@ def render(connection: sqlite3.Connection, *, now: dt.datetime, limit: int = 40)
         for deal in group[:limit]:
             offer = deal.offer
             reference = offer.price_class.msrp
-            warning = "  ! unvetted" if name == "below_msrp" and offer.trust == "unvetted" else ""
+            caution = msrp.warning(offer.price_class, offer.trust, offer.price_cents, offer.market_cents)
+            warning = "  ! unvetted, check first" if caution else ""
             lines.append(
                 f"  {_money(offer.price_cents):>9}  MSRP {_money(reference.msrp_cents):>8} {reference.label:<10} "
                 f"market {_money(offer.market_cents):>9}  {_change(deal):>8}  {offer.product[:55]}  @ {offer.store}{warning}"

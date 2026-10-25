@@ -42,6 +42,9 @@ AT_MSRP_MAX = 1.10
 NEAR_MSRP_MAX = 1.25
 MARKET_MAX = 1.05
 ALERT_CLASSES = frozenset({"below_msrp", "at_msrp"})
+# On an unvetted store, a price under this share of market is "too good": the
+# listing may be stale, a placeholder or a scam (parent plan, probe finding 2).
+TOO_GOOD_MARKET_RATIO = 0.6
 CLASS_ORDER = ("below_msrp", "at_msrp", "near_msrp", "market", "marked_up", "no_msrp")
 
 # The forms the P3 "done when" covers.
@@ -50,7 +53,8 @@ TARGET_SINCE = "2025-01-01"
 
 _WATCH_BASIS_PREFIX = "best buy first-party"
 # "(36 packs)", "with 6 booster packs": a pack count the catalog name states.
-_NAME_PACKS = re.compile(r"\b(\d{1,3})\s+(?:booster\s+)?packs?\b", re.IGNORECASE)
+# Plural only: "151 Booster Pack" names the set 151, not a pack count.
+_NAME_PACKS = re.compile(r"\b(\d{1,3})\s+(?:booster\s+)?packs\b", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -295,6 +299,18 @@ def name_pack_count(name: str) -> int | None:
         return None
     count = int(found.group(1))
     return count if 1 < count <= 500 else None
+
+
+def warning(price_class: PriceClass, trust: str, price_cents: int, market_cents: int | None) -> str | None:
+    """Why an offer needs checking before paying, or None."""
+    if trust != "unvetted":
+        return None
+    if price_class.name == "below_msrp":
+        return "Unvetted store, below MSRP: check it before paying."
+    if market_cents and price_cents < market_cents * TOO_GOOD_MARKET_RATIO:
+        return (f"Unvetted store, far below market (${market_cents / 100:,.2f}): "
+                "it may be stale, a placeholder or a scam. Check it before paying.")
+    return None
 
 
 def classify(price_cents: int, msrp: Msrp | None, market_cents: int | None) -> PriceClass:

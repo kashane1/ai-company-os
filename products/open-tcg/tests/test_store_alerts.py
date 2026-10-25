@@ -63,6 +63,15 @@ def test_below_msrp_on_unvetted_store_warns(store_connection):
     assert "Unvetted store, below MSRP: check it before paying." in body
 
 
+def test_far_below_market_on_unvetted_store_warns(store_connection):
+    store_connection.execute("INSERT INTO ref_price_points (product_id, day, market_price) VALUES (1, '2026-09-25', 400.0)")
+    _collect(store_connection, LATER, [_product(1, "Delta Reign Elite Trainer Box", price="49.99")])
+    _, sent = _run(store_connection, _policy("Delta Reign Booster Box"), _resolver(p1=(4999, "official_listing")))
+    title, body = sent[0]
+    assert title == "At MSRP (unvetted store) · Test Store"
+    assert "far below market ($400.00)" in body
+
+
 @pytest.mark.parametrize(
     ("price", "policy", "resolver", "reason"),
     [

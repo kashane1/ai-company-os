@@ -17,7 +17,7 @@ evidence-backed MSRP and either:
 
 A watched product whose MSRP has no evidence alerts at or below `alert_at`.
 `[exclude] terms` always win, `marked_up` never alerts, and below-MSRP offers
-on unvetted stores carry a warning. One notification per episode, only while
+or far below market on unvetted stores carry a warning. One notification per episode, only while
 the change is fresh. Store links are never opened automatically: assisted
 open needs a store with `trust = purchased_ok`, and none has one yet.
 """
@@ -213,16 +213,16 @@ def _money(cents: int | None) -> str:
 def message(candidate: Candidate, decision: Decision) -> tuple[str, str]:
     price_class = candidate.price_class
     label = CLASS_LABELS.get(price_class.name, "Under your alert_at")
-    is_unvetted_below = price_class.name == "below_msrp" and candidate.trust == "unvetted"
-    title = f"{label}{' (unvetted store)' if is_unvetted_below else ''} · {candidate.store}"
+    caution = msrp.warning(price_class, candidate.trust, candidate.price_cents, candidate.market_cents)
+    title = f"{label}{' (unvetted store)' if caution else ''} · {candidate.store}"
     reference = price_class.msrp
     msrp_text = f"MSRP {_money(reference.msrp_cents)} {reference.label}" if reference else "no MSRP"
     lines = [
         f"{candidate.product} {_money(candidate.price_cents)} ({msrp_text}, market {_money(candidate.market_cents)})",
         f"{candidate.store} · {candidate.trust} · {decision.reason}",
     ]
-    if is_unvetted_below:
-        lines.append("Unvetted store, below MSRP: check it before paying.")
+    if caution:
+        lines.append(caution)
     lines.append(candidate.url)
     return title, "\n".join(lines)
 

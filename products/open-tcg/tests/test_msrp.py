@@ -141,6 +141,21 @@ def test_class_boundaries(price, market, expected):
     assert msrp.classify(price, msrp.Msrp(5000, "official_listing"), market).name == expected
 
 
+def test_set_number_is_not_a_pack_count(msrp_connection, config):
+    assert msrp.name_pack_count("151 Booster Pack") is None
+    assert msrp.name_pack_count("Super-Premium Collection (10 Booster Packs)") == 10
+
+
+def test_warning_for_unvetted_below_msrp_or_far_below_market():
+    reference = msrp.Msrp(4999, "official_listing")
+    at = msrp.classify(4999, reference, 40000)
+    assert "far below market ($400.00)" in msrp.warning(at, "unvetted", 4999, 40000)
+    assert msrp.warning(at, "checked", 4999, 40000) is None
+    assert msrp.warning(at, "unvetted", 4999, 6000) is None
+    below = msrp.classify(3999, reference, 6000)
+    assert msrp.warning(below, "unvetted", 3999, 6000).startswith("Unvetted store, below MSRP")
+
+
 def test_only_evidence_is_alert_eligible():
     evidence = msrp.Msrp(5000, "big_box_first_party")
     estimate = msrp.Msrp(5000, "form_default")

@@ -162,8 +162,9 @@ def offer_line(offer: Offer) -> str:
         f"{offer.store} · {offer.trust} · {offer.product} {_money(offer.price_cents)} "
         f"(MSRP {_money(reference.msrp_cents)} {reference.label}, market {_money(offer.market_cents)})"
     )
-    if price_class.name == "below_msrp" and offer.trust == "unvetted":
-        text += "  ! unvetted store, below MSRP, check before paying"
+    caution = msrp.warning(price_class, offer.trust, offer.price_cents, offer.market_cents)
+    if caution:
+        text += f"  ! {caution}"
     return text
 
 

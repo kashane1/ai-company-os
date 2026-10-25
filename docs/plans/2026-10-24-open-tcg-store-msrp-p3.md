@@ -98,3 +98,20 @@ The weekly refresh is manual for now. Run `radar msrp missing`, research the new
   - **CARDHAVEN TCG (unvetted)** lists recent sets at about 90% of MSRP: six below-MSRP offers, all carrying the unvetted warning.
   - **GoodStash TCG** has Journey Together ETBs at MSRP.
 
+### Scarlet & Violet era (2023–2024), added 2026-10-24
+
+- **Evidence:** 53 of 66 products released in 2023–2024 now have one: 34 Pokémon Center US listings and 19 distributor solicitations. That brings evidence to 103 of 123 products since 2023.
+  - From the Scarlet & Violet base set (2023-03-31) on, prices match the 2025–2026 pattern: ETB $49.99, Pokémon Center ETB $59.99, bundle $26.94 and display $161.64.
+  - Pokémon raised packs from $3.99 to $4.49 at that set. PHD solicited 2023 bundles at $26.99, while Pokémon Center lists $26.94.
+  - Crown Zenith (January 2023, the last Sword & Shield set) kept $3.99 packs: its bundle is $23.94 and its Pokémon Center ETB Plus is $64.99.
+  - The estimate windows now start 2023-03-31.
+- **Unpriced, with reasons (13):**
+  - "[Set of 2]" TCGplayer pairings
+  - Two bundle displays
+  - Club-store Trick or Trade bags and loose mini packs
+  - The Greninja battle deck bundle
+  - The retail Surging Sparks bundle
+- **Fixes found on live data:**
+  - "151 Booster Pack" was being read as 151 packs. Pack counts are now plural only ("10 Booster Packs").
+  - An unvetted store priced far below market (under 0.6× market) now gets a warning, even at MSRP. GoodStash TCG lists out-of-print SV ETBs and displays at or below MSRP, against markets of $300–$450. All of them were listed together on 2026-10-03, which fits the "too good" risk in the parent plan.
+
