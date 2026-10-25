@@ -185,7 +185,8 @@ def test_avoid_store_drop_email_never_notifies_and_unrelated_mail_is_not_stored(
 def test_hand_forwarded_moonblast_drop_is_attributed_by_links_and_alerts(connection):
     """The founder's real forward of Moonblast's Delta Reign email (2026-10-23).
 
-    Addresses are placeholders and the unsubscribe token is redacted.
+    Addresses are placeholders; the unsubscribe token and the per-recipient tracking links
+    (Wix click tracking, Moonblast /so/ links) are redacted, because this repository is public.
     """
     forwarded = (FIXTURES / "email" / "moonblast_forwarded.eml").read_bytes()
     email = mail.read_email(forwarded, STORES, {})
