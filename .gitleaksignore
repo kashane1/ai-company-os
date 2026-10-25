@@ -49,3 +49,15 @@ a81e114d16b2dfc3976bb51d10b771c82eecf99e:products/after-plans-ios/project.yml:jw
 # Deliberately credential-shaped input exercising redaction/leak detection.
 # tests/python/unit/test_web_deploy_secret_scan.py
 4e604e1e06473e78e8993a93ee79a8d3dd752469:tests/python/unit/test_web_deploy_secret_scan.py:stripe-access-token:52
+
+# OpenTCG Bluesky test fixture: public posts captured 2026-09-26. Reviewed 2026-10-25.
+# Lines 4 and 406 are AT Protocol record keys (rkey); lines 448 and 457 are the
+# public AWSAccessKeyId parameter of Amazon affiliate links inside public posts.
+# None is a credential.
+a04d8b573a3b8abf372e7a21a01f5dc2cc392ef2:products/open-tcg/tests/fixtures/bluesky_posts.json:generic-api-key:4
+a04d8b573a3b8abf372e7a21a01f5dc2cc392ef2:products/open-tcg/tests/fixtures/bluesky_posts.json:generic-api-key:406
+a04d8b573a3b8abf372e7a21a01f5dc2cc392ef2:products/open-tcg/tests/fixtures/bluesky_posts.json:aws-access-token:448
+a04d8b573a3b8abf372e7a21a01f5dc2cc392ef2:products/open-tcg/tests/fixtures/bluesky_posts.json:aws-access-token:457
+
+# HomeFromWorking catalog: a product catalog "key" (design slug), not a secret. Reviewed 2026-10-25.
+8507b385745838f3b49a5b120247767f5d7f9fe0:state/home-from-working/catalog/catalog.json:generic-api-key:9012

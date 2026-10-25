@@ -1,0 +1,1234 @@
+# OpenTCG independent store registry.
+#
+# Source configuration that Claude maintains; product intent stays in
+# watchlist.toml. Only `platform = "shopify_json"` stores are polled, through
+# Shopify's public /products.json and /collections.json after a robots.txt
+# check, one request per host at a time. Other platforms are recorded with
+# their reason until an adapter exists (P5). Collection only: stores produce
+# no observations or alerts yet.
+#
+# Plans: docs/plans/2026-10-23-open-tcg-indie-store-monitoring.md
+#        docs/plans/2026-10-24-open-tcg-store-registry-p1.md
+# Platform probe: docs/products/open-tcg/research/2026-10-23-indie-store-platform-probe.json
+#
+# tier:     first_pass (newest page every 15 min) | explore, backup (hourly) | parked (not polled)
+# platform: shopify_json | shopify_html | woocommerce | wix | ecwid | crystalcommerce | challenge | unknown
+# discovery_every_minutes overrides the tier cadence (the six non-first-pass pilot stores stay at 15).
+# newsletter = true: the store offers a drop or restock email signup (founder sheet).
+# email_signup: drop | newsletter | restock_button | loyalty | none | unreachable (2026-10-24 survey)
+# email_status: subscribed (as ksakhakorn@gmail.com) | needs_founder (Shopify CAPTCHA) | none
+# Details: docs/products/open-tcg/research/2026-10-24-store-email-signup-survey.json
+# discord_status: joined | pending_application | invite_expired (2026-10-24, founder account)
+# trust: unvetted | checked | purchased_ok | avoid
+# Domains are exact. A response that redirects off the domain is discarded.
+
+# P0 pilot stores (2026-10-23): the 14 first-pass stores plus six more.
+
+[[store]]
+store_id = "black_vault_gaming"
+name = "Black Vault Gaming"
+domain = "blackvaultgaming.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "restock_button"
+email_status = "none"
+discord = "https://discord.gg/AyvpT3gZBG"
+discord_status = "joined"
+shipping = 10.00
+free_shipping_over = 150.00
+
+[[store]]
+store_id = "cardboard_and_die"
+name = "Cardboard and Die"
+domain = "cardboardanddie.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/GBP53HDcrX"
+discord_status = "joined"
+
+[[store]]
+store_id = "cardhaven_tcg"
+name = "CARDHAVEN TCG"
+domain = "cardhaventcg.com"
+tier = "explore"
+platform = "shopify_json"
+discovery_every_minutes = 15
+email_signup = "none"
+email_status = "none"
+shipping = 6.99
+free_shipping_over = 75.00
+
+[[store]]
+store_id = "cardtopia_collectibles"
+name = "Cardtopia Collectibles"
+domain = "cardtopiacollectibles.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "goodstash_tcg"
+name = "GoodStash TCG"
+domain = "goodstashstore.myshopify.com"
+tier = "parked"
+platform = "shopify_json"
+trust = "avoid"
+notes = "SCAM (founder, 2026-10-24; reported to Shopify). Listed out-of-print sets at or below MSRP, all added 2026-10-03. Never poll, alert on or show its listings or emails."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "indy_card_shop"
+name = "Indy Card Shop"
+domain = "indycardshop.myshopify.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 75.00
+
+[[store]]
+store_id = "knight_and_day_games"
+name = "Knight and Day Games"
+domain = "knightanddaygames.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+shipping = 9.99
+free_shipping_over = 150.00
+
+[[store]]
+store_id = "larrys_game_store"
+name = "Larry's Game Store"
+domain = "larrysgamestore.com"
+tier = "parked"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/tAtxMMhRBV"
+discord_status = "joined"
+notes = "Not shipping: its shipping policy says the store is not currently shipping orders (2026-10-25). Parked; recheck later."
+
+[[store]]
+store_id = "maine_phase_hobbies"
+name = "Maine Phase Hobbies & Games"
+domain = "mainephasehobbies.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+free_shipping_over = 100.00
+
+[[store]]
+store_id = "many_realms"
+name = "Many Realms"
+domain = "manyrealms.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+discord = "https://discord.gg/manyrealms"
+discord_status = "joined"
+shipping = 10.00
+free_shipping_over = 125.00
+
+[[store]]
+store_id = "mh_deals_plus"
+name = "MH Deals Plus"
+domain = "mhdealsplus.com"
+tier = "explore"
+platform = "shopify_json"
+discovery_every_minutes = 15
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "on_board_gaming"
+name = "On-Board Gaming"
+domain = "on-boardgaming.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "pokemon_plug"
+name = "Pokémon Plug"
+domain = "pokemonplug.com"
+tier = "explore"
+platform = "shopify_json"
+discovery_every_minutes = 15
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 200.00
+
+[[store]]
+store_id = "shippin_texas"
+name = "Shippin Texas"
+domain = "shippintexas.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "smoke_and_mirrors_hobby"
+name = "Smoke and Mirrors Hobby"
+domain = "smokeandmirrorshobby.com"
+tier = "backup"
+platform = "shopify_json"
+discovery_every_minutes = 15
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 150.00
+
+[[store]]
+store_id = "sunnys_card_shop"
+name = "Sunny's Card Shop"
+domain = "sunnyscardshop.myshopify.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/NTKNqGnuah"
+discord_status = "joined"
+
+[[store]]
+store_id = "tcg_hub_and_hobbies"
+name = "TCG Hub and Hobbies"
+domain = "tcghubandhobbies.com"
+tier = "explore"
+platform = "shopify_json"
+discovery_every_minutes = 15
+notes = "Says preorders open once distributor allocations are received."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "the_warp_gate"
+name = "The Warp Gate"
+domain = "thewarpgate.net"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/Z3V8ZWuxn5"
+discord_status = "joined"
+
+[[store]]
+store_id = "wolf_den_gaming"
+name = "Wolf Den Gaming"
+domain = "wolfdentcg.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "wulf_gaming"
+name = "Wulf Gaming"
+domain = "wulfgaming.com"
+tier = "first_pass"
+platform = "shopify_json"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+# Shopify stores with open /products.json, added in P1.
+free_shipping_over = 149.00
+
+[[store]]
+store_id = "1st_capital_gaming"
+name = "1st Capital Gaming"
+domain = "1stcapitalgaming.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "restock_button"
+email_status = "none"
+discord = "https://discord.gg/qTF3KEHK7x"
+discord_status = "joined"
+
+[[store]]
+store_id = "allpoketcg"
+name = "AllPokeTCG"
+domain = "allpoketcg.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "aurora_sparks"
+name = "Aurora Sparks"
+domain = "aurorasparks.myshopify.com"
+tier = "explore"
+platform = "shopify_json"
+notes = "Directory snapshot reported 0 in-stock sealed listings; recheck later."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 35.00
+
+[[store]]
+store_id = "black_wolf_collectibles"
+name = "Black Wolf Collectibles"
+domain = "blackwolfcollectibles.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+shipping = 5.00
+free_shipping_over = 200.00
+
+[[store]]
+store_id = "capyquest_tcg"
+name = "CapyQuest TCG"
+domain = "capyquesttcg.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 150.00
+
+[[store]]
+store_id = "card_cavern_trading_cards"
+name = "Card Cavern Trading Cards"
+domain = "cardcaverntradingcards.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+shipping = 9.00
+free_shipping_over = 100.00
+
+[[store]]
+store_id = "cardland_market"
+name = "Cardland Market"
+domain = "cardlandmarket.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+shipping = 5.95
+free_shipping_over = 150.00
+
+[[store]]
+store_id = "cash_cards_unlimited"
+name = "Cash Cards Unlimited"
+domain = "cashcardsunlimited.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/4GNeqMVM6u"
+discord_status = "joined"
+free_shipping_over = 99.00
+
+[[store]]
+store_id = "collector_store"
+name = "Collector Store"
+domain = "collectorstore.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "common_lands"
+name = "Common Lands"
+domain = "common-lands.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/NXhEgkS5cQ"
+discord_status = "joined"
+free_shipping_over = 300.00
+
+[[store]]
+store_id = "croma_tcg"
+name = "Croma TCG"
+domain = "cromatcg.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/hz8BkZgwQf"
+discord_status = "joined"
+free_shipping_over = 250.00
+
+[[store]]
+store_id = "delightful_tcg"
+name = "Delightful TCG"
+domain = "delightfultcg.com"
+tier = "explore"
+platform = "shopify_json"
+notes = "Japanese Pokémon products are a focus."
+email_signup = "newsletter"
+email_status = "none"
+
+[[store]]
+store_id = "fabricators_forge"
+name = "Fabricator's Forge"
+domain = "shop.fabricatorsforge.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/fabricatorsforge"
+discord_status = "pending_application"
+
+[[store]]
+store_id = "flipside_gaming"
+name = "Flipside Gaming"
+domain = "flipsidegaming.com"
+tier = "explore"
+platform = "shopify_json"
+newsletter = true
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 100.00
+
+[[store]]
+store_id = "fox_and_fable_games"
+name = "Fox and Fable Games"
+domain = "foxandfablegames.com"
+tier = "explore"
+platform = "shopify_json"
+notes = "Directory snapshot reported 0 in-stock sealed listings; recheck later."
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "galactic_toys"
+name = "Galactic Toys"
+domain = "galactictoys.com"
+tier = "backup"
+platform = "shopify_json"
+newsletter = true
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "gamers_grove"
+name = "Gamers Grove"
+domain = "gamersgrove.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/MsruAya"
+discord_status = "joined"
+
+[[store]]
+store_id = "geekery_games"
+name = "Geekery Games"
+domain = "geekerygames.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "restock_button"
+email_status = "none"
+shipping = 6.99
+free_shipping_over = 50.00
+
+[[store]]
+store_id = "gg_hobby_card"
+name = "GG Hobby Card"
+domain = "gghobbycard.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/d6Q737ENWT"
+discord_status = "joined"
+
+[[store]]
+store_id = "gg_legends"
+name = "GG Legends"
+domain = "store.gglehi.com"
+tier = "parked"
+platform = "shopify_json"
+notes = "Store policy says only TCG singles can currently be shipped."
+email_signup = "newsletter"
+email_status = "none"
+discord = "https://discord.gg/MZtCvcz"
+
+[[store]]
+store_id = "hobby_addicts"
+name = "Hobby Addicts"
+domain = "hobby-addicts.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/5tpfdd7pzD"
+discord_status = "joined"
+free_shipping_over = 99.00
+
+[[store]]
+store_id = "hobby_card_shop"
+name = "Hobby Card Shop"
+domain = "hobbycardshop.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "hot_hitz_collectables"
+name = "Hot Hitz Collectables"
+domain = "hothitzcollectables.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "impact_gaming_center"
+name = "Impact Gaming Center"
+domain = "impactgamingcenter.gg"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/Qfqu27j"
+discord_status = "joined"
+
+[[store]]
+store_id = "jaf_comics"
+name = "JAF Comics"
+domain = "jafcomics.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+shipping = 6.00
+
+[[store]]
+store_id = "jaro_cards"
+name = "Jaro Cards"
+domain = "jarocards.com"
+tier = "explore"
+platform = "shopify_json"
+notes = "Directory snapshot reported 0 in-stock sealed listings; recheck later."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "jeffthrowcards"
+name = "Jeffthrowcards"
+domain = "jeffthrowcards.myshopify.com"
+tier = "explore"
+platform = "shopify_json"
+notes = "Directory snapshot reported 0 in-stock sealed listings; recheck later."
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "joshs_cards"
+name = "Josh's Cards"
+domain = "joshscards.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/ampDUDV5cU"
+discord_status = "joined"
+free_shipping_over = 75.00
+
+[[store]]
+store_id = "kollect_korner"
+name = "Kollect Korner"
+domain = "kollectkorner.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "loose_packs_trading_co"
+name = "Loose Packs Trading Co."
+domain = "loosepacks.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "mantis_game_studio"
+name = "Mantis Game Studio"
+domain = "mantisgamestudio.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "mystery_mtg"
+name = "Mystery MTG"
+domain = "mysterymtg.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "n4ytcg"
+name = "N4YTCG"
+domain = "n4ytcg.com"
+tier = "explore"
+platform = "shopify_json"
+notes = "Directory snapshot reported 0 in-stock sealed listings; recheck later."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/DdatDNq4zB"
+discord_status = "joined"
+free_shipping_over = 200.00
+
+[[store]]
+store_id = "nerdzoic"
+name = "Nerdzoic"
+domain = "nerdzoic.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "nexus_tabletop_games"
+name = "Nexus Tabletop Games"
+domain = "nexustabletopgames.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/FQUqRS6bAB"
+discord_status = "joined"
+
+[[store]]
+store_id = "over_the_brick"
+name = "Over the Brick"
+domain = "overthebrick.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/R8RvrcJ3pu"
+discord_status = "joined"
+free_shipping_over = 75.00
+
+[[store]]
+store_id = "phantasma"
+name = "Phantasma"
+domain = "phantasmalv.com"
+tier = "explore"
+platform = "shopify_json"
+notes = "Directory snapshot reported 0 in-stock sealed listings; recheck later."
+email_signup = "none"
+email_status = "none"
+discord = "https://discord.gg/FD3zMMWd2m"
+discord_status = "joined"
+
+[[store]]
+store_id = "poke_collect"
+name = "Poke-Collect"
+domain = "poke-collect.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/Tk4zVvyHan"
+discord_status = "joined"
+
+[[store]]
+store_id = "pokemall_tcg"
+name = "PokeMall TCG"
+domain = "pokemalltcg.com"
+tier = "backup"
+platform = "shopify_json"
+newsletter = true
+notes = "Has a newsletter specifically for preorder and restock announcements."
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/DYdk5qyVuu"
+discord_status = "joined"
+
+[[store]]
+store_id = "prime_city_comics"
+name = "Prime City Comics"
+domain = "primecitycomics.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "prodigy_games"
+name = "Prodigy Games"
+domain = "prodigy-games.myshopify.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "punkouter_games"
+name = "PunkOuter Games"
+domain = "punkouter.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "realgoodeal"
+name = "Realgoodeal"
+domain = "realgoodeal.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+shipping = 9.95
+free_shipping_over = 199.00
+
+[[store]]
+store_id = "retro_gaming_of_denver"
+name = "Retro Gaming of Denver"
+domain = "retrogamingofdenver.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "restock_button"
+email_status = "none"
+free_shipping_over = 50.00
+
+[[store]]
+store_id = "roboskillz"
+name = "RoboSkillz (BallSquad Shop)"
+domain = "roboskillz.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/WRuxR5dAkS"
+discord_status = "joined"
+
+[[store]]
+store_id = "rolling_hills_collectibles"
+name = "Rolling Hills Collectibles"
+domain = "ip5f5c-0a.myshopify.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "safari_zone_collectibles"
+name = "Safari Zone Collectibles"
+domain = "safari-zone.com"
+tier = "backup"
+platform = "shopify_json"
+notes = "Preorder products in a combined order wait until all items arrive."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "skybox_collectibles"
+name = "Skybox Collectibles"
+domain = "skyboxct.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 200.00
+
+[[store]]
+store_id = "stacked_pax"
+name = "Stacked Pax"
+domain = "stackedpax.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "stomping_grounds_tcg"
+name = "Stomping Grounds TCG"
+domain = "stompinggroundstcg.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+shipping = 10.00
+free_shipping_over = 500.00
+
+[[store]]
+store_id = "stonebrook_collectibles"
+name = "Stonebrook Collectibles"
+domain = "stonebrookcollectibles.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+shipping = 6.99
+free_shipping_over = 150.00
+
+[[store]]
+store_id = "sweets_and_geeks"
+name = "Sweets and Geeks"
+domain = "sweetsandgeeks.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "tcg_hobby"
+name = "TCG Hobby"
+domain = "tcghobby.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "tcg_stadium"
+name = "TCG Stadium"
+domain = "tcg-stadium.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 199.99
+
+[[store]]
+store_id = "tcgora"
+name = "TCGORA"
+domain = "tcgora.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 150.00
+
+[[store]]
+store_id = "the_game_capital"
+name = "The Game Capital"
+domain = "thegamecapital.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+discord = "https://discord.gg/ZExTrTq9qB"
+discord_status = "joined"
+
+[[store]]
+store_id = "the_platypus_party"
+name = "The Platypus Party"
+domain = "theplatypusparty.myshopify.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "the_trainer_court"
+name = "The Trainer Court"
+domain = "thetrainercourt.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "thepokehive"
+name = "ThePokeHive"
+domain = "thepokehive.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "restock_button"
+email_status = "none"
+
+[[store]]
+store_id = "to_the_table_board_game_cafe"
+name = "To The Table Board Game Café"
+domain = "tothetable.game"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+discord = "https://discord.gg/Eu6JgQS8aW"
+discord_status = "invite_expired"
+
+[[store]]
+store_id = "trove_of_collectibles"
+name = "Trove of Collectibles"
+domain = "troveofcollectibles.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "none"
+email_status = "none"
+free_shipping_over = 175.00
+
+[[store]]
+store_id = "ultima_supply"
+name = "Ultima Supply"
+domain = "ultimasupply.com"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "underhill_gaming"
+name = "Underhill Gaming"
+domain = "underhillgaming.myshopify.com"
+tier = "explore"
+platform = "shopify_json"
+notes = "Directory snapshot reported 0 in-stock sealed listings; recheck later."
+email_signup = "restock_button"
+email_status = "none"
+
+[[store]]
+store_id = "vegas_singles"
+name = "Vegas Singles"
+domain = "vegas.singles"
+tier = "explore"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "vgmx"
+name = "VGMX"
+domain = "vgmx.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 250.00
+
+[[store]]
+store_id = "zulus_board_game_cafe"
+name = "Zulu's Board Game Café"
+domain = "zulusgames.com"
+tier = "backup"
+platform = "shopify_json"
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/vgeYHjV"
+discord_status = "joined"
+
+# Not polled yet: JSON blocked, another platform, a bot challenge, or unidentified.
+free_shipping_over = 100.00
+
+[[store]]
+store_id = "beckett_castle_tcg"
+name = "Beckett Castle TCG"
+domain = "beckettcastletcg.com"
+tier = "backup"
+platform = "challenge"
+notes = "Check current sealed catalog and online shipping before relying on it."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "collectors_cache"
+name = "Collector's Cache"
+domain = "collectorscache.com"
+tier = "backup"
+platform = "crystalcommerce"
+notes = "CrystalCommerce. robots.txt disallows every crawler except Google, so never read by script (2026-10-25)."
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "coretcg"
+name = "CoreTCG"
+domain = "coretcg.com"
+tier = "backup"
+platform = "unknown"
+notes = "No sitemap or product data reachable by script (2026-10-25); Discord invite expired."
+email_signup = "none"
+email_status = "none"
+discord = "https://discord.gg/dyrCVKkWVe"
+discord_status = "invite_expired"
+
+[[store]]
+store_id = "decal_depo_tf"
+name = "Decal Depo TF"
+domain = "decaldepotf.myshopify.com"
+tier = "parked"
+platform = "closed"
+notes = "Closed: every page answers HTTP 402 (Shopify store unpaid or closed), 2026-10-25."
+email_signup = "unreachable"
+email_status = "none"
+
+[[store]]
+store_id = "forge_and_fire_gaming"
+name = "Forge and Fire Gaming"
+domain = "forgeandfiregaming.com"
+tier = "backup"
+platform = "challenge"
+notes = "TCG preorder cancellations are generally store credit only under the posted policy."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+
+[[store]]
+store_id = "game_nerdz"
+name = "Game Nerdz"
+domain = "gamenerdz.com"
+tier = "backup"
+platform = "challenge"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "hypno_comics_and_games"
+name = "Hypno Comics & Games"
+domain = "hypnocomics.com"
+tier = "backup"
+platform = "square"
+notes = "Square/Weebly site, 7,600 products, no schema.org product data (2026-10-25). Comics-first store; reader not built."
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "jd_collectibles"
+name = "JD Collectibles"
+domain = "shopjdc.com"
+tier = "explore"
+platform = "woocommerce"
+email_signup = "none"
+email_status = "none"
+free_shipping_over = 100.00
+
+[[store]]
+store_id = "level_up_games"
+name = "Level Up Games"
+domain = "levelupgamesatl.com"
+tier = "backup"
+platform = "ecwid"
+notes = "Ecwid shop loaded by JavaScript with no public token or sitemap (2026-10-25). Covered by its email list and Discord #pre-orders (All Messages)."
+email_signup = "newsletter"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/YEc7GtXc2j"
+discord_status = "joined"
+
+[[store]]
+store_id = "omni_collectibles"
+name = "Omni Collectibles"
+domain = "omnicollectibles.store"
+tier = "explore"
+platform = "shopify_json"
+notes = "Headless Shopify: omnicollectibles.social is the site, omnicollectibles.store the Shopify storefront that /products.json is read from (2026-10-25). Mostly singles. MSRP drops are a spend-based loyalty program."
+email_signup = "loyalty"
+email_status = "none"
+discord = "https://discord.gg/5FMbgQ3j6c"
+discord_status = "joined"
+
+[[store]]
+store_id = "onestoptcg"
+name = "OneStopTCG"
+domain = "onestoptcg.com"
+tier = "parked"
+platform = "shopify_html"
+notes = "Password-protected Shopify storefront (products.json HTTP 401), 2026-10-25; recheck later."
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "out_of_the_box_cards"
+name = "Out of the Box Cards"
+domain = "outoftheboxcards.com"
+tier = "backup"
+platform = "challenge"
+notes = "Site was indexed with Pokémon preorder categories, but direct fetch was blocked."
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "pokezone"
+name = "PokéZone"
+domain = "poke-zone.com"
+tier = "parked"
+platform = "pokezone"
+trust = "avoid"
+notes = "SCAM (founder, 2026-10-25). Listed a Pitch Black booster box below MSRP and ran pre-orders with unlimited stock. Never poll, alert on or show its listings."
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "prcards"
+name = "PrCards"
+domain = "storeprcards.myshopify.com"
+tier = "parked"
+platform = "closed"
+notes = "Closed: every page answers HTTP 402 (Shopify store unpaid or closed), 2026-10-25."
+email_signup = "unreachable"
+email_status = "none"
+
+[[store]]
+store_id = "prestige_collectibles"
+name = "Prestige Collectibles"
+domain = "prestigecollectibles.store"
+tier = "parked"
+platform = "closed"
+notes = "Closed: every page answers HTTP 402 (Shopify store unpaid or closed), 2026-10-25."
+email_signup = "unreachable"
+email_status = "none"
+
+[[store]]
+store_id = "raretcg"
+name = "RareTCG"
+domain = "raretcg.store"
+tier = "parked"
+platform = "closed"
+notes = "Closed: site answers HTTP 423 (locked), 2026-10-25."
+email_signup = "unreachable"
+email_status = "none"
+
+[[store]]
+store_id = "rawmon"
+name = "Rawmon"
+domain = "rawmon.org"
+tier = "explore"
+platform = "woocommerce"
+email_signup = "none"
+email_status = "none"
+notes = "Local pickup only in La Mirada, CA; no shipping (shipping policy, 2026-10-25)."
+
+[[store]]
+store_id = "rng_gamez"
+name = "RNG-GAMEZ"
+domain = "rng-gamez.com"
+tier = "backup"
+platform = "shopify_html"
+notes = "Shopify, but /products.json answers 404 and there is no sitemap (2026-10-25). Covered by Discord announcements only."
+email_signup = "restock_button"
+email_status = "none"
+discord = "https://discord.gg/9XbA6QP8KM"
+discord_status = "joined"
+
+[[store]]
+store_id = "tcg_card_depot"
+name = "TCG Card Depot"
+domain = "tcgcarddepot.com"
+tier = "explore"
+platform = "unknown"
+notes = "Directory snapshot reported 0 in-stock sealed listings. Site timed out on 2026-10-25; recheck later."
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "tcg_jackpot"
+name = "TCG Jackpot"
+domain = "tcgjackpot.com"
+tier = "explore"
+platform = "challenge"
+email_signup = "none"
+email_status = "none"
+
+[[store]]
+store_id = "tcg_moonblast"
+name = "TCG Moonblast"
+domain = "tcgmoonblast.com"
+tier = "explore"
+platform = "wix"
+product_path = "/product-page"
+newsletter = true
+notes = "Dedicated Drops Signup section. Wix: read via product sitemap + schema.org data (P5)."
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+free_shipping_over = 99.00
+
+[[store]]
+store_id = "tcg_slayer"
+name = "TCG Slayer"
+domain = "tcgslayer.io"
+tier = "explore"
+platform = "sitemap_jsonld"
+notes = "Custom site: read via product sitemap + schema.org data (P5); product pages state $9.99 US shipping."
+product_path = "/product"
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"
+discord = "https://discord.gg/tcgslayer"
+discord_status = "joined"
+
+[[store]]
+store_id = "thirdspace_tcg"
+name = "Thirdspace TCG"
+domain = "thirdspacetcg.com"
+tier = "explore"
+platform = "unknown"
+newsletter = true
+notes = "Store says subscribers hear about new sets/preorders ahead of shelf releases. Site exposes no product list to scripts (2026-10-25); covered by its email list."
+email_signup = "drop"
+email_status = "subscribed"
+email_subscribed_on = "2026-10-24"

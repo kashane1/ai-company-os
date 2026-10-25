@@ -1,0 +1,13 @@
+# OpenTCG Implementation Plan
+
+**Goal:** Independently build a free Mac-first collector watch and evidence app, with a public standalone application repository and a gated path to shopping assistance.
+
+**Architecture:** Proposed SwiftUI modular application with local SQLite state, deterministic rules, durable scheduling and permitted data adapters. The first version has browser handoff and no purchase authority. Separate source-feasibility and pilot gates prevent a synthetic demo from being described as a production monitoring service.
+
+**Tech stack:** Proposed Swift/SwiftUI, SQLite, URLSession and local notifications; direct distribution signing/notarization after a release spike. No application implementation was created during the audit and planning task.
+
+**Status:** Founder-review draft, 2026-09-20. User requested a complete audit and founder pack. The pack is delivered; implementation is future work. Public repository visibility is required; the final owner/name/license and initial permitted source remain setup decisions.
+
+Use the [founder pack](../products/open-tcg/README.md) as the canonical design, [execution plan](../products/open-tcg/05-execution-plan.md) for milestones, and [implementation task cards](../products/open-tcg/08-first-implementation-task-cards.md) for files, dependencies and verification. Future agents should use the executing-plans workflow task by task after the proposed direction is confirmed, without importing any private audit evidence or vendor source.
+
+Data-source follow-up (2026-09-25): the [OpenTCG data-source plan](2026-09-25-open-tcg-data-sources-plan.md) proposes the personal-lab source register, signal ladder and milestones that fill this pack's open M0 source decision.

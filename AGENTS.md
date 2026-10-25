@@ -8,6 +8,10 @@ The full agent model lives in [`docs/agent-model.md`](docs/agent-model.md). Read
 - For transparent POD, shirt, mug, merchandise, or Printify artwork requests,
   read `skills/adapters/codex/pod-artwork-generator.md` before proposing style
   directions or generating artwork.
+- For a new HomeFromWorking shirt draft whose artwork is already selected and
+  validated, read `skills/adapters/codex/printify-shirt-draft.md` and follow its
+  native-duplicate, browser-placement, revision approval, and no-publication
+  boundaries.
 
 - The **platform** owns orchestration, persistence, queueing, approvals, and policy.
 - The **supervisor** decomposes goals and routes work; it does not deliver.
@@ -20,5 +24,6 @@ The full agent model lives in [`docs/agent-model.md`](docs/agent-model.md). Read
 - Engineering and iOS review require executed registry-configured verification and complete staged, unstaged, and new-file evidence. Worker infrastructure errors retry with bounded backoff, then exit visibly. The LaunchAgent owns the foreground supervisor and preserves fail-stop recovery.
 - Completion requires persisted evidence and a passing post-run validator. Database lifecycle writes share a transaction; Redis dispatch has separate, explicit recovery limits.
 - Logic-bearing changes ship with lane-matching tests. Irreversible actions require approval. Runtime state lives under ignored `state/` paths.
+- **Etsy credentials:** all Etsy API/OAuth work uses the ignored repository-root `.etsy.env` only. The founder has authorized agents to maintain its approved keys for OAuth refresh/replacement without re-asking. Never query macOS Keychain, run `security`, or fall back to `.env` or process environment for Etsy. Read [the Etsy credential contract](docs/founder/etsy-credentials.md) first. This exception does not change unrelated Printify or approval-signing Keychain workflows.
 
 When the architecture changes materially, update `README.md`, this stub, `docs/agent-model.md`, and `docs/architecture.md`.

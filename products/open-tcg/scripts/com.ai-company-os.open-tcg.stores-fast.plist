@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OpenTCG fast store reader (store monitoring P7): every 30 s it reads the
+  newest page of each store whose cadence is under 15 minutes. These are hot
+  stores (5 min) and, in a drop window, hot and first-pass stores (2 min).
+  Then it alerts on MSRP hits. The 15-minute sync reads every other store and
+  does all sweeps and robots checks.
+  KeepAlive restarts it after a crash; RunAtLoad starts it at login.
+
+  Install / remove with products/open-tcg/scripts/launchd.sh install|uninstall.
+  launchd does not expand ~ or variables, so every path is absolute.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ai-company-os.open-tcg.stores-fast</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/kashane/dev/ai-company-os/products/open-tcg/.venv/bin/python</string>
+    <string>-m</string>
+    <string>radar</string>
+    <string>stores-fast</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/kashane/dev/ai-company-os/products/open-tcg</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>PYTHONUNBUFFERED</key>
+    <string>1</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <!-- If it exits, wait before restarting so a hard failure cannot spin. -->
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/kashane/dev/ai-company-os/products/open-tcg/data/logs/stores-fast.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/kashane/dev/ai-company-os/products/open-tcg/data/logs/stores-fast.err.log</string>
+</dict>
+</plist>

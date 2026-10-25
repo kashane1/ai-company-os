@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OpenTCG live stream: follows the Bluesky restock accounts, groups posts into
+  restock episodes, and sends Mac notifications for fresh watched restocks.
+  KeepAlive restarts it after a crash; RunAtLoad starts it at login.
+
+  Install / remove with products/open-tcg/scripts/launchd.sh install|uninstall.
+  launchd does not expand ~ or variables, so every path is absolute.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ai-company-os.open-tcg.stream</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/kashane/dev/ai-company-os/products/open-tcg/.venv/bin/python</string>
+    <string>-m</string>
+    <string>radar</string>
+    <string>stream</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/kashane/dev/ai-company-os/products/open-tcg</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>PYTHONUNBUFFERED</key>
+    <string>1</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <!-- If it exits, wait before restarting so a hard failure cannot spin. -->
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/kashane/dev/ai-company-os/products/open-tcg/data/logs/stream.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/kashane/dev/ai-company-os/products/open-tcg/data/logs/stream.err.log</string>
+</dict>
+</plist>

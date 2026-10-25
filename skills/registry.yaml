@@ -301,6 +301,18 @@ skills:
     adapters:
       codex: adapters/codex/pod-artwork-generator.md
 
+  - id: printify-shirt-draft
+    name: Printify Shirt Draft
+    path: canonical/printify-shirt-draft/skill.md
+    owner_agent: engineering
+    target_runtimes: [codex]
+    stage: active
+    kind: agentic
+    fixture_status: passing
+    source: internal
+    adapters:
+      codex: adapters/codex/printify-shirt-draft.md
+
   - id: app-store-positioning-pack
     name: App Store Positioning Pack
     path: canonical/shared/app-store-positioning-pack.md

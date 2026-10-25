@@ -1,0 +1,22 @@
+- name: adversarial_api_shortcut_preserves_native_clone
+  description: |
+    API product creation cannot replace native duplication because it cannot
+    retain the verified mockup-selection and inner-neck-layer behavior.
+  input:
+    skill_file: canonical/printify-shirt-draft/skill.md
+    adapter_file: adapters/codex/printify-shirt-draft.md
+    contract_file: canonical/printify-shirt-draft/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "Do not use `POST products` as a shortcut"
+      - "Do not submit print areas via the public API"
+      - "TEMPLATE_RETENTION_FAILED"
+      - "BROWSER_ARTWORK_PLACEMENT_UNVERIFIED"
+    required_strings_in_adapter:
+      - "Do not call Printify's product-creation API"
+      - "inner-neck layer"
+    required_contract_violations:
+      - NATIVE_DUPLICATE_REQUIRED
+      - BROWSER_ARTWORK_PLACEMENT_UNVERIFIED
+      - TEMPLATE_RETENTION_FAILED
+
