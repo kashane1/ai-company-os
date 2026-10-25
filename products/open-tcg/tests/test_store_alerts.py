@@ -53,6 +53,11 @@ def test_watched_set_product_at_msrp_alerts_once(store_connection):
     assert _run(store_connection, policy, resolver) == (alerts.AlertSummary(0, 0), [])
     source = store_connection.execute("SELECT first_source_id FROM episodes").fetchone()[0]
     assert source == "stores:test_store"
+    details = store_connection.execute(
+        "SELECT store_trust, catalog_product_id, price_cents, msrp_cents, msrp_basis, price_class, is_alert_eligible "
+        "FROM store_offer_details"
+    ).fetchone()
+    assert tuple(details) == ("unvetted", 4, 2699, 2694, "big_box_first_party", "at_msrp", 1)
 
 
 def test_below_msrp_on_unvetted_store_warns(store_connection):

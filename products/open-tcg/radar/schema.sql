@@ -323,3 +323,18 @@ CREATE TABLE IF NOT EXISTS msrp_references (
     note         TEXT,
     PRIMARY KEY (product_id, basis)
 ) WITHOUT ROWID;
+
+-- MSRP context for each store observation (P6): what OpenFlip needs beyond
+-- the v1 observation export (price, item, retailer, URL) to judge an offer.
+CREATE TABLE IF NOT EXISTS store_offer_details (
+    observation_id     INTEGER PRIMARY KEY REFERENCES observations(id),
+    store_id           TEXT NOT NULL,
+    store_trust        TEXT NOT NULL,
+    catalog_product_id INTEGER NOT NULL,
+    price_cents        INTEGER NOT NULL,
+    msrp_cents         INTEGER,
+    msrp_basis         TEXT,
+    price_class        TEXT NOT NULL,         -- below_msrp | at_msrp | near_msrp | market | marked_up | no_msrp
+    market_cents       INTEGER,
+    is_alert_eligible  INTEGER NOT NULL
+);

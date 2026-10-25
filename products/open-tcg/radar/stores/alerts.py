@@ -251,7 +251,24 @@ def _record_observation(connection: sqlite3.Connection, candidate: Candidate, de
             candidate.observed_at,
         ),
     )
-    return cursor.lastrowid if cursor.rowcount else None
+    if not cursor.rowcount:
+        return None
+    price_class = candidate.price_class
+    connection.execute(
+        """
+        INSERT INTO store_offer_details
+            (observation_id, store_id, store_trust, catalog_product_id, price_cents, msrp_cents, msrp_basis,
+             price_class, market_cents, is_alert_eligible)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            cursor.lastrowid, candidate.store_id, candidate.trust, candidate.product_id, candidate.price_cents,
+            price_class.msrp.msrp_cents if price_class.msrp else None,
+            price_class.msrp.basis if price_class.msrp else None,
+            price_class.name, candidate.market_cents, int(price_class.is_alert_eligible),
+        ),
+    )
+    return cursor.lastrowid
 
 
 def _notify(connection: sqlite3.Connection, episode_id: int, title: str, body: str, *, now: dt.datetime,
