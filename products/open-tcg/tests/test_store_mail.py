@@ -9,7 +9,7 @@ import pytest
 from radar.catalog import classify as catalog_classify
 from radar.stores import collect, mail, registry
 
-from .conftest import NOW
+from .conftest import FIXTURES, NOW
 
 MOONBLAST = registry.Store(
     store_id="tcg_moonblast", name="TCG Moonblast", domain="tcgmoonblast.com", tier="backup",
@@ -180,3 +180,30 @@ def test_avoid_store_drop_email_never_notifies_and_unrelated_mail_is_not_stored(
               notifier=lambda t, b: notes.append((t, b)))
     assert notes == []
     assert [row[0] for row in connection.execute("SELECT store_id FROM store_emails")] == ["scam_store"]
+
+
+def test_hand_forwarded_moonblast_drop_is_attributed_by_links_and_alerts(connection):
+    """The founder's real forward of Moonblast's Delta Reign email (2026-10-23).
+
+    Addresses are placeholders and the unsubscribe token is redacted.
+    """
+    forwarded = (FIXTURES / "email" / "moonblast_forwarded.eml").read_bytes()
+    email = mail.read_email(forwarded, STORES, {})
+    assert (email.store_id, email.attribution, email.kind, email.is_pokemon) == ("tcg_moonblast", "links", "drop", True)
+    assert email.sender == "founder@example.com"
+
+    notes = []
+    wulf_links = '<a href="https://wulfgaming.com/products/a">A</a> <a href="https://wulfgaming.com/collections/b">B</a>'
+    mailbox = FakeMailbox({
+        1: forwarded,
+        2: raw_email(sender="Founder <founder@example.com>", subject="Fwd: Pokemon restock tonight",
+                     html=wulf_links, sent=dt.datetime(2026, 10, 25, 20, 25, tzinfo=dt.timezone.utc)),
+    })
+    new = mail.poll(connection, mailbox, stores=STORES, now=dt.datetime(2026, 10, 25, 20, 23, tzinfo=dt.timezone.utc),
+                    check_store=lambda *a: False, notifier=lambda t, b: notes.append((t, b)))
+    assert [title for title, _ in notes] == ["TCG Moonblast: drop email", "Wulf Gaming: drop email"]
+    assert notes[0][1].startswith("Fwd: Delta Reign Drop...Tonight?!\nhttps://tcgmoonblast.com/")
+    # The forwarder's address says nothing about the store: it is not learned, so the next forward
+    # (another store's mail) is attributed by its own links, not as Moonblast.
+    assert [e.store_id for e in new] == ["tcg_moonblast", "wulf_gaming"]
+    assert connection.execute("SELECT COUNT(*) FROM store_mail_senders").fetchone()[0] == 0

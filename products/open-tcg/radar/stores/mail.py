@@ -53,6 +53,9 @@ _PROMO = re.compile(r"\b(\d+% off|sale|discount|coupon|promo code|black friday|c
 # "Thursday Price Drops" is a sale, not a product drop.
 _PRICE_DROP = re.compile(r"\bprice drops?\b")
 _POKEMON = re.compile(r"pok[eé]mon|\bptcg\b")
+# A sender is learned only when the sender itself identified the store. Links don't:
+# a hand-forward comes from the founder, and shared services send for many stores.
+_LEARNS_SENDER = {"sender_domain", "display_name"}
 
 
 @dataclass(frozen=True)
@@ -163,7 +166,7 @@ def record(connection: sqlite3.Connection, email: StoreEmail, *, now: dt.datetim
             email.subject, email.sent_at, iso(now), email.kind, int(email.is_pokemon), email.first_link,
         ),
     )
-    if email.store_id and email.attribution != "known_sender":
+    if email.store_id and email.attribution in _LEARNS_SENDER:
         connection.execute(
             "INSERT OR IGNORE INTO store_mail_senders (sender, store_id, learned_at) VALUES (?, ?, ?)",
             (email.sender, email.store_id, iso(now)),
@@ -297,7 +300,7 @@ def poll(
             continue  # unrelated mail (no store, no Pokémon): not stored
         if record(connection, email, now=now):
             new.append(email)
-            if email.store_id:
+            if email.store_id and email.attribution in _LEARNS_SENDER:
                 known[email.sender] = email.store_id
             act(connection, email, by_id, now=now, check_store=check_store, notifier=notifier)
     _save_cursor(connection, mailbox.uidvalidity, last_uid, now)

@@ -35,8 +35,10 @@ Store drop emails, like TCG Moonblast's Friday 4pm release, go to **ksakhakorn@g
 
 ## 2. Send the Moonblast example (2 minutes)
 
-- [ ] Forward TCG Moonblast's release email from last Friday to `jimsimons01102000@gmail.com`.
-- [ ] Tell Claude: *"I forwarded the Moonblast email; make it a test case."* A hand-forwarded email shows your address as the sender, so Claude will attribute it by its links and save it as a fixture. That proves the "email arrives → you're alerted in a minute" path on a real example.
+- [x] Forward TCG Moonblast's release email from last Friday to `jimsimons01102000@gmail.com`.
+- [x] Tell Claude: *"I forwarded the Moonblast email; make it a test case."* A hand-forwarded email shows your address as the sender, so Claude will attribute it by its links and save it as a fixture. That proves the "email arrives → you're alerted in a minute" path on a real example.
+
+Done 2026-10-25. The radar matched the forward to TCG Moonblast by its links and sent a Mac alert. It's now the test case `tests/fixtures/email/moonblast_forwarded.eml`, with addresses replaced and the unsubscribe token removed. The alert came 32 minutes late: the store-mail job was still running code from before the P5 store-reader update and failed on every poll until it restarted. The forward also showed that a forwarded email taught the radar your address as Moonblast's sender. That's fixed: senders are now learned only from the sender's own domain or name.
 
 ## 3. Confirm pending email signups (5 minutes)
 
