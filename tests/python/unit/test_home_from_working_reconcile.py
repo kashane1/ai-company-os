@@ -7,7 +7,6 @@ import pytest
 
 from packages.home_from_working.reconcile import build_reconciliation_report
 
-
 RECEIPT_ROOTS = [
     Path("state/home-from-working/multi-product-listings"),
     Path("state/home-from-working/multi-product-listings-10color"),

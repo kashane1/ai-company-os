@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from urllib.parse import parse_qs, urlparse
 
-import pytest
 import httpx
+import pytest
 
 from packages.etsy.auth import (
     EtsyCredentials,
@@ -12,10 +12,10 @@ from packages.etsy.auth import (
     build_authorization_url,
     create_pkce_pair,
     credential_readiness,
-    redact_secret,
-    validate_callback_state,
     exchange_authorization_code,
+    redact_secret,
     refresh_oauth_token,
+    validate_callback_state,
 )
 
 

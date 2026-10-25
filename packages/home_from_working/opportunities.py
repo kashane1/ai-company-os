@@ -8,7 +8,6 @@ import re
 from dataclasses import asdict, dataclass
 from typing import IO, Mapping, Sequence
 
-
 SECTION_LABELS = {
     "workday_absurdity": "Workday Absurdity",
     "tiny_morale_boosts": "Tiny Morale Boosts",

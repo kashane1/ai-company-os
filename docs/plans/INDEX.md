@@ -132,6 +132,15 @@ follow-ups" below for the source-signal mapping used.
 | [2026-06-12-outreach-follow-up-sequencer-plan.md](2026-06-12-outreach-follow-up-sequencer-plan.md) | 2026-06-12 | outreach-follow-up-sequencer | open | platform / outreach — per-step cadence + draft variants (v2 item 6) |
 
 | [2026-09-09-employer-readiness-round-2-plan.md](2026-09-09-employer-readiness-round-2-plan.md) | 2026-09-09 | employer-readiness-round-2 | open | platform / products — verification evidence, recovery, and evaluator clarity |
+| [2026-10-23-open-tcg-indie-store-monitoring.md](2026-10-23-open-tcg-indie-store-monitoring.md) | 2026-10-23 | open-tcg-indie-store-monitoring | open | parent plan; P0–P7 built |
+| [2026-10-24-open-tcg-store-alerts-p4.md](2026-10-24-open-tcg-store-alerts-p4.md) | 2026-10-24 | open-tcg-store-alerts-p4 | done | built |
+| [2026-10-24-open-tcg-store-drop-emails.md](2026-10-24-open-tcg-store-drop-emails.md) | 2026-10-24 | open-tcg-store-drop-emails | open | built; waits on the founder's Gmail forwarding filter |
+| [2026-10-24-open-tcg-store-matching-p2.md](2026-10-24-open-tcg-store-matching-p2.md) | 2026-10-24 | open-tcg-store-matching-p2 | done | built |
+| [2026-10-24-open-tcg-store-msrp-p3.md](2026-10-24-open-tcg-store-msrp-p3.md) | 2026-10-24 | open-tcg-store-msrp-p3 | done | built; MSRP evidence for 2020–2026 |
+| [2026-10-24-open-tcg-store-registry-p1.md](2026-10-24-open-tcg-store-registry-p1.md) | 2026-10-24 | open-tcg-store-registry-p1 | done | built |
+| [2026-10-25-open-tcg-openflip-export-p6.md](2026-10-25-open-tcg-openflip-export-p6.md) | 2026-10-25 | open-tcg-openflip-export-p6 | done | built |
+| [2026-10-25-open-tcg-store-coverage-p5.md](2026-10-25-open-tcg-store-coverage-p5.md) | 2026-10-25 | open-tcg-store-coverage-p5 | done | built; 89 stores polled |
+| [2026-10-25-open-tcg-store-scoring-p7.md](2026-10-25-open-tcg-store-scoring-p7.md) | 2026-10-25 | open-tcg-store-scoring-p7 | done | built |
 
 The table covers the live plans checked by `make plans-index-check`. Finished plans
 (`done` / `abandoned`) are moved out of this directory into

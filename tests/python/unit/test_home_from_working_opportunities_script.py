@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 
-
 REPO = Path(__file__).resolve().parents[3]
 CATALOG = REPO / "state/home-from-working/catalog/catalog.json"
 # Runtime state under state/ is git-ignored, so these checks run only on the operator Mac.

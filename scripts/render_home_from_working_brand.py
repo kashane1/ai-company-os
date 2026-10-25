@@ -8,7 +8,6 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-
 CREAM = "#F6F0E7"
 PAPER = "#FFFCF7"
 CHARCOAL = "#2D2B28"

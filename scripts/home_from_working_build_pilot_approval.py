@@ -12,7 +12,6 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PAIR_EVIDENCE = (
     REPO_ROOT

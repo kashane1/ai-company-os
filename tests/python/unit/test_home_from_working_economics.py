@@ -8,11 +8,10 @@ import pytest
 
 from packages.home_from_working.economics import (
     EconomicsAssumptions,
-    evaluate_launch,
     calculate_contribution,
+    evaluate_launch,
 )
 from scripts.home_from_working_launch import evaluate_policy, load_policy
-
 
 LAUNCH_POLICY = Path("state/home-from-working/operations/launch-policy.json")
 # Runtime state under state/ is git-ignored, so this check runs only on the operator Mac.

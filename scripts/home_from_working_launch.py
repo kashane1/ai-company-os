@@ -19,7 +19,6 @@ from packages.home_from_working.economics import (  # noqa: E402
     evaluate_launch,
 )
 
-
 DEFAULT_POLICY = Path("state/home-from-working/operations/launch-policy.json")
 
 

@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from packages.config import etsy_env, secrets as secret_config
+from packages.config import etsy_env
+from packages.config import secrets as secret_config
 from packages.etsy.auth import EtsyOAuthToken
 from scripts.home_from_working_etsy_snapshot import (
     _results,

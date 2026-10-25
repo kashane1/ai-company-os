@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Mapping
 
-
 _CHECKS = {
     "production_partner": "production_partner_disclosed",
     "ai_disclosure": "ai_disclosure_complete",

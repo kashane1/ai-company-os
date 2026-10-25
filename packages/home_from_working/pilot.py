@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 
-
 _PAIR_INPUTS = (
     ("lightning-sun", "science-humor-20260903/lightning-sun-1", "science-humor-20260903/lightning-sun-2"),
     ("breathing-manually", "science-humor-20260903/breathing-manually-1", "science-humor-20260903/breathing-manually-2"),

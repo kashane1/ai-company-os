@@ -20,7 +20,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from packages.home_from_working.reconcile import build_reconciliation_report
 from packages.home_from_working.registry import build_registry, serialize_registry
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = REPO_ROOT / "state/home-from-working/catalog/catalog.json"
 DEFAULT_RECEIPT_ROOTS = (

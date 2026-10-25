@@ -14,7 +14,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from packages.config.secrets import require_secret  # noqa: E402
 from packages.pod.runner import PrintifyClient, save_json  # noqa: E402
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_ROOT = REPO_ROOT / "state/home-from-working/operations/evidence"
 

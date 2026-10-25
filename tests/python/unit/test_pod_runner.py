@@ -15,10 +15,10 @@ from packages.pod.runner import (
     prepare_copy_run,
     prepare_run,
 )
+from packages.pod.template import artwork_placement
 from packages.policies.approvals import PolicyViolation
 from packages.policies.pod import require_draft_approval
 from packages.schemas.approval import ApprovalRecord, ApprovalStatus
-from packages.pod.template import artwork_placement
 
 SHOP = 28779955
 SOURCE = 'a' * 24

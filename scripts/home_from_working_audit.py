@@ -19,7 +19,6 @@ from packages.home_from_working.trust import (  # noqa: E402
     derive_live_etsy_trust,
 )
 
-
 DEFAULT_CATALOG = Path("state/home-from-working/catalog/catalog.json")
 DEFAULT_REGISTRY = Path("state/home-from-working/operations/registry.json")
 DEFAULT_TRUST_OUTPUT = Path("state/home-from-working/operations/trust-audit.json")

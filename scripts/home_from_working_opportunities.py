@@ -20,15 +20,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from packages.home_from_working.opportunities import (
     FACTOR_WEIGHTS,
-    HardGates,
     MARKETPLACE_COLUMNS,
     SECTION_LABELS,
+    HardGates,
     classify_listing,
     marketplace_factor_scores,
     parse_marketplace_insights,
     score_candidate,
 )
-
 
 # These queries deliberately combine broad buyer intent with the shop's strongest
 # concepts. They are the first 15 manual searches named in the launch audit.
@@ -69,7 +68,8 @@ def _title(record: dict[str, Any]) -> str:
 def _concept_id(record: dict[str, Any]) -> str:
     design = str(record.get("design") or "unassigned")
     variant = str(record.get("variant") or str(record.get("key", "unknown")).rsplit("/", 1)[-1])
-    return f"{design}/{re.sub(r'-\d+$', '', variant)}"
+    variant = re.sub(r"-\d+$", "", variant)
+    return f"{design}/{variant}"
 
 
 def _concept_label(title: str) -> str:

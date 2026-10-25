@@ -31,7 +31,6 @@ from packages.etsy.auth import (
 )
 from packages.etsy.client import EtsyDescriptionWriteClient
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = REPO_ROOT / "state/home-from-working/operations/trust-copy-change-preview.json"
 PROTECTED_LISTING_FIELDS = (

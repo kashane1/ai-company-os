@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-
 SCRIPT = Path(__file__).resolve().parents[3] / "scripts/home_from_working_build_pilot_approval.py"
 SPEC = importlib.util.spec_from_file_location("home_from_working_build_pilot_approval", SCRIPT)
 assert SPEC and SPEC.loader

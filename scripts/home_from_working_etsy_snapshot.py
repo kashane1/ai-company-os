@@ -21,13 +21,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from packages.config.secrets import get_secret
 from packages.etsy.auth import (
-    EtsyCredentials,
-    EtsyOAuthToken,
     ACCESS_TOKEN_NAME,
     API_CREDENTIAL_NAME,
     EXPIRES_AT_NAME,
-    REFRESH_TOKEN_NAME,
     READ_SCOPES,
+    REFRESH_TOKEN_NAME,
+    EtsyCredentials,
+    EtsyOAuthToken,
     refresh_oauth_token,
 )
 from packages.etsy.client import EtsyReadOnlyClient

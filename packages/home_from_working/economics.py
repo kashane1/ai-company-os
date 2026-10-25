@@ -7,9 +7,8 @@ not infer a product or fulfillment cost: an unknown cost blocks approval.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
-
 
 ETSY_TRANSACTION_FEE_BPS = 650
 PAYMENT_PROCESSING_BPS = 300

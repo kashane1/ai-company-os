@@ -7,7 +7,6 @@ from pathlib import Path
 from packages.config import etsy_env
 from packages.etsy.auth import CredentialReadiness, EtsyCredentials, EtsyOAuthToken
 
-
 SCRIPT = Path(__file__).resolve().parents[3] / "scripts/etsy_oauth_setup.py"
 SPEC = importlib.util.spec_from_file_location("etsy_oauth_setup", SCRIPT)
 assert SPEC and SPEC.loader

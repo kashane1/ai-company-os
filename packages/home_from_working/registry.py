@@ -10,7 +10,6 @@ import json
 from collections.abc import Iterable, Mapping
 from typing import Any
 
-
 SCHEMA_VERSION = 1
 BANANA_KEYS = {
     "banana-berries-20260902/banana-berries-1",

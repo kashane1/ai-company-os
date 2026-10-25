@@ -10,7 +10,6 @@ import httpx
 from packages.config.secrets import require_secret
 from packages.pod.runner import PrintifyClient
 
-
 PICKS = [
     ("hoodie", "front-2", "Sport Grey", "09-hoodie-front-2-sport-grey.jpg"),
     ("hoodie", "lifestyle-2", "Light Blue", "10-hoodie-lifestyle-2-light-blue.jpg"),
