@@ -166,3 +166,17 @@ def test_shipped_registry_email_fields():
     moonblast = next(s for s in stores if s.store_id == "tcg_moonblast")
     assert (moonblast.email_signup, moonblast.email_status) == ("drop", "subscribed")
     assert sum(s.email_status == "subscribed" for s in stores) >= 14
+
+
+def test_avoid_store_drop_email_never_notifies_and_unrelated_mail_is_not_stored(connection):
+    avoid = registry.Store(store_id="scam_store", name="Scam Store", domain="scamstore.com", tier="parked",
+                           trust="avoid", email_signup="newsletter", email_status="subscribed")
+    notes = []
+    mailbox = FakeMailbox({
+        1: raw_email(sender="Scam Store <news@scamstore.com>", subject="Pokemon Prismatic Evolutions restock live now"),
+        2: raw_email(sender="Google <no-reply@google.com>", subject="Welcome to Google on your Mac OS"),
+    })
+    mail.poll(connection, mailbox, stores=[avoid], now=NOW, check_store=lambda *a: pytest.fail("not polled"),
+              notifier=lambda t, b: notes.append((t, b)))
+    assert notes == []
+    assert [row[0] for row in connection.execute("SELECT store_id FROM store_emails")] == ["scam_store"]

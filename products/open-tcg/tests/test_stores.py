@@ -140,9 +140,9 @@ def test_shipped_registry_is_valid():
     stores = registry.load()
     assert len(stores) == 109
     polled = [store for store in stores if store.is_polled]
-    assert len(polled) == 85  # 86 open Shopify stores, minus parked GG Legends
+    assert len(polled) == 84  # 86 open Shopify stores, minus parked GG Legends and GoodStash (scam, avoid)
     pilot = [store for store in polled if store.discovery_minutes == 15]
-    assert len(pilot) == 20
+    assert len(pilot) == 19
 
 
 def test_registry_cadence_and_not_polled_reasons(tmp_path: Path):

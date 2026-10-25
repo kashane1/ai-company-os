@@ -159,3 +159,13 @@ def test_deals_digest_groups_by_class_with_daily_change(store_connection):
     assert (items[1].offer.price_class.name, items[1].yesterday_cents) == ("at_msrp", 5499)
     assert items[11].offer.price_class.name == "marked_up"
     assert items[4].yesterday_cents is None
+
+
+def test_avoid_store_is_never_offered_or_alerted(store_connection):
+    from radar.stores import report
+
+    _collect(store_connection, LATER, [_product(1, "Delta Reign Elite Trainer Box", price="39.99")])
+    store_connection.execute("UPDATE stores SET trust = 'avoid' WHERE store_id = 'test_store'")
+    resolver = _resolver(p1=(4999, "official_listing"))
+    assert alerts.candidates(store_connection, now=LATER, resolver=resolver) == []
+    assert report.offers(store_connection, {}, resolver) == []

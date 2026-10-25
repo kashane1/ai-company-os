@@ -87,6 +87,7 @@ def offers(
         JOIN ref_products p ON p.product_id = l.catalog_product_id
         JOIN ref_groups g ON g.group_id = p.group_id
         WHERE l.match_status IN ('exact', 'confirmed') AND l.is_available = 1 AND l.price_cents IS NOT NULL
+          AND s.trust != 'avoid' 
         ORDER BY p.name, l.price_cents
         """
     ).fetchall()

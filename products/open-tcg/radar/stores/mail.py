@@ -208,7 +208,7 @@ def act(
     if email.kind != "drop" or not email.is_pokemon or email.store_id is None:
         return False
     store = stores_by_id.get(email.store_id)
-    if store is None:
+    if store is None or store.trust == "avoid":
         return False
     if email.sent_at and now - dt.datetime.fromisoformat(email.sent_at) > FRESH_FOR:
         return False
@@ -293,8 +293,8 @@ def poll(
     for uid in uids:
         email = read_email(mailbox.fetch(uid), stores, known)
         last_uid = max(last_uid, uid)
-        if email.store_id is None and email.kind == "other" and not email.is_pokemon:
-            continue  # unrelated mail: not stored
+        if email.store_id is None and not email.is_pokemon:
+            continue  # unrelated mail (no store, no Pokémon): not stored
         if record(connection, email, now=now):
             new.append(email)
             if email.store_id:

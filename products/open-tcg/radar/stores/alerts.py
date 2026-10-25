@@ -176,7 +176,7 @@ def candidates(
         JOIN stores s ON s.store_id = n.store_id
         JOIN ref_products p ON p.product_id = l.catalog_product_id
         JOIN ref_groups g ON g.group_id = p.group_id
-        WHERE n.observed_at >= ? AND n.is_available = 1 AND n.price_cents IS NOT NULL
+        WHERE n.observed_at >= ? AND n.is_available = 1 AND n.price_cents IS NOT NULL AND s.trust != 'avoid' 
           AND l.match_status IN ('exact', 'confirmed') AND l.language = 'en'
         ORDER BY n.observed_at, n.store_id, n.variant_id
         """,
