@@ -13,7 +13,7 @@ from .conftest import NOW
 
 MOONBLAST = registry.Store(
     store_id="tcg_moonblast", name="TCG Moonblast", domain="tcgmoonblast.com", tier="backup",
-    platform="wix", email_signup="drop", email_status="subscribed",
+    platform="unknown", email_signup="drop", email_status="subscribed",
 )
 WULF = registry.Store(
     store_id="wulf_gaming", name="Wulf Gaming", domain="wulfgaming.com", tier="first_pass",

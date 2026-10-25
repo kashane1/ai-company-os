@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import datetime as dt
+import re
 import sqlite3
 import threading
 from dataclasses import dataclass, field
@@ -32,7 +33,24 @@ from ..config import (
 from ..db import iso
 from ..http import make_client
 from . import collections, match, registry, review
+from . import readers
 from .shopify import StoreFetchError, StoreReader
+
+
+def reader_factory(catalog: match.Catalog) -> Callable[[registry.Store, httpx.Client], StoreReader]:
+    """The reader for each store's platform; sitemap readers look for Pokémon and set names in slugs."""
+    words = frozenset(
+        re.sub(r"\s+", " ", key.replace("&", " ")).strip() for key in catalog.keys if len(key) >= 5
+    )
+
+    def make(store: registry.Store, client: httpx.Client) -> StoreReader:
+        if store.platform == "woocommerce":
+            return readers.WooCommerceReader(store, client)
+        if store.platform in ("wix", "sitemap_jsonld"):
+            return readers.SitemapReader(store, client, match_words=words)
+        return StoreReader(store, client)
+
+    return make
 
 SOURCE_ID = "stores"
 # The sync runs every 15 minutes with some jitter; without slack a store due
@@ -153,8 +171,9 @@ def plan(connection: sqlite3.Connection, stores: list[registry.Store], now: dt.d
             row["last_discovery_at"], now, store.discovery_minutes * 60 - DISCOVERY_SLACK_S
         )
         is_full_sweep = _age_exceeds(row["last_full_sweep_at"], now, STORE_FULL_SWEEP_EVERY_S)
-        is_collection_check_due = check_row is None or _age_exceeds(
-            check_row["checked_at"], now, STORE_COLLECTIONS_EVERY_S
+        # Collections are a Shopify feature; other readers sweep their whole catalog.
+        is_collection_check_due = store.platform == "shopify_json" and (
+            check_row is None or _age_exceeds(check_row["checked_at"], now, STORE_COLLECTIONS_EVERY_S)
         )
         if not (is_discovery_due or is_full_sweep or is_collection_check_due):
             continue
@@ -294,7 +313,7 @@ def persist(
                 "title": product.get("title") or "",
                 "variant_title": variant.get("title"),
                 "vendor": product.get("vendor"),
-                "url": f"{store.base_url}/products/{handle}?variant={variant_id}",
+                "url": product.get("url") or f"{store.base_url}/products/{handle}?variant={variant_id}",
                 "listed_at": product.get("created_at"),
                 "now": stamp,
                 "is_baseline": 1 if is_baseline else 0,
@@ -419,7 +438,7 @@ def collect(
     *,
     now: dt.datetime,
     stores: list[registry.Store] | None = None,
-    make_reader: Callable[[registry.Store, httpx.Client], StoreReader] = StoreReader,
+    make_reader: Callable[[registry.Store, httpx.Client], StoreReader] | None = None,
     client_factory: Callable[[], httpx.Client] = make_client,
     workers: int = STORE_FETCH_WORKERS,
     max_catalog_sweeps: int = STORE_MAX_CATALOG_SWEEPS_PER_RUN,
@@ -428,6 +447,7 @@ def collect(
     review.ensure_schema(connection)
     sync_registry(connection, stores)
     catalog = match.Catalog.from_db(connection)
+    make_reader = make_reader or reader_factory(catalog)
     plans = plan(connection, stores, now)
     summary = CollectSummary()
     budget = CatalogSweepBudget(max_catalog_sweeps)
@@ -475,7 +495,7 @@ def check_store_now(
     store: registry.Store,
     *,
     now: dt.datetime,
-    make_reader: Callable[[registry.Store, httpx.Client], StoreReader] = StoreReader,
+    make_reader: Callable[[registry.Store, httpx.Client], StoreReader] | None = None,
     client_factory: Callable[[], httpx.Client] = make_client,
 ) -> bool:
     """Read one store's newest page right away (a drop email arrived); True if it succeeded.
@@ -498,6 +518,7 @@ def check_store_now(
         is_collection_check_due=False,
     )
     catalog = match.Catalog.from_db(connection)
+    make_reader = make_reader or reader_factory(catalog)
     with client_factory() as client:
         outcome = fetch(plan_item, make_reader(store, client), catalog)
     if outcome.products is not None:

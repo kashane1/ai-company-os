@@ -239,10 +239,13 @@ def render(connection: sqlite3.Connection, *, now: dt.datetime, days: int = 7, s
 
     unpolled = [store for store in stores if not store.is_polled]
     if unpolled:
-        lines += ["", f"Not polled ({len(unpolled)}):"]
+        covered = sum(store.email_status == "subscribed" for store in unpolled)
+        lines += ["", f"Not polled ({len(unpolled)}; {covered} covered by a store email subscription):"]
         for store in sorted(unpolled, key=lambda s: (s.not_polled_reason or "", s.name.lower())):
-            newsletter = "  newsletter signup" if store.has_newsletter else ""
-            lines.append(f"  {store.name[:32]:<32} {store.domain[:32]:<32} {store.not_polled_reason}{newsletter}")
+            email = "email" if store.email_status == "subscribed" else "-"
+            lines.append(
+                f"  {store.name[:28]:<28} {store.not_polled_reason[:26]:<26} {email:<5} {store.notes[:70]}"
+            )
 
     lines += ["", "Match quality (kept Pokémon listings; singles, graded, non-English and similar are not kept):"]
     for row in connection.execute(

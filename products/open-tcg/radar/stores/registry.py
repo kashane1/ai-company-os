@@ -12,10 +12,12 @@ from ..config import STORES_PATH
 TIERS = frozenset({"first_pass", "explore", "backup", "parked"})
 TRUST_LEVELS = frozenset({"unvetted", "checked", "purchased_ok", "avoid"})
 PLATFORMS = frozenset(
-    {"shopify_json", "shopify_html", "woocommerce", "wix", "ecwid", "crystalcommerce", "challenge", "unknown"}
+    {"shopify_json", "shopify_html", "woocommerce", "wix", "sitemap_jsonld", "ecwid", "crystalcommerce", "square",
+     "challenge", "closed", "unknown"}
 )
-# Only these platforms have an adapter; the rest are recorded until P5.
-POLLED_PLATFORMS = frozenset({"shopify_json"})
+# Platforms with a reader (shopify.py, readers.py). The rest are covered by
+# email or parked, with the reason in the store's notes.
+POLLED_PLATFORMS = frozenset({"shopify_json", "woocommerce", "wix", "sitemap_jsonld"})
 # Newest-page discovery cadence per tier, in minutes. Parked stores aren't polled.
 TIER_DISCOVERY_MINUTES = {"first_pass": 15, "explore": 60, "backup": 60}
 EMAIL_SIGNUPS = frozenset({"drop", "newsletter", "restock_button", "loyalty", "none", "unreachable"})
@@ -38,6 +40,7 @@ class Store:
     email_signup: str = "none"  # drop | newsletter | restock_button | loyalty | none | unreachable
     email_status: str = "none"  # subscribed | needs_founder | none
     discord: str = ""
+    product_path: str = ""  # sitemap stores: the URL path that marks a product page, e.g. "/product-page"
 
     @property
     def base_url(self) -> str:
@@ -76,6 +79,7 @@ def _store(raw: dict) -> Store:
         email_signup=raw.get("email_signup", "none"),
         email_status=raw.get("email_status", "none"),
         discord=raw.get("discord", ""),
+        product_path=raw.get("product_path", ""),
     )
     if not _STORE_ID.match(store.store_id):
         raise ValueError(f"store_id must be lowercase snake case: {store.store_id!r}")

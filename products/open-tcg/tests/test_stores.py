@@ -140,7 +140,9 @@ def test_shipped_registry_is_valid():
     stores = registry.load()
     assert len(stores) == 109
     polled = [store for store in stores if store.is_polled]
-    assert len(polled) == 84  # 86 open Shopify stores, minus parked GG Legends and GoodStash (scam, avoid)
+    # 86 open Shopify stores, minus parked GG Legends and GoodStash (scam, avoid), plus 2 WooCommerce and
+    # 2 sitemap stores (P5).
+    assert len(polled) == 88
     pilot = [store for store in polled if store.discovery_minutes == 15]
     assert len(pilot) == 19
 
