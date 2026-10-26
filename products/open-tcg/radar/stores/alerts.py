@@ -278,7 +278,7 @@ def _record_observation(connection: sqlite3.Connection, candidate: Candidate, de
 
 
 def _notify(connection: sqlite3.Connection, episode_id: int, title: str, body: str, *, now: dt.datetime,
-            send: Sender) -> bool:
+            send: Sender, url: str | None = None) -> bool:
     key = f"episode:{episode_id}"
     cursor = connection.execute(
         """
@@ -291,7 +291,7 @@ def _notify(connection: sqlite3.Connection, episode_id: int, title: str, body: s
     if not cursor.rowcount:
         return False
     try:
-        send(title, body)
+        send(title, body, url=url)
     except Exception as exc:  # a failed banner must not break collection
         connection.execute(
             "UPDATE notifications SET status = 'failed', error = ? WHERE dedupe_key = ?",
@@ -334,7 +334,7 @@ def evaluate(
             continue
         title, body = message(candidate, decision)
         for episode_id in episode_ids:
-            if _notify(connection, episode_id, title, body, now=now, send=send):
+            if _notify(connection, episode_id, title, body, now=now, send=send, url=candidate.url):
                 summary.alerts += 1
                 if on_alert:
                     on_alert(title, body)

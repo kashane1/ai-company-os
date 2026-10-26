@@ -15,15 +15,22 @@ A notification fires when an episode:
 For rules with open_in_browser, the link is resolved first and the page opens
 in Brave only if it really lands on that retailer's domain (assisted
 checkout: the founder clicks Buy). Links from posts and emails are untrusted.
+
+Clicking a banner opens its link in the default browser (Brave) when
+terminal-notifier is installed (`brew install terminal-notifier`). Without it,
+banners fall back to osascript, and clicking one opens Script Editor.
 """
 
 from __future__ import annotations
 
 import datetime as dt
 import json
+import os
+import shutil
 import sqlite3
 import subprocess
 from typing import Callable, Iterable
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -45,7 +52,11 @@ SIGNAL_LABELS = {
     "drawing_open": "Drawing open",
 }
 
-Sender = Callable[[str, str], None]
+Sender = Callable[..., None]  # (title, body, url=None)
+
+# launchd jobs run with a minimal PATH, so check Homebrew's locations directly too.
+TERMINAL_NOTIFIER_PATHS = ("/opt/homebrew/bin/terminal-notifier", "/usr/local/bin/terminal-notifier")
+
 
 RETAILER_DOMAINS = {
     "Costco": ("costco.com",),
@@ -76,7 +87,30 @@ def lands_on(url: str, retailer: str | None) -> bool:
     return any(host == domain or host.endswith("." + domain) for domain in RETAILER_DOMAINS.get(retailer or "", ()))
 
 
-def macos_notify(title: str, body: str) -> None:
+def _terminal_notifier() -> str | None:
+    found = shutil.which("terminal-notifier")
+    return found or next((path for path in TERMINAL_NOTIFIER_PATHS if os.access(path, os.X_OK)), None)
+
+
+def _is_web_url(url: str | None) -> bool:
+    try:
+        return bool(url) and urlsplit(url).scheme in ("http", "https")
+    except ValueError:
+        return False
+
+
+def macos_notify(title: str, body: str, url: str | None = None) -> None:
+    """Show a banner; clicking it opens `url` (http/https only) in the default browser."""
+    notifier = _terminal_notifier()
+    if notifier:
+        command = [notifier, "-title", title, "-message", body or " ", "-sound", "Glass"]
+        if _is_web_url(url):
+            command += ["-open", url]
+        try:
+            subprocess.run(command, check=True, capture_output=True, timeout=10)
+            return
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            pass  # e.g. notifications not allowed for terminal-notifier: never lose the alert
     # Title and body are passed as arguments, never interpolated into AppleScript.
     subprocess.run(
         [
@@ -224,7 +258,7 @@ def maybe_notify(
         connection.execute("UPDATE notifications SET body = ? WHERE dedupe_key = ?", (body, f"episode:{episode_id}"))
         connection.commit()
     try:
-        send(title, body)
+        send(title, body, url=first["url"] if first else None)
     except Exception as exc:  # a failed banner must not break ingestion
         connection.execute(
             "UPDATE notifications SET status = 'failed', error = ? WHERE dedupe_key = ?",

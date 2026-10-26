@@ -205,7 +205,7 @@ def act(
     *,
     now: dt.datetime,
     check_store: Callable[[sqlite3.Connection, registry.Store, dt.datetime], bool],
-    notifier: Callable[[str, str], None],
+    notifier: Callable[..., None],
 ) -> bool:
     """Notify for a fresh Pokémon drop email from a known store; True if it notified."""
     if email.kind != "drop" or not email.is_pokemon or email.store_id is None:
@@ -229,7 +229,7 @@ def act(
         body += "\nIn stock now: " + "; ".join(lines)
     elif email.first_link:
         body += f"\n{email.first_link}"
-    notifier(f"{store.name}: drop email", body)
+    notifier(f"{store.name}: drop email", body, url=email.first_link)
     connection.execute(
         "UPDATE store_emails SET notified_at = ? WHERE message_id = ?", (iso(now), email.message_id)
     )
@@ -279,7 +279,7 @@ def poll(
     stores: list[registry.Store],
     now: dt.datetime,
     check_store: Callable[[sqlite3.Connection, registry.Store, dt.datetime], bool],
-    notifier: Callable[[str, str], None],
+    notifier: Callable[..., None],
 ) -> list[StoreEmail]:
     """Read mail newer than the cursor; returns new store emails (attributed or not)."""
     collect.sync_registry(connection, stores)
@@ -313,7 +313,7 @@ def run(
     *,
     on_email: Callable[[StoreEmail], None] | None = None,
     clock: Callable[[], dt.datetime] = lambda: dt.datetime.now(dt.timezone.utc),
-    notifier: Callable[[str, str], None] | None = None,
+    notifier: Callable[..., None] | None = None,
 ) -> None:
     """Poll forever, reconnecting with capped backoff (as the alert-email reader does)."""
     from ..notify import macos_notify

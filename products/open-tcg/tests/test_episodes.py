@@ -32,9 +32,11 @@ def observe(connection, *, source_id, external_id, text, minutes_after=0, signal
 class RecordingNotifier:
     def __init__(self) -> None:
         self.sent: list[tuple[str, str]] = []
+        self.urls: list[str | None] = []
 
-    def __call__(self, title: str, body: str) -> None:
+    def __call__(self, title: str, body: str, url: str | None = None) -> None:
         self.sent.append((title, body))
+        self.urls.append(url)
 
 
 def test_reports_of_one_restock_from_several_sources_form_one_episode_with_lags(connection):
@@ -184,6 +186,7 @@ def test_costco_rule_alerts_for_a_watched_set_and_opens_the_verified_page(connec
     )
     assert sent
     assert "Costco" in notifier.sent[0][0]
+    assert notifier.urls == ["https://buff.ly/abc"]  # clicking the banner opens the post's link
     assert opener.opened == ["https://www.costco.com/pokemon-ascended-heroes-mini-tins.product.100.html"]
 
 

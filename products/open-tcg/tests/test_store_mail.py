@@ -121,7 +121,7 @@ def test_poll_notifies_once_with_what_is_in_stock(connection):
         3: raw_email(sender="Aunt May <may@example.com>", subject="Dinner Sunday?"),
     })
     new = mail.poll(connection, mailbox, stores=STORES, now=NOW + dt.timedelta(minutes=6),
-                    check_store=check_store, notifier=lambda t, b: notes.append((t, b)))
+                    check_store=check_store, notifier=lambda t, b, url=None: notes.append((t, b)))
     assert [(e.store_id, e.kind) for e in new] == [("wulf_gaming", "drop"), ("wulf_gaming", "drop")]
     assert checks == ["wulf_gaming"]  # the second drop email is inside the cooldown
     assert notes == [(
@@ -147,7 +147,7 @@ def test_unpolled_store_notifies_with_link_and_stale_mail_is_quiet(connection):
                      message_id="<welcome@x>"),
     })
     mail.poll(connection, mailbox, stores=STORES, now=NOW, check_store=lambda *a: pytest.fail("not polled"),
-              notifier=lambda t, b: notes.append((t, b)))
+              notifier=lambda t, b, url=None: notes.append((t, b)))
     assert notes == [("TCG Moonblast: drop email", "Delta Reign Pokemon preorders are live\nhttps://www.tcgmoonblast.com/category/pokemon")]
     kinds = dict(connection.execute("SELECT message_id, kind FROM store_emails").fetchall())
     assert kinds == {"<old@x>": "drop", "<new@x>": "drop", "<welcome@x>": "subscription"}
@@ -177,7 +177,7 @@ def test_avoid_store_drop_email_never_notifies_and_unrelated_mail_is_not_stored(
         2: raw_email(sender="Google <no-reply@google.com>", subject="Welcome to Google on your Mac OS"),
     })
     mail.poll(connection, mailbox, stores=[avoid], now=NOW, check_store=lambda *a: pytest.fail("not polled"),
-              notifier=lambda t, b: notes.append((t, b)))
+              notifier=lambda t, b, url=None: notes.append((t, b)))
     assert notes == []
     assert [row[0] for row in connection.execute("SELECT store_id FROM store_emails")] == ["scam_store"]
 
@@ -201,7 +201,7 @@ def test_hand_forwarded_moonblast_drop_is_attributed_by_links_and_alerts(connect
                      html=wulf_links, sent=dt.datetime(2026, 10, 25, 20, 25, tzinfo=dt.timezone.utc)),
     })
     new = mail.poll(connection, mailbox, stores=STORES, now=dt.datetime(2026, 10, 25, 20, 23, tzinfo=dt.timezone.utc),
-                    check_store=lambda *a: False, notifier=lambda t, b: notes.append((t, b)))
+                    check_store=lambda *a: False, notifier=lambda t, b, url=None: notes.append((t, b)))
     assert [title for title, _ in notes] == ["TCG Moonblast: drop email", "Wulf Gaming: drop email"]
     assert notes[0][1].startswith("Fwd: Delta Reign Drop...Tonight?!\nhttps://tcgmoonblast.com/")
     # The forwarder's address says nothing about the store: it is not learned, so the next forward

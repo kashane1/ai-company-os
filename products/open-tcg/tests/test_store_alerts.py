@@ -35,7 +35,7 @@ def store_connection(catalog_connection):  # noqa: F811
 
 def _run(connection, policy, resolver, now=LATER):
     sent = []
-    summary = alerts.evaluate(connection, now=now, send=lambda t, b: sent.append((t, b)), policy=policy, resolver=resolver)
+    summary = alerts.evaluate(connection, now=now, send=lambda t, b, url=None: sent.append((t, b)), policy=policy, resolver=resolver)
     return summary, sent
 
 
