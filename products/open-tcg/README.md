@@ -49,8 +49,13 @@ Three per-user LaunchAgents run the radar without a Terminal window:
 
 A scheduled Claude task, "OpenTCG 6 AM retailer sign-in check", checks sign-in at Costco, Pokémon Center, Walmart, Target and Amazon in Brave. It writes `data/login-status.json` and notifies only when a store needs signing in.
 
+The KeepAlive jobs load the radar code once at start, so they must restart after a code
+change. `install` adds git hooks that run `restart` whenever a commit, merge, pull, branch
+checkout or rebase in this checkout changes `radar/` or a top-level `*.toml`. Commits in other
+worktrees don't trigger a restart. If a plist changes, the hook prints a reminder to run `install`.
+
 ```
-scripts/launchd.sh install | uninstall | status
+scripts/launchd.sh install | uninstall | restart | status
 tail -f data/logs/stream.log        # live posts as they arrive
 tail -f data/logs/sync.log
 tail -f data/logs/inbox.log
