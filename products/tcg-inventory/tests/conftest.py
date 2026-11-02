@@ -11,7 +11,6 @@ from __future__ import annotations
 import sqlite3
 
 import pytest
-
 from inventory import db
 
 # Mirrors the subset of pokemon-tcg-search's schema that inventory reads.

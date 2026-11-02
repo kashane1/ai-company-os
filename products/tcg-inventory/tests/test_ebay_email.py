@@ -8,7 +8,6 @@ no coverage.
 from __future__ import annotations
 
 import pytest
-
 from inventory import ebay_email, intake
 from inventory.ebay_email import NotASaleEmail
 

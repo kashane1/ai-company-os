@@ -7,8 +7,8 @@ a 1.5 GB sibling database would make the suite unrunnable on a fresh checkout.
 from __future__ import annotations
 
 import pytest
-
-from inventory import db, economics as ec, intake, ledger, slots
+from inventory import db, intake, ledger, slots
+from inventory import economics as ec
 
 
 @pytest.fixture

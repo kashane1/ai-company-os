@@ -7,8 +7,18 @@ import sys
 from pathlib import Path
 
 from . import (
-    catalog, cli_intake, db, economics as ec, intake, ledger, pricing,
-    selector, slots, tcgplayer_csv,
+    catalog,
+    cli_intake,
+    db,
+    intake,
+    ledger,
+    pricing,
+    selector,
+    slots,
+    tcgplayer_csv,
+)
+from . import (
+    economics as ec,
 )
 
 

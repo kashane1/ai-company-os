@@ -6,7 +6,6 @@ No real credentials here — every test writes its own file into tmp_path.
 from __future__ import annotations
 
 import pytest
-
 from inventory import ebay_config
 from inventory.ebay_config import CredentialsUnavailable
 

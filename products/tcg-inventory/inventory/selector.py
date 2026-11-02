@@ -41,7 +41,8 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 
-from . import catalog, economics as ec
+from . import catalog
+from . import economics as ec
 
 MOVEMENT_WEIGHT = 0.7
 FRESHNESS_WEIGHT = 0.3

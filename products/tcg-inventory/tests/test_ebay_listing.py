@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from inventory import ebay_listing as el
 
 

@@ -6,8 +6,7 @@ Each one corresponds to a specific way an unguarded repricer loses money.
 from __future__ import annotations
 
 import pytest
-
-from inventory import db, intake, pricing
+from inventory import intake, pricing
 
 IONO_SIR = 1       # $47.05, healthy
 TOGETIC_STALE = 4  # $49.99, 654 days stale, 1 distinct price

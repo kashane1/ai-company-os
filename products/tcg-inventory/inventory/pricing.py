@@ -30,7 +30,8 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from . import catalog, economics as ec, ledger
+from . import catalog, ledger
+from . import economics as ec
 
 
 @dataclass(frozen=True)

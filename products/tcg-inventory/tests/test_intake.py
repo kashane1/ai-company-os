@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from inventory import catalog, intake, ledger, slots
 
 IONO_SIR = 1       # $47.05 Holofoil

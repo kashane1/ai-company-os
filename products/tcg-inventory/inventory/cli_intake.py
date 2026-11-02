@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import sqlite3
 
-from . import catalog, economics as ec, intake
+from . import catalog, intake
+from . import economics as ec
 
 CONDITIONS = ("NM", "LP", "MP", "HP", "DMG")
 

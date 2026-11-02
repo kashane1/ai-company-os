@@ -7,7 +7,6 @@ this tool does not understand survives untouched.
 from __future__ import annotations
 
 import pytest
-
 from inventory import tcgplayer_csv as tsv
 
 EXPORT = """TCGplayer Id,Product Line,Set Name,Product Name,Number,Condition,\
