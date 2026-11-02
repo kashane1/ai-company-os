@@ -214,9 +214,16 @@ def list_copy(
     list_price_cents: int,
     *,
     external_ref: str | None = None,
+    listing_title: str | None = None,
     listed_at: str | None = None,
 ) -> int:
-    """Open a listing for a copy on a channel. Returns the listing id."""
+    """Open a listing for a copy on a channel. Returns the listing id.
+
+    `listing_title` is what the card is called on the marketplace. It is worth
+    recording even though nothing needs it to list: eBay's sale notification
+    carries no item number, so the title is the only handle a sale email has on
+    the copy that sold.
+    """
     live = conn.execute(
         """
         SELECT listing_id FROM listings
@@ -230,10 +237,11 @@ def list_copy(
     listed_at = listed_at or conn.execute("SELECT datetime('now') AS t").fetchone()["t"]
     cursor = conn.execute(
         """
-        INSERT INTO listings (copy_id, channel, external_ref, list_price_cents, listed_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO listings
+            (copy_id, channel, external_ref, listing_title, list_price_cents, listed_at)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (copy_id, channel, external_ref, list_price_cents, listed_at),
+        (copy_id, channel, external_ref, listing_title, list_price_cents, listed_at),
     )
     ledger.record(
         conn,

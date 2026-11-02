@@ -7,8 +7,14 @@ so fees are not what decides where a card goes. Two other things do:
   photos, a title and item specifics — call it five minutes. On a $3 card that
   difference is the entire margin.
 
-  Capacity. A new account's caps are small and the slots are rivalrous: one of
-  ten monthly eBay listings spent on a $3 card is a slot not spent on a $45 one.
+  Capacity, but not in the way it first looks. TCGplayer Level 1 stops at 100
+  items, which is a hard cap — and a short-lived one, since Level 2 is two
+  delivered orders away and Level 3 is eleven. eBay allows 5,000 items a month,
+  so nothing there is rivalrous in the usual sense. What is rivalrous on eBay
+  is the free-listing allowance: 250 listings a month, after which a Good 'Til
+  Cancelled listing costs $0.35 at every monthly renewal until it sells. So a
+  slot spent on a $3 card is not a slot denied to a $45 one; it is a small
+  recurring cost that the $3 card has to keep earning back.
 
 Both are modeled as data in `channels`, so the threshold where a card stops
 being worth listing is computed, never hardcoded. Speed the listing flow up and
@@ -82,6 +88,20 @@ def _labor_rate(conn: sqlite3.Connection) -> int:
     return int(row["value"]) if row else DEFAULT_LABOR_RATE_CENTS_PER_HOUR
 
 
+def order_fee_cents(channel_row: sqlite3.Row, order_total_cents: int) -> int:
+    """The per-order fee this channel charges on an order of this size.
+
+    eBay splits it — $0.30 at or under $10, $0.40 above — which matters here
+    because most of this inventory sits right on the boundary. TCGplayer
+    charges one flat fee and leaves the split columns NULL.
+    """
+    small_fee = channel_row["small_order_fee_cents"]
+    threshold = channel_row["small_order_max_cents"]
+    if small_fee is not None and threshold is not None and order_total_cents <= threshold:
+        return small_fee
+    return channel_row["order_fee_cents"]
+
+
 def _min_margin(conn: sqlite3.Connection) -> int:
     row = conn.execute(
         "SELECT value FROM settings WHERE key = 'min_margin_cents'"
@@ -117,12 +137,13 @@ def compute_proceeds(
 
     handling_minutes = ch["minutes_to_list"] + ch["minutes_to_ship"] * share
     labor_cents = round(handling_minutes * labor_rate / 60.0)
+    fee_for_order = order_fee_cents(ch, list_price_cents * cards_in_order)
 
     return Proceeds(
         channel=channel,
         list_price_cents=list_price_cents,
         commission_cents=round(list_price_cents * ch["fee_rate"]),
-        order_fee_cents=round(ch["order_fee_cents"] * share),
+        order_fee_cents=round(fee_for_order * share),
         ship_cost_cents=round(ch["ship_cost_cents"] * share),
         materials_cents=round(ch["materials_cents"] * share),
         labor_cents=labor_cents,
@@ -154,13 +175,23 @@ def breakeven_price_cents(
     share = 1.0 / cards_in_order
     labor_rate = _labor_rate(conn)
 
-    fixed = (
-        ch["order_fee_cents"] * share
-        + ch["ship_cost_cents"] * share
-        + ch["materials_cents"] * share
-        + (ch["minutes_to_list"] + ch["minutes_to_ship"] * share) * labor_rate / 60.0
-    )
-    return math.ceil((margin + fixed) / (1 - ch["fee_rate"]))
+    def solve(fee: int) -> int:
+        fixed = (
+            fee * share
+            + ch["ship_cost_cents"] * share
+            + ch["materials_cents"] * share
+            + (ch["minutes_to_list"] + ch["minutes_to_ship"] * share) * labor_rate / 60.0
+        )
+        return math.ceil((margin + fixed) / (1 - ch["fee_rate"]))
+
+    # Which per-order fee applies depends on the order total, which depends on
+    # the price we are solving for. Solve once assuming the small-order fee,
+    # then check the answer against the threshold it assumed: if the breakeven
+    # lands above the boundary it is paying the larger fee after all.
+    small_fee = order_fee_cents(ch, 0)
+    price = solve(small_fee)
+    charged = order_fee_cents(ch, price * cards_in_order)
+    return price if charged == small_fee else solve(charged)
 
 
 @dataclass(frozen=True)
@@ -181,8 +212,12 @@ def evaluate_channels(
 
     A channel is non-viable when the card is worth less than the breakeven
     price, when it exceeds the per-item ceiling, or when the account has no
-    capacity left. Capacity is a real blocker, not a rounding error: TCGplayer
-    Level 1 stops at 100 listings and $1,000 of listed value.
+    capacity left. Two different kinds of capacity are checked: TCGplayer's
+    Level 1 ceiling of 100 listings and $1,000, which is a hard stop the
+    marketplace enforces, and eBay's 250 free listings a month, which is not a
+    stop at all but the point where each further listing starts costing $0.35
+    every time it renews. Both end up as a blocked channel here, because a plan
+    should stop at the point where listing stops being free.
     """
     cards_in_order = cards_in_order or {}
     verdicts: list[ChannelVerdict] = []
@@ -210,8 +245,18 @@ def evaluate_channels(
             if usage:
                 max_count = usage["max_listing_count"]
                 max_value = usage["max_listed_value_cents"]
-                if max_count is not None and usage["live_listing_count"] >= max_count:
+                allowance = usage["free_listings_per_period"]
+                live = usage["live_listing_count"]
+                if max_count is not None and live >= max_count:
                     reason = f"at the {max_count}-listing cap"
+                elif allowance is not None and live >= allowance:
+                    # Not a hard stop — this is where the marginal cost jumps,
+                    # which is the point a plan should stop spending for free.
+                    fee = usage["insertion_fee_cents"]
+                    reason = (
+                        f"past the {allowance} free listings; each further one "
+                        f"costs ${fee / 100:.2f} at every monthly renewal"
+                    )
                 elif (
                     max_value is not None
                     and usage["live_listed_value_cents"] + list_price_cents > max_value

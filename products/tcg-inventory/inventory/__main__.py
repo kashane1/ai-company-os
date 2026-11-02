@@ -64,6 +64,15 @@ def cmd_status(args: argparse.Namespace) -> int:
             f"/{f'${value_cap / 100:,.0f}' if value_cap is not None else '-'} "
             f"({row['cap_period']})"
         )
+        # The allowance usually binds long before the cap does, so say where
+        # the next listing stops being free rather than only where it stops.
+        allowance = row["free_listings_per_period"]
+        if allowance is not None:
+            free_left = max(0, allowance - row["live_listing_count"])
+            print(
+                f"  {'':<10} {free_left} of {allowance} free listings left, "
+                f"then ${row['insertion_fee_cents'] / 100:.2f} each per renewal"
+            )
 
     print("\nBreakeven (below this, listing isn't worth the handling):")
     for row in conn.execute("SELECT channel FROM channels WHERE is_enabled = 1"):

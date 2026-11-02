@@ -52,27 +52,44 @@ INSERT OR IGNORE INTO event_kinds (kind, resulting_state, frees_slot, note) VALU
 
 
 -- ─── Channels ────────────────────────────────────────────────────────────────
--- Fee rates and caps are ACCOUNT SPECIFIC and change. Read the real numbers off
--- the TCGplayer Seller Portal and eBay Seller Hub and update these rows; do not
--- trust the seeded defaults for anything that matters.
+-- Fee rates and caps are ACCOUNT SPECIFIC and they change. Everything below was
+-- read off the published fee schedules and the founder's own Seller Hub on
+-- 2026-11-02 rather than estimated, but the caps in particular move as the
+-- account ages — re-read them monthly and update these rows.
 --
--- The caps below are TCGplayer Level 1 and a young eBay account. They are the
--- binding constraint on how much inventory can be deployed at all.
+-- The two channels are constrained in opposite ways, which is what decides
+-- where a card goes:
+--
+--   TCGplayer's cap is HARD but TEMPORARY. Level 1 allows 100 items; Level 2
+--   (500 items) needs 2 delivered orders, Level 3 (50,000) needs 11. The cap
+--   stops mattering almost immediately once orders start landing.
+--
+--   eBay's cap is SOFT but PERMANENT. The account allows 5,000 items and
+--   $50,000 a month, far more than this inventory will ever use, but only the
+--   first 250 listings a month are free. Good 'Til Cancelled listings renew
+--   monthly and are charged again on renewal, so 250 is really a ceiling on
+--   concurrent listings before a recurring cost starts.
 
 INSERT OR IGNORE INTO channels (
     channel, label, fee_rate, order_fee_cents, ship_cost_cents, materials_cents,
+    small_order_fee_cents, small_order_max_cents,
+    free_listings_per_period, insertion_fee_cents,
     minutes_to_list, minutes_to_ship,
     max_listing_count, max_listed_value_cents, max_item_price_cents, cap_period, note
 ) VALUES
     ('tcgplayer', 'TCGplayer', 0.1325, 30, 90, 20,
+     NULL, NULL,
+     NULL, 0,
      0.5, 4.0,
      100, 100000, 50000, 'concurrent',
-     'Level 1: 100 listings / $1,000 listed / $500 per item. 10.75% commission + 2.5% processing. Lists against a stock image, hence 30s.'),
+     'Level 1: 100 items / $1,000 listed / $500 per item, 100 entries a day. Fees are 10.75% commission on the order subtotal (capped at $75 per product) + 2.5% + $0.30 transaction fee on the order total including shipping and tax. Level 2 at 2 delivered orders, Level 3 at 11, Level 4 at 51 — and CSV price import/export is Level 4 only.'),
 
-    ('ebay', 'eBay', 0.1325, 35, 74, 20,
+    ('ebay', 'eBay', 0.1325, 40, 74, 20,
+     30, 1000,
+     250, 35,
      5.0, 4.0,
-     10, 50000, NULL, 'monthly',
-     'New-seller limit ~10 items or $500/month — check Seller Hub for the real number. eBay Standard Envelope caps at $20 item price; above that use ~450c for a rigid mailer.');
+     5000, 5000000, NULL, 'monthly',
+     'Toys & Hobbies > Collectible Card Games: 13.25% final value fee on the total sale including shipping and tax, plus $0.30 per order at or under $10 and $0.40 above. Limits read off Seller Hub 2026-11-02: 5,000 items / $50,000 a month. First 250 listings each month are free, then $0.35 per listing per monthly renewal. eBay Standard Envelope caps at $20 item price; above that budget ~450c for a rigid mailer.');
 
 
 -- ─── Binder ──────────────────────────────────────────────────────────────────

@@ -219,7 +219,17 @@ def build_plan(conn: sqlite3.Connection, channel: str) -> ListingPlan:
         "SELECT * FROM channel_usage WHERE channel = ?", (channel,)
     ).fetchone()
 
+    # Two different ceilings can bind, and the lower one is what a plan should
+    # respect. `max_listing_count` is what the marketplace refuses to go past.
+    # `free_listings_per_period` is where listings stop being free: eBay allows
+    # 5,000 items a month but only the first 250 cost nothing, and a Good 'Til
+    # Cancelled listing is charged again at every monthly renewal. Planning to
+    # the hard cap would quietly sign up for a recurring bill.
     listing_cap = ch["max_listing_count"]
+    allowance = ch["free_listings_per_period"]
+    if allowance is not None:
+        listing_cap = allowance if listing_cap is None else min(listing_cap, allowance)
+
     value_cap = ch["max_listed_value_cents"]
     item_ceiling = ch["max_item_price_cents"]
 

@@ -31,7 +31,20 @@ DEFAULT_CATALOG_DB = Path(
 )
 
 _SCHEMA = Path(__file__).resolve().parent / "schema.sql"
+_VIEWS = Path(__file__).resolve().parent / "views.sql"
 _SEED = Path(__file__).resolve().parent / "seed.sql"
+
+# Columns added after the first databases were created. ALTER TABLE ADD COLUMN
+# is the one schema change SQLite applies cheaply to a populated table, so
+# additive migrations are the only kind this project does; anything structural
+# would need a rebuild and is not worth the risk against source-of-truth data.
+_COLUMN_MIGRATIONS: tuple[tuple[str, str, str], ...] = (
+    ("channels", "small_order_fee_cents", "INTEGER"),
+    ("channels", "small_order_max_cents", "INTEGER"),
+    ("channels", "free_listings_per_period", "INTEGER"),
+    ("channels", "insertion_fee_cents", "INTEGER NOT NULL DEFAULT 0"),
+    ("listings", "listing_title", "TEXT"),
+)
 
 
 class CatalogUnavailable(RuntimeError):
@@ -83,17 +96,95 @@ def attach_catalog(conn: sqlite3.Connection, catalog_path: Path | None = None) -
 
 
 def initialize(conn: sqlite3.Connection) -> None:
-    """Create tables and seed reference data. Idempotent.
+    """Create tables, apply migrations, rebuild views and seed. Idempotent.
 
     The schema runs only on a fresh database, so a real mismatch between this
     file and an existing database still raises rather than being papered over
-    by IF NOT EXISTS. The seed is OR IGNORE throughout and always runs, which
-    adds newly introduced reference rows without overwriting tuned ones.
+    by IF NOT EXISTS. Views are derived, so they are dropped and recreated
+    every time — that is how a view change reaches an existing database. The
+    seed is OR IGNORE throughout and always runs, which adds newly introduced
+    reference rows without overwriting tuned ones.
     """
     if not is_initialized(conn):
         conn.executescript(_SCHEMA.read_text())
+    migrate(conn)
+    conn.executescript(_VIEWS.read_text())
     conn.executescript(_SEED.read_text())
     conn.commit()
+
+
+def migrate(conn: sqlite3.Connection) -> list[str]:
+    """Bring an existing database up to the current schema. Returns what ran."""
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS schema_migrations (
+            name       TEXT PRIMARY KEY,
+            applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    applied: list[str] = []
+
+    for table, column, ddl in _COLUMN_MIGRATIONS:
+        existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+            applied.append(f"{table}.{column}")
+
+    applied.extend(_apply_once(conn, _verified_channel_economics))
+    conn.commit()
+    return applied
+
+
+def _apply_once(conn: sqlite3.Connection, migration) -> list[str]:
+    """Run a data migration if it has not run on this database before."""
+    name = migration.__name__.lstrip("_")
+    row = conn.execute(
+        "SELECT 1 FROM schema_migrations WHERE name = ?", (name,)
+    ).fetchone()
+    if row is not None:
+        return []
+    migration(conn)
+    conn.execute("INSERT INTO schema_migrations (name) VALUES (?)", (name,))
+    return [name]
+
+
+def _verified_channel_economics(conn: sqlite3.Connection) -> None:
+    """Replace the originally guessed channel economics with read values.
+
+    The first seed carried estimates for anything that could not be looked up
+    without an account. On 2026-11-02 the real numbers were read off the
+    published fee schedules and Seller Hub, and the eBay caps turned out to be
+    wrong by two orders of magnitude — 5,000 items and $50,000 a month, not 10
+    items and $500. The selector solves against these, so the old values were
+    quietly throwing away most of the available eBay exposure.
+
+    Rows are only corrected where they still hold the exact original estimate,
+    so a value tuned by hand in the meantime is left alone.
+    """
+    conn.execute(
+        """
+        UPDATE channels
+           SET max_listing_count        = 5000,
+               max_listed_value_cents   = 5000000,
+               order_fee_cents          = 40,
+               small_order_fee_cents    = 30,
+               small_order_max_cents    = 1000,
+               free_listings_per_period = 250,
+               insertion_fee_cents      = 35
+         WHERE channel = 'ebay'
+           AND max_listing_count      = 10
+           AND max_listed_value_cents = 50000
+        """
+    )
+    conn.execute(
+        """
+        UPDATE channels
+           SET free_listings_per_period = NULL,
+               insertion_fee_cents      = 0
+         WHERE channel = 'tcgplayer'
+        """
+    )
 
 
 def is_initialized(conn: sqlite3.Connection) -> bool:

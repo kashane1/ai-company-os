@@ -17,10 +17,16 @@ gated to Level 4 sellers. eBay is the real-time leg; TCGplayer is a batch leg,
 and at Level 1 it is a manual one. Every design decision below follows from
 that.
 
-**Capacity is the binding constraint, not sync.** TCGplayer Level 1 allows 100
-listings, $1,000 of listed value and $500 per item. A young eBay account allows
-roughly 10 listings a month. Those caps are modeled as data in `channels`
-because they are what actually decides whether a card can be listed at all.
+**The two channels are capped in opposite ways.** TCGplayer Level 1 allows 100
+items, $1,000 of listed value and $500 per item — a hard cap the marketplace
+enforces, and a short-lived one, since Level 2 (500 items) is two delivered
+orders away and Level 3 (50,000 items) is eleven. eBay is not meaningfully
+capped at all: the account allows 5,000 items and $50,000 a month. What binds
+on eBay is cost, not permission — only the first 250 listings each month are
+free, and because Good 'Til Cancelled listings renew monthly and are charged
+again on renewal, 250 is really a ceiling on *concurrent* listings before a
+recurring bill starts. Both are modeled as data in `channels`, and the selector
+plans to whichever ceiling is lower.
 
 **Fees are not what separates the channels — labor is.** Both marketplaces take
 about 13.25% plus a per-order fee. What differs is that TCGplayer lists against
@@ -46,6 +52,9 @@ rather than hardcoding a threshold, so improving the listing flow lowers it.
 | `inventory/capture_app.py` | Phone-as-camera capture server |
 | `inventory/tcgplayer_csv.py` | Seller Portal CSV round-trip |
 | `inventory/pricing.py` | Repricing rules and the review queue |
+| `inventory/ebay_email.py` | Reading sale notifications; the cross-delist trigger |
+| `inventory/ebay_config.py` | Credential loading, sandbox and production kept apart |
+| `inventory/views.sql` | Projections, dropped and recreated on every `init` |
 
 ## The two databases
 
@@ -99,18 +108,40 @@ These are the honest limits, in rough order of how much they matter.
 - **Velocity is a proxy, not a measurement.** TCGCSV publishes no sales counts,
   so selection ranks on price movement. Replace it with your own sell-through
   once there is enough.
-- **The TCGplayer CSV format is unverified.** Their help pages refuse automated
-  fetches, so the tool round-trips your own export rather than generating a
-  header. `generate_blank` is for inspection only — do not upload it.
+- **The TCGplayer CSV path cannot be used yet, and is not close.** Pricing
+  import and export in the Seller Portal is a **Level 4** feature, which takes
+  51 delivered orders. `tcgplayer_csv.py` round-trips an export rather than
+  generating a header, so it is ready when the account gets there, but it
+  cannot be verified against a real file until then and TCGplayer stays a
+  hand-listed channel in the meantime. `generate_blank` is for inspection
+  only — do not upload it.
 - **Quantity semantics are the least certain part of that format.** Whether
   delisting through CSV means a negative `Add to Quantity` or a zero
   `Total Quantity` has not been confirmed against a real export.
-- **No marketplace integration.** No eBay API client, no order-notification
-  ingestion. `end_listing` already takes the idempotency key those will need.
+- **No eBay API client yet.** Sandbox credentials are in place; production is a
+  separate application. Sandbox cannot see the real shelf, so a working sandbox
+  client proves only that the requests are well formed.
+- **Sale emails are parsed but not yet ingested.** `ebay_email.py` reads a real
+  notification and matches it to a live listing, and `end_listing` already
+  takes the idempotency key the replay protection needs. What is missing is the
+  piece that watches the mailbox. The TCGplayer side has no sample yet.
+- **Matching a sale to a listing is by title prefix**, because the eBay
+  notification carries no item number. An ambiguous prefix deliberately matches
+  nothing rather than guessing, so near-identical listings need distinct
+  titles — otherwise the sale lands in a queue for you instead of delisting.
 - **Condition multipliers are convention, not measured.** Re-fit from real
   sales and set `is_fitted`.
 - **eBay aspect names are best-effort** and must be checked against
   `getItemAspectsForCategory` for category 183454 before publishing.
+
+## Credentials
+
+`.ebay.env` at the project root, gitignored, read only by `ebay_config.py` —
+not from the process environment and not from the keychain, so there is one
+place to look and one place to revoke. Sandbox and production are separate
+keysets and asking for production when it is absent raises rather than falling
+back, because a silent fallback means a delist that reports success and changes
+nothing.
 
 ## Commands
 

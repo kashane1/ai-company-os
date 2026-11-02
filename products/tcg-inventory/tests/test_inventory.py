@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from inventory import db, economics as ec, ledger, slots
+from inventory import db, economics as ec, intake, ledger, slots
 
 
 @pytest.fixture
@@ -205,3 +205,62 @@ def test_listed_value_cap_blocks_once_headroom_runs_out(conn):
     verdicts = {v.channel: v for v in ec.evaluate_channels(conn, 5000)}
     assert not verdicts["tcgplayer"].is_viable
     assert "headroom" in verdicts["tcgplayer"].blocked_reason
+
+
+# ─── Verified channel economics ──────────────────────────────────────────────
+# These pin the numbers read off the published fee schedules and Seller Hub on
+# 2026-11-02. They exist so that a later edit to seed.sql that quietly reverts
+# to an estimate fails loudly instead of silently mispricing the shelf.
+
+def test_ebay_charges_the_small_order_fee_at_or_under_ten_dollars(conn):
+    ch = conn.execute("SELECT * FROM channels WHERE channel = 'ebay'").fetchone()
+
+    assert ec.order_fee_cents(ch, 1000) == 30
+    assert ec.order_fee_cents(ch, 1001) == 40
+
+
+def test_tcgplayer_charges_one_flat_order_fee(conn):
+    ch = conn.execute("SELECT * FROM channels WHERE channel = 'tcgplayer'").fetchone()
+
+    assert ec.order_fee_cents(ch, 500) == 30
+    assert ec.order_fee_cents(ch, 50000) == 30
+
+
+def test_breakeven_resolves_which_order_fee_it_pays(conn):
+    """The fee depends on the order total, which depends on the price solved for."""
+    cheap = ec.breakeven_price_cents(conn, "ebay")
+    ch = conn.execute("SELECT * FROM channels WHERE channel = 'ebay'").fetchone()
+
+    assert ec.order_fee_cents(ch, cheap) == 30  # it landed under $10 and paid $0.30
+
+
+def test_ebay_capacity_is_no_longer_the_binding_constraint(conn):
+    """The original seed had 10 listings and $500; the real account allows far more."""
+    usage = conn.execute("SELECT * FROM channel_usage WHERE channel = 'ebay'").fetchone()
+
+    assert usage["max_listing_count"] == 5000
+    assert usage["max_listed_value_cents"] == 5_000_000
+
+
+def test_the_free_listing_allowance_blocks_before_the_hard_cap(conn):
+    """250 free listings is where cost jumps, so that is where a plan should stop."""
+    conn.execute(
+        "UPDATE channels SET free_listings_per_period = 1 WHERE channel = 'ebay'"
+    )
+    conn.commit()
+    intake.list_copy(conn, make_copy(conn), "ebay", 4705)
+
+    verdict = next(v for v in ec.evaluate_channels(conn, 4705) if v.channel == "ebay")
+
+    assert not verdict.is_viable
+    assert "free listings" in verdict.blocked_reason
+    assert "$0.35" in verdict.blocked_reason
+
+
+def test_tcgplayer_has_no_free_listing_allowance_to_exhaust(conn):
+    usage = conn.execute(
+        "SELECT * FROM channel_usage WHERE channel = 'tcgplayer'"
+    ).fetchone()
+
+    assert usage["free_listings_per_period"] is None
+    assert usage["insertion_fee_cents"] == 0

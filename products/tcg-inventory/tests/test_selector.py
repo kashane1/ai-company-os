@@ -142,3 +142,23 @@ def test_plan_prefers_liquid_cards_at_similar_prices(conn):
 
     assert [c.copy_id for c in plan.selected] == [liquid.copy_id]
     assert stale.copy_id in {r.candidate.copy_id for r in plan.rejected}
+
+
+def test_the_plan_stops_at_the_free_listing_allowance(conn):
+    """eBay allows 5,000 items a month but only the first 250 cost nothing.
+
+    Planning to the hard cap would quietly sign up for $0.35 per listing at
+    every monthly renewal, so the allowance is the ceiling that should bind.
+    """
+    conn.execute(
+        "UPDATE channels SET max_listing_count = 5000, free_listings_per_period = 3 "
+        "WHERE channel = 'ebay'"
+    )
+    conn.commit()
+    for _ in range(6):
+        intake.add_copy(conn, IONO_SIR, "NM")
+
+    plan = selector.build_plan(conn, "ebay")
+
+    assert plan.listing_cap == 3
+    assert plan.listing_count == 3
