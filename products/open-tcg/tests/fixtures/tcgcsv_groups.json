@@ -1,0 +1,42 @@
+{
+ "success": true,
+ "errors": [],
+ "results": [
+  {
+   "groupId": 24831,
+   "name": "ME06: Delta Reign",
+   "abbreviation": "DLR",
+   "isSupplemental": false,
+   "publishedOn": "2026-11-06T00:00:00",
+   "modifiedOn": "2026-09-03T14:16:12.22",
+   "categoryId": 3
+  },
+  {
+   "groupId": 24722,
+   "name": "ME: 30th Celebration",
+   "abbreviation": "30C",
+   "isSupplemental": false,
+   "publishedOn": "2026-09-16T00:00:00",
+   "modifiedOn": "2026-09-25T18:47:37.713",
+   "categoryId": 3
+  },
+  {
+   "groupId": 23821,
+   "name": "SV: Prismatic Evolutions",
+   "abbreviation": "PRE",
+   "isSupplemental": false,
+   "publishedOn": "2025-01-17T00:00:00",
+   "modifiedOn": "2026-09-23T06:54:34.943",
+   "categoryId": 3
+  },
+  {
+   "groupId": 2545,
+   "name": "SWSH: Sword & Shield Promo Cards",
+   "abbreviation": "SWSD",
+   "isSupplemental": false,
+   "publishedOn": "2019-11-15T00:00:00",
+   "modifiedOn": "2026-09-23T01:29:40.183",
+   "categoryId": 3
+  }
+ ]
+}

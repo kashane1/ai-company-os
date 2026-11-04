@@ -1,0 +1,1569 @@
+{
+ "surveyed_at": "2026-10-24",
+ "method": "one homepage GET per store (robots-respecting UA), regex for signup forms and email tools; drop_email entries confirmed by reading page text",
+ "stores": [
+  {
+   "store_id": "1st_capital_gaming",
+   "name": "1st Capital Gaming",
+   "domain": "1stcapitalgaming.com",
+   "kind": "back_in_stock_only",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/qtf3kehk7x",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "allpoketcg",
+   "name": "AllPokeTCG",
+   "domain": "allpoketcg.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "omnisend",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://allpoketcg.com/products/chaos-rising-pokemon-booster-bundle-drop",
+    "https://allpoketcg.com/products/pitch-black-booster-bundle-pokemon-pitch-black-me05-drop",
+    "https://allpoketcg.com/products/pitch-black-elite-trainer-box-english-me05-drop",
+    "https://allpoketcg.com/products/pokemon-ascended-heroes-tin-set-of-3-drop",
+    "https://allpoketcg.com/products/pokemon-tcg-scarlet-violet-10-5-unova-poster-collection-drop"
+   ]
+  },
+  {
+   "store_id": "aurora_sparks",
+   "name": "Aurora Sparks",
+   "domain": "aurorasparks.myshopify.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "beckett_castle_tcg",
+   "name": "Beckett Castle TCG",
+   "domain": "beckettcastletcg.com",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 403,
+   "signup_pages": []
+  },
+  {
+   "store_id": "black_vault_gaming",
+   "name": "Black Vault Gaming",
+   "domain": "blackvaultgaming.com",
+   "kind": "back_in_stock_only",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/ayvpt3gzbg",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "black_wolf_collectibles",
+   "name": "Black Wolf Collectibles",
+   "domain": "blackwolfcollectibles.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "capyquest_tcg",
+   "name": "CapyQuest TCG",
+   "domain": "capyquesttcg.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "card_cavern_trading_cards",
+   "name": "Card Cavern Trading Cards",
+   "domain": "cardcaverntradingcards.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "cardboard_and_die",
+   "name": "Cardboard and Die",
+   "domain": "cardboardanddie.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "mailchimp",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.com/invite/gbp53hdcrx",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "cardhaven_tcg",
+   "name": "CARDHAVEN TCG",
+   "domain": "cardhaventcg.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "cardland_market",
+   "name": "Cardland Market",
+   "domain": "cardlandmarket.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "cardtopia_collectibles",
+   "name": "Cardtopia Collectibles",
+   "domain": "cardtopiacollectibles.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "cash_cards_unlimited",
+   "name": "Cash Cards Unlimited",
+   "domain": "cashcardsunlimited.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.com/invite/4gneqmvm6u",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "collector_store",
+   "name": "Collector Store",
+   "domain": "collectorstore.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://collectorstore.com/collections/thursday-price-drops"
+   ]
+  },
+  {
+   "store_id": "collectors_cache",
+   "name": "Collector's Cache",
+   "domain": "collectorscache.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://www.collectorscache.com/user/signup"
+   ]
+  },
+  {
+   "store_id": "common_lands",
+   "name": "Common Lands",
+   "domain": "common-lands.com",
+   "kind": "newsletter",
+   "evidence": "Says Discord gives the fastest drop notifications",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://common-lands.com/pages/subscribe",
+    "https://common-lands.com/pages/vip-status"
+   ]
+  },
+  {
+   "store_id": "coretcg",
+   "name": "CoreTCG",
+   "domain": "coretcg.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/dyrcvkkwve",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "croma_tcg",
+   "name": "Croma TCG",
+   "domain": "cromatcg.com",
+   "kind": "newsletter",
+   "evidence": "Discord drop alerts and restocks",
+   "email_tools": [
+    "omnisend",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/hz8bkzgwqf",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "decal_depo_tf",
+   "name": "Decal Depo TF",
+   "domain": "decaldepotf.myshopify.com",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 402,
+   "signup_pages": []
+  },
+  {
+   "store_id": "delightful_tcg",
+   "name": "Delightful TCG",
+   "domain": "delightfultcg.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "fabricators_forge",
+   "name": "Fabricator's Forge",
+   "domain": "shop.fabricatorsforge.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.com/invite/fabricatorsforge",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "flipside_gaming",
+   "name": "Flipside Gaming",
+   "domain": "flipsidegaming.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://flipsidegaming.com/pages/newsletter"
+   ]
+  },
+  {
+   "store_id": "forge_and_fire_gaming",
+   "name": "Forge and Fire Gaming",
+   "domain": "forgeandfiregaming.com",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 403,
+   "signup_pages": []
+  },
+  {
+   "store_id": "fox_and_fable_games",
+   "name": "Fox and Fable Games",
+   "domain": "foxandfablegames.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://foxandfablegames.com/products/jaws-relentless-predator-rainbow-foil-secret-lair-drop-series-656544",
+    "https://foxandfablegames.com/products/jin-sakai-ghost-of-tsushima-rainbow-foil-secret-lair-drop-series-659480"
+   ]
+  },
+  {
+   "store_id": "galactic_toys",
+   "name": "Galactic Toys",
+   "domain": "galactictoys.com",
+   "kind": "drop_email",
+   "evidence": "Newsletter: latest updates on new products",
+   "email_tools": [
+    "mailchimp",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://galactictoys.com/products/pre-order-aug-2027-inart-valorant-inart-action-viper-action-figure"
+   ]
+  },
+  {
+   "store_id": "game_nerdz",
+   "name": "Game Nerdz",
+   "domain": "gamenerdz.com",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 403,
+   "signup_pages": []
+  },
+  {
+   "store_id": "gamers_grove",
+   "name": "Gamers Grove",
+   "domain": "gamersgrove.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/msruaya",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "geekery_games",
+   "name": "Geekery Games",
+   "domain": "geekerygames.com",
+   "kind": "back_in_stock_only",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://geekerygames.com/products/black-library-dropsite-massacre-paperback-book-preorder"
+   ]
+  },
+  {
+   "store_id": "gg_hobby_card",
+   "name": "GG Hobby Card",
+   "domain": "gghobbycard.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "mailchimp",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/d6q737enwt",
+   "http_status": 200,
+   "signup_pages": [
+    "https://gghobbycard.com/#drops",
+    "https://gghobbycard.com/#vip"
+   ]
+  },
+  {
+   "store_id": "gg_legends",
+   "name": "GG Legends",
+   "domain": "store.gglehi.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/mztcvcz",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "goodstash_tcg",
+   "name": "GoodStash TCG",
+   "domain": "goodstashstore.myshopify.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "hobby_addicts",
+   "name": "Hobby Addicts",
+   "domain": "hobby-addicts.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/5tpfdd7pzd",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "hobby_card_shop",
+   "name": "Hobby Card Shop",
+   "domain": "hobbycardshop.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "hot_hitz_collectables",
+   "name": "Hot Hitz Collectables",
+   "domain": "hothitzcollectables.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "hypno_comics_and_games",
+   "name": "Hypno Comics & Games",
+   "domain": "hypnocomics.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "impact_gaming_center",
+   "name": "Impact Gaming Center",
+   "domain": "impactgamingcenter.gg",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/qfqu27j",
+   "http_status": 200,
+   "signup_pages": [
+    "https://impactgamingcenter.gg/beyblade-x-tail-viper-3-85lo-spear-scorpio-0-70z-dual-pack-set",
+    "https://impactgamingcenter.gg/collections/new-collection/products/beyblade-x-tail-viper-3-85lo-spear-scorpio-0-70z-dual-pack-set"
+   ]
+  },
+  {
+   "store_id": "indy_card_shop",
+   "name": "Indy Card Shop",
+   "domain": "indycardshop.myshopify.com",
+   "kind": "drop_email",
+   "evidence": "Mailing list for exclusive drops; 'early access to new drops'",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "jaf_comics",
+   "name": "JAF Comics",
+   "domain": "jafcomics.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "jaro_cards",
+   "name": "Jaro Cards",
+   "domain": "jarocards.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "jd_collectibles",
+   "name": "JD Collectibles",
+   "domain": "shopjdc.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "mailchimp"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://www.shopjdc.com/account/waitlist/"
+   ]
+  },
+  {
+   "store_id": "jeffthrowcards",
+   "name": "Jeffthrowcards",
+   "domain": "jeffthrowcards.myshopify.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "joshs_cards",
+   "name": "Josh's Cards",
+   "domain": "joshscards.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/ampdudv5cu",
+   "http_status": 200,
+   "signup_pages": [
+    "https://joshscards.com/products/deadly-dispute-080-pool-party-foil-sld-080-secret-lair-drop-series-foil",
+    "https://joshscards.com/products/thrill-of-possibility-615-pool-party-foil-sld-615-secret-lair-drop-series-foil"
+   ]
+  },
+  {
+   "store_id": "knight_and_day_games",
+   "name": "Knight and Day Games",
+   "domain": "knightanddaygames.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://knightanddaygames.com/collections/restock"
+   ]
+  },
+  {
+   "store_id": "kollect_korner",
+   "name": "Kollect Korner",
+   "domain": "kollectkorner.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "mailchimp",
+    "omnisend"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "larrys_game_store",
+   "name": "Larry's Game Store",
+   "domain": "larrysgamestore.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/tatxmmhrbv",
+   "http_status": 200,
+   "signup_pages": [
+    "https://www.larrysgamestore.com/collections/secret-lair-singles/products/aloy-savior-of-meridian-sld-2221-secret-lair-drop-series",
+    "https://www.larrysgamestore.com/collections/secret-lair-singles/products/battle-of-olympus-world-at-war-sld-2208-secret-lair-drop-series",
+    "https://www.larrysgamestore.com/collections/secret-lair-singles/products/calliopes-song-seething-song-sld-7051-secret-lair-drop-series",
+    "https://www.larrysgamestore.com/collections/secret-lair-singles/products/command-tower-7012-rainbow-foil-sld-7012-secret-lair-drop-foil",
+    "https://www.larrysgamestore.com/collections/secret-lair-singles/products/cordyceps-excision-cabal-ritual-sld-2199-secret-lair-drop-series"
+   ]
+  },
+  {
+   "store_id": "level_up_games",
+   "name": "Level Up Games",
+   "domain": "levelupgamesatl.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "mailchimp"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.com/invite/yec7gtxc2j",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "loose_packs_trading_co",
+   "name": "Loose Packs Trading Co.",
+   "domain": "loosepacks.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "maine_phase_hobbies",
+   "name": "Maine Phase Hobbies & Games",
+   "domain": "mainephasehobbies.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_forms"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "mantis_game_studio",
+   "name": "Mantis Game Studio",
+   "domain": "mantisgamestudio.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "many_realms",
+   "name": "Many Realms",
+   "domain": "manyrealms.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.com/invite/manyrealms",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "mh_deals_plus",
+   "name": "MH Deals Plus",
+   "domain": "mhdealsplus.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "mystery_mtg",
+   "name": "Mystery MTG",
+   "domain": "mysterymtg.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "n4ytcg",
+   "name": "N4YTCG",
+   "domain": "n4ytcg.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "omnisend",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/ddatdnq4zb",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "nerdzoic",
+   "name": "Nerdzoic",
+   "domain": "nerdzoic.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "mailerlite",
+    "shopify_forms",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://nerdzoic.com/collections/price-drop",
+    "https://nerdzoic.com/pages/nerdstash-sign-up"
+   ]
+  },
+  {
+   "store_id": "nexus_tabletop_games",
+   "name": "Nexus Tabletop Games",
+   "domain": "nexustabletopgames.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/fquqrs6bab",
+   "http_status": 200,
+   "signup_pages": [
+    "https://www.nexustabletopgames.com/#vip",
+    "https://www.nexustabletopgames.com/products/gmi-games-vip-membership",
+    "https://www.nexustabletopgames.com/products/gmi-games-vip-membership?variant=44647158218889",
+    "https://www.nexustabletopgames.com/products/gmi-games-vip-membership?variant=44647158284425",
+    "https://www.nexustabletopgames.com/products/gmi-games-vip-membership?variant=44647158317193"
+   ]
+  },
+  {
+   "store_id": "omni_collectibles",
+   "name": "Omni Collectibles",
+   "domain": "omnicollectibles.social",
+   "kind": "drop_email",
+   "evidence": "'Join MSRP drops' (mechanism to confirm in browser)",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "on_board_gaming",
+   "name": "On-Board Gaming",
+   "domain": "on-boardgaming.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_forms"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://on-boardgaming.com/collections/dropfleet-commander-in-stock"
+   ]
+  },
+  {
+   "store_id": "onestoptcg",
+   "name": "OneStopTCG",
+   "domain": "onestoptcg.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "out_of_the_box_cards",
+   "name": "Out of the Box Cards",
+   "domain": "outoftheboxcards.com",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 403,
+   "signup_pages": []
+  },
+  {
+   "store_id": "over_the_brick",
+   "name": "Over the Brick",
+   "domain": "overthebrick.com",
+   "kind": "drop_email",
+   "evidence": "Newsletter: promotions and new products",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/r8rvrcj3pu",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "phantasma",
+   "name": "Phantasma",
+   "domain": "phantasmalv.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/fd3zmmwd2m",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "poke_collect",
+   "name": "Poke-Collect",
+   "domain": "poke-collect.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/tk4zvvyhan",
+   "http_status": 200,
+   "signup_pages": [
+    "https://poke-collect.com/collections/fresh-restocks",
+    "https://poke-collect.com/pages/whatnot?view=whatnotsignup",
+    "https://poke-collect.com/products/vip-pack?variant=43158900048055"
+   ]
+  },
+  {
+   "store_id": "pokemall_tcg",
+   "name": "PokeMall TCG",
+   "domain": "pokemalltcg.com",
+   "kind": "drop_email",
+   "evidence": "'Never miss a restock': drop dates, restock alerts, preorder windows",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/dydk5qyvuu",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "pokemon_plug",
+   "name": "Pokémon Plug",
+   "domain": "pokemonplug.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://pokemonplug.com/collections/newsletter-exclusive-deals-subscribers-only"
+   ]
+  },
+  {
+   "store_id": "pokezone",
+   "name": "PokéZone",
+   "domain": "poke-zone.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "prcards",
+   "name": "PrCards",
+   "domain": "storeprcards.myshopify.com",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 402,
+   "signup_pages": []
+  },
+  {
+   "store_id": "prestige_collectibles",
+   "name": "Prestige Collectibles",
+   "domain": "prestigecollectibles.store",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 402,
+   "signup_pages": []
+  },
+  {
+   "store_id": "prime_city_comics",
+   "name": "Prime City Comics",
+   "domain": "primecitycomics.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "prodigy_games",
+   "name": "Prodigy Games",
+   "domain": "prodigy-games.myshopify.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "punkouter_games",
+   "name": "PunkOuter Games",
+   "domain": "punkouter.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://punkouter.com/pages/vip-table-and-room-reservation",
+    "https://punkouter.com/products/vip-membership-level-emerald"
+   ]
+  },
+  {
+   "store_id": "raretcg",
+   "name": "RareTCG",
+   "domain": "raretcg.store",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 423,
+   "signup_pages": []
+  },
+  {
+   "store_id": "rawmon",
+   "name": "Rawmon",
+   "domain": "rawmon.org",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "realgoodeal",
+   "name": "Realgoodeal",
+   "domain": "realgoodeal.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "retro_gaming_of_denver",
+   "name": "Retro Gaming of Denver",
+   "domain": "retrogamingofdenver.com",
+   "kind": "back_in_stock_only",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "rng_gamez",
+   "name": "RNG-GAMEZ",
+   "domain": "rng-gamez.com",
+   "kind": "back_in_stock_only",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/9xba6qp8km",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "roboskillz",
+   "name": "RoboSkillz (BallSquad Shop)",
+   "domain": "roboskillz.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.com/invite/wruxr5daks",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "rolling_hills_collectibles",
+   "name": "Rolling Hills Collectibles",
+   "domain": "ip5f5c-0a.myshopify.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "safari_zone_collectibles",
+   "name": "Safari Zone Collectibles",
+   "domain": "safari-zone.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "shippin_texas",
+   "name": "Shippin Texas",
+   "domain": "shippintexas.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://shippintexas.com/products/secret-lair-drop-omens-of-chaos-traditional-foil-edition-secret-lair-drop-series-691186",
+    "https://shippintexas.com/products/secret-lair-drop-secret-lair-x-dungeons-dragons-shadowheart-s-devotion-traditional-foil-edition-sld-677401",
+    "https://shippintexas.com/products/secret-lair-drop-secret-lair-x-dungeons-dragons-strahd-s-descent-traditional-foil-edition-sld-677411",
+    "https://shippintexas.com/products/secret-lair-drop-secret-lair-x-my-little-pony-friendship-is-magic-traditional-foil-edition-sld-691182",
+    "https://shippintexas.com/products/secret-lair-drop-secret-lair-x-my-little-pony-the-lands-of-equestria-traditional-foil-edition-sld-691184"
+   ]
+  },
+  {
+   "store_id": "skybox_collectibles",
+   "name": "Skybox Collectibles",
+   "domain": "skyboxct.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "smoke_and_mirrors_hobby",
+   "name": "Smoke and Mirrors Hobby",
+   "domain": "smokeandmirrorshobby.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "stacked_pax",
+   "name": "Stacked Pax",
+   "domain": "stackedpax.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "stomping_grounds_tcg",
+   "name": "Stomping Grounds TCG",
+   "domain": "stompinggroundstcg.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "omnisend",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "stonebrook_collectibles",
+   "name": "Stonebrook Collectibles",
+   "domain": "stonebrookcollectibles.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://stonebrookcollectibles.com/pages/signup"
+   ]
+  },
+  {
+   "store_id": "sunnys_card_shop",
+   "name": "Sunny's Card Shop",
+   "domain": "sunnyscardshop.myshopify.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/ntknqgnuah",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "sweets_and_geeks",
+   "name": "Sweets and Geeks",
+   "domain": "sweetsandgeeks.com",
+   "kind": "drop_email",
+   "evidence": "Mailing list for new product announcements",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "tcg_card_depot",
+   "name": "TCG Card Depot",
+   "domain": "tcgcarddepot.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://www.tcgcarddepot.com/product/f-s-r-dropshock-squad-members-discount/"
+   ]
+  },
+  {
+   "store_id": "tcg_hobby",
+   "name": "TCG Hobby",
+   "domain": "tcghobby.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_forms",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "tcg_hub_and_hobbies",
+   "name": "TCG Hub and Hobbies",
+   "domain": "tcghubandhobbies.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_forms",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "tcg_jackpot",
+   "name": "TCG Jackpot",
+   "domain": "tcgjackpot.com",
+   "kind": "unreachable",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 403,
+   "signup_pages": []
+  },
+  {
+   "store_id": "tcg_moonblast",
+   "name": "TCG Moonblast",
+   "domain": "tcgmoonblast.com",
+   "kind": "drop_email",
+   "evidence": "Dedicated drops signup (Wix site)",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://www.tcgmoonblast.com/signup"
+   ]
+  },
+  {
+   "store_id": "tcg_slayer",
+   "name": "TCG Slayer",
+   "domain": "tcgslayer.io",
+   "kind": "drop_email",
+   "evidence": "Drops newsletter on /drops ('news and drops')",
+   "email_tools": [],
+   "back_in_stock_app": true,
+   "discord": "https://discord.gg/tcgslayer",
+   "http_status": 200,
+   "signup_pages": [
+    "https://tcgslayer.io/drops"
+   ]
+  },
+  {
+   "store_id": "tcg_stadium",
+   "name": "TCG Stadium",
+   "domain": "tcg-stadium.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "omnisend",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "tcgora",
+   "name": "TCGORA",
+   "domain": "tcgora.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "the_game_capital",
+   "name": "The Game Capital",
+   "domain": "thegamecapital.com",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/zextrtq9qb",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "the_platypus_party",
+   "name": "The Platypus Party",
+   "domain": "theplatypusparty.myshopify.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "the_trainer_court",
+   "name": "The Trainer Court",
+   "domain": "thetrainercourt.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo",
+    "shopify_forms"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://www.thetrainercourt.com/pages/newsletter"
+   ]
+  },
+  {
+   "store_id": "the_warp_gate",
+   "name": "The Warp Gate",
+   "domain": "thewarpgate.net",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/z3v8zwuxn5",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "thepokehive",
+   "name": "ThePokeHive",
+   "domain": "thepokehive.com",
+   "kind": "back_in_stock_only",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "thirdspace_tcg",
+   "name": "Thirdspace TCG",
+   "domain": "thirdspacetcg.com",
+   "kind": "drop_email",
+   "evidence": "Subscribers hear about new sets and preorders before shelf release",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "to_the_table_board_game_cafe",
+   "name": "To The Table Board Game Café",
+   "domain": "tothetable.game",
+   "kind": "none_found",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": false,
+   "discord": "https://discord.gg/eu6jgqs8aw",
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "trove_of_collectibles",
+   "name": "Trove of Collectibles",
+   "domain": "troveofcollectibles.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "ultima_supply",
+   "name": "Ultima Supply",
+   "domain": "ultimasupply.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "underhill_gaming",
+   "name": "Underhill Gaming",
+   "domain": "underhillgaming.myshopify.com",
+   "kind": "back_in_stock_only",
+   "evidence": "",
+   "email_tools": [],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "vegas_singles",
+   "name": "Vegas Singles",
+   "domain": "vegas.singles",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": false,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "vgmx",
+   "name": "VGMX",
+   "domain": "vgmx.com",
+   "kind": "drop_email",
+   "evidence": "Per-category TCG email alerts; sign up on the Pokémon collection page",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": []
+  },
+  {
+   "store_id": "wolf_den_gaming",
+   "name": "Wolf Den Gaming",
+   "domain": "wolfdentcg.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_forms",
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://wolfdentcg.com/products/secret-lair-commander-deck-odds-and-ends-secret-lair-drop-series-721361",
+    "https://wolfdentcg.com/products/secret-lair-drop-the-oddlands-forests-non-foil-edition-secret-lair-drop-series-721410",
+    "https://wolfdentcg.com/products/secret-lair-drop-the-oddlands-islands-non-foil-edition-secret-lair-drop-series-721381",
+    "https://wolfdentcg.com/products/secret-lair-drop-the-oddlands-mountains-non-foil-edition-secret-lair-drop-series-721400",
+    "https://wolfdentcg.com/products/secret-lair-drop-the-oddlands-plains-non-foil-edition-secret-lair-drop-series-721362"
+   ]
+  },
+  {
+   "store_id": "wulf_gaming",
+   "name": "Wulf Gaming",
+   "domain": "wulfgaming.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "klaviyo"
+   ],
+   "back_in_stock_app": true,
+   "discord": null,
+   "http_status": 200,
+   "signup_pages": [
+    "https://wulfgaming.com/products/splinter-vengeful-sensei-ink-eyes-servant-of-oni-secret-lair-drop-series-680776"
+   ]
+  },
+  {
+   "store_id": "zulus_board_game_cafe",
+   "name": "Zulu's Board Game Café",
+   "domain": "zulusgames.com",
+   "kind": "newsletter",
+   "evidence": "",
+   "email_tools": [
+    "shopify_newsletter"
+   ],
+   "back_in_stock_app": true,
+   "discord": "https://discord.com/invite/vgeyhjv",
+   "http_status": 200,
+   "signup_pages": [
+    "https://zulusgames.com/collections/magic-recently-restocked",
+    "https://zulusgames.com/collections/other-trading-card-games-recently-restocked",
+    "https://zulusgames.com/collections/pokemon-recently-restocked"
+   ]
+  }
+ ]
+}

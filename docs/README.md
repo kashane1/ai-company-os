@@ -15,6 +15,7 @@ to read the operator instructions or generated plans below.
 ## For agents resuming work
 
 - [founder/printify-shirt-workflow.md](founder/printify-shirt-workflow.md) — next-shirt procedure and reusable CLI: native Duplicate once, API artwork/copy update, preserve mockups and prices, one visual review.
+- [founder/etsy-credentials.md](founder/etsy-credentials.md) — current Etsy API/OAuth source, diagnostics, redaction, and approval boundaries; supersedes older Etsy Keychain instructions.
 - [plans/2026-09-02-home-from-working-pod-design.md](plans/2026-09-02-home-from-working-pod-design.md) — broader HomeFromWorking direction; operated draft CLI available, Etsy payload automation remains planned.
 - [../REPO_MAP.md](../REPO_MAP.md) — 60-second orientation across the five zones
 - [preflight-for-agents.md](preflight-for-agents.md) — boundaries for this session

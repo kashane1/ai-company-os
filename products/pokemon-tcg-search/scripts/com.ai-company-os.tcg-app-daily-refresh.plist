@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Daily price refresh for the Pokemon TCG screener. Runs
+  scripts/daily-refresh.sh at 06:00 local time, which pulls today's live prices
+  and rebuilds the screener metrics.
+
+  Hour/Minute below are LOCAL time. This Mac is America/Los_Angeles, so 6 = 06:00
+  Pacific, and launchd follows the DST shift on its own - do not add an offset.
+
+  Why 06:00 and why every day: tcgcsv withdrew the daily price archive in 2026,
+  so history can no longer be backfilled. Whatever the live endpoints are not
+  asked for on a given day is gone for good. A missed run is a permanent hole in
+  the price history, not a delay.
+
+  Install (one-time):
+
+    cp products/pokemon-tcg-search/scripts/com.ai-company-os.tcg-app-daily-refresh.plist \
+       ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) \
+       ~/Library/LaunchAgents/com.ai-company-os.tcg-app-daily-refresh.plist
+
+  Run it once by hand to check it:
+
+    launchctl kickstart -k gui/$(id -u)/com.ai-company-os.tcg-app-daily-refresh
+    tail -f products/pokemon-tcg-search/data/daily.log
+
+  Status:
+
+    launchctl print gui/$(id -u)/com.ai-company-os.tcg-app-daily-refresh | head -20
+
+  Disable:
+
+    launchctl bootout gui/$(id -u)/com.ai-company-os.tcg-app-daily-refresh
+    rm ~/Library/LaunchAgents/com.ai-company-os.tcg-app-daily-refresh.plist
+
+  launchd does not expand ~ or shell variables in these keys, so every path here
+  is absolute. Edit them if the product moves. Copy, do NOT symlink.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ai-company-os.tcg-app-daily-refresh</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/kashane/dev/ai-company-os/products/pokemon-tcg-search/scripts/daily-refresh.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/kashane/dev/ai-company-os/products/pokemon-tcg-search</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <!-- 06:00 local. If the Mac is asleep at 06:00, launchd runs the job on wake;
+       if it is powered off all day, that day's prices are simply lost. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>6</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <!-- Loading the agent should not trigger an unscheduled pull; the host asks
+       callers not to request the same price files twice in 24 hours. -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/kashane/dev/ai-company-os/products/pokemon-tcg-search/data/daily.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/kashane/dev/ai-company-os/products/pokemon-tcg-search/data/daily.err.log</string>
+</dict>
+</plist>

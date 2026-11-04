@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DRAFTS = DEFAULT_ROOT / "state/home-from-working/drafts"
@@ -24,6 +25,27 @@ def _read(path: Path) -> dict[str, Any]:
 
 def _source(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
+
+
+def _mockup_summary(product: dict[str, Any]) -> dict[str, Any]:
+    variants = {str(v.get("id")): v for v in product.get("variants", [])}
+    selected = [image for image in product.get("images", []) if image.get("is_selected_for_publishing")]
+    pair = []
+    for image in selected[:2]:
+        parsed = urlparse(str(image.get("src", "")))
+        parts = parsed.path.strip("/").split("/")
+        variant_id = parts[2] if len(parts) == 5 and parts[0] == "mockup" else None
+        title = str(variants.get(variant_id, {}).get("title", ""))
+        pair.append({
+            "color": title.split(" / ", 1)[0] or None,
+            "camera": (parse_qs(parsed.query).get("camera_label") or [None])[0],
+            "is_default": image.get("is_default"),
+        })
+    return {
+        "selected_count": len(selected),
+        "lead_color": pair[0]["color"] if pair else None,
+        "lead_pair": pair,
+    }
 
 
 def _status(folder: Path, review: dict[str, Any], after: dict[str, Any], receipt: dict[str, Any]) -> tuple[str, str]:
@@ -101,6 +123,7 @@ def _record(review_path: Path, root: Path, drafts_root: Path) -> dict[str, Any]:
         "artwork": review.get("artwork", {}),
         "garment": {"blueprint_id": after.get("blueprint_id"), "template_id": review.get("template_id"), "print_provider_id": after.get("print_provider_id"), "variant_count": len(variants), "enabled_variant_count": len(enabled)},
         "placement": placement,
+        "mockups": _mockup_summary(after),
         "prices_usd": prices,
         "costs_usd": costs,
         "sources": sources,

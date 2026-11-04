@@ -70,8 +70,15 @@ follow-ups" below for the source-signal mapping used.
 | [2026-06-15-feat-dataforseo-prospect-discovery-plan.md](2026-06-15-feat-dataforseo-prospect-discovery-plan.md) | 2026-06-15 | feat-dataforseo-prospect-discovery-plan | open | body reports Parts 1–3 built; pilot remains |
 | [2026-09-03-pod-artwork-generator-design.md](2026-09-03-pod-artwork-generator-design.md) | 2026-09-03 | pod-artwork-generator-design | open | design approved; not a claim of completed implementation |
 | [2026-09-03-pod-artwork-generator.md](2026-09-03-pod-artwork-generator.md) | 2026-09-03 | pod-artwork-generator | open | implementation plan; no terminal status recorded |
+| [2026-09-25-open-tcg-build-1.md](2026-09-25-open-tcg-build-1.md) | 2026-09-25 | open-tcg-build-1 | open | first build-out: calendar, alert inbox, Bluesky feed, restock episodes, ntfy; not started |
+| [2026-09-25-open-tcg-data-sources-plan.md](2026-09-25-open-tcg-data-sources-plan.md) | 2026-09-25 | open-tcg-data-sources | open | proposed personal-lab data-source plan for OpenTCG; nothing built or scheduled |
+| [2026-09-20-open-tcg-founder-pack.md](2026-09-20-open-tcg-founder-pack.md) | 2026-09-20 | open-tcg-founder-pack | open | founder-review draft; pack delivered, implementation not started |
+| [2026-09-08-homefromworking-listing-image-improvements.md](2026-09-08-homefromworking-listing-image-improvements.md) | 2026-09-08 | homefromworking-listing-image-improvements | open | proposed plan; no listing edits or image generation performed |
+| [2026-09-11-printify-ebay-crosslisting-plan.md](2026-09-11-printify-ebay-crosslisting-plan.md) | 2026-09-11 | printify-ebay-crosslisting | open | process specification only; varied product-accurate lead photos; one-listing pilot awaits approval; no execution |
 | [2026-09-02-home-from-working-pod-design.md](2026-09-02-home-from-working-pod-design.md) | 2026-09-02 | home-from-working-pod | open | current direction: owner-selected artwork → Printify draft; operated CLI available; Etsy payload automation planned |
 | [2026-09-02-printify-repeatable-drafts-plan.md](2026-09-02-printify-repeatable-drafts-plan.md) | 2026-09-02 | printify-repeatable-drafts | open | native Duplicate plus reusable API draft command; implemented locally, pending integration |
+| [2026-09-06-home-from-working-days-1-21-design.md](2026-09-06-home-from-working-days-1-21-design.md) | 2026-09-06 | home-from-working-days-1-21-design | open | approved launch operating design; read-only live evidence and founder-gated public changes remain |
+| [2026-09-06-home-from-working-days-1-21.md](2026-09-06-home-from-working-days-1-21.md) | 2026-09-06 | home-from-working-days-1-21 | open | implementation plan for launch policy, registry, research, pilot, and Etsy read-only access |
 | [2026-04-12-feat-catchbook-angler-ux-parity-plan.md](2026-04-12-feat-catchbook-angler-ux-parity-plan.md) | 2026-04-12 | feat-catchbook-angler-ux-parity | open | product-scoped (catchbook) |
 | [2026-04-12-feat-catchbook-competitive-gap-plan.md](2026-04-12-feat-catchbook-competitive-gap-plan.md) | 2026-04-12 | feat-catchbook-competitive-gap | open | product-scoped (catchbook) |
 | [2026-04-12-feat-content-pipeline-skills-plan.md](2026-04-12-feat-content-pipeline-skills-plan.md) | 2026-04-12 | feat-content-pipeline-skills | open | platform / skills |
@@ -125,6 +132,15 @@ follow-ups" below for the source-signal mapping used.
 | [2026-06-12-outreach-follow-up-sequencer-plan.md](2026-06-12-outreach-follow-up-sequencer-plan.md) | 2026-06-12 | outreach-follow-up-sequencer | open | platform / outreach — per-step cadence + draft variants (v2 item 6) |
 
 | [2026-09-09-employer-readiness-round-2-plan.md](2026-09-09-employer-readiness-round-2-plan.md) | 2026-09-09 | employer-readiness-round-2 | open | platform / products — verification evidence, recovery, and evaluator clarity |
+| [2026-10-23-open-tcg-indie-store-monitoring.md](2026-10-23-open-tcg-indie-store-monitoring.md) | 2026-10-23 | open-tcg-indie-store-monitoring | open | parent plan; P0–P7 built |
+| [2026-10-24-open-tcg-store-alerts-p4.md](2026-10-24-open-tcg-store-alerts-p4.md) | 2026-10-24 | open-tcg-store-alerts-p4 | done | built |
+| [2026-10-24-open-tcg-store-drop-emails.md](2026-10-24-open-tcg-store-drop-emails.md) | 2026-10-24 | open-tcg-store-drop-emails | open | built; waits on the founder's Gmail forwarding filter |
+| [2026-10-24-open-tcg-store-matching-p2.md](2026-10-24-open-tcg-store-matching-p2.md) | 2026-10-24 | open-tcg-store-matching-p2 | done | built |
+| [2026-10-24-open-tcg-store-msrp-p3.md](2026-10-24-open-tcg-store-msrp-p3.md) | 2026-10-24 | open-tcg-store-msrp-p3 | done | built; MSRP evidence for 2020–2026 |
+| [2026-10-24-open-tcg-store-registry-p1.md](2026-10-24-open-tcg-store-registry-p1.md) | 2026-10-24 | open-tcg-store-registry-p1 | done | built |
+| [2026-10-25-open-tcg-openflip-export-p6.md](2026-10-25-open-tcg-openflip-export-p6.md) | 2026-10-25 | open-tcg-openflip-export-p6 | done | built |
+| [2026-10-25-open-tcg-store-coverage-p5.md](2026-10-25-open-tcg-store-coverage-p5.md) | 2026-10-25 | open-tcg-store-coverage-p5 | done | built; 89 stores polled |
+| [2026-10-25-open-tcg-store-scoring-p7.md](2026-10-25-open-tcg-store-scoring-p7.md) | 2026-10-25 | open-tcg-store-scoring-p7 | done | built |
 
 The table covers the live plans checked by `make plans-index-check`. Finished plans
 (`done` / `abandoned`) are moved out of this directory into

@@ -22,6 +22,47 @@ def test_get_secret_env_source_prefers_environ(monkeypatch):
     assert secrets_mod.get_secret("MY_TOKEN", source="env") == "from-environ"
 
 
+def test_etsy_names_always_resolve_from_etsy_env_for_legacy_keychain_calls(monkeypatch, tmp_path):
+    env_path = tmp_path / ".etsy.env"
+    env_path.write_text("ETSY_API_CREDENTIAL=from-etsy-file\n")
+    monkeypatch.setattr(secrets_mod, "_repo_root", lambda: tmp_path)
+    monkeypatch.setenv("ETSY_API_CREDENTIAL", "from-process-env")
+
+    def forbidden_runner(*_args, **_kwargs):
+        raise AssertionError("Etsy secret lookups must not invoke Keychain")
+
+    assert secrets_mod.get_secret(
+        "ETSY_API_CREDENTIAL",
+        source="keychain",
+        service="ignored",
+        account="ETSY_API_CREDENTIAL",
+        runner=forbidden_runner,
+    ) == "from-etsy-file"
+    assert secrets_mod.get_secret("ETSY_API_CREDENTIAL", source="env") == "from-etsy-file"
+    assert secrets_mod.get_secret("ETSY_API_CREDENTIAL", source="etsy_env") == "from-etsy-file"
+
+
+def test_missing_etsy_name_never_falls_back_to_env_dotenv_or_keychain(monkeypatch, tmp_path):
+    (tmp_path / ".env").write_text("ETSY_API_CREDENTIAL=from-dotenv\n")
+    monkeypatch.setattr(secrets_mod, "_repo_root", lambda: tmp_path)
+    monkeypatch.setenv("ETSY_API_CREDENTIAL", "from-process-env")
+
+    def forbidden_runner(*_args, **_kwargs):
+        raise AssertionError("Etsy secret lookups must not invoke Keychain")
+
+    assert secrets_mod.get_secret("ETSY_API_CREDENTIAL", source="env") is None
+    assert secrets_mod.get_secret(
+        "legacy-name",
+        source="keychain",
+        account="ETSY_API_CREDENTIAL",
+        runner=forbidden_runner,
+    ) is None
+    with pytest.raises(secrets_mod.SecretNotFoundError, match=r"source=\.etsy\.env"):
+        secrets_mod.require_secret(
+            "legacy-name", source="keychain", account="ETSY_API_CREDENTIAL", runner=forbidden_runner
+        )
+
+
 def test_get_secret_env_source_falls_back_to_dotenv(monkeypatch, tmp_path):
     monkeypatch.delenv("MY_TOKEN", raising=False)
     dotenv = tmp_path / ".env"

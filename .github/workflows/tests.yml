@@ -80,6 +80,9 @@ jobs:
       - name: Verify employer path without third-party packages
         run: ./scripts/evaluator_check.sh
 
+      - name: Verify employer path without third-party packages
+        run: ./scripts/evaluator_check.sh
+
       - name: Install Python test dependencies
         run: uv sync --frozen --extra test --group quality
 

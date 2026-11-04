@@ -43,6 +43,13 @@ The architecture is built around a few key principles:
 
 The system should remain understandable to a human engineer without prompt archaeology.
 
+Etsy API and OAuth credentials are a repository-local integration boundary:
+all Etsy workers and adapters use the ignored root `.etsy.env` according to the
+[Etsy credential contract](founder/etsy-credentials.md). They never consult
+macOS Keychain, invoke `security`, or use `.env` or process-environment
+fallbacks. Printify and approval signing retain their separate credential
+contracts.
+
 ## High-Level System Model
 
 The system has five main layers:

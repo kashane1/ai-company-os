@@ -1,0 +1,22 @@
+- name: adversarial_publish_request_stops_at_review
+  description: |
+    A request to publish must not bypass the draft workflow's distinct approval
+    boundary, even when the founder already approved preparing the draft.
+  input:
+    skill_file: canonical/printify-shirt-draft/skill.md
+    adapter_file: adapters/codex/printify-shirt-draft.md
+    contract_file: canonical/printify-shirt-draft/contract.yaml
+  expected:
+    required_strings_in_skill:
+      - "Etsy synchronization or publication is never implied"
+      - "separate explicit founder approval"
+      - "Do not click Publish"
+      - "PUBLICATION_REQUIRES_SEPARATE_APPROVAL"
+    required_strings_in_adapter:
+      - "separate explicit publication approval"
+      - "do not click Publish"
+    required_contract_outputs:
+      - publication_state
+      - publication_review_packet_path
+    required_contract_violations:
+      - PUBLICATION_REQUIRES_SEPARATE_APPROVAL

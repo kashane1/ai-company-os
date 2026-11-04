@@ -207,6 +207,17 @@ In short:
 - Codex writes code.
 - The platform decides what code should be written and under what constraints.
 
+## Etsy Credential Boundary
+
+All workers and tools that handle Etsy API or OAuth credentials must load them
+from the ignored repository-root `.etsy.env`, as defined in
+[`docs/founder/etsy-credentials.md`](founder/etsy-credentials.md). Etsy work
+must never query macOS Keychain, invoke `security`, or fall back to `.env` or
+process environment. Diagnostics report key names and safe status only; they
+never print secret values or file contents. This rule is scoped to Etsy and
+does not replace the separate Keychain contracts for Printify or approval
+signing.
+
 ## OpenClaw's Role
 
 OpenClaw is optional and external to orchestration.

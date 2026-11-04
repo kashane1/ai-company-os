@@ -1,0 +1,134 @@
+"""The independent store registry (stores.toml)."""
+
+from __future__ import annotations
+
+import re
+import tomllib
+from dataclasses import dataclass
+from pathlib import Path
+
+from ..config import STORES_PATH
+
+TIERS = frozenset({"first_pass", "explore", "backup", "parked"})
+TRUST_LEVELS = frozenset({"unvetted", "checked", "purchased_ok", "avoid"})
+PLATFORMS = frozenset(
+    {"shopify_json", "shopify_html", "woocommerce", "wix", "sitemap_jsonld", "pokezone", "ecwid", "crystalcommerce",
+     "square", "challenge", "closed", "unknown"}
+)
+# Platforms with a reader (shopify.py, readers.py). The rest are covered by
+# email or parked, with the reason in the store's notes.
+POLLED_PLATFORMS = frozenset({"shopify_json", "woocommerce", "wix", "sitemap_jsonld", "pokezone"})
+# Newest-page discovery cadence per tier, in minutes. Parked stores aren't polled.
+TIER_DISCOVERY_MINUTES = {"first_pass": 15, "explore": 60, "backup": 60}
+EMAIL_SIGNUPS = frozenset({"drop", "newsletter", "restock_button", "loyalty", "none", "unreachable"})
+EMAIL_STATUSES = frozenset({"subscribed", "needs_founder", "none"})
+_STORE_ID = re.compile(r"^[a-z0-9_]+$")
+_DOMAIN = re.compile(r"^[a-z0-9.-]+\.[a-z]{2,}$")
+
+
+@dataclass(frozen=True)
+class Store:
+    store_id: str
+    name: str
+    domain: str
+    tier: str
+    platform: str = "shopify_json"
+    trust: str = "unvetted"
+    notes: str = ""
+    discovery_every_minutes: int | None = None
+    has_newsletter: bool = False
+    email_signup: str = "none"  # drop | newsletter | restock_button | loyalty | none | unreachable
+    email_status: str = "none"  # subscribed | needs_founder | none
+    discord: str = ""
+    product_path: str = ""  # sitemap stores: the URL path that marks a product page, e.g. "/product-page"
+    shipping_cents: int | None = None  # standard US shipping for one sealed item, from the store's policy
+    free_shipping_over_cents: int | None = None  # order subtotal from which standard shipping is free
+
+    def shipping_for(self, price_cents: int) -> int | None:
+        """Shipping for one item at this price: 0 over the free threshold, the flat rate, or None if unknown."""
+        if self.free_shipping_over_cents is not None and price_cents >= self.free_shipping_over_cents:
+            return 0
+        return self.shipping_cents
+
+    @property
+    def base_url(self) -> str:
+        return f"https://{self.domain}"
+
+    @property
+    def is_polled(self) -> bool:
+        return self.platform in POLLED_PLATFORMS and self.tier != "parked" and self.trust != "avoid"
+
+    @property
+    def not_polled_reason(self) -> str | None:
+        if self.trust == "avoid":
+            return "trust is avoid"
+        if self.tier == "parked":
+            return "parked"
+        if self.platform not in POLLED_PLATFORMS:
+            return f"no adapter for {self.platform}"
+        return None
+
+    @property
+    def discovery_minutes(self) -> int:
+        return self.discovery_every_minutes or TIER_DISCOVERY_MINUTES.get(self.tier, 60)
+
+
+def _dollars_to_cents(value: object) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+        raise ValueError(f"shipping amounts must be non-negative dollars: {value!r}")
+    return round(value * 100)
+
+
+def _store(raw: dict) -> Store:
+    store = Store(
+        store_id=raw["store_id"],
+        name=raw["name"],
+        domain=raw["domain"].lower(),
+        tier=raw["tier"],
+        platform=raw.get("platform", "shopify_json"),
+        trust=raw.get("trust", "unvetted"),
+        notes=raw.get("notes", ""),
+        discovery_every_minutes=raw.get("discovery_every_minutes"),
+        has_newsletter=bool(raw.get("newsletter", False)),
+        email_signup=raw.get("email_signup", "none"),
+        email_status=raw.get("email_status", "none"),
+        discord=raw.get("discord", ""),
+        product_path=raw.get("product_path", ""),
+        shipping_cents=_dollars_to_cents(raw.get("shipping")),
+        free_shipping_over_cents=_dollars_to_cents(raw.get("free_shipping_over")),
+    )
+    if not _STORE_ID.match(store.store_id):
+        raise ValueError(f"store_id must be lowercase snake case: {store.store_id!r}")
+    if not _DOMAIN.match(store.domain):
+        raise ValueError(f"{store.store_id}: domain must be a bare host name: {store.domain!r}")
+    if store.tier not in TIERS:
+        raise ValueError(f"{store.store_id}: unknown tier {store.tier!r}")
+    if store.trust not in TRUST_LEVELS:
+        raise ValueError(f"{store.store_id}: unknown trust {store.trust!r}")
+    if store.platform not in PLATFORMS:
+        raise ValueError(f"{store.store_id}: unknown platform {store.platform!r}")
+    if store.email_signup not in EMAIL_SIGNUPS:
+        raise ValueError(f"{store.store_id}: unknown email_signup {store.email_signup!r}")
+    if store.email_status not in EMAIL_STATUSES:
+        raise ValueError(f"{store.store_id}: unknown email_status {store.email_status!r}")
+    minutes = store.discovery_every_minutes
+    if minutes is not None and (not isinstance(minutes, int) or minutes < 5):
+        raise ValueError(f"{store.store_id}: discovery_every_minutes must be a whole number of at least 5")
+    return store
+
+
+def load(path: Path = STORES_PATH) -> list[Store]:
+    document = tomllib.loads(path.read_text())
+    stores = [_store(raw) for raw in document.get("store", [])]
+    seen_ids: set[str] = set()
+    seen_domains: set[str] = set()
+    for store in stores:
+        if store.store_id in seen_ids:
+            raise ValueError(f"duplicate store_id {store.store_id!r}")
+        if store.domain in seen_domains:
+            raise ValueError(f"duplicate domain {store.domain!r}")
+        seen_ids.add(store.store_id)
+        seen_domains.add(store.domain)
+    return stores

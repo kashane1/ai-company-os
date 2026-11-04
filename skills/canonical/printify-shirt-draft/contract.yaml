@@ -1,0 +1,73 @@
+inputs:
+  - name: artwork_path
+    type: string
+    required: true
+    description: Absolute path to founder-selected validated transparent PNG master.
+  - name: artwork_provenance_disclosure
+    type: string
+    required: true
+    description: Truthful artwork-origin disclosure for the listing copy.
+  - name: copy
+    type: object
+    required: true
+    fields: [title, intro, tags]
+  - name: template_id
+    type: string
+    required: false
+    default: "6a9860cc0bf15ba9490bfe3a"
+  - name: lead_color
+    type: string
+    required: false
+  - name: draft_update_approval_id
+    type: string
+    required: false
+    description: Required only by the apply-copy phase after exact review preparation.
+
+outputs:
+  - name: stage
+    type: enum
+    values: [preflight, native_duplicate_created, awaiting_browser_confirmation, artwork_placed, awaiting_draft_update_approval, verified_unpublished, blocked]
+  - name: template_id
+    type: string
+  - name: draft_id
+    type: string
+  - name: review_revision
+    type: string
+  - name: approval_request_path
+    type: string
+  - name: approval_id
+    type: string
+  - name: verification_receipt_path
+    type: string
+  - name: catalog_snapshot_path
+    type: string
+  - name: publication_state
+    type: enum
+    values: [not_requested, unpublished, publication_requires_separate_approval]
+  - name: publication_review_packet_path
+    type: string
+    required: false
+    description: Present only when a later publication request has been prepared for distinct founder review.
+  - name: browser_deletion_confirmation_status
+    type: enum
+    values: [not_required, pending, received]
+    description: Records whether the active browser policy required and received confirmation before old-layer deletion.
+  - name: retained_settings
+    type: object
+    fields: [enabled_variants, prices, selected_mockups, default_mockup, inner_neck_layer, provider]
+  - name: warnings
+    type: list
+
+violations:
+  - code: NATIVE_DUPLICATE_REQUIRED
+    raised_when: API product creation or a non-native copy is proposed for the shirt draft.
+  - code: BROWSER_ARTWORK_PLACEMENT_UNVERIFIED
+    raised_when: artwork placement or retained inner-neck layer cannot be confirmed in Printify.
+  - code: BROWSER_DELETION_CONFIRMATION_REQUIRED
+    raised_when: the active browser policy requires action-time confirmation before deleting the old front artwork layer.
+  - code: TEMPLATE_RETENTION_FAILED
+    raised_when: the duplicate differs in protected variants, prices, provider, selected mockups, or unpublished linkage.
+  - code: REVISION_BOUND_APPROVAL_REQUIRED
+    raised_when: apply-copy lacks a real approval matching the prepared review revision.
+  - code: PUBLICATION_REQUIRES_SEPARATE_APPROVAL
+    raised_when: Etsy synchronization or publication is requested without distinct explicit approval.

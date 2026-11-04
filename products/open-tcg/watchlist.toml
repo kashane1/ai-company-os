@@ -1,0 +1,194 @@
+# OpenTCG watchlist: the founder's only input.
+#
+# To add or change an item, edit this file (or hand Claude a list). Claude keeps
+# the NowInStock and Keepa subscriptions below in sync. The radar uses
+# `alert_at` to decide what to push.
+#
+# Seeded 2026-09-25 from the founder's Guppy "Auto buy" group (18 items).
+# `auto_buy = false` everywhere: OpenTCG has no purchasing. The flag marks which
+# items the founder may later approve for assisted buying.
+#
+# Subscription notes:
+# - NowInStock: alerts are per tracker row (product : store), with email +
+#   browser delivery and in-stock + preorder status on. Subscriptions expire
+#   after 180 days; renew before 2027-03-24. "none" = NowInStock has no tracker
+#   for that product/store yet.
+# - Keepa: Amazon.com only. Buy Box and Amazon desired price are both set to
+#   `alert_at`; alert rearm timer is 1 day. Some ASINs are duplicate listings
+#   (both tracked).
+
+[[item]]
+name = "30th Celebration Poster Collection"
+alert_at = 20.00
+retailers = ["Target"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0H8T1JGDG"]
+
+[[item]]
+name = "Ascended Heroes Booster Bundle"
+alert_at = 35.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = ["Mega Evolution Ascended Heroes Booster Bundle : Amazon"]
+keepa_asins = ["B0G3CV6Z9D"]
+
+[[item]]
+name = "30th Celebration Elite Trainer Box"
+alert_at = 60.00
+retailers = ["Target"]
+auto_buy = false
+nowinstock = ["30th Celebration Elite Trainer Box : Target"]
+keepa_asins = ["B0H78BB9TY"]
+note = "Amazon's own price has never been below $71.96, so the Keepa Amazon alert only fires if a seller goes under $60."
+
+[[item]]
+name = "Premium Poster Collection Mega Lucario"
+alert_at = 60.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0G4XJPN8Q"]
+note = "Amazon has one Ascended Heroes Premium Poster Collection listing shared with the Mega Gardevoir item."
+
+[[item]]
+name = "Premium Poster Collection Mega Gardevoir"
+alert_at = 60.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0G4XJPN8Q"]
+
+[[item]]
+name = "Prismatic Evolutions Poster Collection"
+alert_at = 20.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = [
+  "Scarlet & Violet Prismatic Evolutions Poster Collection : Target",
+  "Scarlet & Violet Prismatic Evolutions Poster Collection : Amazon",
+]
+keepa_asins = ["B0DLQJ613B", "B0DLPJPZD8"]
+
+[[item]]
+name = "30th Celebration Knock Out Collection"
+alert_at = 15.00
+retailers = ["Target"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0H7FDBNSB"]
+
+[[item]]
+name = "First Partner Illustration Collection Series 1"
+alert_at = 25.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = ["First Partner Illustration Collection—Series 1 : Amazon"]
+keepa_asins = ["B0GG2BM9YQ"]
+
+[[item]]
+name = "Ascended Heroes Mega Feraligatr ex Box"
+alert_at = 30.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = ["Mega Evolution Ascended Heroes Mega Meganium/Emboar/Feraligatr ex Box [Random] : Amazon"]
+keepa_asins = ["B0G78HDPPR"]
+note = "Amazon sells this as a random Meganium/Emboar/Feraligatr box."
+
+[[item]]
+name = "Ascended Heroes First Partners Deluxe Pin Collection"
+alert_at = 35.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0G71VXSWN"]
+
+[[item]]
+name = "Destined Rivals Booster Bundle"
+alert_at = 35.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = [
+  "Scarlet & Violet Destined Rivals Booster Bundle : Target",
+  "Scarlet & Violet Destined Rivals Booster Bundle : Amazon",
+]
+keepa_asins = []
+note = "No Amazon listing found in Keepa search; NowInStock covers Amazon."
+
+[[item]]
+name = "30th Celebration Sylveon ex Box"
+alert_at = 30.00
+retailers = ["Target"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0H7817G9M", "B0HGN2BV97"]
+
+[[item]]
+name = "Prismatic Evolutions Booster Bundle"
+alert_at = 35.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = ["Scarlet & Violet Prismatic Evolutions Booster Bundle : Target"]
+keepa_asins = ["B0DN98RVZM"]
+
+[[item]]
+name = "Prismatic Evolutions Elite Trainer Box"
+alert_at = 70.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0DLPL7LC5"]
+
+[[item]]
+name = "Destined Rivals Elite Trainer Box"
+alert_at = 70.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0F2BDXW4J"]
+
+[[item]]
+name = "Prismatic Evolutions Super Premium Collection"
+alert_at = 150.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = [
+  "Scarlet & Violet Prismatic Evolutions Super Premium Collection : Target",
+  "Scarlet & Violet Prismatic Evolutions Super Premium Collection : Amazon",
+]
+keepa_asins = ["B0DYR8D7YC"]
+
+[[item]]
+name = "Ascended Heroes Elite Trainer Box"
+alert_at = 70.00
+retailers = ["Target", "Walmart"]
+auto_buy = false
+nowinstock = ["Mega Evolution Ascended Heroes Elite Trainer Box : Amazon"]
+keepa_asins = ["B0G3CY83L5"]
+
+[[item]]
+name = "30th Celebration Booster Bundle"
+alert_at = 35.00
+retailers = ["Target"]
+auto_buy = false
+nowinstock = []
+keepa_asins = ["B0H783FY5Z"]
+
+# ---------------------------------------------------------------------------
+# Rules beyond single items
+# ---------------------------------------------------------------------------
+
+[exclude]
+# Never alert on anything naming these, even if an item or rule matches.
+# Newer sets that are still easy to find in stores (founder, 2026-09-27).
+terms = ["Pitch Black", "Chaos Rising"]
+
+[[retailer_rule]]
+# At every retailer, a drop that names a watched item or a set from this
+# watchlist alerts (club bundles and "Drawings LIVE" posts often name only the
+# set). This rule adds assisted checkout for Costco: when it fires, the
+# product page opens in Brave after the link is verified to land on
+# costco.com, and the founder clicks Buy.
+retailer = "Costco"
+match = "watch_items_or_sets"
+open_in_browser = true

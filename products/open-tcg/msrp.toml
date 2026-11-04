@@ -1,0 +1,1711 @@
+# MSRPs for store price classes (plan phase P3). Source of truth; synced into
+# the msrp_references table on every store run and by `radar msrp`.
+#
+# [[reference]]: evidence only. basis is official_listing (Pokémon Center US),
+#   big_box_first_party (Target/Walmart/Best Buy/GameStop selling it themselves
+#   at list price) or distributor_or_press (distributor solicitation or press).
+#   Only these can make a listing alert. Watches whose alert_at is a Best Buy
+#   first-party price also count (big_box_first_party); a row here wins.
+# [[form_default]] and [[pack_price]]: estimates. They rank offers in the
+#   digest but never alert. Windows start 2023-03-31 (Scarlet & Violet base
+#   set, when packs rose from $3.99 to $4.49), where the evidence starts; older
+#   sets have no estimate until researched.
+# [[unpriced]]: products deliberately left without an MSRP (no estimate).
+#
+# Weekly refresh: `radar msrp missing` lists products with no evidence.
+# Pokémon Center Canada pages (en-ca) show CAD prices labeled USD; never use them.
+#
+# Researched 2026-10-24. Every Scarlet & Violet and Mega Evolution set, from
+# Scarlet & Violet base (2023-03-31) to Delta Reign: ETB $49.99, Pokémon Center
+# ETB $59.99, booster bundle $26.94 (6 × $4.49; PHD solicited 2023 bundles at
+# $26.99), 36-pack display and enhanced display $161.64 (36 × $4.49).
+# Crown Zenith (Jan 2023, last Sword & Shield set) kept $3.99 packs.
+# Sword & Shield era (Feb 2020 to Mar 2023, researched 2026-10-25): $3.99
+# packs, ETB $39.99 (8 packs), Pokémon Center ETB $49.99 (10 packs, from
+# Chilling Reign), bundle $23.94, display $143.64. Special sets (Champion's
+# Path, Shining Fates, Celebrations, Pokémon GO) have their own evidence rows.
+
+[[form_default]]
+form = "etb"
+msrp = 49.99
+since = "2023-03-31"
+name_excludes = ["Set of"]
+note = "Standard ETB, every 2023-2026 set with evidence"
+
+[[form_default]]
+form = "etb"
+exclusive = "Pokemon Center"
+msrp = 59.99
+since = "2023-03-31"
+name_excludes = ["Set of"]
+note = "Pokémon Center ETB, every 2023-2026 set with evidence"
+
+[[form_default]]
+form = "booster_bundle"
+msrp = 26.94
+since = "2023-03-31"
+name_excludes = ["Display", "Case", "Surprise Box", "Trick or Trade", "Battle Deck"]
+note = "6 packs × $4.49"
+
+[[form_default]]
+form = "booster_box"
+msrp = 161.64
+since = "2023-03-31"
+name_excludes = ["Case", "Half"]
+note = "36 packs × $4.49; enhanced displays are the same price"
+
+[[pack_price]]
+msrp = 4.49
+since = "2023-03-31"
+
+[[form_default]]
+form = "etb"
+msrp = 39.99
+since = "2020-02-07"
+until = "2023-03-31"
+name_excludes = ["Set of", "Plus"]
+note = "Sword & Shield main-set ETB"
+
+[[form_default]]
+form = "etb"
+exclusive = "Pokemon Center"
+msrp = 49.99
+since = "2021-06-18"
+until = "2023-03-31"
+name_excludes = ["Set of", "Plus"]
+note = "Sword & Shield Pokémon Center ETB, from Chilling Reign"
+
+[[form_default]]
+form = "booster_bundle"
+msrp = 23.94
+since = "2020-02-07"
+until = "2023-03-31"
+name_excludes = ["Display", "Case", "Trick or Trade"]
+note = "6 packs × $3.99"
+
+[[form_default]]
+form = "booster_box"
+msrp = 143.64
+since = "2020-02-07"
+until = "2023-03-31"
+name_excludes = ["Case", "Half"]
+note = "36 packs × $3.99"
+
+[[pack_price]]
+msrp = 3.99
+since = "2020-02-07"
+until = "2023-03-31"
+
+[[reference]]
+product_id = 600518
+name = "Prismatic Evolutions Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/prismatic-evolutions-booster-bundle"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US search-page snapshot. Bundle shipped later than the set (PokeBeach lists Mar 7, 2025)."
+
+[[reference]]
+product_id = 593355
+name = "Prismatic Evolutions Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/11/08/pokemon-tcg-scarlet-amp-violetprismatic-evolutions/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. ScreenRant also lists the ETB at $49.99 with nine packs. Not sold on Pokemon Center (only the PC version is)."
+
+[[reference]]
+product_id = 593324
+name = "Prismatic Evolutions Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/100-10019/pokemon-tcg-scarlet-and-violet-prismatic-evolutions-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Also ScreenRant: 'Price: $59.99', 11 packs. A separate PC bundle (ETB + Espeon pin + playmat, $94.99) is a different SKU."
+
+[[reference]]
+product_id = 610931
+name = "Journey Together Booster Box"
+msrp = 161.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/01/09/pokemon-tcg-scarlet-violet-journey-together/"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. 36 packs x $4.49. Pokemon Center sold only the Enhanced display."
+
+[[reference]]
+product_id = 623628
+name = "Journey Together Enhanced Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/journey-together"
+checked_on = "2026-10-24"
+packs = 36
+note = "Same price as the standard display; the enhanced box adds 1 promo. Pokemon Center en-ca pages show higher figures (ETB 80.99 / bundle 36.99 / display 218.99); these are the Canadian store, not US."
+
+[[reference]]
+product_id = 610953
+name = "Journey Together Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/journey-together"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists it at MSRP $26.94 (PKU10341)."
+
+[[reference]]
+product_id = 610930
+name = "Journey Together Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/01/09/pokemon-tcg-scarlet-violet-journey-together/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. A pre-release ScreenRant article said $54.99 with 8 packs. Later sources contradict it on both counts, so it is disregarded."
+
+[[reference]]
+product_id = 610929
+name = "Journey Together Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/journey-together"
+checked_on = "2026-10-24"
+packs = 11
+note = "ScreenRant: 'costs $59.99 from the Pokemon Center', 11 packs."
+
+[[reference]]
+product_id = 624679
+name = "Destined Rivals Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/destined-rivals"
+checked_on = "2026-10-24"
+packs = 36
+note = "The Pokemon Center sold the standard display. PHD also lists MSRP $161.64 (PKU10157)."
+
+[[reference]]
+product_id = 625670
+name = "Destined Rivals Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/destined-rivals"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10638)."
+
+[[reference]]
+product_id = 624676
+name = "Destined Rivals Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/03/27/pokemon-tcg-destined-rivals/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. One secondary price guide claims $54.99. It is not a qualifying source and conflicts with PHD."
+
+[[reference]]
+product_id = 624675
+name = "Destined Rivals Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/destined-rivals"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pack count from PokeGuardian's reproduction of the PC listing."
+
+[[reference]]
+product_id = 630686
+name = "Black Bolt Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/05/08/pokemon-tcg-black-bolt-white-flare/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. PokeGuardian also says $49.99. Conflict: a ScreenRant review (Jul 17, 2025) calls the standard ETB 'worth the $59.99 price', and GameStop lists it at $59.99, a GameStop markup. Treat $49.99 as MSRP."
+
+[[reference]]
+product_id = 630687
+name = "Black Bolt Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/10-10037-118"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center en-ca pages show higher figures (ETB 80.99 / bundle 36.99 / display 218.99); these are the Canadian store, not US."
+
+[[reference]]
+product_id = 630689
+name = "White Flare Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/05/08/pokemon-tcg-black-bolt-white-flare/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. Same ScreenRant/GameStop $59.99 conflict as Black Bolt."
+
+[[reference]]
+product_id = 630688
+name = "White Flare Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/elite-trainer-box"
+checked_on = "2026-10-24"
+note = "Pack count not stated for White Flare; the Black Bolt PC ETB has 11."
+
+[[reference]]
+product_id = 630431
+name = "Black Bolt Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/black-bolt-and-white-flare"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD: MSRP $26.94 (PKU10115), released Aug 22, 2025."
+
+[[reference]]
+product_id = 630696
+name = "White Flare Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/black-bolt-and-white-flare"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD: MSRP $26.94 (PKU10035)."
+
+[[reference]]
+product_id = 644300
+name = "Mega Evolution Enhanced Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/mega-evolution"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10057)."
+
+[[reference]]
+product_id = 644362
+name = "Mega Evolution Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/mega-evolution"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10054)."
+
+[[reference]]
+product_id = 644279
+name = "Mega Evolution Elite Trainer Box [Mega Gardevoir]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/07/11/pokemon-tcg-mega-evolution/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. One item code covers both variants, including Mega Gardevoir. Best Buy's first-party 'Styles May Vary' listing (SKU 6639103) was also seen at $49.99 in a search snapshot. Pack count not stated in the source."
+
+[[reference]]
+product_id = 648394
+name = "Mega Evolution Elite Trainer Box [Mega Lucario]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/07/11/pokemon-tcg-mega-evolution/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. One item code covers both variants, including Mega Lucario. Best Buy's first-party 'Styles May Vary' listing (SKU 6639103) was also seen at $49.99 in a search snapshot. Pack count not stated in the source."
+
+[[reference]]
+product_id = 648415
+name = "Mega Evolution Pokemon Center Elite Trainer Box (Exclusive) [Mega Gardevoir]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/elite-trainer-box"
+checked_on = "2026-10-24"
+note = "Pack count not stated for the Gardevoir PC page; the Lucario PC ETB has 11."
+
+[[reference]]
+product_id = 644282
+name = "Mega Evolution Pokemon Center Elite Trainer Box (Exclusive) [Mega Lucario]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/10-10047-108/"
+checked_on = "2026-10-24"
+packs = 11
+
+[[reference]]
+product_id = 654137
+name = "Phantasmal Flames Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/phantasmal-flames"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10190). Pokemon Center en-ca pages show higher figures (ETB 80.99 / bundle 36.99 / display 218.99); these are the Canadian store, not US."
+
+[[reference]]
+product_id = 654160
+name = "Phantasmal Flames Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/phantasmal-flames"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10191)."
+
+[[reference]]
+product_id = 654136
+name = "Phantasmal Flames Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/09/11/pokemon-tcg-phantasmal-flames/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. A Best Buy search snapshot also showed $49.99."
+
+[[reference]]
+product_id = 654135
+name = "Phantasmal Flames Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/phantasmal-flames"
+checked_on = "2026-10-24"
+note = "Pack count not stated in the snapshot."
+
+[[reference]]
+product_id = 668496
+name = "Ascended Heroes Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2025/11/21/pokemon-tcg-mega-evolution-ascended-heroes/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. PHD lists release Feb 20, 2026 (input says Jan 30, 2026). Pack count not stated."
+
+[[reference]]
+product_id = 668497
+name = "Ascended Heroes Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/ascended-heroes"
+checked_on = "2026-10-24"
+note = "Pack count not stated in the snapshot."
+
+[[reference]]
+product_id = 672394
+name = "Perfect Order Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/perfect-order"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10380)."
+
+[[reference]]
+product_id = 672396
+name = "Perfect Order Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/perfect-order"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10377)."
+
+[[reference]]
+product_id = 672401
+name = "Perfect Order Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/01/13/pokemon-tcg-perfect-order/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail."
+
+[[reference]]
+product_id = 672404
+name = "Perfect Order Pokemon Center Elite Trainer Box"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/perfect-order"
+checked_on = "2026-10-24"
+packs = 11
+
+[[reference]]
+product_id = 668541
+name = "Ascended Heroes Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/ascended"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD: MSRP $26.94 (PKU10311), released Apr 24, 2026."
+
+[[reference]]
+product_id = 684444
+name = "Chaos Rising Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/chaos-rising"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10407)."
+
+[[reference]]
+product_id = 684456
+name = "Chaos Rising Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/chaos-rising"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10403), six packs."
+
+[[reference]]
+product_id = 684450
+name = "Chaos Rising Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/03/13/pokemon-tcg-mega-evolution-chaos-rising/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. ScreenRant (May 13, 2026): 'from a retailer like Best Buy, it'll cost you $49.99.' A Slickdeals post (Sep 2026) shows Target selling it at $59.99, $10 over list."
+
+[[reference]]
+product_id = 684452
+name = "Chaos Rising Pokemon Center Elite Trainer Box"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/chaos-rising"
+checked_on = "2026-10-24"
+note = "ScreenRant also says the PC version is $59.99."
+
+[[reference]]
+product_id = 692939
+name = "Pitch Black Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/pitch-black"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD also lists MSRP $161.64 (PKU10425)."
+
+[[reference]]
+product_id = 692942
+name = "Pitch Black Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/pitch-black"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD also lists MSRP $26.94 (PKU10422)."
+
+[[reference]]
+product_id = 692947
+name = "Pitch Black Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/05/01/pokemon-tcg-mega-evolution-pitch-black/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail."
+
+[[reference]]
+product_id = 692949
+name = "Pitch Black Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/pitch-black"
+checked_on = "2026-10-24"
+note = "Pack count not stated in the snapshot."
+
+[[reference]]
+product_id = 704143
+name = "30th Celebration Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/07/10/pokemon-tcg-30th-celebration/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. The solicitation prices only the 10-box case; $499.90/10 = $49.99 per box. Retailers sold it well above this (Best Buy listing ~$284.99, GameStop $99.99); those are markups, not MSRP."
+
+[[reference]]
+product_id = 704144
+name = "30th Celebration Pokemon Center Elite Trainer Box"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/10-10447-111/pokemon-tcg-30th-celebration-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+
+[[reference]]
+product_id = 704171
+name = "30th Celebration Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/30th-booster"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD: Booster Bundle Case of 25 at MSRP $673.50 = $26.94 each, released Oct 2, 2026."
+
+[[reference]]
+product_id = 712094
+name = "Delta Reign Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/delta-reign"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pre-release (Nov 6, 2026) PC listing. PHD also lists MSRP $161.64 (PKU10446)."
+
+[[reference]]
+product_id = 712097
+name = "Delta Reign Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/delta-reign"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pre-release PC listing. PHD: Booster Bundle Case of 25 at $673.50 = $26.94 each."
+
+[[reference]]
+product_id = 712102
+name = "Delta Reign Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2026/08/20/pokemon-tcg-mega-evolution-delta-reign/"
+checked_on = "2026-10-24"
+note = "PHD Games is a US hobby distributor; its MSRP is the publisher-suggested retail. Case-only pricing; $499.90/10 = $49.99 per box. A third-party tracker (hotdropstock, Oct 2026) saw Best Buy at $49.99 'Coming Soon' and Target at $59.99."
+
+[[reference]]
+product_id = 712104
+name = "Delta Reign Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/delta-reign"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pre-release PC listing; PC preorders sold out."
+
+[[reference]]
+product_id = 527562
+name = "Crown Zenith Booster Bundle"
+msrp = 23.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-41364/pokemon-tcg-crown-zenith-booster-bundle"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. $23.94 = 6 x $3.99, the Sword & Shield-era pack price; Crown Zenith is a SWSH set and kept $3.99 packs. PC SKU 290-41364 and StockX suggest the bundle shipped later than the Jan 2023 set launch (around 2024). No PHD solicitation found for it."
+
+[[reference]]
+product_id = 453470
+name = "Crown Zenith Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/11/15/pokemon-tcg-crown-zenith-elite-trainer-box-much-more/"
+checked_on = "2026-10-24"
+packs = 10
+note = "PHD Games distributor solicitation. 10 booster packs (one more than SV ETBs)."
+
+[[reference]]
+product_id = 454246
+name = "Crown Zenith Pokemon Center Elite Trainer Box Plus"
+msrp = 64.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-85187/pokemon-tcg-crown-zenith-pokemon-center-elite-trainer-box-plus"
+checked_on = "2026-10-24"
+packs = 12
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. 12 packs plus metal dice/coin/markers and a deck box, so it is priced above the $59.99 SV-era PC ETBs. Not cross-checked against press; the CA site shows 87.99 CAD."
+
+[[reference]]
+product_id = 476452
+name = "Scarlet & Violet Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-86324/pokemon-tcg-scarlet-and-violet-booster-display-box-36-packs"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. Confirmed by PHD launch solicitation: 'Booster Display, PKU85324, MSRP: $161.64 ($4.49 per pack), Releases March 31, 2023' (https://www.phdgames.com/2023/01/13/pokemon-tcg-scarlet-violet/). PC SKU prefix 699- suggests a later relisting at the same price."
+
+[[reference]]
+product_id = 478258
+name = "Scarlet & Violet Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/184-85337/pokemon-tcg-scarlet-and-violet-booster-bundle-6-packs"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD's launch solicitation listed this bundle at $26.99 (item PKU85337, https://www.phdgames.com/2023/01/13/pokemon-tcg-scarlet-violet/); Pokemon Center lists $26.94 (6 x $4.49). Using the lower official figure; the $0.05 gap is rounding."
+
+[[reference]]
+product_id = 478335
+name = "Scarlet & Violet Elite Trainer Box [Koraidon]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/01/13/pokemon-tcg-scarlet-violet/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation. One item code covers both the Koraidon and Miraidon ETBs; this is the Koraidon version."
+
+[[reference]]
+product_id = 478336
+name = "Scarlet & Violet Elite Trainer Box [Miraidon]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/01/13/pokemon-tcg-scarlet-violet/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation. One item code covers both the Koraidon and Miraidon ETBs; this is the Miraidon version."
+
+[[reference]]
+product_id = 478758
+name = "Scarlet & Violet Pokemon Center Elite Trainer Box (Exclusive) [Koraidon]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/184-85342/pokemon-tcg-scarlet-and-violet-pokemon-center-elite-trainer-box-koraidon"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
+
+[[reference]]
+product_id = 478756
+name = "Scarlet & Violet Pokemon Center Elite Trainer Box (Exclusive) [Miraidon]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/184-85457/pokemon-tcg-scarlet-and-violet-pokemon-center-elite-trainer-box-miraidon"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo. US URL inferred from the en-gb SKU 184-85457; the US price came from US search pages (e.g. pokemoncenter.com/search/scarlet-and-violet-elite-trainer-box)."
+
+[[reference]]
+product_id = 493975
+name = "Paldea Evolved Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-86349/pokemon-tcg-scarlet-and-violet-paldea-evolved-booster-display-box-36-packs"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD launch solicitation agrees: 'Paldea Evolved Booster Display, PKU85349, $161.64, Releases June 9, 2023' (https://www.phdgames.com/2023/03/29/pokemon-tcg-scarlet-violet-paldea-evolved/)."
+
+[[reference]]
+product_id = 496914
+name = "Paldea Evolved Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/185-85362/pokemon-tcg-scarlet-and-violet-paldea-evolved-booster-bundle-6-packs"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD's launch solicitation listed this bundle at $26.99 (item PKU85362, https://www.phdgames.com/2023/03/29/pokemon-tcg-scarlet-violet-paldea-evolved/); Pokemon Center lists $26.94 (6 x $4.49). Using the lower official figure; the $0.05 gap is rounding."
+
+[[reference]]
+product_id = 493974
+name = "Paldea Evolved Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/03/29/pokemon-tcg-scarlet-violet-paldea-evolved/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation; 9 booster packs."
+
+[[reference]]
+product_id = 493973
+name = "Paldea Evolved Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/185-85367/pokemon-tcg-scarlet-and-violet-paldea-evolved-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
+
+[[reference]]
+product_id = 501257
+name = "Obsidian Flames Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-86374/pokemon-tcg-scarlet-and-violet-obsidian-flames-booster-display-box-36-packs"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD launch solicitation agrees: 'Obsidian Flames Booster Display, PKU85374, $161.64, Releases August 11, 2023' (https://www.phdgames.com/2023/05/30/pokemon-tcg-obsidian-flames/)."
+
+[[reference]]
+product_id = 501263
+name = "Obsidian Flames Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/186-85387/pokemon-tcg-scarlet-and-violet-obsidian-flames-booster-bundle-6-packs"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD's launch solicitation listed this bundle at $26.99 (item PKU85387, https://www.phdgames.com/2023/05/30/pokemon-tcg-obsidian-flames/); Pokemon Center lists $26.94 (6 x $4.49). Using the lower official figure; the $0.05 gap is rounding."
+
+[[reference]]
+product_id = 501264
+name = "Obsidian Flames Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/05/30/pokemon-tcg-obsidian-flames/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation; 9 booster packs."
+
+[[reference]]
+product_id = 501266
+name = "Obsidian Flames Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/186-85392/pokemon-tcg-scarlet-and-violet-obsidian-flames-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
+
+[[reference]]
+product_id = 505942
+name = "Trick or Trade BOOster Bundle 2023 (50 ct)"
+msrp = 19.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-85530/pokemon-tcg-trick-or-trade-booster-bundle-2023"
+checked_on = "2026-10-24"
+packs = 50
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. 'packs' = mini packs of 3 cards each, not standard boosters. A hobby shop also shows 'Original price $19.99'."
+
+[[reference]]
+product_id = 502000
+name = "151 Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-85322/pokemon-tcg-scarlet-and-violet-151-booster-bundle"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD's 151 solicitation lists only the 10-bundle display ($269.40 = $26.94 each), with no single-bundle line."
+
+[[reference]]
+product_id = 513405
+name = "151 Booster Bundle Display"
+msrp = 269.40
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/06/27/151/"
+checked_on = "2026-10-24"
+packs = 60
+note = "PHD Games distributor solicitation for the 10-bundle display (10 x 6 = 60 packs). The page gives no release date for this item."
+
+[[reference]]
+product_id = 503313
+name = "151 Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/06/27/151/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation."
+
+[[reference]]
+product_id = 501999
+name = "151 Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/scarlet-and-violet-151"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo. Search page under TCG Expansions > Scarlet & Violet 151. en-ca shows 80.99 (CAD mislabeled USD), ignored."
+
+[[reference]]
+product_id = 512821
+name = "Paradox Rift Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-85399/pokemon-tcg-scarlet-and-violet-paradox-rift-booster-display-box-36-packs"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD agrees: 'Paradox Rift Booster Display, PKU85399, $161.64, Releases November 3, 2023' (https://www.phdgames.com/2023/08/18/pokemon-tcg-scarlet-violet-paradox-rift/)."
+
+[[reference]]
+product_id = 512820
+name = "Paradox Rift Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/booster-bundle"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. The PC snippet titles it a 'Sleeved Booster Bundle'. PHD's launch solicitation listed this bundle at $26.99 (item PKU85412, https://www.phdgames.com/2023/08/18/pokemon-tcg-scarlet-violet-paradox-rift/); Pokemon Center lists $26.94 (6 x $4.49). Using the lower official figure; the $0.05 gap is rounding."
+
+[[reference]]
+product_id = 512813
+name = "Paradox Rift Elite Trainer Box [Iron Valiant]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/08/18/pokemon-tcg-scarlet-violet-paradox-rift/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation; one item code covers both art variants (this is Iron Valiant)."
+
+[[reference]]
+product_id = 512815
+name = "Paradox Rift Elite Trainer Box [Roaring Moon]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/08/18/pokemon-tcg-scarlet-violet-paradox-rift/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation; one item code covers both art variants (this is Roaring Moon)."
+
+[[reference]]
+product_id = 512801
+name = "Paradox Rift Pokemon Center Elite Trainer Box (Exclusive) [Iron Valiant]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/187-85415/pokemon-tcg-scarlet-and-violet-paradox-rift-pokemon-center-elite-trainer-box-iron-valiant"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo. Some snapshots of other-region search pages showed $77.99/$56.99; the US product listing shows $59.99."
+
+[[reference]]
+product_id = 512809
+name = "Paradox Rift Pokemon Center Elite Trainer Box (Exclusive) [Roaring Moon]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/roaring-moon"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo. US search page; same price as the Iron Valiant version."
+
+[[reference]]
+product_id = 528771
+name = "Paldean Fates Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/paldean-fates"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD's launch solicitation listed this bundle at $26.99 (item PKU85617, https://www.phdgames.com/2023/11/17/pokemon-tcg-scarlet-violet-paldean-fates/); Pokemon Center lists $26.94 (6 x $4.49). Using the lower official figure; the $0.05 gap is rounding. PHD lists the bundle release as February 23, 2024, after the Jan 26 set launch."
+
+[[reference]]
+product_id = 528040
+name = "Paldean Fates Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2023/11/17/pokemon-tcg-scarlet-violet-paldean-fates/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation. PHD's release date reads 'January 26, 2023', which is a typo for 2024."
+
+[[reference]]
+product_id = 528039
+name = "Paldean Fates Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-85619/pokemon-tcg-scarlet-and-violet-paldean-fates-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
+
+[[reference]]
+product_id = 536225
+name = "Temporal Forces Booster Box"
+msrp = 161.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/01/11/pokemon-tcg-scarlet-violet-temporal-forces/"
+checked_on = "2026-10-24"
+packs = 36
+note = "PHD Games distributor solicitation. A PC search snippet for the TF display (pokemoncenter.com/product/699-86981) read '161.14', likely a garbled $161.64; not used."
+
+[[reference]]
+product_id = 541017
+name = "Temporal Forces Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/188-85655/pokemon-tcg-scarlet-and-violet-temporal-forces-booster-bundle-6-packs"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD agrees: 'Booster Bundle, PKU85319, $26.94, Releases March 22, 2024' (https://www.phdgames.com/2024/01/11/pokemon-tcg-scarlet-violet-temporal-forces/); first PHD solicitation to use $26.94 instead of $26.99."
+
+[[reference]]
+product_id = 532848
+name = "Temporal Forces Elite Trainer Box [Iron Leaves ex]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/01/11/pokemon-tcg-scarlet-violet-temporal-forces/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation; one item code covers both variants (this is Iron Leaves ex)."
+
+[[reference]]
+product_id = 532845
+name = "Temporal Forces Elite Trainer Box [Walking Wake]"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/01/11/pokemon-tcg-scarlet-violet-temporal-forces/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation; one item code covers both variants (this is Walking Wake)."
+
+[[reference]]
+product_id = 532853
+name = "Temporal Forces Pokemon Center Elite Trainer Box (Exclusive) [Iron Leaves]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/temporal-forces"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo. en-ca shows 117.99 (CAD), ignored."
+
+[[reference]]
+product_id = 538775
+name = "Temporal Forces Pokemon Center Elite Trainer Box (Exclusive) [Walking Wake]"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/188-85717/pokemon-tcg-scarlet-and-violet-temporal-forces-pokemon-center-elite-trainer-box-walking-wake"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
+
+[[reference]]
+product_id = 543846
+name = "Twilight Masquerade Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-86340/pokemon-tcg-scarlet-and-violet-twilight-masquerade-booster-display-box-36-packs"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD agrees: 'Booster Display, PKU85340, $161.64, Releases May 24, 2024' (https://www.phdgames.com/2024/03/15/pokemon-tcg-scarlet-violet-twilight-masquerade/)."
+
+[[reference]]
+product_id = 543852
+name = "Twilight Masquerade Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/189-85398/pokemon-tcg-scarlet-and-violet-twilight-masquerade-booster-bundle-6-packs"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD agrees: 'Booster Bundle, PKU85398, $26.94'. en-ca shows 36.99 (CAD), ignored."
+
+[[reference]]
+product_id = 543845
+name = "Twilight Masquerade Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/03/15/pokemon-tcg-scarlet-violet-twilight-masquerade/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation."
+
+[[reference]]
+product_id = 543844
+name = "Twilight Masquerade Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/189-85799/pokemon-tcg-scarlet-and-violet-twilight-masquerade-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
+
+[[reference]]
+product_id = 553031
+name = "Shrouded Fable Booster Bundle"
+msrp = 26.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-41352/pokemon-tcg-scarlet-and-violet-shrouded-fable-booster-bundle-6-packs"
+checked_on = "2026-10-24"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD agrees: 'Booster Bundle, PKU41309, $26.94, Releases September 6, 2024' (https://www.phdgames.com/2024/05/16/pokemon-tcg-scarlet-amp-violetshrouded-fable/), later than the Aug 2 set launch."
+
+[[reference]]
+product_id = 552999
+name = "Shrouded Fable Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/05/16/pokemon-tcg-scarlet-amp-violetshrouded-fable/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation."
+
+[[reference]]
+product_id = 552998
+name = "Shrouded Fable Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-85854/pokemon-tcg-scarlet-and-violet-shrouded-fable-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo. en-ca shows 80.99 CAD, ignored."
+
+[[reference]]
+product_id = 558713
+name = "Trick or Trade BOOster Bundle 2024 (35 mini packs)"
+msrp = 14.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-85834/pokemon-tcg-trick-or-trade-booster-bundle-2024"
+checked_on = "2026-10-24"
+packs = 35
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. Mini packs of 3 cards each. PHD's case solicitation agrees: 'Trick or Trade BOOster Bundle Case (2024), PKU85833, $179.88 (12 bundles) ... 35 mini packs' = $14.99 each (https://www.phdgames.com/2024/06/17/pokemon-tcg-dark-powers-ex-special-collection-amp-trick-or-trade-booster-bundle-2024/)."
+
+[[reference]]
+product_id = 557354
+name = "Stellar Crown Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-42279/pokemon-tcg-scarlet-and-violet-stellar-crown-booster-display-box-36-packs"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD agrees: 'Booster Display, PKU41279, $161.64, Releases September 13, 2024' (https://www.phdgames.com/2024/06/27/pokemon-tcg-scarlet-violetstellar-crown/)."
+
+[[reference]]
+product_id = 557345
+name = "Stellar Crown Booster Bundle"
+msrp = 26.94
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/06/27/pokemon-tcg-scarlet-violetstellar-crown/"
+checked_on = "2026-10-24"
+note = "PHD Games distributor solicitation. The Pokemon Center search snippet for this bundle showed no price. Pack count not stated by PHD (standard bundles hold 6)."
+
+[[reference]]
+product_id = 557350
+name = "Stellar Crown Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/06/27/pokemon-tcg-scarlet-violetstellar-crown/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation."
+
+[[reference]]
+product_id = 557340
+name = "Stellar Crown Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/190-85923/pokemon-tcg-scarlet-and-violet-stellar-crown-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
+
+[[reference]]
+product_id = 565606
+name = "Surging Sparks Booster Box"
+msrp = 161.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-42312/pokemon-tcg-scarlet-and-violet-surging-sparks-booster-display-box-36-packs"
+checked_on = "2026-10-24"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PHD agrees: 'Booster Display, PKU41312, $161.64, Releases November 8, 2024' (https://www.phdgames.com/2024/08/22/pokemon-tcg-scarlet-amp-violetsurging-sparks/)."
+
+[[reference]]
+product_id = 565629
+name = "Surging Sparks Booster Bundle (LGS)"
+msrp = 26.94
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/08/22/pokemon-tcg-scarlet-amp-violetsurging-sparks/"
+checked_on = "2026-10-24"
+packs = 6
+note = "PHD is a hobby distributor that supplies local game stores, so its bundle should be the LGS version (inferred from the channel; PHD does not label it LGS). Pokemon Center also lists a Surging Sparks Booster Bundle (6 Packs) at $26.94 (191-85950) without saying which version."
+
+[[reference]]
+product_id = 565630
+name = "Surging Sparks Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2024/08/22/pokemon-tcg-scarlet-amp-violetsurging-sparks/"
+checked_on = "2026-10-24"
+packs = 9
+note = "PHD Games distributor solicitation."
+
+[[reference]]
+product_id = 565632
+name = "Surging Sparks Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 59.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/191-85953/pokemon-tcg-scarlet-and-violet-surging-sparks-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-24"
+packs = 11
+note = "Pokemon Center US price from a search-engine snapshot of the listing (pokemoncenter.com blocks direct fetches); listing is sold out, so the price is the last one shown. PC ETB = 2 more packs than the retail ETB plus a PC-stamped promo."
+
+[[reference]]
+product_id = 206027
+name = "Sword & Shield Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://pokemoncenter.com/pok%C3%A9mon-tcg:-sword-shield-booster-display-box-(36-packs)-172-81651"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. 36 x $3.99."
+
+[[reference]]
+product_id = 206038
+name = "Sword & Shield Elite Trainer Box [Zacian]"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-16994/pokemon-tcg-sword-and-shield-elite-trainer-box-zacian"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 206039
+name = "Sword & Shield Elite Trainer Box [Zamazenta]"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-16995/pokemon-tcg-sword-and-shield-elite-trainer-box-zamazenta"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 210561
+name = "Rebel Clash Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/173-80681/pokemon-tcg-sword-and-shield-rebel-clash-booster-display-box-36-packs"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 210572
+name = "Rebel Clash Elite Trainer Box"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/173-80700/pokemon-tcg-sword-and-shield-rebel-clash-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 216853
+name = "Darkness Ablaze Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/darkness-ablaze-booster-box/"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US search-page snapshot (not the product page); listing sold out."
+
+[[reference]]
+product_id = 216856
+name = "Darkness Ablaze Elite Trainer Box"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/174-80731/pokemon-tcg-sword-and-shield-darkness-ablaze-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 218791
+name = "Champion's Path Elite Trainer Box"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-80545/pokemon-tcg-champions-path-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Special set: 10 packs and a Charizard V promo. PokeBeach's July 2020 reveal gave the same $49.99."
+
+[[reference]]
+product_id = 221752
+name = "Vivid Voltage Elite Trainer Box"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/175-80768/pokemon-tcg-sword-and-shield-vivid-voltage-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. A Pokemon Center category snapshot also showed $37.99 (likely a later markdown); product page price used."
+
+[[reference]]
+product_id = 228821
+name = "Shining Fates Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2020/12/shining-fates-is-februarys-special-set"
+checked_on = "2026-10-25"
+packs = 10
+note = "PokeBeach announcement (quote from search snippet; pokebeach.com blocks direct fetches). Special set, no booster boxes. The US Pokemon Center listing is sold out and the snapshot did not show a clear USD price."
+
+[[reference]]
+product_id = 229277
+name = "Battle Styles Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/176-80818/pokemon-tcg-sword-and-shield-battle-styles-booster-display-box-36-packs"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 229285
+name = "Battle Styles Elite Trainer Box [Rapid Strike Urshifu] (Blue)"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-17081/pokemon-tcg-sword-and-shield-battle-styles-elite-trainer-box-rapid-strike-urshifu"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 229284
+name = "Battle Styles Elite Trainer Box [Single Strike Urshifu] (Red)"
+msrp = 39.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-17080/pokemon-tcg-sword-and-shield-battle-styles-elite-trainer-box-single-strike-urshifu"
+checked_on = "2026-10-25"
+packs = 8
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 236258
+name = "Chilling Reign Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-81846/pokemon-tcg-sword-and-shield-chilling-reign-booster-display-box-36-packs"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 236260
+name = "Chilling Reign Elite Trainer Box [Ice Rider Calyrex]"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/06/exclusive-larger-chilling-reign-elite-trainer-boxes-releasing-at-pokemon-center"
+checked_on = "2026-10-25"
+packs = 8
+note = "PokeBeach (June 2021) on the regular Chilling Reign ETBs (both Calyrex versions). Quote from search snippet; pokebeach.com blocks direct fetches. Regular ETBs were not sold on pokemoncenter.com (it sold the PC versions)."
+
+[[reference]]
+product_id = 236261
+name = "Chilling Reign Elite Trainer Box [Shadow Rider Calyrex]"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/06/exclusive-larger-chilling-reign-elite-trainer-boxes-releasing-at-pokemon-center"
+checked_on = "2026-10-25"
+packs = 8
+note = "PokeBeach (June 2021) on the regular Chilling Reign ETBs (both Calyrex versions). Quote from search snippet."
+
+[[reference]]
+product_id = 247281
+name = "Chilling Reign Pokemon Center Elite Trainer Box [Ice Rider Calyrex] (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/177-80970/pokemon-tcg-sword-and-shield-chilling-reign-pokemon-center-elite-trainer-box-ice-rider-calyrex"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Listed with 10 packs, but PokeBeach reported the first run shipped with only 8 packs by mistake (Pokemon Center compensated buyers). PokeBeach also gives $49.99."
+
+[[reference]]
+product_id = 247282
+name = "Chilling Reign Pokemon Center Elite Trainer Box [Shadow Rider Calyrex] (Exclusive)"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/06/exclusive-larger-chilling-reign-elite-trainer-boxes-releasing-at-pokemon-center"
+checked_on = "2026-10-25"
+packs = 10
+note = "PokeBeach (June 2021) covers both Pokemon Center Calyrex ETBs at $49.99. The Shadow Rider product page did not surface in search; the Ice Rider PC page shows $49.99. Listed with 10 packs; first run shipped with 8 by mistake."
+
+[[reference]]
+product_id = 242436
+name = "Evolving Skies Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/evolvong-skies-display"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US search-page snapshot (structured data); not the product page. Sold out."
+
+[[reference]]
+product_id = 242434
+name = "Evolving Skies Elite Trainer Box [Flareon/Jolteon/Umbreon/Leafeon]"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/07/evolving-skies-pokemon-center-etbs-come-with-eevee-pin-and-eeveelution-coin"
+checked_on = "2026-10-25"
+packs = 8
+note = "PokeBeach (July 2021) on the regular Evolving Skies ETBs (both Eeveelution versions). Quote from search snippet; pokebeach.com blocks direct fetches."
+
+[[reference]]
+product_id = 242443
+name = "Evolving Skies Elite Trainer Box [Glaceon/Vaporeon/Sylveon/Espeon]"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/07/evolving-skies-pokemon-center-etbs-come-with-eevee-pin-and-eeveelution-coin"
+checked_on = "2026-10-25"
+packs = 8
+note = "PokeBeach (July 2021) on the regular Evolving Skies ETBs (both Eeveelution versions). Quote from search snippet."
+
+[[reference]]
+product_id = 245352
+name = "Evolving Skies Pokemon Center Elite Trainer Box [Glaceon/Vaporeon/Sylveon/Espeon] (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/178-80981/pokemon-tcg-sword-and-shield-evolving-skies-pokemon-center-elite-trainer-box-vaporeon-espeon-glaceon-and-sylveon"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. PokeBeach (July 2021) also says the PC versions cost $49.99."
+
+[[reference]]
+product_id = 245376
+name = "Evolving Skies Pokemon Center Elite Trainer Box [Jolteon/Flareon/Umbreon/Leafeon] (Exclusive)"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.pokebeach.com/2021/07/evolving-skies-pokemon-center-etbs-come-with-eevee-pin-and-eeveelution-coin"
+checked_on = "2026-10-25"
+packs = 10
+note = "PokeBeach (July 2021) on both Pokemon Center Evolving Skies ETBs. The Jolteon/Flareon/Umbreon/Leafeon US product page did not surface. 10 packs per Pokemon Center listings for the PC versions."
+
+[[reference]]
+product_id = 242811
+name = "Celebrations Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://pocketmonsters.net/news/5289"
+checked_on = "2026-10-25"
+packs = 15
+note = "PocketMonsters.net news on the official release (Oct 8, 2021). Slickdeals also logged GameStop selling it at $49.99. Packs: 10 four-card Celebrations packs + 5 regular packs (pokemon.com product gallery). No US Pokemon Center listing for the regular ETB surfaced."
+
+[[reference]]
+product_id = 251199
+name = "Celebrations Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 64.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-80986/pokemon-tcg-celebrations-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 19
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Larger than the regular $49.99 ETB (13 Celebrations + 6 other packs)."
+
+[[reference]]
+product_id = 247654
+name = "Fusion Strike Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-81916"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 247671
+name = "Fusion Strike Elite Trainer Box"
+msrp = 39.99
+basis = "big_box_first_party"
+evidence_url = "https://www.bestbuy.com/site/pokemon-trading-card-game-fusion-strike-elite-trainer-box/6482276.p?skuId=6482276"
+checked_on = "2026-10-25"
+packs = 8
+note = "Best Buy first-party listing (SKU 6482276), price from search snapshot; now 'no longer available in new condition'. 8 packs per retailer descriptions."
+
+[[reference]]
+product_id = 247673
+name = "Fusion Strike Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/search/fusion-strike-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US search-page snapshot; product page did not surface. The en-ca page's $67.99 is CAD and was ignored."
+
+[[reference]]
+product_id = 256141
+name = "Brilliant Stars Booster Box"
+msrp = 143.64
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/699-81996/pokemon-tcg-sword-and-shield-brilliant-stars-booster-display-box-36-packs"
+checked_on = "2026-10-25"
+packs = 36
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 256138
+name = "Brilliant Stars Elite Trainer Box"
+msrp = 39.99
+basis = "big_box_first_party"
+evidence_url = "https://www.bestbuy.com/site/pokemon-trading-card-game-brilliant-stars-elite-trainer-box/6494284.p?skuId=6494284"
+checked_on = "2026-10-25"
+packs = 8
+note = "Best Buy first-party listing (SKU 6494284), price from search snapshot; release date 02/25/2022. A Slickdeals post showed Target at $44.99 in Dec 2022, so Target may have priced above $39.99 later."
+
+[[reference]]
+product_id = 256140
+name = "Brilliant Stars Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/180-85006/pokemon-tcg-sword-and-shield-brilliant-stars-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown."
+
+[[reference]]
+product_id = 265519
+name = "Astral Radiance Booster Box"
+msrp = 143.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/03/09/pokemon-tcg-sword-shield-astral-radiance/"
+checked_on = "2026-10-25"
+packs = 36
+note = "PHD Games distributor solicitation. Pack count not stated by PHD; 36 = 143.64 / 3.99 is inferred."
+
+[[reference]]
+product_id = 265527
+name = "Astral Radiance Elite Trainer Box"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/03/09/pokemon-tcg-sword-shield-astral-radiance/"
+checked_on = "2026-10-25"
+packs = 8
+note = "PHD Games distributor solicitation; releases May 27, 2022."
+
+[[reference]]
+product_id = 265528
+name = "Astral Radiance Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/181-85133/pokemon-tcg-sword-and-shield-astral-radiance-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. The en-ca $67.99 is CAD and was ignored."
+
+[[reference]]
+product_id = 270708
+name = "Pokemon GO Elite Trainer Box"
+msrp = 49.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/05/02/pokemon-go-special-collection-v-battle-decks-more/"
+checked_on = "2026-10-25"
+packs = 10
+note = "PHD Games distributor solicitation. Special set: 10 packs at $49.99, not the 8-pack $39.99 main-set ETB."
+
+[[reference]]
+product_id = 270709
+name = "Pokemon GO Pokemon Center Elite Trainer Box Plus (Exclusive)"
+msrp = 64.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/290-85033/pokemon-tcg-pokemon-go-pokemon-center-elite-trainer-box-plus"
+checked_on = "2026-10-25"
+packs = 12
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Includes a deck box and metal dice/coin/markers."
+
+[[reference]]
+product_id = 280302
+name = "Trick or Trade BOOster Bundle (40 ct)"
+msrp = 14.99
+basis = "distributor_or_press"
+evidence_url = "https://www.dexerto.com/pokemon/all-pokemon-cards-in-tcgs-trick-or-trade-booster-bundle-halloween-set-1915956/"
+checked_on = "2026-10-25"
+packs = 40
+note = "Dexerto (Aug 26, 2022). 40 three-card mini packs; on sale Sept 1, 2022 at Pokemon Center and retailers. Not a $3.99-pack product."
+
+[[reference]]
+product_id = 277324
+name = "Lost Origin Booster Box"
+msrp = 143.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/06/24/pokemon-tcg-lost-origin-infernape-v-box/"
+checked_on = "2026-10-25"
+packs = 36
+note = "PHD Games distributor solicitation; Pokemon Center US search snapshots also show $143.64. 36 packs inferred (PHD did not state count)."
+
+[[reference]]
+product_id = 278819
+name = "Lost Origin Booster Bundle"
+msrp = 23.94
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/06/24/pokemon-tcg-lost-origin-infernape-v-box/"
+checked_on = "2026-10-25"
+packs = 6
+note = "PHD Games distributor solicitation. 6 packs inferred from 23.94 / 3.99; PHD did not state the count."
+
+[[reference]]
+product_id = 277335
+name = "Lost Origin Elite Trainer Box"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/06/24/pokemon-tcg-lost-origin-infernape-v-box/"
+checked_on = "2026-10-25"
+packs = 8
+note = "PHD Games distributor solicitation; releases September 9, 2022."
+
+[[reference]]
+product_id = 277336
+name = "Lost Origin Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/category/lost-origin"
+checked_on = "2026-10-25"
+note = "Pokemon Center US category-page snapshot; sold out. Pack count not shown in the snapshot (other SWSH PC ETBs have 10). en-ca $67.99 is CAD and was ignored."
+
+[[reference]]
+product_id = 283389
+name = "Silver Tempest Booster Box"
+msrp = 143.64
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/09/01/pokemon-tcg-sword-shield-silver-tempest-more/"
+checked_on = "2026-10-25"
+packs = 36
+note = "PHD Games distributor solicitation. 36 packs inferred."
+
+[[reference]]
+product_id = 283396
+name = "Silver Tempest Booster Bundle"
+msrp = 23.94
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/183-85154/pokemon-tcg-sword-and-shield-silver-tempest-booster-bundle-6-packs"
+checked_on = "2026-10-25"
+packs = 6
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Conflict: PHD Games lists this item (PKU85154) at 'MSRP: $23.99'. Pokemon Center's $23.94 (= 6 x $3.99) used; the 5-cent difference doesn't affect at-or-below-MSRP alerts much."
+
+[[reference]]
+product_id = 283401
+name = "Silver Tempest Elite Trainer Box"
+msrp = 39.99
+basis = "distributor_or_press"
+evidence_url = "https://www.phdgames.com/2022/09/01/pokemon-tcg-sword-shield-silver-tempest-more/"
+checked_on = "2026-10-25"
+packs = 8
+note = "PHD Games distributor solicitation; releases November 11, 2022."
+
+[[reference]]
+product_id = 285860
+name = "Silver Tempest Pokemon Center Elite Trainer Box (Exclusive)"
+msrp = 49.99
+basis = "official_listing"
+evidence_url = "https://www.pokemoncenter.com/product/183-85162/pokemon-tcg-sword-and-shield-silver-tempest-pokemon-center-elite-trainer-box"
+checked_on = "2026-10-25"
+packs = 10
+note = "Pokemon Center US price from a search-engine snapshot (pokemoncenter.com blocks direct fetches); listing is sold out, so it is the last price shown. Category snapshots show $49.99 USD; the $67.99 figure is the en-ca (CAD) page and was ignored."
+
+[[unpriced]]
+product_id = 678555
+name = "Prismatic Evolutions Booster Bundle + Surprise Box Bundle (Sam's Club)"
+reason = "Sam's Club-only bundle (Booster Bundle + Surprise Box, 10 packs total). samsclub.com blocks fetches and no search snapshot showed its price. Social restock posts (x.com/PokemonDealsTCG, Feb 2026) and StockX quote a $39.98 Sam's Club price, but those are not qualifying sources. Component MSRPs: bundle $26.94, Surprise Box $22.99 (PHD PKU10096)."
+
+[[unpriced]]
+product_id = 610317
+name = "Prismatic Evolutions Booster Bundle Display"
+reason = "No MSRP found for the display itself. Sellers say a Booster Bundle Display holds 10 bundles (60 packs). 10 x $26.94 = $269.40, matching PHD's 151 Booster Bundle Display (PKU85321, $269.40/10 bundles). That is an analogy, not evidence for this product."
+
+[[unpriced]]
+product_id = 670607
+name = "Prismatic Evolutions Elite Trainer Box (Dollar General Exclusive)"
+reason = "No Dollar General price found from DG or press. One seller says this version has 8 packs instead of 9. Only an unverified DG customer review mentions a price. Do not assume the $49.99 standard ETB price."
+
+[[unpriced]]
+product_id = 630433
+name = "Black Bolt Booster Bundle Display"
+reason = "No MSRP found for the display. Sellers (Card Codex, PokeBoxUSA) list 10 bundles per display; one seller says 8. 10 x $26.94 = $269.40 would be an inference, not evidence. Do not confuse with the 25-bundle case."
+
+[[unpriced]]
+product_id = 630698
+name = "White Flare Booster Bundle Display"
+reason = "Same as Black Bolt Booster Bundle Display: no display MSRP found, and the bundle count is not authoritatively confirmed."
+
+[[unpriced]]
+product_id = 644298
+name = "Mega Evolution Booster Box"
+reason = "No qualifying MSRP for the standard (non-enhanced) ME01 display. PHD's ME01 solicitation lists only the Enhanced Booster Display, and Pokemon Center sold only the Enhanced. PokeGuardian lists $161.64 but says its MSRPs are 'unconfirmed ... taken off previous sets'. Every other 36-pack display this era is $161.64; that is a pattern, not evidence."
+
+[[unpriced]]
+product_id = 692362
+name = "Ascended Heroes Booster Bundle Display"
+reason = "No display MSRP found. Sellers say 10 bundles x 6 packs. PHD's AH solicitation lists only the single Booster Bundle ($26.94), so 10 x $26.94 = $269.40 is an inference."
+
+[[unpriced]]
+product_id = 489369
+name = "Scarlet & Violet Elite Trainer Boxes [Set of 2]"
+reason = "No MSRP: '[Set of 2]' is a TCGplayer listing for both ETB variants together, not a product sold with its own price. Inference only: 2 x $49.99 = $99.98 (PHD PKU85341)."
+
+[[unpriced]]
+product_id = 564134
+name = "Trick or Trade BOOster Bundle 2023 (120 ct)"
+reason = "Costco-only 120-mini-pack bag. A Costco deal blog (costco97.com/?p=44035, spotted Oct 28, 2023) says 'Original price: $34.99'; Costco is not one of the accepted first-party sources and the figure is secondhand, so msrp left null. Costco later clearanced it at $9.97."
+
+[[unpriced]]
+product_id = 505945
+name = "Trick or Trade BOOster Bundle 2023 - Mini Booster Pack"
+reason = "Single 3-card mini pack pulled from a bundle; never sold individually, so there is no MSRP. Inference only: $19.99 / 50 = ~$0.40 per mini pack."
+
+[[unpriced]]
+product_id = 512834
+name = "Paradox Rift Elite Trainer Boxes [Set of 2]"
+reason = "No MSRP: '[Set of 2]' is a TCGplayer listing for both ETB variants together. Inference only: 2 x $49.99 = $99.98 (PHD PKU85416)."
+
+[[unpriced]]
+product_id = 524394
+name = "Paradox Rift Pokemon Center Elite Trainer Box (Exclusive) [Set of 2]"
+reason = "No MSRP: Pokemon Center sold the two PC ETBs separately (no combined SKU found). Inference only: 2 x $59.99 = $119.98."
+
+[[unpriced]]
+product_id = 530704
+name = "Paldean Fates Booster Bundle Display"
+reason = "No MSRP found from Pokemon Center, big-box stores, PHD or press. Sellers describe 10 bundles x 6 packs. Analogy only: PHD priced the 151 Booster Bundle Display at $269.40 for 10 bundles; not evidence for this product."
+
+[[unpriced]]
+product_id = 532849
+name = "Temporal Forces Elite Trainer Box [Set of 2]"
+reason = "No MSRP: '[Set of 2]' is a TCGplayer listing for both ETB variants. Inference only: 2 x $49.99 = $99.98 (PHD PKU85657)."
+
+[[unpriced]]
+product_id = 618355
+name = "Shrouded Fable Booster Bundle Display"
+reason = "No MSRP found from Pokemon Center, big-box stores, PHD or press. Sellers describe 10 bundles x 6 packs. Analogy only: 151 display was $269.40 per PHD; not evidence for this product."
+
+[[unpriced]]
+product_id = 591211
+name = "Trick or Trade BOOster Bundle 2024 (120 ct)"
+reason = "No evidence-grade price. The 120-count bag is a Costco club item, and no 2024 Costco shelf price was found (2023's 120 ct was reportedly $34.99 at Costco). Costco is not an accepted first-party source."
+
+[[unpriced]]
+product_id = 566954
+name = "Trick or Trade BOOster Bundle 2024 (80 mini packs)"
+reason = "No list price found. Appears to be a club-store (Sam's Club) 80-count bag; the only price seen is a Slickdeals post of a Sam's Club in-store sale at '$17.14 or less' (Oct 9, 2024), which is a sale price, not MSRP."
+
+[[unpriced]]
+product_id = 579930
+name = "Trick or Trade BOOster Bundle 2024 - Mini Booster Pack"
+reason = "Single 3-card mini pack from a bundle; not sold individually, so there is no MSRP. Inference only: $14.99 / 35 = ~$0.43."
+
+[[unpriced]]
+product_id = 575186
+name = "Greninja ex Battle Deck & 2 Booster Bundle"
+reason = "No MSRP found. Pokemon Center sells only the standalone Greninja ex Battle Deck; no retailer or press listing was found for the deck + 2 booster bundle (seller pages say it contains 2 booster packs). Retailer/channel unknown."
+
+[[unpriced]]
+product_id = 679564
+name = "Surging Sparks Booster Bundle (Retail)"
+reason = "No version-specific MSRP. Target sells 'Surging Sparks Booster Bundle' first-party at $27.99 (target.com A-91619929, out of stock, current snapshot, not necessarily launch list price). Pokemon Center lists a Surging Sparks bundle at $26.94 and PHD (hobby) at $26.94, neither labeled Retail vs LGS. Most likely $26.94, but no source ties a price to the Retail version; left null."
+
+[[unpriced]]
+product_id = 244411
+name = "Sword & Shield Elite Trainer Box [Set of 2]"
+reason = "TCGplayer bundle of the Zacian and Zamazenta ETBs; no retailer sold a 2-pack at a stated price. Each ETB is $39.99 at Pokemon Center (699-16994, 699-16995), so 2 x $39.99 = $79.98 is an inference, not evidence."
+
+[[unpriced]]
+product_id = 221313
+name = "Vivid Voltage Booster Box"
+reason = "No US price found. Only the Pokemon Center Canada page (175-80749) surfaced, at $186.99 CAD, which must not be used. Sibling SWSH displays (Rebel Clash, Battle Styles, Chilling Reign, Fusion Strike, etc.) are $143.64 at Pokemon Center US, but that is a pattern, not evidence for this product."
+
+[[unpriced]]
+product_id = 222987
+name = "Sword & Shield Elite Trainer Box Plus [Zacian]"
+reason = "PokeBeach (Oct 2020) reported the Elite Trainer Box Plus at $59.99 with 12 packs and a gold Zacian V, but also said it was for some international markets and the US would only get the Ultra-Premium Collection. No US retailer listing found, so there is no confirmed US MSRP. Left null; $59.99 is reference only."
+
+[[unpriced]]
+product_id = 222986
+name = "Sword & Shield Elite Trainer Box Plus [Zamazenta]"
+reason = "Same as the Zacian version: PokeBeach reported $59.99 / 12 packs but said the ETB Plus was not a US release. No US listing found. Left null; $59.99 is reference only."
+
+[[unpriced]]
+product_id = 244414
+name = "Battle Styles Elite Trainer Box [Set of 2]"
+reason = "TCGplayer 2-pack of the Single Strike and Rapid Strike ETBs; no stated price for a set of 2. Each is $39.99 at Pokemon Center; $79.98 would be an inference, not evidence."
+
+[[unpriced]]
+product_id = 244410
+name = "Chilling Reign Elite Trainer Box [Set of 2]"
+reason = "TCGplayer 2-pack of the Ice Rider and Shadow Rider ETBs; no stated set-of-2 price. Each regular ETB is $39.99 (PokeBeach); $79.98 would be an inference."
+
+[[unpriced]]
+product_id = 243721
+name = "Evolving Skies Elite Trainer Box [Set of 2]"
+reason = "TCGplayer 2-pack of both regular Evolving Skies ETBs; no stated set-of-2 price. Each is $39.99 (PokeBeach); $79.98 would be an inference."
+
+[[unpriced]]
+product_id = 245855
+name = "Evolving Skies Pokemon Center Elite Trainer Box [Set of 2] (Exclusive)"
+reason = "TCGplayer 2-pack of both Pokemon Center ETBs; no evidence Pokemon Center sold them as a set at a stated price. 2 x $49.99 = $99.98 would be an inference."
+
+[[unpriced]]
+product_id = 659627
+name = "Trick or Trade BOOster Bundle (120 ct)"
+reason = "No evidence for a 120-count product. Only the 40-pack bundle has a published price ($14.99, Dexerto). 3 x $14.99 = $44.97 would be an inference. This may be a club-store or retailer pack; check before using."
+
+[[unpriced]]
+product_id = 280301
+name = "Trick or Trade BOOster Bundle - Mini Booster Pack"
+reason = "A single 3-card mini pack from the 40-pack bundle; never sold alone at retail, so there is no MSRP. $14.99 / 40 = ~$0.37 per pack is an inference only."
