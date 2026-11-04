@@ -53,7 +53,7 @@ rather than hardcoding a threshold, so improving the listing flow lowers it.
 | `inventory/tcgplayer_csv.py` | Seller Portal CSV round-trip |
 | `inventory/pricing.py` | Repricing rules and the review queue |
 | `inventory/ebay_email.py` | Reading sale notifications; the cross-delist trigger |
-| `inventory/ebay_config.py` | Credential loading, sandbox and production kept apart |
+| `inventory/ebay_config.py` | Credential loading and live verification, sandbox and production kept apart |
 | `inventory/views.sql` | Projections, dropped and recreated on every `init` |
 
 ## The two databases
@@ -118,9 +118,12 @@ These are the honest limits, in rough order of how much they matter.
 - **Quantity semantics are the least certain part of that format.** Whether
   delisting through CSV means a negative `Add to Quantity` or a zero
   `Total Quantity` has not been confirmed against a real export.
-- **No eBay API client yet.** Sandbox credentials are in place; production is a
-  separate application. Sandbox cannot see the real shelf, so a working sandbox
-  client proves only that the requests are well formed.
+- **No eBay API client yet, and production is not usable.** The sandbox keyset
+  authenticates. The production keyset is present and correctly paired but eBay
+  rejects it with `401 invalid_client`, which is what an unactivated keyset
+  looks like — `inventory credentials` reports this. Sandbox cannot see the
+  real shelf, so a working sandbox client proves only that the requests are
+  well formed.
 - **Sale emails are parsed but not yet ingested.** `ebay_email.py` reads a real
   notification and matches it to a live listing, and `end_listing` already
   takes the idempotency key the replay protection needs. What is missing is the
@@ -143,12 +146,21 @@ keysets and asking for production when it is absent raises rather than falling
 back, because a silent fallback means a delist that reports success and changes
 nothing.
 
+Having the keys is not the same as having a working keyset: a production keyset
+stays inert until its business details are accepted, and an inert one is
+indistinguishable from a live one on disk — right prefix, right length, right
+shape. `inventory credentials` asks eBay for a token and reports what comes
+back, which is the only way to tell the two apart. It exits non-zero if any
+keyset is refused, so it works as a preflight check. The token is discarded
+rather than stored, and certificate verification is never disabled.
+
 ## Commands
 
 ```
 make init                  # create and seed data/inventory.db
 make status                # counts, slot usage, channel capacity, breakevens
-make test                  # 28 tests, no dependency on the real catalog
+python3 -m inventory credentials   # ask eBay whether the keysets actually work
+make test                  # 131 tests, no dependency on the real catalog
 
 python -m inventory find "Umbreon" --set "Evolving Skies"
 python -m inventory intake                      # interactive batch session

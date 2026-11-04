@@ -10,6 +10,7 @@ from . import (
     catalog,
     cli_intake,
     db,
+    ebay_config,
     intake,
     ledger,
     pricing,
@@ -376,6 +377,27 @@ def cmd_tcgplayer_csv(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_credentials(args: argparse.Namespace) -> int:
+    """Say which keysets eBay actually accepts, not just which are on disk."""
+    present = ebay_config.status()
+    environments = [args.environment] if args.environment else ["sandbox", "production"]
+
+    worst = 0
+    for environment in environments:
+        if not present.get(environment):
+            print(f"{environment:<11} absent  no keyset in .ebay.env")
+            worst = 1
+            continue
+        result = ebay_config.verify(environment)
+        print(result)
+        if not result.is_authenticated:
+            worst = 1
+
+    if worst:
+        print("\nA keyset that loads is not a keyset that works; see the detail above.")
+    return worst
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="inventory")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -425,6 +447,14 @@ def main(argv: list[str] | None = None) -> int:
     csv_cmd.add_argument("--template", required=True, help="CSV exported from the Pricing tab")
     csv_cmd.add_argument("--out", default="data/tcgplayer-import.csv")
 
+    creds = sub.add_parser(
+        "credentials", help="check that eBay accepts the keysets in .ebay.env"
+    )
+    creds.add_argument(
+        "--environment", choices=("sandbox", "production"),
+        help="check just one; the default checks both",
+    )
+
     args = parser.parse_args(argv)
     handlers = {
         "init": cmd_init,
@@ -438,6 +468,7 @@ def main(argv: list[str] | None = None) -> int:
         "plan": cmd_plan,
         "reprice": cmd_reprice,
         "tcgplayer-csv": cmd_tcgplayer_csv,
+        "credentials": cmd_credentials,
     }
     return handlers[args.command](args)
 

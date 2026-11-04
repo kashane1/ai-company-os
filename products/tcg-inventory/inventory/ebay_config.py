@@ -14,11 +14,22 @@ silent fallback would mean a delist that reports success and changes nothing.
 
 from __future__ import annotations
 
+import base64
+import json
+import ssl
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CREDENTIALS_FILE = PROJECT_ROOT / ".ebay.env"
+
+TOKEN_PATH = "/identity/v1/oauth2/token"
+
+# The scope every application token carries. Asking for nothing narrower keeps
+# this a pure credential check rather than a probe of what the keyset can do.
+CLIENT_CREDENTIALS_SCOPE = "https://api.ebay.com/oauth/api_scope"
 
 
 class CredentialsUnavailable(RuntimeError):
@@ -104,3 +115,118 @@ def status(path: Path | None = None) -> dict[str, bool]:
         )
         for env, prefix in (("sandbox", "EBAY_SANDBOX_"), ("production", "EBAY_PROD_"))
     }
+
+
+@dataclass(frozen=True)
+class VerificationResult:
+    """What eBay said when asked for a token. Never carries the token itself."""
+
+    environment: str
+    is_authenticated: bool
+    detail: str
+
+    def __str__(self) -> str:
+        mark = "ok" if self.is_authenticated else "FAILED"
+        return f"{self.environment:<11} {mark:<7} {self.detail}"
+
+
+def _ssl_context() -> ssl.SSLContext:
+    """A verifying context, with a bundle that actually exists.
+
+    Pythons installed from python.org ship without a CA bundle until someone
+    runs `Install Certificates.command`, and until then every HTTPS call dies
+    with an error that reads like an intercepted connection rather than a
+    missing trust store. Falling back to `certifi` when it is importable turns
+    that confusing failure into a working call. Verification is never disabled:
+    these requests carry the credential that can delist real cards.
+    """
+    try:
+        import certifi
+    except ImportError:
+        return ssl.create_default_context()
+    return ssl.create_default_context(cafile=certifi.where())
+
+
+def _post_token_request(url: str, basic_auth: str, timeout_seconds: int) -> dict:
+    """One client-credentials call. Separated out so tests can stand in for it."""
+    body = f"grant_type=client_credentials&scope={CLIENT_CREDENTIALS_SCOPE}".encode()
+    request = urllib.request.Request(
+        url,
+        data=body,
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": f"Basic {basic_auth}",
+        },
+    )
+    with urllib.request.urlopen(
+        request, timeout=timeout_seconds, context=_ssl_context()
+    ) as response:
+        return json.load(response)
+
+
+def verify(
+    environment: str | None = None,
+    path: Path | None = None,
+    timeout_seconds: int = 30,
+) -> VerificationResult:
+    """Ask eBay whether a keyset actually works.
+
+    `status` only reports that the three keys are present in the file, which is
+    a weaker claim than it looks. A production keyset stays inert until the
+    business details are filled in and the agreements accepted, and an inert
+    keyset is indistinguishable from a working one on disk — it has the right
+    shape, the right prefix and the right length, and eBay rejects it with
+    `401 invalid_client`. The only way to tell the two apart is to ask, so this
+    asks.
+
+    A client-credentials request reads nothing and changes nothing on the
+    account; it is the cheapest call that still proves the keyset is live.
+    """
+    credentials = load(environment, path)
+    basic_auth = base64.b64encode(
+        f"{credentials.app_id}:{credentials.cert_id}".encode()
+    ).decode()
+
+    try:
+        payload = _post_token_request(
+            credentials.api_base + TOKEN_PATH, basic_auth, timeout_seconds
+        )
+    except urllib.error.HTTPError as error:
+        return VerificationResult(
+            credentials.environment,
+            is_authenticated=False,
+            detail=_explain_rejection(error, credentials),
+        )
+    except urllib.error.URLError as error:
+        return VerificationResult(
+            credentials.environment,
+            is_authenticated=False,
+            detail=f"could not reach {credentials.api_base}: {error.reason}",
+        )
+
+    # The token is deliberately dropped. Nothing here needs it, and a value that
+    # is never held cannot be logged by accident.
+    expires_in = payload.get("expires_in", "?")
+    return VerificationResult(
+        credentials.environment,
+        is_authenticated=True,
+        detail=f"eBay issued a token, valid {expires_in}s",
+    )
+
+
+def _explain_rejection(
+    error: urllib.error.HTTPError, credentials: EbayCredentials
+) -> str:
+    """Turn eBay's terse OAuth error into the thing to go and check."""
+    if error.code != 401:
+        return f"HTTP {error.code} from {credentials.api_base}"
+
+    if credentials.is_sandbox:
+        hint = "regenerate the sandbox Cert ID and paste the new value in"
+    else:
+        hint = (
+            "the keyset is probably not activated yet — finish the business and "
+            "contact details in the developer portal, or regenerate the "
+            "production Cert ID if you copied it before regenerating"
+        )
+    return f"HTTP 401, eBay rejected the keyset: {hint}"
